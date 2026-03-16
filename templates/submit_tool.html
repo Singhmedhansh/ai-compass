@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="csrf-token" content="{{ csrf_token() }}" />
+  <title>Submit a Tool | AI Compass</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root { --brand: #3b82f6; --brand-dim: rgba(59,130,246,0.12); --brand-glow: rgba(59,130,246,0.25); }
+    body { font-family: 'DM Sans', system-ui, sans-serif; background: #09090b; color: #e4e4e7; }
+    .glass { background: rgba(255,255,255,0.04); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); }
+    .brand-bg { background: var(--brand); }
+    .brand-text { color: var(--brand); }
+    .brand-dim-bg { background: var(--brand-dim); }
+    .sidebar-item { border-left: 2px solid transparent; }
+    .sidebar-item.active { background: var(--brand-dim); color: var(--brand); border-left: 2px solid var(--brand); }
+    input, select, textarea { transition: border-color 0.2s, box-shadow 0.2s; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 2px rgba(59,130,246,0.25); }
+  </style>
+</head>
+<body class="min-h-screen overflow-x-hidden">
+  <div class="relative z-10 flex min-h-screen">
+
+    <!-- SIDEBAR -->
+    <aside class="glass w-60 flex-shrink-0 flex flex-col border-r border-white/6 h-screen sticky top-0 overflow-y-auto">
+      <div class="px-5 py-5 border-b border-white/6">
+        <a href="{{ url_for('main.index') }}" class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg brand-bg flex items-center justify-center flex-shrink-0"><i data-lucide="compass" class="w-4 h-4 text-white"></i></div>
+          <div><div class="text-sm text-zinc-100" style="font-weight:700">AI Compass</div><div class="text-[10px] text-zinc-500 font-mono">v2.1 · 2026</div></div>
+        </a>
+      </div>
+      <nav class="flex-1 px-3 py-4 space-y-0.5 text-sm">
+        <a href="{{ url_for('main.index') }}" class="sidebar-item w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-zinc-400 hover:text-zinc-100 transition-colors"><i data-lucide="layout-grid" class="w-4 h-4"></i>All Tools</a>
+        <a href="{{ url_for('main.updates') }}" class="sidebar-item w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-zinc-400 hover:text-zinc-100 transition-colors"><i data-lucide="rss" class="w-4 h-4"></i>Weekly Updates</a>
+        <a href="{{ url_for('main.submit_tool') }}" class="sidebar-item active w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-zinc-300 transition-colors"><i data-lucide="plus-circle" class="w-4 h-4"></i>Submit a Tool</a>
+        <div class="text-[10px] text-zinc-600 uppercase tracking-widest px-2 mb-2 mt-5" style="font-weight:600">Pages</div>
+        {% if is_authenticated %}
+          <a href="{{ url_for('main.dashboard') }}" class="sidebar-item w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-zinc-400 hover:text-zinc-100 transition-colors"><i data-lucide="layout-dashboard" class="w-4 h-4"></i>Dashboard</a>
+        {% endif %}
+        <a href="{{ url_for('main.compare') }}" class="sidebar-item w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-zinc-400 hover:text-zinc-100 transition-colors"><i data-lucide="scale" class="w-4 h-4"></i>Compare Tools</a>
+      </nav>
+    </aside>
+
+    <!-- MAIN -->
+    <div class="flex-1 flex flex-col min-w-0">
+      <header class="glass sticky top-0 z-30 border-b border-white/6 px-4 md:px-6 h-14 flex items-center gap-3">
+        <a href="{{ url_for('main.index') }}" class="text-zinc-500 hover:text-zinc-200 transition-colors"><i data-lucide="arrow-left" class="w-4 h-4"></i></a>
+        <span class="text-xs text-zinc-500">Back to directory</span>
+        <div class="ml-auto flex items-center gap-2">
+          {% if is_authenticated %}
+            <a href="{{ url_for('main.dashboard') }}" class="text-xs text-zinc-300 hover:text-zinc-100 glass rounded-lg px-2.5 py-1.5">Dashboard</a>
+            <a href="{{ url_for('auth.logout') }}" class="text-xs text-zinc-300 hover:text-zinc-100 glass rounded-lg px-2.5 py-1.5">Logout</a>
+          {% else %}
+            <a href="{{ url_for('auth.login') }}" class="text-xs text-zinc-300 hover:text-zinc-100 glass rounded-lg px-2.5 py-1.5">Login</a>
+          {% endif %}
+        </div>
+      </header>
+
+      <main class="flex-1 px-4 md:px-8 py-8 max-w-2xl mx-auto w-full">
+        <div class="mb-6">
+          <h1 class="text-xl text-zinc-100 tracking-tight" style="font-weight:700">Submit an AI Tool</h1>
+          <p class="text-sm text-zinc-500 mt-0.5">Know a great AI tool we're missing? Submit it for review and it may be added to AI Compass.</p>
+        </div>
+
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% for category, message in messages %}
+            <div class="mb-4 glass rounded-xl px-4 py-3 text-sm {% if category == 'success' %}text-emerald-400 border-emerald-500/20 bg-emerald-500/5{% elif category == 'error' %}text-red-400 border-red-500/20 bg-red-500/5{% else %}text-zinc-300{% endif %}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('main.submit_tool') }}" class="glass rounded-2xl p-6 space-y-5">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs text-zinc-400 mb-1.5" style="font-weight:600">Tool Name <span class="text-red-400">*</span></label>
+              <input name="name" type="text" placeholder="e.g. Perplexity AI" required
+                class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-600" />
+            </div>
+            <div>
+              <label class="block text-xs text-zinc-400 mb-1.5" style="font-weight:600">Website URL <span class="text-red-400">*</span></label>
+              <input name="website" type="url" placeholder="https://example.com" required
+                class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-600" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs text-zinc-400 mb-1.5" style="font-weight:600">Category <span class="text-red-400">*</span></label>
+              <select name="category" required class="w-full bg-zinc-900 border border-white/10 rounded-lg px-3 py-2 text-sm text-zinc-100">
+                <option value="">Select category</option>
+                <option value="llm">LLM / Chat</option>
+                <option value="coding">Coding</option>
+                <option value="writing">Writing & Docs</option>
+                <option value="image">Image Generation</option>
+                <option value="video">Video Generation</option>
+                <option value="research">Research</option>
+                <option value="productivity">Productivity</option>
+                <option value="audio">Audio / Voice</option>
+                <option value="design">Design</option>
+                <option value="data">Data & Analytics</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs text-zinc-400 mb-1.5" style="font-weight:600">Pricing Model <span class="text-red-400">*</span></label>
+              <select name="pricing" required class="w-full bg-zinc-900 border border-white/10 rounded-lg px-3 py-2 text-sm text-zinc-100">
+                <option value="">Select pricing</option>
+                <option value="free">Free</option>
+                <option value="freemium">Freemium</option>
+                <option value="paid">Paid</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs text-zinc-400 mb-1.5" style="font-weight:600">Description <span class="text-red-400">*</span></label>
+            <textarea name="description" rows="4" required placeholder="Describe what this tool does, who it's for, and why it's valuable…"
+              class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-600 resize-none"></textarea>
+          </div>
+
+          <div>
+            <label class="block text-xs text-zinc-400 mb-1.5" style="font-weight:600">Student Perks</label>
+            <input name="student_perks" type="text" placeholder="e.g. Free Pro plan with .edu email"
+              class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-600" />
+          </div>
+
+          <div>
+            <label class="block text-xs text-zinc-400 mb-1.5" style="font-weight:600">Tags <span class="text-zinc-600 font-normal">(comma-separated)</span></label>
+            <input name="tags" type="text" placeholder="e.g. ai, writing, free-tier"
+              class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-600" />
+          </div>
+
+          <div>
+            <label class="block text-xs text-zinc-400 mb-1.5" style="font-weight:600">Your Email <span class="text-zinc-600 font-normal">(optional, for follow-up)</span></label>
+            <input name="submitter_email" type="email" placeholder="you@example.com"
+              class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-600" />
+          </div>
+
+          <button type="submit"
+            class="w-full brand-bg text-white rounded-lg py-2.5 text-sm hover:opacity-90 transition-opacity" style="font-weight:600">
+            Submit Tool for Review
+          </button>
+        </form>
+      </main>
+    </div>
+  </div>
+  <script>if (window.lucide) window.lucide.createIcons();</script>
+</body>
+</html>

@@ -53,6 +53,9 @@
         <div class="text-[10px] font-600 text-zinc-600 uppercase tracking-widest px-2 mb-2 mt-5" style="font-weight:600">Pages</div>
         <a href="{{ url_for('main.dashboard') }}" class="sidebar-item active w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-zinc-300 hover:text-zinc-100 transition-colors"><i data-lucide="layout-dashboard" class="w-4 h-4"></i>Dashboard</a>
         <a href="{{ url_for('main.compare') }}" class="sidebar-item w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-zinc-300 hover:text-zinc-100 transition-colors"><i data-lucide="scale" class="w-4 h-4"></i>Compare</a>
+        <a href="{{ url_for('main.ai_stack_builder') }}" class="sidebar-item w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-zinc-300 hover:text-zinc-100 transition-colors"><i data-lucide="layers" class="w-4 h-4"></i>AI Stack Builder</a>
+        <a href="{{ url_for('main.updates') }}" class="sidebar-item w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-zinc-300 hover:text-zinc-100 transition-colors"><i data-lucide="rss" class="w-4 h-4"></i>Updates</a>
+        <a href="{{ url_for('main.submit_tool') }}" class="sidebar-item w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-zinc-300 hover:text-zinc-100 transition-colors"><i data-lucide="plus-circle" class="w-4 h-4"></i>Submit Tool</a>
       </nav>
     </aside>
 
@@ -65,13 +68,33 @@
         <div class="flex items-center gap-2.5 glass rounded-full px-3 py-1.5 border-white/8">
           <i data-lucide="graduation-cap" class="w-3.5 h-3.5 text-zinc-400"></i>
           <span class="text-xs text-zinc-400 hidden sm:block">Student Mode</span>
-          <button id="studentToggle" class="toggle-switch transition-all duration-300"><span class="toggle-knob transition-all duration-300"></span></button>
+          <button id="studentToggle" data-student-mode="{{ 'true' if student_mode else 'false' }}" class="toggle-switch transition-all duration-300 {% if student_mode %}active{% endif %}"><span class="toggle-knob transition-all duration-300"></span></button>
         </div>
+        <select id="dashboard-sort" class="text-xs bg-white/5 border border-white/8 rounded-lg px-2.5 py-1.5 text-zinc-300">
+          {% for item in sort_options %}
+            <option value="{{ item }}" {% if sort_type == item %}selected{% endif %}>{{ item|replace('rating','Highest Rated')|replace('popular','Most Popular')|replace('newest','Newest')|replace('free','Free First')|replace('trending','Trending') }}</option>
+          {% endfor %}
+        </select>
+        {% if current_user.is_authenticated and current_user.is_admin %}
+        <a href="{{ url_for('main.admin') }}" class="text-xs text-white bg-blue-600 hover:bg-blue-500 transition-colors rounded-lg px-2.5 py-1.5">Admin Panel</a>
+        {% endif %}
         <a href="{{ url_for('main.index') }}" class="text-xs text-zinc-300 hover:text-zinc-100 transition-colors glass rounded-lg px-2.5 py-1.5">Home</a>
         <a href="{{ url_for('auth.logout') }}" class="text-xs text-zinc-300 hover:text-zinc-100 transition-colors glass rounded-lg px-2.5 py-1.5">Logout</a>
       </header>
 
       <main class="flex-1 px-4 md:px-6 py-6 space-y-8">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+          <div class="space-y-2">
+            {% for category, message in messages %}
+              <div class="glass rounded-xl px-4 py-3 text-sm {% if category == 'success' %}text-emerald-400 border-emerald-500/20 bg-emerald-500/5{% elif category == 'error' or category == 'danger' %}text-red-400 border-red-500/20 bg-red-500/5{% else %}text-blue-300 border-blue-500/20 bg-blue-500/5{% endif %}">
+                {{ message }}
+              </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+        {% endwith %}
+
         <div>
           <h1 class="text-xl font-700 text-zinc-100 tracking-tight" style="font-weight:700">Your AI Compass Dashboard</h1>
           <p class="text-sm text-zinc-500 mt-0.5">Favorites, recommendations, and trending tools in one place.</p>
@@ -87,9 +110,12 @@
               {% set model = (tool.price or 'paid')|lower %}
               <article class="glass glass-hover rounded-xl p-4 flex flex-col gap-3">
                 <div class="flex items-start justify-between gap-2">
-                  <div class="min-w-0">
-                    <h3 class="text-sm font-700 text-zinc-100" style="font-weight:700">{{ tool.name }}</h3>
-                    <p class="text-xs text-zinc-500 mt-0.5 line-clamp-2">{{ tool.tagline or '' }}</p>
+                  <div class="min-w-0 flex items-start gap-2">
+                    <img src="{{ tool.icon or '/static/icons/default.png' }}" onerror="this.onerror=null;this.src='/static/icons/default.png';" alt="{{ tool.name }} logo" class="w-8 h-8 rounded-md object-cover bg-white/10 border border-white/10 flex-shrink-0" />
+                    <div>
+                      <h3 class="text-sm font-700 text-zinc-100" style="font-weight:700">{{ tool.name }}</h3>
+                      <p class="text-xs text-zinc-500 mt-0.5 line-clamp-2">{{ tool.tagline or '' }}</p>
+                    </div>
                   </div>
                   <span class="text-[9px] font-mono px-1.5 py-0.5 rounded-full {% if model == 'free' %}badge-free{% elif model == 'freemium' %}badge-freemium{% else %}badge-paid{% endif %}">{{ model|capitalize }}</span>
                 </div>
@@ -98,6 +124,12 @@
                   <span class="text-[10px] font-mono bg-white/5 text-zinc-400 px-2 py-0.5 rounded-md">{{ tool.bestFor or 'General use' }}</span>
                 </div>
                 <p class="text-xs text-zinc-400 leading-relaxed line-clamp-2">{{ tool.description or '' }}</p>
+                {% if student_mode and (tool.studentPerk or tool.uniHack) %}
+                  <div class="flex items-center gap-1.5 flex-wrap">
+                    {% if tool.studentPerk %}<span class="text-[10px] bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 rounded-md px-2 py-0.5">🎓 Student Perk</span>{% endif %}
+                    {% if tool.uniHack %}<span class="text-[10px] bg-sky-500/10 text-sky-300 border border-sky-500/20 rounded-md px-2 py-0.5">🏫 University Hack</span>{% endif %}
+                  </div>
+                {% endif %}
                 <div class="mt-auto pt-2 border-t border-white/5 space-y-2">
                   <div class="text-[10px] text-zinc-500 font-mono line-clamp-2">{{ pricing }}</div>
                   <a href="{{ tool.link or tool.website }}" target="_blank" rel="noopener" class="inline-flex text-[10px] brand-text glass rounded-lg px-2.5 py-1 transition-all border border-white/8 hover:border-white/15">Visit Tool</a>
@@ -119,9 +151,12 @@
               {% set model = (tool.price or 'paid')|lower %}
               <article class="glass glass-hover rounded-xl p-4 flex flex-col gap-3">
                 <div class="flex items-start justify-between gap-2">
-                  <div class="min-w-0">
-                    <h3 class="text-sm font-700 text-zinc-100" style="font-weight:700">{{ tool.name }}</h3>
-                    <p class="text-xs text-zinc-500 mt-0.5 line-clamp-2">{{ tool.tagline or '' }}</p>
+                  <div class="min-w-0 flex items-start gap-2">
+                    <img src="{{ tool.icon or '/static/icons/default.png' }}" onerror="this.onerror=null;this.src='/static/icons/default.png';" alt="{{ tool.name }} logo" class="w-8 h-8 rounded-md object-cover bg-white/10 border border-white/10 flex-shrink-0" />
+                    <div>
+                      <h3 class="text-sm font-700 text-zinc-100" style="font-weight:700">{{ tool.name }}</h3>
+                      <p class="text-xs text-zinc-500 mt-0.5 line-clamp-2">{{ tool.tagline or '' }}</p>
+                    </div>
                   </div>
                   <span class="text-[9px] font-mono px-1.5 py-0.5 rounded-full {% if model == 'free' %}badge-free{% elif model == 'freemium' %}badge-freemium{% else %}badge-paid{% endif %}">{{ model|capitalize }}</span>
                 </div>
@@ -130,6 +165,12 @@
                   <span class="text-[10px] font-mono bg-white/5 text-zinc-400 px-2 py-0.5 rounded-md">{{ tool.bestFor or 'General use' }}</span>
                 </div>
                 <p class="text-xs text-zinc-400 leading-relaxed line-clamp-2">{{ tool.description or '' }}</p>
+                {% if student_mode and (tool.studentPerk or tool.uniHack) %}
+                  <div class="flex items-center gap-1.5 flex-wrap">
+                    {% if tool.studentPerk %}<span class="text-[10px] bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 rounded-md px-2 py-0.5">🎓 Student Perk</span>{% endif %}
+                    {% if tool.uniHack %}<span class="text-[10px] bg-sky-500/10 text-sky-300 border border-sky-500/20 rounded-md px-2 py-0.5">🏫 University Hack</span>{% endif %}
+                  </div>
+                {% endif %}
                 <div class="mt-auto pt-2 border-t border-white/5 space-y-2">
                   <div class="text-[10px] text-zinc-500 font-mono line-clamp-2">{{ pricing }}</div>
                   <a href="{{ tool.link or tool.website }}" target="_blank" rel="noopener" class="inline-flex text-[10px] brand-text glass rounded-lg px-2.5 py-1 transition-all border border-white/8 hover:border-white/15">Visit Tool</a>
@@ -137,6 +178,38 @@
               </article>
             {% else %}
               <div class="col-span-full glass rounded-xl p-4 text-sm text-zinc-500">Add favorites to unlock personalized recommendations.</div>
+            {% endfor %}
+          </div>
+        </section>
+
+        <section>
+          <div class="flex items-center justify-between mb-3">
+            <h2 class="text-sm font-600 text-zinc-200" style="font-weight:600">Recently Viewed</h2>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
+            {% for tool in recent_tools %}
+              {% set pricing = (tool.pricingDetail or tool.price or 'Pricing unavailable') %}
+              {% set model = (tool.price or 'paid')|lower %}
+              <article class="glass glass-hover rounded-xl p-4 flex flex-col gap-3">
+                <div class="flex items-start justify-between gap-2">
+                  <div class="min-w-0 flex items-start gap-2">
+                    <img src="{{ tool.icon or '/static/icons/default.png' }}" onerror="this.onerror=null;this.src='/static/icons/default.png';" alt="{{ tool.name }} logo" class="w-8 h-8 rounded-md object-cover bg-white/10 border border-white/10 flex-shrink-0" />
+                    <div>
+                      <a href="{{ url_for('main.tool_detail', tool_id=tool.tool_key) }}" class="text-sm font-700 text-zinc-100 hover:text-blue-400 transition-colors" style="font-weight:700">{{ tool.name }}</a>
+                      <p class="text-xs text-zinc-500 mt-0.5 line-clamp-2">{{ tool.tagline or '' }}</p>
+                    </div>
+                  </div>
+                  <span class="text-[9px] font-mono px-1.5 py-0.5 rounded-full {% if model == 'free' %}badge-free{% elif model == 'freemium' %}badge-freemium{% else %}badge-paid{% endif %}">{{ model|capitalize }}</span>
+                </div>
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <span class="text-[10px] font-mono brand-dim-bg brand-text px-2 py-0.5 rounded-md">{{ tool.category or 'other' }}</span>
+                </div>
+                <div class="mt-auto pt-2 border-t border-white/5">
+                  <a href="{{ url_for('main.tool_detail', tool_id=tool.tool_key) }}" class="inline-flex text-[10px] brand-text glass rounded-lg px-2.5 py-1 transition-all border border-white/8 hover:border-white/15">View Details</a>
+                </div>
+              </article>
+            {% else %}
+              <div class="col-span-full glass rounded-xl p-4 text-sm text-zinc-500">No tools viewed yet. Browse the <a href="{{ url_for('main.index') }}" class="brand-text hover:opacity-80">directory</a>.</div>
             {% endfor %}
           </div>
         </section>
@@ -151,9 +224,12 @@
               {% set model = (tool.price or 'paid')|lower %}
               <article class="glass glass-hover rounded-xl p-4 flex flex-col gap-3">
                 <div class="flex items-start justify-between gap-2">
-                  <div class="min-w-0">
-                    <h3 class="text-sm font-700 text-zinc-100" style="font-weight:700">{{ tool.name }}</h3>
-                    <p class="text-xs text-zinc-500 mt-0.5 line-clamp-2">{{ tool.tagline or '' }}</p>
+                  <div class="min-w-0 flex items-start gap-2">
+                    <img src="{{ tool.icon or '/static/icons/default.png' }}" onerror="this.onerror=null;this.src='/static/icons/default.png';" alt="{{ tool.name }} logo" class="w-8 h-8 rounded-md object-cover bg-white/10 border border-white/10 flex-shrink-0" />
+                    <div>
+                      <h3 class="text-sm font-700 text-zinc-100" style="font-weight:700">{{ tool.name }}</h3>
+                      <p class="text-xs text-zinc-500 mt-0.5 line-clamp-2">{{ tool.tagline or '' }}</p>
+                    </div>
                   </div>
                   <span class="text-[9px] font-mono bg-white/6 border border-white/10 text-zinc-400 px-1.5 py-0.5 rounded-full">Hot</span>
                 </div>
@@ -162,6 +238,12 @@
                   <span class="text-[10px] font-mono px-1.5 py-0.5 rounded-full {% if model == 'free' %}badge-free{% elif model == 'freemium' %}badge-freemium{% else %}badge-paid{% endif %}">{{ model|capitalize }}</span>
                 </div>
                 <p class="text-xs text-zinc-400 leading-relaxed line-clamp-2">{{ tool.description or '' }}</p>
+                {% if student_mode and (tool.studentPerk or tool.uniHack) %}
+                  <div class="flex items-center gap-1.5 flex-wrap">
+                    {% if tool.studentPerk %}<span class="text-[10px] bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 rounded-md px-2 py-0.5">🎓 Student Perk</span>{% endif %}
+                    {% if tool.uniHack %}<span class="text-[10px] bg-sky-500/10 text-sky-300 border border-sky-500/20 rounded-md px-2 py-0.5">🏫 University Hack</span>{% endif %}
+                  </div>
+                {% endif %}
                 <div class="mt-auto pt-2 border-t border-white/5 space-y-2">
                   <div class="text-[10px] text-zinc-500 font-mono line-clamp-2">{{ pricing }}</div>
                   <a href="{{ tool.link or tool.website }}" target="_blank" rel="noopener" class="inline-flex text-[10px] brand-text glass rounded-lg px-2.5 py-1 transition-all border border-white/8 hover:border-white/15">Visit Tool</a>
@@ -178,11 +260,26 @@
 
   <script>
     const studentToggle = document.getElementById('studentToggle');
+    const sortSelect = document.getElementById('dashboard-sort');
+
+    function reloadDashboard() {
+      const params = new URLSearchParams(window.location.search);
+      if (sortSelect) params.set('sort', sortSelect.value);
+      const isStudent = studentToggle && studentToggle.dataset.studentMode === 'true';
+      params.set('student_mode', isStudent ? 'true' : 'false');
+      window.location.href = '/dashboard?' + params.toString();
+    }
+
     if (studentToggle) {
       studentToggle.addEventListener('click', () => {
-        document.body.classList.toggle('student-mode');
-        studentToggle.classList.toggle('active');
+        const isStudent = studentToggle.dataset.studentMode === 'true';
+        studentToggle.dataset.studentMode = isStudent ? 'false' : 'true';
+        reloadDashboard();
       });
+    }
+
+    if (sortSelect) {
+      sortSelect.addEventListener('change', reloadDashboard);
     }
     if (window.lucide && typeof window.lucide.createIcons === 'function') window.lucide.createIcons();
   </script>

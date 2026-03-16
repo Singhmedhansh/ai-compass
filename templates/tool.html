@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="csrf-token" content="{{ csrf_token() }}" />
+  <meta name="is-authenticated" content="{{ 'true' if is_authenticated|default(false) else 'false' }}" />
+  <meta name="description" content="{{ seo_description }}" />
+  <meta property="og:title" content="{{ tool.name }} | AI Compass" />
+  <meta property="og:description" content="{{ seo_description }}" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="{{ request.url }}" />
+  <meta property="og:image" content="{{ tool.icon or '/static/icons/default.png' }}" />
+  <link rel="canonical" href="{{ request.url }}" />
+  <title>{{ tool.name }} | AI Compass</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --brand: #3b82f6;
+      --brand-dim: rgba(59,130,246,0.12);
+      --brand-glow: rgba(59,130,246,0.25);
+      --student-brand: #10b981;
+      --student-dim: rgba(16,185,129,0.12);
+    }
+    body { font-family: 'DM Sans', system-ui, sans-serif; background: #09090b; color: #e4e4e7; }
+    .glass { background: rgba(255,255,255,0.04); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); }
+    .glass-hover { transition: border-color 0.2s, box-shadow 0.2s, background 0.2s; }
+    .glass-hover:hover { border-color: rgba(255,255,255,0.15); background: rgba(255,255,255,0.07); box-shadow: 0 0 0 1px var(--brand-glow), 0 8px 32px rgba(0,0,0,0.4); }
+    .brand-text { color: var(--brand); }
+    .brand-bg { background: var(--brand); }
+    .brand-dim-bg { background: var(--brand-dim); }
+    .sidebar-item.active { background: var(--brand-dim); color: var(--brand); border-left: 2px solid var(--brand); }
+    .sidebar-item { border-left: 2px solid transparent; }
+    .badge-free { background: rgba(16,185,129,0.12); color: #34d399; border: 1px solid rgba(16,185,129,0.2); }
+    .badge-freemium { background: rgba(251,191,36,0.1); color: #fbbf24; border: 1px solid rgba(251,191,36,0.2); }
+    .badge-paid { background: rgba(239,68,68,0.1); color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
+    .toggle-switch { width: 52px; height: 28px; background: #374151; border-radius: 9999px; position: relative; border: 1px solid rgba(255,255,255,0.14); }
+    .toggle-knob { width: 22px; height: 22px; background: #fff; border-radius: 9999px; position: absolute; top: 2px; left: 2px; transition: transform 0.25s ease; }
+    .toggle-switch.active { background: #10b981; }
+    .toggle-switch.active .toggle-knob { transform: translateX(24px); }
+    body.student-mode .student-section { display: block !important; }
+    ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+  </style>
+</head>
+<body class="min-h-screen overflow-x-hidden">
+  {% set is_authenticated = is_authenticated|default(false) %}
+  <div class="relative z-10 flex min-h-screen">
+
+    <!-- SIDEBAR -->
+    <aside class="glass w-60 flex-shrink-0 flex flex-col border-r border-white/6 h-screen sticky top-0 overflow-y-auto">
+      <div class="px-5 py-5 border-b border-white/6">
+        <a href="{{ url_for('main.index') }}" class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg brand-bg flex items-center justify-center flex-shrink-0"><i data-lucide="compass" class="w-4 h-4 text-white"></i></div>
+          <div><div class="text-sm text-zinc-100" style="font-weight:700">AI Compass</div><div class="text-[10px] text-zinc-500 font-mono">v2.1 · 2026</div></div>
+        </a>
+      </div>
+      <nav class="flex-1 px-3 py-4 space-y-0.5 text-sm">
+        <a href="{{ url_for('main.index') }}" class="sidebar-item w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-zinc-400 hover:text-zinc-100 transition-colors"><i data-lucide="layout-grid" class="w-4 h-4"></i>All Tools</a>
+        <a href="{{ url_for('main.updates') }}" class="sidebar-item w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-zinc-400 hover:text-zinc-100 transition-colors"><i data-lucide="rss" class="w-4 h-4"></i>Weekly Updates</a>
+        <a href="{{ url_for('main.submit_tool') }}" class="sidebar-item w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-zinc-400 hover:text-zinc-100 transition-colors"><i data-lucide="plus-circle" class="w-4 h-4"></i>Submit a Tool</a>
+        <div class="text-[10px] text-zinc-600 uppercase tracking-widest px-2 mb-2 mt-5" style="font-weight:600">Pages</div>
+        {% if is_authenticated %}
+          <a href="{{ url_for('main.dashboard') }}" class="sidebar-item w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-zinc-400 hover:text-zinc-100 transition-colors"><i data-lucide="layout-dashboard" class="w-4 h-4"></i>Dashboard</a>
+        {% endif %}
+        <a href="{{ url_for('main.compare') }}" class="sidebar-item w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-zinc-400 hover:text-zinc-100 transition-colors"><i data-lucide="scale" class="w-4 h-4"></i>Compare Tools</a>
+      </nav>
+    </aside>
+
+    <!-- MAIN -->
+    <div class="flex-1 flex flex-col min-w-0">
+
+      <!-- HEADER -->
+      <header class="glass sticky top-0 z-30 border-b border-white/6 px-4 md:px-6 h-14 flex items-center gap-3">
+        <a href="{{ url_for('main.index') }}" class="text-zinc-500 hover:text-zinc-200 transition-colors">
+          <i data-lucide="arrow-left" class="w-4 h-4"></i>
+        </a>
+        <span class="text-xs text-zinc-500">Back to tools</span>
+        <div class="ml-auto flex items-center gap-2.5">
+          <div class="flex items-center gap-2 glass rounded-full px-3 py-1.5">
+            <i data-lucide="graduation-cap" class="w-3.5 h-3.5 text-zinc-400"></i>
+            <span class="text-xs text-zinc-400 hidden sm:block">Student Mode</span>
+            <button id="studentToggle" class="toggle-switch"><span class="toggle-knob"></span></button>
+          </div>
+          {% if is_authenticated %}
+            <a href="{{ url_for('main.dashboard') }}" class="text-xs text-zinc-300 hover:text-zinc-100 glass rounded-lg px-2.5 py-1.5">Dashboard</a>
+            <a href="{{ url_for('auth.logout') }}" class="text-xs text-zinc-300 hover:text-zinc-100 glass rounded-lg px-2.5 py-1.5">Logout</a>
+          {% else %}
+            <a href="{{ url_for('auth.login') }}" class="text-xs text-zinc-300 hover:text-zinc-100 glass rounded-lg px-2.5 py-1.5">Login</a>
+          {% endif %}
+        </div>
+      </header>
+
+      <main class="flex-1 px-4 md:px-8 py-8 max-w-5xl mx-auto w-full space-y-8">
+
+        <!-- HERO SECTION -->
+        <div class="glass rounded-2xl p-6 md:p-8">
+          <div class="flex items-start gap-5 flex-wrap">
+            <img
+              src="{{ tool.icon or '/static/icons/default.png' }}"
+              onerror="this.onerror=null;this.src='/static/icons/default.png';"
+              alt="{{ tool.name }} logo"
+              class="w-16 h-16 rounded-xl object-cover bg-white/10 border border-white/10 flex-shrink-0"
+            />
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-3 flex-wrap">
+                <h1 class="text-2xl text-zinc-100 tracking-tight" style="font-weight:700">{{ tool.name }}</h1>
+                {% set model = (tool.price or 'paid')|lower %}
+                <span class="text-[10px] font-mono px-2 py-0.5 rounded-full {% if model == 'free' %}badge-free{% elif model == 'freemium' %}badge-freemium{% else %}badge-paid{% endif %}">{{ model|capitalize }}</span>
+                {% if tool.trending %}<span class="text-[9px] font-mono bg-amber-500/10 text-amber-400 border border-amber-500/20 px-1.5 py-0.5 rounded-full">🔥 Trending</span>{% endif %}
+              </div>
+              <p class="text-sm text-zinc-400 mt-1">{{ tool.tagline or '' }}</p>
+              {% if tool.maker %}<p class="text-[11px] text-zinc-600 mt-1 font-mono">by {{ tool.maker }}</p>{% endif %}
+            </div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <a href="{{ tool.link or tool.website or '#' }}" target="_blank" rel="noopener noreferrer"
+                 class="inline-flex items-center gap-1.5 text-xs brand-bg text-white rounded-lg px-4 py-2 hover:opacity-90 transition-opacity">
+                <i data-lucide="external-link" class="w-3.5 h-3.5"></i> Visit Tool
+              </a>
+              <button id="fav-btn" onclick="toggleFavorite('{{ tool.tool_key }}')"
+                class="inline-flex items-center gap-1.5 text-xs glass rounded-lg px-3 py-2 transition-all border {% if is_favorited %}border-amber-400/30 text-amber-300 bg-amber-500/10{% else %}border-white/10 text-zinc-300{% endif %}"
+                data-favorited="{{ 'true' if is_favorited else 'false' }}">
+                <i data-lucide="star" class="w-3.5 h-3.5"></i>
+                <span id="fav-label">{% if is_favorited %}Saved{% else %}Save{% endif %}</span>
+              </button>
+              <a href="{{ url_for('main.compare') }}?tools={{ tool.tool_key }}"
+                 class="inline-flex items-center gap-1.5 text-xs glass rounded-lg px-3 py-2 border border-white/10 text-zinc-300 hover:border-white/20 transition-all">
+                <i data-lucide="scale" class="w-3.5 h-3.5"></i> Compare
+              </a>
+              <a href="{{ url_for('main.ai_stack_builder') }}"
+                 class="inline-flex items-center gap-1.5 text-xs glass rounded-lg px-3 py-2 border border-white/10 text-zinc-300 hover:border-white/20 transition-all">
+                <i data-lucide="layers" class="w-3.5 h-3.5"></i> Stack Builder
+              </a>
+            </div>
+          </div>
+
+          <!-- Quick stats -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-5 border-t border-white/6">
+            <div class="glass rounded-lg p-3 text-center">
+              <div class="text-lg text-zinc-100 font-mono" style="font-weight:600">{{ tool.rating or 'N/A' }}</div>
+              <div class="text-[10px] text-zinc-500 mt-0.5">Rating</div>
+            </div>
+            <div class="glass rounded-lg p-3 text-center">
+              <div class="text-lg text-zinc-100 font-mono" style="font-weight:600">{{ tool.weeklyUsers or 'N/A' }}</div>
+              <div class="text-[10px] text-zinc-500 mt-0.5">Weekly Users</div>
+            </div>
+            <div class="glass rounded-lg p-3 text-center">
+              <div class="text-lg text-zinc-100 font-mono" style="font-weight:600">{{ views }}</div>
+              <div class="text-[10px] text-zinc-500 mt-0.5">Page Views</div>
+            </div>
+            <div class="glass rounded-lg p-3 text-center">
+              <div class="text-lg text-zinc-100 font-mono" style="font-weight:600">{{ tool.launchYear or 'N/A' }}</div>
+              <div class="text-[10px] text-zinc-500 mt-0.5">Launched</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <!-- LEFT: Main content -->
+          <div class="md:col-span-2 space-y-6">
+
+            <!-- Overview -->
+            <section class="glass rounded-xl p-5">
+              <h2 class="text-sm text-zinc-100 mb-3 flex items-center gap-2" style="font-weight:600">
+                <i data-lucide="info" class="w-4 h-4 brand-text"></i> Overview
+              </h2>
+              <p class="text-sm text-zinc-300 leading-relaxed">{{ tool.description or 'No description available.' }}</p>
+            </section>
+
+            <!-- Best For -->
+            <section class="glass rounded-xl p-5">
+              <h2 class="text-sm text-zinc-100 mb-3 flex items-center gap-2" style="font-weight:600">
+                <i data-lucide="target" class="w-4 h-4 brand-text"></i> Best For
+              </h2>
+              <p class="text-sm text-zinc-300">{{ tool.bestFor or tool.subcategory or 'General use' }}</p>
+              {% if tool.subcategory and tool.subcategory != tool.bestFor %}
+                <p class="text-xs text-zinc-500 mt-1">Category: {{ tool.subcategory }}</p>
+              {% endif %}
+            </section>
+
+            <!-- Features -->
+            {% if tool.features %}
+            <section class="glass rounded-xl p-5">
+              <h2 class="text-sm text-zinc-100 mb-3 flex items-center gap-2" style="font-weight:600">
+                <i data-lucide="check-circle" class="w-4 h-4 brand-text"></i> Key Features
+              </h2>
+              <ul class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {% for feature in tool.features %}
+                <li class="flex items-start gap-2 text-xs text-zinc-300">
+                  <i data-lucide="check" class="w-3.5 h-3.5 brand-text flex-shrink-0 mt-0.5"></i>
+                  {{ feature }}
+                </li>
+                {% endfor %}
+              </ul>
+            </section>
+            {% endif %}
+
+            <!-- Student Perks (hidden by default, shown in student mode) -->
+            <section class="student-section hidden glass rounded-xl p-5 border border-emerald-500/20 bg-emerald-500/5">
+              <h2 class="text-sm mb-3 flex items-center gap-2" style="font-weight:600; color:#34d399;">
+                <i data-lucide="graduation-cap" class="w-4 h-4"></i> Student Perks
+              </h2>
+              {% if tool.studentPerk %}
+                <p class="text-sm text-zinc-300 leading-relaxed">{{ tool.studentPerk }}</p>
+              {% else %}
+                <p class="text-sm text-zinc-500">No specific student perk listed for this tool.</p>
+              {% endif %}
+              {% if tool.uniHack %}
+                <div class="mt-4 pt-4 border-t border-emerald-500/15">
+                  <div class="text-[10px] text-emerald-600 uppercase tracking-widest mb-1.5" style="font-weight:600">University Hack</div>
+                  <p class="text-xs text-zinc-300 leading-relaxed">{{ tool.uniHack }}</p>
+                </div>
+              {% endif %}
+            </section>
+
+          </div>
+
+          <!-- RIGHT: Metadata sidebar -->
+          <div class="space-y-4">
+
+            <!-- Tags -->
+            {% if tool.tags %}
+            <div class="glass rounded-xl p-4">
+              <div class="text-[10px] text-zinc-500 uppercase tracking-widest mb-2" style="font-weight:600">Tags</div>
+              <div class="flex flex-wrap gap-1.5">
+                {% for tag in tool.tags %}
+                  <span class="text-[10px] font-mono brand-dim-bg brand-text border border-blue-500/15 px-2 py-0.5 rounded-md">{{ tag }}</span>
+                {% endfor %}
+              </div>
+            </div>
+            {% endif %}
+
+            <!-- Details -->
+            <div class="glass rounded-xl p-4 space-y-3">
+              <div class="text-[10px] text-zinc-500 uppercase tracking-widest mb-2" style="font-weight:600">Details</div>
+
+              <div class="flex items-center justify-between">
+                <span class="text-xs text-zinc-500">Category</span>
+                <span class="text-xs text-zinc-200 font-mono">{{ tool.category or 'N/A' }}</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-xs text-zinc-500">Pricing</span>
+                <span class="text-xs text-zinc-200 font-mono truncate max-w-[120px]" title="{{ tool.pricingDetail or '' }}">{{ (tool.pricingDetail or tool.price or 'N/A')[:24] }}{% if (tool.pricingDetail or '')|length > 24 %}…{% endif %}</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-xs text-zinc-500">API Available</span>
+                <span class="text-xs {% if tool.apiAvailable %}text-emerald-400{% else %}text-zinc-500{% endif %}">
+                  {% if tool.apiAvailable %}Yes{% else %}No{% endif %}
+                </span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-xs text-zinc-500">Open Source</span>
+                <span class="text-xs {% if tool.openSource %}text-emerald-400{% else %}text-zinc-500{% endif %}">
+                  {% if tool.openSource %}Yes{% else %}No{% endif %}
+                </span>
+              </div>
+              {% if tool.languages %}
+              <div class="flex items-center justify-between">
+                <span class="text-xs text-zinc-500">Languages</span>
+                <span class="text-xs text-zinc-200 font-mono">{{ tool.languages }}+</span>
+              </div>
+              {% endif %}
+            </div>
+
+            <!-- Platforms -->
+            {% if tool.platforms %}
+            <div class="glass rounded-xl p-4">
+              <div class="text-[10px] text-zinc-500 uppercase tracking-widest mb-2" style="font-weight:600">Platforms</div>
+              <div class="flex flex-wrap gap-1.5">
+                {% for platform in tool.platforms %}
+                  <span class="text-[10px] font-mono bg-white/5 text-zinc-400 border border-white/8 px-2 py-0.5 rounded-md">{{ platform }}</span>
+                {% endfor %}
+              </div>
+            </div>
+            {% endif %}
+
+            <!-- Ranking -->
+            {% if tool.rank %}
+            <div class="glass rounded-xl p-4">
+              <div class="text-[10px] text-zinc-500 uppercase tracking-widest mb-2" style="font-weight:600">Global Rank</div>
+              <div class="text-xl brand-text font-mono" style="font-weight:700">#{{ tool.rank }}</div>
+              <div class="text-[10px] text-zinc-600 mt-0.5">Out of 100 curated tools</div>
+            </div>
+            {% endif %}
+
+          </div>
+        </div>
+
+        <!-- ALTERNATIVES -->
+        {% if alternatives %}
+        <section>
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-sm text-zinc-100" style="font-weight:600">Alternatives</h2>
+            <span class="text-[10px] text-zinc-500 font-mono">{{ alternatives|length }} found</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+            {% for sim in alternatives %}
+              {% set sim_model = (sim.price or 'paid')|lower %}
+              <article class="glass glass-hover rounded-xl p-4 flex flex-col gap-3">
+                <div class="flex items-start justify-between gap-2">
+                  <div class="min-w-0 flex items-start gap-2">
+                    <img src="{{ sim.icon or '/static/icons/default.png' }}" onerror="this.onerror=null;this.src='/static/icons/default.png';" alt="{{ sim.name }} logo" class="w-8 h-8 rounded-md object-cover bg-white/10 border border-white/10 flex-shrink-0" />
+                    <div>
+                      <a href="{{ url_for('main.tool_detail', tool_id=sim.tool_key) }}" class="text-sm text-zinc-100 hover:text-blue-400 transition-colors" style="font-weight:700">{{ sim.name }}</a>
+                      <p class="text-xs text-zinc-500 mt-0.5 line-clamp-1">{{ sim.tagline or '' }}</p>
+                    </div>
+                  </div>
+                  <span class="text-[9px] font-mono px-1.5 py-0.5 rounded-full {% if sim_model == 'free' %}badge-free{% elif sim_model == 'freemium' %}badge-freemium{% else %}badge-paid{% endif %}">{{ sim_model|capitalize }}</span>
+                </div>
+                <p class="text-xs text-zinc-400 leading-relaxed line-clamp-2">{{ sim.description or '' }}</p>
+              </article>
+            {% endfor %}
+          </div>
+        </section>
+        {% endif %}
+
+        <!-- RELATED TOOLS -->
+        {% if related_tools %}
+        <section>
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-sm text-zinc-100" style="font-weight:600">Related Tools</h2>
+            <span class="text-[10px] text-zinc-500 font-mono">{{ related_tools|length }} found</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+            {% for sim in related_tools %}
+              {% set sim_model = (sim.price or 'paid')|lower %}
+              <article class="glass glass-hover rounded-xl p-4 flex flex-col gap-3">
+                <div class="flex items-start justify-between gap-2">
+                  <div class="min-w-0 flex items-start gap-2">
+                    <img src="{{ sim.icon or '/static/icons/default.png' }}" onerror="this.onerror=null;this.src='/static/icons/default.png';" alt="{{ sim.name }} logo" class="w-8 h-8 rounded-md object-cover bg-white/10 border border-white/10 flex-shrink-0" />
+                    <div>
+                      <a href="{{ url_for('main.tool_detail', tool_id=sim.tool_key) }}" class="text-sm text-zinc-100 hover:text-blue-400 transition-colors" style="font-weight:700">{{ sim.name }}</a>
+                      <p class="text-xs text-zinc-500 mt-0.5 line-clamp-1">{{ sim.tagline or '' }}</p>
+                    </div>
+                  </div>
+                  <span class="text-[9px] font-mono px-1.5 py-0.5 rounded-full {% if sim_model == 'free' %}badge-free{% elif sim_model == 'freemium' %}badge-freemium{% else %}badge-paid{% endif %}">{{ sim_model|capitalize }}</span>
+                </div>
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <span class="text-[10px] font-mono brand-dim-bg brand-text px-2 py-0.5 rounded-md">{{ sim.category or 'other' }}</span>
+                  <span class="text-[10px] font-mono bg-white/5 text-zinc-400 px-2 py-0.5 rounded-md">{{ sim.bestFor or 'General use' }}</span>
+                </div>
+                <p class="text-xs text-zinc-400 leading-relaxed line-clamp-2">{{ sim.description or '' }}</p>
+                <div class="mt-auto pt-2 border-t border-white/5">
+                  <a href="{{ url_for('main.tool_detail', tool_id=sim.tool_key) }}" class="text-[10px] brand-text glass rounded-lg px-2.5 py-1 transition-all border border-white/8 hover:border-white/15 inline-flex">View Details</a>
+                </div>
+              </article>
+            {% endfor %}
+          </div>
+        </section>
+        {% endif %}
+
+      </main>
+    </div>
+  </div>
+
+  <script>
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+    const isAuthenticated = document.querySelector('meta[name="is-authenticated"]')?.content === 'true';
+
+    async function toggleFavorite(toolKey) {
+      if (!isAuthenticated) { window.location.href = '/login'; return; }
+      const btn = document.getElementById('fav-btn');
+      const label = document.getElementById('fav-label');
+      const favorited = btn.dataset.favorited === 'true';
+      try {
+        const res = await fetch('/api/favorite', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+          body: JSON.stringify({ tool_id: toolKey }),
+        });
+        const data = await res.json();
+        btn.dataset.favorited = data.favorited ? 'true' : 'false';
+        label.textContent = data.favorited ? 'Saved' : 'Save';
+        btn.className = 'inline-flex items-center gap-1.5 text-xs glass rounded-lg px-3 py-2 transition-all border ' +
+          (data.favorited ? 'border-amber-400/30 text-amber-300 bg-amber-500/10' : 'border-white/10 text-zinc-300');
+      } catch (e) { console.error(e); }
+    }
+
+    const studentToggle = document.getElementById('studentToggle');
+    if (studentToggle) {
+      studentToggle.addEventListener('click', () => {
+        document.body.classList.toggle('student-mode');
+        studentToggle.classList.toggle('active');
+      });
+    }
+    if (window.lucide) window.lucide.createIcons();
+  </script>
+</body>
+</html>

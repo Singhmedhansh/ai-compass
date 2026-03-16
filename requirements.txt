@@ -5,3 +5,8 @@ flask-bcrypt
 flask-wtf
 pymysql
 email-validator
+authlib
+requests
+beautifulsoup4
+gunicorn
+whitenoise

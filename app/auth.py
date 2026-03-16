@@ -1,4 +1,4 @@
-from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask import Blueprint, current_app, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required, login_user, logout_user
 
 from app import bcrypt, db
@@ -6,6 +6,19 @@ from app.models import User
 
 
 auth_bp = Blueprint("auth", __name__)
+
+
+def _is_configured_admin_email(email):
+    admin_emails = current_app.config.get("ADMIN_EMAILS", [])
+    return email in admin_emails
+
+
+def _sync_admin_flag(user):
+    should_be_admin = _is_configured_admin_email(user.email)
+    if bool(user.is_admin) != should_be_admin:
+        user.is_admin = should_be_admin
+        db.session.commit()
+    return user
 
 
 @auth_bp.route("/register", methods=["GET", "POST"])
@@ -32,7 +45,7 @@ def register():
             return render_template("register.html")
 
         password_hash = bcrypt.generate_password_hash(password).decode("utf-8")
-        user = User(email=email, password_hash=password_hash)
+        user = User(email=email, password_hash=password_hash, is_admin=False)
         db.session.add(user)
         db.session.commit()
 
@@ -52,8 +65,35 @@ def login():
         email = request.form.get("email", "").strip().lower()
         password = request.form.get("password", "")
         user = User.query.filter_by(email=email).first()
+        admin_email = current_app.config.get("ADMIN_EMAIL", "")
+        admin_password = current_app.config.get("ADMIN_PASSWORD", "")
 
-        if user and bcrypt.check_password_hash(user.password_hash, password):
+        if admin_email and admin_password and email == admin_email:
+            if password != admin_password:
+                flash("Invalid email or password.", "error")
+                return render_template(
+                    "login.html",
+                    google_oauth_enabled=bool(current_app.config.get("GOOGLE_CLIENT_ID")),
+                    github_oauth_enabled=bool(current_app.config.get("GITHUB_CLIENT_ID")),
+                )
+
+            if user is None:
+                password_hash = bcrypt.generate_password_hash(admin_password).decode("utf-8")
+                user = User(email=email, password_hash=password_hash, is_admin=True)
+                db.session.add(user)
+            else:
+                user.is_admin = True
+                if not user.password_hash:
+                    user.password_hash = bcrypt.generate_password_hash(admin_password).decode("utf-8")
+
+            db.session.commit()
+            login_user(user)
+            flash("Admin login detected. Use the Admin Panel button from the dashboard.", "success")
+            next_url = request.args.get("next")
+            return redirect(next_url or url_for("main.dashboard"))
+
+        if user and user.password_hash and bcrypt.check_password_hash(user.password_hash, password):
+            _sync_admin_flag(user)
             login_user(user)
             flash("You are now logged in.", "success")
             next_url = request.args.get("next")
@@ -61,7 +101,11 @@ def login():
 
         flash("Invalid email or password.", "error")
 
-    return render_template("login.html")
+    return render_template(
+        "login.html",
+        google_oauth_enabled=bool(current_app.config.get("GOOGLE_CLIENT_ID")),
+        github_oauth_enabled=bool(current_app.config.get("GITHUB_CLIENT_ID")),
+    )
 
 
 @auth_bp.route("/logout")

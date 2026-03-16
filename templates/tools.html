@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}Browse AI Tools | AI Compass{% endblock %}
+
+{% block head_meta %}
+<meta name="description" content="Browse AI Compass tools with pagination. Discover writing, coding, research, and free AI apps." />
+{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+  <div class="flex items-center justify-between gap-3 mb-6">
+    <a href="{{ url_for('main.index') }}" class="text-sm text-zinc-300 hover:text-zinc-100">← Back to Home</a>
+    <div class="text-xs font-mono text-zinc-500">{{ total_tools }} tools</div>
+  </div>
+
+  <section class="glass rounded-2xl p-6 border border-blue-500/20 bg-gradient-to-br from-blue-500/10 via-cyan-500/5 to-transparent">
+    <h1 class="text-2xl sm:text-3xl text-zinc-100" style="font-weight:700">All AI Tools</h1>
+    <p class="text-sm text-zinc-400 mt-2">Explore all tools in the directory with paginated browsing.</p>
+  </section>
+
+  <section class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
+    {% for tool in tools %}
+    <article class="glass rounded-xl p-4">
+      <div class="flex items-start gap-2">
+        <img src="{{ tool.icon or '/static/icons/default.png' }}" onerror="this.onerror=null;this.src='/static/icons/default.png';" alt="{{ tool.name }} logo" class="w-9 h-9 rounded-md object-cover border border-white/10" />
+        <div class="min-w-0">
+          <h3 class="text-sm text-zinc-100 truncate" style="font-weight:600">{{ tool.name }}</h3>
+          <p class="text-xs text-zinc-500 line-clamp-2">{{ tool.tagline or '' }}</p>
+        </div>
+      </div>
+      <p class="text-xs text-zinc-400 mt-3 line-clamp-3">{{ tool.description or '' }}</p>
+      <a href="{{ url_for('main.tool_detail', tool_id=tool.tool_key) }}" class="inline-block mt-3 text-xs text-cyan-300 hover:text-cyan-200">View tool →</a>
+    </article>
+    {% endfor %}
+  </section>
+
+  <nav class="mt-8 flex items-center justify-center gap-1.5 flex-wrap text-sm">
+    {% if has_prev %}
+      <a href="{{ url_for('main.tools_paginated', page=prev_page) }}" class="glass rounded-lg px-3 py-1.5 text-zinc-300 hover:text-zinc-100">Previous</a>
+    {% else %}
+      <span class="glass rounded-lg px-3 py-1.5 text-zinc-600">Previous</span>
+    {% endif %}
+
+    {% for num in page_numbers %}
+      {% if num == page %}
+        <span class="rounded-lg px-3 py-1.5 bg-blue-600 text-white">{{ num }}</span>
+      {% else %}
+        <a href="{{ url_for('main.tools_paginated', page=num) }}" class="glass rounded-lg px-3 py-1.5 text-zinc-300 hover:text-zinc-100">{{ num }}</a>
+      {% endif %}
+    {% endfor %}
+
+    {% if has_next %}
+      <a href="{{ url_for('main.tools_paginated', page=next_page) }}" class="glass rounded-lg px-3 py-1.5 text-zinc-300 hover:text-zinc-100">Next</a>
+    {% else %}
+      <span class="glass rounded-lg px-3 py-1.5 text-zinc-600">Next</span>
+    {% endif %}
+  </nav>
+</div>
+{% endblock %}

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Stack Builder | AI Compass</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root { --brand: #3b82f6; --brand-dim: rgba(59,130,246,0.12); }
+    body { font-family: 'DM Sans', system-ui, sans-serif; background: #09090b; color: #e4e4e7; }
+    .glass { background: rgba(255,255,255,0.04); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); }
+    .brand-bg { background: var(--brand); }
+    .brand-text { color: var(--brand); }
+    .brand-dim-bg { background: var(--brand-dim); }
+  </style>
+</head>
+<body class="min-h-screen overflow-x-hidden">
+  <div class="max-w-6xl mx-auto px-4 md:px-8 py-8 space-y-6">
+    <header class="glass rounded-2xl p-6 flex items-center justify-between gap-4 flex-wrap">
+      <div>
+        <h1 class="text-2xl text-zinc-100 tracking-tight" style="font-weight:700">AI Stack Builder</h1>
+        <p class="text-sm text-zinc-400 mt-1">Build a personalized tool stack for writing, coding, design, and research.</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <a href="{{ url_for('main.index') }}" class="text-xs text-zinc-300 hover:text-zinc-100 glass rounded-lg px-3 py-2">Back to Directory</a>
+        {% if is_authenticated %}
+          <a href="{{ url_for('main.dashboard') }}" class="text-xs text-zinc-300 hover:text-zinc-100 glass rounded-lg px-3 py-2">Dashboard</a>
+        {% endif %}
+      </div>
+    </header>
+
+    <section class="glass rounded-xl p-5">
+      <form method="POST" class="space-y-4">
+        <div>
+          <h2 class="text-sm text-zinc-100 mb-2" style="font-weight:600">Select Categories</h2>
+          <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
+            {% for category in available_categories %}
+              <label class="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-zinc-300">
+                <input type="checkbox" name="categories" value="{{ category }}" {% if category in selected_categories %}checked{% endif %} class="accent-blue-500" />
+                <span class="capitalize">{{ category }}</span>
+              </label>
+            {% endfor %}
+          </div>
+        </div>
+
+        <label class="flex items-center gap-2 text-sm text-zinc-300">
+          <input type="checkbox" name="student_mode" {% if student_mode %}checked{% endif %} class="accent-emerald-500" />
+          Prioritize Student Mode (free tools and student perks)
+        </label>
+
+        <button type="submit" class="inline-flex items-center gap-2 text-sm bg-blue-600 hover:bg-blue-500 text-white rounded-lg px-4 py-2 transition-colors">
+          <i data-lucide="sparkles" class="w-4 h-4"></i>
+          Build My AI Stack
+        </button>
+      </form>
+    </section>
+
+    <section>
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-sm text-zinc-100" style="font-weight:600">Your AI Stack</h2>
+        <span class="text-[10px] text-zinc-500 font-mono">{{ selected_categories|length }} categories</span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+        {% for category in selected_categories %}
+          {% set tool = stack_recommendations.get(category) %}
+          <article class="glass rounded-xl p-4 flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-[10px] font-mono brand-dim-bg brand-text px-2 py-0.5 rounded-md uppercase">{{ category }}</span>
+              {% if tool and tool.trending %}<span class="text-[9px] font-mono bg-amber-500/10 text-amber-400 border border-amber-500/20 px-1.5 py-0.5 rounded-full">Hot</span>{% endif %}
+            </div>
+
+            {% if tool %}
+              <div class="flex items-start gap-3">
+                <img src="{{ tool.icon or '/static/icons/default.png' }}" onerror="this.onerror=null;this.src='/static/icons/default.png';" alt="{{ tool.name }} logo" class="w-10 h-10 rounded-lg object-cover bg-white/10 border border-white/10" />
+                <div class="min-w-0">
+                  <a href="{{ url_for('main.tool_detail', tool_id=tool.tool_key) }}" class="text-sm text-zinc-100 hover:text-blue-400 transition-colors" style="font-weight:700">{{ tool.name }}</a>
+                  <p class="text-xs text-zinc-500 mt-0.5 line-clamp-2">{{ tool.tagline or '' }}</p>
+                </div>
+              </div>
+              <p class="text-xs text-zinc-400 leading-relaxed line-clamp-2">{{ tool.description or '' }}</p>
+              <div class="mt-auto flex items-center gap-2 flex-wrap">
+                <span class="text-[10px] font-mono bg-white/5 text-zinc-400 px-2 py-0.5 rounded-md">{{ tool.price or 'N/A' }}</span>
+                {% if tool.studentPerk %}<span class="text-[10px] font-mono bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-md">Student Perk</span>{% endif %}
+              </div>
+            {% else %}
+              <div class="text-sm text-zinc-500">No recommendation found for this category yet.</div>
+            {% endif %}
+          </article>
+        {% endfor %}
+      </div>
+    </section>
+  </div>
+
+  <script>if (window.lucide) window.lucide.createIcons();</script>
+</body>
+</html>

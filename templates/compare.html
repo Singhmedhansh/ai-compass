@@ -48,6 +48,9 @@
         <div class="text-[10px] font-600 text-zinc-600 uppercase tracking-widest px-2 mb-2 mt-5" style="font-weight:600">Pages</div>
         <a href="{{ url_for('main.dashboard') }}" class="sidebar-item w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-zinc-300 hover:text-zinc-100 transition-colors"><i data-lucide="layout-dashboard" class="w-4 h-4"></i>Dashboard</a>
         <a href="{{ url_for('main.compare') }}" class="sidebar-item active w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-zinc-300 hover:text-zinc-100 transition-colors"><i data-lucide="scale" class="w-4 h-4"></i>Compare</a>
+        <a href="{{ url_for('main.ai_stack_builder') }}" class="sidebar-item w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-zinc-300 hover:text-zinc-100 transition-colors"><i data-lucide="layers" class="w-4 h-4"></i>AI Stack Builder</a>
+        <a href="{{ url_for('main.updates') }}" class="sidebar-item w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-zinc-300 hover:text-zinc-100 transition-colors"><i data-lucide="rss" class="w-4 h-4"></i>Updates</a>
+        <a href="{{ url_for('main.submit_tool') }}" class="sidebar-item w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-zinc-300 hover:text-zinc-100 transition-colors"><i data-lucide="plus-circle" class="w-4 h-4"></i>Submit Tool</a>
       </nav>
     </aside>
 
@@ -72,7 +75,7 @@
           <p class="text-sm text-zinc-500 mt-0.5">Analyze tools side by side using the same core metrics.</p>
         </div>
 
-        <form method="get" class="glass rounded-xl p-4 grid grid-cols-1 md:grid-cols-4 gap-3">
+        <form method="get" class="glass rounded-xl p-4 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3">
           <select name="tools" class="hidden"></select>
           <select id="tool-a" class="rounded-lg border border-white/10 bg-zinc-900 px-3 py-2 text-sm text-zinc-100">
             <option value="">Select Tool 1</option>
@@ -92,6 +95,17 @@
               <option value="{{ tool.tool_key }}" {% if selected_keys and selected_keys|length > 2 and selected_keys[2] == tool.tool_key %}selected{% endif %}>{{ tool.name }}</option>
             {% endfor %}
           </select>
+          <select id="compare-sort" class="rounded-lg border border-white/10 bg-zinc-900 px-3 py-2 text-sm text-zinc-100">
+            <option value="trending" {% if sort_type == 'trending' %}selected{% endif %}>Trending</option>
+            <option value="rating" {% if sort_type == 'rating' %}selected{% endif %}>Highest Rated</option>
+            <option value="popular" {% if sort_type == 'popular' %}selected{% endif %}>Most Popular</option>
+            <option value="newest" {% if sort_type == 'newest' %}selected{% endif %}>Newest</option>
+            <option value="free" {% if sort_type == 'free' %}selected{% endif %}>Free First</option>
+          </select>
+          <label class="rounded-lg border border-white/10 bg-zinc-900 px-3 py-2 text-sm text-zinc-200 flex items-center gap-2">
+            <input type="checkbox" id="compare-student" {% if student_mode %}checked{% endif %} class="accent-emerald-500" />
+            Student Mode
+          </label>
           <button type="button" onclick="submitCompare()" class="rounded-lg bg-blue-600 hover:bg-blue-500 transition-colors px-3 py-2 text-sm">Compare</button>
         </form>
 
@@ -102,16 +116,23 @@
                 <tr class="text-left border-b border-white/10 bg-white/5">
                   <th class="p-3 text-zinc-300">Field</th>
                   {% for tool in selected_tools %}
-                    <th class="p-3 text-zinc-100">{{ tool.name }}</th>
+                    <th class="p-3 text-zinc-100">
+                      <div class="flex items-center gap-2">
+                        <img src="{{ tool.icon or '/static/icons/default.png' }}" onerror="this.onerror=null;this.src='/static/icons/default.png';" alt="{{ tool.name }} logo" class="w-6 h-6 rounded-md object-cover bg-white/10 border border-white/10" />
+                        <span>{{ tool.name }}</span>
+                      </div>
+                    </th>
                   {% endfor %}
                 </tr>
               </thead>
               <tbody>
                 {% set fields = [
+                  ('Icon', 'icon'),
                   ('Tool Name', 'name'),
                   ('Category', 'category'),
                   ('Pricing', 'pricingDetail'),
                   ('Student Perk', 'studentPerk'),
+                  ('University Hack', 'uniHack'),
                   ('Best For', 'bestFor'),
                   ('API Available', 'apiAvailable'),
                   ('Open Source', 'openSource')
@@ -120,7 +141,15 @@
                   <tr class="border-b border-white/10 hover:bg-white/5 transition-colors">
                     <td class="p-3 text-zinc-400">{{ label }}</td>
                     {% for tool in selected_tools %}
-                      <td class="p-3 text-zinc-200">{{ tool[key] or 'N/A' }}</td>
+                      <td class="p-3 text-zinc-200">
+                        {% if key == 'icon' %}
+                          <img src="{{ tool.icon or '/static/icons/default.png' }}" onerror="this.onerror=null;this.src='/static/icons/default.png';" alt="{{ tool.name }} logo" class="w-8 h-8 rounded-md object-cover bg-white/10 border border-white/10" />
+                        {% elif key in ['apiAvailable', 'openSource'] %}
+                          {{ 'Yes' if tool[key] else 'No' }}
+                        {% else %}
+                          {{ tool[key] or 'N/A' }}
+                        {% endif %}
+                      </td>
                     {% endfor %}
                   </tr>
                 {% endfor %}
@@ -162,8 +191,11 @@
         return;
       }
 
-      const query = encodeURIComponent(values.join(','));
-      window.location.href = '/compare?tools=' + query;
+      const params = new URLSearchParams();
+      params.set('tools', values.join(','));
+      params.set('sort', document.getElementById('compare-sort').value);
+      params.set('student_mode', document.getElementById('compare-student').checked ? 'true' : 'false');
+      window.location.href = '/compare?' + params.toString();
     }
 
     (function prefill() {
@@ -178,6 +210,18 @@
           el.value = values[index];
         }
       });
+
+      const sort = params.get('sort');
+      if (sort) {
+        const sortEl = document.getElementById('compare-sort');
+        if (sortEl) sortEl.value = sort;
+      }
+
+      const studentMode = params.get('student_mode');
+      if (studentMode !== null) {
+        const studentEl = document.getElementById('compare-student');
+        if (studentEl) studentEl.checked = ['1', 'true', 'on', 'yes'].includes(studentMode.toLowerCase());
+      }
     })();
 
     const studentToggle = document.getElementById('studentToggle');

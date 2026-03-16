@@ -1,12 +1,12 @@
 from collections import Counter
 
 
-def recommend_tools(all_tools, favorite_tools, limit=8):
+def recommend_tools(all_tools, favorite_tools, limit=8, student_mode=False):
     if not all_tools:
         return []
 
     if not favorite_tools:
-        return sorted(all_tools, key=_popularity_score, reverse=True)[:limit]
+        return sorted(all_tools, key=lambda tool: _recommendation_score(tool, student_mode=student_mode), reverse=True)[:limit]
 
     favorite_ids = {
         str(tool.get("tool_key") or tool.get("id") or "")
@@ -26,7 +26,7 @@ def recommend_tools(all_tools, favorite_tools, limit=8):
         if tool_id in favorite_ids:
             continue
 
-        score = _popularity_score(tool)
+        score = _recommendation_score(tool, student_mode=student_mode)
         category = tool.get("category")
         if category in category_weights:
             score += category_weights[category] * 30
@@ -44,6 +44,23 @@ def _popularity_score(tool):
     rating = float(tool.get("rating") or 0)
     weekly_users = _parse_weekly_users(tool.get("weeklyUsers"))
     return (weekly_users * 0.3) + (rating * 0.2)
+
+
+def _recommendation_score(tool, student_mode=False):
+    score = _popularity_score(tool)
+    if not student_mode:
+        return score
+
+    model = str(tool.get("price") or "").strip().lower()
+    if tool.get("studentPerk"):
+        score += 0.5
+    if model == "free":
+        score += 0.3
+    elif model == "freemium":
+        score += 0.2
+
+    score += float(tool.get("rating") or 0) * 0.2
+    return score
 
 
 def _parse_weekly_users(value):

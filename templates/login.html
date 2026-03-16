@@ -72,35 +72,70 @@
         <a href="{{ url_for('auth.register') }}" class="text-xs text-zinc-300 hover:text-zinc-100 transition-colors glass rounded-lg px-2.5 py-1.5">Register</a>
       </header>
 
-      <main class="flex-1 px-4 md:px-6 py-6 flex items-center justify-center">
-        <div class="glass glass-hover w-full max-w-md rounded-2xl p-6 md:p-7">
-          <h1 class="text-xl font-700 text-zinc-100 tracking-tight" style="font-weight:700">Login to AI Compass</h1>
-          <p class="text-sm text-zinc-500 mt-1 mb-6">Access favorites, dashboard insights, and recommendations.</p>
+      <main class="flex-1 px-4 md:px-6 py-8 flex items-center justify-center">
+        <div class="w-full max-w-xl space-y-4">
+          <section class="glass rounded-2xl p-5 md:p-6 border border-blue-500/20 bg-gradient-to-br from-blue-500/10 via-cyan-500/5 to-transparent">
+            <h1 class="text-2xl font-700 text-zinc-100 tracking-tight" style="font-weight:700">Welcome back to AI Compass</h1>
+            <p class="text-sm text-zinc-400 mt-1">Discover tools faster, compare options smarter, and keep your personal stack synced.</p>
+            <div class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+              <div class="rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-zinc-300">Curated rankings</div>
+              <div class="rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-zinc-300">Student perks</div>
+              <div class="rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-zinc-300">Compare up to 3 tools</div>
+            </div>
+          </section>
 
-          {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-              <div class="space-y-2 mb-4">
-                {% for category, message in messages %}
-                  <div class="text-sm rounded-lg px-3 py-2 {% if category == 'error' %}bg-red-500/15 text-red-300 border border-red-500/20{% elif category == 'success' %}bg-emerald-500/15 text-emerald-300 border border-emerald-500/20{% else %}bg-blue-500/15 text-blue-300 border border-blue-500/20{% endif %}">{{ message }}</div>
-                {% endfor %}
+          <div class="glass glass-hover w-full rounded-2xl p-6 md:p-7">
+            <h2 class="text-lg font-700 text-zinc-100 tracking-tight" style="font-weight:700">Login</h2>
+            <p class="text-sm text-zinc-500 mt-1 mb-6">Access favorites, dashboard insights, and recommendations.</p>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                <div class="space-y-2 mb-4">
+                  {% for category, message in messages %}
+                    <div class="text-sm rounded-lg px-3 py-2 {% if category == 'error' %}bg-red-500/15 text-red-300 border border-red-500/20{% elif category == 'success' %}bg-emerald-500/15 text-emerald-300 border border-emerald-500/20{% else %}bg-blue-500/15 text-blue-300 border border-blue-500/20{% endif %}">{{ message }}</div>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            {% endwith %}
+
+            <form method="post" class="space-y-4">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+              <div>
+                <label for="email" class="block text-sm text-zinc-300 mb-1">Email</label>
+                <input id="email" name="email" type="email" required class="w-full rounded-lg border border-white/10 bg-zinc-900 px-3 py-2 text-sm text-zinc-100" />
               </div>
+              <div>
+                <label for="password" class="block text-sm text-zinc-300 mb-1">Password</label>
+                <input id="password" name="password" type="password" required class="w-full rounded-lg border border-white/10 bg-zinc-900 px-3 py-2 text-sm text-zinc-100" />
+              </div>
+              <button type="submit" class="w-full rounded-lg text-xs text-zinc-100 bg-blue-600 hover:bg-blue-500 transition-colors px-4 py-2.5">Login</button>
+            </form>
+
+            {% if google_oauth_enabled or github_oauth_enabled %}
+            <div class="relative my-5">
+              <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-white/8"></div></div>
+              <div class="relative flex justify-center"><span class="text-[10px] text-zinc-600 bg-transparent px-2 glass rounded">OR CONTINUE WITH</span></div>
+            </div>
+            <div class="space-y-2.5">
+              {% if google_oauth_enabled %}
+              <a href="{{ url_for('oauth.login_google') }}"
+                 class="w-full flex items-center justify-center gap-2.5 rounded-lg border border-white/10 bg-white/4 hover:bg-white/8 transition-colors px-4 py-2.5 text-xs text-zinc-200">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.83z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.83c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/></svg>
+                Continue with Google
+              </a>
+              {% endif %}
+              {% if github_oauth_enabled %}
+              <a href="{{ url_for('oauth.login_github') }}"
+                 class="w-full flex items-center justify-center gap-2.5 rounded-lg border border-white/10 bg-white/4 hover:bg-white/8 transition-colors px-4 py-2.5 text-xs text-zinc-200">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="text-zinc-300"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.604-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.462-1.11-1.462-.908-.620.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.167 22 16.418 22 12c0-5.523-4.477-10-10-10z"/></svg>
+                Continue with GitHub
+              </a>
+              {% endif %}
+            </div>
             {% endif %}
-          {% endwith %}
 
-          <form method="post" class="space-y-4">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-            <div>
-              <label for="email" class="block text-sm text-zinc-300 mb-1">Email</label>
-              <input id="email" name="email" type="email" required class="w-full rounded-lg border border-white/10 bg-zinc-900 px-3 py-2 text-sm text-zinc-100" />
-            </div>
-            <div>
-              <label for="password" class="block text-sm text-zinc-300 mb-1">Password</label>
-              <input id="password" name="password" type="password" required class="w-full rounded-lg border border-white/10 bg-zinc-900 px-3 py-2 text-sm text-zinc-100" />
-            </div>
-            <button type="submit" class="w-full rounded-lg text-xs text-zinc-100 bg-blue-600 hover:bg-blue-500 transition-colors px-4 py-2.5">Login</button>
-          </form>
-
-          <p class="text-zinc-400 text-sm mt-4">No account? <a href="{{ url_for('auth.register') }}" class="brand-text hover:opacity-80">Register</a></p>
+            <p class="text-zinc-400 text-sm mt-4">No account? <a href="{{ url_for('auth.register') }}" class="brand-text hover:opacity-80">Register</a></p>
+          </div>
         </div>
       </main>
     </div>

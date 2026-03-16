@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Stack Builder | AI Compass</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    body { font-family: 'DM Sans', system-ui, sans-serif; background: #09090b; color: #e4e4e7; }
+    .glass { background: rgba(255,255,255,0.04); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); }
+  </style>
+</head>
+<body class="min-h-screen">
+  <div class="max-w-6xl mx-auto px-4 md:px-8 py-8 space-y-6">
+    <header class="glass rounded-2xl p-6 flex items-center justify-between gap-4 flex-wrap">
+      <div>
+        <h1 class="text-2xl text-zinc-100 tracking-tight" style="font-weight:700">AI Stack Builder</h1>
+        <p class="text-sm text-zinc-400 mt-1">Pick your categories and budget preference to build your stack.</p>
+      </div>
+      <a href="{{ url_for('main.index') }}" class="text-xs text-zinc-300 hover:text-zinc-100 glass rounded-lg px-3 py-2">Back to Directory</a>
+    </header>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+      <div class="space-y-2">
+        {% for category, message in messages %}
+          <div class="glass rounded-lg px-3 py-2 text-sm {% if category == 'warning' %}text-amber-300 border-amber-500/20 bg-amber-500/5{% elif category == 'error' %}text-red-300 border-red-500/20 bg-red-500/5{% else %}text-zinc-300{% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    {% endwith %}
+
+    <section class="glass rounded-xl p-5">
+      <form method="POST" action="/stack-builder/build" class="space-y-4">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+        <div>
+          <h2 class="text-sm text-zinc-100 mb-2" style="font-weight:600">Step 1: Choose Categories</h2>
+          <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
+            <label class="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-zinc-300">
+              <input type="checkbox" name="categories" value="Writing" {% if 'Writing' in selected_categories %}checked{% endif %} class="accent-blue-500" />
+              <span>Writing</span>
+            </label>
+            <label class="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-zinc-300">
+              <input type="checkbox" name="categories" value="Coding" {% if 'Coding' in selected_categories %}checked{% endif %} class="accent-blue-500" />
+              <span>Coding</span>
+            </label>
+            <label class="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-zinc-300">
+              <input type="checkbox" name="categories" value="Image" {% if 'Image' in selected_categories %}checked{% endif %} class="accent-blue-500" />
+              <span>Image</span>
+            </label>
+            <label class="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-zinc-300">
+              <input type="checkbox" name="categories" value="Video" {% if 'Video' in selected_categories %}checked{% endif %} class="accent-blue-500" />
+              <span>Video</span>
+            </label>
+            <label class="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-zinc-300">
+              <input type="checkbox" name="categories" value="Research" {% if 'Research' in selected_categories %}checked{% endif %} class="accent-blue-500" />
+              <span>Research</span>
+            </label>
+            <label class="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-zinc-300">
+              <input type="checkbox" name="categories" value="Productivity" {% if 'Productivity' in selected_categories %}checked{% endif %} class="accent-blue-500" />
+              <span>Productivity</span>
+            </label>
+          </div>
+        </div>
+
+        <label class="flex items-center gap-2 text-sm text-zinc-300">
+          <input type="checkbox" name="student_mode" {% if student_mode %}checked{% endif %} class="accent-emerald-500" />
+          Step 2: Prioritize Student Mode
+        </label>
+
+        <button type="submit" class="inline-flex items-center gap-2 text-sm bg-blue-600 hover:bg-blue-500 text-white rounded-lg px-4 py-2 transition-colors">
+          Build My AI Stack
+        </button>
+      </form>
+    </section>
+
+    {% if generated_stack is not none %}
+    <section>
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-sm text-zinc-100" style="font-weight:600">Generated Stack</h2>
+        <span class="text-[10px] text-zinc-500 font-mono">{{ generated_stack|length }} tools</span>
+      </div>
+
+      {% if generated_stack %}
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+        {% for tool in generated_stack %}
+        <article class="glass rounded-xl p-4 flex flex-col gap-3">
+          <div class="flex items-start gap-3">
+            <img src="{{ tool.icon or '/static/icons/default.png' }}" onerror="this.onerror=null;this.src='/static/icons/default.png';" alt="{{ tool.name }} logo" class="w-10 h-10 rounded-lg object-cover bg-white/10 border border-white/10" />
+            <div class="min-w-0">
+              <a href="{{ url_for('main.tool_detail', tool_id=tool.tool_key) }}" class="text-sm text-zinc-100 hover:text-blue-400 transition-colors" style="font-weight:700">{{ tool.name }}</a>
+              <p class="text-xs text-zinc-500 mt-0.5 line-clamp-2">{{ tool.tagline or '' }}</p>
+            </div>
+          </div>
+          <p class="text-xs text-zinc-400 leading-relaxed line-clamp-2">{{ tool.description or '' }}</p>
+          <div class="mt-auto flex items-center gap-2 flex-wrap">
+            <span class="text-[10px] font-mono bg-white/5 text-zinc-400 px-2 py-0.5 rounded-md">{{ tool.category or 'N/A' }}</span>
+            <span class="text-[10px] font-mono bg-white/5 text-zinc-400 px-2 py-0.5 rounded-md">{{ tool.price or 'N/A' }}</span>
+            {% if tool.studentPerk %}<span class="text-[10px] font-mono bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-md">Student Perk</span>{% endif %}
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="glass rounded-xl px-4 py-6 text-center text-sm text-zinc-500">No stack could be generated for those selections.</div>
+      {% endif %}
+    </section>
+    {% endif %}
+  </div>
+</body>
+</html>
