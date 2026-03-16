@@ -242,3 +242,5 @@ The included `Dockerfile` supports container deployment. Set secrets and ensure 
 ## Repository Notes
 
 This repository contains both product-facing code and operational tooling for moderation and discovery. For workspace-specific conventions, see [.github/copilot-instructions.md](.github/copilot-instructions.md) when present.
+
+Developed by Medhansh Pratap Singh and GitHub handle Singhmedhansh.
