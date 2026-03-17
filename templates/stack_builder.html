@@ -1,117 +1,384 @@
-<!DOCTYPE html>
-<html lang="en" class="dark">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI Stack Builder | AI Compass</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <style>
-    body { font-family: 'DM Sans', system-ui, sans-serif; background: #09090b; color: #e4e4e7; }
-    .glass { background: rgba(255,255,255,0.04); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); }
-  </style>
-</head>
-<body class="min-h-screen">
-  <div class="max-w-6xl mx-auto px-4 md:px-8 py-8 space-y-6">
-    <header class="glass rounded-2xl p-6 flex items-center justify-between gap-4 flex-wrap">
-      <div>
-        <h1 class="text-2xl text-zinc-100 tracking-tight" style="font-weight:700">AI Stack Builder</h1>
-        <p class="text-sm text-zinc-400 mt-1">Pick your categories and budget preference to build your stack.</p>
-      </div>
-      <a href="{{ url_for('main.index') }}" class="text-xs text-zinc-300 hover:text-zinc-100 glass rounded-lg px-3 py-2">Back to Directory</a>
-    </header>
+{% extends "base.html" %}
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
+{% block title %}AI Stack Builder | AI Compass{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-8">
+  <!-- Header -->
+  <div>
+    <h1 class="text-3xl font-bold text-zinc-100">AI Stack Builder</h1>
+    <p class="text-sm text-zinc-400 mt-2">Create a personalized AI tool stack based on your needs.</p>
+  </div>
+
+  <!-- Flash Messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
       <div class="space-y-2">
         {% for category, message in messages %}
-          <div class="glass rounded-lg px-3 py-2 text-sm {% if category == 'warning' %}text-amber-300 border-amber-500/20 bg-amber-500/5{% elif category == 'error' %}text-red-300 border-red-500/20 bg-red-500/5{% else %}text-zinc-300{% endif %}">
-            {{ message }}
-          </div>
+          <div class="glass rounded-lg px-4 py-3 text-sm {% if category == 'warning' %}text-amber-300 border-amber-500/20 bg-amber-500/5{% elif category == 'error' %}text-red-300 border-red-500/20 bg-red-500/5{% else %}text-green-300 border-green-500/20 bg-green-500/5{% endif %}">{{ message }}</div>
         {% endfor %}
       </div>
-      {% endif %}
-    {% endwith %}
+    {% endif %}
+  {% endwith %}
 
-    <section class="glass rounded-xl p-5">
-      <form method="POST" action="/stack-builder/build" class="space-y-4">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+  <!-- Multi-Step Wizard Form -->
+  <form id="stackWizardForm" method="POST" action="{{ url_for('main.stack_builder_step') }}" class="space-y-6">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+    <input type="hidden" id="currentStepInput" name="current_step" value="1" />
+    <input type="hidden" id="actionInput" name="action" value="generate" />
+    <input type="hidden" id="goalInput" name="goal" value="{{ selected_goal or '' }}" />
+    <input type="hidden" id="budgetInput" name="budget" value="{{ selected_budget or '' }}" />
+    <input type="hidden" id="platformInput" name="platform" value="{{ selected_platform or '' }}" />
+    <input type="hidden" id="studentModeInput" name="student_mode" value="{{ '1' if student_mode else '' }}" />
 
+    <!-- Progress Bar -->
+    <div class="space-y-3">
+      <div class="flex justify-between text-xs text-zinc-400">
+        <span id="stepLabel">Step 1 of 4</span>
+        <span id="progress-percent">25%</span>
+      </div>
+      <div class="w-full bg-zinc-800 rounded-full h-2">
+        <div id="progressBar" class="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all duration-300" style="width: 25%"></div>
+      </div>
+    </div>
+
+    <!-- Step 1 -->
+    <div class="step-content space-y-4 animate-fade-in" id="step1">
+      <div>
+        <h2 class="text-lg font-semibold text-zinc-100 mb-2">What's your primary goal?</h2>
+        <p class="text-xs text-zinc-400">This helps us recommend the right tools for your workflow.</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <button type="button" class="goal-card select-card rounded-xl border border-zinc-700 bg-zinc-900/50 hover:bg-zinc-800/70 hover:border-blue-500/50 p-4 transition-all text-left" data-value="writing">
+          <div class="font-semibold text-sm text-zinc-100">Writing</div>
+          <p class="text-xs text-zinc-400 mt-1">Content creation and copywriting</p>
+        </button>
+        <button type="button" class="goal-card select-card rounded-xl border border-zinc-700 bg-zinc-900/50 hover:bg-zinc-800/70 hover:border-blue-500/50 p-4 transition-all text-left" data-value="coding">
+          <div class="font-semibold text-sm text-zinc-100">Coding</div>
+          <p class="text-xs text-zinc-400 mt-1">Programming and development</p>
+        </button>
+        <button type="button" class="goal-card select-card rounded-xl border border-zinc-700 bg-zinc-900/50 hover:bg-zinc-800/70 hover:border-blue-500/50 p-4 transition-all text-left" data-value="research">
+          <div class="font-semibold text-sm text-zinc-100">Research</div>
+          <p class="text-xs text-zinc-400 mt-1">Information gathering and analysis</p>
+        </button>
+        <button type="button" class="goal-card select-card rounded-xl border border-zinc-700 bg-zinc-900/50 hover:bg-zinc-800/70 hover:border-blue-500/50 p-4 transition-all text-left" data-value="studying">
+          <div class="font-semibold text-sm text-zinc-100">Studying</div>
+          <p class="text-xs text-zinc-400 mt-1">Learning and education</p>
+        </button>
+        <button type="button" class="goal-card select-card rounded-xl border border-zinc-700 bg-zinc-900/50 hover:bg-zinc-800/70 hover:border-blue-500/50 p-4 transition-all text-left" data-value="productivity">
+          <div class="font-semibold text-sm text-zinc-100">Productivity</div>
+          <p class="text-xs text-zinc-400 mt-1">Task management and efficiency</p>
+        </button>
+        <button type="button" class="goal-card select-card rounded-xl border border-zinc-700 bg-zinc-900/50 hover:bg-zinc-800/70 hover:border-blue-500/50 p-4 transition-all text-left" data-value="design">
+          <div class="font-semibold text-sm text-zinc-100">Image and Design</div>
+          <p class="text-xs text-zinc-400 mt-1">Visual creation and editing</p>
+        </button>
+      </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="step-content space-y-4 animate-fade-in" id="step2" style="display:none">
+      <div>
+        <h2 class="text-lg font-semibold text-zinc-100 mb-2">What's your budget?</h2>
+        <p class="text-xs text-zinc-400">Select which pricing models work best for you.</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <button type="button" class="budget-card select-card rounded-xl border border-zinc-700 bg-zinc-900/50 hover:bg-zinc-800/70 hover:border-emerald-500/50 p-4 transition-all text-left" data-value="free">
+          <div class="font-semibold text-sm text-zinc-100">Free Only</div>
+          <p class="text-xs text-zinc-400 mt-1">Only free tools</p>
+        </button>
+        <button type="button" class="budget-card select-card rounded-xl border border-zinc-700 bg-zinc-900/50 hover:bg-zinc-800/70 hover:border-emerald-500/50 p-4 transition-all text-left" data-value="freemium">
+          <div class="font-semibold text-sm text-zinc-100">Freemium</div>
+          <p class="text-xs text-zinc-400 mt-1">Free + paid options</p>
+        </button>
+        <button type="button" class="budget-card select-card rounded-xl border border-zinc-700 bg-zinc-900/50 hover:bg-zinc-800/70 hover:border-emerald-500/50 p-4 transition-all text-left" data-value="paid">
+          <div class="font-semibold text-sm text-zinc-100">Any Budget</div>
+          <p class="text-xs text-zinc-400 mt-1">All pricing models</p>
+        </button>
+      </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="step-content space-y-4 animate-fade-in" id="step3" style="display:none">
+      <div>
+        <h2 class="text-lg font-semibold text-zinc-100 mb-2">Where will you use these tools?</h2>
+        <p class="text-xs text-zinc-400">Select your preferred platform.</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <button type="button" class="platform-card select-card rounded-xl border border-zinc-700 bg-zinc-900/50 hover:bg-zinc-800/70 hover:border-purple-500/50 p-4 transition-all text-left" data-value="web">
+          <div class="font-semibold text-sm text-zinc-100">Web Apps</div>
+          <p class="text-xs text-zinc-400 mt-1">Browser-based tools</p>
+        </button>
+        <button type="button" class="platform-card select-card rounded-xl border border-zinc-700 bg-zinc-900/50 hover:bg-zinc-800/70 hover:border-purple-500/50 p-4 transition-all text-left" data-value="desktop">
+          <div class="font-semibold text-sm text-zinc-100">Desktop</div>
+          <p class="text-xs text-zinc-400 mt-1">Windows, macOS, Linux</p>
+        </button>
+        <button type="button" class="platform-card select-card rounded-xl border border-zinc-700 bg-zinc-900/50 hover:bg-zinc-800/70 hover:border-purple-500/50 p-4 transition-all text-left" data-value="mobile">
+          <div class="font-semibold text-sm text-zinc-100">Mobile Apps</div>
+          <p class="text-xs text-zinc-400 mt-1">iOS and Android apps</p>
+        </button>
+      </div>
+    </div>
+
+    <!-- Step 4 -->
+    <div class="step-content space-y-4 animate-fade-in" id="step4" style="display:none">
+      <div>
+        <h2 class="text-lg font-semibold text-zinc-100 mb-2">Final touches</h2>
+        <p class="text-xs text-zinc-400">Customize your recommendations.</p>
+      </div>
+      <label class="flex items-center gap-3 p-4 rounded-xl border border-zinc-700 bg-zinc-900/50 hover:bg-zinc-800/70 cursor-pointer transition-colors">
+        <input id="wizardStudentMode" type="checkbox" class="w-4 h-4 rounded accent-emerald-500" {% if student_mode %}checked{% endif %} />
         <div>
-          <h2 class="text-sm text-zinc-100 mb-2" style="font-weight:600">Step 1: Choose Categories</h2>
-          <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
-            <label class="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-zinc-300">
-              <input type="checkbox" name="categories" value="Writing" {% if 'Writing' in selected_categories %}checked{% endif %} class="accent-blue-500" />
-              <span>Writing</span>
-            </label>
-            <label class="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-zinc-300">
-              <input type="checkbox" name="categories" value="Coding" {% if 'Coding' in selected_categories %}checked{% endif %} class="accent-blue-500" />
-              <span>Coding</span>
-            </label>
-            <label class="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-zinc-300">
-              <input type="checkbox" name="categories" value="Image" {% if 'Image' in selected_categories %}checked{% endif %} class="accent-blue-500" />
-              <span>Image</span>
-            </label>
-            <label class="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-zinc-300">
-              <input type="checkbox" name="categories" value="Video" {% if 'Video' in selected_categories %}checked{% endif %} class="accent-blue-500" />
-              <span>Video</span>
-            </label>
-            <label class="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-zinc-300">
-              <input type="checkbox" name="categories" value="Research" {% if 'Research' in selected_categories %}checked{% endif %} class="accent-blue-500" />
-              <span>Research</span>
-            </label>
-            <label class="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-zinc-300">
-              <input type="checkbox" name="categories" value="Productivity" {% if 'Productivity' in selected_categories %}checked{% endif %} class="accent-blue-500" />
-              <span>Productivity</span>
-            </label>
+          <div class="font-medium text-sm text-zinc-100">Student Mode</div>
+          <p class="text-xs text-zinc-400 mt-0.5">Prioritize tools with student discounts and free plans.</p>
+        </div>
+      </label>
+    </div>
+
+    <div class="flex justify-between gap-3 pt-2">
+      <button type="button" id="backBtn" class="px-4 py-2 text-sm font-medium bg-zinc-700 hover:bg-zinc-600 text-zinc-100 rounded-lg transition-colors" disabled>
+        Back
+      </button>
+      <button type="button" id="nextBtn" class="px-4 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+        Next Step
+      </button>
+    </div>
+  </form>
+
+  <!-- Results Section -->
+  {% if generated_stack is not none %}
+  <section class="space-y-4 animate-fade-in">
+    <div class="flex items-center justify-between">
+      <div>
+        <h2 class="text-xl font-semibold text-zinc-100">Your AI Stack</h2>
+        <p class="text-xs text-zinc-400 mt-1">{{ generated_stack|length }} tools tailored for your needs</p>
+      </div>
+      <a href="{{ url_for('main.stack_builder_step') }}" class="text-xs text-blue-400 hover:text-blue-300">Start Over</a>
+    </div>
+
+    {% if generated_stack %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {% for tool in generated_stack %}
+      <article class="glass rounded-xl p-5 flex flex-col gap-4 hover:border-blue-500/50 transition-colors">
+        <!-- Tool Header -->
+        <div class="flex items-start justify-between gap-3">
+          <div class="flex-1 min-w-0">
+            <a href="{{ url_for('main.tool_detail', tool_id=tool.tool_key) }}" class="text-sm font-semibold text-zinc-100 hover:text-blue-400 transition-colors">
+              {{ tool.name }}
+            </a>
+            <p class="text-xs text-zinc-500 mt-1">{{ tool.category or 'General' }}</p>
           </div>
         </div>
 
-        <label class="flex items-center gap-2 text-sm text-zinc-300">
-          <input type="checkbox" name="student_mode" {% if student_mode %}checked{% endif %} class="accent-emerald-500" />
-          Step 2: Prioritize Student Mode
-        </label>
+        <!-- Description -->
+        <p class="text-xs text-zinc-400 leading-relaxed line-clamp-2">{{ tool.description or 'No description available.' }}</p>
 
-        <button type="submit" class="inline-flex items-center gap-2 text-sm bg-blue-600 hover:bg-blue-500 text-white rounded-lg px-4 py-2 transition-colors">
-          Build My AI Stack
-        </button>
-      </form>
-    </section>
+        <!-- Metadata -->
+        <div class="flex flex-wrap gap-2">
+          {% if tool.price %}
+          <span class="inline-flex items-center px-2 py-1 text-[10px] rounded-md bg-zinc-700/50 text-zinc-300">
+            💰 {{ tool.price }}
+          </span>
+          {% endif %}
+          {% if tool.get('studentPerk') %}
+          <span class="inline-flex items-center px-2 py-1 text-[10px] rounded-md bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
+            🎓 Student
+          </span>
+          {% endif %}
+        </div>
 
-    {% if generated_stack is not none %}
-    <section>
-      <div class="flex items-center justify-between mb-3">
-        <h2 class="text-sm text-zinc-100" style="font-weight:600">Generated Stack</h2>
-        <span class="text-[10px] text-zinc-500 font-mono">{{ generated_stack|length }} tools</span>
-      </div>
+        <!-- Why Selected (if available) -->
+        {% if tool.get('why_selected') %}
+        <div class="pt-2 border-t border-zinc-700/50">
+          <p class="text-[10px] text-zinc-400 italic">{{ tool.why_selected }}</p>
+        </div>
+        {% endif %}
 
-      {% if generated_stack %}
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
-        {% for tool in generated_stack %}
-        <article class="glass rounded-xl p-4 flex flex-col gap-3">
-          <div class="flex items-start gap-3">
-            <img src="{{ tool.icon or '/static/icons/default.png' }}" onerror="this.onerror=null;this.src='/static/icons/default.png';" alt="{{ tool.name }} logo" class="w-10 h-10 rounded-lg object-cover bg-white/10 border border-white/10" />
-            <div class="min-w-0">
-              <a href="{{ url_for('main.tool_detail', tool_id=tool.tool_key) }}" class="text-sm text-zinc-100 hover:text-blue-400 transition-colors" style="font-weight:700">{{ tool.name }}</a>
-              <p class="text-xs text-zinc-500 mt-0.5 line-clamp-2">{{ tool.tagline or '' }}</p>
-            </div>
-          </div>
-          <p class="text-xs text-zinc-400 leading-relaxed line-clamp-2">{{ tool.description or '' }}</p>
-          <div class="mt-auto flex items-center gap-2 flex-wrap">
-            <span class="text-[10px] font-mono bg-white/5 text-zinc-400 px-2 py-0.5 rounded-md">{{ tool.category or 'N/A' }}</span>
-            <span class="text-[10px] font-mono bg-white/5 text-zinc-400 px-2 py-0.5 rounded-md">{{ tool.price or 'N/A' }}</span>
-            {% if tool.studentPerk %}<span class="text-[10px] font-mono bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-md">Student Perk</span>{% endif %}
-          </div>
-        </article>
-        {% endfor %}
-      </div>
-      {% else %}
-      <div class="glass rounded-xl px-4 py-6 text-center text-sm text-zinc-500">No stack could be generated for those selections.</div>
-      {% endif %}
-    </section>
+        <!-- Visit Link -->
+        {% if tool.link or tool.website %}
+        <a href="{{ tool.link or tool.website }}" target="_blank" rel="noopener noreferrer" class="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 mt-auto">
+          Visit Tool →
+        </a>
+        {% endif %}
+      </article>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="glass rounded-xl px-6 py-12 text-center">
+      <p class="text-sm text-zinc-400">No tools found matching your criteria.</p>
+      <p class="text-xs text-zinc-500 mt-2">Try adjusting your selections.</p>
+      <a href="{{ url_for('main.stack_builder_step') }}" class="inline-block mt-4 text-xs text-blue-400 hover:text-blue-300">← Start Over</a>
+    </div>
     {% endif %}
-  </div>
-</body>
-</html>
+  </section>
+  {% endif %}
+</div>
+
+<style>
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .animate-fade-in {
+    animation: fade-in 0.3s ease-out;
+  }
+  
+  .glass {
+    background: rgba(24, 24, 27, 0.6);
+    border: 1px solid rgba(113, 113, 122, 0.3);
+    backdrop-filter: blur(10px);
+  }
+
+  .select-card.active {
+    border-color: rgba(59, 130, 246, 0.75);
+    background: rgba(59, 130, 246, 0.12);
+  }
+</style>
+
+<script>
+  let currentStep = 1;
+  let selectedGoal = "{{ selected_goal or '' }}";
+  let selectedBudget = "{{ selected_budget or '' }}";
+  let selectedPlatform = "{{ selected_platform or '' }}";
+
+  function updateProgressBar() {
+    const progress = (currentStep / 4) * 100;
+    const progressBar = document.getElementById("progressBar");
+    const progressPercent = document.getElementById("progress-percent");
+    const stepLabel = document.getElementById("stepLabel");
+    if (progressBar) progressBar.style.width = progress + "%";
+    if (progressPercent) progressPercent.textContent = Math.round(progress) + "%";
+    if (stepLabel) stepLabel.textContent = "Step " + currentStep + " of 4";
+  }
+
+  function isStepValid(step) {
+    if (step === 1) return !!selectedGoal;
+    if (step === 2) return !!selectedBudget;
+    if (step === 3) return !!selectedPlatform;
+    return true;
+  }
+
+  function updateStepUI() {
+    document.querySelectorAll(".step-content").forEach((section, index) => {
+      section.style.display = (index + 1 === currentStep) ? "block" : "none";
+    });
+
+    const backBtn = document.getElementById("backBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const currentStepInput = document.getElementById("currentStepInput");
+    const studentModeInput = document.getElementById("studentModeInput");
+    const studentModeCheckbox = document.getElementById("wizardStudentMode");
+
+    if (currentStepInput) currentStepInput.value = String(currentStep);
+    if (studentModeInput && studentModeCheckbox) {
+      studentModeInput.value = studentModeCheckbox.checked ? "1" : "";
+    }
+
+    if (backBtn) backBtn.disabled = currentStep === 1;
+    if (nextBtn) {
+      if (currentStep === 4) {
+        nextBtn.textContent = "Generate Stack";
+        nextBtn.disabled = false;
+      } else {
+        nextBtn.textContent = "Next Step";
+        nextBtn.disabled = !isStepValid(currentStep);
+      }
+    }
+
+    updateProgressBar();
+    console.log("Step:", currentStep);
+  }
+
+  function setActiveCard(selector, value) {
+    document.querySelectorAll(selector).forEach((card) => {
+      card.classList.toggle("active", card.dataset.value === value);
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const initialStep = Number("{{ current_step or 1 }}") || 1;
+    currentStep = Math.min(Math.max(initialStep, 1), 4);
+
+    const goalInput = document.getElementById("goalInput");
+    const budgetInput = document.getElementById("budgetInput");
+    const platformInput = document.getElementById("platformInput");
+    const actionInput = document.getElementById("actionInput");
+    const wizardForm = document.getElementById("stackWizardForm");
+
+    document.querySelectorAll(".goal-card").forEach((card) => {
+      card.addEventListener("click", () => {
+        selectedGoal = card.dataset.value || "";
+        if (goalInput) goalInput.value = selectedGoal;
+        setActiveCard(".goal-card", selectedGoal);
+        updateStepUI();
+      });
+    });
+
+    document.querySelectorAll(".budget-card").forEach((card) => {
+      card.addEventListener("click", () => {
+        selectedBudget = card.dataset.value || "";
+        if (budgetInput) budgetInput.value = selectedBudget;
+        setActiveCard(".budget-card", selectedBudget);
+        updateStepUI();
+      });
+    });
+
+    document.querySelectorAll(".platform-card").forEach((card) => {
+      card.addEventListener("click", () => {
+        selectedPlatform = card.dataset.value || "";
+        if (platformInput) platformInput.value = selectedPlatform;
+        setActiveCard(".platform-card", selectedPlatform);
+        updateStepUI();
+      });
+    });
+
+    const wizardStudentMode = document.getElementById("wizardStudentMode");
+    if (wizardStudentMode) {
+      wizardStudentMode.addEventListener("change", () => {
+        const studentModeInput = document.getElementById("studentModeInput");
+        if (studentModeInput) studentModeInput.value = wizardStudentMode.checked ? "1" : "";
+      });
+    }
+
+    const backBtn = document.getElementById("backBtn");
+    if (backBtn) {
+      backBtn.addEventListener("click", () => {
+        if (currentStep > 1) {
+          currentStep--;
+          updateStepUI();
+        }
+      });
+    }
+
+    const nextBtn = document.getElementById("nextBtn");
+    if (nextBtn) {
+      nextBtn.addEventListener("click", () => {
+        if (currentStep === 1 && !selectedGoal) return;
+        if (currentStep === 2 && !selectedBudget) return;
+        if (currentStep === 3 && !selectedPlatform) return;
+
+        if (currentStep < 4) {
+          currentStep++;
+          updateStepUI();
+          return;
+        }
+
+        if (actionInput) actionInput.value = "generate";
+        if (wizardForm) wizardForm.submit();
+      });
+    }
+
+    setActiveCard(".goal-card", selectedGoal);
+    setActiveCard(".budget-card", selectedBudget);
+    setActiveCard(".platform-card", selectedPlatform);
+    updateStepUI();
+  });
+</script>
+{% endblock %}

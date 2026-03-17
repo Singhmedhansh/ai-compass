@@ -1,0 +1,44 @@
+<header class="sticky top-0 z-30 border-b border-white/10 bg-zinc-950/80 backdrop-blur">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+
+    <a href="{{ url_for('main.tools_paginated') }}" class="text-zinc-100 text-lg font-bold">
+      AI Compass
+    </a>
+
+    <div class="flex-1 max-w-xl">
+      <input
+        type="text"
+        placeholder="Search tools, categories..."
+        class="w-full bg-white/5 border border-white/10 px-4 py-2 rounded-xl outline-none focus:border-white/20"
+      />
+    </div>
+
+    <div class="flex items-center gap-3">
+      <button
+        id="student-mode-toggle"
+        class="px-3 py-1 rounded-lg border text-sm transition-all {% if student_mode %}active text-emerald-300 border-emerald-500/40 bg-emerald-500/15 hover:bg-emerald-500/20{% else %}bg-white/5 border-white/10 text-zinc-200 hover:bg-white/10{% endif %}"
+        aria-label="Toggle Student Mode"
+        aria-pressed="{{ 'true' if student_mode else 'false' }}"
+      >
+        Student Mode: {{ 'ON' if student_mode else 'OFF' }}
+      </button>
+
+      {% if is_authenticated %}
+        <a href="{{ url_for('main.dashboard') }}" class="px-3 py-1 bg-white/10 rounded-lg text-sm hover:bg-white/20">
+          Dashboard
+        </a>
+        <a href="{{ url_for('auth.logout') }}" class="px-3 py-1 bg-blue-600 rounded-lg text-sm hover:bg-blue-700">
+          Logout
+        </a>
+      {% else %}
+        <a href="{{ url_for('auth.login') }}" class="px-3 py-1 bg-blue-600 rounded-lg text-sm hover:bg-blue-700">
+          Login
+        </a>
+        <a href="{{ url_for('auth.register') }}" class="px-3 py-1 bg-white/10 rounded-lg text-sm hover:bg-white/20">
+          Register
+        </a>
+      {% endif %}
+    </div>
+
+  </div>
+</header>

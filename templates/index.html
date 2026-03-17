@@ -1,620 +1,169 @@
-<!DOCTYPE html>
-<html lang="en" class="dark">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="csrf-token" content="{{ csrf_token() }}" />
-  <title>AI Compass — Premium AI Tool Directory</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+{% extends "base.html" %}
 
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['"DM Sans"', 'system-ui', 'sans-serif'],
-            mono: ['"DM Mono"', 'monospace'],
-          },
-          colors: {
-            zinc: {
-              950: '#09090b',
-              900: '#18181b',
-              800: '#27272a',
-              700: '#3f3f46',
-              600: '#52525b',
-              500: '#71717a',
-              400: '#a1a1aa',
-              300: '#d4d4d8',
-            }
-          }
-        }
-      }
-    }
-  </script>
+{% block content %}
+<div class="max-w-6xl mx-auto space-y-6">
 
-  <style>
-    :root {
-      --brand: #3b82f6;
-      --brand-dim: rgba(59,130,246,0.12);
-      --brand-glow: rgba(59,130,246,0.25);
-      --student-brand: #10b981;
-      --student-dim: rgba(16,185,129,0.12);
-      --student-glow: rgba(16,185,129,0.25);
-    }
-    body { font-family: 'DM Sans', system-ui, sans-serif; background: #09090b; color: #e4e4e7; }
-
-    /* Student Mode */
-    body.student-mode { --active-brand: var(--student-brand); --active-dim: var(--student-dim); --active-glow: var(--student-glow); }
-    body:not(.student-mode) { --active-brand: var(--brand); --active-dim: var(--brand-dim); --active-glow: var(--brand-glow); }
-
-    /* Glass card */
-    .glass { background: rgba(255,255,255,0.04); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); }
-    .glass-hover { transition: border-color 0.2s, box-shadow 0.2s, background 0.2s; }
-    .glass-hover:hover { border-color: rgba(255,255,255,0.15); background: rgba(255,255,255,0.07); box-shadow: 0 0 0 1px var(--active-glow), 0 8px 32px rgba(0,0,0,0.4); }
-
-    /* Brand accent */
-    .brand-text { color: var(--active-brand); }
-    .brand-bg { background: var(--active-brand); }
-    .brand-border { border-color: var(--active-brand); }
-    .brand-dim-bg { background: var(--active-dim); }
-    .brand-glow-ring { box-shadow: 0 0 0 1px var(--active-glow); }
-
-    /* Student toggle switch */
-    .toggle-switch {
-      width: 52px;
-      height: 28px;
-      background: #374151;
-      border-radius: 9999px;
-      position: relative;
-      border: 1px solid rgba(255, 255, 255, 0.14);
-    }
-    .toggle-knob {
-      width: 22px;
-      height: 22px;
-      background: #ffffff;
-      border-radius: 9999px;
-      position: absolute;
-      top: 2px;
-      left: 2px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
-      transition: transform 0.25s ease;
-    }
-    .toggle-switch.active {
-      background: #10b981;
-    }
-    .toggle-switch.active .toggle-knob {
-      transform: translateX(24px);
-    }
-
-    /* Student perk badge / hack section */
-    .student-perk { display: none; }
-    body.student-mode .student-perk { display: flex; }
-    .uni-hack { display: none; }
-    body.student-mode .uni-hack { display: block; }
-
-    /* Sidebar active */
-    .sidebar-item.active { background: var(--active-dim); color: var(--active-brand); border-left: 2px solid var(--active-brand); }
-    .sidebar-item { border-left: 2px solid transparent; }
-
-    /* Scrollbar */
-    ::-webkit-scrollbar { width: 4px; height: 4px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
-
-    /* Modal */
-    #modal-overlay { transition: opacity 0.2s; }
-    #modal-overlay.hidden { pointer-events: none; }
-    #modal-box { transition: transform 0.25s, opacity 0.25s; }
-    #modal-overlay.hidden #modal-box { transform: scale(0.96) translateY(8px); opacity: 0; }
-
-    /* Noise overlay */
-    .noise::after { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E"); pointer-events: none; z-index: 0; }
-
-    /* Ambient orbs */
-    .orb { position: fixed; border-radius: 50%; filter: blur(80px); pointer-events: none; z-index: 0; }
-
-    /* Category filter */
-    .cat-btn { transition: all 0.15s; }
-    .cat-btn.active, .cat-btn:hover { background: var(--active-dim); color: var(--active-brand); }
-
-    /* Price badge colors */
-    .badge-free { background: rgba(16,185,129,0.12); color: #34d399; border: 1px solid rgba(16,185,129,0.2); }
-    .badge-freemium { background: rgba(251,191,36,0.1); color: #fbbf24; border: 1px solid rgba(251,191,36,0.2); }
-    .badge-paid { background: rgba(239,68,68,0.1); color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
-
-    /* Card animations */
-    .tool-card { animation: fadeUp 0.3s both; }
-    @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    .tool-card:nth-child(1){animation-delay:.03s}.tool-card:nth-child(2){animation-delay:.06s}.tool-card:nth-child(3){animation-delay:.09s}.tool-card:nth-child(4){animation-delay:.12s}.tool-card:nth-child(5){animation-delay:.15s}.tool-card:nth-child(6){animation-delay:.18s}.tool-card:nth-child(7){animation-delay:.21s}.tool-card:nth-child(8){animation-delay:.24s}
-
-    /* Search focus */
-    #search-input:focus { outline: none; border-color: var(--active-brand); box-shadow: 0 0 0 2px var(--active-glow); }
-
-    /* Search suggestions */
-    .search-suggestions {
-      max-height: min(260px, calc(100vh - 180px));
-      overflow-y: auto;
-      overscroll-behavior: contain;
-      background: rgba(10, 10, 12, 0.96);
-      box-shadow: 0 18px 44px rgba(0,0,0,0.45);
-    }
-    .search-suggestions mark { background: rgba(59,130,246,0.24); color: #dbeafe; border-radius: 3px; padding: 0 1px; }
-
-    /* Mobile sidebar */
-    #sidebar { transition: transform 0.3s; }
-    @media(max-width:767px) { #sidebar { position: fixed; left:0; top:0; bottom:0; z-index:50; transform: translateX(-100%); } #sidebar.open { transform: translateX(0); } }
-  </style>
-</head>
-<body class="noise min-h-screen overflow-x-hidden">
-
-  <!-- Ambient orbs -->
-  <div class="orb w-96 h-96 bg-blue-600/10 top-0 left-64 opacity-60"></div>
-  <div class="orb w-80 h-80 bg-violet-600/8 top-1/3 right-0 opacity-40"></div>
-  <div class="orb w-64 h-64 bg-emerald-600/8 bottom-20 left-1/3 opacity-30 student-perk" style="display:none"></div>
-
-  <!-- Layout wrapper -->
-  <div class="relative z-10 flex min-h-screen">
-
-    <!-- ══════════════ SIDEBAR ══════════════ -->
-    <aside id="sidebar" class="glass w-60 flex-shrink-0 flex flex-col border-r border-white/6 h-screen sticky top-0 overflow-y-auto">
-      <!-- Logo -->
-      <div class="px-5 py-5 border-b border-white/6">
-        <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-lg brand-bg flex items-center justify-center flex-shrink-0">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg>
-          </div>
-          <div>
-            <div class="text-sm font-700 tracking-tight text-zinc-100" style="font-weight:700">AI Compass</div>
-            <div class="text-[10px] text-zinc-500 font-mono">v2.1 · 2026</div>
-          </div>
+  <!-- ═════════════════════════════════════════════════════════════════════════════════════ HERO ═════════════════════════════════════════════════════════════════════════════════════ -->
+  <section class="relative overflow-hidden rounded-3xl p-6 md:p-8 border border-blue-500/20 bg-gradient-to-br from-blue-500/14 via-cyan-500/8 to-transparent">
+    <div class="pointer-events-none absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-indigo-500/10"></div>
+    <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8">
+      <div class="max-w-3xl">
+        <div class="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-zinc-300 font-mono">AI discovery platform</div>
+        <h1 class="mt-4 text-3xl md:text-5xl tracking-tight text-zinc-100 font-bold">Find the Best AI Tools</h1>
+        <p class="mt-3 text-base md:text-lg text-zinc-400 max-w-2xl">Discover {{ total_tools }} AI tools for writing, coding, research, and productivity.</p>
+        <div class="mt-6 flex flex-wrap gap-3">
+          <a href="{{ url_for('main.tools_paginated') }}" class="inline-flex items-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white px-5 py-3 text-sm transition-colors font-medium">Explore Tools</a>
+          <a href="{{ url_for('main.ai_tool_finder') }}" class="inline-flex items-center gap-2 rounded-xl glass hover:border-blue-400/30 text-zinc-100 px-5 py-3 text-sm transition-colors font-medium">Find My AI Stack</a>
         </div>
       </div>
-
-      <!-- Nav -->
-      <nav class="flex-1 px-3 py-4 space-y-0.5">
-        <div class="text-[10px] font-600 text-zinc-600 uppercase tracking-widest px-2 mb-2" style="font-weight:600">Browse</div>
-        <button data-cat="all" class="sidebar-item sidebar-category active w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm text-zinc-300 hover:text-zinc-100 transition-colors">
-          <i data-lucide="layout-grid" class="w-4 h-4 flex-shrink-0"></i> All Tools
-          <span data-count-for="all" class="ml-auto text-[10px] font-mono bg-white/8 px-1.5 py-0.5 rounded">0</span>
-        </button>
-        <button data-cat="writing" class="sidebar-item sidebar-category w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm text-zinc-400 hover:text-zinc-100 transition-colors">
-          <i data-lucide="pen-tool" class="w-4 h-4 flex-shrink-0"></i> Writing & Docs
-          <span data-count-for="writing" class="ml-auto text-[10px] font-mono bg-white/5 px-1.5 py-0.5 rounded">0</span>
-        </button>
-        <button data-cat="coding" class="sidebar-item sidebar-category w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm text-zinc-400 hover:text-zinc-100 transition-colors">
-          <i data-lucide="code-2" class="w-4 h-4 flex-shrink-0"></i> Coding
-          <span data-count-for="coding" class="ml-auto text-[10px] font-mono bg-white/5 px-1.5 py-0.5 rounded">0</span>
-        </button>
-        <button data-cat="image" class="sidebar-item sidebar-category w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm text-zinc-400 hover:text-zinc-100 transition-colors">
-          <i data-lucide="image" class="w-4 h-4 flex-shrink-0"></i> Image Gen
-          <span data-count-for="image" class="ml-auto text-[10px] font-mono bg-white/5 px-1.5 py-0.5 rounded">0</span>
-        </button>
-        <button data-cat="video" class="sidebar-item sidebar-category w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm text-zinc-400 hover:text-zinc-100 transition-colors">
-          <i data-lucide="video" class="w-4 h-4 flex-shrink-0"></i> Video Gen
-          <span data-count-for="video" class="ml-auto text-[10px] font-mono bg-white/5 px-1.5 py-0.5 rounded">0</span>
-        </button>
-        <button data-cat="research" class="sidebar-item sidebar-category w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm text-zinc-400 hover:text-zinc-100 transition-colors">
-          <i data-lucide="book-open" class="w-4 h-4 flex-shrink-0"></i> Research
-          <span data-count-for="research" class="ml-auto text-[10px] font-mono bg-white/5 px-1.5 py-0.5 rounded">0</span>
-        </button>
-        <button data-cat="productivity" class="sidebar-item sidebar-category w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm text-zinc-400 hover:text-zinc-100 transition-colors">
-          <i data-lucide="zap" class="w-4 h-4 flex-shrink-0"></i> Productivity
-          <span data-count-for="productivity" class="ml-auto text-[10px] font-mono bg-white/5 px-1.5 py-0.5 rounded">0</span>
-        </button>
-
-        <div class="text-[10px] font-600 text-zinc-600 uppercase tracking-widest px-2 mb-2 mt-5" style="font-weight:600">Curated</div>
-        <button data-cat="trending" class="sidebar-item sidebar-category w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm text-zinc-400 hover:text-zinc-100 transition-colors">
-          <i data-lucide="trending-up" class="w-4 h-4 flex-shrink-0"></i> Trending
-        </button>
-        <button data-cat="free" class="sidebar-item sidebar-category w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm text-zinc-400 hover:text-zinc-100 transition-colors">
-          <i data-lucide="gift" class="w-4 h-4 flex-shrink-0"></i> Free Only
-          <span data-count-for="free" class="ml-auto text-[10px] font-mono bg-white/5 px-1.5 py-0.5 rounded">0</span>
-        </button>
-
-        <div class="text-[10px] font-600 text-zinc-600 uppercase tracking-widest px-2 mb-2 mt-5" style="font-weight:600">Pages</div>
-        {% if is_authenticated %}
-          <a href="{{ url_for('main.dashboard') }}" class="sidebar-item w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm text-zinc-400 hover:text-zinc-100 transition-colors">
-            <i data-lucide="layout-dashboard" class="w-4 h-4 flex-shrink-0"></i> Dashboard
-          </a>
-        {% endif %}
-        <a href="{{ url_for('main.tools_paginated') }}" class="sidebar-item w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm text-zinc-400 hover:text-zinc-100 transition-colors">
-          <i data-lucide="library" class="w-4 h-4 flex-shrink-0"></i> Browse All Pages
-        </a>
-        <a href="{{ url_for('main.compare') }}" class="sidebar-item w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm text-zinc-400 hover:text-zinc-100 transition-colors">
-          <i data-lucide="scale" class="w-4 h-4 flex-shrink-0"></i> Compare Tools
-        </a>
-        <a href="{{ url_for('main.ai_stack_builder') }}" class="sidebar-item w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm text-zinc-400 hover:text-zinc-100 transition-colors">
-          <i data-lucide="layers" class="w-4 h-4 flex-shrink-0"></i> AI Stack Builder
-        </a>
-        <a href="{{ url_for('main.updates') }}" class="sidebar-item w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm text-zinc-400 hover:text-zinc-100 transition-colors">
-          <i data-lucide="rss" class="w-4 h-4 flex-shrink-0"></i> Weekly Updates
-        </a>
-        <a href="{{ url_for('main.submit_tool') }}" class="sidebar-item w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm text-zinc-400 hover:text-zinc-100 transition-colors">
-          <i data-lucide="plus-circle" class="w-4 h-4 flex-shrink-0"></i> Submit a Tool
-        </a>
-      </nav>
-
-      <!-- Footer -->
-      <div class="px-4 py-4 border-t border-white/6">
-        <div class="text-[10px] text-zinc-600 font-mono">Updated Mar 2026</div>
-        <div class="text-[10px] text-zinc-700 mt-0.5">{{ total_tools }} tools indexed</div>
-      </div>
-    </aside>
-
-    <!-- Mobile overlay -->
-    <div id="mob-overlay" onclick="closeSidebar()" class="hidden fixed inset-0 bg-black/60 z-40 md:hidden"></div>
-
-    <!-- ══════════════ MAIN ══════════════ -->
-    <div class="flex-1 flex flex-col min-w-0">
-
-      <!-- TOP BAR -->
-      <header class="glass sticky top-0 z-30 border-b border-white/6 px-4 md:px-6 h-14 flex items-center gap-3 flex-shrink-0">
-        <!-- Mobile menu -->
-        <button onclick="toggleSidebar()" class="md:hidden text-zinc-400 hover:text-zinc-200 transition-colors">
-          <i data-lucide="menu" class="w-5 h-5"></i>
-        </button>
-
-        <!-- Search -->
-        <div class="relative flex-1 max-w-xl mx-auto">
-          <i data-lucide="search" class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none"></i>
-          <input id="search-input" oninput="searchTools(this.value)" type="text" placeholder="Search tools, categories, use cases…"
-            class="w-full backdrop-blur-md bg-white/5 border border-white/10 rounded-xl pl-8 pr-3 py-2 text-sm text-zinc-200 placeholder-zinc-600 transition-all shadow-lg" />
-          <div id="search-suggestions" class="search-suggestions hidden absolute left-0 right-0 mt-1 z-50 glass rounded-xl border border-white/10 p-1"></div>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 min-w-full lg:min-w-[420px]">
+        <div class="glass rounded-2xl p-4">
+          <div class="text-[11px] uppercase tracking-wide text-zinc-500">Tools</div>
+          <div class="mt-1 text-xl text-zinc-100 font-bold">{{ total_tools }}+ AI</div>
         </div>
-
-        <div class="flex items-center gap-3 ml-auto">
-          <!-- Tool count -->
-          <span id="count-badge" class="hidden md:flex items-center gap-1.5 text-xs text-zinc-400 font-mono bg-zinc-900/70 border border-zinc-700 rounded-full px-2.5 py-1">
-            <span id="visible-count">0</span> / <span id="total-count">0</span>
-          </span>
-
-          <!-- Student Mode Toggle -->
-          <div class="toggle-container flex items-center gap-2.5 glass rounded-full px-3 py-1.5 border-white/8">
-            <i data-lucide="graduation-cap" class="w-3.5 h-3.5 text-zinc-400 flex-shrink-0"></i>
-            <span class="text-xs text-zinc-400 whitespace-nowrap hidden sm:block">Student Mode</span>
-            <button id="student-mode-toggle" role="switch" aria-checked="false"
-              class="toggle-switch transition-all duration-300 flex-shrink-0 cursor-pointer">
-              <span class="toggle-knob transition-all duration-300"></span>
-            </button>
-          </div>
-
-          <!-- Sort -->
-          <div class="relative hidden md:block">
-            <label for="sort-select" class="sr-only">Sort tools</label>
-            <select id="sort-select" class="sr-only" aria-hidden="true" tabindex="-1">
-              <option value="trending">Sort: Trending</option>
-              <option value="rating">Sort: Highest Rated</option>
-              <option value="popular">Sort: Most Popular</option>
-              <option value="newest">Sort: Newest</option>
-              <option value="free">Sort: Free First</option>
-            </select>
-            <button id="sort-trigger" type="button" class="flex items-center gap-1.5 bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-sm text-zinc-200 hover:border-zinc-500 transition-all">
-              <i data-lucide="arrow-up-down" class="w-3.5 h-3.5"></i>
-              <span id="sort-label">Sort: Trending</span>
-              <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
-            </button>
-            <div id="sort-menu" class="hidden absolute right-0 mt-1 w-52 bg-zinc-900/95 border border-zinc-700 rounded-lg shadow-xl z-40 p-1.5">
-              <button type="button" data-sort-value="trending" class="sort-option w-full text-left rounded-md px-2.5 py-1.5 text-sm text-zinc-300 hover:bg-zinc-700/80">Sort: Trending</button>
-              <button type="button" data-sort-value="rating" class="sort-option w-full text-left rounded-md px-2.5 py-1.5 text-sm text-zinc-300 hover:bg-zinc-700/80">Sort: Highest Rated</button>
-              <button type="button" data-sort-value="popular" class="sort-option w-full text-left rounded-md px-2.5 py-1.5 text-sm text-zinc-300 hover:bg-zinc-700/80">Sort: Most Popular</button>
-              <button type="button" data-sort-value="newest" class="sort-option w-full text-left rounded-md px-2.5 py-1.5 text-sm text-zinc-300 hover:bg-zinc-700/80">Sort: Newest</button>
-              <button type="button" data-sort-value="free" class="sort-option w-full text-left rounded-md px-2.5 py-1.5 text-sm text-zinc-300 hover:bg-zinc-700/80">Sort: Free First</button>
-            </div>
-          </div>
-
-          {% if is_authenticated %}
-            <a href="{{ url_for('main.dashboard') }}" class="hidden md:flex items-center gap-1.5 text-xs text-zinc-300 hover:text-zinc-100 transition-colors glass rounded-lg px-2.5 py-1.5">Dashboard</a>
-            {% if current_user.is_authenticated and current_user.is_admin %}
-            <a href="{{ url_for('main.admin') }}" class="hidden md:flex items-center gap-1.5 text-xs text-white bg-blue-600 hover:bg-blue-500 transition-colors rounded-lg px-2.5 py-1.5">Admin Panel</a>
-            {% endif %}
-            <a href="{{ url_for('auth.logout') }}" class="hidden md:flex items-center gap-1.5 text-xs text-zinc-300 hover:text-zinc-100 transition-colors glass rounded-lg px-2.5 py-1.5">Logout</a>
-          {% else %}
-            <a href="{{ url_for('auth.login') }}" class="hidden md:flex items-center gap-1.5 text-xs text-zinc-300 hover:text-zinc-100 transition-colors glass rounded-lg px-2.5 py-1.5">Login</a>
-            <a href="{{ url_for('auth.register') }}" class="hidden md:flex items-center gap-1.5 text-xs text-zinc-300 hover:text-zinc-100 transition-colors glass rounded-lg px-2.5 py-1.5">Register</a>
-          {% endif %}
+        <div class="glass rounded-2xl p-4">
+          <div class="text-[11px] uppercase tracking-wide text-zinc-500">Categories</div>
+          <div class="mt-1 text-xl text-zinc-100 font-bold">{{ total_categories }}</div>
         </div>
-      </header>
-
-      <!-- PAGE CONTENT -->
-      <main class="flex-1 px-4 md:px-6 py-6">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-          {% if messages %}
-          <div class="space-y-2 mb-5">
-            {% for category, message in messages %}
-              <div class="glass rounded-xl px-4 py-3 text-sm {% if category == 'success' %}text-emerald-400 border-emerald-500/20 bg-emerald-500/5{% elif category == 'error' or category == 'danger' %}text-red-400 border-red-500/20 bg-red-500/5{% else %}text-blue-300 border-blue-500/20 bg-blue-500/5{% endif %}">
-                {{ message }}
-              </div>
-            {% endfor %}
-          </div>
-          {% endif %}
-        {% endwith %}
-
-        <section class="relative overflow-hidden mb-6 rounded-3xl p-6 md:p-8 border border-blue-500/20 bg-gradient-to-br from-blue-500/14 via-cyan-500/8 to-transparent">
-          <div class="pointer-events-none absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-indigo-500/10"></div>
-          <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8">
-            <div class="max-w-3xl">
-              <div id="hero-chip" class="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-zinc-300 font-mono">AI discovery platform</div>
-              <h1 id="hero-title" class="mt-4 text-3xl md:text-5xl tracking-tight text-zinc-100" style="font-weight:700">Find the Best AI Tools</h1>
-              <p id="hero-subtitle" class="mt-3 text-base md:text-lg text-zinc-400 max-w-2xl">Discover {{ total_tools }} AI tools for writing, coding, research, and productivity.</p>
-              <div class="mt-6 flex flex-wrap gap-3">
-                <a href="{{ url_for('main.tools_paginated') }}" class="inline-flex items-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white px-5 py-3 text-sm transition-colors">Explore Tools</a>
-                <a href="{{ url_for('main.ai_tool_finder') }}" class="inline-flex items-center gap-2 rounded-xl glass hover:border-blue-400/30 text-zinc-100 px-5 py-3 text-sm transition-colors">Find My AI Stack</a>
-              </div>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 min-w-full lg:min-w-[420px]">
-              <div class="glass rounded-2xl p-4">
-                <div class="text-[11px] uppercase tracking-wide text-zinc-500">Social Proof</div>
-                <div class="mt-1 text-xl text-zinc-100" style="font-weight:700">500+ AI Tools</div>
-              </div>
-              <div class="glass rounded-2xl p-4">
-                <div class="text-[11px] uppercase tracking-wide text-zinc-500">Coverage</div>
-                <div class="mt-1 text-xl text-zinc-100" style="font-weight:700">10 Categories</div>
-              </div>
-              <div class="glass rounded-2xl p-4">
-                <div class="text-[11px] uppercase tracking-wide text-zinc-500">Community</div>
-                <div class="mt-1 text-xl text-zinc-100" style="font-weight:700">12k+ Students Discovering Tools</div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section id="browse-category-section" class="mb-6 rounded-2xl p-4 border border-white/10 bg-white/5">
-          <div class="flex items-center justify-between mb-3">
-            <h2 class="text-lg text-zinc-100" style="font-weight:700">Browse AI Tools by Category</h2>
-          </div>
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <a href="/?category=writing" class="glass rounded-xl p-4 hover:scale-[1.02] hover:border-blue-500 transition-all duration-200 hover:shadow-lg">
-              <div class="text-sm text-zinc-100" style="font-weight:600">Writing & Docs</div>
-            </a>
-            <a href="/?category=coding" class="glass rounded-xl p-4 hover:scale-[1.02] hover:border-blue-500 transition-all duration-200 hover:shadow-lg">
-              <div class="text-sm text-zinc-100" style="font-weight:600">Coding</div>
-            </a>
-            <a href="/?category=research" class="glass rounded-xl p-4 hover:scale-[1.02] hover:border-blue-500 transition-all duration-200 hover:shadow-lg">
-              <div class="text-sm text-zinc-100" style="font-weight:600">Research</div>
-            </a>
-            <a href="/?category=image" class="glass rounded-xl p-4 hover:scale-[1.02] hover:border-blue-500 transition-all duration-200 hover:shadow-lg">
-              <div class="text-sm text-zinc-100" style="font-weight:600">Image Generation</div>
-            </a>
-            <a href="/?category=video" class="glass rounded-xl p-4 hover:scale-[1.02] hover:border-blue-500 transition-all duration-200 hover:shadow-lg">
-              <div class="text-sm text-zinc-100" style="font-weight:600">Video Generation</div>
-            </a>
-            <a href="/?category=productivity" class="glass rounded-xl p-4 hover:scale-[1.02] hover:border-blue-500 transition-all duration-200 hover:shadow-lg">
-              <div class="text-sm text-zinc-100" style="font-weight:600">Productivity</div>
-            </a>
-            <a href="/?category=design" class="glass rounded-xl p-4 hover:scale-[1.02] hover:border-blue-500 transition-all duration-200 hover:shadow-lg">
-              <div class="text-sm text-zinc-100" style="font-weight:600">Design</div>
-            </a>
-            <a href="/?category=data analysis" class="glass rounded-xl p-4 hover:scale-[1.02] hover:border-blue-500 transition-all duration-200 hover:shadow-lg">
-              <div class="text-sm text-zinc-100" style="font-weight:600">Data Analysis</div>
-            </a>
-          </div>
-        </section>
-
-        <!-- Student Mode Banner -->
-        <div id="student-banner" class="student-perk hidden mb-5 glass rounded-xl px-4 py-3.5 items-center gap-3 border border-emerald-500/20 bg-emerald-500/5">
-          <div class="w-8 h-8 rounded-lg bg-emerald-500/15 flex items-center justify-center flex-shrink-0">
-            <i data-lucide="graduation-cap" class="w-4 h-4 text-emerald-400"></i>
-          </div>
-          <div class="flex-1 min-w-0">
-            <div class="text-sm font-600 text-emerald-300" style="font-weight:600">🎓 Student Mode Enabled</div>
-            <div class="text-xs text-zinc-500 mt-0.5">Showing tools with free tiers and student perks.</div>
-          </div>
-          <span class="text-[10px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-1 rounded-full">EDU</span>
+        <div class="glass rounded-2xl p-4">
+          <div class="text-[11px] uppercase tracking-wide text-zinc-500">Community</div>
+          <div class="mt-1 text-xl text-zinc-100 font-bold">12k+ Users</div>
         </div>
-
-        <section id="new-tools-section" class="mb-6 rounded-2xl p-4 border border-emerald-500/20 bg-gradient-to-br from-emerald-500/10 via-cyan-500/5 to-transparent">
-          <div class="flex items-center justify-between mb-3">
-            <h2 class="text-sm font-600 text-zinc-100" style="font-weight:600">✨ New AI Tools</h2>
-            <span class="text-[10px] font-mono text-zinc-500">Latest 8</span>
-          </div>
-          <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-2.5">
-            {% for tool in recent_tools %}
-            <a href="{{ url_for('main.tool_detail', tool_id=tool.tool_key) }}" class="glass rounded-xl p-3 hover:border-emerald-400/30 transition-colors">
-              <div class="flex items-center gap-2">
-                <img src="{{ tool.icon or '/static/icons/default.png' }}" onerror="this.onerror=null;this.src='/static/icons/default.png';" alt="{{ tool.name }} logo" class="w-8 h-8 rounded-lg object-cover border border-white/10" />
-                <div class="min-w-0">
-                  <div class="text-sm text-zinc-100 truncate" style="font-weight:600">{{ tool.name }}</div>
-                  <div class="text-[11px] text-zinc-500">Launched {{ tool.launchYear or 'N/A' }}</div>
-                </div>
-              </div>
-              <p class="text-xs text-zinc-400 mt-2 line-clamp-2">{{ tool.tagline or tool.description or '' }}</p>
-            </a>
-            {% endfor %}
-          </div>
-        </section>
-
-        <section id="trending-tools-section" class="mb-6 rounded-2xl p-4 border border-blue-500/20 bg-gradient-to-br from-blue-500/10 via-cyan-500/5 to-transparent">
-          <div class="flex items-center justify-between mb-3">
-            <h2 class="text-sm font-600 text-zinc-100" style="font-weight:600">🔥 Trending AI Tools</h2>
-            <span class="text-[10px] font-mono text-zinc-500">Top 6</span>
-          </div>
-          <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2.5">
-            {% for tool in trending_tools %}
-            <article class="glass rounded-xl p-4">
-              <div class="flex items-start gap-2">
-                <img src="{{ tool.icon or '/static/icons/default.png' }}" onerror="this.onerror=null;this.src='/static/icons/default.png';" alt="{{ tool.name }} logo" class="w-9 h-9 rounded-md object-cover border border-white/10" />
-                <div class="min-w-0">
-                  <h3 class="text-sm text-zinc-100 truncate" style="font-weight:600">{{ tool.name }}</h3>
-                  <p class="text-xs text-zinc-500 line-clamp-2">{{ tool.tagline or '' }}</p>
-                </div>
-              </div>
-              <p class="text-xs text-zinc-400 mt-3 line-clamp-3">{{ tool.description or '' }}</p>
-              <div class="mt-3 flex items-center gap-2 flex-wrap text-[10px] font-mono text-zinc-500">
-                <span>{{ tool.category or 'general' }}</span>
-                <span>•</span>
-                <span>{{ tool.rating or 'N/A' }}★</span>
-              </div>
-              <a href="{{ url_for('main.tool_detail', tool_id=tool.tool_key) }}" class="inline-block mt-3 text-xs text-cyan-300 hover:text-cyan-200">View tool →</a>
-            </article>
-            {% endfor %}
-          </div>
-        </section>
-
-        <section id="category-spotlight-section" class="hidden mb-6 rounded-2xl p-4 border border-cyan-500/20 bg-gradient-to-br from-cyan-500/10 via-blue-500/5 to-transparent">
-          <div class="flex items-center justify-between mb-3">
-            <h2 id="category-spotlight-title" class="text-sm font-600 text-zinc-100" style="font-weight:600">Category Spotlight</h2>
-            <span id="category-spotlight-count" class="text-[10px] font-mono text-zinc-500">Top picks</span>
-          </div>
-          <div id="category-spotlight-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2.5"></div>
-        </section>
-
-        <!-- Page heading -->
-        <div class="mb-6 flex items-end justify-between gap-4 flex-wrap">
-          <div>
-            <h1 class="text-xl font-700 text-zinc-100 tracking-tight" style="font-weight:700">
-              <span id="page-title">All AI Tools</span>
-            </h1>
-            <p class="text-sm text-zinc-500 mt-0.5">Curated, categorised, and ranked for 2026.</p>
-            <div class="mt-2 text-xs text-zinc-400 font-mono"><span id="total-plus">0+</span> AI Tools</div>
-          </div>
-          <!-- Quick filters -->
-          <div class="flex items-center gap-1.5 flex-wrap">
-            <button onclick="setPriceFilter('all')" data-pf="all" class="cat-btn active text-[11px] px-3 py-1 rounded-full border border-zinc-700 text-zinc-300 transition-all">All</button>
-            <button onclick="setPriceFilter('free')" data-pf="free" class="cat-btn text-[11px] px-3 py-1 rounded-full border border-zinc-700 text-zinc-300 transition-all">Free</button>
-            <button onclick="setPriceFilter('freemium')" data-pf="freemium" class="cat-btn text-[11px] px-3 py-1 rounded-full border border-zinc-700 text-zinc-300 transition-all">Freemium</button>
-            <button onclick="setPriceFilter('paid')" data-pf="paid" class="cat-btn text-[11px] px-3 py-1 rounded-full border border-zinc-700 text-zinc-300 transition-all">Paid</button>
-          </div>
-        </div>
-
-        <!-- GRID -->
-        <div id="tools-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
-          <!-- Cards injected by JS -->
-        </div>
-
-        <div id="tools-load-more-wrap" class="hidden mt-5 flex flex-col items-center gap-2">
-          <div id="tools-loaded-text" class="text-xs text-zinc-500 font-mono"></div>
-          <button id="tools-load-more" type="button" class="glass rounded-lg px-4 py-2 text-xs text-zinc-200 hover:text-zinc-100 border border-white/10 hover:border-blue-400/30 transition-colors">Show More Tools</button>
-        </div>
-
-        <!-- Empty state -->
-        <div id="empty-state" class="hidden py-20 text-center">
-          <i data-lucide="search-x" class="w-10 h-10 text-zinc-700 mx-auto mb-3"></i>
-          <p class="text-zinc-500 text-sm">No tools match your search.</p>
-        </div>
-
-        <section class="mt-8 glass rounded-2xl p-5 border border-cyan-500/20 bg-gradient-to-br from-cyan-500/10 via-blue-500/5 to-transparent">
-          <h2 class="text-lg text-zinc-100" style="font-weight:700">Get Weekly AI Tool Updates</h2>
-          <p class="text-sm text-zinc-400 mt-1">Subscribe for curated launches, student-friendly picks, and practical AI workflows from AI Compass.</p>
-          <form method="POST" action="{{ url_for('main.newsletter_subscribe') }}" class="mt-4 flex flex-col sm:flex-row gap-2">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-            <input type="email" name="email" required placeholder="you@example.com" class="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-600" />
-            <button type="submit" class="rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm px-4 py-2 transition-colors">Subscribe</button>
-          </form>
-        </section>
-
-        <footer class="mt-8 border-t border-white/8 pt-8">
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-8 text-sm">
-            <div>
-              <h3 class="text-zinc-100" style="font-weight:700">AI Compass</h3>
-              <p class="text-zinc-400 mt-2">Discover the best AI tools for students.</p>
-            </div>
-            <div>
-              <h4 class="text-zinc-200" style="font-weight:600">Explore</h4>
-              <div class="mt-3 space-y-2 text-zinc-400">
-                <a href="{{ url_for('main.tools_paginated') }}" class="block hover:text-zinc-100">All Tools</a>
-                <a href="{{ url_for('main.ai_tool_finder') }}" class="block hover:text-zinc-100">AI Stack Builder</a>
-                <a href="{{ url_for('main.updates') }}" class="block hover:text-zinc-100">Weekly AI Tools</a>
-                <a href="{{ url_for('main.submit_tool') }}" class="block hover:text-zinc-100">Submit Tool</a>
-              </div>
-            </div>
-            <div>
-              <h4 class="text-zinc-200" style="font-weight:600">Support</h4>
-              <div class="mt-3 space-y-2 text-zinc-400">
-                <a href="{{ url_for('main.report_bug') }}" class="block hover:text-zinc-100">Report Bug</a>
-                <a href="mailto:contact@aicompass.local" class="block hover:text-zinc-100">Contact</a>
-              </div>
-            </div>
-            <div>
-              <h4 class="text-zinc-200" style="font-weight:600">Legal</h4>
-              <div class="mt-3 space-y-2 text-zinc-400">
-                <a href="#" class="block hover:text-zinc-100">Privacy Policy</a>
-                <a href="#" class="block hover:text-zinc-100">Terms</a>
-              </div>
-            </div>
-          </div>
-        </footer>
-      </main>
-    </div>
-  </div>
-
-  <!-- Floating Compare Button -->
-  <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-40">
-    <button id="compare-floating-btn" onclick="goToComparePage()"
-      class="hidden items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white text-xs rounded-full px-5 py-2.5 shadow-lg shadow-blue-900/40 transition-all">
-      <i data-lucide="scale" class="w-3.5 h-3.5"></i>
-      <span>Compare Tools (0)</span>
-    </button>
-  </div>
-
-  <!-- ══════════════ MODAL ══════════════ -->
-  <div id="modal-overlay" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-    <div id="modal-box" class="glass w-full max-w-lg rounded-2xl overflow-hidden">
-      <div class="px-6 py-5 border-b border-white/8 flex items-start gap-4">
-        <div id="modal-icon" class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"></div>
-        <div class="flex-1 min-w-0">
-          <div class="flex items-center gap-2 flex-wrap">
-            <h2 id="modal-title" class="text-base font-700 text-zinc-100" style="font-weight:700"></h2>
-            <span id="modal-price" class="text-[10px] font-mono px-2 py-0.5 rounded-full"></span>
-          </div>
-          <p id="modal-tagline" class="text-xs text-zinc-500 mt-0.5"></p>
-        </div>
-        <button onclick="closeModal()" class="text-zinc-600 hover:text-zinc-300 transition-colors flex-shrink-0">
-          <i data-lucide="x" class="w-4 h-4"></i>
-        </button>
-      </div>
-      <div class="px-6 py-5 space-y-4 max-h-[65vh] overflow-y-auto">
-        <div>
-          <div class="text-[10px] font-600 text-zinc-600 uppercase tracking-widest mb-1.5" style="font-weight:600">About</div>
-          <p id="modal-desc" class="text-sm text-zinc-300 leading-relaxed"></p>
-        </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div class="glass rounded-lg p-3">
-            <div class="text-[10px] text-zinc-600 mb-1">Best For</div>
-            <div id="modal-bestfor" class="text-xs text-zinc-300 font-medium"></div>
-          </div>
-          <div class="glass rounded-lg p-3">
-            <div class="text-[10px] text-zinc-600 mb-1">Pricing</div>
-            <div id="modal-pricing-detail" class="text-xs text-zinc-300 font-medium"></div>
-          </div>
-        </div>
-        <div>
-          <div class="text-[10px] font-600 text-zinc-600 uppercase tracking-widest mb-2" style="font-weight:600">Key Features</div>
-          <ul id="modal-features" class="space-y-1.5"></ul>
-        </div>
-        <!-- Student section in modal -->
-        <div id="modal-student" class="uni-hack hidden glass rounded-xl p-4 border border-emerald-500/20 bg-emerald-500/5">
-          <div class="flex items-center gap-2 mb-2">
-            <i data-lucide="graduation-cap" class="w-4 h-4 text-emerald-400"></i>
-            <span class="text-xs font-600 text-emerald-300" style="font-weight:600">University Hack</span>
-          </div>
-          <p id="modal-uni-hack" class="text-xs text-zinc-400 leading-relaxed"></p>
-          <div id="modal-student-perk" class="mt-2 text-[11px] font-mono text-emerald-400 bg-emerald-500/10 rounded-lg px-3 py-2"></div>
-        </div>
-      </div>
-      <div class="px-6 py-4 border-t border-white/6 flex items-center justify-between gap-3">
-        <a id="modal-link" href="#" target="_blank" rel="noopener"
-          class="flex items-center gap-1.5 text-xs brand-text hover:opacity-80 transition-opacity">
-          <i data-lucide="external-link" class="w-3.5 h-3.5"></i> Visit Website
-        </a>
-        <button onclick="closeModal()" class="glass text-xs text-zinc-400 hover:text-zinc-200 px-4 py-2 rounded-lg transition-colors">Close</button>
       </div>
     </div>
-  </div>
+  </section>
 
-  <button id="compare-floating-btn-mobile" onclick="goToComparePage()" class="hidden fixed bottom-6 right-6 z-40 rounded-full bg-blue-600 hover:bg-blue-500 text-white px-4 py-3 text-sm font-medium shadow-lg shadow-blue-900/40">📊 Compare Tools (0)</button>
+  <!-- ═════════════════════════════════════════════════════════════════════════════════════ CATEGORIES ═════════════════════════════════════════════════════════════════════════════════════ -->
+  <section class="rounded-2xl p-4 border border-white/10 bg-white/5">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-xl text-zinc-100 font-bold">Browse by Category</h2>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <a href="{{ url_for('main.tools_paginated', category='writing') }}" class="glass rounded-xl p-4 hover:scale-[1.02] hover:border-blue-500 transition-all duration-200 hover:shadow-lg">
+        <div class="text-sm text-zinc-100 font-semibold">Writing & Docs</div>
+        {% if category_counts.get('writing', 0) > 0 %}<div class="text-xs text-zinc-500 mt-1">{{ category_counts.get('writing', 0) }} tools</div>{% endif %}
+      </a>
+      <a href="{{ url_for('main.tools_paginated', category='coding') }}" class="glass rounded-xl p-4 hover:scale-[1.02] hover:border-blue-500 transition-all duration-200 hover:shadow-lg">
+        <div class="text-sm text-zinc-100 font-semibold">Coding</div>
+        {% if category_counts.get('coding', 0) > 0 %}<div class="text-xs text-zinc-500 mt-1">{{ category_counts.get('coding', 0) }} tools</div>{% endif %}
+      </a>
+      <a href="{{ url_for('main.tools_paginated', category='research') }}" class="glass rounded-xl p-4 hover:scale-[1.02] hover:border-blue-500 transition-all duration-200 hover:shadow-lg">
+        <div class="text-sm text-zinc-100 font-semibold">Research</div>
+        {% if category_counts.get('research', 0) > 0 %}<div class="text-xs text-zinc-500 mt-1">{{ category_counts.get('research', 0) }} tools</div>{% endif %}
+      </a>
+      <a href="{{ url_for('main.tools_paginated', category='image generation') }}" class="glass rounded-xl p-4 hover:scale-[1.02] hover:border-blue-500 transition-all duration-200 hover:shadow-lg">
+        <div class="text-sm text-zinc-100 font-semibold">Image Gen</div>
+        {% if category_counts.get('image generation', 0) > 0 %}<div class="text-xs text-zinc-500 mt-1">{{ category_counts.get('image generation', 0) }} tools</div>{% endif %}
+      </a>
+      <a href="{{ url_for('main.tools_paginated', category='video generation') }}" class="glass rounded-xl p-4 hover:scale-[1.02] hover:border-blue-500 transition-all duration-200 hover:shadow-lg">
+        <div class="text-sm text-zinc-100 font-semibold">Video Gen</div>
+        {% if category_counts.get('video generation', 0) > 0 %}<div class="text-xs text-zinc-500 mt-1">{{ category_counts.get('video generation', 0) }} tools</div>{% endif %}
+      </a>
+      <a href="{{ url_for('main.tools_paginated', category='productivity') }}" class="glass rounded-xl p-4 hover:scale-[1.02] hover:border-blue-500 transition-all duration-200 hover:shadow-lg">
+        <div class="text-sm text-zinc-100 font-semibold">Productivity</div>
+        {% if category_counts.get('productivity', 0) > 0 %}<div class="text-xs text-zinc-500 mt-1">{{ category_counts.get('productivity', 0) }} tools</div>{% endif %}
+      </a>
+      <a href="{{ url_for('main.tools_paginated', pricing='free') }}" class="glass rounded-xl p-4 hover:scale-[1.02] hover:border-blue-500 transition-all duration-200 hover:shadow-lg">
+        <div class="text-sm text-zinc-100 font-semibold">Free Tools</div>
+        <div class="text-xs text-zinc-500 mt-1">No cost</div>
+      </a>
+      <a href="{{ url_for('main.tools_paginated', sort='trending') }}" class="glass rounded-xl p-4 hover:scale-[1.02] hover:border-blue-500 transition-all duration-200 hover:shadow-lg">
+        <div class="text-sm text-zinc-100 font-semibold">Trending</div>
+        <div class="text-xs text-zinc-500 mt-1">Popular now</div>
+      </a>
+    </div>
+  </section>
 
-  <script>
-    window.AI_COMPASS_CONFIG = {
-      isAuthenticated: {{ 'true' if is_authenticated else 'false' }},
-      favoriteIds: {{ favorite_ids|tojson }},
-      csrfToken: "{{ csrf_token() }}"
-    };
-  </script>
-  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-</body>
-</html>
+  <!-- ═════════════════════════════════════════════════════════════════════════════════════ NEW TOOLS ═════════════════════════════════════════════════════════════════════════════════════ -->
+  <section class="rounded-2xl p-4 border border-emerald-500/20 bg-gradient-to-br from-emerald-500/10 via-cyan-500/5 to-transparent">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-lg text-zinc-100 font-bold">✨ New AI Tools</h2>
+      <span class="text-[10px] font-mono text-zinc-500">Latest 8</span>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+      {% for tool in recent_tools %}
+      <a href="{{ url_for('main.tool_detail', tool_id=tool.tool_key) }}" class="glass rounded-xl p-3 hover:border-emerald-400/30 transition-colors group">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg overflow-hidden border border-white/10 flex items-center justify-center bg-white/5 flex-shrink-0">
+            <img src="{{ tool.icon_url }}" alt="{{ tool.name }} logo" class="w-full h-full object-contain bg-white p-1 rounded-lg" onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');" />
+            <div class="w-full h-full hidden flex items-center justify-center text-white text-xs font-semibold bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg">{{ tool.name[0] if tool.name else 'A' }}</div>
+          </div>
+          <div class="min-w-0">
+            <div class="text-sm text-zinc-100 truncate font-semibold">{{ tool.name }}</div>
+            <div class="text-[11px] text-zinc-500">{{ tool.launchYear or 'Recent' }}</div>
+          </div>
+        </div>
+        <p class="text-xs text-zinc-400 mt-2 line-clamp-2">{{ tool.tagline or tool.description or '' }}</p>
+      </a>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- ═════════════════════════════════════════════════════════════════════════════════════ TRENDING TOOLS ═════════════════════════════════════════════════════════════════════════════════════ -->
+  <section class="rounded-2xl p-4 border border-blue-500/20 bg-gradient-to-br from-blue-500/10 via-cyan-500/5 to-transparent">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-lg text-zinc-100 font-bold">🔥 Trending AI Tools</h2>
+      <span class="text-[10px] font-mono text-zinc-500">Top 6</span>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+      {% for tool in trending_tools %}
+      <article class="glass rounded-xl p-4 hover:border-blue-400/30 transition-colors">
+        <div class="flex items-start gap-2">
+          <div class="w-9 h-9 rounded-md overflow-hidden border border-white/10 flex items-center justify-center bg-white/5 flex-shrink-0">
+            <img src="{{ tool.icon_url }}" alt="{{ tool.name }} logo" class="w-full h-full object-contain bg-white p-1 rounded-lg" onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');" />
+            <div class="w-full h-full hidden flex items-center justify-center text-white text-xs font-semibold bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg">{{ tool.name[0] if tool.name else 'A' }}</div>
+          </div>
+          <div class="min-w-0">
+            <h3 class="text-sm text-zinc-100 truncate font-semibold">{{ tool.name }}</h3>
+            <p class="text-xs text-zinc-500 line-clamp-2">{{ tool.tagline or '' }}</p>
+          </div>
+        </div>
+        <p class="text-xs text-zinc-400 mt-3 line-clamp-3">{{ tool.description or '' }}</p>
+        <div class="mt-3 flex items-center gap-2 flex-wrap text-[10px] font-mono text-zinc-500">
+          <span>{{ tool.category or 'AI Tool' }}</span>
+          <span>•</span>
+          <span>{{ tool.rating or '—' }}★</span>
+        </div>
+        <a href="{{ url_for('main.tool_detail', tool_id=tool.tool_key) }}" class="inline-block mt-3 text-xs text-cyan-400 hover:text-cyan-300 transition-colors">View Details →</a>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- ═════════════════════════════════════════════════════════════════════════════════════ NEWSLETTER ═════════════════════════════════════════════════════════════════════════════════════ -->
+  <section class="glass rounded-2xl p-6 border border-cyan-500/20 bg-gradient-to-br from-cyan-500/10 via-blue-500/5 to-transparent">
+    <h2 class="text-lg text-zinc-100 font-bold">📬 Get Weekly AI Tool Updates</h2>
+    <p class="text-sm text-zinc-400 mt-2">Subscribe for curated launches, student-friendly picks, and practical AI workflows.</p>
+    <form method="POST" action="{{ url_for('main.newsletter_subscribe') }}" class="mt-4 flex flex-col sm:flex-row gap-2">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+      <input type="email" name="email" required placeholder="you@example.com" class="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-blue-400" />
+      <button type="submit" class="rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm px-6 py-2.5 transition-colors font-medium whitespace-nowrap">Subscribe</button>
+    </form>
+  </section>
+
+</div>
+
+<style>
+  @keyframes fadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  section {
+    animation: fadeUp 0.5s ease-out both;
+  }
+
+  section:nth-child(1) { animation-delay: 0.1s; }
+  section:nth-child(2) { animation-delay: 0.2s; }
+  section:nth-child(3) { animation-delay: 0.3s; }
+  section:nth-child(4) { animation-delay: 0.4s; }
+  section:nth-child(5) { animation-delay: 0.5s; }
+</style>
+{% endblock %}
+

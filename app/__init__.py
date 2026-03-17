@@ -1,13 +1,14 @@
 import os
-from flask import Flask
+from collections import Counter
+from flask import Flask, session
 from flask_bcrypt import Bcrypt
-from flask_login import LoginManager
+from flask_login import LoginManager, current_user
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import CSRFProtect
 from sqlalchemy import inspect, text
 from whitenoise import WhiteNoise
 
-from app.tool_cache import prime_tools_cache
+from app.tool_cache import get_cached_tools, prime_tools_cache
 
 
 db = SQLAlchemy()
@@ -120,6 +121,7 @@ def create_app() -> Flask:
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["ENV"] = app_env
     app.config["DEBUG"] = os.getenv("FLASK_DEBUG", "false").lower() == "true"
+    app.config["TEMPLATES_AUTO_RELOAD"] = True
     app.config["PREFERRED_URL_SCHEME"] = "https" if is_production else "http"
     app.config["SEND_FILE_MAX_AGE_DEFAULT"] = int(os.getenv("STATIC_CACHE_MAX_AGE", "31536000")) if is_production else 0
 
@@ -188,8 +190,41 @@ def create_app() -> Flask:
 
     @app.context_processor
     def inject_global_template_context():
+        category_aliases = {
+            "writing & docs": "writing",
+            "docs": "writing",
+            "code": "coding",
+            "developer": "coding",
+            "developers": "coding",
+            "image": "image generation",
+            "image gen": "image generation",
+            "image-generation": "image generation",
+            "video": "video generation",
+            "video gen": "video generation",
+            "video-generation": "video generation",
+            "analytics": "data analysis",
+            "data-analysis": "data analysis",
+            "study": "study tools",
+            "education": "study tools",
+        }
+
+        tools = get_cached_tools(data_path)
+        normalized_categories = []
+        for tool in tools:
+            category = str(tool.get("category", "")).strip().lower()
+            category = category_aliases.get(category, category)
+            normalized_categories.append(category if category else "other")
+
+        category_counts = Counter(normalized_categories)
+        total_tools = len(tools)
+
         return {
             "GA_ID": app.config.get("GOOGLE_ANALYTICS_ID", ""),
+            "category_counts": category_counts,
+            "total_tools": total_tools,
+            "current_user": current_user,
+            "is_authenticated": current_user.is_authenticated,
+            "student_mode": session.get("student_mode", False),
         }
 
     return app

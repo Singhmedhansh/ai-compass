@@ -8,7 +8,7 @@ let allTools = [];
 let trendingTools = [];
 let selectedCompare = new Set();
 let favorites = new Set((config.favoriteIds || []).map((item) => String(item)));
-let studentMode = localStorage.getItem('ai_compass_student_mode') === 'true';
+let studentMode = false;
 let state = {
   category: 'all',
   search: '',
@@ -105,8 +105,21 @@ function getToolKey(tool) {
 }
 
 function getToolIcon(tool) {
-  const icon = String(tool.icon || '').trim();
-  return icon || '/static/icons/default.png';
+  return String(tool.icon_url || tool.icon || '').trim();
+}
+
+function renderToolIcon(tool, sizeClasses = 'w-8 h-8', radiusClasses = 'rounded-md') {
+  const icon = getToolIcon(tool);
+  const initial = escapeHtml(((tool.name || 'A').trim().charAt(0) || 'A').toUpperCase());
+  const imgHiddenClass = icon ? '' : ' hidden';
+  const fallbackHiddenClass = icon ? ' hidden' : '';
+
+  return `
+    <div class="${sizeClasses} ${radiusClasses} overflow-hidden border border-white/10 flex items-center justify-center bg-white/5 flex-shrink-0">
+      <img src="${escapeHtml(icon)}" alt="${escapeHtml(tool.name || 'Tool')} logo" class="w-full h-full object-contain bg-white p-1 rounded-lg${imgHiddenClass}" onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');" />
+      <div class="w-full h-full flex${fallbackHiddenClass} items-center justify-center text-white text-xs font-semibold bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg">${initial}</div>
+    </div>
+  `;
 }
 
 async function fetchTools() {
@@ -216,7 +229,7 @@ function renderTools(tools, totalFiltered = tools.length) {
       <article class="tool-card glass glass-hover rounded-2xl p-4 flex flex-col gap-3 border border-white/8 hover:scale-[1.02] hover:border-blue-500 hover:shadow-lg transition-all duration-200" style="animation-delay:${index * 0.04}s">
         <div class="flex items-start justify-between gap-2">
           <div class="min-w-0 flex items-start gap-2">
-            <img src="${escapeHtml(getToolIcon(tool))}" onerror="this.onerror=null;this.src='/static/icons/default.png';" alt="${escapeHtml(tool.name || 'Tool')} logo" class="w-8 h-8 rounded-md object-cover bg-white/10 border border-white/10 flex-shrink-0" />
+            ${renderToolIcon(tool, 'w-8 h-8', 'rounded-md')}
             <div>
               <h3 class="text-sm font-700 text-zinc-100" style="font-weight:700">${escapeHtml(tool.name || 'Unnamed Tool')}</h3>
               <p class="text-xs text-zinc-500 mt-0.5 line-clamp-2">${escapeHtml(getToolTagline(tool))}</p>
@@ -317,7 +330,7 @@ function renderCategorySpotlight(filteredTools) {
       return `
         <a href="/tool/${escapeHtml(key)}" class="glass rounded-xl p-3 hover:border-cyan-400/30 transition-colors">
           <div class="flex items-center gap-2">
-            <img src="${escapeHtml(getToolIcon(tool))}" onerror="this.onerror=null;this.src='/static/icons/default.png';" alt="${escapeHtml(tool.name || 'Tool')} logo" class="w-8 h-8 rounded-lg object-cover border border-white/10" />
+            ${renderToolIcon(tool, 'w-8 h-8', 'rounded-lg')}
             <div class="min-w-0">
               <div class="text-sm text-zinc-100 truncate" style="font-weight:600">${escapeHtml(tool.name || 'Unnamed Tool')}</div>
               <div class="text-[11px] text-zinc-500 truncate">${escapeHtml(tool.category || 'general')}</div>
@@ -395,7 +408,7 @@ function renderTrendingSection() {
       <button class="rounded-xl p-3 text-left transition-all border border-white/10 hover:border-cyan-300/30 hover:bg-white/10 bg-black/20" onclick="openModal('${escapeHtml(key)}')">
         <div class="flex items-center gap-2.5">
           <div class="w-7 h-7 rounded-lg bg-cyan-400/10 border border-cyan-300/20 text-cyan-200 text-xs font-mono flex items-center justify-center">#${rank}</div>
-          <img src="${escapeHtml(getToolIcon(tool))}" onerror="this.onerror=null;this.src='/static/icons/default.png';" alt="${escapeHtml(tool.name || 'Tool')} logo" class="w-6 h-6 rounded-md object-cover bg-white/10 border border-white/10 flex-shrink-0" />
+          ${renderToolIcon(tool, 'w-6 h-6', 'rounded-md')}
           <div class="text-xs text-zinc-100 font-600 line-clamp-1" style="font-weight:600">${escapeHtml(tool.name || 'Unnamed Tool')}</div>
         </div>
         <div class="text-[11px] text-zinc-500 mt-1 line-clamp-2">${escapeHtml(text)}</div>
@@ -430,12 +443,10 @@ function renderSearchSuggestions(results, query) {
     const categoryHtml = highlightQuery(tool.category || 'general', query);
     const tagText = Array.isArray(tool.tags) ? tool.tags.slice(0, 2).join(' • ') : '';
     const tagHtml = highlightQuery(tagText, query);
-    const icon = escapeHtml(tool.icon || '/static/icons/default.png');
-
     return `
       <a href="/tool/${slug}" class="block rounded-lg px-2.5 py-2 hover:bg-white/6 transition-colors">
         <div class="flex items-start gap-2.5">
-          <img src="${icon}" onerror="this.onerror=null;this.src='/static/icons/default.png';" alt="${escapeHtml(tool.name || 'Tool')} logo" class="w-8 h-8 rounded-md border border-white/10 object-cover" />
+          ${renderToolIcon(tool, 'w-8 h-8', 'rounded-md')}
           <div class="min-w-0 flex-1">
             <div class="text-sm text-zinc-100 truncate">${nameHtml}</div>
             <div class="text-[11px] text-zinc-500 truncate">${categoryHtml}${tagText ? ' · ' + tagHtml : ''}</div>
@@ -461,7 +472,7 @@ function requestSearchSuggestions(query) {
   }
 
   if (searchSuggestTimer) clearTimeout(searchSuggestTimer);
-  searchSuggestTimer = setTimeout(async () => {
+          ${renderToolIcon(tool, 'w-6 h-6', 'rounded-md')}
     try {
       if (searchSuggestController) searchSuggestController.abort();
       searchSuggestController = new AbortController();
@@ -632,26 +643,61 @@ function updateHeroCopy() {
   subtitle.textContent = `Discover ${allTools.length || 0} AI tools for writing, coding, research, and productivity.`;
 }
 
+function updateStudentModeUI(isEnabled) {
+  // Update internal state
+  studentMode = isEnabled;
+  state.studentMode = isEnabled;
+  
+  // Save to localStorage for persistence (keep both keys for compatibility)
+  localStorage.setItem('student_mode', String(isEnabled));
+  localStorage.setItem('ai_compass_student_mode', String(isEnabled));
+  
+  // Update body class for CSS styling
+  document.body.classList.toggle('student-mode', isEnabled);
+  
+  // Update toggle button UI
+  const studentToggle = document.getElementById('student-mode-toggle') || document.getElementById('studentToggle');
+  if (studentToggle) {
+    studentToggle.classList.toggle('active', isEnabled);
+    studentToggle.setAttribute('aria-pressed', String(isEnabled));
+    studentToggle.setAttribute('aria-checked', String(isEnabled));
+    studentToggle.textContent = `Student Mode: ${isEnabled ? 'ON' : 'OFF'}`;
+  }
+}
+
 function toggleStudentMode() {
   try {
-    studentMode = !studentMode;
-    state.studentMode = studentMode;
-    localStorage.setItem('ai_compass_student_mode', String(studentMode));
-    document.body.classList.toggle('student-mode', studentMode);
-
-    const toggle = document.getElementById('student-mode-toggle') || document.getElementById('studentToggle');
-    if (toggle) {
-      toggle.classList.toggle('active', studentMode);
-      toggle.setAttribute('aria-checked', String(studentMode));
-    }
-
-    const banner = document.getElementById('student-banner');
-    if (banner) banner.style.display = studentMode ? 'flex' : 'none';
-
-    updateHeroCopy();
-    refreshData();
+    // Toggle the state
+    const newState = !studentMode;
+    
+    // Update UI immediately (no page reload)
+    updateStudentModeUI(newState);
+    
+    // Sync with backend (explicit setter endpoint)
+    fetch('/set-student-mode', {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ enabled: newState })
+    })
+      .then(response => {
+        if (response.ok) return response;
+        // Backward compatibility fallback
+        return fetch('/toggle-student-mode', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ enabled: newState })
+        });
+      })
+      .catch(error => {
+        console.error('Failed to sync Student Mode with server:', error);
+        // UI already updated, localStorage has the state - it will persist
+      });
   } catch (error) {
-    console.error('toggleStudentMode failed:', error);
+    console.error('toggleStudentMode error:', error);
   }
 }
 
@@ -767,7 +813,7 @@ function openModal(toolId) {
   modalBestFor.textContent = tool.bestFor || tool.subcategory || 'General use';
   modalPricingDetail.textContent = tool.pricingDetail || tool.standard_price || tool.price || 'Pricing unavailable';
   modalLink.href = tool.link || tool.website || '#';
-  modalIcon.innerHTML = `<img src="${escapeHtml(getToolIcon(tool))}" onerror="this.onerror=null;this.src='/static/icons/default.png';" alt="${escapeHtml(tool.name || 'Tool')} logo" class="w-12 h-12 rounded-xl object-cover bg-white/10 border border-white/10" />`;
+  modalIcon.innerHTML = renderToolIcon(tool, 'w-12 h-12', 'rounded-xl');
 
   const model = getPriceModel(tool);
   modalPrice.textContent = studentMode && tool.studentPerk ? 'Student Perk' : priceLabel(model);
@@ -944,22 +990,29 @@ function initToolsPage() {
 
 document.addEventListener('DOMContentLoaded', async () => {
   try {
+    // Initialize Student Mode from server state (source of truth)
+    const bootToggle = document.getElementById('student-mode-toggle') || document.getElementById('studentToggle');
+    const localStudentMode = String(localStorage.getItem('student_mode') || localStorage.getItem('ai_compass_student_mode') || '').toLowerCase() === 'true';
+    const serverStudentMode = bootToggle
+      ? String(bootToggle.getAttribute('aria-pressed') || bootToggle.getAttribute('aria-checked') || '').toLowerCase() === 'true'
+      : localStudentMode;
+    
+    // Use server state as source of truth, sync to localStorage
+    updateStudentModeUI(serverStudentMode);
+
+    const studentToggle = document.getElementById('student-mode-toggle') || document.getElementById('studentToggle');
+    if (studentToggle) {
+      studentToggle.addEventListener('click', toggleStudentMode);
+    }
+
     const toolsPage = document.getElementById('tools-page');
     if (toolsPage) {
       initToolsPage();
       return;
     }
 
-    document.body.classList.toggle('student-mode', state.studentMode);
     updateSortLabel();
     updateHeroCopy();
-
-    const studentToggle = document.getElementById('student-mode-toggle') || document.getElementById('studentToggle');
-    if (studentToggle) {
-      studentToggle.classList.toggle('active', state.studentMode);
-      studentToggle.setAttribute('aria-checked', String(state.studentMode));
-      studentToggle.addEventListener('click', toggleStudentMode);
-    }
 
     const sortSelect = document.getElementById('sort-select');
     if (sortSelect) {

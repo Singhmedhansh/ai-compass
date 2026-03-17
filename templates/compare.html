@@ -1,249 +1,111 @@
-<!DOCTYPE html>
-<html lang="en" class="dark">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Compare Tools | AI Compass</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <style>
-    :root {
-      --brand: #3b82f6;
-      --brand-dim: rgba(59,130,246,0.12);
-      --brand-glow: rgba(59,130,246,0.25);
-    }
-    body { font-family: 'DM Sans', system-ui, sans-serif; background: #09090b; color: #e4e4e7; }
-    .glass { background: rgba(255,255,255,0.04); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); }
-    .glass-hover { transition: border-color 0.2s, box-shadow 0.2s, background 0.2s; }
-    .glass-hover:hover { border-color: rgba(255,255,255,0.15); background: rgba(255,255,255,0.07); box-shadow: 0 0 0 1px var(--brand-glow), 0 8px 32px rgba(0,0,0,0.4); }
-    .brand-bg { background: var(--brand); }
-    .sidebar-item.active { background: var(--brand-dim); color: var(--brand); border-left: 2px solid var(--brand); }
-    .sidebar-item { border-left: 2px solid transparent; }
-    .toggle-switch { width: 52px; height: 28px; background: #374151; border-radius: 9999px; position: relative; border: 1px solid rgba(255,255,255,0.14); }
-    .toggle-knob { width: 22px; height: 22px; background: #fff; border-radius: 9999px; position: absolute; top: 2px; left: 2px; transition: transform 0.25s ease; }
-    .toggle-switch.active { background: #10b981; }
-    .toggle-switch.active .toggle-knob { transform: translateX(24px); }
-  </style>
-</head>
-<body class="min-h-screen overflow-x-hidden">
-  <div class="relative z-10 flex min-h-screen">
-    <aside class="glass w-60 flex-shrink-0 flex flex-col border-r border-white/6 h-screen sticky top-0 overflow-y-auto">
-      <div class="px-5 py-5 border-b border-white/6">
-        <a href="{{ url_for('main.index') }}" class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-lg brand-bg flex items-center justify-center flex-shrink-0"><i data-lucide="compass" class="w-4 h-4 text-white"></i></div>
-          <div><div class="text-sm font-700 tracking-tight text-zinc-100" style="font-weight:700">AI Compass</div><div class="text-[10px] text-zinc-500 font-mono">v2.1 - 2026</div></div>
-        </a>
-      </div>
-      <nav class="flex-1 px-3 py-4 space-y-0.5 text-sm">
-        <a href="{{ url_for('main.index') }}" class="sidebar-item w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-zinc-300 hover:text-zinc-100 transition-colors"><i data-lucide="layout-grid" class="w-4 h-4"></i>All Tools</a>
-        <a href="{{ url_for('main.index') }}" class="sidebar-item w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-zinc-400 hover:text-zinc-100 transition-colors"><i data-lucide="pen-tool" class="w-4 h-4"></i>Writing & Docs</a>
-        <a href="{{ url_for('main.index') }}" class="sidebar-item w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-zinc-400 hover:text-zinc-100 transition-colors"><i data-lucide="code-2" class="w-4 h-4"></i>Coding</a>
-        <a href="{{ url_for('main.index') }}" class="sidebar-item w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-zinc-400 hover:text-zinc-100 transition-colors"><i data-lucide="image" class="w-4 h-4"></i>Image Gen</a>
-        <a href="{{ url_for('main.index') }}" class="sidebar-item w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-zinc-400 hover:text-zinc-100 transition-colors"><i data-lucide="video" class="w-4 h-4"></i>Video Gen</a>
-        <a href="{{ url_for('main.index') }}" class="sidebar-item w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-zinc-400 hover:text-zinc-100 transition-colors"><i data-lucide="book-open" class="w-4 h-4"></i>Research</a>
-        <a href="{{ url_for('main.index') }}" class="sidebar-item w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-zinc-400 hover:text-zinc-100 transition-colors"><i data-lucide="zap" class="w-4 h-4"></i>Productivity</a>
-        <div class="text-[10px] font-600 text-zinc-600 uppercase tracking-widest px-2 mb-2 mt-5" style="font-weight:600">Pages</div>
-        <a href="{{ url_for('main.dashboard') }}" class="sidebar-item w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-zinc-300 hover:text-zinc-100 transition-colors"><i data-lucide="layout-dashboard" class="w-4 h-4"></i>Dashboard</a>
-        <a href="{{ url_for('main.compare') }}" class="sidebar-item active w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-zinc-300 hover:text-zinc-100 transition-colors"><i data-lucide="scale" class="w-4 h-4"></i>Compare</a>
-        <a href="{{ url_for('main.ai_stack_builder') }}" class="sidebar-item w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-zinc-300 hover:text-zinc-100 transition-colors"><i data-lucide="layers" class="w-4 h-4"></i>AI Stack Builder</a>
-        <a href="{{ url_for('main.updates') }}" class="sidebar-item w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-zinc-300 hover:text-zinc-100 transition-colors"><i data-lucide="rss" class="w-4 h-4"></i>Updates</a>
-        <a href="{{ url_for('main.submit_tool') }}" class="sidebar-item w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-zinc-300 hover:text-zinc-100 transition-colors"><i data-lucide="plus-circle" class="w-4 h-4"></i>Submit Tool</a>
-      </nav>
-    </aside>
+{% extends "base.html" %}
 
-    <div class="flex-1 flex flex-col min-w-0">
-      <header class="glass sticky top-0 z-30 border-b border-white/6 px-4 md:px-6 h-14 flex items-center gap-3">
-        <div class="relative flex-1 max-w-sm">
-          <i data-lucide="search" class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500"></i>
-          <input type="text" placeholder="Search tools, categories, use cases..." class="w-full bg-white/5 border border-white/8 rounded-lg pl-8 pr-3 py-2 text-sm text-zinc-200 placeholder-zinc-600" />
-        </div>
-        <div class="flex items-center gap-2.5 glass rounded-full px-3 py-1.5 border-white/8">
-          <i data-lucide="graduation-cap" class="w-3.5 h-3.5 text-zinc-400"></i>
-          <span class="text-xs text-zinc-400 hidden sm:block">Student Mode</span>
-          <button id="studentToggle" class="toggle-switch transition-all duration-300"><span class="toggle-knob transition-all duration-300"></span></button>
-        </div>
-        <a href="{{ url_for('main.dashboard') }}" class="text-xs text-zinc-300 hover:text-zinc-100 transition-colors glass rounded-lg px-2.5 py-1.5">Dashboard</a>
-        <a href="{{ url_for('auth.logout') }}" class="text-xs text-zinc-300 hover:text-zinc-100 transition-colors glass rounded-lg px-2.5 py-1.5">Logout</a>
-      </header>
+{% block title %}Compare Tools | AI Compass{% endblock %}
 
-      <main class="flex-1 px-4 md:px-6 py-6 space-y-5">
-        <div>
-          <h1 class="text-xl font-700 text-zinc-100 tracking-tight" style="font-weight:700">Compare AI Tools</h1>
-          <p class="text-sm text-zinc-500 mt-0.5">Analyze tools side by side using the same core metrics.</p>
-        </div>
-
-        <form method="get" class="glass rounded-xl p-4 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3">
-          <select name="tools" class="hidden"></select>
-          <select id="tool-a" class="rounded-lg border border-white/10 bg-zinc-900 px-3 py-2 text-sm text-zinc-100">
-            <option value="">Select Tool 1</option>
-            {% for tool in tools %}
-              <option value="{{ tool.tool_key }}" {% if selected_keys and selected_keys|length > 0 and selected_keys[0] == tool.tool_key %}selected{% endif %}>{{ tool.name }}</option>
-            {% endfor %}
-          </select>
-          <select id="tool-b" class="rounded-lg border border-white/10 bg-zinc-900 px-3 py-2 text-sm text-zinc-100">
-            <option value="">Select Tool 2</option>
-            {% for tool in tools %}
-              <option value="{{ tool.tool_key }}" {% if selected_keys and selected_keys|length > 1 and selected_keys[1] == tool.tool_key %}selected{% endif %}>{{ tool.name }}</option>
-            {% endfor %}
-          </select>
-          <select id="tool-c" class="rounded-lg border border-white/10 bg-zinc-900 px-3 py-2 text-sm text-zinc-100">
-            <option value="">Select Tool 3</option>
-            {% for tool in tools %}
-              <option value="{{ tool.tool_key }}" {% if selected_keys and selected_keys|length > 2 and selected_keys[2] == tool.tool_key %}selected{% endif %}>{{ tool.name }}</option>
-            {% endfor %}
-          </select>
-          <select id="compare-sort" class="rounded-lg border border-white/10 bg-zinc-900 px-3 py-2 text-sm text-zinc-100">
-            <option value="trending" {% if sort_type == 'trending' %}selected{% endif %}>Trending</option>
-            <option value="rating" {% if sort_type == 'rating' %}selected{% endif %}>Highest Rated</option>
-            <option value="popular" {% if sort_type == 'popular' %}selected{% endif %}>Most Popular</option>
-            <option value="newest" {% if sort_type == 'newest' %}selected{% endif %}>Newest</option>
-            <option value="free" {% if sort_type == 'free' %}selected{% endif %}>Free First</option>
-          </select>
-          <label class="rounded-lg border border-white/10 bg-zinc-900 px-3 py-2 text-sm text-zinc-200 flex items-center gap-2">
-            <input type="checkbox" id="compare-student" {% if student_mode %}checked{% endif %} class="accent-emerald-500" />
-            Student Mode
-          </label>
-          <button type="button" onclick="submitCompare()" class="rounded-lg bg-blue-600 hover:bg-blue-500 transition-colors px-3 py-2 text-sm">Compare</button>
-        </form>
-
-        {% if selected_tools %}
-          <div class="glass rounded-xl overflow-auto">
-            <table class="min-w-full text-sm">
-              <thead>
-                <tr class="text-left border-b border-white/10 bg-white/5">
-                  <th class="p-3 text-zinc-300">Field</th>
-                  {% for tool in selected_tools %}
-                    <th class="p-3 text-zinc-100">
-                      <div class="flex items-center gap-2">
-                        <img src="{{ tool.icon or '/static/icons/default.png' }}" onerror="this.onerror=null;this.src='/static/icons/default.png';" alt="{{ tool.name }} logo" class="w-6 h-6 rounded-md object-cover bg-white/10 border border-white/10" />
-                        <span>{{ tool.name }}</span>
-                      </div>
-                    </th>
-                  {% endfor %}
-                </tr>
-              </thead>
-              <tbody>
-                {% set fields = [
-                  ('Icon', 'icon'),
-                  ('Tool Name', 'name'),
-                  ('Category', 'category'),
-                  ('Rating', 'rating'),
-                  ('Pricing', 'pricingDetail'),
-                  ('Platforms', 'platforms'),
-                  ('Student Perk', 'studentPerk'),
-                  ('University Hack', 'uniHack'),
-                  ('Best For', 'bestFor'),
-                  ('API Available', 'apiAvailable'),
-                  ('Open Source', 'openSource')
-                ] %}
-                {% for label, key in fields %}
-                  <tr class="border-b border-white/10 hover:bg-white/5 transition-colors">
-                    <td class="p-3 text-zinc-400">{{ label }}</td>
-                    {% for tool in selected_tools %}
-                      <td class="p-3 text-zinc-200">
-                        {% if key == 'icon' %}
-                          <img src="{{ tool.icon or '/static/icons/default.png' }}" onerror="this.onerror=null;this.src='/static/icons/default.png';" alt="{{ tool.name }} logo" class="w-8 h-8 rounded-md object-cover bg-white/10 border border-white/10" />
-                        {% elif key in ['apiAvailable', 'openSource'] %}
-                          {{ 'Yes' if tool[key] else 'No' }}
-                        {% elif key == 'platforms' %}
-                          {% if tool.platforms %}
-                            {{ tool.platforms|join(', ') if tool.platforms is iterable and tool.platforms is not string else tool.platforms }}
-                          {% else %}
-                            N/A
-                          {% endif %}
-                        {% else %}
-                          {{ tool[key] or 'N/A' }}
-                        {% endif %}
-                      </td>
-                    {% endfor %}
-                  </tr>
-                {% endfor %}
-                <tr class="hover:bg-white/5 transition-colors">
-                  <td class="p-3 text-zinc-400">Key Features</td>
-                  {% for tool in selected_tools %}
-                    <td class="p-3">
-                      {% if tool.features %}
-                        <ul class="space-y-1 list-disc list-inside text-xs text-zinc-300">
-                          {% for feature in tool.features[:6] %}
-                            <li>{{ feature }}</li>
-                          {% endfor %}
-                        </ul>
-                      {% else %}
-                        <span class="text-zinc-500">N/A</span>
-                      {% endif %}
-                    </td>
-                  {% endfor %}
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        {% else %}
-          <div class="glass rounded-xl p-4 text-sm text-zinc-500">Select at least two tools to compare.</div>
-        {% endif %}
-
-        <footer>
-          <a href="{{ url_for('main.report_bug') }}" class="inline-flex items-center gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-300 px-3 py-2 text-xs hover:bg-amber-500/15 transition-colors">Report a Bug</a>
-        </footer>
-      </main>
-    </div>
+{% block content %}
+<div class="max-w-6xl mx-auto space-y-6">
+  <div>
+    <h1 class="text-2xl font-semibold text-zinc-100">Compare AI Tools</h1>
+    <p class="text-sm text-zinc-400 mt-1">Analyze tools side by side using the same core metrics.</p>
   </div>
 
-  <script>
-    function submitCompare() {
-      const values = [
-        document.getElementById('tool-a').value,
-        document.getElementById('tool-b').value,
-        document.getElementById('tool-c').value,
-      ].filter(Boolean);
+  <section class="glass rounded-xl p-4 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3">
+    <select id="tool-a" class="rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-sm text-zinc-100">
+      <option value="">Select Tool 1</option>
+      {% for tool in tools %}
+        <option value="{{ tool.tool_key }}" {% if selected_keys and selected_keys|length > 0 and selected_keys[0] == tool.tool_key %}selected{% endif %}>{{ tool.name }}</option>
+      {% endfor %}
+    </select>
+    <select id="tool-b" class="rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-sm text-zinc-100">
+      <option value="">Select Tool 2</option>
+      {% for tool in tools %}
+        <option value="{{ tool.tool_key }}" {% if selected_keys and selected_keys|length > 1 and selected_keys[1] == tool.tool_key %}selected{% endif %}>{{ tool.name }}</option>
+      {% endfor %}
+    </select>
+    <select id="tool-c" class="rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-sm text-zinc-100">
+      <option value="">Select Tool 3</option>
+      {% for tool in tools %}
+        <option value="{{ tool.tool_key }}" {% if selected_keys and selected_keys|length > 2 and selected_keys[2] == tool.tool_key %}selected{% endif %}>{{ tool.name }}</option>
+      {% endfor %}
+    </select>
+    <select id="compare-sort" class="rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-sm text-zinc-100">
+      <option value="trending" {% if sort_type == 'trending' %}selected{% endif %}>Trending</option>
+      <option value="rating" {% if sort_type == 'rating' %}selected{% endif %}>Highest Rated</option>
+      <option value="popular" {% if sort_type == 'popular' %}selected{% endif %}>Most Popular</option>
+      <option value="newest" {% if sort_type == 'newest' %}selected{% endif %}>Newest</option>
+      <option value="free" {% if sort_type == 'free' %}selected{% endif %}>Free First</option>
+    </select>
+    <button type="button" onclick="submitCompare()" class="rounded-lg bg-blue-600 hover:bg-blue-500 transition-colors px-3 py-2 text-sm text-white">Compare</button>
+  </section>
 
-      if (values.length < 2) {
-        return;
-      }
+  {% if selected_tools %}
+    <section class="glass rounded-xl overflow-auto">
+      <table class="min-w-full text-sm">
+        <thead>
+          <tr class="text-left border-b border-white/10 bg-white/5">
+            <th class="p-3 text-zinc-300">Field</th>
+            {% for tool in selected_tools %}
+              <th class="p-3 text-zinc-100">{{ tool.name }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-white/10">
+          <tr>
+            <td class="p-3 text-zinc-400">Category</td>
+            {% for tool in selected_tools %}
+              <td class="p-3 text-zinc-100">{{ tool.category or 'N/A' }}</td>
+            {% endfor %}
+          </tr>
+          <tr>
+            <td class="p-3 text-zinc-400">Rating</td>
+            {% for tool in selected_tools %}
+              <td class="p-3 text-zinc-100">{{ tool.rating or 'N/A' }}</td>
+            {% endfor %}
+          </tr>
+          <tr>
+            <td class="p-3 text-zinc-400">Pricing</td>
+            {% for tool in selected_tools %}
+              <td class="p-3 text-zinc-100 capitalize">{{ tool.price or 'N/A'}}</td>
+            {% endfor %}
+          </tr>
+          <tr>
+            <td class="p-3 text-zinc-400">Best For</td>
+            {% for tool in selected_tools %}
+              <td class="p-3 text-zinc-100">{{ tool.bestFor or 'N/A' }}</td>
+            {% endfor %}
+          </tr>
+          <tr>
+            <td class="p-3 text-zinc-400">Student Perk</td>
+            {% for tool in selected_tools %}
+              <td class="p-3 text-zinc-100">{% if tool.studentPerk %}✓ {{ tool.studentPerk }}{% else %}—{% endif %}</td>
+            {% endfor %}
+          </tr>
+          <tr>
+            <td class="p-3 text-zinc-400">University Hack</td>
+            {% for tool in selected_tools %}
+              <td class="p-3 text-zinc-100">{% if tool.universityHack %}✓ {{ tool.universityHack }}{% else %}—{% endif %}</td>
+            {% endfor %}
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  {% endif %}
+</div>
 
-      const params = new URLSearchParams();
-      params.set('sort', document.getElementById('compare-sort').value);
-      params.set('student_mode', document.getElementById('compare-student').checked ? 'true' : 'false');
-      const slug = values.join('-vs-');
-      window.location.href = '/compare/' + encodeURIComponent(slug) + '?' + params.toString();
-    }
+<script>
+  function submitCompare() {
+    const values = [
+      document.getElementById('tool-a').value,
+      document.getElementById('tool-b').value,
+      document.getElementById('tool-c').value,
+    ].filter(Boolean);
 
-    (function prefill() {
-      const params = new URLSearchParams(window.location.search);
-      const raw = params.get('tools');
-      if (!raw) return;
-      const values = raw.split(',');
-      const ids = ['tool-a', 'tool-b', 'tool-c'];
-      ids.forEach((id, index) => {
-        const el = document.getElementById(id);
-        if (el && values[index]) {
-          el.value = values[index];
-        }
-      });
+    if (values.length < 2) return;
 
-      const sort = params.get('sort');
-      if (sort) {
-        const sortEl = document.getElementById('compare-sort');
-        if (sortEl) sortEl.value = sort;
-      }
-
-      const studentMode = params.get('student_mode');
-      if (studentMode !== null) {
-        const studentEl = document.getElementById('compare-student');
-        if (studentEl) studentEl.checked = ['1', 'true', 'on', 'yes'].includes(studentMode.toLowerCase());
-      }
-    })();
-
-    const studentToggle = document.getElementById('studentToggle');
-    if (studentToggle) {
-      studentToggle.addEventListener('click', () => {
-        document.body.classList.toggle('student-mode');
-        studentToggle.classList.toggle('active');
-      });
-    }
-    if (window.lucide && typeof window.lucide.createIcons === 'function') window.lucide.createIcons();
-  </script>
-</body>
-</html>
+    const params = new URLSearchParams();
+    params.set('sort', document.getElementById('compare-sort').value);
+    const slug = values.join('-vs-');
+    window.location.href = '/compare/' + encodeURIComponent(slug) + '?' + params.toString();
+  }
+</script>
+{% endblock %}

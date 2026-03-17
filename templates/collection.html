@@ -22,7 +22,10 @@
     {% for tool in tools %}
     <article class="glass rounded-xl p-4">
       <div class="flex items-start gap-2">
-        <img src="{{ tool.icon or '/static/icons/default.png' }}" onerror="this.onerror=null;this.src='/static/icons/default.png';" alt="{{ tool.name }} logo" class="w-9 h-9 rounded-md object-cover border border-white/10" />
+        <div class="w-9 h-9 rounded-md overflow-hidden border border-white/10 flex items-center justify-center bg-white/5 flex-shrink-0">
+          <img src="{{ tool.icon_url }}" alt="{{ tool.name }} logo" class="w-full h-full object-contain bg-white p-1 rounded-lg" onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');" />
+          <div class="w-full h-full hidden flex items-center justify-center text-white text-xs font-semibold bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg">{{ tool.name[0] if tool.name else 'A' }}</div>
+        </div>
         <div class="min-w-0">
           <h3 class="text-sm text-zinc-100 truncate" style="font-weight:600">{{ tool.name }}</h3>
           <p class="text-xs text-zinc-500 line-clamp-2">{{ tool.tagline or '' }}</p>
@@ -40,3 +43,4 @@
   {% endif %}
 </div>
 {% endblock %}
+

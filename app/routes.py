@@ -10,7 +10,7 @@ from urllib.parse import urlencode, urlparse
 from flask import Blueprint, Response, abort, flash, jsonify, redirect, render_template, request, session, url_for
 from flask_login import current_user, login_required
 
-from app import db
+from app import db, csrf
 from app.discovery import (
     add_notification,
     approve_queue_tool_by_name,
@@ -34,6 +34,37 @@ DEFAULT_TOOL_ICON = "/static/icons/default.png"
 SUPPORTED_SORTS = {"trending", "rating", "popular", "newest", "latest", "free"}
 SORT_ALIASES = {"latest": "newest"}
 TOOLS_PER_PAGE = 20
+
+CATEGORIES = [
+    "writing",
+    "coding",
+    "research",
+    "image generation",
+    "video generation",
+    "productivity",
+    "design",
+    "data analysis",
+    "study tools",
+    "other",
+]
+
+CATEGORY_ALIASES_BROWSE = {
+    "writing & docs": "writing",
+    "docs": "writing",
+    "code": "coding",
+    "developer": "coding",
+    "developers": "coding",
+    "image": "image generation",
+    "image gen": "image generation",
+    "image-generation": "image generation",
+    "video": "video generation",
+    "video gen": "video generation",
+    "video-generation": "video generation",
+    "analytics": "data analysis",
+    "data-analysis": "data analysis",
+    "study": "study tools",
+    "education": "study tools",
+}
 
 TOOLS_CATEGORY_MAP = {
     "all": {"all"},
@@ -156,7 +187,7 @@ def normalize_tool(tool):
     item["tool_key"] = build_tool_key(item)
     icon_path = str(item.get("icon") or "").strip()
     item["icon"] = icon_path if icon_path else DEFAULT_TOOL_ICON
-    item["icon_url"] = get_tool_icon(item.get("link") or item.get("website")) or build_primary_tool_icon(item)
+    item["icon_url"] = get_tool_icon(item, source_key="url") or build_primary_tool_icon(item)
     return item
 
 
@@ -211,9 +242,19 @@ def build_clearbit_logo_url(tool):
     return f"https://logo.clearbit.com/{host}"
 
 
-def get_tool_icon(url):
+def get_tool_icon(url, source_key="url"):
     try:
-        domain = str(url or "").replace("https://", "").replace("http://", "").split("/")[0].strip().lower()
+        if isinstance(url, dict):
+            raw_url = (
+                url.get(source_key)
+                or url.get("link")
+                or url.get("website")
+                or ""
+            )
+        else:
+            raw_url = url
+
+        domain = str(raw_url or "").replace("https://", "").replace("http://", "").split("/")[0].strip().lower()
         if domain.startswith("www."):
             domain = domain[4:]
         return f"https://logo.clearbit.com/{domain}" if domain else None
@@ -389,6 +430,42 @@ def sort_tools(tools, sort_type="trending", view_map=None, student_mode=False):
     return sorted(tools, key=key_fn, reverse=True)
 
 
+def _is_free_tool(tool):
+    price_model = str(tool.get("pricing") or tool.get("price") or "").strip().lower()
+    return price_model == "free"
+
+
+def _created_timestamp(tool):
+    created_at = tool.get("created_at") or tool.get("createdAt")
+    if isinstance(created_at, (int, float)):
+        return float(created_at)
+
+    text = str(created_at or "").strip()
+    if text:
+        text = text.replace("Z", "+00:00")
+        try:
+            return datetime.fromisoformat(text).timestamp()
+        except ValueError:
+            pass
+
+    launch_year = int(tool.get("launchYear") or 0)
+    return float(launch_year)
+
+
+def _display_year(tool):
+    created_at = tool.get("created_at") or tool.get("createdAt")
+    text = str(created_at or "").strip()
+    if text:
+        text = text.replace("Z", "+00:00")
+        try:
+            return str(datetime.fromisoformat(text).year)
+        except ValueError:
+            pass
+
+    launch_year = int(tool.get("launchYear") or 0)
+    return str(launch_year) if launch_year else "-"
+
+
 def _to_set(items):
     if not isinstance(items, list):
         return set()
@@ -498,22 +575,85 @@ def _stack_pick_score(tool, student_mode=False):
     return score
 
 
-def build_ai_stack(selected_categories, student_mode=False):
+def build_ai_stack(goal=None, budget=None, platform=None, student_mode=False):
+    """
+    Build an AI stack based on goal, budget, and platform preferences.
+    Returns a list of recommended tools.
+    """
     tools = [normalize_tool(tool) for tool in load_tools()]
-    stack = {}
-    for category in selected_categories:
-        candidates = [
+    
+    # Map goal to categories
+    goal_to_categories = {
+        "writing": ["writing"],
+        "coding": ["coding"],
+        "research": ["research"],
+        "studying": ["research", "writing", "study tools"],
+        "productivity": ["productivity"],
+        "design": ["image generation", "design"],
+    }
+    
+    # Map budget to pricing filters
+    budget_to_pricing = {
+        "free": ["Free"],
+        "freemium": ["Free", "Freemium"],
+        "paid": ["Free", "Freemium", "Paid"],
+    }
+    
+    # Platform matching (simple keyword matching)
+    platform_keywords = {
+        "web": ["web", "browser", "online", "app"],
+        "desktop": ["desktop", "windows", "mac", "linux"],
+        "mobile": ["mobile", "ios", "android", "app"],
+    }
+    
+    # Filter by goal (categories)
+    if goal and goal in goal_to_categories:
+        target_categories = goal_to_categories[goal]
+        filtered = [
             tool for tool in tools
-            if str(tool.get("category", "")).strip().lower() == str(category).strip().lower()
+            if str(tool.get("category", "")).strip().lower() in target_categories
         ]
-        if not candidates:
-            stack[category] = None
-            continue
-
-        ranked = sorted(candidates, key=lambda tool: _stack_pick_score(tool, student_mode=student_mode), reverse=True)
-        stack[category] = ranked[0]
-
-    return stack
+    else:
+        filtered = tools
+    
+    # Filter by budget (pricing)
+    if budget and budget in budget_to_pricing:
+        allowed_pricing = budget_to_pricing[budget]
+        filtered = [
+            tool for tool in filtered
+            if str(tool.get("price", "")).strip() in allowed_pricing
+        ]
+    
+    # Filter by platform (simple keyword match in description/name)
+    if platform and platform in platform_keywords:
+        keywords = platform_keywords[platform]
+        platform_filtered = []
+        for tool in filtered:
+            tool_text = f"{tool.get('name', '')} {tool.get('description', '')} {tool.get('tagline', '')}".lower()
+            if any(kw in tool_text for kw in keywords):
+                platform_filtered.append(tool)
+        # If no matches found with keywords, include all (fallback)
+        filtered = platform_filtered if platform_filtered else filtered
+    
+    # Score and rank tools
+    ranked = sorted(filtered, key=lambda tool: _stack_pick_score(tool, student_mode=student_mode), reverse=True)
+    
+    # Return top 6 tools with "why selected" explanations
+    result = []
+    for tool in ranked[:6]:
+        tool_copy = dict(tool)
+        # Add explanation for why this tool was selected
+        reasons = []
+        if goal:
+            reasons.append(f"Recommended for {goal}")
+        if tool.get("studentPerk") and student_mode:
+            reasons.append("Student discount available")
+        if tool.get("price") == "Free":
+            reasons.append("No cost")
+        tool_copy["why_selected"] = " • ".join(reasons) if reasons else "Highly rated in this category"
+        result.append(tool_copy)
+    
+    return result
 
 
 FINDER_GOAL_RULES = {
@@ -1011,10 +1151,8 @@ def index():
     return render_template(
         "index.html",
         favorite_ids=favorite_ids,
-        is_authenticated=current_user.is_authenticated,
         recent_tools=recent_tools,
         trending_tools=trending_tools,
-        total_tools=len(tools),
         total_categories=len(categories),
         total_users=total_users_display,
     )
@@ -1042,108 +1180,147 @@ def newsletter_subscribe():
     return redirect(url_for("main.index"))
 
 
+@main_bp.route("/toggle-student-mode", methods=["POST"])
+@csrf.exempt
+def toggle_student_mode():
+    """Toggle student mode for the current session."""
+    try:
+        # Try to parse JSON body first (for new frontend)
+        data = request.get_json(silent=True) or {}
+        enabled = data.get('enabled')
+        
+        # If no JSON data, toggle the current session value
+        if enabled is None:
+            session["student_mode"] = not session.get("student_mode", False)
+        else:
+            # Set to the exact value provided
+            session["student_mode"] = bool(enabled)
+        
+        session.modified = True
+        return jsonify({"status": "success", "student_mode": session.get("student_mode", False)}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@main_bp.route("/set-student-mode", methods=["POST"])
+@csrf.exempt
+def set_student_mode():
+    """Set student mode explicitly for the current session."""
+    data = request.get_json(silent=True) or {}
+    session["student_mode"] = bool(data.get("enabled", False))
+    session.modified = True
+    return jsonify({"status": "ok", "student_mode": session.get("student_mode", False)}), 200
+
+
 @main_bp.route("/tools")
 def tools_paginated():
-    page = request.args.get("page", 1, type=int)
-    if page < 1:
-        page = 1
+    def normalize_browse_category(raw_value):
+        normalized = normalize_text_key(raw_value).replace("_", " ").replace("-", " ")
+        normalized = re.sub(r"\s+", " ", normalized).strip()
+        if not normalized:
+            return "other"
+        normalized = CATEGORY_ALIASES_BROWSE.get(normalized, normalized)
+        return normalized if normalized in CATEGORIES else "other"
 
-    raw_sort = request.args.get("sort", "trending")
-    sort_type = get_sort_type_from_request(default="trending")
-    category_filter = normalize_category_filter(request.args.get("category", "all"))
-    student_mode = get_student_mode_from_request(default=False)
-    search_query = str(request.args.get("q", "") or "").strip()
-    query_tokens = _tokenize_query(search_query)
+    def normalize_pricing(raw_value):
+        pricing = normalize_text_key(raw_value)
+        if pricing in {"free", "freemium", "paid"}:
+            return pricing
+        return "paid"
 
-    all_tools = [normalize_tool(tool) for tool in load_tools()]
-    all_tools = apply_dynamic_weekly_users(all_tools, get_weekly_view_map())
+    def created_sort_value(tool):
+        created_at = tool.get("created_at")
+        if isinstance(created_at, (int, float)):
+            return float(created_at)
+        text = str(created_at or "").strip()
+        if not text:
+            return 0
+        try:
+            return float(text)
+        except ValueError:
+            text = text.replace("Z", "+00:00")
+            try:
+                return datetime.fromisoformat(text).timestamp()
+            except ValueError:
+                return 0
 
-    print("Category:", category_filter)
-    print("Sort:", raw_sort)
-    print("First 5 tools:", [
-        {
-            "name": tool.get("name"),
-            "category": tool.get("category"),
-            "url": tool.get("link") or tool.get("website"),
-        }
-        for tool in all_tools[:5]
-    ])
+    raw_tools = load_tools()
+    tools = []
+    for tool in raw_tools:
+        item = normalize_tool(tool)
+        item["category"] = normalize_browse_category(item.get("category"))
+        item["pricing"] = normalize_pricing(item.get("pricing") or item.get("price"))
+        item["created_at"] = item.get("created_at") or item.get("createdAt") or item.get("launchYear")
+        item["popularity"] = int(item.get("popularity") or 0)
+        tools.append(item)
 
-    filtered_tools = [tool for tool in all_tools if tool_matches_category(tool, category_filter)]
-    print("Total tools after filter:", len(filtered_tools))
+    if session.get("student_mode", False):
+        tools = [t for t in tools if t.get("pricing") == "free"]
 
-    if query_tokens:
-        scored = []
-        for tool in filtered_tools:
-            score = _search_score(tool, query_tokens)
-            if score <= 0:
-                continue
-            scored.append((score, tool))
-        filtered_tools = [tool for _, tool in sorted(scored, key=lambda item: item[0], reverse=True)]
+    category = normalize_text_key(request.args.get("category"))
+    if category:
+        category = normalize_browse_category(category)
 
-    sorted_tools = sort_tools(filtered_tools, sort_type=sort_type, view_map=get_view_map(), student_mode=student_mode)
+    pricing = normalize_text_key(request.args.get("pricing"))
+    if pricing not in {"", "free", "freemium", "paid"}:
+        pricing = ""
 
-    for tool in sorted_tools:
-        icon_url = get_tool_icon(tool.get("link") or tool.get("website"))
-        tool["icon_url"] = icon_url or str(tool.get("icon") or DEFAULT_TOOL_ICON)
+    sort = normalize_text_key(request.args.get("sort", "popular"))
+    if sort not in {"popular", "latest", "free"}:
+        sort = "popular"
 
-    total_tools = len(sorted_tools)
-    total_pages = max(1, ceil(total_tools / TOOLS_PER_PAGE))
+    if category:
+        tools = [t for t in tools if t["category"] == category]
+
+    if pricing:
+        tools = [t for t in tools if t["pricing"] == pricing]
+
+    if sort == "latest":
+        tools.sort(key=lambda x: created_sort_value(x), reverse=True)
+    elif sort == "free":
+        tools.sort(key=lambda x: x["pricing"] == "free", reverse=True)
+    elif sort == "popular":
+        tools.sort(key=lambda x: x.get("popularity", 0), reverse=True)
+
+    page = max(1, request.args.get("page", 1, type=int))
+    per_page = 20
+    filtered_total = len(tools)
+    total_pages = max(1, ceil(filtered_total / per_page))
     if page > total_pages:
         page = total_pages
 
-    start = (page - 1) * TOOLS_PER_PAGE
-    end = start + TOOLS_PER_PAGE
-    page_tools = sorted_tools[start:end]
+    start = (page - 1) * per_page
+    end = start + per_page
+    paginated_tools = tools[start:end]
 
-    page_window_start = max(1, page - 2)
-    page_window_end = min(total_pages, page + 2)
-    page_numbers = list(range(page_window_start, page_window_end + 1))
-
-    categories = build_tools_category_items(all_tools)
-
-    def _tools_url(target_page):
-        query = {"page": target_page}
-        if category_filter != "all":
-            query["category"] = category_filter
-        if sort_type != "trending":
-            query["sort"] = sort_type
-        if search_query:
-            query["q"] = search_query
-        if student_mode:
-            query["student_mode"] = "true"
-        return f"{url_for('main.tools_paginated')}?{urlencode(query)}"
-
-    page_urls = {number: _tools_url(number) for number in page_numbers}
-    prev_url = _tools_url(page - 1) if page > 1 else None
-    next_url = _tools_url(page + 1) if page < total_pages else None
+    def build_tools_url(**updates):
+        params = {
+            "category": category,
+            "pricing": pricing,
+            "sort": sort,
+            "page": page,
+        }
+        params.update(updates)
+        clean = {k: v for k, v in params.items() if v not in {"", None}}
+        if clean.get("page") == 1:
+            clean.pop("page")
+        query = urlencode(clean)
+        return f"{url_for('main.tools_paginated')}?{query}" if query else url_for("main.tools_paginated")
 
     return render_template(
-        "tools.html",
-        tools=page_tools,
-        current_page=page,
+        "browse.html",
+        tools=paginated_tools,
+        current_category=category,
+        current_pricing=pricing,
+        current_sort=sort,
         page=page,
         total_pages=total_pages,
-        page_numbers=page_numbers,
+        filtered_total=filtered_total,
         has_prev=page > 1,
         has_next=page < total_pages,
-        prev_page=page - 1,
-        next_page=page + 1,
-        prev_url=prev_url,
-        next_url=next_url,
-        page_urls=page_urls,
-        categories=categories,
-        active_category=category_filter,
-        selected_category=category_filter,
-        active_sort=sort_type,
-        selected_sort=sort_type,
-        active_query=search_query,
-        student_mode=student_mode,
-        sort_options=["trending", "popular", "newest", "free", "rating"],
-        tools_per_page=TOOLS_PER_PAGE,
-        filtered_total=total_tools,
-        total_tools=total_tools,
-        is_authenticated=current_user.is_authenticated,
+        prev_url=build_tools_url(page=page - 1),
+        next_url=build_tools_url(page=page + 1),
+        build_tools_url=build_tools_url,
     )
 
 
@@ -1154,7 +1331,6 @@ def _render_collection(kind, title, intro):
         tools=tools,
         collection_title=title,
         collection_intro=intro,
-        is_authenticated=current_user.is_authenticated,
     )
 
 
@@ -1208,7 +1384,7 @@ def collection_free():
 def dashboard():
     tools = [normalize_tool(tool) for tool in load_tools()]
     sort_type = get_sort_type_from_request(default="trending")
-    student_mode = get_student_mode_from_request(default=False)
+    student_mode = session.get("student_mode", False)
     by_key = {tool["tool_key"]: tool for tool in tools}
     view_map = get_view_map()
 
@@ -1230,7 +1406,6 @@ def dashboard():
         recent_tools=recent_tools,
         recommended_tools=recommended_tools,
         trending_tools=trending_tools,
-        student_mode=student_mode,
         sort_type=sort_type,
         sort_options=["trending", "rating", "popular", "newest", "free"],
     )
@@ -1239,7 +1414,7 @@ def dashboard():
 def _compare_context_from_keys(selected_keys):
     tools = [normalize_tool(tool) for tool in load_tools()]
     sort_type = get_sort_type_from_request(default="trending")
-    student_mode = get_student_mode_from_request(default=False)
+    student_mode = session.get("student_mode", False)
     view_map = get_view_map()
     tools = sort_tools(tools, sort_type=sort_type, view_map=view_map, student_mode=student_mode)
 
@@ -1271,6 +1446,7 @@ def compare():
             break
 
     context = _compare_context_from_keys(selected_keys)
+    import sys; print(f"DEBUG: Rendering compare.html (GET /compare)", file=sys.stderr, flush=True)
     return render_template("compare.html", **context)
 
 
@@ -1297,25 +1473,88 @@ def compare_slug(comparison_slug):
     )
 
 
-STACK_CATEGORY_MAP = {
-    "writing": "writing",
-    "coding": "coding",
-    "image": "image",
-    "video": "video",
-    "research": "research",
-    "productivity": "productivity",
-}
-
-
-@main_bp.route("/ai-stack-builder", methods=["GET"])
-@main_bp.route("/stack-builder", methods=["GET"])
-def ai_stack_builder():
-    return redirect(url_for("main.ai_tool_finder"))
-
-
-@main_bp.route("/stack-builder/build", methods=["POST"])
-def build_stack():
-    return redirect(url_for("main.ai_tool_finder"))
+# Multi-step Stack Builder Route Handler
+@main_bp.route("/ai-stack-builder", methods=["GET", "POST"])
+@main_bp.route("/stack-builder", methods=["GET", "POST"])
+def stack_builder_step():
+    """
+    Handle the multi-step AI Stack Builder wizard.
+    Manages step progression (1-4) and final results generation.
+    """
+    if request.method == "GET":
+        # Initial load - show step 1
+        return render_template(
+            "stack_builder.html",
+            current_step=1,
+            selected_goal=None,
+            selected_budget=None,
+            selected_platform=None,
+            student_mode=False,
+            generated_stack=None,
+        )
+    
+    # POST handler - process form submission
+    current_step = int(request.form.get("current_step", 1))
+    action = request.form.get("action", "next")
+    
+    # Extract selections from form
+    selected_goal = request.form.get("goal", "").strip()
+    selected_budget = request.form.get("budget", "").strip()
+    selected_platform = request.form.get("platform", "").strip()
+    student_mode = bool(request.form.get("student_mode"))
+    
+    # Handle navigation
+    if action == "back":
+        next_step = max(1, current_step - 1)
+    elif action == "generate":
+        # Generate final stack with all selections
+        generated_stack = build_ai_stack(
+            goal=selected_goal,
+            budget=selected_budget,
+            platform=selected_platform,
+            student_mode=student_mode
+        )
+        
+        if not generated_stack:
+            flash("No tools found matching your criteria. Try different selections.", "warning")
+            next_step = 1
+            generated_stack = None
+        else:
+            # Results view (step=5 conceptually, but same template)
+            return render_template(
+                "stack_builder.html",
+                current_step=5,
+                selected_goal=selected_goal,
+                selected_budget=selected_budget,
+                selected_platform=selected_platform,
+                student_mode=student_mode,
+                generated_stack=generated_stack,
+            )
+    else:  # action == "next"
+        next_step = min(4, current_step + 1)
+    
+    # Validation for next step
+    if action == "next":
+        if current_step == 1 and not selected_goal:
+            flash("Please select a goal.", "warning")
+            next_step = 1
+        elif current_step == 2 and not selected_budget:
+            flash("Please select a budget.", "warning")
+            next_step = 2
+        elif current_step == 3 and not selected_platform:
+            flash("Please select a platform.", "warning")
+            next_step = 3
+    
+    # Render the next step
+    return render_template(
+        "stack_builder.html",
+        current_step=next_step,
+        selected_goal=selected_goal,
+        selected_budget=selected_budget,
+        selected_platform=selected_platform,
+        student_mode=student_mode,
+        generated_stack=None,
+    )
 
 
 @main_bp.route("/ai-tool-finder", methods=["GET", "POST"])
@@ -1404,7 +1643,6 @@ def ai_tool_finder_step(step):
         },
         recommendations=[],
         can_save=False,
-        is_authenticated=current_user.is_authenticated,
     )
 
 
@@ -1469,7 +1707,6 @@ def ai_tool_finder_results():
         },
         recommendations=recommendations,
         can_save=current_user.is_authenticated,
-        is_authenticated=current_user.is_authenticated,
     )
 
 
@@ -1478,7 +1715,9 @@ def api_tools():
     tools = [normalize_tool(tool) for tool in load_tools()]
     tools = apply_dynamic_weekly_users(tools, get_weekly_view_map())
     sort_type = get_sort_type_from_request(default="trending")
-    student_mode = get_student_mode_from_request(default=False)
+    student_mode = session.get("student_mode", False)
+    if student_mode:
+        tools = [tool for tool in tools if _is_free_tool(tool)]
     tools = sort_tools(tools, sort_type=sort_type, view_map=get_view_map(), student_mode=student_mode)
     return jsonify(tools)
 
@@ -1488,8 +1727,10 @@ def api_tools_trending():
     tools = [normalize_tool(tool) for tool in load_tools()]
     tools = apply_dynamic_weekly_users(tools, get_weekly_view_map())
     sort_type = get_sort_type_from_request(default="trending")
-    student_mode = get_student_mode_from_request(default=False)
+    student_mode = session.get("student_mode", False)
     view_map = get_view_map()
+    if student_mode:
+        tools = [tool for tool in tools if _is_free_tool(tool)]
 
     top = sort_tools(tools, sort_type=sort_type, view_map=view_map, student_mode=student_mode)[:10]
     return jsonify(top)
@@ -1500,7 +1741,9 @@ def api_tools_category(category):
     tools = [normalize_tool(tool) for tool in load_tools()]
     tools = apply_dynamic_weekly_users(tools, get_weekly_view_map())
     sort_type = get_sort_type_from_request(default="trending")
-    student_mode = get_student_mode_from_request(default=False)
+    student_mode = session.get("student_mode", False)
+    if student_mode:
+        tools = [tool for tool in tools if _is_free_tool(tool)]
     filtered = [tool for tool in tools if str(tool.get("category", "")).lower() == category.lower()]
     filtered = sort_tools(filtered, sort_type=sort_type, view_map=get_view_map(), student_mode=student_mode)
     return jsonify(filtered)
@@ -1652,7 +1895,6 @@ def tool_detail(tool_id):
         related_tools=related_tools,
         similar_tools=similar_tools,
         is_favorited=is_favorited,
-        is_authenticated=current_user.is_authenticated,
         views=view_count,
         seo_description=seo_description,
         rating_summary=rating_summary,
@@ -1705,12 +1947,12 @@ def submit_tool():
 
         if not name or not website or not category or not description or not pricing_model:
             flash("Please fill in all required fields.", "error")
-            return render_template("submit_tool.html", is_authenticated=current_user.is_authenticated)
+            return render_template("submit_tool.html")
 
         # Basic URL validation (must start with http:// or https://)
         if not re.match(r"^https?://", website):
             flash("Please enter a valid website URL starting with http:// or https://", "error")
-            return render_template("submit_tool.html", is_authenticated=current_user.is_authenticated)
+            return render_template("submit_tool.html")
 
         submission = Submission(
             name=name,
@@ -1731,7 +1973,7 @@ def submit_tool():
         flash("Your tool has been submitted for review. Thank you!", "success")
         return redirect(url_for("main.submit_tool"))
 
-    return render_template("submit_tool.html", is_authenticated=current_user.is_authenticated)
+    return render_template("submit_tool.html")
 
 
 # ── Weekly Updates Feed ───────────────────────────────────────────────────────
@@ -1741,22 +1983,24 @@ def _weekly_newest_tools(limit=10):
     recent_tools = sorted(
         all_tools,
         key=lambda t: (
-            int(t.get("launchYear") or 0),
+            _created_timestamp(t),
             float(t.get("rating") or 0),
             parse_weekly_users(t.get("weeklyUsers")),
         ),
         reverse=True,
     )
-    return recent_tools[:limit]
+    top = recent_tools[:limit]
+    for tool in top:
+        tool["display_year"] = _display_year(tool)
+    return top
 
 
 @main_bp.route("/updates")
 @main_bp.route("/weekly-ai-tools")
 def updates():
     return render_template(
-        "updates.html",
+        "weekly.html",
         tools=_weekly_newest_tools(limit=10),
-        is_authenticated=current_user.is_authenticated,
     )
 
 
@@ -1769,7 +2013,7 @@ def report_bug():
 
         if not description:
             flash("Please describe the bug.", "error")
-            return render_template("report_bug.html", is_authenticated=current_user.is_authenticated)
+            return render_template("report_bug.html")
         if not page_url:
             page_url = request.referrer or request.url_root
 
@@ -1785,7 +2029,7 @@ def report_bug():
         flash("Thanks, your bug report was submitted.", "success")
         return redirect(url_for("main.report_bug"))
 
-    return render_template("report_bug.html", is_authenticated=current_user.is_authenticated)
+    return render_template("report_bug.html")
 
 
 # ── Admin Panel ───────────────────────────────────────────────────────────────
@@ -1835,7 +2079,6 @@ def admin():
         trending_by_views=trending_by_views,
         bug_reports=bug_reports,
         open_bug_reports=open_bug_reports,
-        is_authenticated=current_user.is_authenticated,
     )
 
 

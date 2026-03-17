@@ -1,0 +1,40 @@
+<aside class="w-64 border-r border-white/10 p-4 hidden md:block">
+  <nav class="space-y-2 text-sm text-zinc-400">
+
+    <a href="{{ url_for('main.tools_paginated') }}" class="block px-3 py-2 rounded-lg hover:bg-white/10">All Tools ({{ total_tools }})</a>
+    {% if category_counts.get('coding', 0) > 0 %}
+    <a href="{{ url_for('main.tools_paginated', category='coding') }}" class="block px-3 py-2 rounded-lg hover:bg-white/10">Coding ({{ category_counts.get('coding', 0) }})</a>
+    {% endif %}
+    {% if category_counts.get('writing', 0) > 0 %}
+    <a href="{{ url_for('main.tools_paginated', category='writing') }}" class="block px-3 py-2 rounded-lg hover:bg-white/10">Writing ({{ category_counts.get('writing', 0) }})</a>
+    {% endif %}
+    {% if category_counts.get('research', 0) > 0 %}
+    <a href="{{ url_for('main.tools_paginated', category='research') }}" class="block px-3 py-2 rounded-lg hover:bg-white/10">Research ({{ category_counts.get('research', 0) }})</a>
+    {% endif %}
+    {% if category_counts.get('productivity', 0) > 0 %}
+    <a href="{{ url_for('main.tools_paginated', category='productivity') }}" class="block px-3 py-2 rounded-lg hover:bg-white/10">Productivity ({{ category_counts.get('productivity', 0) }})</a>
+    {% endif %}
+    {% if category_counts.get('image generation', 0) > 0 %}
+    <a href="{{ url_for('main.tools_paginated', category='image generation') }}" class="block px-3 py-2 rounded-lg hover:bg-white/10">Image Gen ({{ category_counts.get('image generation', 0) }})</a>
+    {% endif %}
+    {% if category_counts.get('video generation', 0) > 0 %}
+    <a href="{{ url_for('main.tools_paginated', category='video generation') }}" class="block px-3 py-2 rounded-lg hover:bg-white/10">Video Gen ({{ category_counts.get('video generation', 0) }})</a>
+    {% endif %}
+
+    <a href="{{ url_for('main.tools_paginated', sort='popular') }}" class="block px-3 py-2 rounded-lg hover:bg-white/10">Trending</a>
+    <a href="{{ url_for('main.tools_paginated', pricing='free') }}" class="block px-3 py-2 rounded-lg hover:bg-white/10">Free Only</a>
+
+    {% if is_authenticated %}
+    <a href="{{ url_for('main.dashboard') }}" class="block px-3 py-2 rounded-lg hover:bg-white/10">Dashboard</a>
+    {% endif %}
+    <a href="{{ url_for('main.compare') }}" class="block px-3 py-2 rounded-lg hover:bg-white/10">Compare Tools</a>
+    <a href="{{ url_for('main.stack_builder_step') }}" class="block px-3 py-2 rounded-lg hover:bg-white/10">AI Stack Builder</a>
+    <a href="{{ url_for('main.updates') }}" class="block px-3 py-2 rounded-lg hover:bg-white/10">Weekly Updates</a>
+    <a href="{{ url_for('main.submit_tool') }}" class="block px-3 py-2 rounded-lg hover:bg-white/10">Submit Tool</a>
+
+    {% if request.args.get('debug_counts') == '1' %}
+    <pre class="mt-3 p-2 rounded bg-black/30 border border-white/10 text-[10px] text-zinc-400 whitespace-pre-wrap">{{ category_counts }}</pre>
+    {% endif %}
+
+  </nav>
+</aside>

@@ -1,118 +1,41 @@
-<!DOCTYPE html>
-<html lang="en" class="dark">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Register | AI Compass</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <style>
-    :root {
-      --brand: #3b82f6;
-      --brand-dim: rgba(59,130,246,0.12);
-      --brand-glow: rgba(59,130,246,0.25);
-    }
-    body { font-family: 'DM Sans', system-ui, sans-serif; background: #09090b; color: #e4e4e7; }
-    .glass { background: rgba(255,255,255,0.04); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); }
-    .glass-hover { transition: border-color 0.2s, box-shadow 0.2s, background 0.2s; }
-    .glass-hover:hover { border-color: rgba(255,255,255,0.15); background: rgba(255,255,255,0.07); box-shadow: 0 0 0 1px var(--brand-glow), 0 8px 32px rgba(0,0,0,0.4); }
-    .brand-bg { background: var(--brand); }
-    .brand-text { color: var(--brand); }
-    .sidebar-item.active { background: var(--brand-dim); color: var(--brand); border-left: 2px solid var(--brand); }
-    .sidebar-item { border-left: 2px solid transparent; }
-    .toggle-switch { width: 52px; height: 28px; background: #374151; border-radius: 9999px; position: relative; border: 1px solid rgba(255,255,255,0.14); }
-    .toggle-knob { width: 22px; height: 22px; background: #fff; border-radius: 9999px; position: absolute; top: 2px; left: 2px; transition: transform 0.25s ease; }
-    .toggle-switch.active { background: #10b981; }
-    .toggle-switch.active .toggle-knob { transform: translateX(24px); }
-  </style>
-</head>
-<body class="min-h-screen overflow-x-hidden">
-  <div class="relative z-10 flex min-h-screen">
-    <aside class="glass w-60 flex-shrink-0 flex flex-col border-r border-white/6 h-screen sticky top-0 overflow-y-auto">
-      <div class="px-5 py-5 border-b border-white/6">
-        <a href="{{ url_for('main.index') }}" class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-lg brand-bg flex items-center justify-center flex-shrink-0"><i data-lucide="compass" class="w-4 h-4 text-white"></i></div>
-          <div><div class="text-sm font-700 tracking-tight text-zinc-100" style="font-weight:700">AI Compass</div><div class="text-[10px] text-zinc-500 font-mono">v2.1 - 2026</div></div>
-        </a>
+{% extends "base.html" %}
+
+{% block title %}Register | AI Compass{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto mt-10 space-y-6">
+  <div class="rounded-2xl border border-gray-700 bg-gray-900 p-6">
+    <h1 class="text-xl font-semibold text-zinc-100">Create your account</h1>
+    <p class="text-sm text-zinc-400 mt-1 mb-6">Save tools and unlock personalized recommendations.</p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="space-y-2 mb-4">
+          {% for category, message in messages %}
+            <div class="text-sm rounded-lg px-3 py-2 {% if category == 'error' %}bg-red-500/15 text-red-300 border border-red-500/20{% elif category == 'success' %}bg-emerald-500/15 text-emerald-300 border border-emerald-500/20{% else %}bg-blue-500/15 text-blue-300 border border-blue-500/20{% endif %}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <form method="post" class="space-y-4">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+      <div>
+        <label for="email" class="block text-sm text-zinc-300 mb-1">Email</label>
+        <input id="email" name="email" type="email" required class="w-full rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500" />
       </div>
-      <nav class="flex-1 px-3 py-4 space-y-0.5 text-sm">
-        <a href="{{ url_for('main.index') }}" class="sidebar-item active w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-zinc-300 hover:text-zinc-100 transition-colors"><i data-lucide="layout-grid" class="w-4 h-4"></i>All Tools</a>
-        <a href="{{ url_for('main.index') }}" class="sidebar-item w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-zinc-400 hover:text-zinc-100 transition-colors"><i data-lucide="pen-tool" class="w-4 h-4"></i>Writing & Docs</a>
-        <a href="{{ url_for('main.index') }}" class="sidebar-item w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-zinc-400 hover:text-zinc-100 transition-colors"><i data-lucide="code-2" class="w-4 h-4"></i>Coding</a>
-        <a href="{{ url_for('main.index') }}" class="sidebar-item w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-zinc-400 hover:text-zinc-100 transition-colors"><i data-lucide="image" class="w-4 h-4"></i>Image Gen</a>
-        <a href="{{ url_for('main.index') }}" class="sidebar-item w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-zinc-400 hover:text-zinc-100 transition-colors"><i data-lucide="video" class="w-4 h-4"></i>Video Gen</a>
-        <a href="{{ url_for('main.index') }}" class="sidebar-item w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-zinc-400 hover:text-zinc-100 transition-colors"><i data-lucide="book-open" class="w-4 h-4"></i>Research</a>
-        <a href="{{ url_for('main.index') }}" class="sidebar-item w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-zinc-400 hover:text-zinc-100 transition-colors"><i data-lucide="zap" class="w-4 h-4"></i>Productivity</a>
-        <div class="text-[10px] font-600 text-zinc-600 uppercase tracking-widest px-2 mb-2 mt-5" style="font-weight:600">Pages</div>
-        <a href="{{ url_for('main.dashboard') }}" class="sidebar-item w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-zinc-300 hover:text-zinc-100 transition-colors"><i data-lucide="layout-dashboard" class="w-4 h-4"></i>Dashboard</a>
-        <a href="{{ url_for('main.compare') }}" class="sidebar-item w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-zinc-300 hover:text-zinc-100 transition-colors"><i data-lucide="scale" class="w-4 h-4"></i>Compare</a>
-      </nav>
-    </aside>
+      <div>
+        <label for="password" class="block text-sm text-zinc-300 mb-1">Password</label>
+        <input id="password" name="password" type="password" minlength="8" required class="w-full rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      </div>
+      <div>
+        <label for="confirm_password" class="block text-sm text-zinc-300 mb-1">Confirm Password</label>
+        <input id="confirm_password" name="confirm_password" type="password" minlength="8" required class="w-full rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      </div>
+      <button type="submit" class="w-full rounded-lg text-sm text-white bg-blue-600 hover:bg-blue-500 transition-colors px-4 py-2.5">Register</button>
+    </form>
 
-    <div class="flex-1 flex flex-col min-w-0">
-      <header class="glass sticky top-0 z-30 border-b border-white/6 px-4 md:px-6 h-14 flex items-center gap-3">
-        <div class="relative flex-1 max-w-sm">
-          <i data-lucide="search" class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500"></i>
-          <input type="text" placeholder="Search tools, categories, use cases..." class="w-full bg-white/5 border border-white/8 rounded-lg pl-8 pr-3 py-2 text-sm text-zinc-200 placeholder-zinc-600" />
-        </div>
-        <div class="flex items-center gap-2.5 glass rounded-full px-3 py-1.5 border-white/8">
-          <i data-lucide="graduation-cap" class="w-3.5 h-3.5 text-zinc-400"></i>
-          <span class="text-xs text-zinc-400 hidden sm:block">Student Mode</span>
-          <button id="studentToggle" class="toggle-switch transition-all duration-300"><span class="toggle-knob transition-all duration-300"></span></button>
-        </div>
-        <a href="{{ url_for('auth.login') }}" class="text-xs text-zinc-300 hover:text-zinc-100 transition-colors glass rounded-lg px-2.5 py-1.5">Login</a>
-      </header>
-
-      <main class="flex-1 px-4 md:px-6 py-6 flex items-center justify-center">
-        <div class="glass glass-hover w-full max-w-md rounded-2xl p-6 md:p-7">
-          <h1 class="text-xl font-700 text-zinc-100 tracking-tight" style="font-weight:700">Create Your AI Compass Account</h1>
-          <p class="text-sm text-zinc-500 mt-1 mb-6">Save tools and unlock personalized recommendations.</p>
-
-          {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-              <div class="space-y-2 mb-4">
-                {% for category, message in messages %}
-                  <div class="text-sm rounded-lg px-3 py-2 {% if category == 'error' %}bg-red-500/15 text-red-300 border border-red-500/20{% elif category == 'success' %}bg-emerald-500/15 text-emerald-300 border border-emerald-500/20{% else %}bg-blue-500/15 text-blue-300 border border-blue-500/20{% endif %}">{{ message }}</div>
-                {% endfor %}
-              </div>
-            {% endif %}
-          {% endwith %}
-
-          <form method="post" class="space-y-4">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-            <div>
-              <label for="email" class="block text-sm text-zinc-300 mb-1">Email</label>
-              <input id="email" name="email" type="email" required class="w-full rounded-lg border border-white/10 bg-zinc-900 px-3 py-2 text-sm text-zinc-100" />
-            </div>
-            <div>
-              <label for="password" class="block text-sm text-zinc-300 mb-1">Password</label>
-              <input id="password" name="password" type="password" minlength="8" required class="w-full rounded-lg border border-white/10 bg-zinc-900 px-3 py-2 text-sm text-zinc-100" />
-            </div>
-            <div>
-              <label for="confirm_password" class="block text-sm text-zinc-300 mb-1">Confirm Password</label>
-              <input id="confirm_password" name="confirm_password" type="password" minlength="8" required class="w-full rounded-lg border border-white/10 bg-zinc-900 px-3 py-2 text-sm text-zinc-100" />
-            </div>
-            <button type="submit" class="w-full rounded-lg text-xs text-zinc-100 bg-blue-600 hover:bg-blue-500 transition-colors px-4 py-2.5">Register</button>
-          </form>
-
-          <p class="text-zinc-400 text-sm mt-4">Already have an account? <a href="{{ url_for('auth.login') }}" class="brand-text hover:opacity-80">Login</a></p>
-        </div>
-      </main>
-    </div>
+    <p class="text-zinc-400 text-sm mt-4">Already have an account? <a href="{{ url_for('auth.login') }}" class="text-blue-400 hover:text-blue-300">Login</a></p>
   </div>
-
-  <script>
-    const studentToggle = document.getElementById('studentToggle');
-    if (studentToggle) {
-      studentToggle.addEventListener('click', () => {
-        document.body.classList.toggle('student-mode');
-        studentToggle.classList.toggle('active');
-      });
-    }
-    if (window.lucide && typeof window.lucide.createIcons === 'function') window.lucide.createIcons();
-  </script>
-</body>
-</html>
+</div>
+{% endblock %}

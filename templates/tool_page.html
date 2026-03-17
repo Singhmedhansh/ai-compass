@@ -1,87 +1,63 @@
-<!DOCTYPE html>
-<html lang="en" class="dark">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="{{ tool.description }}" />
-  <meta property="og:title" content="{{ tool.name }}" />
-  <meta property="og:description" content="{{ tool.tagline }}" />
-  <meta property="og:image" content="{{ tool.seo_icon }}" />
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="{{ request.url }}" />
-  <link rel="canonical" href="{{ request.url }}" />
-  <title>{{ tool.name }} - AI Tool for Students | AI Compass</title>
+{% extends "base.html" %}
 
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    "name": {{ tool.name|tojson }},
-    "applicationCategory": {{ tool.applicationCategory|tojson }},
-    "operatingSystem": {{ tool.operatingSystem|tojson }},
-    "offers": {
-      "@type": "Offer",
-      "price": {{ tool.offer_price|tojson }},
-      "priceCurrency": "USD"
-    },
-    "aggregateRating": {
-      "@type": "AggregateRating",
-      "ratingValue": {{ tool.rating_value|tojson }},
-      "ratingCount": {{ tool.rating_count|tojson }}
-    }
+{% block head_meta %}
+<meta name="description" content="{{ tool.description }}" />
+<meta property="og:title" content="{{ tool.name }}" />
+<meta property="og:description" content="{{ tool.tagline }}" />
+<meta property="og:image" content="{{ tool.seo_icon }}" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="{{ request.url }}" />
+<link rel="canonical" href="{{ request.url }}" />
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": {{ tool.name|tojson }},
+  "applicationCategory": {{ tool.applicationCategory|tojson }},
+  "operatingSystem": {{ tool.operatingSystem|tojson }},
+  "offers": {
+    "@type": "Offer",
+    "price": {{ tool.offer_price|tojson }},
+    "priceCurrency": "USD"
+  },
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": {{ tool.rating_value|tojson }},
+    "ratingCount": {{ tool.rating_count|tojson }}
   }
-  </script>
+}
+</script>
+{% endblock %}
 
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+{% block title %}{{ tool.name }} - AI Tool for Students | AI Compass{% endblock %}
 
-  <style>
-    :root {
-      --bg: #070b13;
-      --panel: rgba(255, 255, 255, 0.04);
-      --line: rgba(255, 255, 255, 0.12);
-      --text: #e6edf7;
-      --muted: #9ca8be;
-      --brand: #22c3a6;
-      --brand-2: #35a4ff;
-    }
+{% block head_extra %}
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  .mono { font-family: "JetBrains Mono", monospace; }
+  .panel {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+  .chip {
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.03);
+  }
+</style>
+{% endblock %}
 
-    body {
-      font-family: "Space Grotesk", system-ui, sans-serif;
-      color: var(--text);
-      background:
-        radial-gradient(900px 400px at 5% -10%, rgba(53, 164, 255, 0.18), transparent 55%),
-        radial-gradient(900px 380px at 95% -5%, rgba(34, 195, 166, 0.12), transparent 58%),
-        var(--bg);
-    }
-
-    .mono { font-family: "JetBrains Mono", monospace; }
-    .panel {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-    }
-    .chip {
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      background: rgba(255, 255, 255, 0.03);
-    }
-  </style>
-</head>
-<body class="min-h-screen">
-  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
+{% block content %}
+<div class="max-w-6xl mx-auto space-y-6">
     <a href="{{ url_for('main.index') }}" class="inline-flex items-center text-sm text-slate-300 hover:text-white transition-colors">← Back to AI Compass</a>
 
     <section class="panel rounded-2xl p-5 sm:p-8 mt-4">
       <div class="flex flex-col md:flex-row md:items-start gap-5">
-        <img
-          src="{{ tool.seo_icon }}"
-          alt="{{ tool.name }} icon"
-          class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover border border-white/15"
-          onerror="this.onerror=null;this.src='/static/icons/default.png';"
-        />
+        <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden border border-white/15 flex items-center justify-center bg-white/5 flex-shrink-0">
+          <img src="{{ tool.icon_url or tool.seo_icon }}" alt="{{ tool.name }} icon" class="w-full h-full object-contain bg-white p-1 rounded-lg" onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');" />
+          <div class="w-full h-full hidden flex items-center justify-center text-white text-2xl font-semibold bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg">{{ tool.name[0] if tool.name else 'A' }}</div>
+        </div>
 
         <div class="flex-1 min-w-0">
           <h1 class="text-2xl sm:text-4xl font-bold tracking-tight">{{ tool.name }}</h1>
@@ -183,12 +159,10 @@
         {% for item in similar_tools %}
         <article class="panel rounded-xl p-4">
           <div class="flex items-center gap-2">
-            <img
-              src="{{ item.icon if item.icon and item.icon != '/static/icons/default.png' else 'https://logo.clearbit.com/' ~ ((item.link or '').replace('https://', '').replace('http://', '').split('/')[0]) }}"
-              onerror="this.onerror=null;this.src='/static/icons/default.png';"
-              alt="{{ item.name }} icon"
-              class="w-8 h-8 rounded-lg object-cover border border-white/15"
-            />
+            <div class="w-8 h-8 rounded-lg overflow-hidden border border-white/15 flex items-center justify-center bg-white/5 flex-shrink-0">
+              <img src="{{ item.icon_url }}" alt="{{ item.name }} icon" class="w-full h-full object-contain bg-white p-1 rounded-lg" onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');" />
+              <div class="w-full h-full hidden flex items-center justify-center text-white text-xs font-semibold bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg">{{ item.name[0] if item.name else 'A' }}</div>
+            </div>
             <div>
               <h3 class="text-sm font-semibold">{{ item.name }}</h3>
               <p class="text-xs text-slate-400 line-clamp-1">{{ item.tagline }}</p>
@@ -200,6 +174,6 @@
         {% endfor %}
       </div>
     </section>
-  </div>
-</body>
-</html>
+</div>
+{% endblock %}
+
