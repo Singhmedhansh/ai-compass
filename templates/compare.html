@@ -130,7 +130,9 @@
                   ('Icon', 'icon'),
                   ('Tool Name', 'name'),
                   ('Category', 'category'),
+                  ('Rating', 'rating'),
                   ('Pricing', 'pricingDetail'),
+                  ('Platforms', 'platforms'),
                   ('Student Perk', 'studentPerk'),
                   ('University Hack', 'uniHack'),
                   ('Best For', 'bestFor'),
@@ -146,6 +148,12 @@
                           <img src="{{ tool.icon or '/static/icons/default.png' }}" onerror="this.onerror=null;this.src='/static/icons/default.png';" alt="{{ tool.name }} logo" class="w-8 h-8 rounded-md object-cover bg-white/10 border border-white/10" />
                         {% elif key in ['apiAvailable', 'openSource'] %}
                           {{ 'Yes' if tool[key] else 'No' }}
+                        {% elif key == 'platforms' %}
+                          {% if tool.platforms %}
+                            {{ tool.platforms|join(', ') if tool.platforms is iterable and tool.platforms is not string else tool.platforms }}
+                          {% else %}
+                            N/A
+                          {% endif %}
                         {% else %}
                           {{ tool[key] or 'N/A' }}
                         {% endif %}
@@ -175,6 +183,10 @@
         {% else %}
           <div class="glass rounded-xl p-4 text-sm text-zinc-500">Select at least two tools to compare.</div>
         {% endif %}
+
+        <footer>
+          <a href="{{ url_for('main.report_bug') }}" class="inline-flex items-center gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-300 px-3 py-2 text-xs hover:bg-amber-500/15 transition-colors">Report a Bug</a>
+        </footer>
       </main>
     </div>
   </div>
@@ -192,10 +204,10 @@
       }
 
       const params = new URLSearchParams();
-      params.set('tools', values.join(','));
       params.set('sort', document.getElementById('compare-sort').value);
       params.set('student_mode', document.getElementById('compare-student').checked ? 'true' : 'false');
-      window.location.href = '/compare?' + params.toString();
+      const slug = values.join('-vs-');
+      window.location.href = '/compare/' + encodeURIComponent(slug) + '?' + params.toString();
     }
 
     (function prefill() {

@@ -5,7 +5,7 @@ from math import ceil
 from html import escape
 from datetime import datetime, timedelta, timezone
 from functools import wraps
-from urllib.parse import urlparse
+from urllib.parse import urlencode, urlparse
 
 from flask import Blueprint, Response, abort, flash, jsonify, redirect, render_template, request, session, url_for
 from flask_login import current_user, login_required
@@ -21,7 +21,7 @@ from app.discovery import (
     reject_queue_tool_by_name,
     update_queue_tool_by_name,
 )
-from app.models import Favorite, NewsletterSubscriber, Submission, ToolRating, ToolView, User
+from app.models import BugReport, Favorite, NewsletterSubscriber, SavedStack, Submission, ToolRating, ToolView, User
 from app.recommendations import recommend_tools
 from app.tool_cache import get_cached_tools
 from scripts.tool_discovery import run_discovery_pipeline
@@ -31,8 +31,64 @@ main_bp = Blueprint("main", __name__)
 
 DATA_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "tools.json")
 DEFAULT_TOOL_ICON = "/static/icons/default.png"
-SUPPORTED_SORTS = {"trending", "rating", "popular", "newest", "free"}
+SUPPORTED_SORTS = {"trending", "rating", "popular", "newest", "latest", "free"}
+SORT_ALIASES = {"latest": "newest"}
 TOOLS_PER_PAGE = 20
+
+TOOLS_CATEGORY_MAP = {
+    "all": {"all"},
+    "writing": {"writing", "writing & docs", "docs"},
+    "coding": {"coding", "code", "developer"},
+    "research": {"research"},
+    "productivity": {"productivity"},
+    "design": {"design"},
+    "data-analysis": {"data analysis", "analytics"},
+    "image-generation": {"image generation", "image", "image-gen"},
+    "video-generation": {"video generation", "video", "video-gen"},
+    "presentation": {"presentation", "slides"},
+    "study-tools": {"study tools", "study", "education"},
+}
+
+TOOLS_CATEGORY_LABELS = {
+    "all": "All",
+    "writing": "Writing",
+    "coding": "Coding",
+    "research": "Research",
+    "productivity": "Productivity",
+    "design": "Design",
+    "data-analysis": "Data Analysis",
+    "image-generation": "Image Generation",
+    "video-generation": "Video Generation",
+    "presentation": "Presentation",
+    "study-tools": "Study Tools",
+}
+
+CATEGORY_ALIASES = {
+    "code": "coding",
+    "developer": "coding",
+    "developers": "coding",
+    "image": "image-generation",
+    "images": "image-generation",
+    "video": "video-generation",
+    "videos": "video-generation",
+    "study": "study-tools",
+    "education": "study-tools",
+    "data": "data-analysis",
+    "analysis": "data-analysis",
+}
+
+DATASET_CATEGORY_TO_FILTER = {
+    "writing & docs": "writing",
+    "coding": "coding",
+    "research": "research",
+    "productivity": "productivity",
+    "design": "design",
+    "data analysis": "data-analysis",
+    "image generation": "image-generation",
+    "video generation": "video-generation",
+    "presentation": "presentation",
+    "study tools": "study-tools",
+}
 
 
 def admin_required(f):
@@ -100,6 +156,7 @@ def normalize_tool(tool):
     item["tool_key"] = build_tool_key(item)
     icon_path = str(item.get("icon") or "").strip()
     item["icon"] = icon_path if icon_path else DEFAULT_TOOL_ICON
+    item["icon_url"] = get_tool_icon(item.get("link") or item.get("website")) or build_primary_tool_icon(item)
     return item
 
 
@@ -154,6 +211,16 @@ def build_clearbit_logo_url(tool):
     return f"https://logo.clearbit.com/{host}"
 
 
+def get_tool_icon(url):
+    try:
+        domain = str(url or "").replace("https://", "").replace("http://", "").split("/")[0].strip().lower()
+        if domain.startswith("www."):
+            domain = domain[4:]
+        return f"https://logo.clearbit.com/{domain}" if domain else None
+    except Exception:
+        return None
+
+
 def build_primary_tool_icon(tool):
     icon = str(tool.get("icon") or "").strip()
     if icon and icon != DEFAULT_TOOL_ICON:
@@ -188,6 +255,57 @@ def _parse_bool(value):
     return str(value or "").strip().lower() in {"1", "true", "on", "yes"}
 
 
+def normalize_text_key(value):
+    return re.sub(r"\s+", " ", str(value or "").strip().lower())
+
+
+def normalize_category_filter(value):
+    raw = normalize_text_key(value).replace("_", "-").replace(" ", "-")
+    if not raw:
+        return "all"
+    if raw in TOOLS_CATEGORY_MAP:
+        return raw
+    return CATEGORY_ALIASES.get(raw, raw)
+
+
+def normalize_tool_category(value):
+    normalized = normalize_text_key(value)
+    if not normalized:
+        return ""
+    return DATASET_CATEGORY_TO_FILTER.get(normalized, normalized.replace(" ", "-"))
+
+
+def tool_matches_category(tool, category_filter):
+    if category_filter in {"", "all"}:
+        return True
+
+    category_value = normalize_tool_category(tool.get("category"))
+    allowed = TOOLS_CATEGORY_MAP.get(category_filter)
+    if allowed:
+        allowed_keys = {normalize_tool_category(value) for value in allowed}
+        return category_value in allowed_keys or category_value == category_filter
+
+    return category_value == category_filter
+
+
+def build_tools_category_items(tools):
+    category_counts = {}
+    for tool in tools:
+        category_key = normalize_tool_category(tool.get("category"))
+        if not category_key:
+            continue
+        category_counts[category_key] = category_counts.get(category_key, 0) + 1
+
+    items = []
+    for key, label in TOOLS_CATEGORY_LABELS.items():
+        if key == "all":
+            count = len(tools)
+        else:
+            count = category_counts.get(key, 0)
+        items.append({"key": key, "label": label, "count": count})
+    return items
+
+
 def get_student_mode_from_request(default=False):
     raw = request.args.get("student_mode")
     if raw is None:
@@ -197,7 +315,9 @@ def get_student_mode_from_request(default=False):
 
 def get_sort_type_from_request(default="trending"):
     raw = str(request.args.get("sort", default) or default).strip().lower()
-    return raw if raw in SUPPORTED_SORTS else default
+    if raw not in SUPPORTED_SORTS:
+        return default
+    return SORT_ALIASES.get(raw, raw)
 
 
 def _price_bucket(tool):
@@ -228,17 +348,27 @@ def _sort_tuple(tool, sort_type, view_map=None):
     view_map = view_map or {}
     rating = float(tool.get("rating") or 0)
     weekly_users = parse_weekly_users(tool.get("weeklyUsers"))
+    created_at = tool.get("created_at") or tool.get("createdAt")
+    created_timestamp = 0
+    if created_at:
+        created_text = str(created_at).strip().replace("Z", "+00:00")
+        try:
+            created_timestamp = int(datetime.fromisoformat(created_text).timestamp())
+        except ValueError:
+            created_timestamp = 0
+
     launch_year = int(tool.get("launchYear") or 0)
+    latest_rank = created_timestamp if created_timestamp else launch_year
     views = int(view_map.get(tool.get("tool_key"), 0))
 
     if sort_type == "rating":
         return (rating, weekly_users, views)
     if sort_type == "popular":
-        return (weekly_users, rating, views)
+        return (rating, weekly_users, views)
     if sort_type == "newest":
-        return (launch_year, rating, weekly_users)
+        return (latest_rank, rating, weekly_users)
     if sort_type == "free":
-        return (_price_bucket(tool), rating, weekly_users)
+        return (_price_bucket(tool), rating, weekly_users, views)
 
     # Default: trending
     return (trending_score(tool, views=views), rating, weekly_users)
@@ -692,6 +822,44 @@ def get_view_map():
     return {str(tool_name): int(count) for tool_name, count in rows}
 
 
+def get_favorite_count_map():
+    rows = (
+        db.session.query(Favorite.tool_id, db.func.count(Favorite.id))
+        .filter(Favorite.tool_id.isnot(None))
+        .group_by(Favorite.tool_id)
+        .all()
+    )
+    return {str(tool_id): int(count) for tool_id, count in rows}
+
+
+def get_rating_metrics_map():
+    rows = (
+        db.session.query(ToolRating.tool_name, db.func.avg(ToolRating.rating), db.func.count(ToolRating.id))
+        .filter(ToolRating.tool_name.isnot(None))
+        .group_by(ToolRating.tool_name)
+        .all()
+    )
+    metrics = {}
+    for tool_name, avg_rating, count in rows:
+        metrics[str(tool_name)] = {
+            "avg": round(float(avg_rating or 0), 2),
+            "count": int(count or 0),
+        }
+    return metrics
+
+
+def get_recent_click_map(hours=72):
+    since = datetime.now(timezone.utc) - timedelta(hours=hours)
+    rows = (
+        db.session.query(ToolView.tool_name, db.func.count(ToolView.id))
+        .filter(ToolView.tool_name.isnot(None))
+        .filter(ToolView.timestamp >= since)
+        .group_by(ToolView.tool_name)
+        .all()
+    )
+    return {str(tool_name): int(count) for tool_name, count in rows}
+
+
 def get_weekly_view_map(days=7):
     since = datetime.now(timezone.utc) - timedelta(days=days)
     rows = (
@@ -763,10 +931,37 @@ def get_trending_tools_by_views(limit=8):
 
 def get_trending_homepage_tools(limit=6):
     tools = [normalize_tool(tool) for tool in load_tools()]
-    trending_tools = [tool for tool in tools if bool(tool.get("trending"))]
+    total_views = get_view_map()
+    favorite_counts = get_favorite_count_map()
+    rating_metrics = get_rating_metrics_map()
+    recent_clicks = get_recent_click_map(hours=72)
+
+    def score(tool):
+        key = str(tool.get("tool_key") or "")
+        rating = rating_metrics.get(key, {})
+        avg_rating = float(rating.get("avg", float(tool.get("rating") or 0)))
+        rating_count = int(rating.get("count", 0))
+        total_view_count = int(total_views.get(key, 0))
+        recent_view_count = int(recent_clicks.get(key, 0))
+        favorite_count = int(favorite_counts.get(key, 0))
+
+        # Balance velocity + quality so new tools can trend without overpowering established favorites.
+        return (
+            (total_view_count * 0.02)
+            + (recent_view_count * 0.08)
+            + (favorite_count * 2.0)
+            + (avg_rating * 8.0)
+            + (rating_count * 0.5)
+            + (4.0 if tool.get("trending") else 0.0)
+        )
+
     ranked = sorted(
-        trending_tools,
-        key=lambda item: (float(item.get("rating") or 0), parse_weekly_users(item.get("weeklyUsers"))),
+        tools,
+        key=lambda item: (
+            score(item),
+            float(item.get("rating") or 0),
+            parse_weekly_users(item.get("weeklyUsers")),
+        ),
         reverse=True,
     )
     return ranked[:limit]
@@ -805,6 +1000,8 @@ def index():
         if str(tool.get("category") or "").strip()
     }
     total_users = User.query.count()
+    launch_user_floor = int(os.getenv("LAUNCH_USER_FLOOR", "12000") or "12000")
+    total_users_display = max(total_users, launch_user_floor)
     recent_tools = sorted(
         tools,
         key=lambda item: (int(item.get("launchYear") or 0), float(item.get("rating") or 0)),
@@ -819,7 +1016,7 @@ def index():
         trending_tools=trending_tools,
         total_tools=len(tools),
         total_categories=len(categories),
-        total_users=total_users if total_users > 0 else 12000,
+        total_users=total_users_display,
     )
 
 
@@ -851,8 +1048,44 @@ def tools_paginated():
     if page < 1:
         page = 1
 
+    raw_sort = request.args.get("sort", "trending")
+    sort_type = get_sort_type_from_request(default="trending")
+    category_filter = normalize_category_filter(request.args.get("category", "all"))
+    student_mode = get_student_mode_from_request(default=False)
+    search_query = str(request.args.get("q", "") or "").strip()
+    query_tokens = _tokenize_query(search_query)
+
     all_tools = [normalize_tool(tool) for tool in load_tools()]
-    sorted_tools = sort_tools(all_tools, sort_type="trending", view_map=get_view_map(), student_mode=False)
+    all_tools = apply_dynamic_weekly_users(all_tools, get_weekly_view_map())
+
+    print("Category:", category_filter)
+    print("Sort:", raw_sort)
+    print("First 5 tools:", [
+        {
+            "name": tool.get("name"),
+            "category": tool.get("category"),
+            "url": tool.get("link") or tool.get("website"),
+        }
+        for tool in all_tools[:5]
+    ])
+
+    filtered_tools = [tool for tool in all_tools if tool_matches_category(tool, category_filter)]
+    print("Total tools after filter:", len(filtered_tools))
+
+    if query_tokens:
+        scored = []
+        for tool in filtered_tools:
+            score = _search_score(tool, query_tokens)
+            if score <= 0:
+                continue
+            scored.append((score, tool))
+        filtered_tools = [tool for _, tool in sorted(scored, key=lambda item: item[0], reverse=True)]
+
+    sorted_tools = sort_tools(filtered_tools, sort_type=sort_type, view_map=get_view_map(), student_mode=student_mode)
+
+    for tool in sorted_tools:
+        icon_url = get_tool_icon(tool.get("link") or tool.get("website"))
+        tool["icon_url"] = icon_url or str(tool.get("icon") or DEFAULT_TOOL_ICON)
 
     total_tools = len(sorted_tools)
     total_pages = max(1, ceil(total_tools / TOOLS_PER_PAGE))
@@ -867,9 +1100,28 @@ def tools_paginated():
     page_window_end = min(total_pages, page + 2)
     page_numbers = list(range(page_window_start, page_window_end + 1))
 
+    categories = build_tools_category_items(all_tools)
+
+    def _tools_url(target_page):
+        query = {"page": target_page}
+        if category_filter != "all":
+            query["category"] = category_filter
+        if sort_type != "trending":
+            query["sort"] = sort_type
+        if search_query:
+            query["q"] = search_query
+        if student_mode:
+            query["student_mode"] = "true"
+        return f"{url_for('main.tools_paginated')}?{urlencode(query)}"
+
+    page_urls = {number: _tools_url(number) for number in page_numbers}
+    prev_url = _tools_url(page - 1) if page > 1 else None
+    next_url = _tools_url(page + 1) if page < total_pages else None
+
     return render_template(
         "tools.html",
         tools=page_tools,
+        current_page=page,
         page=page,
         total_pages=total_pages,
         page_numbers=page_numbers,
@@ -877,6 +1129,19 @@ def tools_paginated():
         has_next=page < total_pages,
         prev_page=page - 1,
         next_page=page + 1,
+        prev_url=prev_url,
+        next_url=next_url,
+        page_urls=page_urls,
+        categories=categories,
+        active_category=category_filter,
+        selected_category=category_filter,
+        active_sort=sort_type,
+        selected_sort=sort_type,
+        active_query=search_query,
+        student_mode=student_mode,
+        sort_options=["trending", "popular", "newest", "free", "rating"],
+        tools_per_page=TOOLS_PER_PAGE,
+        filtered_total=total_tools,
         total_tools=total_tools,
         is_authenticated=current_user.is_authenticated,
     )
@@ -971,15 +1236,12 @@ def dashboard():
     )
 
 
-@main_bp.route("/compare")
-def compare():
+def _compare_context_from_keys(selected_keys):
     tools = [normalize_tool(tool) for tool in load_tools()]
     sort_type = get_sort_type_from_request(default="trending")
     student_mode = get_student_mode_from_request(default=False)
     view_map = get_view_map()
     tools = sort_tools(tools, sort_type=sort_type, view_map=view_map, student_mode=student_mode)
-    query_tools = request.args.get("tools", "")
-    selected_keys = [segment.strip() for segment in query_tools.split(",") if segment.strip()]
 
     selected = []
     by_key = {tool["tool_key"]: tool for tool in tools}
@@ -987,13 +1249,51 @@ def compare():
         if key in by_key:
             selected.append(by_key[key])
 
+    return {
+        "tools": tools,
+        "selected_tools": selected,
+        "selected_keys": selected_keys,
+        "student_mode": student_mode,
+        "sort_type": sort_type,
+    }
+
+
+@main_bp.route("/compare")
+def compare():
+    query_tools = request.args.get("tools", "")
+    selected_keys = []
+    for segment in query_tools.split(","):
+        key = segment.strip()
+        if not key or key in selected_keys:
+            continue
+        selected_keys.append(key)
+        if len(selected_keys) >= 3:
+            break
+
+    context = _compare_context_from_keys(selected_keys)
+    return render_template("compare.html", **context)
+
+
+@main_bp.route("/compare/<comparison_slug>")
+def compare_slug(comparison_slug):
+    parts = [segment.strip() for segment in str(comparison_slug or "").split("-vs-") if segment.strip()]
+    selected_keys = []
+    for key in parts:
+        if key in selected_keys:
+            continue
+        selected_keys.append(key)
+        if len(selected_keys) >= 3:
+            break
+
+    if len(selected_keys) < 2:
+        flash("Select at least two tools to compare.", "warning")
+        return redirect(url_for("main.compare"))
+
+    context = _compare_context_from_keys(selected_keys)
+
     return render_template(
         "compare.html",
-        tools=tools,
-        selected_tools=selected,
-        selected_keys=selected_keys,
-        student_mode=student_mode,
-        sort_type=sort_type,
+        **context,
     )
 
 
@@ -1134,19 +1434,25 @@ def ai_tool_finder_results():
             flash("Please log in to save your AI stack.", "warning")
             return redirect(url_for("auth.login"))
 
-        added = 0
-        for tool_key in state.get("result_tool_keys", []):
-            existing = Favorite.query.filter_by(user_id=current_user.id, tool_id=str(tool_key)).first()
-            if existing:
-                continue
-            db.session.add(Favorite(user_id=current_user.id, tool_id=str(tool_key)))
-            added += 1
+        stack_name = str(request.form.get("stack_name") or "").strip()
+        if not stack_name:
+            stack_name = f"{TOOL_FINDER_GOAL_MAP.get(goal, 'AI')} Stack - {datetime.now(timezone.utc).strftime('%Y-%m-%d')}"
+
+        payload = {
+            "goal": goal,
+            "budget": budget,
+            "platform": platform,
+            "tools": state.get("result_tool_keys", []),
+        }
+        saved = SavedStack(
+            user_id=current_user.id,
+            name=stack_name[:255],
+            tools_json=json.dumps(payload),
+        )
+        db.session.add(saved)
         db.session.commit()
 
-        if added:
-            flash(f"Saved {added} tools to your dashboard favorites.", "success")
-        else:
-            flash("These tools are already in your favorites.", "info")
+        flash("AI stack saved successfully.", "success")
         return redirect(url_for("main.dashboard"))
 
     return render_template(
@@ -1430,22 +1736,56 @@ def submit_tool():
 
 # ── Weekly Updates Feed ───────────────────────────────────────────────────────
 
-@main_bp.route("/updates")
-def updates():
+def _weekly_newest_tools(limit=10):
     all_tools = [normalize_tool(t) for t in load_tools()]
-    cutoff_year = 2025
-    # Show tools launched in 2025 or 2026, or marked trending
-    recent_tools = [
-        t for t in all_tools
-        if int(t.get("launchYear") or 0) >= cutoff_year or t.get("trending")
-    ]
-    # Sort by launchYear desc, then rank asc
-    recent_tools.sort(key=lambda t: (-(int(t.get("launchYear") or 0)), int(t.get("rank") or 99999)))
+    recent_tools = sorted(
+        all_tools,
+        key=lambda t: (
+            int(t.get("launchYear") or 0),
+            float(t.get("rating") or 0),
+            parse_weekly_users(t.get("weeklyUsers")),
+        ),
+        reverse=True,
+    )
+    return recent_tools[:limit]
+
+
+@main_bp.route("/updates")
+@main_bp.route("/weekly-ai-tools")
+def updates():
     return render_template(
         "updates.html",
-        tools=recent_tools,
+        tools=_weekly_newest_tools(limit=10),
         is_authenticated=current_user.is_authenticated,
     )
+
+
+@main_bp.route("/report-bug", methods=["GET", "POST"])
+def report_bug():
+    if request.method == "POST":
+        description = str(request.form.get("bug_description") or "").strip()
+        page_url = str(request.form.get("page_url") or "").strip()
+        email = str(request.form.get("email") or "").strip().lower()
+
+        if not description:
+            flash("Please describe the bug.", "error")
+            return render_template("report_bug.html", is_authenticated=current_user.is_authenticated)
+        if not page_url:
+            page_url = request.referrer or request.url_root
+
+        report = BugReport(
+            description=description,
+            page_url=page_url,
+            email=email or None,
+            status="open",
+        )
+        db.session.add(report)
+        db.session.commit()
+
+        flash("Thanks, your bug report was submitted.", "success")
+        return redirect(url_for("main.report_bug"))
+
+    return render_template("report_bug.html", is_authenticated=current_user.is_authenticated)
 
 
 # ── Admin Panel ───────────────────────────────────────────────────────────────
@@ -1479,6 +1819,8 @@ def admin():
     most_viewed_tools = get_most_viewed_tools(limit=8)
     views_per_day = get_views_per_day(days=7)
     trending_by_views = get_trending_tools_by_views(limit=8)
+    bug_reports = BugReport.query.order_by(BugReport.created_at.desc()).limit(50).all()
+    open_bug_reports = [report for report in bug_reports if str(report.status or "open").lower() == "open"]
 
     return render_template(
         "admin.html",
@@ -1491,8 +1833,20 @@ def admin():
         most_viewed_tools=most_viewed_tools,
         views_per_day=views_per_day,
         trending_by_views=trending_by_views,
+        bug_reports=bug_reports,
+        open_bug_reports=open_bug_reports,
         is_authenticated=current_user.is_authenticated,
     )
+
+
+@main_bp.route("/admin/bug-report/<int:report_id>/resolve", methods=["POST"])
+@admin_required
+def admin_resolve_bug_report(report_id):
+    report = BugReport.query.get_or_404(report_id)
+    report.status = "resolved"
+    db.session.commit()
+    flash("Bug report marked as resolved.", "success")
+    return redirect(url_for("main.admin"))
 
 
 @main_bp.route("/admin/approve/<int:submission_id>", methods=["POST"])
@@ -1618,6 +1972,8 @@ def sitemap_xml():
         "/",
         "/tools",
         "/ai-tool-finder",
+        "/weekly-ai-tools",
+        "/report-bug",
         "/best-ai-tools-for-students",
         "/best-ai-writing-tools",
         "/best-ai-tools-for-coding",

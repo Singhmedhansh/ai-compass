@@ -136,7 +136,13 @@
     #search-input:focus { outline: none; border-color: var(--active-brand); box-shadow: 0 0 0 2px var(--active-glow); }
 
     /* Search suggestions */
-    .search-suggestions { max-height: 420px; overflow-y: auto; }
+    .search-suggestions {
+      max-height: min(260px, calc(100vh - 180px));
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      background: rgba(10, 10, 12, 0.96);
+      box-shadow: 0 18px 44px rgba(0,0,0,0.45);
+    }
     .search-suggestions mark { background: rgba(59,130,246,0.24); color: #dbeafe; border-radius: 3px; padding: 0 1px; }
 
     /* Mobile sidebar */
@@ -172,40 +178,40 @@
       <!-- Nav -->
       <nav class="flex-1 px-3 py-4 space-y-0.5">
         <div class="text-[10px] font-600 text-zinc-600 uppercase tracking-widest px-2 mb-2" style="font-weight:600">Browse</div>
-        <button onclick="filterCategory('all')" data-cat="all" class="sidebar-item active w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm text-zinc-300 hover:text-zinc-100 transition-colors">
+        <button data-cat="all" class="sidebar-item sidebar-category active w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm text-zinc-300 hover:text-zinc-100 transition-colors">
           <i data-lucide="layout-grid" class="w-4 h-4 flex-shrink-0"></i> All Tools
           <span data-count-for="all" class="ml-auto text-[10px] font-mono bg-white/8 px-1.5 py-0.5 rounded">0</span>
         </button>
-        <button onclick="filterCategory('writing')" data-cat="writing" class="sidebar-item w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm text-zinc-400 hover:text-zinc-100 transition-colors">
+        <button data-cat="writing" class="sidebar-item sidebar-category w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm text-zinc-400 hover:text-zinc-100 transition-colors">
           <i data-lucide="pen-tool" class="w-4 h-4 flex-shrink-0"></i> Writing & Docs
           <span data-count-for="writing" class="ml-auto text-[10px] font-mono bg-white/5 px-1.5 py-0.5 rounded">0</span>
         </button>
-        <button onclick="filterCategory('coding')" data-cat="coding" class="sidebar-item w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm text-zinc-400 hover:text-zinc-100 transition-colors">
+        <button data-cat="coding" class="sidebar-item sidebar-category w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm text-zinc-400 hover:text-zinc-100 transition-colors">
           <i data-lucide="code-2" class="w-4 h-4 flex-shrink-0"></i> Coding
           <span data-count-for="coding" class="ml-auto text-[10px] font-mono bg-white/5 px-1.5 py-0.5 rounded">0</span>
         </button>
-        <button onclick="filterCategory('image')" data-cat="image" class="sidebar-item w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm text-zinc-400 hover:text-zinc-100 transition-colors">
+        <button data-cat="image" class="sidebar-item sidebar-category w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm text-zinc-400 hover:text-zinc-100 transition-colors">
           <i data-lucide="image" class="w-4 h-4 flex-shrink-0"></i> Image Gen
           <span data-count-for="image" class="ml-auto text-[10px] font-mono bg-white/5 px-1.5 py-0.5 rounded">0</span>
         </button>
-        <button onclick="filterCategory('video')" data-cat="video" class="sidebar-item w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm text-zinc-400 hover:text-zinc-100 transition-colors">
+        <button data-cat="video" class="sidebar-item sidebar-category w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm text-zinc-400 hover:text-zinc-100 transition-colors">
           <i data-lucide="video" class="w-4 h-4 flex-shrink-0"></i> Video Gen
           <span data-count-for="video" class="ml-auto text-[10px] font-mono bg-white/5 px-1.5 py-0.5 rounded">0</span>
         </button>
-        <button onclick="filterCategory('research')" data-cat="research" class="sidebar-item w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm text-zinc-400 hover:text-zinc-100 transition-colors">
+        <button data-cat="research" class="sidebar-item sidebar-category w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm text-zinc-400 hover:text-zinc-100 transition-colors">
           <i data-lucide="book-open" class="w-4 h-4 flex-shrink-0"></i> Research
           <span data-count-for="research" class="ml-auto text-[10px] font-mono bg-white/5 px-1.5 py-0.5 rounded">0</span>
         </button>
-        <button onclick="filterCategory('productivity')" data-cat="productivity" class="sidebar-item w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm text-zinc-400 hover:text-zinc-100 transition-colors">
+        <button data-cat="productivity" class="sidebar-item sidebar-category w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm text-zinc-400 hover:text-zinc-100 transition-colors">
           <i data-lucide="zap" class="w-4 h-4 flex-shrink-0"></i> Productivity
           <span data-count-for="productivity" class="ml-auto text-[10px] font-mono bg-white/5 px-1.5 py-0.5 rounded">0</span>
         </button>
 
         <div class="text-[10px] font-600 text-zinc-600 uppercase tracking-widest px-2 mb-2 mt-5" style="font-weight:600">Curated</div>
-        <button onclick="filterCategory('trending')" data-cat="trending" class="sidebar-item w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm text-zinc-400 hover:text-zinc-100 transition-colors">
+        <button data-cat="trending" class="sidebar-item sidebar-category w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm text-zinc-400 hover:text-zinc-100 transition-colors">
           <i data-lucide="trending-up" class="w-4 h-4 flex-shrink-0"></i> Trending
         </button>
-        <button onclick="filterCategory('free')" data-cat="free" class="sidebar-item w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm text-zinc-400 hover:text-zinc-100 transition-colors">
+        <button data-cat="free" class="sidebar-item sidebar-category w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-sm text-zinc-400 hover:text-zinc-100 transition-colors">
           <i data-lucide="gift" class="w-4 h-4 flex-shrink-0"></i> Free Only
           <span data-count-for="free" class="ml-auto text-[10px] font-mono bg-white/5 px-1.5 py-0.5 rounded">0</span>
         </button>
@@ -236,7 +242,7 @@
       <!-- Footer -->
       <div class="px-4 py-4 border-t border-white/6">
         <div class="text-[10px] text-zinc-600 font-mono">Updated Mar 2026</div>
-        <div class="text-[10px] text-zinc-700 mt-0.5">284 tools indexed</div>
+        <div class="text-[10px] text-zinc-700 mt-0.5">{{ total_tools }} tools indexed</div>
       </div>
     </aside>
 
@@ -254,10 +260,10 @@
         </button>
 
         <!-- Search -->
-        <div class="relative flex-1 max-w-sm">
+        <div class="relative flex-1 max-w-xl mx-auto">
           <i data-lucide="search" class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none"></i>
           <input id="search-input" oninput="searchTools(this.value)" type="text" placeholder="Search tools, categories, use cases…"
-            class="w-full bg-white/5 border border-white/8 rounded-lg pl-8 pr-3 py-2 text-sm text-zinc-200 placeholder-zinc-600 transition-all" />
+            class="w-full backdrop-blur-md bg-white/5 border border-white/10 rounded-xl pl-8 pr-3 py-2 text-sm text-zinc-200 placeholder-zinc-600 transition-all shadow-lg" />
           <div id="search-suggestions" class="search-suggestions hidden absolute left-0 right-0 mt-1 z-50 glass rounded-xl border border-white/10 p-1"></div>
         </div>
 
@@ -271,7 +277,7 @@
           <div class="toggle-container flex items-center gap-2.5 glass rounded-full px-3 py-1.5 border-white/8">
             <i data-lucide="graduation-cap" class="w-3.5 h-3.5 text-zinc-400 flex-shrink-0"></i>
             <span class="text-xs text-zinc-400 whitespace-nowrap hidden sm:block">Student Mode</span>
-            <button id="studentToggle" role="switch" aria-checked="false"
+            <button id="student-mode-toggle" role="switch" aria-checked="false"
               class="toggle-switch transition-all duration-300 flex-shrink-0 cursor-pointer">
               <span class="toggle-knob transition-all duration-300"></span>
             </button>
@@ -279,17 +285,25 @@
 
           <!-- Sort -->
           <div class="relative hidden md:block">
-            <button id="sort-trigger" type="button" class="flex items-center gap-1.5 bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-sm text-zinc-200 hover:border-zinc-500 transition-all" onclick="toggleSortMenu()">
+            <label for="sort-select" class="sr-only">Sort tools</label>
+            <select id="sort-select" class="sr-only" aria-hidden="true" tabindex="-1">
+              <option value="trending">Sort: Trending</option>
+              <option value="rating">Sort: Highest Rated</option>
+              <option value="popular">Sort: Most Popular</option>
+              <option value="newest">Sort: Newest</option>
+              <option value="free">Sort: Free First</option>
+            </select>
+            <button id="sort-trigger" type="button" class="flex items-center gap-1.5 bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-sm text-zinc-200 hover:border-zinc-500 transition-all">
               <i data-lucide="arrow-up-down" class="w-3.5 h-3.5"></i>
               <span id="sort-label">Sort: Trending</span>
               <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
             </button>
-            <div id="sort-menu" class="hidden absolute right-0 mt-1 w-44 bg-zinc-800 border border-zinc-700 rounded-lg shadow-xl z-40 p-1">
-              <button type="button" class="sort-option w-full text-left rounded-md px-2.5 py-1.5 text-sm text-zinc-300 hover:bg-zinc-700/80" onclick="setSort('trending')">Trending</button>
-              <button type="button" class="sort-option w-full text-left rounded-md px-2.5 py-1.5 text-sm text-zinc-300 hover:bg-zinc-700/80" onclick="setSort('rating')">Highest Rated</button>
-              <button type="button" class="sort-option w-full text-left rounded-md px-2.5 py-1.5 text-sm text-zinc-300 hover:bg-zinc-700/80" onclick="setSort('popular')">Most Popular</button>
-              <button type="button" class="sort-option w-full text-left rounded-md px-2.5 py-1.5 text-sm text-zinc-300 hover:bg-zinc-700/80" onclick="setSort('newest')">Newest</button>
-              <button type="button" class="sort-option w-full text-left rounded-md px-2.5 py-1.5 text-sm text-zinc-300 hover:bg-zinc-700/80" onclick="setSort('free')">Free First</button>
+            <div id="sort-menu" class="hidden absolute right-0 mt-1 w-52 bg-zinc-900/95 border border-zinc-700 rounded-lg shadow-xl z-40 p-1.5">
+              <button type="button" data-sort-value="trending" class="sort-option w-full text-left rounded-md px-2.5 py-1.5 text-sm text-zinc-300 hover:bg-zinc-700/80">Sort: Trending</button>
+              <button type="button" data-sort-value="rating" class="sort-option w-full text-left rounded-md px-2.5 py-1.5 text-sm text-zinc-300 hover:bg-zinc-700/80">Sort: Highest Rated</button>
+              <button type="button" data-sort-value="popular" class="sort-option w-full text-left rounded-md px-2.5 py-1.5 text-sm text-zinc-300 hover:bg-zinc-700/80">Sort: Most Popular</button>
+              <button type="button" data-sort-value="newest" class="sort-option w-full text-left rounded-md px-2.5 py-1.5 text-sm text-zinc-300 hover:bg-zinc-700/80">Sort: Newest</button>
+              <button type="button" data-sort-value="free" class="sort-option w-full text-left rounded-md px-2.5 py-1.5 text-sm text-zinc-300 hover:bg-zinc-700/80">Sort: Free First</button>
             </div>
           </div>
 
@@ -320,12 +334,13 @@
           {% endif %}
         {% endwith %}
 
-        <section class="mb-6 rounded-3xl p-6 md:p-8 border border-blue-500/20 bg-gradient-to-br from-blue-500/14 via-cyan-500/8 to-transparent">
+        <section class="relative overflow-hidden mb-6 rounded-3xl p-6 md:p-8 border border-blue-500/20 bg-gradient-to-br from-blue-500/14 via-cyan-500/8 to-transparent">
+          <div class="pointer-events-none absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-indigo-500/10"></div>
           <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8">
             <div class="max-w-3xl">
-              <div class="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-zinc-300 font-mono">Student-first AI discovery platform</div>
-              <h1 class="mt-4 text-3xl md:text-5xl tracking-tight text-zinc-100" style="font-weight:700">Find the Best AI Tools for Students</h1>
-              <p class="mt-3 text-base md:text-lg text-zinc-400 max-w-2xl">Discover 500+ AI tools for writing, coding, research, and productivity.</p>
+              <div id="hero-chip" class="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-zinc-300 font-mono">AI discovery platform</div>
+              <h1 id="hero-title" class="mt-4 text-3xl md:text-5xl tracking-tight text-zinc-100" style="font-weight:700">Find the Best AI Tools</h1>
+              <p id="hero-subtitle" class="mt-3 text-base md:text-lg text-zinc-400 max-w-2xl">Discover {{ total_tools }} AI tools for writing, coding, research, and productivity.</p>
               <div class="mt-6 flex flex-wrap gap-3">
                 <a href="{{ url_for('main.tools_paginated') }}" class="inline-flex items-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white px-5 py-3 text-sm transition-colors">Explore Tools</a>
                 <a href="{{ url_for('main.ai_tool_finder') }}" class="inline-flex items-center gap-2 rounded-xl glass hover:border-blue-400/30 text-zinc-100 px-5 py-3 text-sm transition-colors">Find My AI Stack</a>
@@ -333,18 +348,50 @@
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 min-w-full lg:min-w-[420px]">
               <div class="glass rounded-2xl p-4">
-                <div class="text-[11px] uppercase tracking-wide text-zinc-500">Total Tools</div>
-                <div class="mt-1 text-2xl text-zinc-100" style="font-weight:700">{{ total_tools }}</div>
+                <div class="text-[11px] uppercase tracking-wide text-zinc-500">Social Proof</div>
+                <div class="mt-1 text-xl text-zinc-100" style="font-weight:700">500+ AI Tools</div>
               </div>
               <div class="glass rounded-2xl p-4">
-                <div class="text-[11px] uppercase tracking-wide text-zinc-500">Categories</div>
-                <div class="mt-1 text-2xl text-zinc-100" style="font-weight:700">{{ total_categories }}</div>
+                <div class="text-[11px] uppercase tracking-wide text-zinc-500">Coverage</div>
+                <div class="mt-1 text-xl text-zinc-100" style="font-weight:700">10 Categories</div>
               </div>
               <div class="glass rounded-2xl p-4">
-                <div class="text-[11px] uppercase tracking-wide text-zinc-500">Users</div>
-                <div class="mt-1 text-2xl text-zinc-100" style="font-weight:700">{{ total_users }}</div>
+                <div class="text-[11px] uppercase tracking-wide text-zinc-500">Community</div>
+                <div class="mt-1 text-xl text-zinc-100" style="font-weight:700">12k+ Students Discovering Tools</div>
               </div>
             </div>
+          </div>
+        </section>
+
+        <section id="browse-category-section" class="mb-6 rounded-2xl p-4 border border-white/10 bg-white/5">
+          <div class="flex items-center justify-between mb-3">
+            <h2 class="text-lg text-zinc-100" style="font-weight:700">Browse AI Tools by Category</h2>
+          </div>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <a href="/?category=writing" class="glass rounded-xl p-4 hover:scale-[1.02] hover:border-blue-500 transition-all duration-200 hover:shadow-lg">
+              <div class="text-sm text-zinc-100" style="font-weight:600">Writing & Docs</div>
+            </a>
+            <a href="/?category=coding" class="glass rounded-xl p-4 hover:scale-[1.02] hover:border-blue-500 transition-all duration-200 hover:shadow-lg">
+              <div class="text-sm text-zinc-100" style="font-weight:600">Coding</div>
+            </a>
+            <a href="/?category=research" class="glass rounded-xl p-4 hover:scale-[1.02] hover:border-blue-500 transition-all duration-200 hover:shadow-lg">
+              <div class="text-sm text-zinc-100" style="font-weight:600">Research</div>
+            </a>
+            <a href="/?category=image" class="glass rounded-xl p-4 hover:scale-[1.02] hover:border-blue-500 transition-all duration-200 hover:shadow-lg">
+              <div class="text-sm text-zinc-100" style="font-weight:600">Image Generation</div>
+            </a>
+            <a href="/?category=video" class="glass rounded-xl p-4 hover:scale-[1.02] hover:border-blue-500 transition-all duration-200 hover:shadow-lg">
+              <div class="text-sm text-zinc-100" style="font-weight:600">Video Generation</div>
+            </a>
+            <a href="/?category=productivity" class="glass rounded-xl p-4 hover:scale-[1.02] hover:border-blue-500 transition-all duration-200 hover:shadow-lg">
+              <div class="text-sm text-zinc-100" style="font-weight:600">Productivity</div>
+            </a>
+            <a href="/?category=design" class="glass rounded-xl p-4 hover:scale-[1.02] hover:border-blue-500 transition-all duration-200 hover:shadow-lg">
+              <div class="text-sm text-zinc-100" style="font-weight:600">Design</div>
+            </a>
+            <a href="/?category=data analysis" class="glass rounded-xl p-4 hover:scale-[1.02] hover:border-blue-500 transition-all duration-200 hover:shadow-lg">
+              <div class="text-sm text-zinc-100" style="font-weight:600">Data Analysis</div>
+            </a>
           </div>
         </section>
 
@@ -360,7 +407,7 @@
           <span class="text-[10px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-1 rounded-full">EDU</span>
         </div>
 
-        <section class="mb-6 rounded-2xl p-4 border border-emerald-500/20 bg-gradient-to-br from-emerald-500/10 via-cyan-500/5 to-transparent">
+        <section id="new-tools-section" class="mb-6 rounded-2xl p-4 border border-emerald-500/20 bg-gradient-to-br from-emerald-500/10 via-cyan-500/5 to-transparent">
           <div class="flex items-center justify-between mb-3">
             <h2 class="text-sm font-600 text-zinc-100" style="font-weight:600">✨ New AI Tools</h2>
             <span class="text-[10px] font-mono text-zinc-500">Latest 8</span>
@@ -381,7 +428,7 @@
           </div>
         </section>
 
-        <section class="mb-6 rounded-2xl p-4 border border-blue-500/20 bg-gradient-to-br from-blue-500/10 via-cyan-500/5 to-transparent">
+        <section id="trending-tools-section" class="mb-6 rounded-2xl p-4 border border-blue-500/20 bg-gradient-to-br from-blue-500/10 via-cyan-500/5 to-transparent">
           <div class="flex items-center justify-between mb-3">
             <h2 class="text-sm font-600 text-zinc-100" style="font-weight:600">🔥 Trending AI Tools</h2>
             <span class="text-[10px] font-mono text-zinc-500">Top 6</span>
@@ -408,6 +455,14 @@
           </div>
         </section>
 
+        <section id="category-spotlight-section" class="hidden mb-6 rounded-2xl p-4 border border-cyan-500/20 bg-gradient-to-br from-cyan-500/10 via-blue-500/5 to-transparent">
+          <div class="flex items-center justify-between mb-3">
+            <h2 id="category-spotlight-title" class="text-sm font-600 text-zinc-100" style="font-weight:600">Category Spotlight</h2>
+            <span id="category-spotlight-count" class="text-[10px] font-mono text-zinc-500">Top picks</span>
+          </div>
+          <div id="category-spotlight-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2.5"></div>
+        </section>
+
         <!-- Page heading -->
         <div class="mb-6 flex items-end justify-between gap-4 flex-wrap">
           <div>
@@ -431,6 +486,11 @@
           <!-- Cards injected by JS -->
         </div>
 
+        <div id="tools-load-more-wrap" class="hidden mt-5 flex flex-col items-center gap-2">
+          <div id="tools-loaded-text" class="text-xs text-zinc-500 font-mono"></div>
+          <button id="tools-load-more" type="button" class="glass rounded-lg px-4 py-2 text-xs text-zinc-200 hover:text-zinc-100 border border-white/10 hover:border-blue-400/30 transition-colors">Show More Tools</button>
+        </div>
+
         <!-- Empty state -->
         <div id="empty-state" class="hidden py-20 text-center">
           <i data-lucide="search-x" class="w-10 h-10 text-zinc-700 mx-auto mb-3"></i>
@@ -446,6 +506,38 @@
             <button type="submit" class="rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm px-4 py-2 transition-colors">Subscribe</button>
           </form>
         </section>
+
+        <footer class="mt-8 border-t border-white/8 pt-8">
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-8 text-sm">
+            <div>
+              <h3 class="text-zinc-100" style="font-weight:700">AI Compass</h3>
+              <p class="text-zinc-400 mt-2">Discover the best AI tools for students.</p>
+            </div>
+            <div>
+              <h4 class="text-zinc-200" style="font-weight:600">Explore</h4>
+              <div class="mt-3 space-y-2 text-zinc-400">
+                <a href="{{ url_for('main.tools_paginated') }}" class="block hover:text-zinc-100">All Tools</a>
+                <a href="{{ url_for('main.ai_tool_finder') }}" class="block hover:text-zinc-100">AI Stack Builder</a>
+                <a href="{{ url_for('main.updates') }}" class="block hover:text-zinc-100">Weekly AI Tools</a>
+                <a href="{{ url_for('main.submit_tool') }}" class="block hover:text-zinc-100">Submit Tool</a>
+              </div>
+            </div>
+            <div>
+              <h4 class="text-zinc-200" style="font-weight:600">Support</h4>
+              <div class="mt-3 space-y-2 text-zinc-400">
+                <a href="{{ url_for('main.report_bug') }}" class="block hover:text-zinc-100">Report Bug</a>
+                <a href="mailto:contact@aicompass.local" class="block hover:text-zinc-100">Contact</a>
+              </div>
+            </div>
+            <div>
+              <h4 class="text-zinc-200" style="font-weight:600">Legal</h4>
+              <div class="mt-3 space-y-2 text-zinc-400">
+                <a href="#" class="block hover:text-zinc-100">Privacy Policy</a>
+                <a href="#" class="block hover:text-zinc-100">Terms</a>
+              </div>
+            </div>
+          </div>
+        </footer>
       </main>
     </div>
   </div>
@@ -514,7 +606,7 @@
     </div>
   </div>
 
-  <button id="compare-floating-btn" onclick="goToComparePage()" class="hidden fixed bottom-6 right-6 z-40 rounded-full bg-blue-600 hover:bg-blue-500 text-white px-4 py-3 text-sm font-medium shadow-lg shadow-blue-900/40">📊 Compare Tools (0)</button>
+  <button id="compare-floating-btn-mobile" onclick="goToComparePage()" class="hidden fixed bottom-6 right-6 z-40 rounded-full bg-blue-600 hover:bg-blue-500 text-white px-4 py-3 text-sm font-medium shadow-lg shadow-blue-900/40">📊 Compare Tools (0)</button>
 
   <script>
     window.AI_COMPASS_CONFIG = {

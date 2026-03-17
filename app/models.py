@@ -79,3 +79,24 @@ class ToolRating(db.Model):
         db.CheckConstraint("rating >= 1 AND rating <= 5", name="ck_tool_rating_range"),
         db.UniqueConstraint("tool_name", "user_id", name="uq_tool_rating_user_tool"),
     )
+
+
+class SavedStack(db.Model):
+    __tablename__ = "saved_stacks"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
+    name = db.Column(db.String(255), nullable=False)
+    tools_json = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc), index=True)
+
+
+class BugReport(db.Model):
+    __tablename__ = "bug_reports"
+
+    id = db.Column(db.Integer, primary_key=True)
+    description = db.Column(db.Text, nullable=False)
+    page_url = db.Column(db.String(500), nullable=False)
+    email = db.Column(db.String(255), nullable=True)
+    created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc), index=True)
+    status = db.Column(db.String(20), nullable=False, default="open", index=True)

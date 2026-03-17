@@ -15,9 +15,11 @@ let state = {
   price: 'all',
   sort: localStorage.getItem('ai_compass_sort') || 'trending',
   studentMode,
+  visibleLimit: 16,
 };
 let searchSuggestTimer = null;
 let searchSuggestController = null;
+const TOOL_PAGE_SIZE = 16;
 
 const SORT_LABELS = {
   trending: 'Trending',
@@ -25,6 +27,18 @@ const SORT_LABELS = {
   popular: 'Most Popular',
   newest: 'Newest',
   free: 'Free First',
+};
+
+const CATEGORY_LABELS = {
+  all: 'All Tools',
+  writing: 'Writing & Docs',
+  coding: 'Coding',
+  image: 'Image Generation',
+  video: 'Video',
+  research: 'Research',
+  productivity: 'Productivity',
+  trending: 'Trending',
+  free: 'Free',
 };
 
 function normalizeCategory(value) {
@@ -165,7 +179,7 @@ function getFilteredTools() {
   });
 }
 
-function renderTools(tools) {
+function renderTools(tools, totalFiltered = tools.length) {
   const grid = document.getElementById('tools-grid');
   const empty = document.getElementById('empty-state');
   const count = document.getElementById('visible-count');
@@ -177,7 +191,7 @@ function renderTools(tools) {
   if (total) total.textContent = String(allTools.length);
   if (totalPlus) totalPlus.textContent = `${allTools.length}+`;
 
-  if (!tools.length) {
+  if (!totalFiltered) {
     grid.innerHTML = '';
     empty.classList.remove('hidden');
     return;
@@ -199,7 +213,7 @@ function renderTools(tools) {
     ` : '';
 
     return `
-      <article class="tool-card glass glass-hover rounded-2xl p-4 flex flex-col gap-3 border border-white/8 hover:border-brand-light/40 hover:shadow-[0_10px_30px_rgba(0,0,0,0.28)] hover:-translate-y-0.5 transition-all" style="animation-delay:${index * 0.04}s">
+      <article class="tool-card glass glass-hover rounded-2xl p-4 flex flex-col gap-3 border border-white/8 hover:scale-[1.02] hover:border-blue-500 hover:shadow-lg transition-all duration-200" style="animation-delay:${index * 0.04}s">
         <div class="flex items-start justify-between gap-2">
           <div class="min-w-0 flex items-start gap-2">
             <img src="${escapeHtml(getToolIcon(tool))}" onerror="this.onerror=null;this.src='/static/icons/default.png';" alt="${escapeHtml(tool.name || 'Tool')} logo" class="w-8 h-8 rounded-md object-cover bg-white/10 border border-white/10 flex-shrink-0" />
@@ -239,6 +253,125 @@ function renderTools(tools) {
   if (window.lucide && typeof window.lucide.createIcons === 'function') {
     window.lucide.createIcons();
   }
+}
+
+function updateLoadMoreControls(totalFiltered) {
+  try {
+    const wrapper = document.getElementById('tools-load-more-wrap');
+    const text = document.getElementById('tools-loaded-text');
+    const button = document.getElementById('tools-load-more');
+    if (!wrapper || !text || !button) return;
+
+    if (!totalFiltered) {
+      wrapper.classList.add('hidden');
+      return;
+    }
+
+    const shown = Math.min(state.visibleLimit, totalFiltered);
+    const remaining = Math.max(0, totalFiltered - shown);
+
+    text.textContent = `Showing ${shown} of ${totalFiltered} tools`;
+
+    if (!remaining) {
+      wrapper.classList.add('hidden');
+      return;
+    }
+
+    button.textContent = `Show ${Math.min(TOOL_PAGE_SIZE, remaining)} More Tools`;
+    wrapper.classList.remove('hidden');
+  } catch (error) {
+    console.error('updateLoadMoreControls failed:', error);
+  }
+}
+
+function renderCategorySpotlight(filteredTools) {
+  try {
+    const section = document.getElementById('category-spotlight-section');
+    const title = document.getElementById('category-spotlight-title');
+    const count = document.getElementById('category-spotlight-count');
+    const grid = document.getElementById('category-spotlight-grid');
+    if (!section || !title || !count || !grid) return;
+
+    const hasContextFilter = state.category !== 'all' || state.price !== 'all' || state.search.trim().length > 0;
+    if (!hasContextFilter) {
+      section.classList.add('hidden');
+      grid.innerHTML = '';
+      return;
+    }
+
+    const topPicks = filteredTools.slice(0, 6);
+    if (!topPicks.length) {
+      section.classList.add('hidden');
+      grid.innerHTML = '';
+      return;
+    }
+
+    const categoryText = state.category === 'all'
+      ? 'Filtered Results'
+      : (CATEGORY_LABELS[state.category] || state.category.replace(/(^|\s)\w/g, (m) => m.toUpperCase()));
+    title.textContent = `Top Picks: ${categoryText}`;
+    count.textContent = `${topPicks.length} highlighted`;
+
+    grid.innerHTML = topPicks.map((tool) => {
+      const key = getToolKey(tool);
+      return `
+        <a href="/tool/${escapeHtml(key)}" class="glass rounded-xl p-3 hover:border-cyan-400/30 transition-colors">
+          <div class="flex items-center gap-2">
+            <img src="${escapeHtml(getToolIcon(tool))}" onerror="this.onerror=null;this.src='/static/icons/default.png';" alt="${escapeHtml(tool.name || 'Tool')} logo" class="w-8 h-8 rounded-lg object-cover border border-white/10" />
+            <div class="min-w-0">
+              <div class="text-sm text-zinc-100 truncate" style="font-weight:600">${escapeHtml(tool.name || 'Unnamed Tool')}</div>
+              <div class="text-[11px] text-zinc-500 truncate">${escapeHtml(tool.category || 'general')}</div>
+            </div>
+          </div>
+          <p class="text-xs text-zinc-400 mt-2 line-clamp-2">${escapeHtml(getToolTagline(tool) || getToolDescription(tool))}</p>
+        </a>
+      `;
+    }).join('');
+
+    section.classList.remove('hidden');
+  } catch (error) {
+    console.error('renderCategorySpotlight failed:', error);
+  }
+}
+
+function updateTopSections(filteredTools) {
+  try {
+    const browseSection = document.getElementById('browse-category-section');
+    const newSection = document.getElementById('new-tools-section');
+    const trendingSection = document.getElementById('trending-tools-section');
+
+    const hasContextFilter = state.category !== 'all' || state.price !== 'all' || state.search.trim().length > 0;
+    if (browseSection) browseSection.classList.toggle('hidden', hasContextFilter);
+    if (newSection) newSection.classList.toggle('hidden', hasContextFilter);
+    if (trendingSection) trendingSection.classList.toggle('hidden', hasContextFilter);
+
+    renderCategorySpotlight(filteredTools);
+  } catch (error) {
+    console.error('updateTopSections failed:', error);
+  }
+}
+
+function renderSkeletonTools(count = 6) {
+  const grid = document.getElementById('tools-grid');
+  const empty = document.getElementById('empty-state');
+  if (!grid) return;
+  if (empty) empty.classList.add('hidden');
+
+  grid.innerHTML = Array.from({ length: count }).map(() => `
+    <article class="glass rounded-2xl p-4 border border-white/8 animate-pulse">
+      <div class="flex items-start gap-3">
+        <div class="w-8 h-8 rounded-md bg-gray-700/40"></div>
+        <div class="flex-1 space-y-2">
+          <div class="h-3 w-2/3 rounded-lg bg-gray-700/40"></div>
+          <div class="h-2.5 w-full rounded-lg bg-gray-700/40"></div>
+        </div>
+      </div>
+      <div class="mt-3 h-2.5 w-1/2 rounded-lg bg-gray-700/40"></div>
+      <div class="mt-2 h-2.5 w-full rounded-lg bg-gray-700/40"></div>
+      <div class="mt-2 h-2.5 w-5/6 rounded-lg bg-gray-700/40"></div>
+      <div class="mt-4 h-8 w-full rounded-lg bg-gray-700/40"></div>
+    </article>
+  `).join('');
 }
 
 function renderTrendingSection() {
@@ -288,7 +421,9 @@ function renderSearchSuggestions(results, query) {
     return;
   }
 
-  box.innerHTML = results.map((tool) => {
+  const visibleResults = results.slice(0, 6);
+
+  box.innerHTML = visibleResults.map((tool) => {
     const slug = escapeHtml(tool.slug || '');
     const nameHtml = highlightQuery(tool.name || '', query);
     const descHtml = highlightQuery(tool.description || '', query);
@@ -310,6 +445,11 @@ function renderSearchSuggestions(results, query) {
       </a>
     `;
   }).join('');
+
+  if (results.length > visibleResults.length) {
+    box.innerHTML += `<div class="px-3 py-2 text-[11px] text-zinc-500 border-t border-white/8">Showing ${visibleResults.length} of ${results.length} matches. Keep typing to narrow results.</div>`;
+  }
+
   box.classList.remove('hidden');
 }
 
@@ -361,21 +501,44 @@ function updateCategoryCounts() {
 }
 
 function toggleSortMenu() {
-  const menu = document.getElementById('sort-menu');
-  if (!menu) return;
-  menu.classList.toggle('hidden');
+  try {
+    const menu = document.getElementById('sort-menu');
+    if (!menu) return;
+    menu.classList.toggle('hidden');
+  } catch (error) {
+    console.error('toggleSortMenu failed:', error);
+  }
 }
 
 function closeSortMenu() {
-  const menu = document.getElementById('sort-menu');
-  if (menu) menu.classList.add('hidden');
+  try {
+    const menu = document.getElementById('sort-menu');
+    if (menu) menu.classList.add('hidden');
+  } catch (error) {
+    console.error('closeSortMenu failed:', error);
+  }
 }
 
 function updateSortLabel() {
-  const label = document.getElementById('sort-label');
-  if (!label) return;
-  const title = SORT_LABELS[state.sort] || 'Trending';
-  label.textContent = `Sort: ${title}`;
+  try {
+    const title = SORT_LABELS[state.sort] || 'Trending';
+
+    const label = document.getElementById('sort-label');
+    if (label) label.textContent = `Sort: ${title}`;
+
+    const select = document.getElementById('sort-select');
+    if (select && select.value !== state.sort) {
+      select.value = state.sort;
+    }
+
+    document.querySelectorAll('.sort-option').forEach((option) => {
+      const isActive = option.getAttribute('data-sort-value') === state.sort;
+      option.classList.toggle('bg-zinc-700/80', isActive);
+      option.classList.toggle('text-zinc-100', isActive);
+    });
+  } catch (error) {
+    console.error('updateSortLabel failed:', error);
+  }
 }
 
 function updateCompareFloatingButton() {
@@ -395,8 +558,11 @@ function updateCompareFloatingButton() {
 }
 
 function applyAndRender() {
-  renderTools(getFilteredTools());
-  renderTrendingSection();
+  const filtered = getFilteredTools();
+  const visible = filtered.slice(0, state.visibleLimit);
+  renderTools(visible, filtered.length);
+  updateLoadMoreControls(filtered.length);
+  updateTopSections(filtered);
   updateCompareFloatingButton();
 }
 
@@ -417,17 +583,23 @@ function updatePageTitle(cat) {
 }
 
 function filterCategory(category) {
-  state.category = category;
-  document.querySelectorAll('.sidebar-item').forEach((el) => el.classList.remove('active'));
-  const activeBtn = document.querySelector(`[data-cat="${category}"]`);
-  if (activeBtn) activeBtn.classList.add('active');
-  updatePageTitle(category);
-  applyAndRender();
-  if (window.innerWidth < 768) closeSidebar();
+  try {
+    state.category = category;
+    state.visibleLimit = TOOL_PAGE_SIZE;
+    document.querySelectorAll('.sidebar-item, .sidebar-category').forEach((el) => el.classList.remove('active'));
+    const activeBtn = document.querySelector(`[data-cat="${category}"]`);
+    if (activeBtn) activeBtn.classList.add('active');
+    updatePageTitle(category);
+    applyAndRender();
+    if (window.innerWidth < 768) closeSidebar();
+  } catch (error) {
+    console.error('filterCategory failed:', error);
+  }
 }
 
 function setPriceFilter(price) {
   state.price = price;
+  state.visibleLimit = TOOL_PAGE_SIZE;
   document.querySelectorAll('[data-pf]').forEach((el) => el.classList.remove('active'));
   const activeBtn = document.querySelector(`[data-pf="${price}"]`);
   if (activeBtn) activeBtn.classList.add('active');
@@ -436,38 +608,70 @@ function setPriceFilter(price) {
 
 function searchTools(query) {
   state.search = String(query || '');
+  state.visibleLimit = TOOL_PAGE_SIZE;
   applyAndRender();
   requestSearchSuggestions(query);
 }
 
-function toggleStudentMode() {
-  studentMode = !studentMode;
-  state.studentMode = studentMode;
-  localStorage.setItem('ai_compass_student_mode', String(studentMode));
-  document.body.classList.toggle('student-mode', studentMode);
+function updateHeroCopy() {
+  const chip = document.getElementById('hero-chip');
+  const title = document.getElementById('hero-title');
+  const subtitle = document.getElementById('hero-subtitle');
 
-  const toggle = document.getElementById('studentToggle');
-  if (toggle) {
-    toggle.classList.toggle('active', studentMode);
-    toggle.setAttribute('aria-checked', String(studentMode));
+  if (!chip || !title || !subtitle) return;
+
+  if (studentMode) {
+    chip.textContent = 'Student-first AI discovery platform';
+    title.textContent = 'Find the Best AI Tools for Students';
+    subtitle.textContent = `Discover ${allTools.length || 0} AI tools for writing, coding, research, and productivity.`;
+    return;
   }
 
-  const banner = document.getElementById('student-banner');
-  if (banner) banner.style.display = studentMode ? 'flex' : 'none';
+  chip.textContent = 'AI discovery platform';
+  title.textContent = 'Find the Best AI Tools';
+  subtitle.textContent = `Discover ${allTools.length || 0} AI tools for writing, coding, research, and productivity.`;
+}
 
-  refreshData();
+function toggleStudentMode() {
+  try {
+    studentMode = !studentMode;
+    state.studentMode = studentMode;
+    localStorage.setItem('ai_compass_student_mode', String(studentMode));
+    document.body.classList.toggle('student-mode', studentMode);
+
+    const toggle = document.getElementById('student-mode-toggle') || document.getElementById('studentToggle');
+    if (toggle) {
+      toggle.classList.toggle('active', studentMode);
+      toggle.setAttribute('aria-checked', String(studentMode));
+    }
+
+    const banner = document.getElementById('student-banner');
+    if (banner) banner.style.display = studentMode ? 'flex' : 'none';
+
+    updateHeroCopy();
+    refreshData();
+  } catch (error) {
+    console.error('toggleStudentMode failed:', error);
+  }
 }
 
 function setSort(sortType) {
-  state.sort = sortType;
-  localStorage.setItem('ai_compass_sort', sortType);
-  updateSortLabel();
-  closeSortMenu();
-  refreshData();
+  try {
+    state.sort = sortType;
+    state.visibleLimit = TOOL_PAGE_SIZE;
+    localStorage.setItem('ai_compass_sort', sortType);
+    updateSortLabel();
+    closeSortMenu();
+    refreshData();
+  } catch (error) {
+    console.error('setSort failed:', error);
+  }
 }
 
 async function refreshData() {
   try {
+    renderSkeletonTools(6);
+
     const [toolsData, trendingData] = await Promise.all([
       fetchTools(),
       fetchTrendingTools().catch(() => []),
@@ -475,9 +679,11 @@ async function refreshData() {
 
     allTools = Array.isArray(toolsData) ? toolsData : [];
     trendingTools = Array.isArray(trendingData) ? trendingData : [];
+    state.visibleLimit = TOOL_PAGE_SIZE;
 
     updateCategoryCounts();
     applyAndRender();
+    updateHeroCopy();
 
     if (window.lucide && typeof window.lucide.createIcons === 'function') {
       window.lucide.createIcons();
@@ -521,8 +727,13 @@ function toggleCompare(toolKey) {
 
 function goToComparePage() {
   if (selectedCompare.size < 2) return;
-  const ids = Array.from(selectedCompare).join(',');
-  window.location.href = `/compare?tools=${encodeURIComponent(ids)}`;
+  const ids = Array.from(selectedCompare).slice(0, 3);
+  const slug = ids.join('-vs-');
+  const params = new URLSearchParams({
+    sort: state.sort,
+    student_mode: state.studentMode ? 'true' : 'false',
+  });
+  window.location.href = `/compare/${encodeURIComponent(slug)}?${params.toString()}`;
 }
 
 async function trackToolView(toolKey) {
@@ -592,66 +803,260 @@ function closeModal() {
 }
 
 function toggleSidebar() {
-  document.getElementById('sidebar').classList.toggle('open');
-  document.getElementById('mob-overlay').classList.toggle('hidden');
+  try {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('mob-overlay');
+    if (sidebar) sidebar.classList.toggle('open');
+    if (overlay) overlay.classList.toggle('hidden');
+  } catch (error) {
+    console.error('toggleSidebar failed:', error);
+  }
 }
 
 function closeSidebar() {
-  document.getElementById('sidebar').classList.remove('open');
-  document.getElementById('mob-overlay').classList.add('hidden');
+  try {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('mob-overlay');
+    if (sidebar) sidebar.classList.remove('open');
+    if (overlay) overlay.classList.add('hidden');
+  } catch (error) {
+    console.error('closeSidebar failed:', error);
+  }
+}
+
+let toolsPageBound = false;
+
+function updateQueryParam(key, value) {
+  const url = new URL(window.location.href);
+
+  if (value === null || value === undefined || value === '' || value === 'all') {
+    url.searchParams.delete(key);
+  } else {
+    url.searchParams.set(key, value);
+  }
+
+  if (key !== 'page') {
+    url.searchParams.set('page', '1');
+  }
+
+  window.location = url;
+}
+
+function debounce(fn, wait = 250) {
+  let timer = null;
+  return (...args) => {
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(() => fn(...args), wait);
+  };
+}
+
+function initFilters() {
+  document.addEventListener('click', (event) => {
+    const categoryButton = event.target.closest('.category-btn');
+    if (categoryButton) {
+      const category = categoryButton.dataset.category;
+      updateQueryParam('category', category);
+      return;
+    }
+
+    const clearChip = event.target.closest('[data-clear-key]');
+    if (clearChip) {
+      const key = clearChip.getAttribute('data-clear-key');
+      if (key === 'sort') {
+        updateQueryParam('sort', 'trending');
+      } else {
+        updateQueryParam(key, '');
+      }
+    }
+  });
+}
+
+function initSort() {
+  const sortSelect = document.getElementById('sort-select');
+  if (!sortSelect) return;
+
+  sortSelect.addEventListener('change', (event) => {
+    const selected = String(event.target.value || 'trending').trim().toLowerCase();
+    updateQueryParam('sort', selected);
+  });
+}
+
+function initPagination() {
+  const pagination = document.querySelector('nav[aria-label="Pagination"]');
+  if (!pagination) return;
+
+  pagination.addEventListener('click', (event) => {
+    const link = event.target.closest('a[href]');
+    if (!link) return;
+    const url = new URL(link.href);
+    if (!url.searchParams.get('page')) {
+      url.searchParams.set('page', '1');
+      link.href = url.toString();
+    }
+  });
+}
+
+function initUI() {
+  const searchInput = document.getElementById('tools-search-input');
+  const searchForm = document.getElementById('tools-search-form');
+  const skeleton = document.getElementById('tools-skeleton');
+  const grid = document.getElementById('tools-grid');
+
+  if (grid) {
+    grid.classList.remove('tool-grid-ready');
+    grid.classList.add('tool-grid-loading');
+    window.requestAnimationFrame(() => {
+      if (skeleton) skeleton.classList.add('hidden');
+      grid.classList.remove('tool-grid-loading');
+      grid.classList.add('tool-grid-ready');
+    });
+  } else if (skeleton) {
+    skeleton.classList.add('hidden');
+  }
+
+  if (!searchInput || !searchForm) return;
+
+  const submitSearch = debounce(() => {
+    const query = String(searchInput.value || '').trim();
+    updateQueryParam('q', query);
+  }, 300);
+
+  searchInput.addEventListener('input', () => {
+    submitSearch();
+  });
+
+  searchForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const query = String(searchInput.value || '').trim();
+    updateQueryParam('q', query);
+  });
+}
+
+function initToolsPage() {
+  if (toolsPageBound) return;
+  toolsPageBound = true;
+
+  initFilters();
+  initSort();
+  initPagination();
+  initUI();
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-  document.body.classList.toggle('student-mode', state.studentMode);
-  updateSortLabel();
-
-  const studentToggle = document.getElementById('studentToggle');
-  if (studentToggle) {
-    studentToggle.classList.toggle('active', state.studentMode);
-    studentToggle.setAttribute('aria-checked', String(state.studentMode));
-    studentToggle.addEventListener('click', () => {
-      toggleStudentMode();
-    });
-  }
-
-  await refreshData();
-
-  const modalOverlay = document.getElementById('modal-overlay');
-  if (modalOverlay) {
-    modalOverlay.addEventListener('click', (event) => {
-      if (event.target === modalOverlay) closeModal();
-    });
-  }
-
-  document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape') closeModal();
-  });
-
-  document.addEventListener('click', (event) => {
-    const menu = document.getElementById('sort-menu');
-    const trigger = document.getElementById('sort-trigger');
-    if (!menu || !trigger) return;
-    if (!menu.contains(event.target) && !trigger.contains(event.target)) {
-      closeSortMenu();
+  try {
+    const toolsPage = document.getElementById('tools-page');
+    if (toolsPage) {
+      initToolsPage();
+      return;
     }
 
-    const suggestions = document.getElementById('search-suggestions');
+    document.body.classList.toggle('student-mode', state.studentMode);
+    updateSortLabel();
+    updateHeroCopy();
+
+    const studentToggle = document.getElementById('student-mode-toggle') || document.getElementById('studentToggle');
+    if (studentToggle) {
+      studentToggle.classList.toggle('active', state.studentMode);
+      studentToggle.setAttribute('aria-checked', String(state.studentMode));
+      studentToggle.addEventListener('click', toggleStudentMode);
+    }
+
+    const sortSelect = document.getElementById('sort-select');
+    if (sortSelect) {
+      sortSelect.value = state.sort;
+      sortSelect.addEventListener('change', (event) => {
+        setSort(String(event.target.value || 'trending'));
+      });
+    }
+
+    const sortTrigger = document.getElementById('sort-trigger');
+    if (sortTrigger) {
+      sortTrigger.addEventListener('click', toggleSortMenu);
+    }
+
+    document.querySelectorAll('.sort-option').forEach((option) => {
+      option.addEventListener('click', (event) => {
+        const sortValue = event.currentTarget?.getAttribute('data-sort-value');
+        if (sortValue) setSort(sortValue);
+      });
+    });
+
+    document.querySelectorAll('.sidebar-category').forEach((button) => {
+      button.addEventListener('click', (event) => {
+        const category = event.currentTarget?.getAttribute('data-cat');
+        if (category) filterCategory(category);
+      });
+    });
+
+    const categoryFromUrl = new URLSearchParams(window.location.search).get('category');
+    if (categoryFromUrl) {
+      state.category = String(categoryFromUrl).trim().toLowerCase();
+      document.querySelectorAll('.sidebar-item, .sidebar-category').forEach((el) => el.classList.remove('active'));
+      const activeBtn = document.querySelector(`[data-cat="${state.category}"]`);
+      if (activeBtn) activeBtn.classList.add('active');
+      updatePageTitle(state.category);
+    }
+
+    await refreshData();
+
+    const modalOverlay = document.getElementById('modal-overlay');
+    if (modalOverlay) {
+      modalOverlay.addEventListener('click', (event) => {
+        if (event.target === modalOverlay) closeModal();
+      });
+    }
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') closeModal();
+    });
+
     const searchInput = document.getElementById('search-input');
-    if (suggestions && searchInput && !suggestions.contains(event.target) && event.target !== searchInput) {
-      hideSearchSuggestions();
+    if (searchInput) {
+      searchInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+          hideSearchSuggestions();
+          return;
+        }
+        if (event.key === 'Enter') {
+          hideSearchSuggestions();
+        }
+      });
     }
-  });
 
-  const searchInput = document.getElementById('search-input');
-  if (searchInput) {
-    searchInput.addEventListener('focus', () => {
-      if (state.search.trim().length >= 2) requestSearchSuggestions(state.search);
-    });
-    searchInput.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape') {
+    document.addEventListener('click', (event) => {
+      const menu = document.getElementById('sort-menu');
+      const trigger = document.getElementById('sort-trigger') || document.getElementById('sort-select');
+      if (menu && trigger && !menu.contains(event.target) && !trigger.contains(event.target)) {
+        closeSortMenu();
+      }
+
+      const suggestions = document.getElementById('search-suggestions');
+      const localSearchInput = document.getElementById('search-input');
+      if (suggestions && localSearchInput && !suggestions.contains(event.target) && event.target !== localSearchInput) {
         hideSearchSuggestions();
       }
     });
+
+    if (searchInput) {
+      searchInput.addEventListener('focus', () => {
+        if (state.search.trim().length >= 2) requestSearchSuggestions(state.search);
+      });
+      searchInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+          hideSearchSuggestions();
+        }
+      });
+    }
+
+    const loadMoreButton = document.getElementById('tools-load-more');
+    if (loadMoreButton) {
+      loadMoreButton.addEventListener('click', () => {
+        state.visibleLimit += TOOL_PAGE_SIZE;
+        applyAndRender();
+      });
+    }
+  } catch (error) {
+    console.error('main.js initialization failed:', error);
   }
 });
 

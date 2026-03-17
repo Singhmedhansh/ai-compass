@@ -127,6 +127,7 @@
             {% if can_save %}
             <form method="POST" action="{{ url_for('main.ai_tool_finder_results') }}">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+              <input type="text" name="stack_name" maxlength="255" placeholder="Stack name (optional)" class="mr-2 rounded-lg border border-white/10 bg-zinc-900 px-3 py-2 text-xs text-zinc-100" />
               <button type="submit" class="rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3 py-2">Save this AI Stack</button>
             </form>
             {% else %}
@@ -163,5 +164,9 @@
     </section>
     {% endif %}
   </div>
+
+  <footer class="max-w-6xl mx-auto px-4 sm:px-6 pb-8">
+    <a href="{{ url_for('main.report_bug') }}" class="inline-flex items-center gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-300 px-3 py-2 text-xs hover:bg-amber-500/15 transition-colors">Report a Bug</a>
+  </footer>
 </body>
 </html>
