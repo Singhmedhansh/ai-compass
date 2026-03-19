@@ -16,20 +16,31 @@
     {% endif %}
   {% endwith %}
 
-  <section class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-    <div>
-      <h1 class="text-2xl font-semibold text-zinc-100">Your Dashboard</h1>
-      <p class="text-sm text-zinc-400">Favorites, recommendations, recent views, and trending tools.</p>
-    </div>
-    <div class="flex items-center gap-2">
-      <label for="dashboard-sort" class="text-xs text-zinc-400">Sort</label>
-      <select id="dashboard-sort" class="text-xs bg-white/5 border border-white/10 rounded-lg px-2.5 py-1.5 text-zinc-300">
-        {% for item in sort_options %}
-          <option value="{{ item }}" {% if sort_type == item %}selected{% endif %}>{{ item|replace('rating','Highest Rated')|replace('popular','Most Popular')|replace('newest','Newest')|replace('free','Free First')|replace('trending','Trending') }}</option>
-        {% endfor %}
-      </select>
+  <!-- Personalized Greeting -->
+  <section>
+    <div class="mb-6">
+      <h1 class="text-3xl font-bold text-zinc-100">{{ greeting_message }} 👋</h1>
+      <p class="text-sm text-zinc-400 mt-1">Continue exploring AI tools tailored to your interests</p>
     </div>
   </section>
+
+  <!-- Trust Signals -->
+  {% if trust_signals %}
+  <section class="grid grid-cols-1 md:grid-cols-3 gap-3">
+    <article class="glass rounded-xl p-4 hover:shadow-lg transition-all duration-200">
+      <div class="text-[11px] uppercase tracking-wide text-zinc-500">Indexed Tools</div>
+      <div class="text-xl font-semibold text-zinc-100 mt-1">{{ trust_signals.indexed_tools }}+</div>
+    </article>
+    <article class="glass rounded-xl p-4 hover:shadow-lg transition-all duration-200">
+      <div class="text-[11px] uppercase tracking-wide text-zinc-500">Student Community</div>
+      <div class="text-xl font-semibold text-zinc-100 mt-1">{{ trust_signals.active_learners }}+</div>
+    </article>
+    <article class="glass rounded-xl p-4 hover:shadow-lg transition-all duration-200">
+      <div class="text-[11px] uppercase tracking-wide text-zinc-500">Freshness</div>
+      <div class="text-xl font-semibold text-zinc-100 mt-1">Updated weekly</div>
+    </article>
+  </section>
+  {% endif %}
 
   <section>
     <div class="flex items-center justify-between mb-3">
@@ -88,6 +99,22 @@
         <div class="col-span-full glass rounded-xl p-4 text-sm text-zinc-500">Add favorites to unlock recommendations.</div>
       {% endfor %}
     </div>
+  </section>
+
+  <section id="saved-tools-local" class="hidden">
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="text-sm font-semibold text-zinc-200">Your Saved Tools</h2>
+      <span class="text-[10px] font-mono text-zinc-500">local memory</span>
+    </div>
+    <div id="saved-tools-local-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5"></div>
+  </section>
+
+  <section id="recommended-local" class="hidden">
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="text-sm font-semibold text-zinc-200">Recommended For You</h2>
+      <span class="text-[10px] font-mono text-zinc-500">from recent searches and saved tools</span>
+    </div>
+    <div id="recommended-local-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5"></div>
   </section>
 
   <section>

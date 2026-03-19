@@ -7,7 +7,10 @@ const config = window.AI_COMPASS_CONFIG || {
 let allTools = [];
 let trendingTools = [];
 let selectedCompare = new Set();
-let favorites = new Set((config.favoriteIds || []).map((item) => String(item)));
+let favorites = new Set([
+  ...(config.favoriteIds || []).map((item) => String(item)),
+  ...readLocalArray('ai_compass_saved_tools_local').map((item) => String(item)),
+]);
 let studentMode = false;
 let state = {
   category: 'all',
@@ -40,6 +43,290 @@ const CATEGORY_LABELS = {
   trending: 'Trending',
   free: 'Free',
 };
+
+const LOCAL_KEYS = {
+  userPrefs: 'ai_compass_user_prefs',
+  recentSearches: 'ai_compass_recent_searches',
+  recentTools: 'recent_tools',
+  savedTools: 'ai_compass_saved_tools_local',
+  savedStacks: 'ai_compass_saved_stacks',
+};
+
+function readLocalArray(key) {
+  try {
+    const raw = localStorage.getItem(key);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    return [];
+  }
+}
+
+function writeLocalArray(key, values) {
+  try {
+    localStorage.setItem(key, JSON.stringify(Array.isArray(values) ? values : []));
+  } catch (error) {
+    console.warn('localStorage write failed:', error);
+  }
+}
+
+function readLocalObject(key) {
+  try {
+    const raw = localStorage.getItem(key);
+    const parsed = raw ? JSON.parse(raw) : {};
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch (error) {
+    return {};
+  }
+}
+
+function writeLocalObject(key, value) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value && typeof value === 'object' ? value : {}));
+  } catch (error) {
+    console.warn('localStorage write failed:', error);
+  }
+}
+
+function rememberSearchQuery(query) {
+  const value = String(query || '').trim().toLowerCase();
+  if (!value) return;
+  const recent = readLocalArray(LOCAL_KEYS.recentSearches).filter((item) => item !== value);
+  recent.unshift(value);
+  writeLocalArray(LOCAL_KEYS.recentSearches, recent.slice(0, 20));
+}
+
+function rememberViewedTool(toolKey) {
+  const key = String(toolKey || '').trim();
+  if (!key) return;
+  const recent = readLocalArray(LOCAL_KEYS.recentTools).filter((item) => item !== key);
+  recent.unshift(key);
+  writeLocalArray(LOCAL_KEYS.recentTools, recent.slice(0, 24));
+}
+
+function rememberSavedTool(toolKey) {
+  const key = String(toolKey || '').trim();
+  if (!key) return;
+  const saved = readLocalArray(LOCAL_KEYS.savedTools);
+  if (saved.includes(key)) return;
+  saved.push(key);
+  writeLocalArray(LOCAL_KEYS.savedTools, saved.slice(-48));
+}
+
+function forgetSavedTool(toolKey) {
+  const key = String(toolKey || '').trim();
+  if (!key) return;
+  const next = readLocalArray(LOCAL_KEYS.savedTools).filter((item) => item !== key);
+  writeLocalArray(LOCAL_KEYS.savedTools, next);
+}
+
+function saveUserMemoryPrefs() {
+  const prefs = readLocalObject(LOCAL_KEYS.userPrefs);
+  prefs.preferredCategory = state.category;
+  prefs.lastFilters = {
+    category: state.category,
+    price: state.price,
+    sort: state.sort,
+    search: state.search,
+  };
+  prefs.studentMode = !!studentMode;
+  prefs.updatedAt = new Date().toISOString();
+  writeLocalObject(LOCAL_KEYS.userPrefs, prefs);
+}
+
+function scoreToolForLocalMemory(tool, searchTokens, savedSet, recentSet) {
+  const key = getToolKey(tool);
+  const name = String(tool.name || '').toLowerCase();
+  const desc = String(getToolDescription(tool) || '').toLowerCase();
+  const category = normalizeCategory(tool.category);
+  const tags = getToolTags(tool).join(' ').toLowerCase();
+
+  let score = Number(tool.rating || 0) * 4;
+  if (savedSet.has(key)) score += 10;
+  if (recentSet.has(key)) score += 6;
+  searchTokens.forEach((token) => {
+    if (name.includes(token)) score += 8;
+    if (category.includes(token)) score += 5;
+    if (tags.includes(token)) score += 4;
+    if (desc.includes(token)) score += 2;
+  });
+  if (tool.studentPerk || tool.student_friendly) score += 2;
+  return score;
+}
+
+function renderPersonalizationCards(targetId, tools, emptyMessage) {
+  const container = document.getElementById(targetId);
+  if (!container) return;
+  if (!tools.length) {
+    container.innerHTML = `<div class="col-span-full text-xs text-zinc-500">${escapeHtml(emptyMessage)}</div>`;
+    return;
+  }
+
+  container.innerHTML = tools.map((tool) => {
+    const key = getToolKey(tool);
+    return `
+      <a href="/tool/${escapeHtml(key)}" class="glass rounded-xl p-3 hover:border-cyan-400/30 transition-colors">
+        <div class="flex items-center gap-2">
+          ${renderToolIcon(tool, 'w-8 h-8', 'rounded-md')}
+          <div class="min-w-0">
+            <div class="text-sm text-zinc-100 truncate" style="font-weight:600">${escapeHtml(tool.name || 'Tool')}</div>
+            <div class="text-[11px] text-zinc-500 truncate">${escapeHtml(tool.category || 'general')}</div>
+          </div>
+        </div>
+      </a>
+    `;
+  }).join('');
+}
+
+async function renderLocalMemorySections() {
+  const hasSlots = document.getElementById('recommended-for-you-grid') || document.getElementById('recommended-local-grid') || document.getElementById('recently-viewed-local-grid') || document.getElementById('saved-tools-local-grid');
+  if (!hasSlots) return;
+
+  let tools = Array.isArray(allTools) && allTools.length ? allTools : [];
+  if (!tools.length) {
+    try {
+      tools = await fetchTools();
+    } catch (error) {
+      tools = [];
+    }
+  }
+  if (!tools.length) return;
+
+  const byKey = new Map(tools.map((tool) => [getToolKey(tool), tool]));
+  const recentSearches = readLocalArray(LOCAL_KEYS.recentSearches);
+  const searchTokens = recentSearches.slice(0, 6).flatMap((value) => String(value).split(/\s+/).filter(Boolean));
+  const savedTools = readLocalArray(LOCAL_KEYS.savedTools);
+  const recentTools = readLocalArray(LOCAL_KEYS.recentTools);
+  const savedSet = new Set(savedTools);
+  const recentSet = new Set(recentTools);
+
+  const recommended = tools
+    .map((tool) => ({ score: scoreToolForLocalMemory(tool, searchTokens, savedSet, recentSet), tool }))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 8)
+    .map((item) => item.tool);
+
+  const recentCards = recentTools.map((key) => byKey.get(key)).filter(Boolean).slice(0, 8);
+  const savedCards = savedTools.map((key) => byKey.get(key)).filter(Boolean).slice(0, 8);
+
+  const recSection = document.getElementById('recommended-for-you') || document.getElementById('recommended-local');
+  if (recSection && recommended.length) recSection.classList.remove('hidden');
+  const recentSection = document.getElementById('recently-viewed-local');
+  if (recentSection && recentCards.length) recentSection.classList.remove('hidden');
+  const savedSection = document.getElementById('saved-tools-local');
+  if (savedSection && savedCards.length) savedSection.classList.remove('hidden');
+
+  renderPersonalizationCards('recommended-for-you-grid', recommended, 'Search and save tools to unlock recommendations.');
+  renderPersonalizationCards('recommended-local-grid', recommended, 'Search and save tools to unlock recommendations.');
+  renderPersonalizationCards('recently-viewed-local-grid', recentCards, 'No recent tools yet.');
+  renderPersonalizationCards('saved-tools-local-grid', savedCards, 'No saved tools yet.');
+}
+
+function renderSavedStacksSection() {
+  const grid = document.getElementById('saved-stacks-local-grid');
+  if (!grid) return;
+
+  const stacks = readLocalArray(LOCAL_KEYS.savedStacks).slice().reverse().slice(0, 8);
+  if (!stacks.length) {
+    grid.innerHTML = '<div class="col-span-full text-xs text-zinc-500">No saved stacks yet. Generate a stack and click Save this stack.</div>';
+    return;
+  }
+
+  grid.innerHTML = stacks.map((stack) => {
+    const tools = Array.isArray(stack.tools) ? stack.tools : [];
+    const when = String(stack.savedAt || '').replace('T', ' ').slice(0, 16) || 'recently';
+    return `
+      <article class="glass rounded-xl p-4 flex flex-col gap-2">
+        <div class="text-sm text-zinc-100" style="font-weight:600">${escapeHtml((stack.goal || 'AI').toUpperCase())} stack</div>
+        <div class="text-[11px] text-zinc-500">Budget: ${escapeHtml(stack.budget || 'any')} · Platform: ${escapeHtml(stack.platform || 'any')}</div>
+        <div class="text-[11px] text-zinc-500">${tools.length} tools · saved ${escapeHtml(when)}</div>
+        <div class="text-[11px] text-zinc-400 line-clamp-2">${escapeHtml(tools.join(', ') || 'No tool keys saved')}</div>
+      </article>
+    `;
+  }).join('');
+}
+
+function exportSavedData() {
+  const payload = {
+    exportedAt: new Date().toISOString(),
+    userPrefs: readLocalObject(LOCAL_KEYS.userPrefs),
+    recentSearches: readLocalArray(LOCAL_KEYS.recentSearches),
+    recentTools: readLocalArray(LOCAL_KEYS.recentTools),
+    savedTools: readLocalArray(LOCAL_KEYS.savedTools),
+    savedStacks: readLocalArray(LOCAL_KEYS.savedStacks),
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = `ai-compass-saved-${new Date().toISOString().slice(0, 10)}.json`;
+  document.body.appendChild(anchor);
+  anchor.click();
+  document.body.removeChild(anchor);
+  URL.revokeObjectURL(url);
+}
+
+function importSavedData(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const parsed = JSON.parse(String(reader.result || '{}'));
+      if (parsed.userPrefs && typeof parsed.userPrefs === 'object') writeLocalObject(LOCAL_KEYS.userPrefs, parsed.userPrefs);
+      if (Array.isArray(parsed.recentSearches)) writeLocalArray(LOCAL_KEYS.recentSearches, parsed.recentSearches.slice(0, 20));
+      if (Array.isArray(parsed.recentTools)) writeLocalArray(LOCAL_KEYS.recentTools, parsed.recentTools.slice(0, 24));
+      if (Array.isArray(parsed.savedTools)) writeLocalArray(LOCAL_KEYS.savedTools, parsed.savedTools.slice(-48));
+      if (Array.isArray(parsed.savedStacks)) writeLocalArray(LOCAL_KEYS.savedStacks, parsed.savedStacks.slice(-12));
+      renderLocalMemorySections();
+      renderSavedStacksSection();
+      alert('Saved data imported successfully.');
+    } catch (error) {
+      alert('Could not import this file. Please choose a valid AI Compass export JSON.');
+    }
+  };
+  reader.readAsText(file);
+}
+
+async function initSavedToolsPage() {
+  const page = document.getElementById('saved-tools-page');
+  if (!page) return;
+
+  await renderLocalMemorySections();
+  renderSavedStacksSection();
+
+  const exportBtn = document.getElementById('export-saved-tools');
+  if (exportBtn) {
+    exportBtn.addEventListener('click', exportSavedData);
+  }
+
+  const importBtn = document.getElementById('import-saved-tools');
+  const importInput = document.getElementById('import-saved-tools-file');
+  if (importBtn && importInput) {
+    importBtn.addEventListener('click', () => importInput.click());
+    importInput.addEventListener('change', () => importSavedData(importInput.files && importInput.files[0]));
+  }
+}
+
+function applyTheme(themeName) {
+  const theme = themeName === 'light' ? 'light' : 'dark';
+  document.documentElement.classList.remove('light', 'dark');
+  document.documentElement.classList.add(theme);
+  localStorage.setItem('theme', theme);
+  updateThemeToggleUI(theme);
+}
+
+function updateThemeToggleUI(themeName) {
+  const toggle = document.getElementById('theme-toggle');
+  if (!toggle) return;
+  toggle.textContent = themeName === 'light' ? '☀ Light' : '🌙 Dark';
+  toggle.setAttribute('aria-pressed', String(themeName === 'light'));
+}
+
+function toggleTheme() {
+  const current = document.documentElement.classList.contains('light') ? 'light' : 'dark';
+  const next = current === 'dark' ? 'light' : 'dark';
+  applyTheme(next);
+}
 
 function normalizeCategory(value) {
   return String(value || '').trim().toLowerCase();
@@ -224,6 +511,15 @@ function renderTools(tools, totalFiltered = tools.length) {
         ${tool.uniHack ? '<span class="text-[10px] bg-sky-500/10 text-sky-300 border border-sky-500/20 rounded-md px-2 py-0.5">🏫 University Hack</span>' : ''}
       </div>
     ` : '';
+    const trustBadges = `
+      <div class="flex items-center gap-1.5 flex-wrap">
+        ${tool.verified ? '<span class="text-[10px] bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 rounded-md px-2 py-0.5">✔ Verified</span>' : ''}
+        ${tool.recently_updated ? '<span class="text-[10px] bg-sky-500/10 text-sky-300 border border-sky-500/20 rounded-md px-2 py-0.5">🔄 Recently Updated</span>' : ''}
+        ${tool.student_friendly ? '<span class="text-[10px] bg-amber-500/10 text-amber-300 border border-amber-500/20 rounded-md px-2 py-0.5">🎓 Student Friendly</span>' : ''}
+        ${tool.trending_this_week ? '<span class="text-[10px] bg-rose-500/10 text-rose-300 border border-rose-500/20 rounded-md px-2 py-0.5">🔥 Trending this week</span>' : ''}
+        ${tool.is_new ? '<span class="text-[10px] bg-cyan-500/10 text-cyan-300 border border-cyan-500/20 rounded-md px-2 py-0.5">🆕 Newly added</span>' : ''}
+      </div>
+    `;
 
     return `
       <article class="tool-card glass glass-hover rounded-2xl p-4 flex flex-col gap-3 border border-white/8 hover:scale-[1.02] hover:border-blue-500 hover:shadow-lg transition-all duration-200" style="animation-delay:${index * 0.04}s">
@@ -250,9 +546,11 @@ function renderTools(tools, totalFiltered = tools.length) {
 
         <p class="text-xs text-zinc-400 leading-relaxed line-clamp-2">${escapeHtml(getToolDescription(tool))}</p>
         ${studentBadges}
+        ${trustBadges}
 
         <div class="mt-auto pt-2 border-t border-white/5 space-y-2">
           <div class="text-[10px] text-zinc-500 font-mono line-clamp-2">${escapeHtml(displayPrice)}</div>
+          <div class="text-[10px] text-zinc-500 font-mono">${tool.last_updated_label ? `Updated ${escapeHtml(tool.last_updated_label)}` : ''}${tool.activity_today ? ` · 🔥 ${escapeHtml(String(tool.activity_today))} students viewed today` : ''}</div>
           <div class="flex items-center gap-2 flex-wrap">
             <a href="/tool/${escapeHtml(key)}" class="text-[10px] brand-text glass rounded-lg px-2.5 py-1 transition-all border border-white/8 hover:border-white/15">View Details</a>
             <button class="text-[10px] rounded-lg px-2.5 py-1 transition-all border ${isFavorite ? 'border-amber-400/30 text-amber-300 bg-amber-500/10' : 'border-white/10 text-zinc-300 bg-white/5'}" onclick="toggleFavorite('${escapeHtml(key)}')">★ Favorite</button>
@@ -392,8 +690,16 @@ function renderTrendingSection() {
   const grid = document.getElementById('trending-grid');
   if (!section || !grid) return;
 
-  const source = trendingTools.length ? trendingTools : allTools.filter((tool) => tool.trending).slice(0, 6);
-  const topSix = source.slice(0, 6);
+  const source = trendingTools.length ? trendingTools : allTools.filter((tool) => tool.trending || tool.trending_this_week).slice(0, 12);
+  const daySeed = new Date().getDate();
+  const ranked = source
+    .map((tool) => ({
+      score: (Number(tool.rating || 0) * 10) + Number(tool.activity_today || 0) + (((_stableHash(tool.tool_key || tool.id || tool.name) + daySeed) % 9) * 0.1),
+      tool,
+    }))
+    .sort((a, b) => b.score - a.score)
+    .map((item) => item.tool);
+  const topSix = ranked.slice(0, 6);
   if (!topSix.length) {
     section.classList.add('hidden');
     return;
@@ -415,6 +721,10 @@ function renderTrendingSection() {
       </button>
     `;
   }).join('');
+}
+
+function _stableHash(value) {
+  return String(value || '').split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
 }
 
 function hideSearchSuggestions() {
@@ -472,7 +782,7 @@ function requestSearchSuggestions(query) {
   }
 
   if (searchSuggestTimer) clearTimeout(searchSuggestTimer);
-          ${renderToolIcon(tool, 'w-6 h-6', 'rounded-md')}
+  searchSuggestTimer = setTimeout(async () => {
     try {
       if (searchSuggestController) searchSuggestController.abort();
       searchSuggestController = new AbortController();
@@ -597,6 +907,7 @@ function filterCategory(category) {
   try {
     state.category = category;
     state.visibleLimit = TOOL_PAGE_SIZE;
+    saveUserMemoryPrefs();
     document.querySelectorAll('.sidebar-item, .sidebar-category').forEach((el) => el.classList.remove('active'));
     const activeBtn = document.querySelector(`[data-cat="${category}"]`);
     if (activeBtn) activeBtn.classList.add('active');
@@ -611,6 +922,7 @@ function filterCategory(category) {
 function setPriceFilter(price) {
   state.price = price;
   state.visibleLimit = TOOL_PAGE_SIZE;
+  saveUserMemoryPrefs();
   document.querySelectorAll('[data-pf]').forEach((el) => el.classList.remove('active'));
   const activeBtn = document.querySelector(`[data-pf="${price}"]`);
   if (activeBtn) activeBtn.classList.add('active');
@@ -620,6 +932,8 @@ function setPriceFilter(price) {
 function searchTools(query) {
   state.search = String(query || '');
   state.visibleLimit = TOOL_PAGE_SIZE;
+  rememberSearchQuery(state.search);
+  saveUserMemoryPrefs();
   applyAndRender();
   requestSearchSuggestions(query);
 }
@@ -661,8 +975,91 @@ function updateStudentModeUI(isEnabled) {
     studentToggle.classList.toggle('active', isEnabled);
     studentToggle.setAttribute('aria-pressed', String(isEnabled));
     studentToggle.setAttribute('aria-checked', String(isEnabled));
-    studentToggle.textContent = `Student Mode: ${isEnabled ? 'ON' : 'OFF'}`;
+    studentToggle.classList.toggle('text-emerald-300', isEnabled);
+    studentToggle.classList.toggle('border-emerald-500/40', isEnabled);
+    studentToggle.classList.toggle('bg-emerald-500/15', isEnabled);
+    studentToggle.classList.toggle('hover:bg-emerald-500/20', isEnabled);
+    studentToggle.classList.toggle('bg-white/5', !isEnabled);
+    studentToggle.classList.toggle('border-white/10', !isEnabled);
+    studentToggle.classList.toggle('text-zinc-200', !isEnabled);
+    studentToggle.classList.toggle('hover:bg-white/10', !isEnabled);
+
+    const track = studentToggle.querySelector('.student-toggle-track');
+    if (track) {
+      track.classList.toggle('bg-emerald-500/35', isEnabled);
+      track.classList.toggle('border-emerald-400/50', isEnabled);
+      track.classList.toggle('bg-zinc-700/40', !isEnabled);
+      track.classList.toggle('border-white/15', !isEnabled);
+    }
+
+    const thumb = studentToggle.querySelector('.student-toggle-thumb');
+    if (thumb) {
+      thumb.classList.toggle('translate-x-4', isEnabled);
+      thumb.classList.toggle('translate-x-0.5', !isEnabled);
+    }
   }
+
+  const studentStatus = document.getElementById('student-mode-status');
+  if (studentStatus) {
+    studentStatus.classList.toggle('hidden', !isEnabled);
+  }
+
+  const wizardStudentMode = document.getElementById('wizardStudentMode');
+  if (wizardStudentMode && wizardStudentMode.checked !== isEnabled) {
+    wizardStudentMode.checked = isEnabled;
+  }
+
+  const wizardStudentModeInput = document.getElementById('studentModeInput');
+  if (wizardStudentModeInput) {
+    wizardStudentModeInput.value = isEnabled ? '1' : '';
+  }
+
+  saveUserMemoryPrefs();
+}
+
+function showStudentModeToast(message, isEnabled) {
+  let toast = document.getElementById('student-mode-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'student-mode-toast';
+    toast.className = 'student-toast';
+    document.body.appendChild(toast);
+  }
+
+  // Create toast content with icon
+  const icon = isEnabled ? '✨' : '📚';
+  toast.innerHTML = `<span>${icon}</span><span>${message}</span>`;
+  
+  toast.classList.remove('border-emerald-500/40', 'bg-emerald-500/15', 'text-emerald-100', 'dismiss');
+  if (isEnabled) {
+    toast.classList.add('border-emerald-500/40', 'bg-emerald-500/15', 'text-emerald-100');
+  }
+
+  toast.style.opacity = '1';
+  toast.style.transform = 'translateY(0) translateX(0) scale(1)';
+
+  if (window.studentModeToastTimer) {
+    clearTimeout(window.studentModeToastTimer);
+  }
+
+  window.studentModeToastTimer = setTimeout(() => {
+    const currentToast = document.getElementById('student-mode-toast');
+    if (!currentToast) return;
+    currentToast.classList.add('dismiss');
+  }, 3000);
+}
+
+function shouldReloadForStudentMode(pathname) {
+  const paths = [
+    '/tools',
+    '/stack-builder',
+    '/dashboard',
+    '/compare',
+    '/compare-tools',
+    '/weekly-ai-tools',
+    '/submit-tool',
+  ];
+  return paths.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
 }
 
 function toggleStudentMode() {
@@ -673,6 +1070,13 @@ function toggleStudentMode() {
     // Update UI immediately (no page reload)
     updateStudentModeUI(newState);
     
+    showStudentModeToast(
+      newState
+        ? 'Student mode enabled: prioritizing free tools and student perks'
+        : 'Student mode disabled: showing full catalog',
+      newState,
+    );
+
     // Sync with backend (explicit setter endpoint)
     fetch('/set-student-mode', {
       method: "POST",
@@ -692,9 +1096,40 @@ function toggleStudentMode() {
           body: JSON.stringify({ enabled: newState })
         });
       })
+      .then(() => {
+        const path = window.location.pathname || '/';
+
+        if (shouldReloadForStudentMode(path)) {
+          setTimeout(() => {
+            window.location.reload();
+          }, 260);
+          return;
+        }
+
+        const hasDynamicTools = !!document.getElementById('tools-grid') || !!document.getElementById('trending-grid');
+        if (hasDynamicTools) {
+          refreshData();
+        } else {
+          updateHeroCopy();
+        }
+      })
       .catch(error => {
         console.error('Failed to sync Student Mode with server:', error);
-        // UI already updated, localStorage has the state - it will persist
+
+        const path = window.location.pathname || '/';
+        if (shouldReloadForStudentMode(path)) {
+          setTimeout(() => {
+            window.location.reload();
+          }, 260);
+          return;
+        }
+
+        const hasDynamicTools = !!document.getElementById('tools-grid') || !!document.getElementById('trending-grid');
+        if (hasDynamicTools) {
+          refreshData();
+        } else {
+          updateHeroCopy();
+        }
       });
   } catch (error) {
     console.error('toggleStudentMode error:', error);
@@ -706,6 +1141,7 @@ function setSort(sortType) {
     state.sort = sortType;
     state.visibleLimit = TOOL_PAGE_SIZE;
     localStorage.setItem('ai_compass_sort', sortType);
+    saveUserMemoryPrefs();
     updateSortLabel();
     closeSortMenu();
     refreshData();
@@ -730,6 +1166,7 @@ async function refreshData() {
     updateCategoryCounts();
     applyAndRender();
     updateHeroCopy();
+    renderLocalMemorySections();
 
     if (window.lucide && typeof window.lucide.createIcons === 'function') {
       window.lucide.createIcons();
@@ -745,7 +1182,15 @@ async function refreshData() {
 
 async function toggleFavorite(toolKey) {
   if (!config.isAuthenticated) {
-    window.location.href = '/login';
+    if (favorites.has(toolKey)) {
+      favorites.delete(toolKey);
+      forgetSavedTool(toolKey);
+    } else {
+      favorites.add(toolKey);
+      rememberSavedTool(toolKey);
+    }
+    applyAndRender();
+    renderLocalMemorySections();
     return;
   }
 
@@ -753,8 +1198,10 @@ async function toggleFavorite(toolKey) {
     const result = await postJson('/api/favorite', { tool_id: toolKey });
     if (result.favorited) {
       favorites.add(toolKey);
+      rememberSavedTool(toolKey);
     } else {
       favorites.delete(toolKey);
+      forgetSavedTool(toolKey);
     }
     applyAndRender();
   } catch (error) {
@@ -785,6 +1232,7 @@ function goToComparePage() {
 async function trackToolView(toolKey) {
   try {
     await postJson('/api/view', { tool_id: toolKey });
+    rememberViewedTool(toolKey);
   } catch (error) {
     console.error(error);
   }
@@ -885,6 +1333,10 @@ function updateQueryParam(key, value) {
     url.searchParams.set('page', '1');
   }
 
+  if (key === 'q') {
+    rememberSearchQuery(value);
+  }
+
   window.location = url;
 }
 
@@ -982,6 +1434,19 @@ function initToolsPage() {
   if (toolsPageBound) return;
   toolsPageBound = true;
 
+  const params = new URLSearchParams(window.location.search);
+  const prefs = readLocalObject(LOCAL_KEYS.userPrefs);
+  prefs.preferredCategory = params.get('category') || prefs.preferredCategory || 'all';
+  prefs.lastFilters = {
+    category: params.get('category') || 'all',
+    price: params.get('pricing') || 'all',
+    sort: params.get('sort') || 'popular',
+    search: params.get('q') || '',
+  };
+  prefs.studentMode = String(localStorage.getItem('student_mode') || '').toLowerCase() === 'true';
+  prefs.updatedAt = new Date().toISOString();
+  writeLocalObject(LOCAL_KEYS.userPrefs, prefs);
+
   initFilters();
   initSort();
   initPagination();
@@ -990,6 +1455,41 @@ function initToolsPage() {
 
 document.addEventListener('DOMContentLoaded', async () => {
   try {
+    const persistedTheme = localStorage.getItem('theme') || (document.documentElement.classList.contains('light') ? 'light' : 'dark');
+    applyTheme(persistedTheme);
+
+    const themeToggle = document.getElementById('theme-toggle');
+    if (themeToggle) {
+      themeToggle.addEventListener('click', toggleTheme);
+    }
+
+    const topSearchForm = document.querySelector('header form[action="/tools"]');
+    const topSearchInput = document.getElementById('search-input');
+    if (topSearchForm && topSearchInput) {
+      topSearchForm.addEventListener('submit', () => {
+        rememberSearchQuery(topSearchInput.value || '');
+      });
+    }
+
+    const profileRoot = document.querySelector('.profile-menu-root');
+    const profileTrigger = document.querySelector('.profile-trigger');
+    const profileMenu = document.querySelector('.profile-menu');
+    if (profileRoot && profileTrigger && profileMenu) {
+      profileTrigger.addEventListener('click', (event) => {
+        event.preventDefault();
+        const expanded = profileTrigger.getAttribute('aria-expanded') === 'true';
+        profileTrigger.setAttribute('aria-expanded', String(!expanded));
+        profileMenu.classList.toggle('hidden', expanded);
+      });
+
+      document.addEventListener('click', (event) => {
+        if (!profileRoot.contains(event.target)) {
+          profileTrigger.setAttribute('aria-expanded', 'false');
+          profileMenu.classList.add('hidden');
+        }
+      });
+    }
+
     // Initialize Student Mode from server state (source of truth)
     const bootToggle = document.getElementById('student-mode-toggle') || document.getElementById('studentToggle');
     const localStudentMode = String(localStorage.getItem('student_mode') || localStorage.getItem('ai_compass_student_mode') || '').toLowerCase() === 'true';
@@ -1008,7 +1508,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     const toolsPage = document.getElementById('tools-page');
     if (toolsPage) {
       initToolsPage();
+      renderLocalMemorySections();
       return;
+    }
+
+    const savedToolsPage = document.getElementById('saved-tools-page');
+    if (savedToolsPage) {
+      await initSavedToolsPage();
     }
 
     updateSortLabel();
@@ -1050,7 +1556,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       updatePageTitle(state.category);
     }
 
+    saveUserMemoryPrefs();
+
     await refreshData();
+    await renderLocalMemorySections();
 
     const modalOverlay = document.getElementById('modal-overlay');
     if (modalOverlay) {
@@ -1126,3 +1635,4 @@ window.closeSidebar = closeSidebar;
 window.toggleFavorite = toggleFavorite;
 window.toggleCompare = toggleCompare;
 window.goToComparePage = goToComparePage;
+window.toggleTheme = toggleTheme;

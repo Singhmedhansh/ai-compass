@@ -27,25 +27,41 @@ def register():
         return redirect(url_for("main.dashboard"))
 
     if request.method == "POST":
+        name = request.form.get("name", "").strip()
         email = request.form.get("email", "").strip().lower()
         password = request.form.get("password", "")
         confirm_password = request.form.get("confirm_password", "")
 
-        if not email or not password:
-            flash("Email and password are required.", "error")
-            return render_template("register.html")
+        if not name or not email or not password:
+            flash("Full name, email and password are required.", "error")
+            return render_template(
+                "register.html",
+                google_oauth_enabled=bool(current_app.config.get("GOOGLE_CLIENT_ID")),
+                github_oauth_enabled=bool(current_app.config.get("GITHUB_CLIENT_ID")),
+                linkedin_oauth_enabled=bool(current_app.config.get("LINKEDIN_CLIENT_ID")),
+            )
 
         if confirm_password != password:
             flash("Passwords do not match.", "error")
-            return render_template("register.html")
+            return render_template(
+                "register.html",
+                google_oauth_enabled=bool(current_app.config.get("GOOGLE_CLIENT_ID")),
+                github_oauth_enabled=bool(current_app.config.get("GITHUB_CLIENT_ID")),
+                linkedin_oauth_enabled=bool(current_app.config.get("LINKEDIN_CLIENT_ID")),
+            )
 
         existing = User.query.filter_by(email=email).first()
         if existing:
             flash("An account already exists for this email.", "error")
-            return render_template("register.html")
+            return render_template(
+                "register.html",
+                google_oauth_enabled=bool(current_app.config.get("GOOGLE_CLIENT_ID")),
+                github_oauth_enabled=bool(current_app.config.get("GITHUB_CLIENT_ID")),
+                linkedin_oauth_enabled=bool(current_app.config.get("LINKEDIN_CLIENT_ID")),
+            )
 
         password_hash = bcrypt.generate_password_hash(password).decode("utf-8")
-        user = User(email=email, password_hash=password_hash, is_admin=False)
+        user = User(email=email, password_hash=password_hash, display_name=name, is_admin=False)
         db.session.add(user)
         db.session.commit()
 
@@ -53,7 +69,12 @@ def register():
         flash("Welcome to AI Compass.", "success")
         return redirect(url_for("main.dashboard"))
 
-    return render_template("register.html")
+    return render_template(
+        "register.html",
+        google_oauth_enabled=bool(current_app.config.get("GOOGLE_CLIENT_ID")),
+        github_oauth_enabled=bool(current_app.config.get("GITHUB_CLIENT_ID")),
+        linkedin_oauth_enabled=bool(current_app.config.get("LINKEDIN_CLIENT_ID")),
+    )
 
 
 @auth_bp.route("/login", methods=["GET", "POST"])
@@ -75,6 +96,7 @@ def login():
                     "login.html",
                     google_oauth_enabled=bool(current_app.config.get("GOOGLE_CLIENT_ID")),
                     github_oauth_enabled=bool(current_app.config.get("GITHUB_CLIENT_ID")),
+                    linkedin_oauth_enabled=bool(current_app.config.get("LINKEDIN_CLIENT_ID")),
                 )
 
             if user is None:
@@ -105,6 +127,7 @@ def login():
         "login.html",
         google_oauth_enabled=bool(current_app.config.get("GOOGLE_CLIENT_ID")),
         github_oauth_enabled=bool(current_app.config.get("GITHUB_CLIENT_ID")),
+        linkedin_oauth_enabled=bool(current_app.config.get("LINKEDIN_CLIENT_ID")),
     )
 
 

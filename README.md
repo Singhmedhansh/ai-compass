@@ -1,5 +1,18 @@
 # AI Compass
 
+## Version
+
+Current release: v2.0.0 Personalization and UX Polish (2026-03-19)
+
+What is new in this version:
+
+1. Personalized greetings across dashboard and recommendation flows.
+2. Registration now captures user full name for identity-first UX.
+3. AI recommendation copy improved with cleaner emphasis rendering.
+4. Trending behavior, sidebar states, and sort interactions refined.
+5. Dropdown styling, profile menu polish, and micro-interactions upgraded.
+6. Header brand link now routes to the home page.
+
 AI Compass is a student-first AI discovery platform that helps users find the best AI tools for writing, coding, research, studying, image generation, video creation, and productivity.
 
 It combines a curated tool directory, SEO landing pages, a multi-step AI Tool Finder wizard, tool detail pages, favorites, ratings, newsletter capture, discovery automation, and admin moderation into one product-ready Flask application.

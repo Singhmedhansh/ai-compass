@@ -9,7 +9,7 @@
     <p class="text-sm text-zinc-400 mt-1">Analyze tools side by side using the same core metrics.</p>
   </div>
 
-  <section class="glass rounded-xl p-4 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3">
+  <section class="glass app-card rounded-xl p-4 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3">
     <select id="tool-a" class="rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-sm text-zinc-100">
       <option value="">Select Tool 1</option>
       {% for tool in tools %}
@@ -38,14 +38,39 @@
     <button type="button" onclick="submitCompare()" class="rounded-lg bg-blue-600 hover:bg-blue-500 transition-colors px-3 py-2 text-sm text-white">Compare</button>
   </section>
 
+  {% if selected_tools|length == 1 and compare_suggestions %}
+  <section class="glass app-card rounded-xl p-4 motion-rise" style="--reveal-delay: 70ms;">
+    <h2 class="text-sm font-semibold text-zinc-100">Add one more tool to compare</h2>
+    <p class="text-xs text-zinc-400 mt-1">Suggested alternatives based on category and popularity.</p>
+    <div class="mt-3 flex flex-wrap gap-2 stagger-list">
+      {% for suggestion in compare_suggestions %}
+      <a
+        href="{{ url_for('main.compare') }}?tools={{ selected_keys[0] }},{{ suggestion.tool_key }}&sort={{ sort_type }}"
+        class="px-3 py-1.5 rounded-lg border border-zinc-600 text-xs text-zinc-200 hover:border-blue-400/40 hover:text-blue-200 transition-colors"
+        style="--stagger-step: {{ loop.index0 }};"
+      >
+        {{ suggestion.name }}
+      </a>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
   {% if selected_tools %}
-    <section class="glass rounded-xl overflow-auto">
+    <section class="glass app-card rounded-xl overflow-auto motion-rise" style="--reveal-delay: 110ms;">
       <table class="min-w-full text-sm">
         <thead>
           <tr class="text-left border-b border-white/10 bg-white/5">
             <th class="p-3 text-zinc-300">Field</th>
             {% for tool in selected_tools %}
-              <th class="p-3 text-zinc-100">{{ tool.name }}</th>
+              <th class="p-3 text-zinc-100 {% if best_compare_key and tool.tool_key == best_compare_key %}bg-amber-500/10{% endif %}">
+                <div class="flex flex-col gap-1">
+                  <span>{{ tool.name }}</span>
+                  {% if best_compare_key and tool.tool_key == best_compare_key %}
+                  <span class="inline-flex items-center w-fit px-2 py-0.5 rounded-full text-[10px] bg-amber-500/15 text-amber-200 border border-amber-500/25">Best Value</span>
+                  {% endif %}
+                </div>
+              </th>
             {% endfor %}
           </tr>
         </thead>
@@ -53,42 +78,51 @@
           <tr>
             <td class="p-3 text-zinc-400">Category</td>
             {% for tool in selected_tools %}
-              <td class="p-3 text-zinc-100">{{ tool.category or 'N/A' }}</td>
+              <td class="p-3 text-zinc-100 {% if best_compare_key and tool.tool_key == best_compare_key %}bg-amber-500/5{% endif %}">{{ tool.category or 'N/A' }}</td>
             {% endfor %}
           </tr>
           <tr>
             <td class="p-3 text-zinc-400">Rating</td>
             {% for tool in selected_tools %}
-              <td class="p-3 text-zinc-100">{{ tool.rating or 'N/A' }}</td>
+              {% set rating_value = tool.rating or 0 %}
+              <td class="p-3 {% if rating_value >= 4.6 %}text-emerald-300{% elif rating_value >= 4.0 %}text-amber-300{% else %}text-zinc-100{% endif %} {% if best_compare_key and tool.tool_key == best_compare_key %}bg-amber-500/5{% endif %}">
+                {{ tool.rating or 'N/A' }}
+              </td>
             {% endfor %}
           </tr>
           <tr>
             <td class="p-3 text-zinc-400">Pricing</td>
             {% for tool in selected_tools %}
-              <td class="p-3 text-zinc-100 capitalize">{{ tool.price or 'N/A'}}</td>
+              {% set price_value = (tool.price or 'unknown')|lower %}
+              <td class="p-3 capitalize {% if price_value == 'free' %}text-emerald-300{% elif price_value == 'freemium' %}text-cyan-300{% elif price_value == 'paid' %}text-rose-300{% else %}text-zinc-100{% endif %} {% if best_compare_key and tool.tool_key == best_compare_key %}bg-amber-500/5{% endif %}">
+                {{ tool.price or 'N/A'}}
+              </td>
             {% endfor %}
           </tr>
           <tr>
             <td class="p-3 text-zinc-400">Best For</td>
             {% for tool in selected_tools %}
-              <td class="p-3 text-zinc-100">{{ tool.bestFor or 'N/A' }}</td>
+              <td class="p-3 text-zinc-100 {% if best_compare_key and tool.tool_key == best_compare_key %}bg-amber-500/5{% endif %}">{{ tool.bestFor or tool.best_for or 'N/A' }}</td>
             {% endfor %}
           </tr>
           <tr>
             <td class="p-3 text-zinc-400">Student Perk</td>
             {% for tool in selected_tools %}
-              <td class="p-3 text-zinc-100">{% if tool.studentPerk %}✓ {{ tool.studentPerk }}{% else %}—{% endif %}</td>
+              <td class="p-3 {% if tool.studentPerk %}text-emerald-300{% else %}text-zinc-100{% endif %} {% if best_compare_key and tool.tool_key == best_compare_key %}bg-amber-500/5{% endif %}">{% if tool.studentPerk %}✓ {{ tool.studentPerk }}{% else %}—{% endif %}</td>
             {% endfor %}
           </tr>
           <tr>
             <td class="p-3 text-zinc-400">University Hack</td>
             {% for tool in selected_tools %}
-              <td class="p-3 text-zinc-100">{% if tool.universityHack %}✓ {{ tool.universityHack }}{% else %}—{% endif %}</td>
+              <td class="p-3 text-zinc-100 {% if best_compare_key and tool.tool_key == best_compare_key %}bg-amber-500/5{% endif %}">{% if tool.universityHack %}✓ {{ tool.universityHack }}{% else %}—{% endif %}</td>
             {% endfor %}
           </tr>
         </tbody>
       </table>
     </section>
+    <div class="flex justify-end">
+      <a href="{{ url_for('main.tools_paginated') }}" class="text-xs px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 text-zinc-200 hover:bg-white/10">Compare similar tools</a>
+    </div>
   {% endif %}
 </div>
 
@@ -100,7 +134,15 @@
       document.getElementById('tool-c').value,
     ].filter(Boolean);
 
-    if (values.length < 2) return;
+    if (!values.length) return;
+
+    if (values.length === 1) {
+      const params = new URLSearchParams();
+      params.set('sort', document.getElementById('compare-sort').value);
+      params.set('tools', values[0]);
+      window.location.href = '/compare?' + params.toString();
+      return;
+    }
 
     const params = new URLSearchParams();
     params.set('sort', document.getElementById('compare-sort').value);

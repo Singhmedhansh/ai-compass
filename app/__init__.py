@@ -59,6 +59,14 @@ def _ensure_user_schema_compatibility() -> None:
         ddl_statements.append("ALTER TABLE users ADD COLUMN oauth_provider VARCHAR(50)")
     if "is_admin" not in existing_columns:
         ddl_statements.append("ALTER TABLE users ADD COLUMN is_admin BOOLEAN NOT NULL DEFAULT 0")
+    if "student_status" not in existing_columns:
+        ddl_statements.append("ALTER TABLE users ADD COLUMN student_status BOOLEAN NOT NULL DEFAULT 0")
+    if "preferences" not in existing_columns:
+        ddl_statements.append("ALTER TABLE users ADD COLUMN preferences TEXT")
+    if "theme_preference" not in existing_columns:
+        ddl_statements.append("ALTER TABLE users ADD COLUMN theme_preference VARCHAR(20)")
+    if "notifications_enabled" not in existing_columns:
+        ddl_statements.append("ALTER TABLE users ADD COLUMN notifications_enabled BOOLEAN NOT NULL DEFAULT 1")
 
     if not ddl_statements:
         return
@@ -137,6 +145,8 @@ def create_app() -> Flask:
     app.config["GOOGLE_CLIENT_SECRET"] = os.getenv("GOOGLE_CLIENT_SECRET", "")
     app.config["GITHUB_CLIENT_ID"] = os.getenv("GITHUB_CLIENT_ID", "")
     app.config["GITHUB_CLIENT_SECRET"] = os.getenv("GITHUB_CLIENT_SECRET", "")
+    app.config["LINKEDIN_CLIENT_ID"] = os.getenv("LINKEDIN_CLIENT_ID", "")
+    app.config["LINKEDIN_CLIENT_SECRET"] = os.getenv("LINKEDIN_CLIENT_SECRET", "")
 
     secure_cookies = os.getenv("APP_SECURE_COOKIES", "").lower()
     if secure_cookies in {"true", "1", "yes", "on"}:

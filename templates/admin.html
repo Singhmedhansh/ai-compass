@@ -1,9 +1,17 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin | AI Compass</title>
+  <script>
+    (function() {
+      var theme = localStorage.getItem('theme') || 'dark';
+      var root = document.documentElement;
+      root.classList.remove('light', 'dark');
+      root.classList.add(theme);
+    })();
+  </script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -11,9 +19,24 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <meta name="csrf-token" content="{{ csrf_token() }}" />
   <style>
-    :root { --brand: #3b82f6; --brand-dim: rgba(59,130,246,0.12); --brand-glow: rgba(59,130,246,0.25); }
-    body { font-family: 'DM Sans', system-ui, sans-serif; background: #09090b; color: #e4e4e7; }
+    :root {
+      --brand: #3b82f6;
+      --brand-dim: rgba(59,130,246,0.12);
+      --brand-glow: rgba(59,130,246,0.25);
+      --bg: #09090b;
+      --text: #e4e4e7;
+      --surface: rgba(255,255,255,0.04);
+      --surface-border: rgba(255,255,255,0.08);
+    }
+    html.light {
+      --bg: #f8fafc;
+      --text: #0f172a;
+      --surface: rgba(15,23,42,0.06);
+      --surface-border: rgba(15,23,42,0.16);
+    }
+    body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--bg); color: var(--text); }
     .glass { background: rgba(255,255,255,0.04); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); }
+    .glass { background: var(--surface); border: 1px solid var(--surface-border); }
     .brand-bg { background: var(--brand); }
     .brand-text { color: var(--brand); }
     .brand-dim-bg { background: var(--brand-dim); }
@@ -50,6 +73,7 @@
         <i data-lucide="shield" class="w-4 h-4 brand-text"></i>
         <span class="text-sm text-zinc-100" style="font-weight:600">Admin Panel</span>
         <div class="ml-auto flex items-center gap-2">
+          <button id="admin-theme-toggle" type="button" class="text-xs text-zinc-300 hover:text-zinc-100 glass rounded-lg px-2.5 py-1.5">Theme</button>
           <form method="POST" action="{{ url_for('main.admin_discovery_run') }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
             <button type="submit" class="text-xs bg-blue-600 hover:bg-blue-500 text-white rounded-lg px-2.5 py-1.5 transition-colors">Run Discovery</button>
@@ -358,6 +382,30 @@
       </main>
     </div>
   </div>
-  <script>if (window.lucide) window.lucide.createIcons();</script>
+  <script>
+    if (window.lucide) window.lucide.createIcons();
+    (function() {
+      var btn = document.getElementById('admin-theme-toggle');
+      function applyTheme(theme) {
+        var root = document.documentElement;
+        root.classList.remove('light', 'dark');
+        root.classList.add(theme);
+        localStorage.setItem('theme', theme);
+        if (btn) {
+          btn.textContent = theme === 'light' ? '☀ Light' : '🌙 Dark';
+        }
+      }
+
+      var current = localStorage.getItem('theme') || (document.documentElement.classList.contains('light') ? 'light' : 'dark');
+      applyTheme(current);
+
+      if (btn) {
+        btn.addEventListener('click', function() {
+          var now = document.documentElement.classList.contains('light') ? 'light' : 'dark';
+          applyTheme(now === 'dark' ? 'light' : 'dark');
+        });
+      }
+    })();
+  </script>
 </body>
 </html>

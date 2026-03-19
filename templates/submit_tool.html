@@ -19,7 +19,7 @@
     {% endif %}
   {% endwith %}
 
-  <form method="POST" action="{{ url_for('main.submit_tool') }}" class="rounded-2xl border border-gray-700 bg-gray-900 p-6 space-y-4">
+  <form method="POST" action="{{ url_for('main.submit_tool') }}" class="app-card rounded-2xl border border-gray-700 bg-gray-900 p-6 space-y-4">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 
     <div>

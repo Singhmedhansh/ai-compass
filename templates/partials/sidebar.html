@@ -1,40 +1,49 @@
-<aside class="w-64 border-r border-white/10 p-4 hidden md:block">
-  <nav class="space-y-2 text-sm text-zinc-400">
+<aside class="w-72 border-r border-white/10 p-4 hidden md:block">
+  {% set current_path = request.path or '' %}
+  {% set is_tools = current_path.startswith('/tools') %}
+  {% set current_sort = request.args.get('sort', '') %}
+  {% set current_category = request.args.get('category', '') %}
+  {% set current_pricing = request.args.get('pricing', '') %}
+  <nav class="space-y-5 text-sm text-zinc-400">
+    <div class="sidebar-section-group">
+      <p class="sidebar-section-heading">Main</p>
+      <div class="space-y-1.5 mt-2">
+        <a href="{{ url_for('main.tools_paginated') }}" class="sidebar-item {{ 'active' if is_tools and not current_category and not current_pricing and not current_sort else '' }}"><span class="text-base">🧭</span><span>All Tools ({{ total_tools }})</span></a>
+        <a href="{{ url_for('main.tools_paginated', sort='trending') }}" class="sidebar-item {{ 'active' if is_tools and not current_category and not current_pricing and current_sort == 'trending' else '' }}"><span class="text-base">🔥</span><span>Trending</span></a>
+        <a href="{{ url_for('main.tools_paginated', pricing='free') }}" class="sidebar-item {{ 'active' if is_tools and current_pricing == 'free' else '' }}"><span class="text-base">💸</span><span>Free Only</span></a>
+      </div>
+    </div>
 
-    <a href="{{ url_for('main.tools_paginated') }}" class="block px-3 py-2 rounded-lg hover:bg-white/10">All Tools ({{ total_tools }})</a>
-    {% if category_counts.get('coding', 0) > 0 %}
-    <a href="{{ url_for('main.tools_paginated', category='coding') }}" class="block px-3 py-2 rounded-lg hover:bg-white/10">Coding ({{ category_counts.get('coding', 0) }})</a>
-    {% endif %}
-    {% if category_counts.get('writing', 0) > 0 %}
-    <a href="{{ url_for('main.tools_paginated', category='writing') }}" class="block px-3 py-2 rounded-lg hover:bg-white/10">Writing ({{ category_counts.get('writing', 0) }})</a>
-    {% endif %}
-    {% if category_counts.get('research', 0) > 0 %}
-    <a href="{{ url_for('main.tools_paginated', category='research') }}" class="block px-3 py-2 rounded-lg hover:bg-white/10">Research ({{ category_counts.get('research', 0) }})</a>
-    {% endif %}
-    {% if category_counts.get('productivity', 0) > 0 %}
-    <a href="{{ url_for('main.tools_paginated', category='productivity') }}" class="block px-3 py-2 rounded-lg hover:bg-white/10">Productivity ({{ category_counts.get('productivity', 0) }})</a>
-    {% endif %}
-    {% if category_counts.get('image generation', 0) > 0 %}
-    <a href="{{ url_for('main.tools_paginated', category='image generation') }}" class="block px-3 py-2 rounded-lg hover:bg-white/10">Image Gen ({{ category_counts.get('image generation', 0) }})</a>
-    {% endif %}
-    {% if category_counts.get('video generation', 0) > 0 %}
-    <a href="{{ url_for('main.tools_paginated', category='video generation') }}" class="block px-3 py-2 rounded-lg hover:bg-white/10">Video Gen ({{ category_counts.get('video generation', 0) }})</a>
-    {% endif %}
+    <div class="sidebar-section-group">
+      <p class="sidebar-section-heading">Categories</p>
+      <div class="space-y-1.5 mt-2">
+        <a href="{{ url_for('main.tools_paginated', category='coding') }}" class="sidebar-item {{ 'active' if current_category == 'coding' else '' }}"><span class="text-base">💻</span><span>Coding</span></a>
+        <a href="{{ url_for('main.tools_paginated', category='writing') }}" class="sidebar-item {{ 'active' if current_category == 'writing' else '' }}"><span class="text-base">✍️</span><span>Writing</span></a>
+        <a href="{{ url_for('main.tools_paginated', category='research') }}" class="sidebar-item {{ 'active' if current_category == 'research' else '' }}"><span class="text-base">🔬</span><span>Research</span></a>
+        <a href="{{ url_for('main.tools_paginated', category='productivity') }}" class="sidebar-item {{ 'active' if current_category == 'productivity' else '' }}"><span class="text-base">⚡</span><span>Productivity</span></a>
+        <a href="{{ url_for('main.tools_paginated', category='image generation') }}" class="sidebar-item {{ 'active' if current_category == 'image generation' else '' }}"><span class="text-base">🖼️</span><span>Image Gen</span></a>
+        <a href="{{ url_for('main.tools_paginated', category='video generation') }}" class="sidebar-item {{ 'active' if current_category == 'video generation' else '' }}"><span class="text-base">🎬</span><span>Video Gen</span></a>
+      </div>
+    </div>
 
-    <a href="{{ url_for('main.tools_paginated', sort='popular') }}" class="block px-3 py-2 rounded-lg hover:bg-white/10">Trending</a>
-    <a href="{{ url_for('main.tools_paginated', pricing='free') }}" class="block px-3 py-2 rounded-lg hover:bg-white/10">Free Only</a>
+    <div class="sidebar-section-group">
+      <p class="sidebar-section-heading">Tools</p>
+      <div class="space-y-1.5 mt-2">
+        <a href="{{ url_for('main.compare') }}" class="sidebar-item {{ 'active' if current_path.startswith('/compare') else '' }}"><span class="text-base">⚖️</span><span>Compare Tools</span></a>
+        <a href="{{ url_for('main.stack_builder_step') }}" class="sidebar-item {{ 'active' if current_path.startswith('/stack-builder') or current_path.startswith('/ai-stack-builder') else '' }}"><span class="text-base">🧠</span><span>AI Stack Builder</span></a>
+        <a href="{{ url_for('main.updates') }}" class="sidebar-item {{ 'active' if current_path.startswith('/weekly-ai-tools') else '' }}"><span class="text-base">🗓️</span><span>Weekly Updates</span></a>
+        <a href="{{ url_for('main.submit_tool') }}" class="sidebar-item {{ 'active' if current_path.startswith('/submit-tool') else '' }}"><span class="text-base">➕</span><span>Submit Tool</span></a>
+      </div>
+    </div>
 
-    {% if is_authenticated %}
-    <a href="{{ url_for('main.dashboard') }}" class="block px-3 py-2 rounded-lg hover:bg-white/10">Dashboard</a>
-    {% endif %}
-    <a href="{{ url_for('main.compare') }}" class="block px-3 py-2 rounded-lg hover:bg-white/10">Compare Tools</a>
-    <a href="{{ url_for('main.stack_builder_step') }}" class="block px-3 py-2 rounded-lg hover:bg-white/10">AI Stack Builder</a>
-    <a href="{{ url_for('main.updates') }}" class="block px-3 py-2 rounded-lg hover:bg-white/10">Weekly Updates</a>
-    <a href="{{ url_for('main.submit_tool') }}" class="block px-3 py-2 rounded-lg hover:bg-white/10">Submit Tool</a>
-
-    {% if request.args.get('debug_counts') == '1' %}
-    <pre class="mt-3 p-2 rounded bg-black/30 border border-white/10 text-[10px] text-zinc-400 whitespace-pre-wrap">{{ category_counts }}</pre>
-    {% endif %}
-
+    <div class="sidebar-section-group">
+      <p class="sidebar-section-heading">User</p>
+      <div class="space-y-1.5 mt-2">
+        {% if is_authenticated %}
+        <a href="{{ url_for('main.dashboard') }}" class="sidebar-item dashboard-btn-small {{ 'active' if current_path.startswith('/dashboard') else '' }}"><span class="text-base">🏠</span><span>Dashboard</span></a>
+        {% endif %}
+        <a href="{{ url_for('main.saved_tools') }}" class="sidebar-item {{ 'active' if current_path.startswith('/saved-tools') else '' }}"><span class="text-base">⭐</span><span>Saved Tools</span></a>
+      </div>
+    </div>
   </nav>
 </aside>

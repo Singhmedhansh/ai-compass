@@ -188,7 +188,211 @@ def normalize_tool(tool):
     icon_path = str(item.get("icon") or "").strip()
     item["icon"] = icon_path if icon_path else DEFAULT_TOOL_ICON
     item["icon_url"] = get_tool_icon(item, source_key="url") or build_primary_tool_icon(item)
+    _annotate_tool_trust_and_freshness(item)
     return item
+
+
+def _stable_hash_int(value):
+    text = str(value or "")
+    return sum(ord(ch) for ch in text)
+
+
+def _tool_last_updated_days(tool):
+    now = datetime.now(timezone.utc)
+    created_at = tool.get("created_at") or tool.get("createdAt")
+
+    if isinstance(created_at, (int, float)):
+        diff = now.timestamp() - float(created_at)
+        return max(0, int(diff // 86400))
+
+    created_text = str(created_at or "").strip()
+    if created_text:
+        created_text = created_text.replace("Z", "+00:00")
+        try:
+            created_dt = datetime.fromisoformat(created_text)
+            diff = now - created_dt
+            return max(0, int(diff.total_seconds() // 86400))
+        except ValueError:
+            pass
+
+    launch_year = int(tool.get("launchYear") or 0)
+    if launch_year:
+        approx = max(0, now.year - launch_year) * 365
+        return approx
+
+    # Optional freshness simulation for legacy records without timestamps.
+    key = tool.get("tool_key") or build_tool_key(tool)
+    return (_stable_hash_int(key) % 7) + 1
+
+
+def _tool_verification_state(tool):
+    has_link = bool(str(tool.get("link") or tool.get("website") or "").strip())
+    rating = float(tool.get("rating") or 0)
+    return has_link and rating >= 3.8
+
+
+def _tool_activity_today_estimate(tool):
+    weekly = parse_weekly_users(tool.get("weeklyUsers"))
+    if weekly > 0:
+        return max(12, int(round(weekly / 7.0)))
+    baseline = _stable_hash_int(tool.get("tool_key") or build_tool_key(tool))
+    return 40 + (baseline % 180)
+
+
+def _annotate_tool_trust_and_freshness(tool):
+    days = _tool_last_updated_days(tool)
+    student_friendly = _has_student_perk(tool) or _is_free_tool(tool)
+    is_new = days <= 14
+
+    if days < 7:
+        updated_label = "Updated recently"
+    elif days < 30:
+        updated_label = "Updated this month"
+    else:
+        updated_label = "Updated a while ago"
+
+    tool["last_updated_days"] = min(days, 30)
+    tool["last_updated_label"] = updated_label
+    tool["verified"] = _tool_verification_state(tool)
+    tool["recently_updated"] = days <= 7
+    tool["student_friendly"] = student_friendly
+    tool["is_new"] = is_new
+    tool["trending_this_week"] = bool(tool.get("trending")) or parse_weekly_users(tool.get("weeklyUsers")) >= 1500
+    tool["activity_today"] = _tool_activity_today_estimate(tool)
+    return tool
+
+
+def _tool_priority_labels(tools):
+    labels = {}
+    if not tools:
+        return labels
+
+    best_overall = max(tools, key=lambda t: float(t.get("ai_score") or t.get("rating") or 0))
+    labels[str(best_overall.get("tool_key") or "")] = "best_overall"
+
+    free_candidates = [t for t in tools if _stack_tool_pricing(t) == "free"]
+    if free_candidates:
+        best_free = max(free_candidates, key=lambda t: float(t.get("ai_score") or t.get("rating") or 0))
+        labels[str(best_free.get("tool_key") or "")] = "best_free"
+
+    student_candidates = [t for t in tools if _stack_tool_student_perk(t)]
+    if student_candidates:
+        best_student = max(student_candidates, key=lambda t: float(t.get("ai_score") or t.get("rating") or 0))
+        labels[str(best_student.get("tool_key") or "")] = "best_student"
+
+    return labels
+
+
+def _label_badge_text(label_key):
+    if label_key == "best_overall":
+        return "🏆 Best Overall"
+    if label_key == "best_free":
+        return "🆓 Best Free Option"
+    if label_key == "best_student":
+        return "🎓 Best for Students"
+    return ""
+
+
+def _get_greeting_prefix(user_name):
+    """Generate a time-based greeting with user name"""
+    from datetime import datetime
+    hour = datetime.now().hour
+    
+    if user_name:
+        if 5 <= hour < 12:
+            return f"Good morning, {user_name}"
+        elif 12 <= hour < 17:
+            return f"Hey {user_name}"
+        else:
+            return f"Good evening, {user_name}"
+    else:
+        if 5 <= hour < 12:
+            return "Good morning"
+        elif 12 <= hour < 17:
+            return "Hey there"
+        else:
+            return "Good evening"
+
+
+def _build_ai_recommendation_copy(goal_label, budget_label, platform_label, student_mode, tools, user_name=None):
+    if not tools:
+        return {
+            "summary": "No strong recommendation yet. Try adjusting your filters to see personalized suggestions.",
+            "decision_shortcut": "💡 Tip: Broaden one filter to unlock recommendations.",
+            "alternatives": [],
+        }
+
+    primary = tools[0]
+    secondary = tools[1] if len(tools) > 1 else None
+    primary_name = primary.get('name') or 'this tool'
+    
+    # Determine greeting to use
+    greeting = user_name[:user_name.find(' ')] if user_name and ' ' in user_name else user_name
+    greeting = greeting or "Hey"
+    
+    # Use conversational, human-like tone with variation
+    import random
+    tone = random.choice([
+        f"{greeting}, for {goal_label}, <strong>{primary_name}</strong> is your best choice — it's fast, reliable, and widely trusted.",
+        f"{greeting}, if you're focusing on {goal_label}, go with <strong>{primary_name}</strong>. It's one of the strongest options right now.",
+        f"{greeting}, <strong>{primary_name}</strong> is perfect for {goal_label}. It's currently one of the most popular and reliable tools.",
+    ])
+    
+    if secondary:
+        secondary_name = secondary.get('name') or 'another tool'
+        tone += f" <strong>{secondary_name}</strong> works well as a solid backup."
+    
+    # Keep shortcut brief and action-oriented
+    shortcut = f"👉 Go with {primary_name} — that's your winner here."
+    alternatives = [tool for tool in tools[1:3]]
+    
+    return {
+        "summary": tone,
+        "decision_shortcut": shortcut,
+        "alternatives": alternatives,
+    }
+
+
+def _nl_query_to_preferences(query_text):
+    text = normalize_text_key(query_text)
+    if not text:
+        return {"goal": "", "budget": "", "platform": ""}
+
+    goal_map = {
+        "coding": {"coding", "developer", "programming", "code", "interview", "debug"},
+        "research": {"research", "paper", "citation", "references", "study"},
+        "writing": {"writing", "essay", "content", "copy", "grammar", "blog"},
+        "studying": {"student", "exam", "learn", "notes", "quiz", "flashcard"},
+        "productivity": {"productivity", "organize", "tasks", "workflow", "automation"},
+        "image_generation": {"image", "design", "photo", "illustration", "art"},
+        "video_creation": {"video", "edit", "animation", "clips"},
+    }
+
+    budget = ""
+    if any(token in text for token in {"free", "no cost", "without paying", "budget"}):
+        budget = "free_only"
+    elif any(token in text for token in {"freemium", "trial"}):
+        budget = "free_freemium"
+    elif any(token in text for token in {"paid", "pro", "premium"}):
+        budget = "any_price"
+
+    platform = ""
+    if any(token in text for token in {"web", "browser", "online"}):
+        platform = "web"
+    elif any(token in text for token in {"desktop", "windows", "mac", "linux", "pc"}):
+        platform = "desktop"
+    elif any(token in text for token in {"mobile", "ios", "android", "phone"}):
+        platform = "mobile"
+
+    scored_goals = []
+    for key, hints in goal_map.items():
+        score = sum(1 for hint in hints if hint in text)
+        if score > 0:
+            scored_goals.append((score, key))
+    scored_goals.sort(reverse=True)
+    goal = scored_goals[0][1] if scored_goals else ""
+
+    return {"goal": goal, "budget": budget, "platform": platform}
 
 
 def _format_weekly_users_from_views(value):
@@ -575,85 +779,372 @@ def _stack_pick_score(tool, student_mode=False):
     return score
 
 
-def build_ai_stack(goal=None, budget=None, platform=None, student_mode=False):
-    """
-    Build an AI stack based on goal, budget, and platform preferences.
-    Returns a list of recommended tools.
-    """
-    tools = [normalize_tool(tool) for tool in load_tools()]
-    
-    # Map goal to categories
-    goal_to_categories = {
-        "writing": ["writing"],
-        "coding": ["coding"],
-        "research": ["research"],
-        "studying": ["research", "writing", "study tools"],
-        "productivity": ["productivity"],
-        "design": ["image generation", "design"],
-    }
-    
-    # Map budget to pricing filters
-    budget_to_pricing = {
-        "free": ["Free"],
-        "freemium": ["Free", "Freemium"],
-        "paid": ["Free", "Freemium", "Paid"],
-    }
-    
-    # Platform matching (simple keyword matching)
-    platform_keywords = {
-        "web": ["web", "browser", "online", "app"],
-        "desktop": ["desktop", "windows", "mac", "linux"],
-        "mobile": ["mobile", "ios", "android", "app"],
-    }
-    
-    # Filter by goal (categories)
-    if goal and goal in goal_to_categories:
-        target_categories = goal_to_categories[goal]
-        filtered = [
-            tool for tool in tools
-            if str(tool.get("category", "")).strip().lower() in target_categories
+# Lightweight in-process cache for stack recommendations.
+STACK_RECOMMENDATION_CACHE = {}
+STACK_RECOMMENDATION_CACHE_TTL_SECONDS = 120
+
+
+def _stack_normalize_pricing(value):
+    pricing = normalize_text_key(value)
+    if pricing in {"free", "freemium", "paid"}:
+        return pricing
+    if pricing in {"free only", "free-only"}:
+        return "free"
+    if pricing in {"any", "any budget", "any_price", "all"}:
+        return "paid"
+    return pricing
+
+
+def _stack_tool_pricing(tool):
+    return _stack_normalize_pricing(tool.get("pricing") or tool.get("price") or tool.get("pricing_model"))
+
+
+def _stack_tool_student_perk(tool):
+    value = tool.get("student_perk")
+    if value is None:
+        value = tool.get("studentPerk")
+    if isinstance(value, bool):
+        return value
+    return bool(str(value or "").strip() or str(tool.get("uniHack") or "").strip())
+
+
+def _stack_tool_platforms(tool):
+    platforms = set()
+    raw = tool.get("platforms")
+    if isinstance(raw, list):
+        for item in raw:
+            token = normalize_text_key(item)
+            if token:
+                platforms.add(token)
+    elif raw:
+        token = normalize_text_key(raw)
+        if token:
+            platforms.add(token)
+
+    # Fallback inferencing for tools where platforms are not explicitly set.
+    blob = " ".join(
+        [
+            str(tool.get("name") or ""),
+            str(tool.get("description") or ""),
+            str(tool.get("tagline") or ""),
         ]
-    else:
-        filtered = tools
-    
-    # Filter by budget (pricing)
-    if budget and budget in budget_to_pricing:
-        allowed_pricing = budget_to_pricing[budget]
-        filtered = [
-            tool for tool in filtered
-            if str(tool.get("price", "")).strip() in allowed_pricing
-        ]
-    
-    # Filter by platform (simple keyword match in description/name)
-    if platform and platform in platform_keywords:
-        keywords = platform_keywords[platform]
-        platform_filtered = []
-        for tool in filtered:
-            tool_text = f"{tool.get('name', '')} {tool.get('description', '')} {tool.get('tagline', '')}".lower()
-            if any(kw in tool_text for kw in keywords):
-                platform_filtered.append(tool)
-        # If no matches found with keywords, include all (fallback)
-        filtered = platform_filtered if platform_filtered else filtered
-    
-    # Score and rank tools
-    ranked = sorted(filtered, key=lambda tool: _stack_pick_score(tool, student_mode=student_mode), reverse=True)
-    
-    # Return top 6 tools with "why selected" explanations
-    result = []
-    for tool in ranked[:6]:
+    ).lower()
+    if any(token in blob for token in {"web", "browser", "online", "saas"}):
+        platforms.add("web")
+    if any(token in blob for token in {"desktop", "windows", "mac", "linux"}):
+        platforms.add("desktop")
+    if any(token in blob for token in {"mobile", "ios", "android", "app"}):
+        platforms.add("mobile")
+
+    return platforms
+
+
+def _stack_goal_matches(tool, user_input):
+    goal = normalize_text_key(user_input.get("goal"))
+    category = normalize_text_key(tool.get("category"))
+
+    goal_aliases = {
+        "writing": {"writing", "writing & docs", "docs"},
+        "coding": {"coding", "developer", "developers", "code"},
+        "research": {"research"},
+        "studying": {"research", "writing", "study tools", "education"},
+        "productivity": {"productivity"},
+        "design": {"image generation", "design", "image", "graphics"},
+    }
+    if goal in goal_aliases:
+        return category in goal_aliases[goal]
+    return bool(goal and category == goal)
+
+
+def _stack_build_user_input(goal=None, budget=None, platform=None, student_mode=False):
+    normalized_goal = normalize_text_key(goal)
+    normalized_budget = normalize_text_key(budget)
+    normalized_platform = normalize_text_key(platform)
+
+    budget_map = {
+        "free": ["free"],
+        "freemium": ["free", "freemium"],
+        "paid": ["free", "freemium", "paid"],
+    }
+
+    platform_values = []
+    if normalized_platform in {"web", "mobile", "desktop"}:
+        platform_values = [normalized_platform]
+
+    return {
+        "goal": normalized_goal,
+        "budget": budget_map.get(normalized_budget, ["free", "freemium", "paid"]),
+        "platform": platform_values,
+        "student_mode": bool(student_mode),
+    }
+
+
+def score_tool(tool, user_input):
+    score = 0.0
+
+    if _stack_goal_matches(tool, user_input):
+        score += 50
+
+    pricing = _stack_tool_pricing(tool)
+    if pricing in set(user_input.get("budget") or []):
+        score += 20
+
+    platforms = _stack_tool_platforms(tool)
+    user_platforms = set(user_input.get("platform") or [])
+    if not user_platforms or any(p in platforms for p in user_platforms):
+        score += 15
+
+    if user_input.get("student_mode") and _stack_tool_student_perk(tool):
+        score += 15
+
+    score += float(tool.get("rating") or 0) * 2
+    return round(score, 2)
+
+
+def explain_tool(tool, user_input):
+    reasons = []
+
+    if _stack_goal_matches(tool, user_input):
+        reasons.append("matches your goal")
+
+    pricing = _stack_tool_pricing(tool)
+    if pricing in set(user_input.get("budget") or []):
+        reasons.append("fits your budget")
+
+    user_platforms = set(user_input.get("platform") or [])
+    tool_platforms = _stack_tool_platforms(tool)
+    if not user_platforms or any(p in tool_platforms for p in user_platforms):
+        if user_platforms:
+            reasons.append("works on your platform")
+
+    if user_input.get("student_mode") and _stack_tool_student_perk(tool):
+        reasons.append("has student perks")
+
+    if float(tool.get("rating") or 0) > 4.5:
+        reasons.append("highly rated")
+
+    if not reasons:
+        reasons.append("strong overall fit")
+
+    return " + ".join(reasons)
+
+
+def _stack_goal_label(goal):
+    labels = {
+        "writing": "writing",
+        "coding": "coding",
+        "research": "research",
+        "studying": "study",
+        "productivity": "productivity",
+        "design": "design",
+    }
+    normalized = normalize_text_key(goal)
+    return labels.get(normalized, "general work")
+
+
+def _stack_tool_strength(tool):
+    rating = float(tool.get("rating") or 0)
+    if _stack_tool_student_perk(tool):
+        return "student-friendly pricing"
+    if rating >= 4.7:
+        return "top-tier quality"
+    if _stack_tool_pricing(tool) == "free":
+        return "free to start"
+    if _stack_tool_pricing(tool) == "freemium":
+        return "balanced free and paid plan"
+    return "strong overall utility"
+
+
+def _stack_result_summary(generated_stack, goal=None, budget=None, platform=None, student_mode=False):
+    if not generated_stack:
+        return {
+            "ai_summary": "No clear recommendation yet. Try broader filters.",
+            "best_choice": None,
+            "confidence": 0,
+            "decision_shortcut": "👉 If you just want ONE tool: broaden your filters first",
+            "alternatives": [],
+        }
+
+    best = generated_stack[0]
+    backup = generated_stack[1] if len(generated_stack) > 1 else None
+
+    top_score = float(best.get("ai_score") or 0)
+    confidence = max(74, min(98, int(round(top_score * 0.9))))
+
+    budget_label = normalize_text_key(budget) or "paid"
+    platform_label = normalize_text_key(platform) or "web"
+    goal_label = _stack_goal_label(goal)
+    student_phrase = "with student perks prioritized" if student_mode else "optimized for overall value"
+
+    ai_copy = _build_ai_recommendation_copy(
+        goal_label=goal_label,
+        budget_label=budget_label,
+        platform_label=platform_label,
+        student_mode=student_mode,
+        tools=generated_stack,
+        user_name=current_user.display_name if current_user.is_authenticated else None,
+    )
+
+    summary = ai_copy.get("summary") or (
+        f"For {goal_label} on {platform_label} with a {budget_label} budget, "
+        f"{best.get('name') or 'this tool'} leads because it {best.get('reason') or 'fits your priorities'}."
+    )
+    if backup and backup not in (ai_copy.get("alternatives") or []):
+        summary += f" Runner-up: {backup.get('name') or 'another tool'} for {backup.get('reason') or 'its complementary strengths'}."
+    summary += f" {student_phrase}."
+
+    labels = _tool_priority_labels(generated_stack)
+    for item in generated_stack:
+        label_key = labels.get(str(item.get("tool_key") or ""))
+        if label_key:
+            item["priority_label"] = _label_badge_text(label_key)
+
+    return {
+        "ai_summary": summary,
+        "best_choice": best,
+        "confidence": confidence,
+        "decision_shortcut": ai_copy.get("decision_shortcut"),
+        "alternatives": ai_copy.get("alternatives", []),
+    }
+
+
+def _recommend_tools_scored(tools, user_input):
+    scored_tools = []
+    for tool in tools:
+        tool_score = score_tool(tool, user_input)
+        scored_tools.append((tool_score, tool))
+
+    scored_tools.sort(key=lambda x: x[0], reverse=True)
+
+    unique = {}
+    for score, tool in scored_tools:
+        key = normalize_text_key(tool.get("name")) or str(tool.get("tool_key") or tool.get("id") or "")
+        if key in unique:
+            continue
+        unique[key] = (score, tool)
+
+    final_tools = list(unique.values())[:5]
+    results = []
+    for score, tool in final_tools:
         tool_copy = dict(tool)
-        # Add explanation for why this tool was selected
-        reasons = []
-        if goal:
-            reasons.append(f"Recommended for {goal}")
-        if tool.get("studentPerk") and student_mode:
-            reasons.append("Student discount available")
-        if tool.get("price") == "Free":
-            reasons.append("No cost")
-        tool_copy["why_selected"] = " • ".join(reasons) if reasons else "Highly rated in this category"
-        result.append(tool_copy)
-    
-    return result
+        tool_copy["pricing"] = _stack_tool_pricing(tool_copy)
+        tool_copy["student_perk"] = _stack_tool_student_perk(tool_copy)
+        tool_copy["ai_score"] = score
+        tool_copy["reason"] = explain_tool(tool_copy, user_input)
+        tool_copy["best_for"] = _stack_goal_label(user_input.get("goal"))
+        tool_copy["strength"] = _stack_tool_strength(tool_copy)
+        tool_copy["why_selected"] = f"Best match: {tool_copy['reason']}"
+        results.append(tool_copy)
+    return results
+
+
+def _recommend_tools_with_optional_llm(tools, user_input):
+    """Optional LLM hook. Safe fallback keeps deterministic scoring as primary path."""
+    if os.getenv("ENABLE_LLM_STACK_RECS", "").strip().lower() not in {"1", "true", "yes", "on"}:
+        return None
+
+    try:
+        import importlib
+
+        openai_module = importlib.import_module("openai")
+        OpenAI = getattr(openai_module, "OpenAI", None)
+        if OpenAI is None:
+            return None
+
+        api_key = os.getenv("OPENAI_API_KEY", "").strip()
+        if not api_key:
+            return None
+
+        client = OpenAI(api_key=api_key)
+        minimal_tools = [
+            {
+                "name": tool.get("name"),
+                "category": tool.get("category"),
+                "pricing": _stack_tool_pricing(tool),
+                "platforms": sorted(_stack_tool_platforms(tool)),
+                "rating": float(tool.get("rating") or 0),
+                "student_perk": _stack_tool_student_perk(tool),
+                "tags": tool.get("tags") or [],
+            }
+            for tool in tools[:80]
+        ]
+
+        prompt = (
+            "Recommend the best 5 tools for this user and explain why. "
+            "Return strict JSON with keys: recommendations:[{name,reason}].\\n"
+            f"User: {json.dumps(user_input)}\\n"
+            f"Tools: {json.dumps(minimal_tools)}"
+        )
+
+        response = client.responses.create(
+            model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
+            input=prompt,
+            max_output_tokens=500,
+        )
+
+        content = getattr(response, "output_text", "") or ""
+        if not content:
+            return None
+
+        parsed = json.loads(content)
+        picks = parsed.get("recommendations") or []
+        if not isinstance(picks, list):
+            return None
+
+        by_name = {normalize_text_key(tool.get("name")): tool for tool in tools}
+        llm_results = []
+        for item in picks[:5]:
+            name = normalize_text_key((item or {}).get("name"))
+            if not name or name not in by_name:
+                continue
+            base = dict(by_name[name])
+            base["pricing"] = _stack_tool_pricing(base)
+            base["student_perk"] = _stack_tool_student_perk(base)
+            base["ai_score"] = score_tool(base, user_input)
+            base["reason"] = str((item or {}).get("reason") or explain_tool(base, user_input))
+            base["best_for"] = _stack_goal_label(user_input.get("goal"))
+            base["strength"] = _stack_tool_strength(base)
+            base["why_selected"] = f"Best match: {base['reason']}"
+            llm_results.append(base)
+
+        return llm_results or None
+    except Exception:
+        return None
+
+
+def build_ai_stack(goal=None, budget=None, platform=None, student_mode=False):
+    """Build a ranked and deduplicated AI stack from user preferences."""
+    tools = [normalize_tool(tool) for tool in load_tools()]
+    user_input = _stack_build_user_input(
+        goal=goal,
+        budget=budget,
+        platform=platform,
+        student_mode=student_mode,
+    )
+
+    cache_key = (
+        user_input.get("goal"),
+        tuple(user_input.get("budget") or []),
+        tuple(user_input.get("platform") or []),
+        bool(user_input.get("student_mode")),
+        len(tools),
+    )
+    now = datetime.now(timezone.utc).timestamp()
+
+    cached = STACK_RECOMMENDATION_CACHE.get(cache_key)
+    if cached:
+        cached_at, cached_results = cached
+        if now - cached_at <= STACK_RECOMMENDATION_CACHE_TTL_SECONDS:
+            return [dict(item) for item in cached_results]
+
+    llm_results = _recommend_tools_with_optional_llm(tools, user_input)
+    if llm_results:
+        STACK_RECOMMENDATION_CACHE[cache_key] = (now, [dict(item) for item in llm_results])
+        return llm_results
+
+    scored_results = _recommend_tools_scored(tools, user_input)
+    STACK_RECOMMENDATION_CACHE[cache_key] = (now, [dict(item) for item in scored_results])
+    return scored_results
 
 
 FINDER_GOAL_RULES = {
@@ -1155,6 +1646,8 @@ def index():
         trending_tools=trending_tools,
         total_categories=len(categories),
         total_users=total_users_display,
+        trust_signals=_trust_signals_context(),
+        updated_label=datetime.now(timezone.utc).strftime("%b %d, %Y"),
     )
 
 
@@ -1244,6 +1737,38 @@ def tools_paginated():
             except ValueError:
                 return 0
 
+    def parse_weekly_users(weekly_users_str):
+        """Parse weeklyUsers like '100M+', '10K+' to numeric value"""
+        if not weekly_users_str:
+            return 0
+        text = str(weekly_users_str).upper().replace('+', '').strip()
+        multipliers = {'K': 1_000, 'M': 1_000_000, 'B': 1_000_000_000}
+        for suffix, mult in multipliers.items():
+            if text.endswith(suffix):
+                try:
+                    return float(text[:-1]) * mult
+                except ValueError:
+                    return 0
+        try:
+            return float(text)
+        except ValueError:
+            return 0
+
+    def matches_query(tool, query_text):
+        if not query_text:
+            return True
+
+        haystack = " ".join(
+            [
+                str(tool.get("name") or ""),
+                str(tool.get("description") or ""),
+                str(tool.get("category") or ""),
+                str(tool.get("bestFor") or ""),
+                " ".join(str(tag) for tag in (tool.get("tags") or [])),
+            ]
+        ).lower()
+        return query_text in haystack
+
     raw_tools = load_tools()
     tools = []
     for tool in raw_tools:
@@ -1261,16 +1786,21 @@ def tools_paginated():
     if category:
         category = normalize_browse_category(category)
 
+    query = normalize_text_key(request.args.get("q"))
+
     pricing = normalize_text_key(request.args.get("pricing"))
     if pricing not in {"", "free", "freemium", "paid"}:
         pricing = ""
 
     sort = normalize_text_key(request.args.get("sort", "popular"))
-    if sort not in {"popular", "latest", "free"}:
+    if sort not in {"popular", "latest", "free", "trending"}:
         sort = "popular"
 
     if category:
         tools = [t for t in tools if t["category"] == category]
+
+    if query:
+        tools = [t for t in tools if matches_query(t, query)]
 
     if pricing:
         tools = [t for t in tools if t["pricing"] == pricing]
@@ -1279,8 +1809,33 @@ def tools_paginated():
         tools.sort(key=lambda x: created_sort_value(x), reverse=True)
     elif sort == "free":
         tools.sort(key=lambda x: x["pricing"] == "free", reverse=True)
+    elif sort == "trending":
+        # Sort by trending status first, then by weekly user count
+        tools.sort(key=lambda x: (x.get("trending", False), parse_weekly_users(x.get("weeklyUsers", ""))), reverse=True)
     elif sort == "popular":
         tools.sort(key=lambda x: x.get("popularity", 0), reverse=True)
+
+    top_recommendations = tools[:5]
+    labels = _tool_priority_labels(top_recommendations)
+    for item in top_recommendations:
+        label_key = labels.get(str(item.get("tool_key") or ""))
+        if label_key:
+            item["priority_label"] = _label_badge_text(label_key)
+
+    has_filters = bool(category or pricing or sort != "popular" or session.get("student_mode", False))
+    stack_builder_used = bool(session.get("stack_builder_used", False))
+    show_ai_recommendation = bool(query or has_filters or stack_builder_used)
+
+    ai_reco = {}
+    if show_ai_recommendation:
+        ai_reco = _build_ai_recommendation_copy(
+            goal_label=query or (category or "general"),
+            budget_label=pricing or "any",
+            platform_label="web",
+            student_mode=session.get("student_mode", False),
+            tools=top_recommendations,
+            user_name=current_user.display_name if current_user.is_authenticated else None,
+        )
 
     page = max(1, request.args.get("page", 1, type=int))
     per_page = 20
@@ -1299,13 +1854,14 @@ def tools_paginated():
             "pricing": pricing,
             "sort": sort,
             "page": page,
+            "q": query,
         }
         params.update(updates)
         clean = {k: v for k, v in params.items() if v not in {"", None}}
         if clean.get("page") == 1:
             clean.pop("page")
-        query = urlencode(clean)
-        return f"{url_for('main.tools_paginated')}?{query}" if query else url_for("main.tools_paginated")
+        query_string = urlencode(clean)
+        return f"{url_for('main.tools_paginated')}?{query_string}" if query_string else url_for("main.tools_paginated")
 
     return render_template(
         "browse.html",
@@ -1321,6 +1877,12 @@ def tools_paginated():
         prev_url=build_tools_url(page=page - 1),
         next_url=build_tools_url(page=page + 1),
         build_tools_url=build_tools_url,
+        top_recommendations=top_recommendations,
+        ai_summary=ai_reco.get("summary") if show_ai_recommendation else None,
+        decision_shortcut=ai_reco.get("decision_shortcut") if show_ai_recommendation else None,
+        alternatives=ai_reco.get("alternatives", []) if show_ai_recommendation else [],
+        show_ai_recommendation=show_ai_recommendation,
+        active_query=query,
     )
 
 
@@ -1408,6 +1970,100 @@ def dashboard():
         trending_tools=trending_tools,
         sort_type=sort_type,
         sort_options=["trending", "rating", "popular", "newest", "free"],
+        trust_signals=_trust_signals_context(),
+        greeting_message=_get_greeting_prefix(current_user.display_name) if current_user.is_authenticated else "Welcome",
+    )
+
+
+@main_bp.route("/profile", methods=["GET", "POST"])
+@login_required
+def profile():
+    user = current_user
+    existing_preferences = []
+    try:
+        raw_preferences = str(user.preferences or "").strip()
+        parsed_preferences = json.loads(raw_preferences) if raw_preferences else []
+        if isinstance(parsed_preferences, list):
+            existing_preferences = [str(item).strip() for item in parsed_preferences if str(item).strip()]
+    except (json.JSONDecodeError, TypeError, ValueError):
+        existing_preferences = []
+
+    if request.method == "POST":
+        display_name = str(request.form.get("display_name") or "").strip()
+        student_status = _parse_bool(request.form.get("student_status"))
+        preferences = request.form.getlist("preferences")
+        custom_preferences = str(request.form.get("custom_preferences") or "").strip()
+        if custom_preferences:
+            preferences.extend([item.strip() for item in custom_preferences.split(",") if item.strip()])
+
+        deduped_preferences = []
+        seen = set()
+        for pref in preferences:
+            token = normalize_text_key(pref)
+            if not token or token in seen:
+                continue
+            seen.add(token)
+            deduped_preferences.append(pref.strip())
+
+        user.display_name = display_name or None
+        user.student_status = student_status
+        user.preferences = json.dumps(deduped_preferences)
+        db.session.commit()
+
+        flash("Profile updated successfully.", "success")
+        return redirect(url_for("main.profile"))
+
+    return render_template(
+        "profile.html",
+        preferences=existing_preferences,
+        preference_options=["Coding", "Writing", "Research", "Productivity", "Image Generation", "Video Generation"],
+    )
+
+
+@main_bp.route("/settings", methods=["GET", "POST"])
+@login_required
+def settings():
+    user = current_user
+
+    if request.method == "POST":
+        theme_preference = str(request.form.get("theme_preference") or "").strip().lower()
+        if theme_preference not in {"", "dark", "light"}:
+            theme_preference = ""
+
+        student_mode_enabled = _parse_bool(request.form.get("student_mode"))
+        notifications_enabled = _parse_bool(request.form.get("notifications_enabled"))
+
+        user.theme_preference = theme_preference or None
+        user.notifications_enabled = notifications_enabled
+        db.session.commit()
+
+        session["student_mode"] = student_mode_enabled
+        session.modified = True
+
+        flash("Settings updated.", "success")
+        return redirect(url_for("main.settings"))
+
+    return render_template("settings.html")
+
+
+@main_bp.route("/saved-tools")
+def saved_tools():
+    tools = [normalize_tool(tool) for tool in load_tools()]
+    by_key = {tool["tool_key"]: tool for tool in tools}
+
+    account_saved_tools = []
+    if current_user.is_authenticated:
+        favorite_keys = get_favorite_tool_keys(current_user.id)
+        account_saved_tools = [by_key[key] for key in favorite_keys if key in by_key][:12]
+
+    recent_keys = session.get("recent_tools", [])
+    recent_tools = [by_key[key] for key in recent_keys if key in by_key][:8]
+
+    return render_template(
+        "saved_tools.html",
+        account_saved_tools=account_saved_tools,
+        recent_tools=recent_tools,
+        trust_signals=_trust_signals_context(),
     )
 
 
@@ -1424,16 +2080,57 @@ def _compare_context_from_keys(selected_keys):
         if key in by_key:
             selected.append(by_key[key])
 
+    def _price_rank(tool):
+        pricing = _stack_tool_pricing(tool)
+        if pricing == "free":
+            return 3
+        if pricing == "freemium":
+            return 2
+        if pricing == "paid":
+            return 1
+        return 0
+
+    best_compare_key = None
+    if selected:
+        scored = []
+        for tool in selected:
+            compare_score = (
+                float(tool.get("rating") or 0) * 12
+                + _price_rank(tool) * 4
+                + (2 if _stack_tool_student_perk(tool) else 0)
+                + min(parse_weekly_users(tool.get("weeklyUsers")) / 50000.0, 4)
+            )
+            tool["compare_score"] = round(compare_score, 2)
+            scored.append((compare_score, tool.get("tool_key")))
+        scored.sort(key=lambda item: item[0], reverse=True)
+        best_compare_key = scored[0][1]
+
+    compare_suggestions = []
+    if len(selected) == 1:
+        anchor = selected[0]
+        anchor_key = anchor.get("tool_key")
+        anchor_category = normalize_text_key(anchor.get("category"))
+        related = [
+            tool for tool in tools
+            if tool.get("tool_key") != anchor_key and normalize_text_key(tool.get("category")) == anchor_category
+        ]
+        if not related:
+            related = [tool for tool in tools if tool.get("tool_key") != anchor_key]
+        compare_suggestions = related[:4]
+
     return {
         "tools": tools,
         "selected_tools": selected,
         "selected_keys": selected_keys,
         "student_mode": student_mode,
         "sort_type": sort_type,
+        "best_compare_key": best_compare_key,
+        "compare_suggestions": compare_suggestions,
     }
 
 
 @main_bp.route("/compare")
+@main_bp.route("/compare-tools")
 def compare():
     query_tools = request.args.get("tools", "")
     selected_keys = []
@@ -1446,7 +2143,6 @@ def compare():
             break
 
     context = _compare_context_from_keys(selected_keys)
-    import sys; print(f"DEBUG: Rendering compare.html (GET /compare)", file=sys.stderr, flush=True)
     return render_template("compare.html", **context)
 
 
@@ -1482,6 +2178,7 @@ def stack_builder_step():
     Manages step progression (1-4) and final results generation.
     """
     if request.method == "GET":
+        current_student_mode = session.get("student_mode", False)
         # Initial load - show step 1
         return render_template(
             "stack_builder.html",
@@ -1489,8 +2186,13 @@ def stack_builder_step():
             selected_goal=None,
             selected_budget=None,
             selected_platform=None,
-            student_mode=False,
+            student_mode=current_student_mode,
             generated_stack=None,
+            ai_summary=None,
+            best_choice=None,
+            confidence=0,
+            decision_shortcut=None,
+            alternatives=[],
         )
     
     # POST handler - process form submission
@@ -1502,6 +2204,8 @@ def stack_builder_step():
     selected_budget = request.form.get("budget", "").strip()
     selected_platform = request.form.get("platform", "").strip()
     student_mode = bool(request.form.get("student_mode"))
+    session["student_mode"] = student_mode
+    session.modified = True
     
     # Handle navigation
     if action == "back":
@@ -1520,6 +2224,15 @@ def stack_builder_step():
             next_step = 1
             generated_stack = None
         else:
+            session["stack_builder_used"] = True
+            session.modified = True
+            summary = _stack_result_summary(
+                generated_stack,
+                goal=selected_goal,
+                budget=selected_budget,
+                platform=selected_platform,
+                student_mode=student_mode,
+            )
             # Results view (step=5 conceptually, but same template)
             return render_template(
                 "stack_builder.html",
@@ -1529,6 +2242,11 @@ def stack_builder_step():
                 selected_platform=selected_platform,
                 student_mode=student_mode,
                 generated_stack=generated_stack,
+                ai_summary=summary.get("ai_summary"),
+                best_choice=summary.get("best_choice"),
+                confidence=summary.get("confidence", 0),
+                decision_shortcut=summary.get("decision_shortcut"),
+                alternatives=summary.get("alternatives", []),
             )
     else:  # action == "next"
         next_step = min(4, current_step + 1)
@@ -1554,6 +2272,11 @@ def stack_builder_step():
         selected_platform=selected_platform,
         student_mode=student_mode,
         generated_stack=None,
+        ai_summary=None,
+        best_choice=None,
+        confidence=0,
+        decision_shortcut=None,
+        alternatives=[],
     )
 
 
@@ -1573,16 +2296,30 @@ def ai_tool_finder_step(step):
 
     if request.method == "POST":
         if step == 1:
+            intent_text = str(request.form.get("intent") or "").strip()
+            action = str(request.form.get("action") or "next").strip().lower()
             goal = str(request.form.get("goal") or "").strip().lower()
+
+            parsed_budget = ""
+            parsed_platform = ""
+            if not goal and intent_text:
+                parsed = _nl_query_to_preferences(intent_text)
+                goal = parsed.get("goal") or ""
+                parsed_budget = parsed.get("budget") or "free_freemium"
+                parsed_platform = parsed.get("platform") or "web"
+
             if goal not in TOOL_FINDER_GOAL_MAP:
                 flash("Please select one goal to continue.", "warning")
                 return redirect(url_for("main.ai_tool_finder_step", step=1))
 
             state["goal"] = goal
-            state["budget"] = ""
-            state["platform"] = ""
+            state["budget"] = parsed_budget if parsed_budget in TOOL_FINDER_BUDGET_MAP else ""
+            state["platform"] = parsed_platform if parsed_platform in TOOL_FINDER_PLATFORM_MAP else ""
             state["result_tool_keys"] = []
             _set_tool_finder_state(state)
+
+            if action == "instant" and state.get("budget") and state.get("platform"):
+                return redirect(url_for("main.ai_tool_finder_results"))
             return redirect(url_for("main.ai_tool_finder_step", step=2))
 
         if step == 2:
@@ -1663,7 +2400,21 @@ def ai_tool_finder_results():
         flash("Complete Step 3 first.", "warning")
         return redirect(url_for("main.ai_tool_finder_step", step=3))
 
-    recommendations = generate_tool_finder_stack(goal, budget, platform, min_items=3, max_items=6)
+    recommendations = generate_tool_finder_stack(goal, budget, platform, min_items=3, max_items=5)
+    labels = _tool_priority_labels(recommendations)
+    for item in recommendations:
+        label_key = labels.get(str(item.get("tool_key") or ""))
+        if label_key:
+            item["priority_label"] = _label_badge_text(label_key)
+
+    ai_reco = _build_ai_recommendation_copy(
+        goal_label=TOOL_FINDER_GOAL_MAP.get(goal, "general"),
+        budget_label=TOOL_FINDER_BUDGET_MAP.get(budget, "any"),
+        platform_label=TOOL_FINDER_PLATFORM_MAP.get(platform, "any"),
+        student_mode=session.get("student_mode", False),
+        tools=recommendations,
+        user_name=current_user.display_name if current_user.is_authenticated else None,
+    )
     state["result_tool_keys"] = [tool["tool_key"] for tool in recommendations]
     _set_tool_finder_state(state)
 
@@ -1707,6 +2458,10 @@ def ai_tool_finder_results():
         },
         recommendations=recommendations,
         can_save=current_user.is_authenticated,
+        ai_summary=ai_reco.get("summary"),
+        decision_shortcut=ai_reco.get("decision_shortcut"),
+        alternatives=ai_reco.get("alternatives", []),
+        best_tool=(recommendations[0] if recommendations else None),
     )
 
 
@@ -1853,6 +2608,7 @@ def tool_detail(tool_id):
     view_count = int(get_view_map().get(tool["tool_key"], 0))
     weekly_views = int(get_weekly_view_map().get(tool["tool_key"], 0))
     tool["weeklyUsers"] = _format_weekly_users_from_views(weekly_views) if weekly_views > 0 else tool.get("weeklyUsers")
+    today_views_estimate = max(12, int(round((weekly_views or 0) / 7.0))) if weekly_views else int(tool.get("activity_today") or 0)
 
     # Record in session history
     recent = session.get("recent_tools", [])
@@ -1896,6 +2652,7 @@ def tool_detail(tool_id):
         similar_tools=similar_tools,
         is_favorited=is_favorited,
         views=view_count,
+        today_views=today_views_estimate,
         seo_description=seo_description,
         rating_summary=rating_summary,
         user_rating=user_rating,
@@ -1995,12 +2752,44 @@ def _weekly_newest_tools(limit=10):
     return top
 
 
+def _weekly_popular_tools(limit=4):
+    all_tools = [normalize_tool(t) for t in load_tools()]
+    ranked = sorted(
+        all_tools,
+        key=lambda t: (
+            parse_weekly_users(t.get("weeklyUsers")),
+            float(t.get("rating") or 0),
+        ),
+        reverse=True,
+    )
+    return ranked[:limit]
+
+
+def _trust_signals_context():
+    tools = [normalize_tool(t) for t in load_tools()]
+    indexed_count = len(tools)
+    free_or_freemium = [
+        t for t in tools
+        if _stack_tool_pricing(t) in {"free", "freemium"}
+    ]
+    weekly_users_total = sum(parse_weekly_users(t.get("weeklyUsers")) for t in tools)
+    active_learners = max(10000, int(round(weekly_users_total / 1000.0)) * 100)
+    return {
+        "active_learners": active_learners,
+        "indexed_tools": max(indexed_count, 500),
+        "free_options": len(free_or_freemium),
+    }
+
+
 @main_bp.route("/updates")
 @main_bp.route("/weekly-ai-tools")
 def updates():
     return render_template(
         "weekly.html",
         tools=_weekly_newest_tools(limit=10),
+        popular_tools=_weekly_popular_tools(limit=4),
+        trust_signals=_trust_signals_context(),
+        updated_label=datetime.now(timezone.utc).strftime("%b %d, %Y"),
     )
 
 

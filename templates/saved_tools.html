@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Your Saved Tools | AI Compass{% endblock %}
+
+{% block content %}
+<main id="saved-tools-page" class="max-w-6xl mx-auto space-y-6">
+  <section class="glass rounded-2xl p-5 border border-cyan-500/20 bg-gradient-to-br from-cyan-500/10 via-blue-500/5 to-transparent">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div>
+        <h1 class="text-2xl font-semibold text-zinc-100">Your Saved Tools</h1>
+        <p class="text-sm text-zinc-400 mt-1">Save, export, import, and continue where you left off.</p>
+      </div>
+      <div class="flex items-center gap-2 flex-wrap">
+        <button id="export-saved-tools" type="button" class="text-xs px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 text-zinc-200 hover:bg-white/10">Export saved data</button>
+        <button id="import-saved-tools" type="button" class="text-xs px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 text-zinc-200 hover:bg-white/10">Import saved data</button>
+        <input id="import-saved-tools-file" type="file" accept="application/json" class="hidden" />
+      </div>
+    </div>
+  </section>
+
+  {% if trust_signals %}
+  <section class="grid grid-cols-1 md:grid-cols-3 gap-3">
+    <article class="glass rounded-xl p-4">
+      <div class="text-[11px] uppercase tracking-wide text-zinc-500">Indexed Tools</div>
+      <div class="text-xl font-semibold text-zinc-100 mt-1">{{ trust_signals.indexed_tools }}+</div>
+    </article>
+    <article class="glass rounded-xl p-4">
+      <div class="text-[11px] uppercase tracking-wide text-zinc-500">Student Community</div>
+      <div class="text-xl font-semibold text-zinc-100 mt-1">{{ trust_signals.active_learners }}+</div>
+    </article>
+    <article class="glass rounded-xl p-4">
+      <div class="text-[11px] uppercase tracking-wide text-zinc-500">Freshness</div>
+      <div class="text-xl font-semibold text-zinc-100 mt-1">Updated weekly</div>
+    </article>
+  </section>
+  {% endif %}
+
+  <section>
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="text-sm font-semibold text-zinc-200">Saved in This Browser</h2>
+      <span class="text-[10px] font-mono text-zinc-500">localStorage</span>
+    </div>
+    <div id="saved-tools-local-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5"></div>
+  </section>
+
+  <section>
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="text-sm font-semibold text-zinc-200">Saved Stacks</h2>
+      <span class="text-[10px] font-mono text-zinc-500">recent stack snapshots</span>
+    </div>
+    <div id="saved-stacks-local-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5"></div>
+  </section>
+
+  <section>
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="text-sm font-semibold text-zinc-200">Recently Viewed</h2>
+      <span class="text-[10px] font-mono text-zinc-500">session + local memory</span>
+    </div>
+    <div id="recently-viewed-local-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5"></div>
+  </section>
+
+  {% if account_saved_tools %}
+  <section>
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="text-sm font-semibold text-zinc-200">Saved in Your Account</h2>
+      <span class="text-[10px] font-mono text-zinc-500">server favorites</span>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
+      {% for tool in account_saved_tools %}
+      <article class="glass rounded-xl p-4 flex flex-col gap-3">
+        <h3 class="text-sm font-semibold text-zinc-100">{{ tool.name }}</h3>
+        <p class="text-xs text-zinc-500 line-clamp-2">{{ tool.tagline or tool.description or '' }}</p>
+        <div class="flex items-center gap-2 flex-wrap">
+          {% if tool.get('verified') %}<span class="text-[10px] px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">✔ Verified</span>{% endif %}
+          {% if tool.get('student_friendly') %}<span class="text-[10px] px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-300 border border-amber-500/20">🎓 Student Friendly</span>{% endif %}
+        </div>
+        <a href="{{ url_for('main.tool_detail', tool_id=tool.tool_key) }}" class="inline-flex text-[10px] text-blue-300 glass rounded-lg px-2.5 py-1 border border-white/8 hover:border-white/15 mt-auto">View Details</a>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+</main>
+{% endblock %}

@@ -31,7 +31,6 @@
       <button type="submit" class="w-full rounded-lg text-sm text-white bg-blue-600 hover:bg-blue-500 transition-colors px-4 py-2.5">Login</button>
     </form>
 
-    {% if google_oauth_enabled or github_oauth_enabled %}
     <div class="relative my-5">
       <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-white/10"></div></div>
       <div class="relative flex justify-center"><span class="text-[10px] text-zinc-500 bg-gray-900 px-2">OR CONTINUE WITH</span></div>
@@ -47,8 +46,13 @@
         Continue with GitHub
       </a>
       {% endif %}
+      <a href="{{ url_for('oauth.login_linkedin') }}" class="w-full flex items-center justify-center gap-2.5 rounded-lg border border-gray-700 bg-gray-900 hover:bg-gray-800 transition-colors px-4 py-2.5 text-xs text-zinc-200">
+        Continue with LinkedIn
+      </a>
+      {% if not linkedin_oauth_enabled %}
+      <p class="text-[11px] text-zinc-500">LinkedIn login is available as a setup-ready stub.</p>
+      {% endif %}
     </div>
-    {% endif %}
 
     <p class="text-zinc-400 text-sm mt-4">No account? <a href="{{ url_for('auth.register') }}" class="text-blue-400 hover:text-blue-300">Register</a></p>
   </div>

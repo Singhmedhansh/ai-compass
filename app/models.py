@@ -14,6 +14,10 @@ class User(UserMixin, db.Model):
     is_admin = db.Column(db.Boolean, nullable=False, default=False)
     display_name = db.Column(db.String(255), nullable=True)
     oauth_provider = db.Column(db.String(50), nullable=True)
+    student_status = db.Column(db.Boolean, nullable=False, default=False)
+    preferences = db.Column(db.Text, nullable=True)
+    theme_preference = db.Column(db.String(20), nullable=True)
+    notifications_enabled = db.Column(db.Boolean, nullable=False, default=True)
     created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
 
     favorites = db.relationship("Favorite", back_populates="user", cascade="all, delete-orphan")

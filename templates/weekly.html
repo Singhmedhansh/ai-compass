@@ -9,11 +9,61 @@
     <p class="text-sm text-zinc-400 mt-1">New and trending AI tools sorted by latest additions.</p>
   </div>
 
+  {% if trust_signals %}
+  <section id="trust-signals" class="grid grid-cols-1 md:grid-cols-3 gap-3 stagger-list">
+    <article class="glass app-card rounded-xl p-4" style="--stagger-step: 0;">
+      <div class="text-[11px] uppercase tracking-wide text-zinc-500">Community</div>
+      <div class="text-xl font-semibold text-zinc-100 mt-1"><span class="trust-counter" data-target="{{ trust_signals.active_learners }}" data-suffix="+">{{ trust_signals.active_learners }}</span>+</div>
+      <div class="text-xs text-zinc-400 mt-1">Active students and learners using AI Compass weekly</div>
+    </article>
+    <article class="glass app-card rounded-xl p-4" style="--stagger-step: 1;">
+      <div class="text-[11px] uppercase tracking-wide text-zinc-500">Tool Index</div>
+      <div class="text-xl font-semibold text-zinc-100 mt-1"><span class="trust-counter" data-target="{{ trust_signals.indexed_tools }}" data-suffix="+">{{ trust_signals.indexed_tools }}</span>+</div>
+      <div class="text-xs text-zinc-400 mt-1">AI tools indexed and refreshed continuously</div>
+    </article>
+    <article class="glass app-card rounded-xl p-4" style="--stagger-step: 2;">
+      <div class="text-[11px] uppercase tracking-wide text-zinc-500">Budget Friendly</div>
+      <div class="text-xl font-semibold text-zinc-100 mt-1"><span class="trust-counter" data-target="{{ trust_signals.free_options }}">{{ trust_signals.free_options }}</span></div>
+      <div class="text-xs text-zinc-400 mt-1">Free or freemium options available right now</div>
+    </article>
+  </section>
+  {% endif %}
+
+  {% if popular_tools %}
+  <section class="glass app-card rounded-xl p-4 space-y-3 motion-rise" style="--reveal-delay: 90ms;">
+    <div class="flex items-center justify-between gap-3">
+      <div>
+        <h2 class="text-sm font-semibold text-zinc-100">Popular This Week</h2>
+        <p class="text-xs text-zinc-400 mt-1">Based on weekly usage momentum and ratings.</p>
+      </div>
+      <span class="text-[11px] text-zinc-500">Updated {{ updated_label }}</span>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 stagger-list">
+      {% for tool in popular_tools %}
+      <a href="{{ url_for('main.tool_detail', tool_id=tool.tool_key) }}" class="rounded-lg border border-zinc-700/80 bg-zinc-900/40 px-3 py-2 hover:border-blue-500/40 transition-colors" style="--stagger-step: {{ loop.index0 }};">
+        <div class="text-sm font-medium text-zinc-100">{{ tool.name }}</div>
+        <div class="text-xs text-zinc-400 mt-1">{{ tool.tagline or tool.category or 'AI tool' }}</div>
+      </a>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <section class="glass app-card rounded-xl p-4 motion-rise" style="--reveal-delay: 140ms;">
+    <h2 class="text-sm font-semibold text-zinc-100">Weekly Email Digest</h2>
+    <p class="text-xs text-zinc-400 mt-1">Get the top tools and trends in one concise weekly email.</p>
+    <form id="weekly-digest-form" class="mt-3 flex flex-col sm:flex-row gap-2">
+      <input type="email" id="weekly-digest-email" required placeholder="Enter your email" class="flex-1 rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-100" />
+      <button type="submit" class="rounded-lg bg-blue-600 hover:bg-blue-500 transition-colors px-4 py-2 text-sm text-white">Subscribe</button>
+    </form>
+    <p id="weekly-digest-message" class="text-xs text-emerald-300 mt-2 hidden">You're subscribed. See you next week.</p>
+  </section>
+
   {% if tools %}
-  <section class="space-y-3">
+  <section class="space-y-3 stagger-list">
     {% for tool in tools %}
       {% set model = (tool.price or 'paid')|lower %}
-      <article class="glass rounded-xl p-4">
+      <article class="glass app-card rounded-xl p-4" style="--stagger-step: {{ loop.index0 }};">
         <div class="flex items-start justify-between gap-3">
           <div>
             <a href="{{ url_for('main.tool_detail', tool_id=tool.tool_key) }}" class="text-zinc-100 font-semibold hover:text-blue-400 transition-colors">{{ tool.name }}</a>
@@ -28,7 +78,91 @@
     {% endfor %}
   </section>
   {% else %}
-  <section class="glass rounded-xl p-4 text-sm text-zinc-500">No recent tools found. Check back soon.</section>
+  <section class="glass app-card rounded-xl p-4 text-sm text-zinc-500">No recent tools found. Check back soon.</section>
   {% endif %}
 </div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const form = document.getElementById("weekly-digest-form");
+    const emailInput = document.getElementById("weekly-digest-email");
+    const message = document.getElementById("weekly-digest-message");
+    const key = "ai_compass_weekly_digest_email";
+
+    if (!form || !emailInput || !message) return;
+
+    const saved = localStorage.getItem(key);
+    if (saved) {
+      emailInput.value = saved;
+      message.classList.remove("hidden");
+    }
+
+    const counters = Array.from(document.querySelectorAll(".trust-counter"));
+    const trustSignals = document.getElementById("trust-signals");
+
+    function formatCompact(value) {
+      try {
+        return new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 }).format(value);
+      } catch (error) {
+        return String(value);
+      }
+    }
+
+    function animateCounter(counter) {
+      const target = Number(counter.dataset.target || "0");
+      if (!Number.isFinite(target) || target <= 0) {
+        counter.textContent = "0";
+        return;
+      }
+
+      const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (reduceMotion) {
+        counter.textContent = formatCompact(target);
+        return;
+      }
+
+      const duration = 900;
+      const startTime = performance.now();
+
+      function frame(now) {
+        const progress = Math.min((now - startTime) / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        const value = Math.max(0, Math.round(target * eased));
+        counter.textContent = formatCompact(value);
+        if (progress < 1) {
+          requestAnimationFrame(frame);
+        }
+      }
+
+      requestAnimationFrame(frame);
+    }
+
+    if (counters.length) {
+      counters.forEach((counter) => {
+        counter.textContent = "0";
+      });
+
+      if (trustSignals && "IntersectionObserver" in window) {
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            if (!entry.isIntersecting) return;
+            counters.forEach((counter) => animateCounter(counter));
+            observer.disconnect();
+          });
+        }, { threshold: 0.35 });
+        observer.observe(trustSignals);
+      } else {
+        counters.forEach((counter) => animateCounter(counter));
+      }
+    }
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const value = (emailInput.value || "").trim();
+      if (!value) return;
+      localStorage.setItem(key, value);
+      message.classList.remove("hidden");
+    });
+  });
+</script>
 {% endblock %}

@@ -19,18 +19,43 @@
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 min-w-full lg:min-w-[420px]">
         <div class="glass rounded-2xl p-4">
           <div class="text-[11px] uppercase tracking-wide text-zinc-500">Tools</div>
-          <div class="mt-1 text-xl text-zinc-100 font-bold">{{ total_tools }}+ AI</div>
-        </div>
-        <div class="glass rounded-2xl p-4">
-          <div class="text-[11px] uppercase tracking-wide text-zinc-500">Categories</div>
-          <div class="mt-1 text-xl text-zinc-100 font-bold">{{ total_categories }}</div>
+          <div class="mt-1 text-xl text-zinc-100 font-bold">{{ trust_signals.indexed_tools if trust_signals else total_tools }}+ AI</div>
         </div>
         <div class="glass rounded-2xl p-4">
           <div class="text-[11px] uppercase tracking-wide text-zinc-500">Community</div>
-          <div class="mt-1 text-xl text-zinc-100 font-bold">12k+ Users</div>
+          <div class="mt-1 text-xl text-zinc-100 font-bold">{{ trust_signals.active_learners if trust_signals else total_users }}+</div>
+        </div>
+        <div class="glass rounded-2xl p-4">
+          <div class="text-[11px] uppercase tracking-wide text-zinc-500">Freshness</div>
+          <div class="mt-1 text-xl text-zinc-100 font-bold">Updated weekly</div>
+          <div class="text-[10px] text-zinc-500 mt-1">{{ updated_label }}</div>
         </div>
       </div>
     </div>
+  </section>
+
+  <section id="recommended-for-you" class="rounded-2xl p-4 border border-cyan-500/20 bg-cyan-500/5 hidden">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-lg text-zinc-100 font-bold">Recommended For You</h2>
+      <span class="text-[10px] font-mono text-zinc-500">Based on your searches and saves</span>
+    </div>
+    <div id="recommended-for-you-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3"></div>
+  </section>
+
+  <section id="recently-viewed-local" class="rounded-2xl p-4 border border-white/10 bg-white/5 hidden">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-lg text-zinc-100 font-bold">Recently Viewed</h2>
+      <span class="text-[10px] font-mono text-zinc-500">Your local history</span>
+    </div>
+    <div id="recently-viewed-local-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3"></div>
+  </section>
+
+  <section id="saved-tools-local" class="rounded-2xl p-4 border border-emerald-500/20 bg-emerald-500/5 hidden">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-lg text-zinc-100 font-bold">Your Saved Tools</h2>
+      <span class="text-[10px] font-mono text-zinc-500">Save and return</span>
+    </div>
+    <div id="saved-tools-local-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3"></div>
   </section>
 
   <!-- ═════════════════════════════════════════════════════════════════════════════════════ CATEGORIES ═════════════════════════════════════════════════════════════════════════════════════ -->

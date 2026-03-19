@@ -1,10 +1,20 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   {% block head_meta %}{% endblock %}
   <title>{% block title %}AI Compass{% endblock %}</title>
+
+  <script>
+    (function() {
+      var serverTheme = '{{ current_user.theme_preference if current_user.is_authenticated and current_user.theme_preference else "" }}';
+      var theme = localStorage.getItem('theme') || serverTheme || 'dark';
+      var root = document.documentElement;
+      root.classList.remove('light', 'dark');
+      root.classList.add(theme);
+    })();
+  </script>
 
   <script src="https://cdn.tailwindcss.com"></script>
 
@@ -13,16 +23,364 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
   <style>
+    :root {
+      --bg: #0b0f19;
+      --text: #ffffff;
+      --card: #111827;
+      --muted: #9ca3af;
+      --border: #243042;
+    }
+
+    html.light {
+      --bg: #f8fafc;
+      --text: #0b0f19;
+      --card: #e5e7eb;
+      --muted: #475569;
+      --border: #cbd5e1;
+    }
+
     body {
       font-family: 'DM Sans', system-ui, sans-serif;
-      background: #09090b;
-      color: #e4e4e7;
+      background: var(--bg);
+      color: var(--text);
+      animation: fadeIn 0.5s ease-out;
+    }
+
+    main {
+      animation: fadeIn 0.6s ease-out 0.1s both;
     }
 
     .glass {
-      background: rgba(255,255,255,0.04);
+      background: color-mix(in srgb, var(--card) 88%, transparent);
       backdrop-filter: blur(12px);
-      border: 1px solid rgba(255,255,255,0.08);
+      border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+    }
+
+    .card,
+    article.glass,
+    article.panel,
+    .app-card {
+      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+      animation: fadeIn 0.4s ease-out;
+    }
+
+    .card:hover,
+    article.glass:hover,
+    article.panel:hover,
+    .app-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 28px rgba(0, 212, 255, 0.15), 0 8px 16px rgba(0, 0, 0, 0.3);
+    }
+
+    button {
+      transition: all 0.15s ease;
+    }
+
+    button:hover {
+      opacity: 0.95;
+    }
+
+    button:active {
+      transform: scale(0.97);
+    }
+
+    .dashboard-btn {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: #ffffff;
+      font-weight: 600;
+      border-radius: 8px;
+      padding: 6px 14px;
+      box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.2), 0 8px 20px rgba(29, 78, 216, 0.35);
+      transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+    }
+
+    .dashboard-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.28), 0 10px 22px rgba(29, 78, 216, 0.42);
+      filter: brightness(1.05);
+    }
+
+    .dashboard-btn-small {
+      border: 1px solid rgba(37, 99, 235, 0.35);
+      background: rgba(37, 99, 235, 0.18);
+      color: #dbeafe;
+    }
+
+    .sidebar-section-heading {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #94a3b8;
+      font-weight: 600;
+    }
+
+    .sidebar-section-group {
+      padding: 0.75rem 0;
+    }
+
+    .sidebar-section-group:not(:first-child) {
+      border-top: 1px solid rgba(148, 163, 184, 0.08);
+      padding-top: 1rem;
+    }
+
+    .sidebar-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-radius: 10px;
+      padding: 8px 10px;
+      border-left: 3px solid transparent;
+      color: #cbd5e1;
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+      cursor: pointer;
+    }
+
+    .sidebar-item:hover {
+      transform: translateX(4px);
+      background: rgba(59, 130, 246, 0.1);
+      color: #e0e7ff;
+    }
+
+    .sidebar-item.active {
+      background: rgba(59, 130, 246, 0.15);
+      border-left: 3px solid #3b82f6;
+      color: #dbeafe;
+      font-weight: 500;
+    }
+
+    .sidebar-item.dashboard-btn-small {
+      background: rgba(37, 99, 235, 0.18);
+      border-left: 3px solid rgba(37, 99, 235, 0.35);
+      color: #dbeafe;
+    }
+
+    .sidebar-item.dashboard-btn-small:hover {
+      background: rgba(37, 99, 235, 0.25);
+    }
+
+    .profile-menu-item {
+      display: block;
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 13px;
+      color: #e2e8f0;
+      transition: background-color 0.2s ease;
+    }
+
+    .profile-menu-item:hover {
+      background: rgba(148, 163, 184, 0.16);
+    }
+
+    .profile-menu {
+      z-index: 50;
+    }
+
+    .student-toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: linear-gradient(135deg, #10b981, #059669);
+      padding: 12px 16px;
+      border-radius: 10px;
+      animation: slideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      z-index: 60;
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      box-shadow: 0 12px 32px rgba(16, 185, 129, 0.25);
+      color: #ecfdf5;
+      font-size: 13px;
+      font-weight: 500;
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    @keyframes slideIn {
+      from { 
+        opacity: 0; 
+        transform: translateY(-12px) translateX(20px) scale(0.95);
+      }
+      to { 
+        opacity: 1; 
+        transform: translateY(0) translateX(0) scale(1);
+      }
+    }
+
+    @keyframes slideOut {
+      from { 
+        opacity: 1; 
+        transform: translateY(0) translateX(0) scale(1);
+      }
+      to { 
+        opacity: 0; 
+        transform: translateY(-12px) translateX(20px) scale(0.95);
+      }
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    .student-toast.dismiss {
+      animation: slideOut 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    @keyframes reveal-up {
+      from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.99);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .motion-rise {
+      opacity: 0;
+      animation: reveal-up 0.45s cubic-bezier(0.2, 0.65, 0.25, 1) forwards;
+      animation-delay: var(--reveal-delay, 0ms);
+    }
+
+    .stagger-list > * {
+      opacity: 0;
+      animation: reveal-up 0.5s cubic-bezier(0.2, 0.65, 0.25, 1) forwards;
+      animation-delay: calc(var(--stagger-step, 0) * 70ms);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .motion-rise,
+      .stagger-list > * {
+        opacity: 1;
+        animation: none !important;
+        transform: none !important;
+      }
+
+      .card,
+      article.glass,
+      article.panel,
+      .app-card {
+        transition: none !important;
+      }
+    }
+
+    select,
+    option {
+      background-color: var(--card);
+      color: var(--text);
+      border: 1px solid #1e293b;
+    }
+
+    select {
+      transition: all 0.2s ease;
+    }
+
+    select:hover {
+      border-color: #94a3b8;
+    }
+
+    select:focus {
+      border-color: #00d9ff;
+      box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1), inset 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    option {
+      appearance: none;
+      background-color: #1e293b;
+      color: #e2e8f0;
+      padding: 8px;
+    }
+
+    option:checked {
+      background: linear-gradient(#06b6d4, #06b6d4);
+      background-color: #0891b2;
+      color: white;
+    }
+
+    option:hover {
+      background-color: #334155;
+    }
+
+    html.light .text-zinc-100,
+    html.light .text-zinc-200,
+    html.light .text-zinc-300,
+    html.light .text-zinc-400,
+    html.light .text-zinc-500,
+    html.light .text-slate-100,
+    html.light .text-slate-200,
+    html.light .text-slate-300,
+    html.light .text-slate-400,
+    html.light .text-gray-400 {
+      color: #0f172a !important;
+    }
+
+    html.light .bg-zinc-950\/80,
+    html.light .bg-zinc-900,
+    html.light .bg-black,
+    html.light .bg-gray-900,
+    html.light .bg-white\/5 {
+      background-color: color-mix(in srgb, var(--card) 92%, #ffffff 8%) !important;
+    }
+
+    html.light .border-white\/10,
+    html.light .border-white\/8,
+    html.light .border-gray-700 {
+      border-color: var(--border) !important;
+    }
+
+    html.light #student-mode-toggle.active {
+      color: #065f46 !important;
+      background-color: rgba(16, 185, 129, 0.18) !important;
+      border-color: rgba(16, 185, 129, 0.5) !important;
+    }
+
+    html.light #student-mode-toggle .student-toggle-track {
+      border-color: rgba(15, 23, 42, 0.25) !important;
+    }
+
+    html.light #student-mode-status {
+      color: #065f46 !important;
+      background-color: rgba(16, 185, 129, 0.16) !important;
+      border-color: rgba(16, 185, 129, 0.45) !important;
+    }
+
+    html.light .sidebar-item {
+      color: #1e293b;
+    }
+
+    html.light .sidebar-item:hover {
+      background: rgba(37, 99, 235, 0.12);
+      color: #1d4ed8;
+    }
+
+    html.light .sidebar-item.active {
+      color: #1d4ed8;
+      background: rgba(59, 130, 246, 0.15);
+    }
+
+    html.light .sidebar-item.dashboard-btn-small {
+      background: rgba(37, 99, 235, 0.12);
+      border-left-color: rgba(37, 99, 235, 0.5);
+    }
+
+    html.light .profile-menu {
+      background: rgba(248, 250, 252, 0.98);
+      border-color: #cbd5e1;
+    }
+
+    html.light .profile-menu-item {
+      color: #0f172a;
+    }
+
+    html.light .student-toast {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #ecfdf5;
+      border-color: rgba(16, 185, 129, 0.4);
     }
   </style>
 
@@ -39,7 +397,7 @@
   {% block head_extra %}{% endblock %}
 </head>
 
-<body class="bg-black text-white min-h-screen">
+<body class="min-h-screen">
 <!-- BASE TEMPLATE ACTIVE -->
 
   {% include "partials/topbar.html" %}

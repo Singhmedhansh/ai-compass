@@ -143,6 +143,10 @@
         Next Step
       </button>
     </div>
+
+    <div id="stack-loading-state" class="hidden rounded-xl border border-cyan-500/30 bg-cyan-500/10 px-4 py-3 text-sm text-cyan-100">
+      🔍 Finding best tools for you...
+    </div>
   </form>
 
   <!-- Results Section -->
@@ -156,10 +160,50 @@
       <a href="{{ url_for('main.stack_builder_step') }}" class="text-xs text-blue-400 hover:text-blue-300">Start Over</a>
     </div>
 
+    {% if ai_summary %}
+    <article class="glass rounded-xl p-4 border border-cyan-500/25 bg-cyan-500/10 motion-rise" style="--reveal-delay: 80ms;">
+      <div class="flex items-start justify-between gap-3">
+        <div>
+          <h3 class="text-sm font-semibold text-cyan-100">🤖 AI Recommendation Summary</h3>
+          <p class="text-xs text-cyan-200/90 mt-1 leading-relaxed">{{ ai_summary|safe }}</p>
+          {% if decision_shortcut %}
+          <p class="text-xs text-cyan-100 mt-2">{{ decision_shortcut }}</p>
+          {% endif %}
+        </div>
+        {% if confidence %}
+        <span class="inline-flex items-center px-2 py-1 rounded-md text-[10px] font-semibold border border-cyan-400/35 bg-cyan-500/15 text-cyan-100">
+          Confidence {{ confidence }}%
+        </span>
+        {% endif %}
+      </div>
+      {% if best_choice %}
+      <div class="mt-3 text-[11px] text-cyan-100/90">
+        🏆 Best Choice: <span class="font-semibold">{{ best_choice.name }}</span>
+      </div>
+      {% endif %}
+      {% if alternatives %}
+      <div class="mt-2 text-[11px] text-cyan-100/90">
+        You may also consider:
+        {% for alt in alternatives %}
+          <a href="{{ url_for('main.tool_detail', tool_id=alt.tool_key) }}" class="underline hover:text-cyan-50">{{ alt.name }}</a>{% if not loop.last %}, {% endif %}
+        {% endfor %}
+      </div>
+      {% endif %}
+      <div class="mt-3 flex items-center gap-2 flex-wrap">
+        <button type="button" id="pick-for-me-btn" class="text-xs px-3 py-1.5 rounded-lg border border-cyan-400/30 bg-cyan-500/15 text-cyan-100 hover:bg-cyan-500/20">
+          Pick for me
+        </button>
+        <button type="button" id="save-stack-btn" class="text-xs px-3 py-1.5 rounded-lg border border-emerald-400/30 bg-emerald-500/10 text-emerald-200 hover:bg-emerald-500/20">
+          Save this stack
+        </button>
+      </div>
+    </article>
+    {% endif %}
+
     {% if generated_stack %}
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 stagger-list">
       {% for tool in generated_stack %}
-      <article class="glass rounded-xl p-5 flex flex-col gap-4 hover:border-blue-500/50 transition-colors">
+      <article class="stack-tool-card glass rounded-xl p-5 flex flex-col gap-4 hover:border-blue-500/50 transition-colors {% if best_choice and tool.tool_key == best_choice.tool_key %}ring-1 ring-amber-400/40 border-amber-500/40{% endif %}" style="--stagger-step: {{ loop.index0 }};" data-tool-key="{{ tool.tool_key }}">
         <!-- Tool Header -->
         <div class="flex items-start justify-between gap-3">
           <div class="flex-1 min-w-0">
@@ -167,6 +211,23 @@
               {{ tool.name }}
             </a>
             <p class="text-xs text-zinc-500 mt-1">{{ tool.category or 'General' }}</p>
+          </div>
+          <div class="flex flex-col items-end gap-1">
+            {% if best_choice and tool.tool_key == best_choice.tool_key %}
+            <span class="best-choice-badge inline-flex items-center px-2 py-1 text-[10px] rounded-md bg-amber-500/15 text-amber-200 border border-amber-500/30 font-semibold">
+              🏆 Best Choice
+            </span>
+            {% endif %}
+            {% if tool.get('priority_label') %}
+            <span class="inline-flex items-center px-2 py-1 text-[10px] rounded-md bg-blue-500/15 text-blue-200 border border-blue-500/30 font-semibold">
+              {{ tool.priority_label }}
+            </span>
+            {% endif %}
+            {% if tool.get('ai_score') is not none %}
+            <span class="inline-flex items-center px-2 py-1 text-[10px] rounded-md bg-cyan-500/15 text-cyan-200 border border-cyan-500/30 font-mono">
+              AI Score: {{ tool.ai_score|round(1) }}
+            </span>
+            {% endif %}
           </div>
         </div>
 
@@ -180,26 +241,53 @@
             💰 {{ tool.price }}
           </span>
           {% endif %}
-          {% if tool.get('studentPerk') %}
+          <span class="inline-flex items-center px-2 py-1 text-[10px] rounded-md bg-amber-500/10 text-amber-300 border border-amber-500/25">
+            ⭐ {{ '%.1f'|format(tool.rating or 0) }}
+          </span>
+          {% if tool.get('studentPerk') or tool.get('student_perk') %}
           <span class="inline-flex items-center px-2 py-1 text-[10px] rounded-md bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
             🎓 Student
           </span>
           {% endif %}
+          {% if tool.get('verified') %}
+          <span class="inline-flex items-center px-2 py-1 text-[10px] rounded-md bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">✔ Verified</span>
+          {% endif %}
+          {% if tool.get('recently_updated') %}
+          <span class="inline-flex items-center px-2 py-1 text-[10px] rounded-md bg-sky-500/10 text-sky-300 border border-sky-500/20">🔄 Recently Updated</span>
+          {% endif %}
+          {% if tool.get('last_updated_label') %}
+          <span class="inline-flex items-center px-2 py-1 text-[10px] rounded-md bg-zinc-700/40 text-zinc-300 border border-zinc-600/30">{{ tool.last_updated_label }}</span>
+          {% endif %}
         </div>
 
         <!-- Why Selected (if available) -->
-        {% if tool.get('why_selected') %}
+        {% if tool.get('reason') or tool.get('why_selected') %}
         <div class="pt-2 border-t border-zinc-700/50">
-          <p class="text-[10px] text-zinc-400 italic">{{ tool.why_selected }}</p>
+          <p class="text-[10px] text-zinc-400 italic">
+            {% if tool.get('reason') %}
+            Best match: {{ tool.reason }}
+            {% else %}
+            {{ tool.why_selected }}
+            {% endif %}
+          </p>
+          {% if tool.get('best_for') or tool.get('strength') %}
+          <p class="text-[10px] text-zinc-500 mt-1">
+            Best for {{ tool.get('best_for') or 'general work' }} · Strength: {{ tool.get('strength') or 'balanced features' }}
+          </p>
+          {% endif %}
         </div>
         {% endif %}
 
-        <!-- Visit Link -->
-        {% if tool.link or tool.website %}
-        <a href="{{ tool.link or tool.website }}" target="_blank" rel="noopener noreferrer" class="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 mt-auto">
-          Visit Tool →
-        </a>
-        {% endif %}
+        <div class="mt-auto flex items-center gap-2">
+          <button type="button" class="save-stack-tool text-[11px] px-2 py-1 rounded-md border border-zinc-600 text-zinc-200 hover:border-emerald-400/40 hover:text-emerald-200" data-tool="{{ tool.tool_key }}">
+            Add to Stack
+          </button>
+          {% if tool.link or tool.website %}
+          <a href="{{ tool.link or tool.website }}" target="_blank" rel="noopener noreferrer" class="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1">
+            Visit Tool →
+          </a>
+          {% endif %}
+        </div>
       </article>
       {% endfor %}
     </div>
@@ -240,13 +328,105 @@
     border-color: rgba(59, 130, 246, 0.75);
     background: rgba(59, 130, 246, 0.12);
   }
+
+  @keyframes best-choice-pulse {
+    0% {
+      box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.24);
+      transform: translateY(0);
+    }
+    50% {
+      box-shadow: 0 0 0 7px rgba(245, 158, 11, 0.0);
+      transform: translateY(-1px);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.0);
+      transform: translateY(0);
+    }
+  }
+
+  .best-choice-badge {
+    animation: best-choice-pulse 2.6s ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .best-choice-badge {
+      animation: none !important;
+    }
+  }
 </style>
 
 <script>
   let currentStep = 1;
-  let selectedGoal = "{{ selected_goal or '' }}";
-  let selectedBudget = "{{ selected_budget or '' }}";
-  let selectedPlatform = "{{ selected_platform or '' }}";
+  let stackState = {
+    goal: "{{ selected_goal or '' }}",
+    budget: "{{ selected_budget or '' }}",
+    platform: "{{ selected_platform or '' }}",
+    student: {{ 'true' if student_mode else 'false' }}
+  };
+
+  const STACK_PREFS_KEY = "ai_compass_stack_prefs";
+  const STACK_SAVED_TOOLS_KEY = "ai_compass_saved_stack_tools";
+  const STACK_HISTORY_KEY = "ai_compass_saved_stacks";
+
+  function saveStackPrefs() {
+    try {
+      localStorage.setItem(STACK_PREFS_KEY, JSON.stringify(stackState));
+    } catch (error) {
+      console.warn("Unable to save stack preferences", error);
+    }
+  }
+
+  function loadStackPrefs() {
+    try {
+      const raw = localStorage.getItem(STACK_PREFS_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== "object") return;
+      if (!stackState.goal && parsed.goal) stackState.goal = parsed.goal;
+      if (!stackState.budget && parsed.budget) stackState.budget = parsed.budget;
+      if (!stackState.platform && parsed.platform) stackState.platform = parsed.platform;
+      if (!stackState.student && parsed.student) stackState.student = !!parsed.student;
+    } catch (error) {
+      console.warn("Unable to load stack preferences", error);
+    }
+  }
+
+  function persistSavedTool(toolKey) {
+    if (!toolKey) return;
+    try {
+      const raw = localStorage.getItem(STACK_SAVED_TOOLS_KEY);
+      const current = raw ? JSON.parse(raw) : [];
+      const unique = Array.isArray(current) ? current.filter(Boolean) : [];
+      if (!unique.includes(toolKey)) unique.push(toolKey);
+      localStorage.setItem(STACK_SAVED_TOOLS_KEY, JSON.stringify(unique.slice(-24)));
+    } catch (error) {
+      console.warn("Unable to save selected tool", error);
+    }
+  }
+
+  function persistSavedStack() {
+    try {
+      const toolKeys = Array.from(document.querySelectorAll(".stack-tool-card")).map((item) => item.dataset.toolKey).filter(Boolean);
+      if (!toolKeys.length) return false;
+      const payload = {
+        goal: stackState.goal || "",
+        budget: stackState.budget || "",
+        platform: stackState.platform || "",
+        student: !!stackState.student,
+        tools: toolKeys,
+        savedAt: new Date().toISOString(),
+      };
+      const raw = localStorage.getItem(STACK_HISTORY_KEY);
+      const current = raw ? JSON.parse(raw) : [];
+      const list = Array.isArray(current) ? current : [];
+      list.push(payload);
+      localStorage.setItem(STACK_HISTORY_KEY, JSON.stringify(list.slice(-12)));
+      return true;
+    } catch (error) {
+      console.warn("Unable to save stack", error);
+      return false;
+    }
+  }
 
   function updateProgressBar() {
     const progress = (currentStep / 4) * 100;
@@ -259,10 +439,22 @@
   }
 
   function isStepValid(step) {
-    if (step === 1) return !!selectedGoal;
-    if (step === 2) return !!selectedBudget;
-    if (step === 3) return !!selectedPlatform;
+    if (step === 1) return !!stackState.goal;
+    if (step === 2) return !!stackState.budget;
+    if (step === 3) return !!stackState.platform;
     return true;
+  }
+
+  function syncHiddenInputs() {
+    const goalInput = document.getElementById("goalInput");
+    const budgetInput = document.getElementById("budgetInput");
+    const platformInput = document.getElementById("platformInput");
+    const studentModeInput = document.getElementById("studentModeInput");
+
+    if (goalInput) goalInput.value = stackState.goal || "";
+    if (budgetInput) budgetInput.value = stackState.budget || "";
+    if (platformInput) platformInput.value = stackState.platform || "";
+    if (studentModeInput) studentModeInput.value = stackState.student ? "1" : "";
   }
 
   function updateStepUI() {
@@ -273,13 +465,14 @@
     const backBtn = document.getElementById("backBtn");
     const nextBtn = document.getElementById("nextBtn");
     const currentStepInput = document.getElementById("currentStepInput");
-    const studentModeInput = document.getElementById("studentModeInput");
     const studentModeCheckbox = document.getElementById("wizardStudentMode");
 
     if (currentStepInput) currentStepInput.value = String(currentStep);
-    if (studentModeInput && studentModeCheckbox) {
-      studentModeInput.value = studentModeCheckbox.checked ? "1" : "";
+    if (studentModeCheckbox) {
+      studentModeCheckbox.checked = !!stackState.student;
     }
+
+    syncHiddenInputs();
 
     if (backBtn) backBtn.disabled = currentStep === 1;
     if (nextBtn) {
@@ -302,39 +495,52 @@
     });
   }
 
+  function nextStep() {
+    if (!isStepValid(currentStep)) return;
+    if (currentStep < 4) {
+      currentStep += 1;
+      updateStepUI();
+    }
+  }
+
+  function backStep() {
+    if (currentStep > 1) {
+      currentStep -= 1;
+      updateStepUI();
+    }
+  }
+
   document.addEventListener("DOMContentLoaded", () => {
     const initialStep = Number("{{ current_step or 1 }}") || 1;
     currentStep = Math.min(Math.max(initialStep, 1), 4);
 
-    const goalInput = document.getElementById("goalInput");
-    const budgetInput = document.getElementById("budgetInput");
-    const platformInput = document.getElementById("platformInput");
     const actionInput = document.getElementById("actionInput");
     const wizardForm = document.getElementById("stackWizardForm");
+    const loadingState = document.getElementById("stack-loading-state");
 
     document.querySelectorAll(".goal-card").forEach((card) => {
       card.addEventListener("click", () => {
-        selectedGoal = card.dataset.value || "";
-        if (goalInput) goalInput.value = selectedGoal;
-        setActiveCard(".goal-card", selectedGoal);
+        stackState.goal = card.dataset.value || "";
+        setActiveCard(".goal-card", stackState.goal);
+        saveStackPrefs();
         updateStepUI();
       });
     });
 
     document.querySelectorAll(".budget-card").forEach((card) => {
       card.addEventListener("click", () => {
-        selectedBudget = card.dataset.value || "";
-        if (budgetInput) budgetInput.value = selectedBudget;
-        setActiveCard(".budget-card", selectedBudget);
+        stackState.budget = card.dataset.value || "";
+        setActiveCard(".budget-card", stackState.budget);
+        saveStackPrefs();
         updateStepUI();
       });
     });
 
     document.querySelectorAll(".platform-card").forEach((card) => {
       card.addEventListener("click", () => {
-        selectedPlatform = card.dataset.value || "";
-        if (platformInput) platformInput.value = selectedPlatform;
-        setActiveCard(".platform-card", selectedPlatform);
+        stackState.platform = card.dataset.value || "";
+        setActiveCard(".platform-card", stackState.platform);
+        saveStackPrefs();
         updateStepUI();
       });
     });
@@ -342,42 +548,67 @@
     const wizardStudentMode = document.getElementById("wizardStudentMode");
     if (wizardStudentMode) {
       wizardStudentMode.addEventListener("change", () => {
-        const studentModeInput = document.getElementById("studentModeInput");
-        if (studentModeInput) studentModeInput.value = wizardStudentMode.checked ? "1" : "";
+        stackState.student = wizardStudentMode.checked;
+        saveStackPrefs();
+        syncHiddenInputs();
+      });
+    }
+
+    document.querySelectorAll(".save-stack-tool").forEach((button) => {
+      button.addEventListener("click", () => {
+        persistSavedTool(button.dataset.tool || "");
+        button.textContent = "Saved";
+        button.classList.add("border-emerald-500/40", "text-emerald-300");
+      });
+    });
+
+    const pickForMeBtn = document.getElementById("pick-for-me-btn");
+    if (pickForMeBtn) {
+      pickForMeBtn.addEventListener("click", () => {
+        const bestCard = document.querySelector(".stack-tool-card.ring-1") || document.querySelector(".stack-tool-card");
+        if (!bestCard) return;
+        bestCard.scrollIntoView({ behavior: "smooth", block: "center" });
+        bestCard.classList.add("ring-2", "ring-cyan-400/50");
+        setTimeout(() => bestCard.classList.remove("ring-2", "ring-cyan-400/50"), 1200);
+      });
+    }
+
+    const saveStackBtn = document.getElementById("save-stack-btn");
+    if (saveStackBtn) {
+      saveStackBtn.addEventListener("click", () => {
+        const ok = persistSavedStack();
+        if (!ok) return;
+        saveStackBtn.textContent = "Stack Saved";
+        saveStackBtn.classList.add("border-emerald-500/40", "text-emerald-300");
       });
     }
 
     const backBtn = document.getElementById("backBtn");
     if (backBtn) {
-      backBtn.addEventListener("click", () => {
-        if (currentStep > 1) {
-          currentStep--;
-          updateStepUI();
-        }
-      });
+      backBtn.addEventListener("click", backStep);
     }
 
-    const nextBtn = document.getElementById("nextBtn");
-    if (nextBtn) {
-      nextBtn.addEventListener("click", () => {
-        if (currentStep === 1 && !selectedGoal) return;
-        if (currentStep === 2 && !selectedBudget) return;
-        if (currentStep === 3 && !selectedPlatform) return;
-
+    const stepNextButton = document.getElementById("nextBtn") || document.getElementById("next-btn");
+    if (stepNextButton) {
+      stepNextButton.addEventListener("click", () => {
         if (currentStep < 4) {
-          currentStep++;
-          updateStepUI();
+          nextStep();
           return;
         }
 
+        syncHiddenInputs();
         if (actionInput) actionInput.value = "generate";
+        if (loadingState) loadingState.classList.remove("hidden");
+        stepNextButton.disabled = true;
+        stepNextButton.textContent = "Generating...";
         if (wizardForm) wizardForm.submit();
       });
     }
 
-    setActiveCard(".goal-card", selectedGoal);
-    setActiveCard(".budget-card", selectedBudget);
-    setActiveCard(".platform-card", selectedPlatform);
+    loadStackPrefs();
+    setActiveCard(".goal-card", stackState.goal);
+    setActiveCard(".budget-card", stackState.budget);
+    setActiveCard(".platform-card", stackState.platform);
     updateStepUI();
   });
 </script>

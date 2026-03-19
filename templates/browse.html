@@ -15,7 +15,7 @@
       <h1 class="text-2xl font-semibold text-zinc-100">Browse AI Tools</h1>
       <p class="text-sm text-zinc-400">Explore tools by category, pricing, and popularity.</p>
     </div>
-    <a href="{{ url_for('main.dashboard') }}" class="px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-sm text-zinc-200 hover:bg-white/10">&larr; Dashboard</a>
+    <a href="{{ url_for('main.dashboard') }}" class="dashboard-btn text-sm">Dashboard</a>
   </div>
 
   <section class="rounded-xl border border-white/10 bg-white/5 p-4">
@@ -49,29 +49,70 @@
     <div class="flex items-center gap-2">
       <a href="{{ build_tools_url(pricing='', page=1) }}" class="px-3 py-1.5 rounded-lg border text-xs {{ '' if current_pricing else 'bg-emerald-500/20 border-emerald-400/40 text-emerald-100' }} {{ 'bg-white/5 border-white/10 text-zinc-300 hover:bg-white/10' if current_pricing else '' }}">All Pricing</a>
       <a href="{{ build_tools_url(pricing='free', page=1) }}" class="px-3 py-1.5 rounded-lg border text-xs {{ 'bg-emerald-500/20 border-emerald-400/40 text-emerald-100' if current_pricing == 'free' else 'bg-white/5 border-white/10 text-zinc-300 hover:bg-white/10' }}">Free Only</a>
-      <label for="sort-select" class="text-sm text-gray-400 mr-1">Sort</label>
-      <select id="sort-select" class="bg-gray-900 text-white border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="updateSort(this.value)">
-        <option value="popular" class="bg-gray-900 text-white" {% if current_sort == 'popular' %}selected{% endif %}>Most Popular</option>
-        <option value="latest" class="bg-gray-900 text-white" {% if current_sort == 'latest' %}selected{% endif %}>Newest</option>
-        <option value="free" class="bg-gray-900 text-white" {% if current_sort == 'free' %}selected{% endif %}>Free First</option>
+      <select id="sort-select" class="text-sm font-medium rounded-lg px-3 py-1.5 border transition-all cursor-pointer appearance-none bg-no-repeat pr-8" style="background-image: url('data:image/svg+xml;utf8,<svg fill=\'%2394a3b8\' height=\'24\' viewBox=\'0 0 24 24\' width=\'24\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M7 10l5 5 5-5z\'/></svg>'); background-position: right 0.5rem center; background-size: 1.5em 1.5em;" class="{{ 'bg-emerald-500/20 border-emerald-400/40 text-emerald-100' if current_sort == 'free' else 'bg-white/5 border-white/10 text-zinc-300' }} hover:border-white/20 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50" onchange="updateSort(this.value)">
+        <option value="popular" class="bg-slate-900 text-white" {% if current_sort == 'popular' %}selected{% endif %}>⭐ Most Popular</option>
+        <option value="trending" class="bg-slate-900 text-white" {% if current_sort == 'trending' %}selected{% endif %}>🔥 Trending</option>
+        <option value="latest" class="bg-slate-900 text-white" {% if current_sort == 'latest' %}selected{% endif %}>✨ Newest</option>
+        <option value="free" class="bg-slate-900 text-white" {% if current_sort == 'free' %}selected{% endif %}>💰 Free First</option>
       </select>
     </div>
   </section>
 
+  {% if show_ai_recommendation and ai_summary and top_recommendations %}
+  <section class="rounded-xl border border-cyan-500/25 bg-cyan-500/10 p-4 hover:border-cyan-500/40 transition-all duration-200">
+    <div class="flex items-start justify-between gap-3 flex-wrap">
+      <div class="flex-1">
+        <h2 class="text-sm font-semibold text-cyan-100">💡 Smart Recommendation</h2>
+        <p class="text-xs text-cyan-200/90 mt-2 leading-relaxed">{{ ai_summary|safe }}</p>
+        {% if decision_shortcut %}
+        <p class="text-xs text-cyan-100 font-semibold mt-2">{{ decision_shortcut }}</p>
+        {% endif %}
+        {% if alternatives %}
+        <p class="text-[11px] text-cyan-100/80 mt-2">
+          <span class="text-cyan-300 font-medium">Other options:</span>
+          {% for alt in alternatives %}
+            <a href="{{ url_for('main.tool_detail', tool_id=alt.tool_key) }}" class="text-cyan-100 hover:text-cyan-50 underline">{{ alt.name }}</a>{% if not loop.last %}<span class="mx-1">•</span>{% endif %}
+          {% endfor %}
+        </p>
+        {% endif %}
+      </div>
+      <button type="button" id="browse-pick-btn" class="text-xs px-3 py-1.5 rounded-lg border border-cyan-400/30 bg-cyan-500/15 text-cyan-100 hover:bg-cyan-500/25 transition-all active:scale-95">Pick for me</button>
+    </div>
+    <div class="mt-4 flex flex-wrap gap-2">
+      {% for pick in top_recommendations[:3] %}
+      <a href="{{ url_for('main.tool_detail', tool_id=pick.tool_key) }}" class="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-zinc-100 hover:border-cyan-400/35 hover:bg-cyan-500/10 transition-all active:scale-95">
+        <span>{{ pick.name }}</span>
+        {% if pick.get('priority_label') %}<span class="text-cyan-200">{{ pick.priority_label }}</span>{% endif %}
+      </a>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
   {% if tools %}
   <section class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
     {% for tool in tools %}
-    <article class="rounded-xl border border-white/10 bg-white/5 p-4 flex flex-col gap-3">
+    <article class="browse-tool-card rounded-xl border border-white/10 bg-white/5 p-4 flex flex-col gap-3">
       <div class="flex items-start justify-between gap-3">
         <div class="min-w-0">
           <h3 class="text-zinc-100 font-semibold truncate">{{ tool.name }}</h3>
           <p class="text-sm text-zinc-400 line-clamp-2">{{ tool.description or 'No description available.' }}</p>
         </div>
+        {% if loop.first %}
+        <span class="text-[10px] px-2 py-1 rounded-md bg-amber-500/15 border border-amber-500/25 text-amber-200">🏆 Best Choice</span>
+        {% endif %}
       </div>
 
       <div class="flex items-center gap-2 flex-wrap">
         <span class="text-xs px-2 py-1 rounded-md bg-white/10 text-zinc-200">{{ tool.category }}</span>
         <span class="text-xs px-2 py-1 rounded-md border {{ 'border-emerald-400/40 text-emerald-200 bg-emerald-500/20' if tool.pricing == 'free' else 'border-blue-400/40 text-blue-200 bg-blue-500/20' if tool.pricing == 'freemium' else 'border-zinc-400/30 text-zinc-200 bg-zinc-500/20' }}">{{ tool.pricing }}</span>
+        {% if tool.get('priority_label') %}<span class="text-xs px-2 py-1 rounded-md bg-blue-500/15 border border-blue-500/25 text-blue-200">{{ tool.priority_label }}</span>{% endif %}
+        {% if tool.get('verified') %}<span class="text-xs px-2 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/25 text-emerald-200">✔ Verified</span>{% endif %}
+        {% if tool.get('recently_updated') %}<span class="text-xs px-2 py-1 rounded-md bg-sky-500/10 border border-sky-500/25 text-sky-200">🔄 Recently Updated</span>{% endif %}
+        {% if tool.get('student_friendly') %}<span class="text-xs px-2 py-1 rounded-md bg-amber-500/10 border border-amber-500/25 text-amber-200">🎓 Student Friendly</span>{% endif %}
+        {% if tool.get('trending_this_week') %}<span class="text-xs px-2 py-1 rounded-md bg-rose-500/10 border border-rose-500/25 text-rose-200">🔥 Trending this week</span>{% endif %}
+        {% if tool.get('is_new') %}<span class="text-xs px-2 py-1 rounded-md bg-cyan-500/10 border border-cyan-500/25 text-cyan-200">🆕 Newly added</span>{% endif %}
+        {% if tool.get('last_updated_label') %}<span class="text-xs px-2 py-1 rounded-md bg-white/5 border border-white/10 text-zinc-300">{{ tool.last_updated_label }}</span>{% endif %}
       </div>
 
       <div class="pt-1 mt-auto">
@@ -112,5 +153,17 @@
     url.searchParams.set('page', '1');
     window.location = url.toString();
   }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const pickBtn = document.getElementById('browse-pick-btn');
+    if (!pickBtn) return;
+    pickBtn.addEventListener('click', () => {
+      const best = document.querySelector('.browse-tool-card');
+      if (!best) return;
+      best.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      best.classList.add('ring-2', 'ring-cyan-400/50');
+      setTimeout(() => best.classList.remove('ring-2', 'ring-cyan-400/50'), 1200);
+    });
+  });
 </script>
 {% endblock %}

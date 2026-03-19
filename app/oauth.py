@@ -122,3 +122,13 @@ def github_callback():
     except Exception:
         flash("GitHub login failed. Please try again.", "error")
         return redirect(url_for("auth.login"))
+
+
+@oauth_bp.route("/login/linkedin")
+def login_linkedin():
+    if not current_app.config.get("LINKEDIN_CLIENT_ID"):
+        flash("LinkedIn login is not configured yet.", "info")
+        return redirect(url_for("auth.login"))
+
+    flash("LinkedIn OAuth setup is currently a stub. Configure provider metadata to enable sign-in.", "info")
+    return redirect(url_for("auth.login"))

@@ -52,7 +52,7 @@
 <div class="max-w-6xl mx-auto space-y-6">
     <a href="{{ url_for('main.index') }}" class="inline-flex items-center text-sm text-slate-300 hover:text-white transition-colors">← Back to AI Compass</a>
 
-    <section class="panel rounded-2xl p-5 sm:p-8 mt-4">
+    <section class="panel app-card rounded-2xl p-5 sm:p-8 mt-4">
       <div class="flex flex-col md:flex-row md:items-start gap-5">
         <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden border border-white/15 flex items-center justify-center bg-white/5 flex-shrink-0">
           <img src="{{ tool.icon_url or tool.seo_icon }}" alt="{{ tool.name }} icon" class="w-full h-full object-contain bg-white p-1 rounded-lg" onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');" />
@@ -64,11 +64,21 @@
           <p class="text-sm sm:text-base text-slate-300 mt-1">{{ tool.tagline }}</p>
           <p class="text-xs sm:text-sm text-slate-400 mt-2">by {{ tool.maker }}</p>
 
+          <div class="mt-3 flex flex-wrap gap-2">
+            {% if tool.get('verified') %}<span class="chip rounded-full px-3 py-1 text-xs text-emerald-200">✔ Verified</span>{% endif %}
+            {% if tool.get('recently_updated') %}<span class="chip rounded-full px-3 py-1 text-xs text-sky-200">🔄 Recently Updated</span>{% endif %}
+            {% if tool.get('student_friendly') %}<span class="chip rounded-full px-3 py-1 text-xs text-amber-200">🎓 Student Friendly</span>{% endif %}
+            {% if tool.get('trending_this_week') %}<span class="chip rounded-full px-3 py-1 text-xs text-rose-200">🔥 Trending this week</span>{% endif %}
+            {% if tool.get('is_new') %}<span class="chip rounded-full px-3 py-1 text-xs text-cyan-200">🆕 Newly added</span>{% endif %}
+          </div>
+
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-5 text-xs sm:text-sm">
             <div class="chip rounded-lg px-3 py-2"><span class="text-slate-400">Rating</span><div class="font-semibold">{{ rating_summary.average if rating_summary.count else tool.rating }}</div></div>
             <div class="chip rounded-lg px-3 py-2"><span class="text-slate-400">Weekly users</span><div class="font-semibold">{{ tool.weeklyUsers }}</div></div>
             <div class="chip rounded-lg px-3 py-2"><span class="text-slate-400">Launch year</span><div class="font-semibold">{{ tool.launchYear }}</div></div>
             <div class="chip rounded-lg px-3 py-2"><span class="text-slate-400">Pricing</span><div class="font-semibold">{{ tool.price }}</div></div>
+            <div class="chip rounded-lg px-3 py-2"><span class="text-slate-400">Last updated</span><div class="font-semibold">{{ tool.last_updated_label }}</div></div>
+            <div class="chip rounded-lg px-3 py-2"><span class="text-slate-400">Activity</span><div class="font-semibold">🔥 {{ today_views }} students viewed this today</div></div>
           </div>
 
           <div class="panel rounded-2xl p-4 mt-5 border border-white/10">
@@ -94,17 +104,31 @@
           </div>
         </div>
 
-        <a href="{{ tool.link }}" target="_blank" rel="noopener noreferrer" class="self-start bg-emerald-400 text-emerald-950 hover:bg-emerald-300 rounded-xl px-4 py-2 text-sm font-semibold transition-colors">
-          Visit Tool
-        </a>
+        <div class="self-start flex flex-col gap-2">
+          <a href="{{ tool.link }}" target="_blank" rel="noopener noreferrer" class="bg-emerald-400 text-emerald-950 hover:bg-emerald-300 rounded-xl px-4 py-2 text-sm font-semibold transition-colors text-center">
+            Visit Tool
+          </a>
+          <button id="save-tool-local" type="button" data-tool-key="{{ tool.tool_key }}" class="rounded-xl px-4 py-2 text-xs font-semibold border border-white/15 bg-white/5 text-zinc-100 hover:bg-white/10">
+            ⭐ Save tool
+          </button>
+        </div>
       </div>
     </section>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 mt-6">
-      <section class="panel rounded-2xl p-5 lg:col-span-2 space-y-6">
+      <section class="panel app-card rounded-2xl p-5 lg:col-span-2 space-y-6">
         <div>
           <h2 class="text-lg font-semibold">Description</h2>
           <p class="text-slate-300 mt-2 leading-relaxed">{{ tool.description }}</p>
+        </div>
+
+        <div class="panel rounded-xl p-3">
+          <h3 class="text-sm font-semibold">Was this helpful?</h3>
+          <div class="mt-2 flex items-center gap-2">
+            <button type="button" class="helpful-btn rounded-lg px-3 py-1.5 text-xs border border-emerald-500/30 bg-emerald-500/10 text-emerald-200" data-feedback="up">👍 Yes</button>
+            <button type="button" class="helpful-btn rounded-lg px-3 py-1.5 text-xs border border-rose-500/30 bg-rose-500/10 text-rose-200" data-feedback="down">👎 No</button>
+            <span id="helpful-msg" class="text-xs text-slate-400 hidden">Thanks for the feedback.</span>
+          </div>
         </div>
 
         <div>
@@ -175,5 +199,52 @@
       </div>
     </section>
 </div>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const saveBtn = document.getElementById('save-tool-local');
+    const key = 'ai_compass_saved_tools_local';
+    const recentKey = 'recent_tools';
+    const currentToolKey = '{{ tool.tool_key }}';
+
+    if (currentToolKey) {
+      const rawRecent = localStorage.getItem(recentKey);
+      const list = rawRecent ? JSON.parse(rawRecent) : [];
+      const next = Array.isArray(list) ? list.filter((item) => item !== currentToolKey) : [];
+      next.unshift(currentToolKey);
+      localStorage.setItem(recentKey, JSON.stringify(next.slice(0, 24)));
+    }
+
+    if (saveBtn) {
+      const toolKey = String(saveBtn.dataset.toolKey || '').trim();
+      saveBtn.addEventListener('click', () => {
+        if (!toolKey) return;
+        const raw = localStorage.getItem(key);
+        const current = raw ? JSON.parse(raw) : [];
+        const list = Array.isArray(current) ? current.filter(Boolean) : [];
+        if (!list.includes(toolKey)) list.push(toolKey);
+        localStorage.setItem(key, JSON.stringify(list.slice(-48)));
+        saveBtn.textContent = '⭐ Saved';
+      });
+    }
+
+    document.querySelectorAll('.helpful-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const feedbackKey = 'ai_compass_helpful_feedback';
+        const payload = {
+          tool: '{{ tool.tool_key }}',
+          vote: btn.dataset.feedback || 'up',
+          at: new Date().toISOString(),
+        };
+        const raw = localStorage.getItem(feedbackKey);
+        const rows = raw ? JSON.parse(raw) : [];
+        const list = Array.isArray(rows) ? rows : [];
+        list.push(payload);
+        localStorage.setItem(feedbackKey, JSON.stringify(list.slice(-100)));
+        const msg = document.getElementById('helpful-msg');
+        if (msg) msg.classList.remove('hidden');
+      });
+    });
+  });
+</script>
 {% endblock %}
 
