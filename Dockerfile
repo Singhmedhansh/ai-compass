@@ -11,6 +11,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 ENV APP_ENV=production
-EXPOSE 8000
+EXPOSE 8080
 
-CMD ["sh", "-c", "gunicorn wsgi:app --bind 0.0.0.0:${PORT:-8000} --workers 2 --threads 4 --timeout 120"]
+CMD ["sh", "-c", "gunicorn wsgi:app --bind 0.0.0.0:${PORT:-8080} --workers 2 --threads 4 --timeout 120"]
