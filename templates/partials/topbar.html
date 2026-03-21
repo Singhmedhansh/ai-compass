@@ -73,7 +73,11 @@
 
       <div class="relative profile-menu-root">
         <button type="button" class="profile-trigger w-9 h-9 rounded-full border-2 border-cyan-400/30 bg-gradient-to-br from-cyan-500/30 to-blue-500/30 text-zinc-100 text-sm font-semibold hover:border-cyan-400/50 hover:from-cyan-500/40 hover:to-blue-500/40 transition-all" aria-haspopup="true" aria-expanded="false" aria-label="Open profile menu" title="{{ current_user.display_name or current_user.email }}">
+          {% if current_user.oauth_picture_url %}
+          <img src="{{ current_user.oauth_picture_url }}" alt="Profile" class="w-full h-full rounded-full object-cover" />
+          {% else %}
           {{ (current_user.display_name or current_user.email or 'U')[:1]|upper }}
+          {% endif %}
         </button>
         <div class="profile-menu hidden absolute right-0 mt-2 w-44 rounded-xl border border-white/10 bg-zinc-900/95 backdrop-blur p-1.5 shadow-2xl z-50">
           <a href="{{ url_for('main.profile') }}" class="profile-menu-item">Profile</a>

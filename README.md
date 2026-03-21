@@ -192,6 +192,12 @@ GITHUB_CLIENT_ID=
 GITHUB_CLIENT_SECRET=
 ```
 
+Google OAuth redirect URI in Google Cloud Console must exactly match:
+
+```sh
+http://127.0.0.1:5000/auth/google/callback
+```
+
 ## Running in Production
 
 Run locally with gunicorn:

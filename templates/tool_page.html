@@ -216,14 +216,37 @@
 
     if (saveBtn) {
       const toolKey = String(saveBtn.dataset.toolKey || '').trim();
-      saveBtn.addEventListener('click', () => {
+      saveBtn.addEventListener('click', async () => {
         if (!toolKey) return;
-        const raw = localStorage.getItem(key);
-        const current = raw ? JSON.parse(raw) : [];
-        const list = Array.isArray(current) ? current.filter(Boolean) : [];
-        if (!list.includes(toolKey)) list.push(toolKey);
-        localStorage.setItem(key, JSON.stringify(list.slice(-48)));
-        saveBtn.textContent = '⭐ Saved';
+        try {
+          const csrfInput = document.querySelector('input[name="csrf_token"]');
+          const response = await fetch('/api/favorite', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': csrfInput ? csrfInput.value : '',
+            },
+            body: JSON.stringify({ tool_id: toolKey }),
+          });
+          if (response.status === 401) {
+            if (window.showLoginPrompt) {
+              window.showLoginPrompt();
+              return;
+            }
+            window.location.href = '/login';
+            return;
+          }
+          if (!response.ok) {
+            throw new Error('Failed to save tool');
+          }
+          const data = await response.json();
+          saveBtn.textContent = data.favorited ? '⭐ Saved' : '⭐ Save tool';
+          if (data.favorited && window.showToast) {
+            window.showToast('Saved to your favorites ✓');
+          }
+        } catch (error) {
+          console.error(error);
+        }
       });
     }
 

@@ -1,8 +1,33 @@
-const config = window.AI_COMPASS_CONFIG || {
-  isAuthenticated: false,
-  favoriteIds: [],
-  csrfToken: '',
-};
+function readRuntimeConfig() {
+  const fallback = {
+    isAuthenticated: false,
+    favoriteIds: [],
+    csrfToken: '',
+    loginUrl: '/login',
+    registerUrl: '/register',
+  };
+
+  const node = document.getElementById('ai-compass-config');
+  if (!node) return fallback;
+
+  let favoriteIds = [];
+  try {
+    favoriteIds = JSON.parse(String(node.dataset.favoriteIds || '[]'));
+    if (!Array.isArray(favoriteIds)) favoriteIds = [];
+  } catch (error) {
+    favoriteIds = [];
+  }
+
+  return {
+    isAuthenticated: String(node.dataset.isAuthenticated || '') === '1',
+    favoriteIds,
+    csrfToken: String(node.dataset.csrfToken || ''),
+    loginUrl: String(node.dataset.loginUrl || '/login'),
+    registerUrl: String(node.dataset.registerUrl || '/register'),
+  };
+}
+
+const config = window.AI_COMPASS_CONFIG || readRuntimeConfig();
 
 let allTools = [];
 let trendingTools = [];
@@ -50,6 +75,12 @@ const LOCAL_KEYS = {
   recentTools: 'recent_tools',
   savedTools: 'ai_compass_saved_tools_local',
   savedStacks: 'ai_compass_saved_stacks',
+};
+
+const SEARCH_KEYWORD_MAP = {
+  editing: ['writing', 'video editing', 'design'],
+  coding: ['developer tools', 'programming', 'developer'],
+  study: ['notes', 'flashcards', 'learning'],
 };
 
 function readLocalArray(key) {
@@ -311,6 +342,7 @@ function applyTheme(themeName) {
   const theme = themeName === 'light' ? 'light' : 'dark';
   document.documentElement.classList.remove('light', 'dark');
   document.documentElement.classList.add(theme);
+  document.documentElement.setAttribute('data-theme', theme);
   localStorage.setItem('theme', theme);
   updateThemeToggleUI(theme);
 }
@@ -448,14 +480,67 @@ async function postJson(url, payload) {
   });
 
   if (!response.ok) {
-    throw new Error('Request failed');
+    const error = new Error('Request failed');
+    error.status = response.status;
+    throw error;
   }
 
   return response.json();
 }
 
+function showToast(message) {
+  if (!message) return;
+  let toast = document.getElementById('student-mode-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'student-mode-toast';
+    toast.className = 'student-toast';
+    document.body.appendChild(toast);
+  }
+
+  toast.innerHTML = `<span>✓</span><span>${escapeHtml(message)}</span>`;
+  toast.classList.remove('dismiss');
+  if (window.studentModeToastTimer) clearTimeout(window.studentModeToastTimer);
+  window.studentModeToastTimer = setTimeout(() => {
+    const currentToast = document.getElementById('student-mode-toast');
+    if (currentToast) currentToast.classList.add('dismiss');
+  }, 2200);
+}
+
+function showLoginPrompt() {
+  const modal = document.getElementById('login-required-modal');
+  if (!modal) {
+    window.location.href = config.loginUrl || '/login';
+    return;
+  }
+
+  const next = encodeURIComponent(window.location.pathname + window.location.search);
+  const loginLink = document.getElementById('login-required-login');
+  const registerLink = document.getElementById('login-required-register');
+  if (loginLink) loginLink.href = `${config.loginUrl || '/login'}?next=${next}`;
+  if (registerLink) registerLink.href = `${config.registerUrl || '/register'}?next=${next}`;
+
+  modal.classList.add('open');
+  modal.setAttribute('aria-hidden', 'false');
+}
+
+function hideLoginPrompt() {
+  const modal = document.getElementById('login-required-modal');
+  if (!modal) return;
+  modal.classList.remove('open');
+  modal.setAttribute('aria-hidden', 'true');
+}
+
 function getFilteredTools() {
   const query = state.search.trim().toLowerCase();
+  const queryCompact = query.replace(/\s+/g, '');
+  const mappedTerms = [];
+  query.split(/\s+/).forEach((token) => {
+    if (SEARCH_KEYWORD_MAP[token]) {
+      mappedTerms.push(...SEARCH_KEYWORD_MAP[token]);
+    }
+  });
+  const expanded = [query, ...mappedTerms].filter(Boolean);
 
   return allTools.filter((tool) => {
     const category = normalizeCategory(tool.category);
@@ -471,7 +556,14 @@ function getFilteredTools() {
     if (state.price !== 'all' && model !== state.price) return false;
 
     if (query) {
-      const matches = name.includes(query) || tagline.includes(query) || desc.includes(query) || category.includes(query) || tags.includes(query);
+      const haystack = `${name} ${tagline} ${desc} ${category} ${tags}`;
+      const haystackCompact = haystack.replace(/\s+/g, '');
+      const matches = expanded.some((term) => {
+        const t = String(term || '').toLowerCase();
+        if (!t) return false;
+        const tCompact = t.replace(/\s+/g, '');
+        return haystack.includes(t) || (tCompact && haystackCompact.includes(tCompact)) || (queryCompact && haystackCompact.includes(queryCompact));
+      });
       if (!matches) return false;
     }
 
@@ -1182,15 +1274,7 @@ async function refreshData() {
 
 async function toggleFavorite(toolKey) {
   if (!config.isAuthenticated) {
-    if (favorites.has(toolKey)) {
-      favorites.delete(toolKey);
-      forgetSavedTool(toolKey);
-    } else {
-      favorites.add(toolKey);
-      rememberSavedTool(toolKey);
-    }
-    applyAndRender();
-    renderLocalMemorySections();
+    showLoginPrompt();
     return;
   }
 
@@ -1199,12 +1283,17 @@ async function toggleFavorite(toolKey) {
     if (result.favorited) {
       favorites.add(toolKey);
       rememberSavedTool(toolKey);
+      showToast('Saved to your favorites ✓');
     } else {
       favorites.delete(toolKey);
       forgetSavedTool(toolKey);
     }
     applyAndRender();
   } catch (error) {
+    if (error && error.status === 401) {
+      showLoginPrompt();
+      return;
+    }
     console.error(error);
   }
 }
@@ -1490,6 +1579,15 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     }
 
+    const loginModal = document.getElementById('login-required-modal');
+    const loginModalClose = document.getElementById('login-required-close');
+    if (loginModal && loginModalClose) {
+      loginModalClose.addEventListener('click', hideLoginPrompt);
+      loginModal.addEventListener('click', (event) => {
+        if (event.target === loginModal) hideLoginPrompt();
+      });
+    }
+
     // Initialize Student Mode from server state (source of truth)
     const bootToggle = document.getElementById('student-mode-toggle') || document.getElementById('studentToggle');
     const localStudentMode = String(localStorage.getItem('student_mode') || localStorage.getItem('ai_compass_student_mode') || '').toLowerCase() === 'true';
@@ -1636,3 +1734,5 @@ window.toggleFavorite = toggleFavorite;
 window.toggleCompare = toggleCompare;
 window.goToComparePage = goToComparePage;
 window.toggleTheme = toggleTheme;
+window.showLoginPrompt = showLoginPrompt;
+window.showToast = showToast;

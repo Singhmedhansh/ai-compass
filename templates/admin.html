@@ -10,6 +10,7 @@
       var root = document.documentElement;
       root.classList.remove('light', 'dark');
       root.classList.add(theme);
+      root.setAttribute('data-theme', theme);
     })();
   </script>
   <script src="https://cdn.tailwindcss.com"></script>
@@ -390,6 +391,7 @@
         var root = document.documentElement;
         root.classList.remove('light', 'dark');
         root.classList.add(theme);
+        root.setAttribute('data-theme', theme);
         localStorage.setItem('theme', theme);
         if (btn) {
           btn.textContent = theme === 'light' ? '☀ Light' : '🌙 Dark';

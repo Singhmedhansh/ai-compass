@@ -9,19 +9,28 @@ from app.models import User
 auth_bp = Blueprint("auth", __name__)
 
 
-def _has_onboarding_preferences(user):
+def _requires_onboarding(user):
+    if bool(getattr(user, "onboarding_completed", False)):
+        return False
+
+    if getattr(user, "first_login", False):
+        return True
+
+    if str(getattr(user, "skill_level", "") or "").strip() and str(getattr(user, "pricing_pref", "") or "").strip():
+        return False
+
     raw = str(getattr(user, "preferences", "") or "").strip()
     if not raw:
-        return False
+        return True
     try:
         parsed = json.loads(raw)
     except (json.JSONDecodeError, TypeError, ValueError):
-        return False
+        return True
     if isinstance(parsed, dict):
-        return bool(parsed.get("skill_level") and parsed.get("preferred_pricing"))
+        return not bool(parsed.get("skill_level") and parsed.get("preferred_pricing"))
     if isinstance(parsed, list):
-        return bool(parsed)
-    return False
+        return not bool(parsed)
+    return True
 
 
 def _is_configured_admin_email(email):
@@ -83,7 +92,7 @@ def register():
 
         login_user(user)
         flash("Welcome to AI Compass.", "success")
-        if not _has_onboarding_preferences(user):
+        if _requires_onboarding(user):
             return redirect(url_for("main.onboarding"))
         return redirect(url_for("main.dashboard"))
 
@@ -130,7 +139,7 @@ def login():
             login_user(user)
             flash("Admin login detected. Use the Admin Panel button from the dashboard.", "success")
             next_url = request.args.get("next")
-            if not _has_onboarding_preferences(user):
+            if _requires_onboarding(user):
                 return redirect(url_for("main.onboarding"))
             return redirect(next_url or url_for("main.dashboard"))
 
@@ -139,7 +148,7 @@ def login():
             login_user(user)
             flash("You are now logged in.", "success")
             next_url = request.args.get("next")
-            if not _has_onboarding_preferences(user):
+            if _requires_onboarding(user):
                 return redirect(url_for("main.onboarding"))
             return redirect(next_url or url_for("main.dashboard"))
 

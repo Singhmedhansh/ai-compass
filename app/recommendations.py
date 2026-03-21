@@ -39,6 +39,13 @@ def _interest_categories(pref_obj):
     return categories
 
 
+def _goal_tokens(pref_obj):
+    goals = pref_obj.get("goals") or []
+    if isinstance(goals, str):
+        goals = goals.split(",")
+    return {_norm(item) for item in goals if _norm(item)}
+
+
 def recommend_tools(all_tools, favorite_tools, limit=8, student_mode=False, user=None):
     if not all_tools:
         return []
@@ -89,6 +96,7 @@ def _rank_with_user_preferences(tools, user=None, student_mode=False):
     preferred_pricing = _norm(pref_obj.get("preferred_pricing"))
     interest_categories = _interest_categories(pref_obj)
     interest_tags = {_norm(item) for item in pref_obj.get("interest_tags") or pref_obj.get("interests") or [] if _norm(item)}
+    goals = _goal_tokens(pref_obj)
 
     scored = []
     for tool in tools:
@@ -105,6 +113,9 @@ def _rank_with_user_preferences(tools, user=None, student_mode=False):
 
         if interest_tags:
             score += len(interest_tags & tags) * 18
+
+        if goals:
+            score += len(goals & tags) * 14
 
         if preferred_pricing and preferred_pricing == tool_pricing:
             score += 22
@@ -173,8 +184,10 @@ def get_smart_recommendation_text(tool, user=None):
 
     pref_obj = _parse_user_preferences(user)
     interests = [_norm(item) for item in pref_obj.get("interest_tags") or pref_obj.get("interests") or [] if _norm(item)]
+    goals = sorted(_goal_tokens(pref_obj))
     anchor = interests[0] if interests else _norm(pref_obj.get("most_viewed_category")) or category.lower()
 
     beginner_hint = " and beginner-friendly" if ({"easy", "beginner"} & tags) else ""
+    goal_hint = f" for your goal of {goals[0]}" if goals else ""
     rating_hint = "highly rated" if rating >= 4.4 else "popular"
-    return f"Since you're exploring {anchor} tools, {name} is a great fit because it's {rating_hint}{beginner_hint}."
+    return f"Since you're exploring {anchor} tools, {name} is a great fit because it's {rating_hint}{beginner_hint}{goal_hint}."

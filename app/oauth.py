@@ -1,5 +1,4 @@
 """OAuth login via Google and GitHub using Authlib."""
-import os
 import json
 
 from authlib.integrations.flask_client import OAuth
@@ -10,14 +9,14 @@ from app import db
 from app.models import User
 
 oauth_bp = Blueprint("oauth", __name__)
-_oauth = OAuth()
+oauth = OAuth()
 
 
 def init_oauth(app):
-    _oauth.init_app(app)
+    oauth.init_app(app)
 
     if app.config.get("GOOGLE_CLIENT_ID") and app.config.get("GOOGLE_CLIENT_SECRET"):
-        _oauth.register(
+        oauth.register(
             name="google",
             client_id=app.config["GOOGLE_CLIENT_ID"],
             client_secret=app.config["GOOGLE_CLIENT_SECRET"],
@@ -26,7 +25,7 @@ def init_oauth(app):
         )
 
     if app.config.get("GITHUB_CLIENT_ID") and app.config.get("GITHUB_CLIENT_SECRET"):
-        _oauth.register(
+        oauth.register(
             name="github",
             client_id=app.config["GITHUB_CLIENT_ID"],
             client_secret=app.config["GITHUB_CLIENT_SECRET"],
@@ -57,19 +56,28 @@ def _get_or_create_oauth_user(email, display_name, provider):
     return user
 
 
-def _has_onboarding_preferences(user):
+def _requires_onboarding(user):
+    if bool(getattr(user, "onboarding_completed", False)):
+        return False
+
+    if getattr(user, "first_login", False):
+        return True
+
+    if str(getattr(user, "skill_level", "") or "").strip() and str(getattr(user, "pricing_pref", "") or "").strip():
+        return False
+
     raw = str(getattr(user, "preferences", "") or "").strip()
     if not raw:
-        return False
+        return True
     try:
         parsed = json.loads(raw)
     except (json.JSONDecodeError, TypeError, ValueError):
-        return False
+        return True
     if isinstance(parsed, dict):
-        return bool(parsed.get("skill_level") and parsed.get("preferred_pricing"))
+        return not bool(parsed.get("skill_level") and parsed.get("preferred_pricing"))
     if isinstance(parsed, list):
-        return bool(parsed)
-    return False
+        return not bool(parsed)
+    return True
 
 
 # ── Google ──────────────────────────────────────────────────────────────────
@@ -80,14 +88,14 @@ def login_google():
         flash("Google login is not configured.", "error")
         return redirect(url_for("auth.login"))
     redirect_uri = url_for("oauth.google_callback", _external=True)
-    return _oauth.google.authorize_redirect(redirect_uri)
+    return oauth.google.authorize_redirect(redirect_uri)
 
 
-@oauth_bp.route("/login/google/callback")
+@oauth_bp.route("/auth/google/callback")
 def google_callback():
     try:
-        token = _oauth.google.authorize_access_token()
-        userinfo = token.get("userinfo") or _oauth.google.userinfo()
+        token = oauth.google.authorize_access_token()
+        userinfo = token.get("userinfo") or oauth.google.userinfo()
         email = userinfo.get("email")
         if not email:
             flash("Google did not return an email address.", "error")
@@ -99,7 +107,7 @@ def google_callback():
             user.oauth_picture_url = picture
             db.session.commit()
         login_user(user)
-        if not _has_onboarding_preferences(user):
+        if _requires_onboarding(user):
             return redirect(url_for("main.onboarding"))
         return redirect(url_for("main.dashboard"))
     except Exception:
@@ -115,20 +123,20 @@ def login_github():
         flash("GitHub login is not configured.", "error")
         return redirect(url_for("auth.login"))
     redirect_uri = url_for("oauth.github_callback", _external=True)
-    return _oauth.github.authorize_redirect(redirect_uri)
+    return oauth.github.authorize_redirect(redirect_uri)
 
 
 @oauth_bp.route("/login/github/callback")
 def github_callback():
     try:
-        _oauth.github.authorize_access_token()
-        resp = _oauth.github.get("user")
+        oauth.github.authorize_access_token()
+        resp = oauth.github.get("user")
         profile = resp.json()
 
         # GitHub may not expose email directly; fetch from /user/emails
         email = profile.get("email")
         if not email:
-            emails_resp = _oauth.github.get("user/emails")
+            emails_resp = oauth.github.get("user/emails")
             emails = emails_resp.json()
             primary = next((e for e in emails if e.get("primary") and e.get("verified")), None)
             email = primary["email"] if primary else None
@@ -144,7 +152,7 @@ def github_callback():
             user.oauth_picture_url = avatar_url
             db.session.commit()
         login_user(user)
-        if not _has_onboarding_preferences(user):
+        if _requires_onboarding(user):
             return redirect(url_for("main.onboarding"))
         return redirect(url_for("main.dashboard"))
     except Exception:

@@ -17,6 +17,33 @@ bcrypt = Bcrypt()
 csrf = CSRFProtect()
 
 
+def _load_local_dotenv(project_root: str) -> None:
+    """Load key-value pairs from .env when present (development convenience)."""
+    dotenv_path = os.path.join(project_root, ".env")
+    if not os.path.exists(dotenv_path):
+        return
+
+    try:
+        with open(dotenv_path, "r", encoding="utf-8") as handle:
+            for raw_line in handle:
+                line = raw_line.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+
+                key, value = line.split("=", 1)
+                key = key.strip()
+                value = value.strip().strip('"').strip("'")
+                if not key:
+                    continue
+
+                existing = os.environ.get(key)
+                if existing is None or str(existing).strip() == "":
+                    os.environ[key] = value
+    except OSError:
+        # Keep startup resilient even if the local env file can't be read.
+        return
+
+
 @login_manager.user_loader
 def load_user(user_id):
     from app.models import User
@@ -63,8 +90,20 @@ def _ensure_user_schema_compatibility() -> None:
         ddl_statements.append("ALTER TABLE users ADD COLUMN is_admin BOOLEAN NOT NULL DEFAULT 0")
     if "student_status" not in existing_columns:
         ddl_statements.append("ALTER TABLE users ADD COLUMN student_status BOOLEAN NOT NULL DEFAULT 0")
+    if "first_login" not in existing_columns:
+        ddl_statements.append("ALTER TABLE users ADD COLUMN first_login BOOLEAN NOT NULL DEFAULT 1")
+    if "onboarding_completed" not in existing_columns:
+        ddl_statements.append("ALTER TABLE users ADD COLUMN onboarding_completed BOOLEAN NOT NULL DEFAULT 0")
     if "preferences" not in existing_columns:
         ddl_statements.append("ALTER TABLE users ADD COLUMN preferences TEXT")
+    if "interests" not in existing_columns:
+        ddl_statements.append("ALTER TABLE users ADD COLUMN interests TEXT")
+    if "skill_level" not in existing_columns:
+        ddl_statements.append("ALTER TABLE users ADD COLUMN skill_level VARCHAR(32)")
+    if "pricing_pref" not in existing_columns:
+        ddl_statements.append("ALTER TABLE users ADD COLUMN pricing_pref VARCHAR(32)")
+    if "goals" not in existing_columns:
+        ddl_statements.append("ALTER TABLE users ADD COLUMN goals TEXT")
     if "theme_preference" not in existing_columns:
         ddl_statements.append("ALTER TABLE users ADD COLUMN theme_preference VARCHAR(20)")
     if "notifications_enabled" not in existing_columns:
@@ -75,6 +114,75 @@ def _ensure_user_schema_compatibility() -> None:
 
     for ddl in ddl_statements:
         db.session.execute(text(ddl))
+
+    # Preserve UX for existing users: skip first-login onboarding when preferences are already present.
+    if "first_login" not in existing_columns:
+        db.session.execute(
+            text(
+                """
+                UPDATE users
+                SET first_login = CASE
+                    WHEN preferences IS NOT NULL AND TRIM(preferences) != '' THEN 0
+                    ELSE 1
+                END
+                """
+            )
+        )
+    else:
+        db.session.execute(
+            text(
+                """
+                UPDATE users
+                SET first_login = CASE
+                    WHEN first_login IS NULL THEN
+                        CASE
+                            WHEN preferences IS NOT NULL AND TRIM(preferences) != '' THEN 0
+                            ELSE 1
+                        END
+                    ELSE first_login
+                END
+                """
+            )
+        )
+
+    if "onboarding_completed" not in existing_columns:
+        db.session.execute(
+            text(
+                """
+                UPDATE users
+                SET onboarding_completed = CASE
+                    WHEN (
+                        (skill_level IS NOT NULL AND TRIM(skill_level) != '')
+                        OR (pricing_pref IS NOT NULL AND TRIM(pricing_pref) != '')
+                        OR (preferences IS NOT NULL AND TRIM(preferences) != '')
+                    ) THEN 1
+                    WHEN first_login = 0 THEN 1
+                    ELSE 0
+                END
+                """
+            )
+        )
+    else:
+        db.session.execute(
+            text(
+                """
+                UPDATE users
+                SET onboarding_completed = CASE
+                    WHEN onboarding_completed IS NULL THEN
+                        CASE
+                            WHEN (
+                                (skill_level IS NOT NULL AND TRIM(skill_level) != '')
+                                OR (pricing_pref IS NOT NULL AND TRIM(pricing_pref) != '')
+                                OR (preferences IS NOT NULL AND TRIM(preferences) != '')
+                                OR first_login = 0
+                            ) THEN 1
+                            ELSE 0
+                        END
+                    ELSE onboarding_completed
+                END
+                """
+            )
+        )
     db.session.commit()
 
 
@@ -108,6 +216,7 @@ def _ensure_tool_view_schema_compatibility() -> None:
 
 def create_app() -> Flask:
     project_root = os.path.dirname(os.path.dirname(__file__))
+    _load_local_dotenv(project_root)
     data_path = os.path.join(project_root, "data", "tools.json")
     app = Flask(
         __name__,
@@ -143,8 +252,8 @@ def create_app() -> Flask:
     app.config["ADMIN_EMAILS"] = configured_admins
 
     # OAuth credentials (optional – buttons hidden when not configured)
-    app.config["GOOGLE_CLIENT_ID"] = os.getenv("GOOGLE_CLIENT_ID", "")
-    app.config["GOOGLE_CLIENT_SECRET"] = os.getenv("GOOGLE_CLIENT_SECRET", "")
+    app.config["GOOGLE_CLIENT_ID"] = os.environ.get("GOOGLE_CLIENT_ID")
+    app.config["GOOGLE_CLIENT_SECRET"] = os.environ.get("GOOGLE_CLIENT_SECRET")
     app.config["GITHUB_CLIENT_ID"] = os.getenv("GITHUB_CLIENT_ID", "")
     app.config["GITHUB_CLIENT_SECRET"] = os.getenv("GITHUB_CLIENT_SECRET", "")
     app.config["LINKEDIN_CLIENT_ID"] = os.getenv("LINKEDIN_CLIENT_ID", "")

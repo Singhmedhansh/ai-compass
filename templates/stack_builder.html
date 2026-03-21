@@ -161,7 +161,7 @@
     </div>
 
     {% if ai_summary %}
-    <article class="glass rounded-xl p-4 border border-cyan-500/25 bg-cyan-500/10 motion-rise" style="--reveal-delay: 80ms;">
+    <article class="recommendation-box glass rounded-xl p-4 border border-cyan-500/25 bg-cyan-500/10 motion-rise" style="--reveal-delay: 80ms;">
       <div class="flex items-start justify-between gap-3">
         <div>
           <h3 class="text-sm font-semibold text-cyan-100">🤖 AI Recommendation Summary</h3>
@@ -319,8 +319,8 @@
   }
   
   .glass {
-    background: rgba(24, 24, 27, 0.6);
-    border: 1px solid rgba(113, 113, 122, 0.3);
+    background: color-mix(in srgb, var(--card-bg) 92%, transparent);
+    border: 1px solid var(--border-color);
     backdrop-filter: blur(10px);
   }
 
@@ -367,6 +367,7 @@
   const STACK_PREFS_KEY = "ai_compass_stack_prefs";
   const STACK_SAVED_TOOLS_KEY = "ai_compass_saved_stack_tools";
   const STACK_HISTORY_KEY = "ai_compass_saved_stacks";
+  const IS_AUTHENTICATED = {{ 'true' if current_user.is_authenticated else 'false' }};
 
   function saveStackPrefs() {
     try {
@@ -556,6 +557,10 @@
 
     document.querySelectorAll(".save-stack-tool").forEach((button) => {
       button.addEventListener("click", () => {
+        if (!IS_AUTHENTICATED) {
+          if (window.showLoginPrompt) window.showLoginPrompt();
+          return;
+        }
         persistSavedTool(button.dataset.tool || "");
         button.textContent = "Saved";
         button.classList.add("border-emerald-500/40", "text-emerald-300");
@@ -576,6 +581,10 @@
     const saveStackBtn = document.getElementById("save-stack-btn");
     if (saveStackBtn) {
       saveStackBtn.addEventListener("click", () => {
+        if (!IS_AUTHENTICATED) {
+          if (window.showLoginPrompt) window.showLoginPrompt();
+          return;
+        }
         const ok = persistSavedStack();
         if (!ok) return;
         saveStackBtn.textContent = "Stack Saved";

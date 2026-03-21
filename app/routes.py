@@ -1975,6 +1975,74 @@ def dashboard():
     )
 
 
+
+
+def _parse_onboarding_preferences(user):
+    raw = str(getattr(user, "preferences", "") or "").strip()
+    if not raw:
+        return {}
+    try:
+        parsed = json.loads(raw)
+    except (json.JSONDecodeError, TypeError, ValueError):
+        return {}
+    if isinstance(parsed, dict):
+        return parsed
+    if isinstance(parsed, list):
+        interests = [str(item).strip() for item in parsed if str(item).strip()]
+        return {
+            "interest_tags": interests,
+            "interests": interests,
+        }
+    return {}
+
+
+@main_bp.route("/onboarding", methods=["GET", "POST"])
+@login_required
+def onboarding():
+    existing_prefs = _parse_onboarding_preferences(current_user)
+
+    if request.method == "POST":
+        use_for = normalize_text_key(request.form.get("use_for"))
+        skill_level = normalize_text_key(request.form.get("skill_level"))
+        preferred_pricing = normalize_text_key(request.form.get("preferred_pricing"))
+        interests_raw = str(request.form.get("interest_tags") or "").strip()
+
+        allowed_use_for = {"coding", "writing", "studying", "research", "design", "productivity"}
+        allowed_skill = {"beginner", "intermediate", "advanced"}
+        allowed_pricing = {"free", "freemium", "paid"}
+
+        if use_for not in allowed_use_for or skill_level not in allowed_skill or preferred_pricing not in allowed_pricing:
+            flash("Please complete all required onboarding fields.", "warning")
+            return render_template("onboarding.html", onboarding_values=existing_prefs)
+
+        tags = []
+        if interests_raw:
+            seen = set()
+            for item in interests_raw.split(","):
+                token = normalize_text_key(item)
+                if not token or token in seen:
+                    continue
+                seen.add(token)
+                tags.append(token)
+
+        prefs = _parse_onboarding_preferences(current_user)
+        prefs.update(
+            {
+                "most_viewed_category": use_for,
+                "preferred_pricing": preferred_pricing,
+                "skill_level": skill_level,
+                "interest_tags": tags,
+                "interests": tags,
+            }
+        )
+        current_user.preferences = json.dumps(prefs)
+        current_user.first_login = False
+        db.session.commit()
+
+        flash("Preferences saved. Your recommendations are now personalized.", "success")
+        return redirect(url_for("main.dashboard"))
+
+    return render_template("onboarding.html", onboarding_values=existing_prefs)
 @main_bp.route("/profile", methods=["GET", "POST"])
 @login_required
 def profile():
