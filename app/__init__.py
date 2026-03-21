@@ -196,11 +196,11 @@ def _ensure_tool_view_schema_compatibility() -> None:
     ddl_statements = []
 
     if "tool_name" not in existing_columns:
-        ddl_statements.append("ALTER TABLE tool_views ADD COLUMN tool_name VARCHAR(255)")
+        ddl_statements.append("ALTER TABLE tool_view_events ADD COLUMN tool_name VARCHAR(255)")
     if "user_id" not in existing_columns:
-        ddl_statements.append("ALTER TABLE tool_views ADD COLUMN user_id INTEGER")
+        ddl_statements.append("ALTER TABLE tool_view_events ADD COLUMN user_id INTEGER")
     if "timestamp" not in existing_columns:
-        ddl_statements.append("ALTER TABLE tool_views ADD COLUMN timestamp DATETIME")
+        ddl_statements.append("ALTER TABLE tool_view_events ADD COLUMN timestamp DATETIME")
 
     if not ddl_statements:
         return
