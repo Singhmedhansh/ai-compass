@@ -1,30 +1,8 @@
-function readRuntimeConfig() {
-  const fallback = {
-    isAuthenticated: false,
-    favoriteIds: [],
-    csrfToken: '',
-  };
-
-  const node = document.getElementById('ai-compass-config');
-  if (!node) return fallback;
-
-  let favoriteIds = [];
-  try {
-    const rawIds = String(node.dataset.favoriteIds || '[]');
-    const parsed = JSON.parse(rawIds);
-    favoriteIds = Array.isArray(parsed) ? parsed : [];
-  } catch (error) {
-    favoriteIds = [];
-  }
-
-  return {
-    isAuthenticated: String(node.dataset.isAuthenticated || '') === '1',
-    favoriteIds,
-    csrfToken: String(node.dataset.csrfToken || ''),
-  };
-}
-
-const config = window.AI_COMPASS_CONFIG || readRuntimeConfig();
+const config = window.AI_COMPASS_CONFIG || {
+  isAuthenticated: false,
+  favoriteIds: [],
+  csrfToken: '',
+};
 
 let allTools = [];
 let trendingTools = [];
@@ -333,10 +311,6 @@ function applyTheme(themeName) {
   const theme = themeName === 'light' ? 'light' : 'dark';
   document.documentElement.classList.remove('light', 'dark');
   document.documentElement.classList.add(theme);
-  if (document.body) {
-    document.body.classList.remove('light-mode', 'dark-mode');
-    document.body.classList.add(theme === 'light' ? 'light-mode' : 'dark-mode');
-  }
   localStorage.setItem('theme', theme);
   updateThemeToggleUI(theme);
 }
@@ -579,9 +553,7 @@ function renderTools(tools, totalFiltered = tools.length) {
           <div class="text-[10px] text-zinc-500 font-mono">${tool.last_updated_label ? `Updated ${escapeHtml(tool.last_updated_label)}` : ''}${tool.activity_today ? ` · 🔥 ${escapeHtml(String(tool.activity_today))} students viewed today` : ''}</div>
           <div class="flex items-center gap-2 flex-wrap">
             <a href="/tool/${escapeHtml(key)}" class="text-[10px] brand-text glass rounded-lg px-2.5 py-1 transition-all border border-white/8 hover:border-white/15">View Details</a>
-            ${config.isAuthenticated
-              ? `<button class="text-[10px] rounded-lg px-2.5 py-1 transition-all border ${isFavorite ? 'border-amber-400/30 text-amber-300 bg-amber-500/10' : 'border-white/10 text-zinc-300 bg-white/5'}" onclick="toggleFavorite('${escapeHtml(key)}')">★ Favorite</button>`
-              : `<a href="/login?next=${encodeURIComponent(`/tool/${key}`)}" class="text-[10px] rounded-lg px-2.5 py-1 transition-all border border-white/10 text-zinc-300 bg-white/5">Login to save</a>`}
+            <button class="text-[10px] rounded-lg px-2.5 py-1 transition-all border ${isFavorite ? 'border-amber-400/30 text-amber-300 bg-amber-500/10' : 'border-white/10 text-zinc-300 bg-white/5'}" onclick="toggleFavorite('${escapeHtml(key)}')">★ Favorite</button>
             <button class="text-[10px] rounded-lg px-2.5 py-1 transition-all border ${isCompared ? 'border-blue-400/30 text-blue-300 bg-blue-500/10' : 'border-white/10 text-zinc-300 bg-white/5'}" onclick="toggleCompare('${escapeHtml(key)}')">Compare</button>
           </div>
         </div>
@@ -1080,6 +1052,7 @@ function showStudentModeToast(message, isEnabled) {
 function shouldReloadForStudentMode(pathname) {
   const paths = [
     '/tools',
+    '/stack-builder',
     '/dashboard',
     '/compare',
     '/compare-tools',
@@ -1209,8 +1182,15 @@ async function refreshData() {
 
 async function toggleFavorite(toolKey) {
   if (!config.isAuthenticated) {
-    const next = encodeURIComponent(window.location.pathname + window.location.search);
-    window.location.href = `/login?next=${next}`;
+    if (favorites.has(toolKey)) {
+      favorites.delete(toolKey);
+      forgetSavedTool(toolKey);
+    } else {
+      favorites.add(toolKey);
+      rememberSavedTool(toolKey);
+    }
+    applyAndRender();
+    renderLocalMemorySections();
     return;
   }
 
@@ -1414,17 +1394,6 @@ function initPagination() {
   });
 }
 
-function initButtonLoadingState() {
-  document.addEventListener('submit', (event) => {
-    const form = event.target;
-    if (!(form instanceof HTMLFormElement)) return;
-    const submitter = event.submitter;
-    if (submitter && submitter.tagName === 'BUTTON') {
-      submitter.classList.add('loading');
-    }
-  }, true);
-}
-
 function initUI() {
   const searchInput = document.getElementById('tools-search-input');
   const searchForm = document.getElementById('tools-search-form');
@@ -1486,8 +1455,6 @@ function initToolsPage() {
 
 document.addEventListener('DOMContentLoaded', async () => {
   try {
-    initButtonLoadingState();
-
     const persistedTheme = localStorage.getItem('theme') || (document.documentElement.classList.contains('light') ? 'light' : 'dark');
     applyTheme(persistedTheme);
 

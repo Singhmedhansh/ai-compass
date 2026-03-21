@@ -1,5 +1,6 @@
 """OAuth login via Google and GitHub using Authlib."""
 import os
+import json
 
 from authlib.integrations.flask_client import OAuth
 from flask import Blueprint, current_app, flash, redirect, url_for
@@ -56,6 +57,21 @@ def _get_or_create_oauth_user(email, display_name, provider):
     return user
 
 
+def _has_onboarding_preferences(user):
+    raw = str(getattr(user, "preferences", "") or "").strip()
+    if not raw:
+        return False
+    try:
+        parsed = json.loads(raw)
+    except (json.JSONDecodeError, TypeError, ValueError):
+        return False
+    if isinstance(parsed, dict):
+        return bool(parsed.get("skill_level") and parsed.get("preferred_pricing"))
+    if isinstance(parsed, list):
+        return bool(parsed)
+    return False
+
+
 # ── Google ──────────────────────────────────────────────────────────────────
 
 @oauth_bp.route("/login/google")
@@ -63,29 +79,28 @@ def login_google():
     if not current_app.config.get("GOOGLE_CLIENT_ID"):
         flash("Google login is not configured.", "error")
         return redirect(url_for("auth.login"))
-    redirect_uri = "http://127.0.0.1:5000/auth/google/callback"
-    print("DEBUG OAuth redirect URI:", redirect_uri)
+    redirect_uri = url_for("oauth.google_callback", _external=True)
     return _oauth.google.authorize_redirect(redirect_uri)
 
 
-@oauth_bp.route("/auth/google/callback")
+@oauth_bp.route("/login/google/callback")
 def google_callback():
     try:
         token = _oauth.google.authorize_access_token()
         userinfo = token.get("userinfo") or _oauth.google.userinfo()
-        if not userinfo:
-            flash("Google login failed. Missing profile information.", "error")
-            return redirect(url_for("auth.login"))
-
         email = userinfo.get("email")
         if not email:
             flash("Google did not return an email address.", "error")
             return redirect(url_for("auth.login"))
-
         display_name = userinfo.get("name", "")
-        _picture = userinfo.get("picture")
         user = _get_or_create_oauth_user(email, display_name, "google")
+        picture = str(userinfo.get("picture") or "").strip()
+        if picture and picture != (user.oauth_picture_url or ""):
+            user.oauth_picture_url = picture
+            db.session.commit()
         login_user(user)
+        if not _has_onboarding_preferences(user):
+            return redirect(url_for("main.onboarding"))
         return redirect(url_for("main.dashboard"))
     except Exception:
         flash("Google login failed. Please try again.", "error")
@@ -124,7 +139,13 @@ def github_callback():
 
         display_name = profile.get("name") or profile.get("login", "")
         user = _get_or_create_oauth_user(email, display_name, "github")
+        avatar_url = str(profile.get("avatar_url") or "").strip()
+        if avatar_url and avatar_url != (user.oauth_picture_url or ""):
+            user.oauth_picture_url = avatar_url
+            db.session.commit()
         login_user(user)
+        if not _has_onboarding_preferences(user):
+            return redirect(url_for("main.onboarding"))
         return redirect(url_for("main.dashboard"))
     except Exception:
         flash("GitHub login failed. Please try again.", "error")

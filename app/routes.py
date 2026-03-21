@@ -2280,63 +2280,6 @@ def stack_builder_step():
     )
 
 
-
-@main_bp.route("/generate-stack", methods=["POST"])
-def generate_stack_api():
-    payload = request.get_json(silent=True) or {}
-
-    selected_goal = str(payload.get("goal") or "").strip()
-    selected_budget = str(payload.get("budget") or "").strip()
-    selected_platform = str(payload.get("platform") or "").strip()
-    student_mode = bool(payload.get("student_mode"))
-
-    if not selected_goal or not selected_budget or not selected_platform:
-        return jsonify({
-            "error": "Missing required selections.",
-            "tools": [],
-        }), 400
-
-    session["student_mode"] = student_mode
-    session.modified = True
-
-    generated_stack = build_ai_stack(
-        goal=selected_goal,
-        budget=selected_budget,
-        platform=selected_platform,
-        student_mode=student_mode,
-    )
-
-    if not generated_stack:
-        return jsonify({
-            "tools": [],
-            "message": "No tools found matching your criteria.",
-            "ai_summary": None,
-            "best_choice": None,
-            "confidence": 0,
-            "decision_shortcut": None,
-            "alternatives": [],
-        })
-
-    session["stack_builder_used"] = True
-    session.modified = True
-
-    summary = _stack_result_summary(
-        generated_stack,
-        goal=selected_goal,
-        budget=selected_budget,
-        platform=selected_platform,
-        student_mode=student_mode,
-    )
-
-    return jsonify({
-        "tools": generated_stack,
-        "summary": summary.get("ai_summary"),
-        "ai_summary": summary.get("ai_summary"),
-        "best_choice": summary.get("best_choice"),
-        "confidence": summary.get("confidence", 0),
-        "decision_shortcut": summary.get("decision_shortcut"),
-        "alternatives": summary.get("alternatives", []),
-    })
 @main_bp.route("/ai-tool-finder", methods=["GET", "POST"])
 def ai_tool_finder():
     state = _empty_tool_finder_state()

@@ -13,6 +13,7 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(255), nullable=True)  # Nullable for OAuth-only accounts
     is_admin = db.Column(db.Boolean, nullable=False, default=False)
     display_name = db.Column(db.String(255), nullable=True)
+    oauth_picture_url = db.Column(db.String(500), nullable=True)
     oauth_provider = db.Column(db.String(50), nullable=True)
     student_status = db.Column(db.Boolean, nullable=False, default=False)
     preferences = db.Column(db.Text, nullable=True)

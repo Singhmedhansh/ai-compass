@@ -3,7 +3,7 @@
 {% block title %}Weekly AI Updates | AI Compass{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto space-y-6 animate-fadeIn">
+<div class="max-w-4xl mx-auto space-y-6">
   <div>
     <h1 class="text-2xl font-semibold text-zinc-100">Weekly AI Updates</h1>
     <p class="text-sm text-zinc-400 mt-1">New and trending AI tools sorted by latest additions.</p>
@@ -11,17 +11,17 @@
 
   {% if trust_signals %}
   <section id="trust-signals" class="grid grid-cols-1 md:grid-cols-3 gap-3 stagger-list">
-    <article class="glass app-card rounded-xl p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/20" style="--stagger-step: 0;">
+    <article class="glass app-card rounded-xl p-4" style="--stagger-step: 0;">
       <div class="text-[11px] uppercase tracking-wide text-zinc-500">Community</div>
       <div class="text-xl font-semibold text-zinc-100 mt-1"><span class="trust-counter" data-target="{{ trust_signals.active_learners }}" data-suffix="+">{{ trust_signals.active_learners }}</span>+</div>
       <div class="text-xs text-zinc-400 mt-1">Active students and learners using AI Compass weekly</div>
     </article>
-    <article class="glass app-card rounded-xl p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-cyan-500/20" style="--stagger-step: 1;">
+    <article class="glass app-card rounded-xl p-4" style="--stagger-step: 1;">
       <div class="text-[11px] uppercase tracking-wide text-zinc-500">Tool Index</div>
       <div class="text-xl font-semibold text-zinc-100 mt-1"><span class="trust-counter" data-target="{{ trust_signals.indexed_tools }}" data-suffix="+">{{ trust_signals.indexed_tools }}</span>+</div>
       <div class="text-xs text-zinc-400 mt-1">AI tools indexed and refreshed continuously</div>
     </article>
-    <article class="glass app-card rounded-xl p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-emerald-500/20" style="--stagger-step: 2;">
+    <article class="glass app-card rounded-xl p-4" style="--stagger-step: 2;">
       <div class="text-[11px] uppercase tracking-wide text-zinc-500">Budget Friendly</div>
       <div class="text-xl font-semibold text-zinc-100 mt-1"><span class="trust-counter" data-target="{{ trust_signals.free_options }}">{{ trust_signals.free_options }}</span></div>
       <div class="text-xs text-zinc-400 mt-1">Free or freemium options available right now</div>
@@ -40,7 +40,7 @@
     </div>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-3 stagger-list">
       {% for tool in popular_tools %}
-      <a href="{{ url_for('main.tool_detail', tool_id=tool.tool_key) }}" class="rounded-lg border border-zinc-700/80 bg-zinc-900/40 px-3 py-2 hover:border-blue-500/40 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-blue-500/20" style="--stagger-step: {{ loop.index0 }};">
+      <a href="{{ url_for('main.tool_detail', tool_id=tool.tool_key) }}" class="rounded-lg border border-zinc-700/80 bg-zinc-900/40 px-3 py-2 hover:border-blue-500/40 transition-colors" style="--stagger-step: {{ loop.index0 }};">
         <div class="text-sm font-medium text-zinc-100">{{ tool.name }}</div>
         <div class="text-xs text-zinc-400 mt-1">{{ tool.tagline or tool.category or 'AI tool' }}</div>
       </a>
@@ -53,8 +53,8 @@
     <h2 class="text-sm font-semibold text-zinc-100">Weekly Email Digest</h2>
     <p class="text-xs text-zinc-400 mt-1">Get the top tools and trends in one concise weekly email.</p>
     <form id="weekly-digest-form" class="mt-3 flex flex-col sm:flex-row gap-2">
-      <input type="email" id="weekly-digest-email" required placeholder="Enter your email" class="flex-1 rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-400/40" />
-      <button type="submit" class="rounded-lg bg-blue-600 hover:bg-blue-500 transition-all duration-200 px-4 py-2 text-sm text-white hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/30 active:scale-95">Subscribe</button>
+      <input type="email" id="weekly-digest-email" required placeholder="Enter your email" class="flex-1 rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-100" />
+      <button type="submit" class="rounded-lg bg-blue-600 hover:bg-blue-500 transition-colors px-4 py-2 text-sm text-white">Subscribe</button>
     </form>
     <p id="weekly-digest-message" class="text-xs text-emerald-300 mt-2 hidden">You're subscribed. See you next week.</p>
   </section>
@@ -63,7 +63,7 @@
   <section class="space-y-3 stagger-list">
     {% for tool in tools %}
       {% set model = (tool.price or 'paid')|lower %}
-      <article class="glass app-card rounded-xl p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/20" style="--stagger-step: {{ loop.index0 }};">
+      <article class="glass app-card rounded-xl p-4" style="--stagger-step: {{ loop.index0 }};">
         <div class="flex items-start justify-between gap-3">
           <div>
             <a href="{{ url_for('main.tool_detail', tool_id=tool.tool_key) }}" class="text-zinc-100 font-semibold hover:text-blue-400 transition-colors">{{ tool.name }}</a>

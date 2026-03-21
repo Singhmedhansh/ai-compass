@@ -34,59 +34,17 @@
       --surface: rgba(15,23,42,0.06);
       --surface-border: rgba(15,23,42,0.16);
     }
-    * { transition: all 0.2s ease-in-out; box-sizing: border-box; }
-    body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--bg); color: var(--text); animation: fadeIn 0.3s ease-in; transition: background-color 0.3s ease, color 0.3s ease; }
+    body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--bg); color: var(--text); }
     .glass { background: rgba(255,255,255,0.04); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); }
     .glass { background: var(--surface); border: 1px solid var(--surface-border); }
-    .glass { min-height: 3rem; }
-    .glass:hover { transform: translateY(-4px); box-shadow: 0 6px 18px rgba(0,0,0,0.08); }
     .brand-bg { background: var(--brand); }
     .brand-text { color: var(--brand); }
     .brand-dim-bg { background: var(--brand-dim); }
     .sidebar-item { border-left: 2px solid transparent; }
     .sidebar-item.active { background: var(--brand-dim); color: var(--brand); border-left: 2px solid var(--brand); }
-    button { transition: transform 0.1s ease, box-shadow 0.1s ease; min-height: 2.25rem; }
-    button:hover { transform: translateY(-1px); }
-    button:active { transform: scale(0.97); }
-    button.loading { opacity: 0.7; pointer-events: none; }
-    input, textarea, select { transition: border 0.2s ease, box-shadow 0.2s ease; }
-    input:focus, textarea:focus, select:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 2px rgba(99,102,241,0.2); }
-    select:not([multiple]):not([size]) {
-      appearance: none;
-      -webkit-appearance: none;
-      -moz-appearance: none;
-      padding-right: 2.3rem;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M6 8l4 4 4-4' stroke='%2394a3b8' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-size: 1rem 1rem;
-      background-position: right 0.75rem center;
-    }
-    html.light select:not([multiple]):not([size]) {
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M6 8l4 4 4-4' stroke='%23475569' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-    }
     .badge-pending { background: rgba(251,191,36,0.1); color: #fbbf24; border: 1px solid rgba(251,191,36,0.2); }
     .badge-approved { background: rgba(16,185,129,0.12); color: #34d399; border: 1px solid rgba(16,185,129,0.2); }
     .badge-rejected { background: rgba(239,68,68,0.1); color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
-
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(6px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      * {
-        transition: none !important;
-      }
-      body {
-        animation: none !important;
-      }
-    }
   </style>
 </head>
 <body class="min-h-screen overflow-x-hidden">

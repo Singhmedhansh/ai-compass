@@ -1,11 +1,27 @@
 from flask import Blueprint, current_app, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required, login_user, logout_user
+import json
 
 from app import bcrypt, db
 from app.models import User
 
 
 auth_bp = Blueprint("auth", __name__)
+
+
+def _has_onboarding_preferences(user):
+    raw = str(getattr(user, "preferences", "") or "").strip()
+    if not raw:
+        return False
+    try:
+        parsed = json.loads(raw)
+    except (json.JSONDecodeError, TypeError, ValueError):
+        return False
+    if isinstance(parsed, dict):
+        return bool(parsed.get("skill_level") and parsed.get("preferred_pricing"))
+    if isinstance(parsed, list):
+        return bool(parsed)
+    return False
 
 
 def _is_configured_admin_email(email):
@@ -67,6 +83,8 @@ def register():
 
         login_user(user)
         flash("Welcome to AI Compass.", "success")
+        if not _has_onboarding_preferences(user):
+            return redirect(url_for("main.onboarding"))
         return redirect(url_for("main.dashboard"))
 
     return render_template(
@@ -112,6 +130,8 @@ def login():
             login_user(user)
             flash("Admin login detected. Use the Admin Panel button from the dashboard.", "success")
             next_url = request.args.get("next")
+            if not _has_onboarding_preferences(user):
+                return redirect(url_for("main.onboarding"))
             return redirect(next_url or url_for("main.dashboard"))
 
         if user and user.password_hash and bcrypt.check_password_hash(user.password_hash, password):
@@ -119,6 +139,8 @@ def login():
             login_user(user)
             flash("You are now logged in.", "success")
             next_url = request.args.get("next")
+            if not _has_onboarding_preferences(user):
+                return redirect(url_for("main.onboarding"))
             return redirect(next_url or url_for("main.dashboard"))
 
         flash("Invalid email or password.", "error")

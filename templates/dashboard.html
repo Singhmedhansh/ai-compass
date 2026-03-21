@@ -26,16 +26,16 @@
 
   <!-- Trust Signals -->
   {% if trust_signals %}
-  <section class="grid grid-cols-1 md:grid-cols-3 gap-3 animate-fadeIn">
-    <article class="glass rounded-xl p-4 hover:shadow-lg hover:shadow-blue-500/20 hover:-translate-y-0.5 transition-all duration-200">
+  <section class="grid grid-cols-1 md:grid-cols-3 gap-3">
+    <article class="glass rounded-xl p-4 hover:shadow-lg transition-all duration-200">
       <div class="text-[11px] uppercase tracking-wide text-zinc-500">Indexed Tools</div>
       <div class="text-xl font-semibold text-zinc-100 mt-1">{{ trust_signals.indexed_tools }}+</div>
     </article>
-    <article class="glass rounded-xl p-4 hover:shadow-lg hover:shadow-cyan-500/20 hover:-translate-y-0.5 transition-all duration-200">
+    <article class="glass rounded-xl p-4 hover:shadow-lg transition-all duration-200">
       <div class="text-[11px] uppercase tracking-wide text-zinc-500">Student Community</div>
       <div class="text-xl font-semibold text-zinc-100 mt-1">{{ trust_signals.active_learners }}+</div>
     </article>
-    <article class="glass rounded-xl p-4 hover:shadow-lg hover:shadow-emerald-500/20 hover:-translate-y-0.5 transition-all duration-200">
+    <article class="glass rounded-xl p-4 hover:shadow-lg transition-all duration-200">
       <div class="text-[11px] uppercase tracking-wide text-zinc-500">Freshness</div>
       <div class="text-xl font-semibold text-zinc-100 mt-1">Updated weekly</div>
     </article>
@@ -50,7 +50,7 @@
       {% for tool in favorite_tools %}
         {% set pricing = (tool.pricingDetail or tool.price or 'Pricing unavailable') %}
         {% set model = (tool.price or 'paid')|lower %}
-        <article class="glass rounded-xl p-4 flex flex-col gap-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/20">
+        <article class="glass rounded-xl p-4 flex flex-col gap-3">
           <div class="flex items-start justify-between gap-2">
             <div class="min-w-0 flex items-start gap-2">
               <div class="w-8 h-8 rounded-md overflow-hidden border border-white/10 flex items-center justify-center bg-white/5 flex-shrink-0">
@@ -75,7 +75,7 @@
           {% endif %}
           <div class="mt-auto pt-2 border-t border-white/5 space-y-2">
             <div class="text-[10px] text-zinc-500 font-mono line-clamp-2">{{ pricing }}</div>
-            <a href="{{ tool.link or tool.website }}" target="_blank" rel="noopener" class="inline-flex text-[10px] text-blue-300 glass rounded-lg px-2.5 py-1 border border-white/8 hover:border-white/15 transition-all duration-200 hover:shadow-md hover:shadow-blue-500/20 hover:-translate-y-0.5 active:scale-95">Visit Tool</a>
+            <a href="{{ tool.link or tool.website }}" target="_blank" rel="noopener" class="inline-flex text-[10px] text-blue-300 glass rounded-lg px-2.5 py-1 border border-white/8 hover:border-white/15">Visit Tool</a>
           </div>
         </article>
       {% else %}
@@ -90,10 +90,10 @@
     </div>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
       {% for tool in recommended_tools %}
-        <article class="glass rounded-xl p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-cyan-500/15">
+        <article class="glass rounded-xl p-4">
           <h3 class="text-sm font-semibold text-zinc-100">{{ tool.name }}</h3>
           <p class="text-xs text-zinc-500 mt-1 line-clamp-2">{{ tool.tagline or tool.description or '' }}</p>
-          <a href="{{ url_for('main.tool_detail', tool_id=tool.tool_key) }}" class="inline-flex mt-3 text-[10px] text-blue-300 glass rounded-lg px-2.5 py-1 border border-white/8 hover:border-white/15 transition-all duration-200 hover:shadow-md hover:shadow-blue-500/20 hover:-translate-y-0.5 active:scale-95">View Details</a>
+          <a href="{{ url_for('main.tool_detail', tool_id=tool.tool_key) }}" class="inline-flex mt-3 text-[10px] text-blue-300 glass rounded-lg px-2.5 py-1 border border-white/8 hover:border-white/15">View Details</a>
         </article>
       {% else %}
         <div class="col-span-full glass rounded-xl p-4 text-sm text-zinc-500">Add favorites to unlock recommendations.</div>
@@ -123,10 +123,10 @@
     </div>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
       {% for tool in recent_tools %}
-        <article class="glass rounded-xl p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-cyan-500/15">
+        <article class="glass rounded-xl p-4">
           <h3 class="text-sm font-semibold text-zinc-100">{{ tool.name }}</h3>
           <p class="text-xs text-zinc-500 mt-1 line-clamp-2">{{ tool.tagline or tool.description or '' }}</p>
-          <a href="{{ url_for('main.tool_detail', tool_id=tool.tool_key) }}" class="inline-flex mt-3 text-[10px] text-blue-300 glass rounded-lg px-2.5 py-1 border border-white/8 hover:border-white/15 transition-all duration-200 hover:shadow-md hover:shadow-blue-500/20 hover:-translate-y-0.5 active:scale-95">View Details</a>
+          <a href="{{ url_for('main.tool_detail', tool_id=tool.tool_key) }}" class="inline-flex mt-3 text-[10px] text-blue-300 glass rounded-lg px-2.5 py-1 border border-white/8 hover:border-white/15">View Details</a>
         </article>
       {% else %}
         <div class="col-span-full glass rounded-xl p-4 text-sm text-zinc-500">No tools viewed yet. Browse <a href="{{ url_for('main.tools_paginated') }}" class="text-blue-300">All Tools</a>.</div>
@@ -140,10 +140,10 @@
     </div>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
       {% for tool in trending_tools %}
-        <article class="glass rounded-xl p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-cyan-500/15">
+        <article class="glass rounded-xl p-4">
           <h3 class="text-sm font-semibold text-zinc-100">{{ tool.name }}</h3>
           <p class="text-xs text-zinc-500 mt-1 line-clamp-2">{{ tool.tagline or tool.description or '' }}</p>
-          <a href="{{ url_for('main.tool_detail', tool_id=tool.tool_key) }}" class="inline-flex mt-3 text-[10px] text-blue-300 glass rounded-lg px-2.5 py-1 border border-white/8 hover:border-white/15 transition-all duration-200 hover:shadow-md hover:shadow-blue-500/20 hover:-translate-y-0.5 active:scale-95">View Details</a>
+          <a href="{{ url_for('main.tool_detail', tool_id=tool.tool_key) }}" class="inline-flex mt-3 text-[10px] text-blue-300 glass rounded-lg px-2.5 py-1 border border-white/8 hover:border-white/15">View Details</a>
         </article>
       {% else %}
         <div class="col-span-full glass rounded-xl p-4 text-sm text-zinc-500">No trending data available yet.</div>

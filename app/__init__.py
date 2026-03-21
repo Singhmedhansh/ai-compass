@@ -55,6 +55,8 @@ def _ensure_user_schema_compatibility() -> None:
 
     if "display_name" not in existing_columns:
         ddl_statements.append("ALTER TABLE users ADD COLUMN display_name VARCHAR(255)")
+    if "oauth_picture_url" not in existing_columns:
+        ddl_statements.append("ALTER TABLE users ADD COLUMN oauth_picture_url VARCHAR(500)")
     if "oauth_provider" not in existing_columns:
         ddl_statements.append("ALTER TABLE users ADD COLUMN oauth_provider VARCHAR(50)")
     if "is_admin" not in existing_columns:
@@ -130,7 +132,6 @@ def create_app() -> Flask:
     app.config["ENV"] = app_env
     app.config["DEBUG"] = os.getenv("FLASK_DEBUG", "false").lower() == "true"
     app.config["TEMPLATES_AUTO_RELOAD"] = True
-    app.config["SERVER_NAME"] = "127.0.0.1:5000"
     app.config["PREFERRED_URL_SCHEME"] = "https" if is_production else "http"
     app.config["SEND_FILE_MAX_AGE_DEFAULT"] = int(os.getenv("STATIC_CACHE_MAX_AGE", "31536000")) if is_production else 0
 
@@ -166,7 +167,6 @@ def create_app() -> Flask:
     db.init_app(app)
     login_manager.init_app(app)
     login_manager.login_view = "auth.login"
-    login_manager.login_message = "Please log in to save tools"
     login_manager.login_message_category = "info"
     bcrypt.init_app(app)
     csrf.init_app(app)
@@ -202,6 +202,8 @@ def create_app() -> Flask:
 
     @app.context_processor
     def inject_global_template_context():
+        from app.models import Favorite
+
         category_aliases = {
             "writing & docs": "writing",
             "docs": "writing",
@@ -229,16 +231,10 @@ def create_app() -> Flask:
 
         category_counts = Counter(normalized_categories)
         total_tools = len(tools)
-
         favorite_tool_ids = []
         if current_user.is_authenticated:
-            from app.models import Favorite
-
-            favorite_tool_ids = [
-                str(row.tool_id)
-                for row in Favorite.query.filter_by(user_id=current_user.id).all()
-                if str(row.tool_id or "").strip()
-            ]
+            favorite_rows = Favorite.query.filter_by(user_id=current_user.id).all()
+            favorite_tool_ids = [row.tool_id for row in favorite_rows]
 
         return {
             "GA_ID": app.config.get("GOOGLE_ANALYTICS_ID", ""),
@@ -246,8 +242,8 @@ def create_app() -> Flask:
             "total_tools": total_tools,
             "current_user": current_user,
             "is_authenticated": current_user.is_authenticated,
-            "favorite_tool_ids": favorite_tool_ids,
             "student_mode": session.get("student_mode", False),
+            "favorite_tool_ids": favorite_tool_ids,
         }
 
     return app

@@ -9,18 +9,18 @@
 {% block content %}
 <div class="max-w-6xl mx-auto px-4 sm:px-6 py-8">
   <div class="flex items-center justify-between gap-3 mb-6">
-    <a href="{{ url_for('main.index') }}" class="text-sm text-zinc-300 hover:text-zinc-100 transition-all duration-200 hover:-translate-y-0.5">← Back to Home</a>
-    <a href="{{ url_for('main.tools_paginated') }}" class="text-xs text-zinc-300 hover:text-zinc-100 glass rounded-lg px-3 py-1.5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-blue-500/20 active:scale-95">Browse All Tools</a>
+    <a href="{{ url_for('main.index') }}" class="text-sm text-zinc-300 hover:text-zinc-100">← Back to Home</a>
+    <a href="{{ url_for('main.tools_paginated') }}" class="text-xs text-zinc-300 hover:text-zinc-100 glass rounded-lg px-3 py-1.5">Browse All Tools</a>
   </div>
 
-  <section class="glass rounded-2xl p-6 border border-cyan-500/20 bg-gradient-to-br from-cyan-500/10 via-blue-500/5 to-transparent animate-fadeIn">
+  <section class="glass rounded-2xl p-6 border border-cyan-500/20 bg-gradient-to-br from-cyan-500/10 via-blue-500/5 to-transparent">
     <h1 class="text-2xl sm:text-3xl text-zinc-100" style="font-weight:700">{{ collection_title }}</h1>
     <p class="text-sm text-zinc-400 mt-2 max-w-3xl">{{ collection_intro }}</p>
   </section>
 
   <section class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
     {% for tool in tools %}
-    <article class="glass rounded-xl p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/20 hover:border-blue-400/30">
+    <article class="glass rounded-xl p-4">
       <div class="flex items-start gap-2">
         <div class="w-9 h-9 rounded-md overflow-hidden border border-white/10 flex items-center justify-center bg-white/5 flex-shrink-0">
           <img src="{{ tool.icon_url }}" alt="{{ tool.name }} logo" class="w-full h-full object-contain bg-white p-1 rounded-lg" onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');" />
@@ -33,7 +33,7 @@
       </div>
       <p class="text-xs text-zinc-400 mt-3 line-clamp-3">{{ tool.description or '' }}</p>
       <div class="mt-3 text-[10px] font-mono text-zinc-500">{{ tool.category or 'general' }} · {{ tool.price or 'N/A' }}</div>
-      <a href="{{ url_for('main.tool_detail', tool_id=tool.tool_key) }}" class="inline-block mt-3 text-xs text-cyan-300 hover:text-cyan-200 transition-all duration-200 hover:translate-x-0.5">View tool →</a>
+      <a href="{{ url_for('main.tool_detail', tool_id=tool.tool_key) }}" class="inline-block mt-3 text-xs text-cyan-300 hover:text-cyan-200">View tool →</a>
     </article>
     {% endfor %}
   </section>

@@ -1,56 +1,43 @@
-from collections import defaultdict
 import re
+from typing import Iterable, List
 
 
-SYNONYMS = {
-    "editing": ["editor", "writing", "content", "image editing", "video editing"],
-    "code": ["coding", "programming", "developer"],
-    "coding": ["code", "programming", "developer"],
-    "study": ["learning", "education"],
+QUERY_SYNONYMS = {
+    "editing": ["writing", "video editing", "design", "editor"],
+    "coding": ["developer", "programming", "code", "developer tools"],
+    "study": ["notes", "flashcards", "learning", "study tools"],
 }
 
 
-def _to_text(value):
-    return str(value or "").strip().lower()
+def _normalize(text: str) -> str:
+    value = str(text or "").strip().lower()
+    value = re.sub(r"\s+", " ", value)
+    return value
 
 
-def _to_tags_text(tool):
-    tags = tool.get("tags", [])
-    if isinstance(tags, list):
-        return " ".join(_to_text(tag) for tag in tags)
-    return _to_text(tags)
+def _compact(text: str) -> str:
+    return _normalize(text).replace(" ", "")
 
 
-def _safe_rating(value):
-    try:
-        return float(value or 0)
-    except (TypeError, ValueError):
-        return 0.0
+def _tags(tool) -> List[str]:
+    value = tool.get("tags") or []
+    if isinstance(value, list):
+        return [str(item).strip().lower() for item in value if str(item).strip()]
+    if isinstance(value, str):
+        return [token.strip().lower() for token in value.split(",") if token.strip()]
+    return []
 
 
-def _tokenize(value):
-    return [token for token in re.findall(r"[a-z0-9]+", _to_text(value)) if token]
-
-
-def expand_search_query(query):
-    query_text = _to_text(query)
-    if not query_text:
-        return []
-
-    expanded = [query_text]
-    if query_text in SYNONYMS:
-        expanded.extend(SYNONYMS[query_text])
-
-    # Expand each token so multi-word intents can still map to synonyms.
-    for token in _tokenize(query_text):
-        if token in SYNONYMS:
-            expanded.extend(SYNONYMS[token])
-
-    # Preserve order while removing duplicates.
+def _expanded_query_tokens(query: str) -> List[str]:
+    base = [token for token in re.findall(r"[a-z0-9]+", _normalize(query)) if token]
+    expanded = list(base)
+    for token in base:
+        expanded.extend(QUERY_SYNONYMS.get(token, []))
+    # stable unique order
     seen = set()
     ordered = []
-    for term in expanded:
-        key = _to_text(term)
+    for token in expanded:
+        key = _normalize(token)
         if not key or key in seen:
             continue
         seen.add(key)
@@ -58,91 +45,74 @@ def expand_search_query(query):
     return ordered
 
 
-def search_tools(tools, query):
-    if not query:
-        return list(tools)
+def _search_score(tool, tokens: Iterable[str]) -> int:
+    name = _normalize(tool.get("name"))
+    description = _normalize(tool.get("description") or tool.get("tagline"))
+    category = _normalize(tool.get("category"))
+    tags = " ".join(_tags(tool))
 
-    query_text = _to_text(query)
-    expanded_terms = expand_search_query(query_text)
-    query_tokens = _tokenize(query_text)
+    name_c = _compact(name)
+    description_c = _compact(description)
+    category_c = _compact(category)
+    tags_c = _compact(tags)
 
-    # Keep direct term and token hits from double-counting too aggressively.
-    scored = []
+    score = 0
+    for token in tokens:
+        token_n = _normalize(token)
+        token_c = _compact(token_n)
+        if not token_n:
+            continue
 
-    for tool in tools:
-        score = 0
-
-        name = _to_text(tool.get("name"))
-        description = _to_text(tool.get("description"))
-        category = _to_text(tool.get("category"))
-        tags = _to_tags_text(tool)
-
-        for term in expanded_terms:
-            if term in name:
-                score += 100
-            if term in tags:
-                score += 120
-            if term in category:
-                score += 60
-            if term in description:
-                score += 30
-
-        # Bonus for exact phrase in high-value fields.
-        if query_text and query_text in name:
+        if token_n in name or token_c in name_c:
             score += 80
-        if query_text and query_text in tags:
-            score += 90
-
-        # Token-level intent support for multi-word queries.
-        for token in query_tokens:
-            if token in name:
-                score += 25
-            if token in tags:
-                score += 35
-            if token in category:
+            if name.startswith(token_n):
                 score += 15
-            if token in description:
-                score += 8
-
-        if tool.get("is_verified") or tool.get("verified"):
+        if token_n in tags or token_c in tags_c:
+            score += 60
+        if token_n in category or token_c in category_c:
+            score += 45
+        if token_n in description or token_c in description_c:
             score += 20
 
-        if _safe_rating(tool.get("rating")) >= 4.5:
-            score += 10
+    return score
 
+
+def search_tools(tools, query: str):
+    tokens = _expanded_query_tokens(query)
+    if not tokens:
+        return []
+
+    scored = []
+    for tool in tools:
+        score = _search_score(tool, tokens)
         if score > 0:
-            scored.append((score, tool))
+            scored.append((score, float(tool.get("rating") or 0), tool))
 
-    scored.sort(key=lambda item: item[0], reverse=True)
-    return [tool for score, tool in scored]
+    scored.sort(key=lambda row: (row[0], row[1]), reverse=True)
+    return [tool for _, _, tool in scored]
 
 
-def smart_search_fallback(tools, query, results_limit=5):
-    query_text = _to_text(query)
-    if not query_text:
-        return list(tools)[:results_limit]
-
-    category_matches = [
-        tool
-        for tool in tools
-        if query_text in _to_text(tool.get("category"))
-    ]
-    if category_matches:
-        return category_matches[:results_limit]
-
-    trending = sorted(
-        list(tools),
-        key=lambda tool: (
-            bool(tool.get("trending") or tool.get("trending_this_week")),
-            _safe_rating(tool.get("rating")),
-            int(tool.get("popularity") or 0),
+def smart_search_fallback(tools, query: str, results_limit: int = 20):
+    # Fallback to best-rated and most popular tools when strict matches are unavailable.
+    candidates = sorted(
+        tools,
+        key=lambda item: (
+            float(item.get("rating") or 0),
+            str(item.get("weeklyUsers") or ""),
+            bool(item.get("trending") or item.get("trending_this_week")),
         ),
         reverse=True,
     )
-    return trending[:results_limit]
+
+    ranked = search_tools(candidates, query)
+    if ranked:
+        return ranked[:results_limit]
+    return candidates[:results_limit]
 
 
-def limit_results(items, limit=5):
-    if limit is None:
-        return list(items)
-    return list(items)[: max(0, int(limit))]
+def limit_results(items, limit: int = 20):
+    try:
+        limit_value = max(1, int(limit))
+    except (TypeError, ValueError):
+        limit_value = 20
+    return list(items or [])[:limit_value]

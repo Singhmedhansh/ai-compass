@@ -3,12 +3,16 @@
 {% block title %}Profile | AI Compass{% endblock %}
 
 {% block content %}
-<div class="max-w-2xl mx-auto space-y-6 animate-fadeIn">
-  <section class="glass rounded-2xl p-6 border border-white/10 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/20">
+<div class="max-w-2xl mx-auto space-y-6">
+  <section class="glass rounded-2xl p-6 border border-white/10">
     <div class="flex items-start gap-4">
+      {% if current_user.oauth_picture_url %}
+      <img src="{{ current_user.oauth_picture_url }}" alt="Profile picture" class="w-12 h-12 rounded-full object-cover border border-white/20" />
+      {% else %}
       <div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white font-bold text-lg">
         {{ (current_user.display_name or current_user.email or 'U')[:1]|upper }}
       </div>
+      {% endif %}
       <div>
         <h1 class="text-2xl font-semibold text-zinc-100">Your Profile</h1>
         <p class="text-sm text-zinc-400 mt-1">Manage your identity, student status, and preferences</p>
@@ -28,13 +32,13 @@
     {% endif %}
   {% endwith %}
 
-  <form method="post" class="glass rounded-2xl p-6 border border-white/10 space-y-6 transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/10">
+  <form method="post" class="glass rounded-2xl p-6 border border-white/10 space-y-6">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 
     <!-- Name Section -->
     <div>
       <label for="display_name" class="block text-sm font-medium text-zinc-200 mb-2">Name</label>
-      <input id="display_name" name="display_name" type="text" value="{{ current_user.display_name or '' }}" placeholder="Your name (optional)" class="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-zinc-100 placeholder-zinc-500 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-white/20 focus:scale-[1.01]" />
+      <input id="display_name" name="display_name" type="text" value="{{ current_user.display_name or '' }}" placeholder="Your name (optional)" class="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-white/20" />
       <p class="text-xs text-zinc-500 mt-1">How you'll appear to other users</p>
     </div>
 
@@ -46,7 +50,7 @@
     </div>
 
     <!-- Student Status Section -->
-    <div class="rounded-lg border border-white/10 bg-white/5 p-4 transition-all duration-200 hover:border-blue-400/25 hover:bg-white/10">
+    <div class="rounded-lg border border-white/10 bg-white/5 p-4">
       <label class="flex items-center justify-between cursor-pointer">
         <div>
           <span class="block text-sm font-medium text-zinc-100">Student Status</span>
@@ -61,7 +65,7 @@
       <label class="block text-sm font-medium text-zinc-200 mb-3">Interest Preferences</label>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
         {% for option in preference_options %}
-        <label class="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 cursor-pointer hover:bg-white/8 transition-all duration-200 hover:border-blue-400/25 hover:-translate-y-0.5">
+        <label class="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 cursor-pointer hover:bg-white/8 transition-colors">
           <input type="checkbox" name="preferences" value="{{ option }}" class="rounded border-white/20 bg-white/5 cursor-pointer" {% if option in preferences %}checked{% endif %} />
           <span class="text-sm text-zinc-100">{{ option }}</span>
         </label>
@@ -72,14 +76,36 @@
     <!-- Custom Preferences -->
     <div>
       <label for="custom_preferences" class="block text-sm font-medium text-zinc-200 mb-2">Additional Interests</label>
-      <input name="custom_preferences" id="custom_preferences" type="text" placeholder="e.g., Web Development, Data Science, Graphic Design..." class="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-zinc-100 placeholder-zinc-500 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-white/20 focus:scale-[1.01]" />
+      <input name="custom_preferences" id="custom_preferences" type="text" placeholder="e.g., Web Development, Data Science, Graphic Design..." class="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-white/20" />
       <p class="text-xs text-zinc-500 mt-1">Enter interests separated by commas for better recommendations</p>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div>
+        <label for="skill_level" class="block text-sm font-medium text-zinc-200 mb-2">Skill level</label>
+        <select id="skill_level" name="skill_level" class="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-zinc-100">
+          <option value="" {% if not skill_level %}selected{% endif %}>Not set</option>
+          <option value="beginner" {% if skill_level == 'beginner' %}selected{% endif %}>Beginner</option>
+          <option value="intermediate" {% if skill_level == 'intermediate' %}selected{% endif %}>Intermediate</option>
+          <option value="advanced" {% if skill_level == 'advanced' %}selected{% endif %}>Advanced</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="preferred_pricing" class="block text-sm font-medium text-zinc-200 mb-2">Pricing preference</label>
+        <select id="preferred_pricing" name="preferred_pricing" class="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-zinc-100">
+          <option value="" {% if not preferred_pricing %}selected{% endif %}>Not set</option>
+          <option value="free" {% if preferred_pricing == 'free' %}selected{% endif %}>Free only</option>
+          <option value="freemium" {% if preferred_pricing == 'freemium' %}selected{% endif %}>Freemium</option>
+          <option value="paid" {% if preferred_pricing == 'paid' %}selected{% endif %}>Paid okay</option>
+        </select>
+      </div>
     </div>
 
     <!-- Action Buttons -->
     <div class="flex flex-col sm:flex-row gap-3 pt-3 border-t border-white/10">
       <button type="submit" class="dashboard-btn justify-center">Save Profile Changes</button>
-      <a href="{{ url_for('main.dashboard') }}" class="px-4 py-2.5 rounded-lg border border-white/10 bg-white/5 text-zinc-100 text-center hover:bg-white/10 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:shadow-blue-500/20 active:scale-95">Go to Dashboard</a>
+      <a href="{{ url_for('main.dashboard') }}" class="px-4 py-2.5 rounded-lg border border-white/10 bg-white/5 text-zinc-100 text-center hover:bg-white/10 transition-all">Go to Dashboard</a>
     </div>
   </form>
 </div>

@@ -13,11 +13,6 @@
       var root = document.documentElement;
       root.classList.remove('light', 'dark');
       root.classList.add(theme);
-      document.addEventListener('DOMContentLoaded', function() {
-        if (!document.body) return;
-        document.body.classList.remove('light-mode', 'dark-mode');
-        document.body.classList.add(theme === 'light' ? 'light-mode' : 'dark-mode');
-      });
     })();
   </script>
 
@@ -28,75 +23,27 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
   <style>
-    html {
-      scroll-behavior: smooth;
-    }
-
     :root {
-      --bg-color: #ffffff;
-      --text-color: #111111;
-      --card-bg: #f9f9f9;
-      --border-color: #dddddd;
-      --muted-color: #475569;
-
-      /* Backward-compatible aliases used across existing templates */
-      --bg: var(--bg-color);
-      --text: var(--text-color);
-      --card: var(--card-bg);
-      --muted: var(--muted-color);
-      --border: var(--border-color);
+      --bg: #0b0f19;
+      --text: #ffffff;
+      --card: #111827;
+      --muted: #9ca3af;
+      --border: #243042;
     }
 
-    * {
-      transition: all 0.2s ease-in-out;
-      box-sizing: border-box;
-    }
-
-    body.dark-mode,
-    html.dark {
-      --bg-color: #0f172a;
-      --text-color: #e5e7eb;
-      --card-bg: #1e293b;
-      --border-color: #334155;
-      --muted-color: #9ca3af;
-    }
-
-    body.light-mode,
     html.light {
-      --bg-color: #ffffff;
-      --text-color: #111111;
-      --card-bg: #f9f9f9;
-      --border-color: #dddddd;
-      --muted-color: #475569;
+      --bg: #f8fafc;
+      --text: #0b0f19;
+      --card: #e5e7eb;
+      --muted: #475569;
+      --border: #cbd5e1;
     }
 
     body {
       font-family: 'DM Sans', system-ui, sans-serif;
-      background-color: var(--bg-color);
-      color: var(--text-color);
-      animation: fadeIn 0.3s ease-in;
-      transition: background-color 0.3s ease, color 0.3s ease;
-    }
-
-    h1, h2, h3, h4, h5, h6,
-    p, span, label, a, li {
-      color: var(--text-color);
-    }
-
-    .card, .box, .option, .container {
-      background-color: var(--card-bg);
-      color: var(--text-color);
-      border: 1px solid var(--border-color);
-    }
-
-    button, input, textarea, select {
-      color: var(--text-color);
-    }
-
-    .sidebar, .navbar,
-    aside, header {
-      background-color: var(--card-bg);
-      color: var(--text-color);
+      background: var(--bg);
+      color: var(--text);
+      animation: fadeIn 0.5s ease-out;
     }
 
     main {
@@ -110,62 +57,36 @@
     }
 
     .card,
-    .option,
-    .tool-card,
-    .browse-tool-card,
     article.glass,
     article.panel,
     .app-card {
       transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
       animation: fadeIn 0.4s ease-out;
-      min-height: 3rem;
-      border-radius: 1rem;
     }
 
     .card:hover,
-    .option:hover,
-    .tool-card:hover,
-    .browse-tool-card:hover,
     article.glass:hover,
     article.panel:hover,
     .app-card:hover {
-      transform: translateY(-4px) scale(1.01);
-      box-shadow: 0 14px 28px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(96, 165, 250, 0.2);
-      border-color: rgba(96, 165, 250, 0.35);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 28px rgba(0, 212, 255, 0.15), 0 8px 16px rgba(0, 0, 0, 0.3);
     }
 
     button {
-      transition: transform 0.1s ease, box-shadow 0.1s ease;
-      min-height: 2.25rem;
+      transition: all 0.15s ease;
     }
 
     button:hover {
       opacity: 0.95;
-      transform: translateY(-1px) scale(1.03);
     }
 
     button:active {
       transform: scale(0.97);
     }
 
-    button[class*="bg-blue"],
-    a[class*="bg-blue"][class*="rounded"] {
-      box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.2);
-    }
-
-    button[class*="bg-blue"]:hover,
-    a[class*="bg-blue"][class*="rounded"]:hover {
-      box-shadow: 0 10px 24px rgba(59, 130, 246, 0.28);
-    }
-
-    button.loading {
-      opacity: 0.7;
-      pointer-events: none;
-    }
-
     .dashboard-btn {
       background: linear-gradient(135deg, #2563eb, #1d4ed8);
-      color: var(--text-color);
+      color: #ffffff;
       font-weight: 600;
       border-radius: 8px;
       padding: 6px 14px;
@@ -299,21 +220,29 @@
     @keyframes fadeIn {
       from {
         opacity: 0;
-        transform: translateY(6px);
       }
       to {
         opacity: 1;
-        transform: translateY(0);
       }
-    }
-
-    .animate-fadeIn {
-      opacity: 0;
-      animation: fadeIn 0.4s ease forwards;
     }
 
     .student-toast.dismiss {
       animation: slideOut 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    .auth-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 6, 23, 0.65);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 70;
+      padding: 1rem;
+    }
+
+    .auth-modal-overlay.open {
+      display: flex;
     }
 
     @keyframes reveal-up {
@@ -348,22 +277,13 @@
       }
 
       .card,
-      .option,
-      .tool-card,
-      .browse-tool-card,
       article.glass,
       article.panel,
       .app-card {
         transition: none !important;
       }
-
-      * {
-        transition: none !important;
-      }
     }
 
-    input,
-    textarea,
     select,
     option {
       background-color: var(--card);
@@ -371,66 +291,36 @@
       border: 1px solid #1e293b;
     }
 
-    input,
-    textarea,
     select {
-      transition: border 0.2s ease, box-shadow 0.2s ease;
+      transition: all 0.2s ease;
     }
 
-    select:not([multiple]):not([size]) {
-      appearance: none;
-      -webkit-appearance: none;
-      -moz-appearance: none;
-      padding-right: 2.3rem;
-      border-radius: 0.75rem;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M6 8l4 4 4-4' stroke='%2394a3b8' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-size: 1rem 1rem;
-      background-position: right 0.75rem center;
-      background-color: color-mix(in srgb, var(--card-bg) 92%, transparent);
-      border-color: color-mix(in srgb, var(--border-color) 86%, transparent);
-    }
-
-    input:hover,
-    textarea:hover,
     select:hover {
       border-color: #94a3b8;
     }
 
-    input:focus,
-    textarea:focus,
     select:focus {
-      outline: none;
-      border-color: #6366f1;
-      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
-    }
-
-    .progress-bar {
-      transition: width 0.3s ease-in-out;
+      border-color: #00d9ff;
+      box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1), inset 0 1px 2px rgba(0, 0, 0, 0.1);
     }
 
     option {
+      appearance: none;
       background-color: #1e293b;
       color: #e2e8f0;
       padding: 8px;
     }
 
     option:checked {
-      background: linear-gradient(#0f172a, #0f172a);
-      background-color: #0f172a;
-      color: #e2e8f0;
+      background: linear-gradient(#06b6d4, #06b6d4);
+      background-color: #0891b2;
+      color: white;
     }
 
-    body.light-mode .text-zinc-100,
-    body.light-mode .text-zinc-200,
-    body.light-mode .text-zinc-300,
-    body.light-mode .text-zinc-400,
-    body.light-mode .text-zinc-500,
-    body.light-mode .text-slate-100,
-    body.light-mode .text-slate-200,
-    body.light-mode .text-slate-300,
-    body.light-mode .text-slate-400,
-    body.light-mode .text-gray-400,
+    option:hover {
+      background-color: #334155;
+    }
+
     html.light .text-zinc-100,
     html.light .text-zinc-200,
     html.light .text-zinc-300,
@@ -441,80 +331,21 @@
     html.light .text-slate-300,
     html.light .text-slate-400,
     html.light .text-gray-400 {
-      color: var(--text-color) !important;
+      color: #0f172a !important;
     }
 
-    /* Second-pass light mode fixes for remaining dark utility surfaces */
-    body.light-mode .bg-gray-900,
-    body.light-mode .bg-zinc-900,
-    body.light-mode .bg-zinc-900\/40,
-    body.light-mode .bg-zinc-900\/50,
-    body.light-mode .bg-zinc-800,
-    body.light-mode .bg-zinc-800\/70,
-    body.light-mode .bg-zinc-700,
-    body.light-mode .bg-zinc-700\/50,
-    body.light-mode .bg-zinc-700\/40 {
-      background-color: var(--card-bg) !important;
-    }
-
-    body.light-mode .border-zinc-700,
-    body.light-mode .border-zinc-700\/80,
-    body.light-mode .border-zinc-600,
-    body.light-mode .border-zinc-500\/20,
-    body.light-mode .border-zinc-500\/25,
-    body.light-mode .border-zinc-500\/30 {
-      border-color: var(--border-color) !important;
-    }
-
-    body.light-mode .glass,
-    body.light-mode .app-card,
-    body.light-mode article.glass,
-    body.light-mode article.panel {
-      background: color-mix(in srgb, var(--card-bg) 96%, #ffffff 4%) !important;
-      border-color: var(--border-color) !important;
-    }
-
-    /* Native dropdown menu readability (Compare page selects) */
-    body.light-mode select,
-    body.light-mode option,
-    body.light-mode optgroup {
-      background: #ffffff !important;
-      color: var(--text-color) !important;
-      border-color: var(--border-color) !important;
-    }
-
-    body.light-mode select:not([multiple]):not([size]) {
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M6 8l4 4 4-4' stroke='%23475569' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-size: 1rem 1rem;
-      background-position: right 0.75rem center;
-    }
-
-    body.light-mode select:focus {
-      background: #ffffff !important;
-      color: var(--text-color) !important;
-    }
-
-    body.light-mode .bg-zinc-950\/80,
-    body.light-mode .bg-zinc-900,
-    body.light-mode .bg-black,
-    body.light-mode .bg-gray-900,
-    body.light-mode .bg-white\/5,
     html.light .bg-zinc-950\/80,
     html.light .bg-zinc-900,
     html.light .bg-black,
     html.light .bg-gray-900,
     html.light .bg-white\/5 {
-      background-color: color-mix(in srgb, var(--card-bg) 92%, #ffffff 8%) !important;
+      background-color: color-mix(in srgb, var(--card) 92%, #ffffff 8%) !important;
     }
 
-    body.light-mode .border-white\/10,
-    body.light-mode .border-white\/8,
-    body.light-mode .border-gray-700,
     html.light .border-white\/10,
     html.light .border-white\/8,
     html.light .border-gray-700 {
-      border-color: var(--border-color) !important;
+      border-color: var(--border) !important;
     }
 
     html.light #student-mode-toggle.active {
@@ -565,10 +396,6 @@
       background: linear-gradient(135deg, #10b981, #059669);
       color: #ecfdf5;
       border-color: rgba(16, 185, 129, 0.4);
-    }
-
-    body.light-mode * {
-      color: var(--text-color) !important;
     }
   </style>
 
@@ -640,13 +467,28 @@
     </div>
   </footer>
 
+  <div id="login-required-modal" class="auth-modal-overlay" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="login-required-title">
+    <div class="glass rounded-2xl border border-white/10 w-full max-w-md p-5">
+      <h3 id="login-required-title" class="text-lg text-zinc-100 font-semibold">Login required</h3>
+      <p class="text-sm text-zinc-400 mt-2">Login to save tools, build your stack, and get personalized recommendations.</p>
+      <div class="mt-4 flex items-center gap-2">
+        <a id="login-required-login" href="{{ url_for('auth.login') }}" class="dashboard-btn text-sm">Login</a>
+        <a id="login-required-register" href="{{ url_for('auth.register') }}" class="px-3 py-1 rounded-lg border border-white/10 bg-white/5 text-zinc-200 text-sm hover:bg-white/10 transition-all">Register</a>
+        <button id="login-required-close" type="button" class="ml-auto px-3 py-1 rounded-lg border border-white/10 bg-white/5 text-zinc-300 text-sm hover:bg-white/10 transition-all">Close</button>
+      </div>
+    </div>
+  </div>
+
   <div
     id="ai-compass-config"
     data-is-authenticated="{{ 1 if current_user.is_authenticated else 0 }}"
     data-favorite-ids='{{ favorite_tool_ids|default([], true)|tojson }}'
     data-csrf-token="{{ csrf_token() }}"
+    data-login-url="{{ url_for('auth.login') }}"
+    data-register-url="{{ url_for('auth.register') }}"
     hidden
   ></div>
+
   <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 
 </body>

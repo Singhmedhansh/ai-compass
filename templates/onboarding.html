@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Onboarding | AI Compass{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto space-y-6 animate-fadeIn">
+  <section class="glass rounded-2xl p-6 border border-white/10">
+    <h1 class="text-2xl font-semibold text-zinc-100">Let's personalize your AI Compass</h1>
+    <p class="text-sm text-zinc-400 mt-2">A quick setup to tailor search and recommendations.</p>
+  </section>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="space-y-2">
+        {% for category, message in messages %}
+          <div class="glass rounded-xl px-4 py-3 text-sm {% if category == 'success' %}text-emerald-400 border-emerald-500/20 bg-emerald-500/5{% elif category == 'error' or category == 'warning' %}text-amber-300 border-amber-500/20 bg-amber-500/5{% else %}text-blue-300 border-blue-500/20 bg-blue-500/5{% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <form method="post" class="glass rounded-2xl p-6 border border-white/10 space-y-6">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+    <div>
+      <label for="use_for" class="block text-sm text-zinc-200 mb-2">1. What do you want to use AI for?</label>
+      <select id="use_for" name="use_for" required class="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-zinc-100">
+        <option value="">Select one</option>
+        <option value="coding">Coding</option>
+        <option value="writing">Writing</option>
+        <option value="studying">Studying</option>
+        <option value="research">Research</option>
+        <option value="design">Design</option>
+        <option value="productivity">Productivity</option>
+      </select>
+    </div>
+
+    <div>
+      <label for="skill_level" class="block text-sm text-zinc-200 mb-2">2. Skill level</label>
+      <select id="skill_level" name="skill_level" required class="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-zinc-100">
+        <option value="">Select one</option>
+        <option value="beginner">Beginner</option>
+        <option value="intermediate">Intermediate</option>
+        <option value="advanced">Advanced</option>
+      </select>
+    </div>
+
+    <div>
+      <label for="preferred_pricing" class="block text-sm text-zinc-200 mb-2">3. Budget</label>
+      <select id="preferred_pricing" name="preferred_pricing" required class="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-zinc-100">
+        <option value="">Select one</option>
+        <option value="free">Free only</option>
+        <option value="freemium">Freemium</option>
+        <option value="paid">Paid okay</option>
+      </select>
+    </div>
+
+    <div>
+      <label for="interest_tags" class="block text-sm text-zinc-200 mb-2">4. Interests (optional)</label>
+      <input id="interest_tags" name="interest_tags" type="text" placeholder="editing, python, video, startups" class="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-zinc-100 placeholder-zinc-500" />
+      <p class="text-xs text-zinc-500 mt-1">Comma-separated tags improve personalization.</p>
+    </div>
+
+    <div class="pt-2">
+      <button type="submit" class="dashboard-btn">Finish onboarding</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

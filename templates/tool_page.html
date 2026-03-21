@@ -40,27 +40,17 @@
     border: 1px solid rgba(255, 255, 255, 0.12);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    transition: all 200ms ease;
   }
   .chip {
     border: 1px solid rgba(255, 255, 255, 0.12);
     background: rgba(255, 255, 255, 0.03);
-    transition: all 200ms ease;
-  }
-  .app-card {
-    transition: all 200ms ease;
-  }
-  .panel:hover,
-  .app-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 16px 36px rgba(59, 130, 246, 0.12);
   }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="max-w-6xl mx-auto space-y-6">
-    <a href="{{ url_for('main.index') }}" class="inline-flex items-center text-sm text-slate-300 hover:text-white transition-all duration-200 hover:-translate-y-0.5">← Back to AI Compass</a>
+    <a href="{{ url_for('main.index') }}" class="inline-flex items-center text-sm text-slate-300 hover:text-white transition-colors">← Back to AI Compass</a>
 
     <section class="panel app-card rounded-2xl p-5 sm:p-8 mt-4">
       <div class="flex flex-col md:flex-row md:items-start gap-5">
@@ -102,7 +92,7 @@
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                 <div class="flex items-center gap-1 text-lg">
                   {% for star in range(1, 6) %}
-                  <button type="submit" name="rating" value="{{ star }}" class="transition-all duration-200 hover:scale-110 hover:-translate-y-0.5 {% if user_rating >= star %}text-amber-300{% else %}text-slate-500{% endif %}" title="Rate {{ star }} star{{ '' if star == 1 else 's' }}">★</button>
+                  <button type="submit" name="rating" value="{{ star }}" class="transition-transform hover:scale-110 {% if user_rating >= star %}text-amber-300{% else %}text-slate-500{% endif %}" title="Rate {{ star }} star{{ '' if star == 1 else 's' }}">★</button>
                   {% endfor %}
                 </div>
                 <span class="text-xs text-slate-500">{% if user_rating %}Your rating: {{ user_rating }}/5{% else %}Rate this tool{% endif %}</span>
@@ -115,18 +105,12 @@
         </div>
 
         <div class="self-start flex flex-col gap-2">
-          <a href="{{ tool.link }}" target="_blank" rel="noopener noreferrer" class="bg-emerald-400 text-emerald-950 hover:bg-emerald-300 rounded-xl px-4 py-2 text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-emerald-500/35 active:scale-95 text-center">
+          <a href="{{ tool.link }}" target="_blank" rel="noopener noreferrer" class="bg-emerald-400 text-emerald-950 hover:bg-emerald-300 rounded-xl px-4 py-2 text-sm font-semibold transition-colors text-center">
             Visit Tool
           </a>
-          {% if current_user.is_authenticated %}
-          <button id="save-tool-local" type="button" data-tool-key="{{ tool.tool_key }}" class="rounded-xl px-4 py-2 text-xs font-semibold border border-white/15 bg-white/5 text-zinc-100 hover:bg-white/10 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/20 active:scale-95">
+          <button id="save-tool-local" type="button" data-tool-key="{{ tool.tool_key }}" class="rounded-xl px-4 py-2 text-xs font-semibold border border-white/15 bg-white/5 text-zinc-100 hover:bg-white/10">
             ⭐ Save tool
           </button>
-          {% else %}
-          <a href="{{ url_for('auth.login', next=request.path) }}" class="rounded-xl px-4 py-2 text-xs font-semibold border border-white/15 bg-white/5 text-zinc-100 hover:bg-white/10 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/20 active:scale-95 text-center">
-            Login to save
-          </a>
-          {% endif %}
         </div>
       </div>
     </section>
@@ -151,7 +135,7 @@
           <h2 class="text-lg font-semibold">Key Features</h2>
           <ul class="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
             {% for feature in tool.features %}
-            <li class="chip rounded-lg px-3 py-2 text-sm text-slate-200 hover:border-blue-400/30 hover:bg-blue-500/10">{{ feature }}</li>
+            <li class="chip rounded-lg px-3 py-2 text-sm text-slate-200">{{ feature }}</li>
             {% endfor %}
           </ul>
         </div>
@@ -197,7 +181,7 @@
       </div>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
         {% for item in similar_tools %}
-        <article class="panel rounded-xl p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/20">
+        <article class="panel rounded-xl p-4">
           <div class="flex items-center gap-2">
             <div class="w-8 h-8 rounded-lg overflow-hidden border border-white/15 flex items-center justify-center bg-white/5 flex-shrink-0">
               <img src="{{ item.icon_url }}" alt="{{ item.name }} icon" class="w-full h-full object-contain bg-white p-1 rounded-lg" onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');" />
@@ -209,7 +193,7 @@
             </div>
           </div>
           <p class="text-xs text-slate-300 mt-3 line-clamp-2">{{ item.description }}</p>
-          <a href="{{ url_for('main.tool_detail', tool_id=item.tool_key) }}" class="inline-block text-xs mt-3 text-cyan-300 hover:text-cyan-200 transition-all duration-200 hover:translate-x-0.5">View tool →</a>
+          <a href="{{ url_for('main.tool_detail', tool_id=item.tool_key) }}" class="inline-block text-xs mt-3 text-cyan-300 hover:text-cyan-200">View tool →</a>
         </article>
         {% endfor %}
       </div>

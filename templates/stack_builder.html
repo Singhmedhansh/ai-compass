@@ -22,7 +22,7 @@
   {% endwith %}
 
   <!-- Multi-Step Wizard Form -->
-  <form id="stack-form" method="POST" action="{{ url_for('main.stack_builder_step') }}" class="space-y-6">
+  <form id="stackWizardForm" method="POST" action="{{ url_for('main.stack_builder_step') }}" class="space-y-6">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
     <input type="hidden" id="currentStepInput" name="current_step" value="1" />
     <input type="hidden" id="actionInput" name="action" value="generate" />
@@ -38,7 +38,7 @@
         <span id="progress-percent">25%</span>
       </div>
       <div class="w-full bg-zinc-800 rounded-full h-2">
-        <div id="progressBar" class="progress-bar bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all duration-300" style="width: 25%"></div>
+        <div id="progressBar" class="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all duration-300" style="width: 25%"></div>
       </div>
     </div>
 
@@ -150,7 +150,6 @@
   </form>
 
   <!-- Results Section -->
-  <div id="results-container">
   {% if generated_stack is not none %}
   <section class="space-y-4 animate-fade-in">
     <div class="flex items-center justify-between">
@@ -301,7 +300,6 @@
     {% endif %}
   </section>
   {% endif %}
-  </div>
 </div>
 
 <style>
@@ -329,22 +327,6 @@
   .select-card.active {
     border-color: rgba(59, 130, 246, 0.75);
     background: rgba(59, 130, 246, 0.12);
-  }
-
-  body.light-mode .select-card {
-    background: #f8fafc !important;
-    border-color: #cbd5e1 !important;
-    color: #111111 !important;
-  }
-
-  body.light-mode .select-card:hover {
-    background: #eef2ff !important;
-    border-color: #93c5fd !important;
-  }
-
-  body.light-mode .select-card.active {
-    background: #dbeafe !important;
-    border-color: #60a5fa !important;
   }
 
   @keyframes best-choice-pulse {
@@ -385,7 +367,6 @@
   const STACK_PREFS_KEY = "ai_compass_stack_prefs";
   const STACK_SAVED_TOOLS_KEY = "ai_compass_saved_stack_tools";
   const STACK_HISTORY_KEY = "ai_compass_saved_stacks";
-  let lastGeneratedResultsHtml = "";
 
   function saveStackPrefs() {
     try {
@@ -529,229 +510,13 @@
     }
   }
 
-  function escapeHtml(value) {
-    return String(value ?? "")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/\"/g, "&quot;")
-      .replace(/'/g, "&#039;");
-  }
-
-  function buildAlternativesHtml(alternatives) {
-    if (!Array.isArray(alternatives) || !alternatives.length) return "";
-    const links = alternatives
-      .map((alt) => {
-        const toolKey = escapeHtml(alt.tool_key || "");
-        const name = escapeHtml(alt.name || "Alternative");
-        return `<a href="/tool/${toolKey}" class="underline hover:text-cyan-50">${name}</a>`;
-      })
-      .join(", ");
-
-    return `
-      <div class="mt-2 text-[11px] text-cyan-100/90">
-        You may also consider: ${links}
-      </div>
-    `;
-  }
-
-  function buildSummaryHtml(data) {
-    const summaryText = data.ai_summary || data.summary;
-    if (!summaryText) return "";
-    const confidence = Number(data.confidence || 0);
-    const decisionShortcut = data.decision_shortcut || "";
-    const bestChoice = data.best_choice || null;
-
-    return `
-      <article class="glass rounded-xl p-4 border border-cyan-500/25 bg-cyan-500/10">
-        <div class="flex items-start justify-between gap-3">
-          <div>
-            <h3 class="text-sm font-semibold text-cyan-100">🤖 AI Recommendation Summary</h3>
-            <p class="text-xs text-cyan-200/90 mt-1 leading-relaxed">${summaryText}</p>
-            ${decisionShortcut ? `<p class="text-xs text-cyan-100 mt-2">${escapeHtml(decisionShortcut)}</p>` : ""}
-          </div>
-          ${confidence > 0 ? `<span class="inline-flex items-center px-2 py-1 rounded-md text-[10px] font-semibold border border-cyan-400/35 bg-cyan-500/15 text-cyan-100">Confidence ${confidence}%</span>` : ""}
-        </div>
-        ${bestChoice ? `<div class="mt-3 text-[11px] text-cyan-100/90">🏆 Best Choice: <span class="font-semibold">${escapeHtml(bestChoice.name || "")}</span></div>` : ""}
-        ${buildAlternativesHtml(data.alternatives)}
-        <div class="mt-3 flex items-center gap-2 flex-wrap">
-          <button type="button" id="pick-for-me-btn" class="text-xs px-3 py-1.5 rounded-lg border border-cyan-400/30 bg-cyan-500/15 text-cyan-100 hover:bg-cyan-500/20">
-            Pick for me
-          </button>
-          <button type="button" id="save-stack-btn" class="text-xs px-3 py-1.5 rounded-lg border border-emerald-400/30 bg-emerald-500/10 text-emerald-200 hover:bg-emerald-500/20">
-            Save this stack
-          </button>
-        </div>
-      </article>
-    `;
-  }
-
-  function buildToolCardHtml(tool, bestChoiceKey) {
-    const toolKey = escapeHtml(tool.tool_key || "");
-    const isBestChoice = bestChoiceKey && tool.tool_key === bestChoiceKey;
-    const price = tool.price ? `<span class="inline-flex items-center px-2 py-1 text-[10px] rounded-md bg-zinc-700/50 text-zinc-300">💰 ${escapeHtml(tool.price)}</span>` : "";
-    const studentBadge = (tool.studentPerk || tool.student_perk)
-      ? '<span class="inline-flex items-center px-2 py-1 text-[10px] rounded-md bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">🎓 Student</span>'
-      : "";
-
-    return `
-      <article class="stack-tool-card glass rounded-xl p-5 flex flex-col gap-4 hover:border-blue-500/50 transition-colors ${isBestChoice ? "ring-1 ring-amber-400/40 border-amber-500/40" : ""}" data-tool-key="${toolKey}">
-        <div class="flex items-start justify-between gap-3">
-          <div class="flex-1 min-w-0">
-            <a href="/tool/${toolKey}" class="text-sm font-semibold text-zinc-100 hover:text-blue-400 transition-colors">
-              ${escapeHtml(tool.name || "Unnamed Tool")}
-            </a>
-            <p class="text-xs text-zinc-500 mt-1">${escapeHtml(tool.category || "General")}</p>
-          </div>
-          <div class="flex flex-col items-end gap-1">
-            ${isBestChoice ? '<span class="best-choice-badge inline-flex items-center px-2 py-1 text-[10px] rounded-md bg-amber-500/15 text-amber-200 border border-amber-500/30 font-semibold">🏆 Best Choice</span>' : ""}
-          </div>
-        </div>
-        <p class="text-xs text-zinc-400 leading-relaxed line-clamp-2">${escapeHtml(tool.description || "No description available.")}</p>
-        <div class="flex flex-wrap gap-2">
-          ${price}
-          <span class="inline-flex items-center px-2 py-1 text-[10px] rounded-md bg-amber-500/10 text-amber-300 border border-amber-500/25">⭐ ${Number(tool.rating || 0).toFixed(1)}</span>
-          ${studentBadge}
-        </div>
-        ${(tool.reason || tool.why_selected) ? `
-          <div class="pt-2 border-t border-zinc-700/50">
-            <p class="text-[10px] text-zinc-400 italic">${escapeHtml(tool.reason ? `Best match: ${tool.reason}` : tool.why_selected)}</p>
-          </div>
-        ` : ""}
-      </article>
-    `;
-  }
-
-  function renderGeneratedStack(data) {
-    const resultsContainer = document.getElementById("results-container");
-    if (!resultsContainer) return;
-
-    const tools = Array.isArray(data.tools) ? data.tools : [];
-
-    if (!tools.length) {
-      resultsContainer.innerHTML = `
-        <section class="space-y-4">
-          <div class="glass rounded-xl px-6 py-12 text-center">
-            <p class="text-sm text-zinc-400">No tools found matching your criteria.</p>
-            <p class="text-xs text-zinc-500 mt-2">Try adjusting your selections.</p>
-          </div>
-        </section>
-      `;
-      lastGeneratedResultsHtml = resultsContainer.innerHTML;
-      return;
-    }
-
-    const bestChoiceKey = data.best_choice && data.best_choice.tool_key ? data.best_choice.tool_key : "";
-    const cards = tools.map((tool) => buildToolCardHtml(tool, bestChoiceKey)).join("");
-
-    resultsContainer.innerHTML = `
-      <section class="space-y-4">
-        <div class="flex items-center justify-between">
-          <div>
-            <h2 class="text-xl font-semibold text-zinc-100">Your AI Stack</h2>
-            <p class="text-xs text-zinc-400 mt-1">${tools.length} tools tailored for your needs</p>
-          </div>
-        </div>
-
-        ${buildSummaryHtml(data)}
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          ${cards}
-        </div>
-      </section>
-    `;
-
-    // Keep generated results visible even if another script mutates the container.
-    resultsContainer.style.display = "block";
-    resultsContainer.style.opacity = "1";
-    lastGeneratedResultsHtml = resultsContainer.innerHTML;
-  }
-
-  async function generateStackWithoutReload() {
-    const loadingState = document.getElementById("stack-loading-state");
-    const stepNextButton = document.getElementById("nextBtn") || document.getElementById("next-btn");
-    const csrfTokenInput = document.querySelector('input[name="csrf_token"]');
-
-    syncHiddenInputs();
-
-    if (loadingState) loadingState.classList.remove("hidden");
-    if (stepNextButton) {
-      stepNextButton.disabled = true;
-      stepNextButton.textContent = "Generating...";
-    }
-
-    try {
-      const response = await fetch("/generate-stack", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": csrfTokenInput ? csrfTokenInput.value : "",
-        },
-        credentials: "same-origin",
-        body: JSON.stringify({
-          goal: stackState.goal,
-          budget: stackState.budget,
-          platform: stackState.platform,
-          student_mode: !!stackState.student,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to generate AI stack.");
-      }
-
-      renderGeneratedStack(data);
-      console.log("AI Stack generated successfully");
-    } catch (error) {
-      console.error("Failed to generate stack", error);
-      const resultsContainer = document.getElementById("results-container");
-      if (resultsContainer) {
-        resultsContainer.innerHTML = `
-          <section class="space-y-4">
-            <div class="glass rounded-xl px-6 py-8 text-center border border-red-500/20 bg-red-500/5">
-              <p class="text-sm text-red-300">Unable to generate your stack right now.</p>
-              <p class="text-xs text-zinc-500 mt-2">Please try again in a moment.</p>
-            </div>
-          </section>
-        `;
-      }
-    } finally {
-      if (loadingState) loadingState.classList.add("hidden");
-      if (stepNextButton) {
-        stepNextButton.disabled = false;
-        stepNextButton.textContent = "Generate Stack";
-      }
-    }
-  }
-
   document.addEventListener("DOMContentLoaded", () => {
     const initialStep = Number("{{ current_step or 1 }}") || 1;
     currentStep = Math.min(Math.max(initialStep, 1), 4);
 
     const actionInput = document.getElementById("actionInput");
-    const wizardForm = document.getElementById("stack-form");
+    const wizardForm = document.getElementById("stackWizardForm");
     const loadingState = document.getElementById("stack-loading-state");
-
-    if (wizardForm) {
-      wizardForm.addEventListener("submit", function(e) {
-        e.preventDefault();
-      });
-    }
-
-    const resultsContainer = document.getElementById("results-container");
-    if (resultsContainer) {
-      const observer = new MutationObserver(() => {
-        if (!lastGeneratedResultsHtml) return;
-        if (resultsContainer.innerHTML.trim()) return;
-        console.warn("Results container was cleared unexpectedly. Restoring generated stack.");
-        resultsContainer.innerHTML = lastGeneratedResultsHtml;
-        resultsContainer.style.display = "block";
-        resultsContainer.style.opacity = "1";
-      });
-      observer.observe(resultsContainer, { childList: true });
-    }
 
     document.querySelectorAll(".goal-card").forEach((card) => {
       card.addEventListener("click", () => {
@@ -825,7 +590,7 @@
 
     const stepNextButton = document.getElementById("nextBtn") || document.getElementById("next-btn");
     if (stepNextButton) {
-      stepNextButton.addEventListener("click", async () => {
+      stepNextButton.addEventListener("click", () => {
         if (currentStep < 4) {
           nextStep();
           return;
@@ -833,7 +598,10 @@
 
         syncHiddenInputs();
         if (actionInput) actionInput.value = "generate";
-        await generateStackWithoutReload();
+        if (loadingState) loadingState.classList.remove("hidden");
+        stepNextButton.disabled = true;
+        stepNextButton.textContent = "Generating...";
+        if (wizardForm) wizardForm.submit();
       });
     }
 

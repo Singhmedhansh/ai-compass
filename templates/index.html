@@ -4,7 +4,7 @@
 <div class="max-w-6xl mx-auto space-y-6">
 
   <!-- ═════════════════════════════════════════════════════════════════════════════════════ HERO ═════════════════════════════════════════════════════════════════════════════════════ -->
-  <section class="relative overflow-hidden rounded-3xl p-6 md:p-8 border border-blue-500/20 bg-gradient-to-br from-blue-500/14 via-cyan-500/8 to-transparent animate-fadeIn">
+  <section class="relative overflow-hidden rounded-3xl p-6 md:p-8 border border-blue-500/20 bg-gradient-to-br from-blue-500/14 via-cyan-500/8 to-transparent">
     <div class="pointer-events-none absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-indigo-500/10"></div>
     <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8">
       <div class="max-w-3xl">
@@ -12,20 +12,20 @@
         <h1 class="mt-4 text-3xl md:text-5xl tracking-tight text-zinc-100 font-bold">Find the Best AI Tools</h1>
         <p class="mt-3 text-base md:text-lg text-zinc-400 max-w-2xl">Discover {{ total_tools }} AI tools for writing, coding, research, and productivity.</p>
         <div class="mt-6 flex flex-wrap gap-3">
-          <a href="{{ url_for('main.tools_paginated') }}" class="inline-flex items-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white px-5 py-3 text-sm transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/30 hover:-translate-y-0.5 active:scale-95 font-medium">Explore Tools</a>
-          <a href="{{ url_for('main.ai_tool_finder') }}" class="inline-flex items-center gap-2 rounded-xl glass hover:border-blue-400/30 text-zinc-100 px-5 py-3 text-sm transition-all duration-200 hover:shadow-lg hover:shadow-cyan-500/20 hover:-translate-y-0.5 active:scale-95 font-medium">Find My AI Stack</a>
+          <a href="{{ url_for('main.tools_paginated') }}" class="inline-flex items-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white px-5 py-3 text-sm transition-colors font-medium">Explore Tools</a>
+          <a href="{{ url_for('main.ai_tool_finder') }}" class="inline-flex items-center gap-2 rounded-xl glass hover:border-blue-400/30 text-zinc-100 px-5 py-3 text-sm transition-colors font-medium">Find My AI Stack</a>
         </div>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 min-w-full lg:min-w-[420px]">
-        <div class="glass rounded-2xl p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/20">
+        <div class="glass rounded-2xl p-4">
           <div class="text-[11px] uppercase tracking-wide text-zinc-500">Tools</div>
           <div class="mt-1 text-xl text-zinc-100 font-bold">{{ trust_signals.indexed_tools if trust_signals else total_tools }}+ AI</div>
         </div>
-        <div class="glass rounded-2xl p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-cyan-500/20">
+        <div class="glass rounded-2xl p-4">
           <div class="text-[11px] uppercase tracking-wide text-zinc-500">Community</div>
           <div class="mt-1 text-xl text-zinc-100 font-bold">{{ trust_signals.active_learners if trust_signals else total_users }}+</div>
         </div>
-        <div class="glass rounded-2xl p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-emerald-500/20">
+        <div class="glass rounded-2xl p-4">
           <div class="text-[11px] uppercase tracking-wide text-zinc-500">Freshness</div>
           <div class="mt-1 text-xl text-zinc-100 font-bold">Updated weekly</div>
           <div class="text-[10px] text-zinc-500 mt-1">{{ updated_label }}</div>
@@ -59,7 +59,7 @@
   </section>
 
   <!-- ═════════════════════════════════════════════════════════════════════════════════════ CATEGORIES ═════════════════════════════════════════════════════════════════════════════════════ -->
-  <section class="rounded-2xl p-4 border border-white/10 bg-white/5 animate-fadeIn">
+  <section class="rounded-2xl p-4 border border-white/10 bg-white/5">
     <div class="flex items-center justify-between mb-4">
       <h2 class="text-xl text-zinc-100 font-bold">Browse by Category</h2>
     </div>
@@ -100,14 +100,14 @@
   </section>
 
   <!-- ═════════════════════════════════════════════════════════════════════════════════════ NEW TOOLS ═════════════════════════════════════════════════════════════════════════════════════ -->
-  <section class="rounded-2xl p-4 border border-emerald-500/20 bg-gradient-to-br from-emerald-500/10 via-cyan-500/5 to-transparent animate-fadeIn">
+  <section class="rounded-2xl p-4 border border-emerald-500/20 bg-gradient-to-br from-emerald-500/10 via-cyan-500/5 to-transparent">
     <div class="flex items-center justify-between mb-4">
       <h2 class="text-lg text-zinc-100 font-bold">✨ New AI Tools</h2>
       <span class="text-[10px] font-mono text-zinc-500">Latest 8</span>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
       {% for tool in recent_tools %}
-      <a href="{{ url_for('main.tool_detail', tool_id=tool.tool_key) }}" class="glass rounded-xl p-3 hover:border-emerald-400/30 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-emerald-500/20 group">
+      <a href="{{ url_for('main.tool_detail', tool_id=tool.tool_key) }}" class="glass rounded-xl p-3 hover:border-emerald-400/30 transition-colors group">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 rounded-lg overflow-hidden border border-white/10 flex items-center justify-center bg-white/5 flex-shrink-0">
             <img src="{{ tool.icon_url }}" alt="{{ tool.name }} logo" class="w-full h-full object-contain bg-white p-1 rounded-lg" onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');" />
@@ -125,14 +125,14 @@
   </section>
 
   <!-- ═════════════════════════════════════════════════════════════════════════════════════ TRENDING TOOLS ═════════════════════════════════════════════════════════════════════════════════════ -->
-  <section class="rounded-2xl p-4 border border-blue-500/20 bg-gradient-to-br from-blue-500/10 via-cyan-500/5 to-transparent animate-fadeIn">
+  <section class="rounded-2xl p-4 border border-blue-500/20 bg-gradient-to-br from-blue-500/10 via-cyan-500/5 to-transparent">
     <div class="flex items-center justify-between mb-4">
       <h2 class="text-lg text-zinc-100 font-bold">🔥 Trending AI Tools</h2>
       <span class="text-[10px] font-mono text-zinc-500">Top 6</span>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
       {% for tool in trending_tools %}
-      <article class="glass rounded-xl p-4 hover:border-blue-400/30 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/20">
+      <article class="glass rounded-xl p-4 hover:border-blue-400/30 transition-colors">
         <div class="flex items-start gap-2">
           <div class="w-9 h-9 rounded-md overflow-hidden border border-white/10 flex items-center justify-center bg-white/5 flex-shrink-0">
             <img src="{{ tool.icon_url }}" alt="{{ tool.name }} logo" class="w-full h-full object-contain bg-white p-1 rounded-lg" onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');" />
@@ -156,13 +156,13 @@
   </section>
 
   <!-- ═════════════════════════════════════════════════════════════════════════════════════ NEWSLETTER ═════════════════════════════════════════════════════════════════════════════════════ -->
-  <section class="glass rounded-2xl p-6 border border-cyan-500/20 bg-gradient-to-br from-cyan-500/10 via-blue-500/5 to-transparent animate-fadeIn">
+  <section class="glass rounded-2xl p-6 border border-cyan-500/20 bg-gradient-to-br from-cyan-500/10 via-blue-500/5 to-transparent">
     <h2 class="text-lg text-zinc-100 font-bold">📬 Get Weekly AI Tool Updates</h2>
     <p class="text-sm text-zinc-400 mt-2">Subscribe for curated launches, student-friendly picks, and practical AI workflows.</p>
     <form method="POST" action="{{ url_for('main.newsletter_subscribe') }}" class="mt-4 flex flex-col sm:flex-row gap-2">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
       <input type="email" name="email" required placeholder="you@example.com" class="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-blue-400" />
-      <button type="submit" class="rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm px-6 py-2.5 transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/30 hover:-translate-y-0.5 active:scale-95 font-medium whitespace-nowrap">Subscribe</button>
+      <button type="submit" class="rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm px-6 py-2.5 transition-colors font-medium whitespace-nowrap">Subscribe</button>
     </form>
   </section>
 
