@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-[220px,1fr] gap-5">
+  <aside class="rounded-2xl border border-white/10 bg-white/5 p-4 h-fit">
+    <h2 class="text-zinc-100 font-semibold mb-3">Admin</h2>
+    <nav class="space-y-1.5 text-sm">
+      <a href="{{ url_for('main.admin') }}" class="block px-3 py-2 rounded-lg border border-white/10 hover:bg-white/10 transition-all">Dashboard</a>
+      <a href="{{ url_for('main.admin_users') }}" class="block px-3 py-2 rounded-lg border border-white/10 hover:bg-white/10 transition-all">Users</a>
+      <a href="{{ url_for('main.admin_tools') }}" class="block px-3 py-2 rounded-lg border border-white/10 hover:bg-white/10 transition-all">Tools</a>
+      <a href="{{ url_for('main.admin_analytics') }}" class="block px-3 py-2 rounded-lg border border-white/10 hover:bg-white/10 transition-all">Analytics</a>
+      <a href="{{ url_for('main.admin_feedback') }}" class="block px-3 py-2 rounded-lg border border-white/10 hover:bg-white/10 transition-all">Feedback</a>
+      <a href="{{ url_for('main.admin_submissions') }}" class="block px-3 py-2 rounded-lg border border-white/10 hover:bg-white/10 transition-all">Submissions</a>
+    </nav>
+  </aside>
+
+  <section class="space-y-4">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+      <div class="space-y-2">
+        {% for category, message in messages %}
+        <div class="text-sm rounded-lg px-3 py-2 {% if category in ['error', 'danger'] %}bg-red-500/15 text-red-300 border border-red-500/20{% elif category == 'success' %}bg-emerald-500/15 text-emerald-300 border border-emerald-500/20{% else %}bg-blue-500/15 text-blue-300 border border-blue-500/20{% endif %}">{{ message }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    {% endwith %}
+
+    {% block admin_content %}{% endblock %}
+  </section>
+</div>
+{% endblock %}

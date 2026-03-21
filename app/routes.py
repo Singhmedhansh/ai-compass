@@ -1,4 +1,4 @@
-import json
+﻿import json
 import os
 import re
 from math import ceil
@@ -7,7 +7,7 @@ from datetime import datetime, timedelta, timezone
 from functools import wraps
 from urllib.parse import urlencode, urlparse
 
-from flask import Blueprint, Response, abort, flash, jsonify, redirect, render_template, request, session, url_for
+from flask import Blueprint, Response, abort, current_app, flash, jsonify, redirect, render_template, request, session, url_for
 from flask_login import current_user, login_required
 
 from app import db, csrf
@@ -285,11 +285,11 @@ def _tool_priority_labels(tools):
 
 def _label_badge_text(label_key):
     if label_key == "best_overall":
-        return "🏆 Best Overall"
+        return "ðŸ† Best Overall"
     if label_key == "best_free":
-        return "🆓 Best Free Option"
+        return "ðŸ†“ Best Free Option"
     if label_key == "best_student":
-        return "🎓 Best for Students"
+        return "ðŸŽ“ Best for Students"
     return ""
 
 
@@ -318,7 +318,7 @@ def _build_ai_recommendation_copy(goal_label, budget_label, platform_label, stud
     if not tools:
         return {
             "summary": "No strong recommendation yet. Try adjusting your filters to see personalized suggestions.",
-            "decision_shortcut": "💡 Tip: Broaden one filter to unlock recommendations.",
+            "decision_shortcut": "ðŸ’¡ Tip: Broaden one filter to unlock recommendations.",
             "alternatives": [],
         }
 
@@ -333,7 +333,7 @@ def _build_ai_recommendation_copy(goal_label, budget_label, platform_label, stud
     # Use conversational, human-like tone with variation
     import random
     tone = random.choice([
-        f"{greeting}, for {goal_label}, <strong>{primary_name}</strong> is your best choice — it's fast, reliable, and widely trusted.",
+        f"{greeting}, for {goal_label}, <strong>{primary_name}</strong> is your best choice â€” it's fast, reliable, and widely trusted.",
         f"{greeting}, if you're focusing on {goal_label}, go with <strong>{primary_name}</strong>. It's one of the strongest options right now.",
         f"{greeting}, <strong>{primary_name}</strong> is perfect for {goal_label}. It's currently one of the most popular and reliable tools.",
     ])
@@ -343,7 +343,7 @@ def _build_ai_recommendation_copy(goal_label, budget_label, platform_label, stud
         tone += f" <strong>{secondary_name}</strong> works well as a solid backup."
     
     # Keep shortcut brief and action-oriented
-    shortcut = f"👉 Go with {primary_name} — that's your winner here."
+    shortcut = f"ðŸ‘‰ Go with {primary_name} â€” that's your winner here."
     alternatives = [tool for tool in tools[1:3]]
     
     return {
@@ -961,7 +961,7 @@ def _stack_result_summary(generated_stack, goal=None, budget=None, platform=None
             "ai_summary": "No clear recommendation yet. Try broader filters.",
             "best_choice": None,
             "confidence": 0,
-            "decision_shortcut": "👉 If you just want ONE tool: broaden your filters first",
+            "decision_shortcut": "ðŸ‘‰ If you just want ONE tool: broaden your filters first",
             "alternatives": [],
         }
 
@@ -1674,7 +1674,6 @@ def newsletter_subscribe():
 
 
 @main_bp.route("/toggle-student-mode", methods=["POST"])
-@csrf.exempt
 def toggle_student_mode():
     """Toggle student mode for the current session."""
     try:
@@ -1691,18 +1690,22 @@ def toggle_student_mode():
         
         session.modified = True
         return jsonify({"status": "success", "student_mode": session.get("student_mode", False)}), 200
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
+    except Exception:
+        current_app.logger.exception("Failed to toggle student mode")
+        return jsonify({"status": "error", "message": "Unable to toggle student mode."}), 500
 
 
 @main_bp.route("/set-student-mode", methods=["POST"])
-@csrf.exempt
 def set_student_mode():
     """Set student mode explicitly for the current session."""
-    data = request.get_json(silent=True) or {}
-    session["student_mode"] = bool(data.get("enabled", False))
-    session.modified = True
-    return jsonify({"status": "ok", "student_mode": session.get("student_mode", False)}), 200
+    try:
+        data = request.get_json(silent=True) or {}
+        session["student_mode"] = bool(data.get("enabled", False))
+        session.modified = True
+        return jsonify({"status": "ok", "student_mode": session.get("student_mode", False)}), 200
+    except Exception:
+        current_app.logger.exception("Failed to set student mode")
+        return jsonify({"status": "error", "message": "Unable to set student mode."}), 500
 
 
 @main_bp.route("/tools")
@@ -2036,6 +2039,10 @@ def onboarding():
             }
         )
         current_user.preferences = json.dumps(prefs)
+        current_user.skill_level = skill_level
+        current_user.pricing_pref = preferred_pricing
+        current_user.interests = ", ".join(tags) if tags else None
+        current_user.onboarding_completed = True
         current_user.first_login = False
         db.session.commit()
 
@@ -2583,36 +2590,44 @@ def api_tool_detail(tool_id):
 
 @main_bp.route("/api/search")
 def api_search():
-    query = str(request.args.get("q", "") or "").strip()
-    tokens = _tokenize_query(query)
-    if not tokens:
-        return jsonify([])
+    try:
+        query = str(request.args.get("q", "") or "").strip()
+        tokens = _tokenize_query(query)
+        if not tokens:
+            return jsonify({"results": [], "message": "", "showing_closest_matches": False})
 
-    tools = [normalize_tool(tool) for tool in load_tools()]
-    ranked = []
-    for tool in tools:
-        score = _search_score(tool, tokens)
-        if score <= 0:
-            continue
-        ranked.append((score, float(tool.get("rating") or 0), parse_weekly_users(tool.get("weeklyUsers")), tool))
+        tools = [normalize_tool(tool) for tool in load_tools()]
+        ranked = []
+        for tool in tools:
+            score = _search_score(tool, tokens)
+            if score <= 0:
+                continue
+            ranked.append((score, float(tool.get("rating") or 0), parse_weekly_users(tool.get("weeklyUsers")), tool))
 
-    ranked.sort(key=lambda item: (item[0], item[1], item[2]), reverse=True)
+        ranked.sort(key=lambda item: (item[0], item[1], item[2]), reverse=True)
 
-    top = []
-    for score, _, _, tool in ranked[:10]:
-        top.append(
-            {
-                "name": tool.get("name", ""),
-                "slug": tool.get("tool_key") or build_tool_slug(tool),
-                "category": tool.get("category", ""),
-                "description": tool.get("description", ""),
-                "tags": tool.get("tags", []),
-                "icon": tool.get("icon") or DEFAULT_TOOL_ICON,
-                "score": score,
-            }
-        )
+        top = []
+        for score, _, _, tool in ranked[:10]:
+            top.append(
+                {
+                    "name": tool.get("name", ""),
+                    "slug": tool.get("tool_key") or build_tool_slug(tool),
+                    "category": tool.get("category", ""),
+                    "description": tool.get("description", ""),
+                    "tags": tool.get("tags", []),
+                    "icon": tool.get("icon") or DEFAULT_TOOL_ICON,
+                    "score": score,
+                }
+            )
 
-    return jsonify(top)
+        return jsonify({"results": top, "message": "", "showing_closest_matches": False})
+    except Exception:
+        current_app.logger.exception("Search API failed")
+        return jsonify({
+            "results": [],
+            "message": "Search is temporarily unavailable.",
+            "showing_closest_matches": False,
+        }), 500
 
 
 @main_bp.route("/api/favorite", methods=["POST"])
@@ -2652,7 +2667,7 @@ def api_view():
     return jsonify({"ok": True, "views": int(get_view_map().get(tool_id, 0))})
 
 
-# ── Tool Detail ───────────────────────────────────────────────────────────────
+# â”€â”€ Tool Detail â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 @main_bp.route("/tool/<tool_id>")
 def tool_detail(tool_id):
@@ -2756,7 +2771,7 @@ def rate_tool(tool_id):
     return redirect(url_for("main.tool_detail", tool_id=tool_id))
 
 
-# ── Submit Tool ───────────────────────────────────────────────────────────────
+# â”€â”€ Submit Tool â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 @main_bp.route("/submit-tool", methods=["GET", "POST"])
 def submit_tool():
@@ -2801,7 +2816,7 @@ def submit_tool():
     return render_template("submit_tool.html")
 
 
-# ── Weekly Updates Feed ───────────────────────────────────────────────────────
+# â”€â”€ Weekly Updates Feed â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def _weekly_newest_tools(limit=10):
     all_tools = [normalize_tool(t) for t in load_tools()]
@@ -2889,7 +2904,7 @@ def report_bug():
     return render_template("report_bug.html")
 
 
-# ── Admin Panel ───────────────────────────────────────────────────────────────
+# â”€â”€ Admin Panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 @main_bp.route("/admin")
 @admin_required
@@ -2937,6 +2952,24 @@ def admin():
         bug_reports=bug_reports,
         open_bug_reports=open_bug_reports,
     )
+
+
+@main_bp.route("/admin/users")
+@admin_required
+def admin_users():
+    return admin()
+
+
+@main_bp.route("/admin/tools")
+@admin_required
+def admin_tools():
+    return admin()
+
+
+@main_bp.route("/admin/analytics")
+@admin_required
+def admin_analytics():
+    return admin()
 
 
 @main_bp.route("/admin/bug-report/<int:report_id>/resolve", methods=["POST"])
@@ -3041,7 +3074,7 @@ def admin_reject_tool(tool_name):
     return redirect(url_for("main.admin"))
 
 
-# ── Public API additions ──────────────────────────────────────────────────────
+# â”€â”€ Public API additions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 @main_bp.route("/api/tools/fastest-growing")
 def api_tools_fastest_growing():
@@ -3110,3 +3143,7 @@ def sitemap_xml():
         + "\n</urlset>"
     )
     return Response(xml, mimetype="application/xml")
+
+
+
+

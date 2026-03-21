@@ -597,6 +597,7 @@ function renderTools(tools, totalFiltered = tools.length) {
     const bestFor = tool.bestFor || tool.subcategory || 'General use';
     const isFavorite = favorites.has(key);
     const isCompared = selectedCompare.has(key);
+    const favoriteTitle = config.isAuthenticated ? 'Save this tool' : 'Please log in to use this feature';
     const studentBadges = state.studentMode ? `
       <div class="flex items-center gap-1.5 flex-wrap">
         ${tool.studentPerk ? '<span class="text-[10px] bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 rounded-md px-2 py-0.5">🎓 Student Perk</span>' : ''}
@@ -645,7 +646,7 @@ function renderTools(tools, totalFiltered = tools.length) {
           <div class="text-[10px] text-zinc-500 font-mono">${tool.last_updated_label ? `Updated ${escapeHtml(tool.last_updated_label)}` : ''}${tool.activity_today ? ` · 🔥 ${escapeHtml(String(tool.activity_today))} students viewed today` : ''}</div>
           <div class="flex items-center gap-2 flex-wrap">
             <a href="/tool/${escapeHtml(key)}" class="text-[10px] brand-text glass rounded-lg px-2.5 py-1 transition-all border border-white/8 hover:border-white/15">View Details</a>
-            <button class="text-[10px] rounded-lg px-2.5 py-1 transition-all border ${isFavorite ? 'border-amber-400/30 text-amber-300 bg-amber-500/10' : 'border-white/10 text-zinc-300 bg-white/5'}" onclick="toggleFavorite('${escapeHtml(key)}')">★ Favorite</button>
+            <button class="text-[10px] rounded-lg px-2.5 py-1 transition-all border ${isFavorite ? 'border-amber-400/30 text-amber-300 bg-amber-500/10' : 'border-white/10 text-zinc-300 bg-white/5'}" title="${escapeHtml(favoriteTitle)}" onclick="toggleFavorite('${escapeHtml(key)}')">★ Favorite</button>
             <button class="text-[10px] rounded-lg px-2.5 py-1 transition-all border ${isCompared ? 'border-blue-400/30 text-blue-300 bg-blue-500/10' : 'border-white/10 text-zinc-300 bg-white/5'}" onclick="toggleCompare('${escapeHtml(key)}')">Compare</button>
           </div>
         </div>
@@ -878,8 +879,12 @@ function requestSearchSuggestions(query) {
     try {
       if (searchSuggestController) searchSuggestController.abort();
       searchSuggestController = new AbortController();
-      const results = await fetchSearchSuggestions(trimmed, { signal: searchSuggestController.signal });
-      renderSearchSuggestions(results, trimmed);
+      const data = await fetchSearchSuggestions(trimmed, { signal: searchSuggestController.signal });
+      if (!data || !Array.isArray(data.results)) {
+        renderSearchSuggestions([], trimmed);
+        return;
+      }
+      renderSearchSuggestions(data.results || [], trimmed);
     } catch (error) {
       if (error.name !== 'AbortError') {
         hideSearchSuggestions();
@@ -1174,6 +1179,7 @@ function toggleStudentMode() {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "X-CSRFToken": config.csrfToken,
       },
       body: JSON.stringify({ enabled: newState })
     })
@@ -1184,6 +1190,7 @@ function toggleStudentMode() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'X-CSRFToken': config.csrfToken,
           },
           body: JSON.stringify({ enabled: newState })
         });

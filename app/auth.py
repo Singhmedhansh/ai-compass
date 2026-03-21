@@ -4,9 +4,17 @@ import json
 
 from app import bcrypt, db
 from app.models import User
+from app.rate_limit import is_rate_limited
 
 
 auth_bp = Blueprint("auth", __name__)
+
+
+def _client_ip():
+    forwarded = str(request.headers.get("X-Forwarded-For") or "").strip()
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return str(request.remote_addr or "unknown")
 
 
 def _requires_onboarding(user):
@@ -52,6 +60,14 @@ def register():
         return redirect(url_for("main.dashboard"))
 
     if request.method == "POST":
+        if is_rate_limited(f"register:{_client_ip()}", limit=10, window_seconds=60):
+            flash("Too many attempts. Please wait a minute and try again.", "error")
+            return render_template(
+                "register.html",
+                google_oauth_enabled=bool(current_app.config.get("GOOGLE_CLIENT_ID")),
+                github_oauth_enabled=bool(current_app.config.get("GITHUB_CLIENT_ID")),
+            )
+
         name = request.form.get("name", "").strip()
         email = request.form.get("email", "").strip().lower()
         password = request.form.get("password", "")
@@ -63,7 +79,6 @@ def register():
                 "register.html",
                 google_oauth_enabled=bool(current_app.config.get("GOOGLE_CLIENT_ID")),
                 github_oauth_enabled=bool(current_app.config.get("GITHUB_CLIENT_ID")),
-                linkedin_oauth_enabled=bool(current_app.config.get("LINKEDIN_CLIENT_ID")),
             )
 
         if confirm_password != password:
@@ -72,7 +87,6 @@ def register():
                 "register.html",
                 google_oauth_enabled=bool(current_app.config.get("GOOGLE_CLIENT_ID")),
                 github_oauth_enabled=bool(current_app.config.get("GITHUB_CLIENT_ID")),
-                linkedin_oauth_enabled=bool(current_app.config.get("LINKEDIN_CLIENT_ID")),
             )
 
         existing = User.query.filter_by(email=email).first()
@@ -82,7 +96,6 @@ def register():
                 "register.html",
                 google_oauth_enabled=bool(current_app.config.get("GOOGLE_CLIENT_ID")),
                 github_oauth_enabled=bool(current_app.config.get("GITHUB_CLIENT_ID")),
-                linkedin_oauth_enabled=bool(current_app.config.get("LINKEDIN_CLIENT_ID")),
             )
 
         password_hash = bcrypt.generate_password_hash(password).decode("utf-8")
@@ -100,7 +113,6 @@ def register():
         "register.html",
         google_oauth_enabled=bool(current_app.config.get("GOOGLE_CLIENT_ID")),
         github_oauth_enabled=bool(current_app.config.get("GITHUB_CLIENT_ID")),
-        linkedin_oauth_enabled=bool(current_app.config.get("LINKEDIN_CLIENT_ID")),
     )
 
 
@@ -110,30 +122,36 @@ def login():
         return redirect(url_for("main.dashboard"))
 
     if request.method == "POST":
+        if is_rate_limited(f"login:{_client_ip()}", limit=20, window_seconds=60):
+            flash("Too many attempts. Please wait a minute and try again.", "error")
+            return render_template(
+                "login.html",
+                google_oauth_enabled=bool(current_app.config.get("GOOGLE_CLIENT_ID")),
+                github_oauth_enabled=bool(current_app.config.get("GITHUB_CLIENT_ID")),
+            )
+
         email = request.form.get("email", "").strip().lower()
         password = request.form.get("password", "")
         user = User.query.filter_by(email=email).first()
         admin_email = current_app.config.get("ADMIN_EMAIL", "")
-        admin_password = current_app.config.get("ADMIN_PASSWORD", "")
+        admin_password_hash = current_app.config.get("ADMIN_PASSWORD_HASH", "")
 
-        if admin_email and admin_password and email == admin_email:
-            if password != admin_password:
+        if admin_email and admin_password_hash and email == admin_email:
+            if not bcrypt.check_password_hash(admin_password_hash, password):
                 flash("Invalid email or password.", "error")
                 return render_template(
                     "login.html",
                     google_oauth_enabled=bool(current_app.config.get("GOOGLE_CLIENT_ID")),
                     github_oauth_enabled=bool(current_app.config.get("GITHUB_CLIENT_ID")),
-                    linkedin_oauth_enabled=bool(current_app.config.get("LINKEDIN_CLIENT_ID")),
                 )
 
             if user is None:
-                password_hash = bcrypt.generate_password_hash(admin_password).decode("utf-8")
-                user = User(email=email, password_hash=password_hash, is_admin=True)
+                user = User(email=email, password_hash=admin_password_hash, is_admin=True)
                 db.session.add(user)
             else:
                 user.is_admin = True
                 if not user.password_hash:
-                    user.password_hash = bcrypt.generate_password_hash(admin_password).decode("utf-8")
+                    user.password_hash = admin_password_hash
 
             db.session.commit()
             login_user(user)
@@ -158,7 +176,6 @@ def login():
         "login.html",
         google_oauth_enabled=bool(current_app.config.get("GOOGLE_CLIENT_ID")),
         github_oauth_enabled=bool(current_app.config.get("GITHUB_CLIENT_ID")),
-        linkedin_oauth_enabled=bool(current_app.config.get("LINKEDIN_CLIENT_ID")),
     )
 
 

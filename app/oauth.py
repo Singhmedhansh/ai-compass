@@ -84,7 +84,7 @@ def _requires_onboarding(user):
 
 @oauth_bp.route("/login/google")
 def login_google():
-    if not current_app.config.get("GOOGLE_CLIENT_ID"):
+    if not (current_app.config.get("GOOGLE_CLIENT_ID") and current_app.config.get("GOOGLE_CLIENT_SECRET")):
         flash("Google login is not configured.", "error")
         return redirect(url_for("auth.login"))
     redirect_uri = url_for("oauth.google_callback", _external=True)
@@ -111,7 +111,7 @@ def google_callback():
             return redirect(url_for("main.onboarding"))
         return redirect(url_for("main.dashboard"))
     except Exception:
-        flash("Google login failed. Please try again.", "error")
+        flash("Login failed. Please try again.", "error")
         return redirect(url_for("auth.login"))
 
 
@@ -119,7 +119,7 @@ def google_callback():
 
 @oauth_bp.route("/login/github")
 def login_github():
-    if not current_app.config.get("GITHUB_CLIENT_ID"):
+    if not (current_app.config.get("GITHUB_CLIENT_ID") and current_app.config.get("GITHUB_CLIENT_SECRET")):
         flash("GitHub login is not configured.", "error")
         return redirect(url_for("auth.login"))
     redirect_uri = url_for("oauth.github_callback", _external=True)
@@ -156,7 +156,7 @@ def github_callback():
             return redirect(url_for("main.onboarding"))
         return redirect(url_for("main.dashboard"))
     except Exception:
-        flash("GitHub login failed. Please try again.", "error")
+        flash("Login failed. Please try again.", "error")
         return redirect(url_for("auth.login"))
 
 

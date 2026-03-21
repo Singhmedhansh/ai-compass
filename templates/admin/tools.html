@@ -1,0 +1,67 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Admin Tools | AI Compass{% endblock %}
+
+{% block admin_content %}
+<div class="rounded-2xl border border-white/10 bg-white/5 p-5 flex items-center justify-between gap-3">
+  <div>
+    <h1 class="text-zinc-100 text-xl font-semibold">Manage Tools</h1>
+    <p class="text-zinc-400 text-sm mt-1">Add, edit, and remove tools from the catalog.</p>
+  </div>
+  <a href="{{ url_for('main.admin_tools_add') }}" class="px-3 py-2 rounded-lg border border-emerald-400/30 text-emerald-200 bg-emerald-500/10 hover:bg-emerald-500/20 text-sm">Add Tool</a>
+</div>
+
+{% if form_mode in ['add', 'edit'] %}
+<div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+  <h2 class="text-zinc-100 font-semibold mb-3">{% if form_mode == 'add' %}Add Tool{% else %}Edit Tool{% endif %}</h2>
+  <form method="post" class="grid grid-cols-1 md:grid-cols-2 gap-3" action="{% if form_mode == 'add' %}{{ url_for('main.admin_tools_add') }}{% else %}{{ url_for('main.admin_tools_edit', tool_id=tool_item.admin_id) }}{% endif %}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+    <input name="name" value="{{ (tool_item.name if tool_item else '') }}" placeholder="Name" class="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-zinc-100" required />
+    <input name="category" value="{{ (tool_item.category if tool_item else '') }}" placeholder="Category" class="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-zinc-100" />
+    <input name="link" value="{{ (tool_item.link if tool_item else '') }}" placeholder="Link" class="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-zinc-100" />
+    <input name="price" value="{{ (tool_item.price if tool_item else '') }}" placeholder="Price" class="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-zinc-100" />
+    <input name="tags" value="{{ ((tool_item.tags | join(', ')) if tool_item and tool_item.tags else '') }}" placeholder="Tags (comma separated)" class="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-zinc-100 md:col-span-2" />
+    <textarea name="description" rows="4" placeholder="Description" class="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-zinc-100 md:col-span-2">{{ (tool_item.description if tool_item else '') }}</textarea>
+    <div class="md:col-span-2 flex items-center gap-2">
+      <button class="px-3 py-2 rounded-lg border border-cyan-400/30 text-cyan-100 bg-cyan-500/15 text-sm" type="submit">Save</button>
+      <a href="{{ url_for('main.admin_tools') }}" class="px-3 py-2 rounded-lg border border-white/10 text-zinc-300 bg-white/5 text-sm">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endif %}
+
+{% if tools %}
+<div class="rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead class="bg-white/5 text-zinc-300">
+        <tr>
+          <th class="text-left px-4 py-3">Name</th>
+          <th class="text-left px-4 py-3">Category</th>
+          <th class="text-left px-4 py-3">Price</th>
+          <th class="text-left px-4 py-3">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for tool in tools %}
+        <tr class="border-t border-white/10">
+          <td class="px-4 py-3 text-zinc-200">{{ tool.name }}</td>
+          <td class="px-4 py-3 text-zinc-300">{{ tool.category or '-' }}</td>
+          <td class="px-4 py-3 text-zinc-300">{{ tool.price or '-' }}</td>
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-2">
+              <a href="{{ url_for('main.admin_tools_edit', tool_id=tool.admin_id) }}" class="px-2 py-1 rounded border border-blue-400/30 text-blue-200 text-xs">Edit</a>
+              <form method="post" action="{{ url_for('main.admin_tools_delete', tool_id=tool.admin_id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                <button type="submit" class="px-2 py-1 rounded border border-red-400/30 text-red-200 text-xs">Delete</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

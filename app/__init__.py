@@ -1,6 +1,6 @@
 import os
 from collections import Counter
-from flask import Flask, session
+from flask import Flask, render_template, session, request, jsonify, current_app
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, current_user
 from flask_sqlalchemy import SQLAlchemy
@@ -69,6 +69,58 @@ def _build_database_uri(app: Flask) -> str:
 
     # Local fallback keeps development unblocked when MySQL is not available.
     return "sqlite:///ai_compass.db"
+
+
+def _is_strong_password(value: str) -> bool:
+    text = str(value or "")
+    if len(text) < 12:
+        return False
+
+    has_upper = any(ch.isupper() for ch in text)
+    has_lower = any(ch.islower() for ch in text)
+    has_digit = any(ch.isdigit() for ch in text)
+    has_symbol = any(not ch.isalnum() for ch in text)
+    return has_upper and has_lower and has_digit and has_symbol
+
+
+def _validate_runtime_config(app: Flask, is_production: bool) -> None:
+    """Fail fast for missing critical production configuration."""
+    secret = str(app.config.get("SECRET_KEY") or "").strip()
+    if not secret:
+        raise RuntimeError("Missing required SECRET_KEY.")
+
+    if not is_production:
+        return
+
+    if bool(app.config.get("DEBUG")):
+        raise RuntimeError("DEBUG must be disabled in production.")
+
+    has_database_url = bool(str(os.getenv("DATABASE_URL", "")).strip())
+    has_mysql_config = all(
+        bool(str(app.config.get(key) or "").strip())
+        for key in ("MYSQL_USER", "MYSQL_PASSWORD", "MYSQL_HOST", "MYSQL_DB")
+    )
+    if not (has_database_url or has_mysql_config):
+        raise RuntimeError(
+            "Missing database configuration for production. Set DATABASE_URL or all MYSQL_* settings."
+        )
+
+    admin_email = str(app.config.get("ADMIN_EMAIL") or "").strip().lower()
+    admin_password_hash = str(app.config.get("ADMIN_PASSWORD_HASH") or "").strip()
+    admin_password = str(os.getenv("ADMIN_PASSWORD", "") or "").strip()
+
+    if admin_password and not _is_strong_password(admin_password):
+        raise RuntimeError(
+            "Weak ADMIN_PASSWORD detected for production. Use at least 12 chars with upper/lower/digit/symbol."
+        )
+
+    if admin_email:
+        if not admin_password_hash:
+            raise RuntimeError(
+                "Missing ADMIN_PASSWORD_HASH for production admin login configuration."
+            )
+        if not admin_password_hash.startswith(("$2a$", "$2b$", "$2y$")):
+            raise RuntimeError("Invalid ADMIN_PASSWORD_HASH format. Expected bcrypt hash.")
 
 
 def _ensure_user_schema_compatibility() -> None:
@@ -229,13 +281,13 @@ def create_app() -> Flask:
     app_env = os.getenv("APP_ENV", os.getenv("FLASK_ENV", "development")).strip().lower()
     is_production = app_env == "production"
 
-    app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev-secret-change-me")
+    app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "")
     app.config["MYSQL_USER"] = os.getenv("MYSQL_USER", "")
     app.config["MYSQL_PASSWORD"] = os.getenv("MYSQL_PASSWORD", "")
     app.config["MYSQL_HOST"] = os.getenv("MYSQL_HOST", "localhost")
     app.config["MYSQL_DB"] = os.getenv("MYSQL_DB", "ai_compass")
     app.config["ADMIN_EMAIL"] = os.getenv("ADMIN_EMAIL", "").strip().lower()
-    app.config["ADMIN_PASSWORD"] = os.getenv("ADMIN_PASSWORD", "")
+    app.config["ADMIN_PASSWORD_HASH"] = os.getenv("ADMIN_PASSWORD_HASH", "").strip()
     app.config["GOOGLE_ANALYTICS_ID"] = os.getenv("GOOGLE_ANALYTICS_ID", "").strip()
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["ENV"] = app_env
@@ -271,6 +323,12 @@ def create_app() -> Flask:
     app.config["SESSION_COOKIE_HTTPONLY"] = True
     app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
+    if is_production:
+        app.config["REMEMBER_COOKIE_SECURE"] = True
+        app.config["SESSION_COOKIE_SECURE"] = True
+
+    _validate_runtime_config(app, is_production)
+
     app.config["SQLALCHEMY_DATABASE_URI"] = _build_database_uri(app)
 
     db.init_app(app)
@@ -301,6 +359,20 @@ def create_app() -> Flask:
         db.create_all()
         _ensure_user_schema_compatibility()
         _ensure_tool_view_schema_compatibility()
+
+    @app.errorhandler(404)
+    def not_found(_error):
+        if request.path.startswith("/api/"):
+            return jsonify({"error": "not_found"}), 404
+        return render_template("404.html"), 404
+
+    @app.errorhandler(500)
+    def internal_error(_error):
+        current_app.logger.exception("Unhandled server error")
+        db.session.rollback()
+        if request.path.startswith("/api/"):
+            return jsonify({"error": "internal_server_error"}), 500
+        return render_template("500.html"), 500
 
     # Prime tools cache once at startup to avoid repeated disk reads.
     try:

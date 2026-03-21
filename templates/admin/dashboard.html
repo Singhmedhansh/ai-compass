@@ -1,0 +1,62 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Admin Dashboard | AI Compass{% endblock %}
+
+{% block admin_content %}
+<div class="rounded-2xl border border-white/10 bg-white/5 p-5">
+  <h1 class="text-zinc-100 text-xl font-semibold">Admin Dashboard</h1>
+  <p class="text-zinc-400 text-sm mt-1">Overview of platform health and moderation queue.</p>
+</div>
+
+<div class="grid grid-cols-2 xl:grid-cols-3 gap-3">
+  <div class="rounded-xl border border-white/10 bg-white/5 p-4"><div class="text-zinc-400 text-xs">Total Users</div><div class="text-zinc-100 text-2xl font-semibold mt-1">{{ analytics.total_users }}</div></div>
+  <div class="rounded-xl border border-white/10 bg-white/5 p-4"><div class="text-zinc-400 text-xs">Total Tools</div><div class="text-zinc-100 text-2xl font-semibold mt-1">{{ analytics.total_tools }}</div></div>
+  <div class="rounded-xl border border-white/10 bg-white/5 p-4"><div class="text-zinc-400 text-xs">Total Saves</div><div class="text-zinc-100 text-2xl font-semibold mt-1">{{ analytics.total_saves }}</div></div>
+  <div class="rounded-xl border border-white/10 bg-white/5 p-4"><div class="text-zinc-400 text-xs">Total Views</div><div class="text-zinc-100 text-2xl font-semibold mt-1">{{ analytics.total_views }}</div></div>
+  <div class="rounded-xl border border-white/10 bg-white/5 p-4"><div class="text-zinc-400 text-xs">Pending Submissions</div><div class="text-zinc-100 text-2xl font-semibold mt-1">{{ analytics.pending_submissions }}</div></div>
+  <div class="rounded-xl border border-white/10 bg-white/5 p-4"><div class="text-zinc-400 text-xs">Open Feedback</div><div class="text-zinc-100 text-2xl font-semibold mt-1">{{ analytics.open_bug_reports }}</div></div>
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+  <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+    <h2 class="text-zinc-100 font-semibold mb-2">Pending Submissions</h2>
+    {% if pending_submissions %}
+    <ul class="space-y-2 text-sm">
+      {% for item in pending_submissions %}
+      <li class="flex items-center justify-between border border-white/10 rounded-lg px-3 py-2">
+        <span class="text-zinc-200">{{ item.name }}</span>
+        <div class="flex items-center gap-2">
+          <form method="post" action="{{ url_for('main.admin_approve', submission_id=item.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <button class="px-2 py-1 rounded border border-emerald-400/30 text-emerald-200 text-xs">Approve</button>
+          </form>
+          <form method="post" action="{{ url_for('main.admin_reject', submission_id=item.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <button class="px-2 py-1 rounded border border-amber-400/30 text-amber-200 text-xs">Reject</button>
+          </form>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="text-zinc-400 text-sm">No pending submissions.</p>
+    {% endif %}
+  </div>
+
+  <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+    <h2 class="text-zinc-100 font-semibold mb-2">Recent Feedback</h2>
+    {% if bug_reports %}
+    <ul class="space-y-2 text-sm">
+      {% for report in bug_reports %}
+      <li class="border border-white/10 rounded-lg px-3 py-2">
+        <div class="text-zinc-200 line-clamp-2">{{ report.description }}</div>
+        <div class="text-zinc-500 text-xs mt-1">{{ report.page_url }}</div>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="text-zinc-400 text-sm">No feedback reports yet.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

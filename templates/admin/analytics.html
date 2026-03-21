@@ -1,0 +1,33 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Admin Analytics | AI Compass{% endblock %}
+
+{% block admin_content %}
+<div class="rounded-2xl border border-white/10 bg-white/5 p-5">
+  <h1 class="text-zinc-100 text-xl font-semibold">Analytics</h1>
+  <p class="text-zinc-400 text-sm mt-1">Core platform metrics and engagement trends.</p>
+</div>
+
+<div class="grid grid-cols-2 xl:grid-cols-4 gap-3">
+  <div class="rounded-xl border border-white/10 bg-white/5 p-4"><div class="text-zinc-400 text-xs">Total Users</div><div class="text-zinc-100 text-2xl font-semibold mt-1">{{ analytics.total_users }}</div></div>
+  <div class="rounded-xl border border-white/10 bg-white/5 p-4"><div class="text-zinc-400 text-xs">Total Tools</div><div class="text-zinc-100 text-2xl font-semibold mt-1">{{ analytics.total_tools }}</div></div>
+  <div class="rounded-xl border border-white/10 bg-white/5 p-4"><div class="text-zinc-400 text-xs">Total Saves</div><div class="text-zinc-100 text-2xl font-semibold mt-1">{{ analytics.total_saves }}</div></div>
+  <div class="rounded-xl border border-white/10 bg-white/5 p-4"><div class="text-zinc-400 text-xs">Total Views</div><div class="text-zinc-100 text-2xl font-semibold mt-1">{{ analytics.total_views }}</div></div>
+</div>
+
+<div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+  <h2 class="text-zinc-100 font-semibold mb-2">Most Viewed Tools</h2>
+  {% if analytics.most_viewed_tools %}
+  <ul class="space-y-2 text-sm">
+    {% for tool in analytics.most_viewed_tools %}
+    <li class="border border-white/10 rounded-lg px-3 py-2 flex items-center justify-between">
+      <span class="text-zinc-200">{{ tool.name }}</span>
+      <span class="text-zinc-400">{{ tool.views }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="text-zinc-400 text-sm">No view data available yet.</p>
+  {% endif %}
+</div>
+{% endblock %}

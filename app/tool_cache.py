@@ -8,8 +8,11 @@ _TOOLS_CACHE_MTIME: float | None = None
 
 
 def _load_tools_from_disk(data_path: str) -> List[Dict[str, Any]]:
-    with open(data_path, "r", encoding="utf-8") as file:
-        payload = json.load(file)
+    try:
+        with open(data_path, "r", encoding="utf-8") as file:
+            payload = json.load(file)
+    except (OSError, json.JSONDecodeError, TypeError, ValueError):
+        return []
     if isinstance(payload, dict):
         tools = payload.get("tools", [])
     else:
