@@ -5,7 +5,7 @@
         AI Compass
       </a>
 
-      <form action="{{ url_for('main.tools_paginated') }}" method="GET" class="hidden md:block flex-1 max-w-xl">
+      <form action="{{ url_for('main.tools_paginated') }}" method="GET" class="js-search-form hidden md:block flex-1 max-w-xl">
         <div class="flex items-center gap-2">
           <input
             id="search-input"
@@ -18,9 +18,10 @@
           />
           <button
             type="submit"
+            data-search-submit="1"
             class="px-3 py-2 rounded-xl border border-white/10 bg-white/5 text-zinc-200 text-sm hover:bg-white/10 transition-all"
           >
-            Search
+            <span>Search</span>
           </button>
         </div>
       </form>
@@ -94,7 +95,7 @@
   </div>
 
   <div class="md:hidden px-4 pb-3">
-    <form action="{{ url_for('main.tools_paginated') }}" method="GET" class="flex items-center gap-2">
+    <form action="{{ url_for('main.tools_paginated') }}" method="GET" class="js-search-form flex items-center gap-2">
       <input
         name="q"
         type="search"
@@ -103,7 +104,21 @@
         class="w-full bg-white/5 border border-white/10 px-3 py-2 rounded-xl outline-none focus:border-white/20 text-sm"
         aria-label="Search tools"
       />
-      <button type="submit" class="px-3 py-2 rounded-xl border border-white/10 bg-white/5 text-zinc-200 text-sm">Go</button>
+      <button type="submit" data-search-submit="1" class="px-3 py-2 rounded-xl border border-white/10 bg-white/5 text-zinc-200 text-sm"><span>Go</span></button>
     </form>
   </div>
 </header>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.js-search-form').forEach((form) => {
+      form.addEventListener('submit', () => {
+        const button = form.querySelector('[data-search-submit="1"]');
+        if (!button) return;
+        button.setAttribute('disabled', 'disabled');
+        button.classList.add('opacity-80');
+        button.innerHTML = '<span class="inline-flex items-center gap-2"><span class="inline-block w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin"></span><span>Searching...</span></span>';
+      });
+    });
+  });
+</script>

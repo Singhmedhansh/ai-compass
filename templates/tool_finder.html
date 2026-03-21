@@ -179,9 +179,13 @@
             </div>
           </div>
           <p class="text-xs text-zinc-400 leading-relaxed line-clamp-3">{{ tool.description or '' }}</p>
+          {% if tool.get('reason') %}
+          <p class="text-xs text-cyan-100/85 bg-cyan-500/10 border border-cyan-400/20 rounded-lg px-2.5 py-2">{{ tool.reason }}</p>
+          {% endif %}
           <div class="mt-auto flex items-center gap-2 flex-wrap">
             <span class="text-[10px] font-mono bg-white/5 text-zinc-400 px-2 py-0.5 rounded-md">{{ tool.category or 'N/A' }}</span>
             <span class="text-[10px] font-mono bg-white/5 text-zinc-400 px-2 py-0.5 rounded-md">{{ tool.price or 'N/A' }}</span>
+            {% if tool.get('confidence_score') is not none %}<span class="text-[10px] font-mono bg-cyan-500/12 text-cyan-300 px-2 py-0.5 rounded-md border border-cyan-500/25">Match: {{ tool.confidence_score }}%</span>{% endif %}
             {% if tool.studentPerk %}<span class="text-[10px] font-mono bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-md">Student Perk</span>{% endif %}
             {% if tool.trending %}<span class="text-[10px] font-mono bg-cyan-500/10 text-cyan-400 px-2 py-0.5 rounded-md">Trending</span>{% endif %}
             {% if tool.get('verified') %}<span class="text-[10px] font-mono bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-md">✔ Verified</span>{% endif %}

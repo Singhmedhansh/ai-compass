@@ -59,18 +59,36 @@ def track_user_activity(user_id, tool_id, action, metadata=None):
     metadata = metadata or {}
     action = str(action or "").strip().lower()
 
+    prefs = _load_user_pref_object(user)
+    tool_key = str(tool_id or "").strip().lower()
+
     if action == "view":
         tool_name = str(tool_id or "").strip() or str(metadata.get("tool_name") or "")
         if tool_name:
             event = ToolView(tool_name=tool_name, user_id=user.id)
             event.timestamp = datetime.now(timezone.utc)
             from app import db
-
             db.session.add(event)
-            db.session.commit()
-        return
 
-    prefs = _load_user_pref_object(user)
+    if action in {"view", "save"} and tool_key:
+        interaction_counts = prefs.get("interaction_counts") or {}
+        if not isinstance(interaction_counts, dict):
+            interaction_counts = {}
+        row = interaction_counts.get(tool_key) or {}
+        if not isinstance(row, dict):
+            row = {}
+        row[action] = int(row.get(action) or 0) + 1
+        interaction_counts[tool_key] = row
+        prefs["interaction_counts"] = interaction_counts
+
+        action_log = list(prefs.get("action_log") or [])
+        action_log.insert(0, {
+            "tool_id": tool_key,
+            "action": action,
+            "at": datetime.now(timezone.utc).isoformat(),
+        })
+        prefs["action_log"] = action_log[:200]
+
     if action == "search":
         recent = list(prefs.get("recent_searches") or [])
         query = str(metadata.get("query") or "").strip()

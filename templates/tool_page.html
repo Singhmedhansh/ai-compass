@@ -108,7 +108,7 @@
           <a href="{{ tool.link }}" target="_blank" rel="noopener noreferrer" class="bg-emerald-400 text-emerald-950 hover:bg-emerald-300 rounded-xl px-4 py-2 text-sm font-semibold transition-colors text-center">
             Visit Tool
           </a>
-          <button id="save-tool-local" type="button" data-tool-key="{{ tool.tool_key }}" class="rounded-xl px-4 py-2 text-xs font-semibold border border-white/15 bg-white/5 text-zinc-100 hover:bg-white/10">
+          <button id="save-tool-local" type="button" data-tool-key="{{ tool.tool_key }}" data-is-auth="{{ 1 if is_authenticated else 0 }}" class="rounded-xl px-4 py-2 text-xs font-semibold border border-white/15 bg-white/5 text-zinc-100 hover:bg-white/10 {{ 'opacity-70 cursor-not-allowed' if not is_authenticated else '' }}">
             ⭐ Save tool
           </button>
         </div>
@@ -216,8 +216,18 @@
 
     if (saveBtn) {
       const toolKey = String(saveBtn.dataset.toolKey || '').trim();
+      const isAuthenticated = String(saveBtn.dataset.isAuth || '0') === '1';
       saveBtn.addEventListener('click', async () => {
         if (!toolKey) return;
+        if (!isAuthenticated) {
+          if (window.showToast) window.showToast('Please log in to use this feature');
+          if (window.showLoginPrompt) {
+            window.showLoginPrompt();
+            return;
+          }
+          window.location.href = '/login';
+          return;
+        }
         try {
           const csrfInput = document.querySelector('input[name="csrf_token"]');
           const response = await fetch('/api/favorite', {

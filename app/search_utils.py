@@ -1,11 +1,17 @@
 import re
 from typing import Iterable, List
+from app.recommendations import compute_tool_score, generate_reason
 
 
 QUERY_SYNONYMS = {
-    "editing": ["writing", "video editing", "design", "editor"],
-    "coding": ["developer", "programming", "code", "developer tools"],
+    "editing": ["writing", "grammar", "proofreading"],
+    "coding": ["development", "programming"],
+    "design": ["ui", "ux", "graphics"],
+    "developer": ["coding", "development", "programming"],
     "study": ["notes", "flashcards", "learning", "study tools"],
+    "research": ["analysis", "papers", "citations", "insights"],
+    "image": ["image generation", "art", "design", "visual"],
+    "video": ["video generation", "editing", "creator", "shorts"],
 }
 
 
@@ -32,7 +38,8 @@ def _expanded_query_tokens(query: str) -> List[str]:
     base = [token for token in re.findall(r"[a-z0-9]+", _normalize(query)) if token]
     expanded = list(base)
     for token in base:
-        expanded.extend(QUERY_SYNONYMS.get(token, []))
+        for synonym in QUERY_SYNONYMS.get(token, []):
+            expanded.extend(re.findall(r"[a-z0-9]+", _normalize(synonym)))
     # stable unique order
     seen = set()
     ordered = []
@@ -77,22 +84,35 @@ def _search_score(tool, tokens: Iterable[str]) -> int:
     return score
 
 
-def search_tools(tools, query: str):
+def search_tools(tools, query: str, user=None, student_mode: bool = False):
     tokens = _expanded_query_tokens(query)
     if not tokens:
         return []
 
     scored = []
     for tool in tools:
-        score = _search_score(tool, tokens)
-        if score > 0:
-            scored.append((score, float(tool.get("rating") or 0), tool))
+        text_score = _search_score(tool, tokens)
+        if text_score <= 0:
+            continue
+
+        personal_score = compute_tool_score(
+            tool,
+            user=user,
+            query=query,
+            student_mode=student_mode,
+        )
+        final_score = text_score + personal_score
+
+        item = dict(tool)
+        item["ai_score"] = round(final_score, 2)
+        item["reason"] = generate_reason(item, user=user, query=query, student_mode=student_mode)
+        scored.append((final_score, float(tool.get("rating") or 0), item))
 
     scored.sort(key=lambda row: (row[0], row[1]), reverse=True)
     return [tool for _, _, tool in scored]
 
 
-def smart_search_fallback(tools, query: str, results_limit: int = 20):
+def smart_search_fallback(tools, query: str, results_limit: int = 20, user=None, student_mode: bool = False):
     # Fallback to best-rated and most popular tools when strict matches are unavailable.
     candidates = sorted(
         tools,
@@ -104,10 +124,20 @@ def smart_search_fallback(tools, query: str, results_limit: int = 20):
         reverse=True,
     )
 
-    ranked = search_tools(candidates, query)
+    ranked = search_tools(candidates, query, user=user, student_mode=student_mode)
     if ranked:
         return ranked[:results_limit]
-    return candidates[:results_limit]
+
+    scored = []
+    for tool in candidates:
+        personal_score = compute_tool_score(tool, user=user, student_mode=student_mode)
+        item = dict(tool)
+        item["ai_score"] = round(personal_score, 2)
+        item["reason"] = generate_reason(item, user=user, student_mode=student_mode)
+        scored.append((personal_score, float(tool.get("rating") or 0), item))
+
+    scored.sort(key=lambda row: (row[0], row[1]), reverse=True)
+    return [tool for _, _, tool in scored[:results_limit]]
 
 
 def limit_results(items, limit: int = 20):

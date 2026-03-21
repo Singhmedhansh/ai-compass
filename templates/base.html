@@ -624,6 +624,16 @@
 
   {% include "partials/topbar.html" %}
 
+  <div id="dev-feedback-banner" class="mx-auto max-w-7xl px-4 sm:px-6 pt-3">
+    <div class="rounded-xl border border-amber-400/30 bg-amber-500/10 px-4 py-2.5 flex items-center justify-between gap-3">
+      <p class="text-xs sm:text-sm text-amber-100">🚧 AI Compass is in development — please report bugs or share feedback!</p>
+      <div class="flex items-center gap-2">
+        <a href="{{ url_for('main.report_bug') }}" class="text-[11px] sm:text-xs px-2.5 py-1 rounded-md border border-amber-400/30 bg-amber-500/15 text-amber-100 hover:bg-amber-500/25 transition-all">Share Feedback</a>
+        <button id="dismiss-dev-banner" type="button" class="text-[11px] sm:text-xs px-2.5 py-1 rounded-md border border-white/15 bg-white/5 text-zinc-200 hover:bg-white/10 transition-all">Dismiss</button>
+      </div>
+    </div>
+  </div>
+
   <div class="flex min-h-[calc(100vh-4rem)]">
 
     {% include "partials/sidebar.html" %}
@@ -697,6 +707,24 @@
   ></div>
 
   <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const banner = document.getElementById('dev-feedback-banner');
+      const dismiss = document.getElementById('dismiss-dev-banner');
+      if (!banner || !dismiss) return;
+
+      const hidden = localStorage.getItem('ai_compass_hide_dev_banner') === '1';
+      if (hidden) {
+        banner.classList.add('hidden');
+        return;
+      }
+
+      dismiss.addEventListener('click', () => {
+        localStorage.setItem('ai_compass_hide_dev_banner', '1');
+        banner.classList.add('hidden');
+      });
+    });
+  </script>
 
 </body>
 </html>
