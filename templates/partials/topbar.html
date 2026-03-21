@@ -1,0 +1,105 @@
+<header class="sticky top-0 z-30 border-b border-white/10 backdrop-blur-md bg-black/40">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4 sm:gap-6">
+    <div class="flex items-center gap-4 min-w-0 flex-1">
+      <a href="{{ url_for('main.index') }}" class="text-zinc-100 text-lg font-bold whitespace-nowrap">
+        AI Compass
+      </a>
+
+      <form action="{{ url_for('main.tools_paginated') }}" method="GET" class="hidden md:block flex-1 max-w-xl">
+        <div class="flex items-center gap-2">
+          <input
+            id="search-input"
+            name="q"
+            type="search"
+            value="{{ request.args.get('q', '') }}"
+            placeholder="Search tools by task, budget, or student perks..."
+            class="w-full bg-white/5 border border-white/10 px-5 py-2.5 rounded-xl outline-none focus:border-blue-300/40 focus:ring-2 focus:ring-blue-400/50 focus:scale-[1.01]"
+            aria-label="Search tools"
+          />
+          <button
+            type="submit"
+            class="px-3 py-2 rounded-xl border border-white/10 bg-white/5 text-zinc-200 text-sm hover:bg-white/10 transition-all"
+          >
+            Search
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+      <button
+        id="theme-toggle"
+        type="button"
+        class="px-3 py-1 rounded-lg border border-white/10 bg-white/5 text-zinc-200 text-sm hover:bg-white/10 transition-all hover:scale-105 active:scale-95"
+        aria-label="Toggle light and dark theme"
+        title="Toggle theme"
+      >
+        Theme
+      </button>
+
+      <button
+        id="student-mode-toggle"
+        type="button"
+        role="switch"
+        class="group px-3 py-1 rounded-lg border text-sm transition-all hover:scale-105 active:scale-95 flex items-center gap-2 {% if student_mode %}active text-emerald-300 border-emerald-500/40 bg-emerald-500/15 hover:bg-emerald-500/20{% else %}bg-white/5 border-white/10 text-zinc-200 hover:bg-white/10{% endif %}"
+        aria-label="Toggle Student Mode"
+        aria-pressed="{{ 'true' if student_mode else 'false' }}"
+        aria-checked="{{ 'true' if student_mode else 'false' }}"
+      >
+        <span class="hidden lg:inline text-xs sm:text-sm">Student</span>
+        <span class="student-toggle-track relative inline-flex h-5 w-9 items-center rounded-full border transition-colors {% if student_mode %}bg-emerald-500/35 border-emerald-400/50{% else %}bg-zinc-700/40 border-white/15{% endif %}">
+          <span class="student-toggle-thumb inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform {% if student_mode %}translate-x-4{% else %}translate-x-0.5{% endif %}"></span>
+        </span>
+      </button>
+
+      {% if student_mode %}
+      <span
+        id="student-mode-status"
+        class="px-3 py-1 rounded-full border text-sm font-medium transition-all bg-emerald-500/20 border-emerald-400/35 text-emerald-300"
+        title="Student mode prioritizes free tools, student perks, and budget-friendly recommendations"
+      >
+        ✨ Student mode active
+      </span>
+      {% endif %}
+
+      {% if current_user.is_authenticated and current_user.is_admin %}
+      <a href="{{ url_for('main.admin') }}" class="px-3 py-1 bg-amber-500/20 border border-amber-400/30 text-amber-100 rounded-lg text-sm hover:bg-amber-500/30 transition-all">
+        Admin
+      </a>
+      {% endif %}
+
+      {% if is_authenticated %}
+      <a href="{{ url_for('main.dashboard') }}" class="dashboard-btn text-sm">Dashboard</a>
+
+      <div class="relative profile-menu-root">
+        <button type="button" class="profile-trigger w-9 h-9 rounded-full border-2 border-cyan-400/30 bg-gradient-to-br from-cyan-500/30 to-blue-500/30 text-zinc-100 text-sm font-semibold hover:border-cyan-400/50 hover:from-cyan-500/40 hover:to-blue-500/40 transition-all" aria-haspopup="true" aria-expanded="false" aria-label="Open profile menu" title="{{ current_user.display_name or current_user.email }}">
+          {{ (current_user.display_name or current_user.email or 'U')[:1]|upper }}
+        </button>
+        <div class="profile-menu hidden absolute right-0 mt-2 w-44 rounded-xl border border-white/10 bg-zinc-900/95 backdrop-blur p-1.5 shadow-2xl z-50">
+          <a href="{{ url_for('main.profile') }}" class="profile-menu-item">Profile</a>
+          <a href="{{ url_for('main.settings') }}" class="profile-menu-item">Settings</a>
+          <a href="{{ url_for('main.saved_tools') }}" class="profile-menu-item">Saved Tools</a>
+          <a href="{{ url_for('auth.logout') }}" class="profile-menu-item">Logout</a>
+        </div>
+      </div>
+      {% else %}
+      <a href="{{ url_for('auth.login') }}" class="px-3 py-1 bg-blue-600 rounded-lg text-sm hover:bg-blue-700 transition-all">Login</a>
+      <a href="{{ url_for('auth.register') }}" class="px-3 py-1 bg-white/10 rounded-lg text-sm hover:bg-white/20 transition-all">Register</a>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="md:hidden px-4 pb-3">
+    <form action="{{ url_for('main.tools_paginated') }}" method="GET" class="flex items-center gap-2">
+      <input
+        name="q"
+        type="search"
+        value="{{ request.args.get('q', '') }}"
+        placeholder="Search tools"
+        class="w-full bg-white/5 border border-white/10 px-4 py-2.5 rounded-xl outline-none focus:border-blue-300/40 focus:ring-2 focus:ring-blue-400/50 focus:scale-[1.01] text-sm"
+        aria-label="Search tools"
+      />
+      <button type="submit" class="px-3 py-2 rounded-xl border border-white/10 bg-white/5 text-zinc-200 text-sm">Go</button>
+    </form>
+  </div>
+</header>

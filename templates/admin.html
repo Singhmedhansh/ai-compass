@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin | AI Compass</title>
+  <script>
+    (function() {
+      var theme = localStorage.getItem('theme') || 'dark';
+      var root = document.documentElement;
+      root.classList.remove('light', 'dark');
+      root.classList.add(theme);
+    })();
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <meta name="csrf-token" content="{{ csrf_token() }}" />
+  <style>
+    :root {
+      --brand: #3b82f6;
+      --brand-dim: rgba(59,130,246,0.12);
+      --brand-glow: rgba(59,130,246,0.25);
+      --bg: #09090b;
+      --text: #e4e4e7;
+      --surface: rgba(255,255,255,0.04);
+      --surface-border: rgba(255,255,255,0.08);
+    }
+    html.light {
+      --bg: #f8fafc;
+      --text: #0f172a;
+      --surface: rgba(15,23,42,0.06);
+      --surface-border: rgba(15,23,42,0.16);
+    }
+    * { transition: all 0.2s ease-in-out; box-sizing: border-box; }
+    body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--bg); color: var(--text); animation: fadeIn 0.3s ease-in; transition: background-color 0.3s ease, color 0.3s ease; }
+    .glass { background: rgba(255,255,255,0.04); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); }
+    .glass { background: var(--surface); border: 1px solid var(--surface-border); }
+    .glass { min-height: 3rem; }
+    .glass:hover { transform: translateY(-4px); box-shadow: 0 6px 18px rgba(0,0,0,0.08); }
+    .brand-bg { background: var(--brand); }
+    .brand-text { color: var(--brand); }
+    .brand-dim-bg { background: var(--brand-dim); }
+    .sidebar-item { border-left: 2px solid transparent; }
+    .sidebar-item.active { background: var(--brand-dim); color: var(--brand); border-left: 2px solid var(--brand); }
+    button { transition: transform 0.1s ease, box-shadow 0.1s ease; min-height: 2.25rem; }
+    button:hover { transform: translateY(-1px); }
+    button:active { transform: scale(0.97); }
+    button.loading { opacity: 0.7; pointer-events: none; }
+    input, textarea, select { transition: border 0.2s ease, box-shadow 0.2s ease; }
+    input:focus, textarea:focus, select:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 2px rgba(99,102,241,0.2); }
+    select:not([multiple]):not([size]) {
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      padding-right: 2.3rem;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M6 8l4 4 4-4' stroke='%2394a3b8' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-size: 1rem 1rem;
+      background-position: right 0.75rem center;
+    }
+    html.light select:not([multiple]):not([size]) {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M6 8l4 4 4-4' stroke='%23475569' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    }
+    .badge-pending { background: rgba(251,191,36,0.1); color: #fbbf24; border: 1px solid rgba(251,191,36,0.2); }
+    .badge-approved { background: rgba(16,185,129,0.12); color: #34d399; border: 1px solid rgba(16,185,129,0.2); }
+    .badge-rejected { background: rgba(239,68,68,0.1); color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        transition: none !important;
+      }
+      body {
+        animation: none !important;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen overflow-x-hidden">
+  <div class="relative z-10 flex min-h-screen">
+
+    <!-- SIDEBAR -->
+    <aside class="glass w-60 flex-shrink-0 flex flex-col border-r border-white/6 h-screen sticky top-0 overflow-y-auto">
+      <div class="px-5 py-5 border-b border-white/6">
+        <a href="{{ url_for('main.index') }}" class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg brand-bg flex items-center justify-center flex-shrink-0"><i data-lucide="compass" class="w-4 h-4 text-white"></i></div>
+          <div><div class="text-sm text-zinc-100" style="font-weight:700">AI Compass</div><div class="text-[10px] text-zinc-500 font-mono">v2.1 · 2026</div></div>
+        </a>
+      </div>
+      <nav class="flex-1 px-3 py-4 space-y-0.5 text-sm">
+        <a href="{{ url_for('main.index') }}" class="sidebar-item w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-zinc-400 hover:text-zinc-100 transition-colors"><i data-lucide="layout-grid" class="w-4 h-4"></i>All Tools</a>
+        <a href="{{ url_for('main.dashboard') }}" class="sidebar-item w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-zinc-400 hover:text-zinc-100 transition-colors"><i data-lucide="layout-dashboard" class="w-4 h-4"></i>Dashboard</a>
+        <div class="text-[10px] text-zinc-600 uppercase tracking-widest px-2 mb-2 mt-5" style="font-weight:600">Admin</div>
+        <a href="{{ url_for('main.admin') }}" class="sidebar-item active w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-zinc-300 transition-colors"><i data-lucide="shield" class="w-4 h-4"></i>Admin Panel</a>
+        <a href="{{ url_for('main.submit_tool') }}" class="sidebar-item w-full flex items-center gap-2.5 px-2 py-2 rounded-lg text-zinc-400 hover:text-zinc-100 transition-colors"><i data-lucide="plus-circle" class="w-4 h-4"></i>Submit Tool</a>
+      </nav>
+    </aside>
+
+    <!-- MAIN -->
+    <div class="flex-1 flex flex-col min-w-0">
+      <header class="glass sticky top-0 z-30 border-b border-white/6 px-4 md:px-6 h-14 flex items-center gap-3">
+        <i data-lucide="shield" class="w-4 h-4 brand-text"></i>
+        <span class="text-sm text-zinc-100" style="font-weight:600">Admin Panel</span>
+        <div class="ml-auto flex items-center gap-2">
+          <button id="admin-theme-toggle" type="button" class="text-xs text-zinc-300 hover:text-zinc-100 glass rounded-lg px-2.5 py-1.5">Theme</button>
+          <form method="POST" action="{{ url_for('main.admin_discovery_run') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <button type="submit" class="text-xs bg-blue-600 hover:bg-blue-500 text-white rounded-lg px-2.5 py-1.5 transition-colors">Run Discovery</button>
+          </form>
+          <a href="{{ url_for('main.index') }}" class="text-xs text-zinc-300 hover:text-zinc-100 glass rounded-lg px-2.5 py-1.5">Home</a>
+          <a href="{{ url_for('auth.logout') }}" class="text-xs text-zinc-300 hover:text-zinc-100 glass rounded-lg px-2.5 py-1.5">Logout</a>
+        </div>
+      </header>
+
+      <main class="flex-1 px-4 md:px-6 py-6 space-y-8">
+
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+          <div class="space-y-2">
+            {% for category, message in messages %}
+              <div class="glass rounded-xl px-4 py-3 text-sm {% if category == 'success' %}text-emerald-400 border-emerald-500/20 bg-emerald-500/5{% elif category == 'error' or category == 'danger' %}text-red-400 border-red-500/20 bg-red-500/5{% else %}text-zinc-300{% endif %}">
+                {{ message }}
+              </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+        {% endwith %}
+
+        <!-- Discovery Notifications -->
+        {% if notifications %}
+        <section>
+          <div class="flex items-center justify-between mb-3">
+            <h2 class="text-sm text-zinc-100" style="font-weight:600">Discovery Notifications</h2>
+            <span class="text-[10px] font-mono text-zinc-500">{{ notifications|length }} recent</span>
+          </div>
+          <div class="space-y-2">
+            {% for n in notifications %}
+              <div class="glass rounded-lg px-3 py-2 text-xs text-zinc-300">
+                {% if n.type == 'new_submission' %}
+                  {{ n.timestamp }} · {{ n.count }} new submission{% if n.count != 1 %}s{% endif %}
+                {% elif n.type == 'new_tools_discovered' %}
+                  {{ n.timestamp }} · {{ n.count }} new discovered tools
+                {% else %}
+                  {{ n.timestamp }} · {{ n.type }} · {{ n.count }} updates
+                {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+        </section>
+        {% endif %}
+
+        <!-- Analytics Cards -->
+        <section>
+          <h2 class="text-sm text-zinc-100 mb-3" style="font-weight:600">Analytics Overview</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+            <div class="glass rounded-xl p-4">
+              <div class="text-2xl text-zinc-100 font-mono" style="font-weight:700">{{ analytics.total_tools }}</div>
+              <div class="text-xs text-zinc-500 mt-1">Total Tools in Directory</div>
+            </div>
+            <div class="glass rounded-xl p-4">
+              <div class="text-2xl brand-text font-mono" style="font-weight:700">{{ analytics.pending_submissions }}</div>
+              <div class="text-xs text-zinc-500 mt-1">Pending Submissions</div>
+            </div>
+            <div class="glass rounded-xl p-4">
+              <div class="text-2xl text-zinc-100 font-mono" style="font-weight:700">{{ analytics.total_views }}</div>
+              <div class="text-xs text-zinc-500 mt-1">Total Tool Views</div>
+            </div>
+            <div class="glass rounded-xl p-4">
+              <div class="text-2xl text-amber-300 font-mono" style="font-weight:700">{{ analytics.pending_discovery }}</div>
+              <div class="text-xs text-zinc-500 mt-1">Pending Discovery Queue</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Discovery Stats -->
+        <section>
+          <h2 class="text-sm text-zinc-100 mb-3" style="font-weight:600">Discovery Metrics</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="glass rounded-xl p-4">
+              <div class="text-2xl text-zinc-100 font-mono" style="font-weight:700">{{ discovery_stats.tools_discovered }}</div>
+              <div class="text-xs text-zinc-500 mt-1">Tools Discovered</div>
+            </div>
+            <div class="glass rounded-xl p-4">
+              <div class="text-2xl text-emerald-300 font-mono" style="font-weight:700">{{ discovery_stats.tools_approved }}</div>
+              <div class="text-xs text-zinc-500 mt-1">Tools Approved</div>
+            </div>
+            <div class="glass rounded-xl p-4">
+              <div class="text-2xl text-red-300 font-mono" style="font-weight:700">{{ discovery_stats.tools_rejected }}</div>
+              <div class="text-xs text-zinc-500 mt-1">Tools Rejected</div>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h2 class="text-sm text-zinc-100 mb-3" style="font-weight:600">Traffic Analytics</h2>
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div class="glass rounded-xl p-4">
+              <h3 class="text-xs uppercase tracking-widest text-zinc-500 mb-3" style="font-weight:600">Most Viewed Tools</h3>
+              {% if most_viewed_tools %}
+                <div class="space-y-2">
+                  {% for item in most_viewed_tools %}
+                    <div class="flex items-center justify-between gap-3 text-xs">
+                      <a href="{{ url_for('main.tool_detail', tool_id=item.tool.tool_key) }}" class="text-zinc-200 hover:text-white truncate">{{ item.tool.name }}</a>
+                      <span class="font-mono text-zinc-400">{{ item.views }}</span>
+                    </div>
+                  {% endfor %}
+                </div>
+              {% else %}
+                <div class="text-xs text-zinc-500">No view data yet.</div>
+              {% endif %}
+            </div>
+
+            <div class="glass rounded-xl p-4">
+              <h3 class="text-xs uppercase tracking-widest text-zinc-500 mb-3" style="font-weight:600">Views Per Day (7d)</h3>
+              {% if views_per_day %}
+                <div class="space-y-2">
+                  {% for point in views_per_day %}
+                    <div class="flex items-center justify-between gap-3 text-xs">
+                      <span class="text-zinc-400 font-mono">{{ point.date }}</span>
+                      <span class="text-zinc-200 font-mono">{{ point.views }}</span>
+                    </div>
+                  {% endfor %}
+                </div>
+              {% else %}
+                <div class="text-xs text-zinc-500">No daily trend data yet.</div>
+              {% endif %}
+            </div>
+
+            <div class="glass rounded-xl p-4">
+              <h3 class="text-xs uppercase tracking-widest text-zinc-500 mb-3" style="font-weight:600">Trending Tools (7d)</h3>
+              {% if trending_by_views %}
+                <div class="space-y-2">
+                  {% for item in trending_by_views %}
+                    <div class="flex items-center justify-between gap-3 text-xs">
+                      <a href="{{ url_for('main.tool_detail', tool_id=item.tool.tool_key) }}" class="text-zinc-200 hover:text-white truncate">{{ item.tool.name }}</a>
+                      <span class="font-mono text-cyan-300">{{ item.views }}</span>
+                    </div>
+                  {% endfor %}
+                </div>
+              {% else %}
+                <div class="text-xs text-zinc-500">No trending data yet.</div>
+              {% endif %}
+            </div>
+          </div>
+        </section>
+
+        <!-- Discovery Queue -->
+        <section>
+          <div class="flex items-center justify-between mb-3">
+            <h2 class="text-sm text-zinc-100" style="font-weight:600">Discovery Queue</h2>
+            <span class="text-[10px] font-mono text-zinc-500">{{ discovery_queue|length }} pending</span>
+          </div>
+          {% if discovery_queue %}
+            <div class="space-y-3">
+              {% for item in discovery_queue %}
+                <div class="glass rounded-xl p-4 space-y-3">
+                  <div class="flex items-center justify-between gap-2 flex-wrap">
+                    <div>
+                      <div class="text-sm text-zinc-100" style="font-weight:600">{{ item.tool.name or 'Unnamed tool' }}</div>
+                      {% if item.tool.link %}
+                        <a href="{{ item.tool.link }}" target="_blank" rel="noopener" class="text-[11px] text-zinc-400 hover:text-zinc-200 transition-colors break-all">{{ item.tool.link }}</a>
+                      {% endif %}
+                    </div>
+                    <span class="text-[9px] font-mono px-1.5 py-0.5 rounded-full badge-pending">Pending</span>
+                  </div>
+
+                  <form method="POST" class="space-y-2">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <button type="submit" formaction="{{ url_for('main.admin_approve_tool', tool_name=item.tool_name) }}" class="text-xs bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg px-3 py-1.5 transition-colors">Approve</button>
+                      <button type="submit" formaction="{{ url_for('main.admin_reject_tool', tool_name=item.tool_name) }}" class="text-xs bg-red-600 hover:bg-red-500 text-white rounded-lg px-3 py-1.5 transition-colors">Reject</button>
+                      <details class="w-full group">
+                        <summary class="list-none inline-flex cursor-pointer text-xs bg-blue-600 hover:bg-blue-500 text-white rounded-lg px-3 py-1.5 transition-colors">Edit JSON</summary>
+                        <div class="mt-3 space-y-2">
+                          <label class="block text-[10px] uppercase tracking-widest text-zinc-500" style="font-weight:600">Tool JSON (editable)</label>
+                          <textarea name="tool_json" rows="12" class="w-full glass rounded-lg p-2 text-xs font-mono text-zinc-300 focus:outline-none">{{ item.tool | tojson(indent=2) }}</textarea>
+                          <button type="submit" formaction="{{ url_for('main.admin_update_tool', tool_name=item.tool_name) }}" class="text-xs bg-blue-600 hover:bg-blue-500 text-white rounded-lg px-3 py-1.5 transition-colors">Save Changes</button>
+                        </div>
+                      </details>
+                    </div>
+                  </form>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="glass rounded-xl px-4 py-6 text-center text-sm text-zinc-500">No pending discovery tools.</div>
+          {% endif %}
+        </section>
+
+        <!-- Pending Submissions -->
+        <section>
+          <div class="flex items-center justify-between mb-3">
+            <h2 class="text-sm text-zinc-100" style="font-weight:600">Pending Submissions</h2>
+            <span class="text-[10px] font-mono text-zinc-500">{{ pending_submissions|length }} pending</span>
+          </div>
+          {% if pending_submissions %}
+            <div class="space-y-3">
+              {% for sub in pending_submissions %}
+                <div class="glass rounded-xl p-4">
+                  <div class="flex items-start justify-between gap-3 flex-wrap">
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center gap-2 flex-wrap">
+                        <span class="text-sm text-zinc-100" style="font-weight:600">{{ sub.name }}</span>
+                        <span class="text-[9px] font-mono px-1.5 py-0.5 rounded-full badge-pending">Pending</span>
+                        <span class="text-[9px] font-mono bg-white/5 text-zinc-400 border border-white/10 px-1.5 py-0.5 rounded-full">{{ sub.category }}</span>
+                        <span class="text-[9px] font-mono bg-white/5 text-zinc-400 border border-white/10 px-1.5 py-0.5 rounded-full">{{ sub.pricing_model }}</span>
+                      </div>
+                      <a href="{{ sub.website }}" target="_blank" rel="noopener" class="text-xs brand-text text-opacity-80 hover:opacity-80 mt-0.5 block truncate">{{ sub.website }}</a>
+                      <p class="text-xs text-zinc-400 mt-1.5 leading-relaxed line-clamp-2">{{ sub.description }}</p>
+                      {% if sub.student_perks %}
+                        <p class="text-[10px] text-emerald-400 mt-1">Student Perk: {{ sub.student_perks }}</p>
+                      {% endif %}
+                      {% if sub.tags %}
+                        <p class="text-[10px] text-zinc-500 mt-1 font-mono">Tags: {{ sub.tags }}</p>
+                      {% endif %}
+                      <p class="text-[10px] text-zinc-600 mt-2 font-mono">Submitted: {{ sub.submitted_at.strftime('%Y-%m-%d %H:%M') }} UTC{% if sub.submitter_email %} · {{ sub.submitter_email }}{% endif %}</p>
+                    </div>
+                    <div class="flex items-center gap-2 flex-shrink-0">
+                      <form method="POST" action="{{ url_for('main.admin_approve', submission_id=sub.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                        <button type="submit" class="text-xs bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg px-3 py-1.5 transition-colors">Approve</button>
+                      </form>
+                      <form method="POST" action="{{ url_for('main.admin_reject', submission_id=sub.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                        <button type="submit" class="text-xs bg-zinc-700 hover:bg-zinc-600 text-zinc-300 rounded-lg px-3 py-1.5 transition-colors">Reject</button>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="glass rounded-xl px-4 py-6 text-center text-sm text-zinc-500">No pending submissions.</div>
+          {% endif %}
+        </section>
+
+        <!-- Bug Reports -->
+        <section>
+          <div class="flex items-center justify-between mb-3">
+            <h2 class="text-sm text-zinc-100" style="font-weight:600">Bug Reports</h2>
+            <span class="text-[10px] font-mono text-zinc-500">{{ open_bug_reports|length }} open / {{ bug_reports|length }} total</span>
+          </div>
+          {% if bug_reports %}
+            <div class="space-y-3">
+              {% for report in bug_reports %}
+                <div class="glass rounded-xl p-4">
+                  <div class="flex items-start justify-between gap-3 flex-wrap">
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center gap-2 flex-wrap">
+                        <span class="text-xs font-mono text-zinc-500">#{{ report.id }}</span>
+                        {% if report.status == 'resolved' %}
+                          <span class="text-[9px] font-mono px-1.5 py-0.5 rounded-full badge-approved">Resolved</span>
+                        {% else %}
+                          <span class="text-[9px] font-mono px-1.5 py-0.5 rounded-full badge-pending">Open</span>
+                        {% endif %}
+                        <span class="text-[10px] text-zinc-600 font-mono">{{ report.created_at.strftime('%Y-%m-%d %H:%M') }} UTC</span>
+                      </div>
+                      <p class="text-sm text-zinc-200 mt-2 whitespace-pre-line">{{ report.description }}</p>
+                      <div class="mt-2 text-xs text-zinc-400 break-all">Page: {{ report.page_url }}</div>
+                      {% if report.email %}
+                        <div class="mt-1 text-xs text-zinc-500">Reporter: {{ report.email }}</div>
+                      {% endif %}
+                    </div>
+                    {% if report.status != 'resolved' %}
+                    <form method="POST" action="{{ url_for('main.admin_resolve_bug_report', report_id=report.id) }}" class="flex-shrink-0">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                      <button type="submit" class="text-xs bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg px-3 py-1.5 transition-colors">Mark Resolved</button>
+                    </form>
+                    {% endif %}
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="glass rounded-xl px-4 py-6 text-center text-sm text-zinc-500">No bug reports submitted yet.</div>
+          {% endif %}
+        </section>
+
+        <!-- Recently Approved -->
+        {% if approved_submissions %}
+        <section>
+          <h2 class="text-sm text-zinc-100 mb-3" style="font-weight:600">Recently Approved</h2>
+          <div class="glass rounded-xl overflow-hidden">
+            <table class="min-w-full text-xs">
+              <thead>
+                <tr class="border-b border-white/8 bg-white/3 text-left">
+                  <th class="px-4 py-2.5 text-zinc-400">Tool</th>
+                  <th class="px-4 py-2.5 text-zinc-400">Category</th>
+                  <th class="px-4 py-2.5 text-zinc-400">Pricing</th>
+                  <th class="px-4 py-2.5 text-zinc-400">Status</th>
+                  <th class="px-4 py-2.5 text-zinc-400">Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for sub in approved_submissions %}
+                <tr class="border-b border-white/5 hover:bg-white/3 transition-colors">
+                  <td class="px-4 py-2.5 text-zinc-200">{{ sub.name }}</td>
+                  <td class="px-4 py-2.5 text-zinc-400 font-mono">{{ sub.category }}</td>
+                  <td class="px-4 py-2.5 text-zinc-400 font-mono">{{ sub.pricing_model }}</td>
+                  <td class="px-4 py-2.5"><span class="font-mono px-1.5 py-0.5 rounded-full badge-approved text-[9px]">Approved</span></td>
+                  <td class="px-4 py-2.5 text-zinc-500 font-mono">{{ sub.submitted_at.strftime('%Y-%m-%d') }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </section>
+        {% endif %}
+
+      </main>
+    </div>
+  </div>
+  <script>
+    if (window.lucide) window.lucide.createIcons();
+    (function() {
+      var btn = document.getElementById('admin-theme-toggle');
+      function applyTheme(theme) {
+        var root = document.documentElement;
+        root.classList.remove('light', 'dark');
+        root.classList.add(theme);
+        localStorage.setItem('theme', theme);
+        if (btn) {
+          btn.textContent = theme === 'light' ? '☀ Light' : '🌙 Dark';
+        }
+      }
+
+      var current = localStorage.getItem('theme') || (document.documentElement.classList.contains('light') ? 'light' : 'dark');
+      applyTheme(current);
+
+      if (btn) {
+        btn.addEventListener('click', function() {
+          var now = document.documentElement.classList.contains('light') ? 'light' : 'dark';
+          applyTheme(now === 'dark' ? 'light' : 'dark');
+        });
+      }
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Submit a Tool | AI Compass{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto mt-10 space-y-6">
+  <div>
+    <h1 class="text-2xl font-semibold text-zinc-100">Submit an AI Tool</h1>
+    <p class="text-sm text-zinc-400 mt-1">Share a tool we are missing and we will review it.</p>
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="space-y-2">
+        {% for category, message in messages %}
+          <div class="text-sm rounded-lg px-3 py-2 {% if category == 'error' %}bg-red-500/15 text-red-300 border border-red-500/20{% elif category == 'success' %}bg-emerald-500/15 text-emerald-300 border border-emerald-500/20{% else %}bg-blue-500/15 text-blue-300 border border-blue-500/20{% endif %}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <form method="POST" action="{{ url_for('main.submit_tool') }}" class="app-card rounded-2xl border border-gray-700 bg-gray-900 p-6 space-y-4">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+    <div>
+      <label class="block text-sm text-zinc-300 mb-1">Tool Name</label>
+      <input name="name" type="text" required class="w-full rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+    </div>
+
+    <div>
+      <label class="block text-sm text-zinc-300 mb-1">Website URL</label>
+      <input name="website" type="url" required class="w-full rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-sm text-zinc-300 mb-1">Category</label>
+        <input name="category" type="text" required class="w-full rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      </div>
+      <div>
+        <label class="block text-sm text-zinc-300 mb-1">Pricing Model</label>
+        <select name="pricing" required class="w-full rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="">Select pricing</option>
+          <option value="free">Free</option>
+          <option value="freemium">Freemium</option>
+          <option value="paid">Paid</option>
+        </select>
+      </div>
+    </div>
+
+    <div>
+      <label class="block text-sm text-zinc-300 mb-1">Description</label>
+      <textarea name="description" rows="4" required class="w-full rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+    </div>
+
+    <button type="submit" class="w-full rounded-lg text-sm text-white bg-blue-600 hover:bg-blue-500 transition-colors px-4 py-2.5">Submit Tool for Review</button>
+  </form>
+</div>
+{% endblock %}
