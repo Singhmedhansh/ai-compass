@@ -30,7 +30,7 @@
       <p class="sidebar-section-heading">Tools</p>
       <div class="space-y-1.5 mt-2">
         <a href="{{ url_for('main.compare') }}" class="sidebar-item {{ 'active' if current_path.startswith('/compare') else '' }}"><span class="text-base">⚖️</span><span>Compare Tools</span></a>
-        <a href="{{ url_for('main.stack_builder_step') }}" class="sidebar-item {{ 'active' if current_path.startswith('/stack-builder') or current_path.startswith('/ai-stack-builder') else '' }}"><span class="text-base">🧠</span><span>AI Stack Builder</span></a>
+        <a href="{{ url_for('main.stack_builder_step') }}" class="sidebar-item {{ 'active' if current_path.startswith('/stack-builder') or current_path.startswith('/ai-stack-builder') else '' }}"><span class="text-base">🧠</span><span>Get AI Stack</span></a>
         <a href="{{ url_for('main.updates') }}" class="sidebar-item {{ 'active' if current_path.startswith('/weekly-ai-tools') else '' }}"><span class="text-base">🗓️</span><span>Weekly Updates</span></a>
         <a href="{{ url_for('main.submit_tool') }}" class="sidebar-item {{ 'active' if current_path.startswith('/submit-tool') else '' }}"><span class="text-base">➕</span><span>Submit Tool</span></a>
       </div>

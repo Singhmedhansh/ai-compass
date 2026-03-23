@@ -1,0 +1,35 @@
+﻿F401 [*] `app.csrf` imported but unused
+  --> app\routes.py:13:21
+   |
+11 | from flask_login import current_user, login_required
+12 |
+13 | from app import db, csrf
+   |                     ^^^^
+14 | from app.discovery import (
+15 |     add_notification,
+   |
+help: Remove unused import: `app.csrf`
+
+E402 Module level import not at top of file
+  --> scripts\scheduler.py:9:1
+   |
+ 7 |     sys.path.insert(0, PROJECT_ROOT)
+ 8 |
+ 9 | from scripts.tool_discovery import run_discovery_pipeline
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+10 |
+11 | RUN_INTERVAL_SECONDS = 24 * 60 * 60
+   |
+
+F401 [*] `sys` imported but unused
+ --> scripts\verify_requirements.py:2:8
+  |
+1 | import importlib
+2 | import sys
+  |        ^^^
+3 | from pathlib import Path
+  |
+help: Remove unused import: `sys`
+
+Found 3 errors.
+[*] 2 fixable with the `--fix` option.

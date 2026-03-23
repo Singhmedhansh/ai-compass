@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 
-{% block title %}AI Stack Builder | AI Compass{% endblock %}
+{% block title %}Get Your AI Stack | AI Compass{% endblock %}
 
 {% block content %}
 <div class="max-w-4xl mx-auto space-y-8">
   <!-- Header -->
   <div>
-    <h1 class="text-3xl font-bold text-zinc-100">AI Stack Builder</h1>
-    <p class="text-sm text-zinc-400 mt-2">Create a personalized AI tool stack based on your needs.</p>
+    <h1 class="text-3xl font-bold text-zinc-100">Get Your AI Stack</h1>
+    <p class="text-sm text-zinc-400 mt-2">Answer 3 quick questions and get your perfect AI setup.</p>
   </div>
 
   <!-- Flash Messages -->
@@ -151,7 +151,7 @@
 
   <!-- Results Section -->
   {% if generated_stack is not none %}
-  <section class="space-y-4 animate-fade-in">
+  <section class="stack-results space-y-4 animate-fade-in">
     <div class="flex items-center justify-between">
       <div>
         <h2 class="text-xl font-semibold text-zinc-100">Your AI Stack</h2>
@@ -162,17 +162,17 @@
 
     {% if ai_summary %}
     <article class="recommendation-box glass rounded-xl p-4 border border-cyan-500/25 bg-cyan-500/10 motion-rise" style="--reveal-delay: 80ms;">
-      <div class="flex items-start justify-between gap-3">
-        <div>
+      <div class="flex flex-wrap items-start justify-between gap-3">
+        <div class="flex-1 min-w-[240px]">
           <h3 class="text-sm font-semibold text-cyan-100">🤖 AI Recommendation Summary</h3>
-          <p class="text-xs text-cyan-200/90 mt-1 leading-relaxed">{{ ai_summary|safe }}</p>
+          <p class="text-xs text-cyan-200/90 mt-1 leading-relaxed">{{ ai_summary }}</p>
           {% if decision_shortcut %}
           <p class="text-xs text-cyan-100 mt-2">{{ decision_shortcut }}</p>
           {% endif %}
         </div>
         {% if confidence %}
-        <span class="inline-flex items-center px-2 py-1 rounded-md text-[10px] font-semibold border border-cyan-400/35 bg-cyan-500/15 text-cyan-100">
-          Confidence {{ confidence }}%
+        <span class="inline-flex items-center px-2 py-1 rounded-md text-[10px] font-semibold border border-cyan-400/35 bg-cyan-500/15 text-cyan-100 whitespace-nowrap shrink-0">
+          Confidence {{ [confidence, 100]|min }}%
         </span>
         {% endif %}
       </div>
@@ -201,9 +201,9 @@
     {% endif %}
 
     {% if generated_stack %}
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 stagger-list">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch stagger-list">
       {% for tool in generated_stack %}
-      <article class="stack-tool-card glass rounded-xl p-5 flex flex-col gap-4 hover:border-blue-500/50 transition-colors {% if best_choice and tool.tool_key == best_choice.tool_key %}ring-1 ring-amber-400/40 border-amber-500/40{% endif %}" style="--stagger-step: {{ loop.index0 }};" data-tool-key="{{ tool.tool_key }}">
+      <article class="stack-tool-card glass rounded-xl p-5 h-full min-h-[320px] flex flex-col gap-4 hover:border-blue-500/50 transition-colors {% if best_choice and tool.tool_key == best_choice.tool_key %}ring-1 ring-amber-400/40 border-amber-500/40{% endif %}" style="--stagger-step: {{ loop.index0 }};" data-tool-key="{{ tool.tool_key }}">
         <!-- Tool Header -->
         <div class="flex items-start justify-between gap-3">
           <div class="flex-1 min-w-0">
@@ -223,9 +223,9 @@
               {{ tool.priority_label }}
             </span>
             {% endif %}
-            {% if tool.get('ai_score') is not none %}
+            {% if tool.get('confidence_score') is not none %}
             <span class="inline-flex items-center px-2 py-1 text-[10px] rounded-md bg-cyan-500/15 text-cyan-200 border border-cyan-500/30 font-mono">
-              AI Score: {{ tool.ai_score|round(1) }}
+              Match: {{ [tool.confidence_score, 100]|min }}%
             </span>
             {% endif %}
           </div>
@@ -346,6 +346,12 @@
 
   .best-choice-badge {
     animation: best-choice-pulse 2.6s ease-in-out infinite;
+  }
+
+  /* Keep generated results visible even if motion classes desync after load. */
+  .stack-results .motion-rise,
+  .stack-results .stagger-list > * {
+    opacity: 1;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -518,6 +524,16 @@
     const actionInput = document.getElementById("actionInput");
     const wizardForm = document.getElementById("stackWizardForm");
     const loadingState = document.getElementById("stack-loading-state");
+
+    // Animation fallback: ensure generated results remain visible after first paint.
+    const resultElements = document.querySelectorAll(".stack-results .motion-rise, .stack-results .stagger-list > *");
+    if (resultElements.length) {
+      window.setTimeout(() => {
+        resultElements.forEach((item) => {
+          item.style.opacity = "1";
+        });
+      }, 450);
+    }
 
     document.querySelectorAll(".goal-card").forEach((card) => {
       card.addEventListener("click", () => {

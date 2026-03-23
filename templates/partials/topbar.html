@@ -27,7 +27,7 @@
       </form>
     </div>
 
-    <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+    <div class="topbar-actions flex items-center gap-2 sm:gap-3 shrink-0">
       <button
         id="theme-toggle"
         type="button"
@@ -42,7 +42,7 @@
         id="student-mode-toggle"
         type="button"
         role="switch"
-        class="group px-3 py-1 rounded-lg border text-sm transition-all flex items-center gap-2 {% if student_mode %}active text-emerald-300 border-emerald-500/40 bg-emerald-500/15 hover:bg-emerald-500/20{% else %}bg-white/5 border-white/10 text-zinc-200 hover:bg-white/10{% endif %}"
+        class="toggle group px-3 py-1 rounded-lg border text-sm transition-all flex items-center gap-2 {% if student_mode %}active text-emerald-300 border-emerald-500/40 bg-emerald-500/15 hover:bg-emerald-500/20{% else %}bg-white/5 border-white/10 text-zinc-200 hover:bg-white/10{% endif %}"
         aria-label="Toggle Student Mode"
         aria-pressed="{{ 'true' if student_mode else 'false' }}"
         aria-checked="{{ 'true' if student_mode else 'false' }}"
@@ -70,7 +70,7 @@
       {% endif %}
 
       {% if is_authenticated %}
-      <a href="{{ url_for('main.dashboard') }}" class="dashboard-btn text-sm">Dashboard</a>
+      <a id="topbar-dashboard-link" href="{{ url_for('main.dashboard') }}" class="dashboard-btn text-sm">Dashboard</a>
 
       <div class="relative profile-menu-root">
         <button type="button" class="profile-trigger w-9 h-9 rounded-full border-2 border-cyan-400/30 bg-gradient-to-br from-cyan-500/30 to-blue-500/30 text-zinc-100 text-sm font-semibold hover:border-cyan-400/50 hover:from-cyan-500/40 hover:to-blue-500/40 transition-all" aria-haspopup="true" aria-expanded="false" aria-label="Open profile menu" title="{{ current_user.display_name or current_user.email }}">
@@ -88,8 +88,8 @@
         </div>
       </div>
       {% else %}
-      <a href="{{ url_for('auth.login') }}" class="px-3 py-1 bg-blue-600 rounded-lg text-sm hover:bg-blue-700 transition-all">Login</a>
-      <a href="{{ url_for('auth.register') }}" class="px-3 py-1 bg-white/10 rounded-lg text-sm hover:bg-white/20 transition-all">Register</a>
+      <a id="topbar-login-link" href="{{ url_for('auth.login') }}" class="px-3 py-1 bg-blue-600 rounded-lg text-sm hover:bg-blue-700 transition-all">Login</a>
+      <a id="topbar-register-link" href="{{ url_for('auth.register') }}" class="px-3 py-1 bg-white/10 rounded-lg text-sm hover:bg-white/20 transition-all">Register</a>
       {% endif %}
     </div>
   </div>

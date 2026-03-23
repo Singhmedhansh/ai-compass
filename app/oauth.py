@@ -2,7 +2,7 @@
 import json
 
 from authlib.integrations.flask_client import OAuth
-from flask import Blueprint, current_app, flash, redirect, url_for
+from flask import Blueprint, current_app, flash, redirect, request, session, url_for
 from flask_login import login_user
 
 from app import db
@@ -10,6 +10,43 @@ from app.models import User
 
 oauth_bp = Blueprint("oauth", __name__)
 oauth = OAuth()
+
+
+def _clear_stale_login_flash_errors():
+    flashes = list(session.get("_flashes") or [])
+    if not flashes:
+        return
+    filtered = [
+        item for item in flashes
+        if len(item) < 2 or str(item[1]) not in {"Login failed. Please try again.", "Invalid email or password."}
+    ]
+    if filtered:
+        session["_flashes"] = filtered
+    else:
+        session.pop("_flashes", None)
+
+
+def _google_redirect_uri():
+    callback_uri = url_for("oauth.google_callback", _external=True).rstrip("/")
+
+    current_host = str(request.host or "").strip().lower()
+    if current_host.startswith("127.0.0.1") or current_host.startswith("localhost"):
+        # Avoid local mismatch between localhost and 127.0.0.1.
+        return callback_uri
+
+    explicit = str(current_app.config.get("GOOGLE_REDIRECT_URI") or "").strip()
+    if explicit:
+        return explicit.rstrip("/")
+
+    app_env = str(current_app.config.get("ENV") or "development").strip().lower()
+    is_production = app_env == "production"
+    configured = str(
+        current_app.config.get("GOOGLE_REDIRECT_URI_PROD" if is_production else "GOOGLE_REDIRECT_URI_LOCAL") or ""
+    ).strip()
+    if configured and "your-production-url" not in configured:
+        return configured.rstrip("/")
+
+    return callback_uri
 
 
 def init_oauth(app):
@@ -87,8 +124,19 @@ def login_google():
     if not (current_app.config.get("GOOGLE_CLIENT_ID") and current_app.config.get("GOOGLE_CLIENT_SECRET")):
         flash("Google login is not configured.", "error")
         return redirect(url_for("auth.login"))
-    redirect_uri = url_for("oauth.google_callback", _external=True)
-    return oauth.google.authorize_redirect(redirect_uri)
+    try:
+        redirect_uri = _google_redirect_uri()
+        return oauth.google.authorize_redirect(redirect_uri)
+    except Exception as exc:
+        err = str(exc or "").lower()
+        if "redirect_uri_mismatch" in err:
+            flash(
+                "Google OAuth redirect URI mismatch. Add exact callback URLs: http://127.0.0.1:5000/auth/google/callback and your production https://<domain>/auth/google/callback.",
+                "error",
+            )
+        else:
+            flash("Google login could not be started. Please verify OAuth redirect URIs and try again.", "error")
+        return redirect(url_for("auth.login"))
 
 
 @oauth_bp.route("/auth/google/callback")
@@ -106,12 +154,20 @@ def google_callback():
         if picture and picture != (user.oauth_picture_url or ""):
             user.oauth_picture_url = picture
             db.session.commit()
+        _clear_stale_login_flash_errors()
         login_user(user)
         if _requires_onboarding(user):
             return redirect(url_for("main.onboarding"))
         return redirect(url_for("main.dashboard"))
-    except Exception:
-        flash("Login failed. Please try again.", "error")
+    except Exception as exc:
+        err = str(exc or "").lower()
+        if "redirect_uri_mismatch" in err:
+            flash(
+                "Google login failed: redirect URI mismatch. Check Google Cloud OAuth Authorized redirect URIs for this exact callback URL.",
+                "error",
+            )
+        else:
+            flash("Login failed. Please try again.", "error")
         return redirect(url_for("auth.login"))
 
 
@@ -151,6 +207,7 @@ def github_callback():
         if avatar_url and avatar_url != (user.oauth_picture_url or ""):
             user.oauth_picture_url = avatar_url
             db.session.commit()
+        _clear_stale_login_flash_errors()
         login_user(user)
         if _requires_onboarding(user):
             return redirect(url_for("main.onboarding"))

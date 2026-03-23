@@ -111,3 +111,50 @@ class BugReport(db.Model):
     email = db.Column(db.String(255), nullable=True)
     created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc), index=True)
     status = db.Column(db.String(20), nullable=False, default="open", index=True)
+
+
+tool_tags = db.Table('tool_tags',
+    db.Column('tool_id', db.Integer, db.ForeignKey('tools.id'), primary_key=True),
+    db.Column('tag_id', db.Integer, db.ForeignKey('tags.id'), primary_key=True)
+)
+
+
+class Category(db.Model):
+    __tablename__ = "categories"
+
+    id = db.Column(db.Integer, primary_key=True)
+    slug = db.Column(db.String(100), unique=True, nullable=False, index=True)
+    name = db.Column(db.String(100), nullable=False)
+    
+    tools = db.relationship("Tool", back_populates="category")
+
+
+class Tag(db.Model):
+    __tablename__ = "tags"
+
+    id = db.Column(db.Integer, primary_key=True)
+    slug = db.Column(db.String(100), unique=True, nullable=False, index=True)
+    name = db.Column(db.String(100), nullable=False)
+
+
+class Tool(db.Model):
+    __tablename__ = "tools"
+
+    id = db.Column(db.Integer, primary_key=True)
+    slug = db.Column(db.String(255), unique=True, nullable=False, index=True)
+    name = db.Column(db.String(255), nullable=False, index=True)
+    description = db.Column(db.Text, nullable=True)
+    link = db.Column(db.String(500), nullable=True)
+    icon = db.Column(db.String(500), nullable=True)
+    price = db.Column(db.String(50), nullable=True)
+    student_perk = db.Column(db.Boolean, default=False)
+    rating = db.Column(db.Float, default=0.0)
+    weekly_users = db.Column(db.Integer, default=0)
+    launch_year = db.Column(db.Integer, nullable=True)
+    is_active = db.Column(db.Boolean, default=True, index=True)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    
+    category_id = db.Column(db.Integer, db.ForeignKey('categories.id'), nullable=True, index=True)
+    category = db.relationship("Category", back_populates="tools")
+    
+    tags = db.relationship('Tag', secondary=tool_tags, lazy='subquery', backref=db.backref('tools', lazy=True))

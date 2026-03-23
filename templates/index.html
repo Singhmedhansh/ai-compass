@@ -9,11 +9,10 @@
     <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8">
       <div class="max-w-3xl">
         <div class="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-zinc-300 font-mono">AI discovery platform</div>
-        <h1 class="mt-4 text-3xl md:text-5xl tracking-tight text-zinc-100 font-bold">Find the Best AI Tools</h1>
+        <h1 class="mt-4 text-3xl md:text-5xl tracking-tight text-zinc-100 font-bold">Find the perfect AI tools for your workflow in under 30 seconds</h1>
         <p class="mt-3 text-base md:text-lg text-zinc-400 max-w-2xl">Discover {{ total_tools }} AI tools for writing, coding, research, and productivity.</p>
         <div class="mt-6 flex flex-wrap gap-3">
-          <a href="{{ url_for('main.tools_paginated') }}" class="inline-flex items-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white px-5 py-3 text-sm transition-colors font-medium">Explore Tools</a>
-          <a href="{{ url_for('main.ai_tool_finder') }}" class="inline-flex items-center gap-2 rounded-xl glass hover:border-blue-400/30 text-zinc-100 px-5 py-3 text-sm transition-colors font-medium">Find My AI Stack</a>
+          <a href="/ai-stack-builder" class="inline-flex items-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-500 border border-blue-400/40 shadow-lg shadow-blue-900/30 text-white px-6 py-3 text-sm transition-colors font-semibold">Get My AI Stack</a>
         </div>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 min-w-full lg:min-w-[420px]">
@@ -59,41 +58,41 @@
   </section>
 
   <!-- ═════════════════════════════════════════════════════════════════════════════════════ CATEGORIES ═════════════════════════════════════════════════════════════════════════════════════ -->
-  <section class="rounded-2xl p-4 border border-white/10 bg-white/5">
+  <section class="rounded-2xl p-4 border border-white/5 bg-white/[0.03]">
     <div class="flex items-center justify-between mb-4">
-      <h2 class="text-xl text-zinc-100 font-bold">Browse by Category</h2>
+      <h2 class="text-lg text-zinc-300 font-semibold">Browse by Category</h2>
     </div>
     <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-      <a href="{{ url_for('main.tools_paginated', category='writing') }}" class="glass rounded-xl p-4 hover:scale-[1.02] hover:border-blue-500 transition-all duration-200 hover:shadow-lg">
-        <div class="text-sm text-zinc-100 font-semibold">Writing & Docs</div>
+      <a href="{{ url_for('main.tools_paginated', category='writing') }}" class="rounded-xl p-4 border border-white/8 bg-transparent hover:border-white/15 transition-colors duration-200">
+        <div class="text-sm text-zinc-200 font-medium">Writing & Docs</div>
         {% if category_counts.get('writing', 0) > 0 %}<div class="text-xs text-zinc-500 mt-1">{{ category_counts.get('writing', 0) }} tools</div>{% endif %}
       </a>
-      <a href="{{ url_for('main.tools_paginated', category='coding') }}" class="glass rounded-xl p-4 hover:scale-[1.02] hover:border-blue-500 transition-all duration-200 hover:shadow-lg">
-        <div class="text-sm text-zinc-100 font-semibold">Coding</div>
+      <a href="{{ url_for('main.tools_paginated', category='coding') }}" class="rounded-xl p-4 border border-white/8 bg-transparent hover:border-white/15 transition-colors duration-200">
+        <div class="text-sm text-zinc-200 font-medium">Coding</div>
         {% if category_counts.get('coding', 0) > 0 %}<div class="text-xs text-zinc-500 mt-1">{{ category_counts.get('coding', 0) }} tools</div>{% endif %}
       </a>
-      <a href="{{ url_for('main.tools_paginated', category='research') }}" class="glass rounded-xl p-4 hover:scale-[1.02] hover:border-blue-500 transition-all duration-200 hover:shadow-lg">
-        <div class="text-sm text-zinc-100 font-semibold">Research</div>
+      <a href="{{ url_for('main.tools_paginated', category='research') }}" class="rounded-xl p-4 border border-white/8 bg-transparent hover:border-white/15 transition-colors duration-200">
+        <div class="text-sm text-zinc-200 font-medium">Research</div>
         {% if category_counts.get('research', 0) > 0 %}<div class="text-xs text-zinc-500 mt-1">{{ category_counts.get('research', 0) }} tools</div>{% endif %}
       </a>
-      <a href="{{ url_for('main.tools_paginated', category='image generation') }}" class="glass rounded-xl p-4 hover:scale-[1.02] hover:border-blue-500 transition-all duration-200 hover:shadow-lg">
-        <div class="text-sm text-zinc-100 font-semibold">Image Gen</div>
+      <a href="{{ url_for('main.tools_paginated', category='image generation') }}" class="rounded-xl p-4 border border-white/8 bg-transparent hover:border-white/15 transition-colors duration-200">
+        <div class="text-sm text-zinc-200 font-medium">Image Gen</div>
         {% if category_counts.get('image generation', 0) > 0 %}<div class="text-xs text-zinc-500 mt-1">{{ category_counts.get('image generation', 0) }} tools</div>{% endif %}
       </a>
-      <a href="{{ url_for('main.tools_paginated', category='video generation') }}" class="glass rounded-xl p-4 hover:scale-[1.02] hover:border-blue-500 transition-all duration-200 hover:shadow-lg">
-        <div class="text-sm text-zinc-100 font-semibold">Video Gen</div>
+      <a href="{{ url_for('main.tools_paginated', category='video generation') }}" class="rounded-xl p-4 border border-white/8 bg-transparent hover:border-white/15 transition-colors duration-200">
+        <div class="text-sm text-zinc-200 font-medium">Video Gen</div>
         {% if category_counts.get('video generation', 0) > 0 %}<div class="text-xs text-zinc-500 mt-1">{{ category_counts.get('video generation', 0) }} tools</div>{% endif %}
       </a>
-      <a href="{{ url_for('main.tools_paginated', category='productivity') }}" class="glass rounded-xl p-4 hover:scale-[1.02] hover:border-blue-500 transition-all duration-200 hover:shadow-lg">
-        <div class="text-sm text-zinc-100 font-semibold">Productivity</div>
+      <a href="{{ url_for('main.tools_paginated', category='productivity') }}" class="rounded-xl p-4 border border-white/8 bg-transparent hover:border-white/15 transition-colors duration-200">
+        <div class="text-sm text-zinc-200 font-medium">Productivity</div>
         {% if category_counts.get('productivity', 0) > 0 %}<div class="text-xs text-zinc-500 mt-1">{{ category_counts.get('productivity', 0) }} tools</div>{% endif %}
       </a>
-      <a href="{{ url_for('main.tools_paginated', pricing='free') }}" class="glass rounded-xl p-4 hover:scale-[1.02] hover:border-blue-500 transition-all duration-200 hover:shadow-lg">
-        <div class="text-sm text-zinc-100 font-semibold">Free Tools</div>
+      <a href="{{ url_for('main.tools_paginated', pricing='free') }}" class="rounded-xl p-4 border border-white/8 bg-transparent hover:border-white/15 transition-colors duration-200">
+        <div class="text-sm text-zinc-200 font-medium">Free Tools</div>
         <div class="text-xs text-zinc-500 mt-1">No cost</div>
       </a>
-      <a href="{{ url_for('main.tools_paginated', sort='trending') }}" class="glass rounded-xl p-4 hover:scale-[1.02] hover:border-blue-500 transition-all duration-200 hover:shadow-lg">
-        <div class="text-sm text-zinc-100 font-semibold">Trending</div>
+      <a href="{{ url_for('main.tools_paginated', sort='trending') }}" class="rounded-xl p-4 border border-white/8 bg-transparent hover:border-white/15 transition-colors duration-200">
+        <div class="text-sm text-zinc-200 font-medium">Trending</div>
         <div class="text-xs text-zinc-500 mt-1">Popular now</div>
       </a>
     </div>

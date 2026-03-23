@@ -1,4 +1,4 @@
-﻿import json
+import json
 import os
 import re
 from math import ceil
@@ -23,6 +23,7 @@ from app.discovery import (
 )
 from app.models import BugReport, Favorite, NewsletterSubscriber, SavedStack, Submission, ToolRating, ToolView, User
 from app.recommendations import recommend_tools
+from app.search_service import _search_score, _tokenize_query
 from app.tool_cache import get_cached_tools
 from scripts.tool_discovery import run_discovery_pipeline
 
@@ -134,8 +135,34 @@ def admin_required(f):
     return decorated
 
 
+from app import cache
+
+@cache.memoize(timeout=300)
 def load_tools():
-    return get_cached_tools(DATA_PATH)
+    from app.models import Tool
+    tools = Tool.query.filter_by(is_active=True).all()
+    results = []
+    for t in tools:
+        results.append({
+            "id": t.id,
+            "tool_key": t.slug,
+            "name": t.name,
+            "description": t.description,
+            "link": t.link,
+            "website": t.link,
+            "icon": t.icon,
+            "price": t.price,
+            "pricing": t.price,
+            "pricing_model": t.price,
+            "studentPerk": t.student_perk,
+            "rating": t.rating,
+            "weeklyUsers": t.weekly_users,
+            "launchYear": t.launch_year,
+            "created_at": t.created_at.timestamp() if t.created_at else 0,
+            "category": t.category.name if t.category else "",
+            "tags": [tag.name for tag in t.tags]
+        })
+    return results
 
 
 def _tool_tags(tool):
@@ -674,38 +701,6 @@ def _to_set(items):
     if not isinstance(items, list):
         return set()
     return {str(item).strip().lower() for item in items if str(item).strip()}
-
-
-def _tokenize_query(query):
-    return [token for token in re.findall(r"[a-z0-9]+", str(query or "").lower()) if token]
-
-
-def _search_score(tool, query_tokens):
-    if not query_tokens:
-        return 0
-
-    name = str(tool.get("name") or "").lower()
-    category = str(tool.get("category") or "").lower()
-    description = str(tool.get("description") or "").lower()
-    tags = " ".join(str(tag).lower() for tag in (tool.get("tags") or []))
-
-    score = 0
-    for token in query_tokens:
-        if token in name:
-            score += 70
-            if name.startswith(token):
-                score += 20
-        if token in tags:
-            score += 40
-        if token in category:
-            score += 25
-        if token in description:
-            score += 10
-
-    if all(token in name for token in query_tokens):
-        score += 30
-
-    return score
 
 
 def trending_score(tool, views=0):

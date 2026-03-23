@@ -3,38 +3,6 @@
     "status": "pending",
     "tool": {
       "id": "",
-      "name": "StudyScribe AI",
-      "maker": "StudyScribe",
-      "tagline": "Lecture to study kit in one click",
-      "category": "research",
-      "subcategory": "",
-      "price": "",
-      "pricingDetail": "",
-      "bestFor": "",
-      "tags": [
-        "students",
-        "notes",
-        "learning"
-      ],
-      "trending": false,
-      "rating": "",
-      "weeklyUsers": "",
-      "link": "https://studyscribe.app",
-      "apiAvailable": false,
-      "openSource": false,
-      "studentPerk": "",
-      "uniHack": "",
-      "features": [],
-      "platforms": [],
-      "languages": "",
-      "launchYear": 2026,
-      "description": "Turns lecture videos into notes, flashcards, and quizzes."
-    }
-  },
-  {
-    "status": "pending",
-    "tool": {
-      "id": "",
       "name": "AgentFlow",
       "maker": "AgentFlow OSS",
       "tagline": "Compose reliable multi-agent systems",

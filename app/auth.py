@@ -1,4 +1,4 @@
-from flask import Blueprint, current_app, flash, redirect, render_template, request, url_for
+from flask import Blueprint, current_app, flash, redirect, render_template, request, session, url_for
 from flask_login import current_user, login_required, login_user, logout_user
 import json
 
@@ -8,6 +8,20 @@ from app.rate_limit import is_rate_limited
 
 
 auth_bp = Blueprint("auth", __name__)
+
+
+def _clear_stale_login_flash_errors():
+    flashes = list(session.get("_flashes") or [])
+    if not flashes:
+        return
+    filtered = [
+        item for item in flashes
+        if len(item) < 2 or str(item[1]) not in {"Login failed. Please try again.", "Invalid email or password."}
+    ]
+    if filtered:
+        session["_flashes"] = filtered
+    else:
+        session.pop("_flashes", None)
 
 
 def _client_ip():
@@ -57,6 +71,7 @@ def _sync_admin_flag(user):
 @auth_bp.route("/register", methods=["GET", "POST"])
 def register():
     if current_user.is_authenticated:
+        _clear_stale_login_flash_errors()
         return redirect(url_for("main.dashboard"))
 
     if request.method == "POST":
@@ -103,6 +118,7 @@ def register():
         db.session.add(user)
         db.session.commit()
 
+        _clear_stale_login_flash_errors()
         login_user(user)
         flash("Welcome to AI Compass.", "success")
         if _requires_onboarding(user):
@@ -119,6 +135,7 @@ def register():
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
     if current_user.is_authenticated:
+        _clear_stale_login_flash_errors()
         return redirect(url_for("main.dashboard"))
 
     if request.method == "POST":
@@ -154,6 +171,7 @@ def login():
                     user.password_hash = admin_password_hash
 
             db.session.commit()
+            _clear_stale_login_flash_errors()
             login_user(user)
             flash("Admin login detected. Use the Admin Panel button from the dashboard.", "success")
             next_url = request.args.get("next")
@@ -163,6 +181,7 @@ def login():
 
         if user and user.password_hash and bcrypt.check_password_hash(user.password_hash, password):
             _sync_admin_flag(user)
+            _clear_stale_login_flash_errors()
             login_user(user)
             flash("You are now logged in.", "success")
             next_url = request.args.get("next")

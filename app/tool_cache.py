@@ -1,17 +1,24 @@
 import json
 import os
 from typing import List, Dict, Any
+from filelock import FileLock, Timeout
 
 
 _TOOLS_CACHE: List[Dict[str, Any]] | None = None
 _TOOLS_CACHE_MTIME: float | None = None
 
 
+def _get_lock_path(path: str) -> str:
+    return f"{path}.lock"
+
+
 def _load_tools_from_disk(data_path: str) -> List[Dict[str, Any]]:
+    lock = FileLock(_get_lock_path(data_path), timeout=5)
     try:
-        with open(data_path, "r", encoding="utf-8") as file:
-            payload = json.load(file)
-    except (OSError, json.JSONDecodeError, TypeError, ValueError):
+        with lock:
+            with open(data_path, "r", encoding="utf-8") as file:
+                payload = json.load(file)
+    except (OSError, json.JSONDecodeError, TypeError, ValueError, Timeout):
         return []
     if isinstance(payload, dict):
         tools = payload.get("tools", [])

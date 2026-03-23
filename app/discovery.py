@@ -2,6 +2,7 @@ import json
 import os
 import re
 from datetime import datetime, timezone
+from filelock import FileLock, Timeout
 from difflib import SequenceMatcher
 from urllib.parse import urlparse
 
@@ -47,20 +48,34 @@ DEFAULT_DISCOVERY_STATS = {
 }
 
 
+def _get_lock_path(path):
+    return f"{path}.lock"
+
+
 def _read_json(path, default):
     if not os.path.exists(path):
         return default
-    with open(path, "r", encoding="utf-8") as f:
-        try:
-            return json.load(f)
-        except json.JSONDecodeError:
-            return default
+    lock = FileLock(_get_lock_path(path), timeout=5)
+    try:
+        with lock:
+            with open(path, "r", encoding="utf-8") as f:
+                try:
+                    return json.load(f)
+                except json.JSONDecodeError:
+                    return default
+    except Timeout:
+        return default
 
 
 def _write_json(path, payload):
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(payload, f, ensure_ascii=False, indent=2)
+    lock = FileLock(_get_lock_path(path), timeout=5)
+    try:
+        with lock:
+            with open(path, "w", encoding="utf-8") as f:
+                json.dump(payload, f, ensure_ascii=False, indent=2)
+    except Timeout:
+        raise RuntimeError("Failed to acquire lock to write JSON file")
 
 
 def ensure_discovery_files():
@@ -301,6 +316,83 @@ def update_queue_tool_by_name(tool_name, tool):
     return queue[queue_index]
 
 
+def _persist_tool_to_db(tool_dict):
+    from app.models import Tool, Category, Tag
+    from app import db
+    
+    cat_name = str(tool_dict.get('category') or tool_dict.get('subcategory') or 'Other').strip()
+    cat_slug = build_queue_tool_key(cat_name) or "other"
+    
+    cat = Category.query.filter_by(slug=cat_slug).first()
+    if not cat:
+        cat = Category(slug=cat_slug, name=cat_name)
+        db.session.add(cat)
+        db.session.flush()
+
+    tool_slug = tool_dict.get('tool_key') or build_queue_tool_key(tool_dict.get('name', ''))
+    
+    price = str(tool_dict.get('price') or tool_dict.get('pricingDetail') or tool_dict.get('pricing_model') or '').strip().lower()
+    perk = tool_dict.get('studentPerk', False)
+    if isinstance(perk, str):
+        perk = perk.lower() in ('true', '1', 'yes')
+        
+    raw_launch = tool_dict.get('launchYear')
+    launch_year = int(raw_launch) if raw_launch else None
+    
+    # Weekly users parsing based on existing string format
+    text_users = str(tool_dict.get('weeklyUsers') or "").strip().upper().replace("+", "")
+    w_users = 0
+    if text_users:
+        multiplier = 1
+        if text_users.endswith("M"):
+            multiplier = 1000000
+            text_users = text_users[:-1]
+        elif text_users.endswith("K"):
+            multiplier = 1000
+            text_users = text_users[:-1]
+        try:
+            w_users = int(float(text_users.replace(",", "")) * multiplier)
+        except ValueError:
+            pass
+
+    tool = Tool(
+        slug=tool_slug,
+        name=tool_dict.get('name', ''),
+        description=tool_dict.get('description', '') or tool_dict.get('tagline', ''),
+        link=tool_dict.get('link') or tool_dict.get('website', ''),
+        icon=tool_dict.get('icon', ''),
+        price=price,
+        student_perk=bool(perk),
+        rating=float(tool_dict.get('rating') or 0.0),
+        weekly_users=w_users,
+        launch_year=launch_year,
+        category_id=cat.id
+    )
+    db.session.add(tool)
+
+    raw_tags = tool_dict.get('tags', [])
+    if isinstance(raw_tags, str):
+        raw_tags = [x.strip() for x in raw_tags.split(',')]
+    
+    for t_str in raw_tags:
+        tag_name = str(t_str).strip()
+        if not tag_name: continue
+        tag_slug = build_queue_tool_key(tag_name)
+        if not tag_slug: continue
+        
+        tag = Tag.query.filter_by(slug=tag_slug).first()
+        if not tag:
+            tag = Tag(slug=tag_slug, name=tag_name)
+            db.session.add(tag)
+            db.session.flush()
+        if tag not in tool.tags:
+            tool.tags.append(tag)
+            
+    db.session.commit()
+    tool_dict['id'] = tool.id
+    return tool_dict
+
+
 def approve_queue_tool(queue_index, tool_override=None):
     queue = load_discovery_queue()
     if queue_index < 0 or queue_index >= len(queue):
@@ -314,10 +406,11 @@ def approve_queue_tool(queue_index, tool_override=None):
     if is_duplicate_tool(tool, existing_tools):
         return False, "duplicate"
 
-    tool["id"] = _next_numeric_value(existing_tools, "id")
+    tool = _persist_tool_to_db(tool)
+    
+    # Also keep legacy JSON in sync temporarily, but rely purely on DB reads.
     tool["rank"] = _next_numeric_value(existing_tools, "rank")
     payload["tools"].append(tool)
-
     save_tools_payload(payload)
 
     queue[queue_index]["status"] = "approved"
@@ -339,10 +432,10 @@ def approve_queue_tool_by_name(tool_name, tool_override=None):
     if is_duplicate_tool(tool, existing_tools):
         return False, "duplicate"
 
-    tool["id"] = _next_numeric_value(existing_tools, "id")
+    tool = _persist_tool_to_db(tool)
+
     tool["rank"] = _next_numeric_value(existing_tools, "rank")
     payload["tools"].append(tool)
-
     save_tools_payload(payload)
 
     queue.pop(queue_index)

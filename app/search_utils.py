@@ -15,8 +15,33 @@ QUERY_SYNONYMS = {
 }
 
 
+def _safe_text(value) -> str:
+    text = str(value or "")
+    text = text.encode("utf-8", "ignore").decode("utf-8", "ignore")
+    replacements = {
+        "\u2018": "'",
+        "\u2019": "'",
+        "\u201c": '"',
+        "\u201d": '"',
+        "\u2013": "-",
+        "\u2014": "-",
+        "\u2026": "...",
+        "\ufffd": "",
+    }
+    for src, dst in replacements.items():
+        text = text.replace(src, dst)
+    if any(token in text for token in ("Ã", "â", "ðŸ")):
+        try:
+            repaired = text.encode("latin-1", "ignore").decode("utf-8", "ignore")
+            if repaired:
+                text = repaired
+        except Exception:
+            pass
+    return text.encode("utf-8", "ignore").decode("utf-8", "ignore")
+
+
 def _normalize(text: str) -> str:
-    value = str(text or "").strip().lower()
+    value = _safe_text(text).strip().lower()
     value = re.sub(r"\s+", " ", value)
     return value
 

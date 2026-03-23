@@ -9,7 +9,13 @@
   <script>
     (function() {
       var serverTheme = '{{ current_user.theme_preference if current_user.is_authenticated and current_user.theme_preference else "" }}';
-      var theme = localStorage.getItem('theme') || serverTheme || 'dark';
+      var storedTheme = null;
+      try {
+        storedTheme = localStorage.getItem('theme');
+      } catch (error) {
+        storedTheme = null;
+      }
+      var theme = storedTheme || serverTheme || 'dark';
       var root = document.documentElement;
       root.classList.remove('light', 'dark');
       root.classList.add(theme);
@@ -21,16 +27,17 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
   <style>
     :root {
-      --bg-primary: #0f172a;
-      --bg-secondary: #1e293b;
-      --text-primary: #f9fafb;
-      --text-secondary: #94a3b8;
-      --border-color: #334155;
-      --card-bg: #1e293b;
+      --bg-primary: #ffffff;
+      --bg-secondary: #ffffff;
+      --text-primary: #111827;
+      --text-secondary: #6b7280;
+      --border-color: #e5e7eb;
+      --card-bg: #ffffff;
+      --primary: #2563eb;
 
       --bg: var(--bg-primary);
       --text: var(--text-primary);
@@ -41,12 +48,13 @@
 
     html.light,
     [data-theme="light"] {
-      --bg-primary: #f9fafb;
+      --bg-primary: #ffffff;
       --bg-secondary: #ffffff;
       --text-primary: #111827;
-      --text-secondary: #4b5563;
+      --text-secondary: #6b7280;
       --border-color: #e5e7eb;
       --card-bg: #ffffff;
+      --primary: #2563eb;
     }
 
     html.dark,
@@ -57,13 +65,27 @@
       --text-secondary: #94a3b8;
       --border-color: #334155;
       --card-bg: #1e293b;
+      --primary: #3b82f6;
     }
 
     body {
-      font-family: 'DM Sans', system-ui, sans-serif;
+      font-family: 'Inter', system-ui, sans-serif;
       background-color: var(--bg-primary);
       color: var(--text-primary);
       animation: fadeIn 0.5s ease-out;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    input,
+    select,
+    textarea,
+    button {
+      font-family: inherit;
     }
 
     p,
@@ -101,6 +123,16 @@
       background: var(--card-bg);
       border: 1px solid var(--border-color);
       color: var(--text-primary);
+    }
+
+    html.light .card,
+    html.light .tool-card,
+    html.light .recommendation-box,
+    html.light .browse-tool-card,
+    html.light .finder-tool-card,
+    html.light .stack-tool-card,
+    html.light .app-card {
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
     }
 
     .recommendation-box {
@@ -157,21 +189,90 @@
 
     .dashboard-btn,
     .btn-primary {
-      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      background: var(--primary);
       color: #ffffff;
-      border: 1px solid rgba(59, 130, 246, 0.55);
+      border: 1px solid color-mix(in srgb, var(--primary) 78%, #0f172a 22%);
       font-weight: 500;
       border-radius: 12px;
       padding: 10px 18px;
-      box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.2), 0 10px 24px rgba(37, 99, 235, 0.3);
+      box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary) 40%, transparent), 0 10px 24px rgba(37, 99, 235, 0.24);
       transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
     }
 
     .dashboard-btn:hover,
     .btn-primary:hover {
       transform: translateY(-1px);
-      box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.3), 0 14px 28px rgba(37, 99, 235, 0.34);
+      box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary) 50%, transparent), 0 14px 28px rgba(37, 99, 235, 0.3);
       filter: brightness(1.04);
+    }
+
+    .stat-number {
+      display: inline-block;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      vertical-align: bottom;
+    }
+
+    ::selection {
+      background: rgba(37, 99, 235, 0.3);
+      color: var(--text-primary);
+    }
+
+    html.light ::selection {
+      background: rgba(37, 99, 235, 0.22);
+      color: #0f172a;
+    }
+
+    .topbar-actions a,
+    .topbar-actions button {
+      pointer-events: auto;
+    }
+
+    .option.selected,
+    .sort-option.selected {
+      border: 2px solid var(--primary) !important;
+      background: #eff6ff !important;
+      color: #1e3a8a !important;
+    }
+
+    html.dark .option.selected,
+    html.dark .sort-option.selected {
+      background: rgba(37, 99, 235, 0.2) !important;
+      color: #dbeafe !important;
+      border-color: rgba(59, 130, 246, 0.65) !important;
+    }
+
+    html.light .option.selected,
+    html.light .sort-option.selected,
+    html.light [data-pf].active,
+    html.light .sidebar-category.active {
+      background: #dbeafe !important;
+      color: #1e3a8a !important;
+      border-color: #3b82f6 !important;
+    }
+
+    .toggle,
+    #student-mode-toggle {
+      background: #e5e7eb;
+      color: #1f2937;
+      border-color: #cbd5e1;
+      transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    }
+
+    .toggle.active,
+    #student-mode-toggle.active {
+      background: #2563eb;
+      color: #ffffff !important;
+      border-color: #1d4ed8 !important;
+    }
+
+    html.dark .toggle,
+    html.dark #student-mode-toggle {
+      background: rgba(255, 255, 255, 0.06);
+      color: #e5e7eb;
+      border-color: rgba(255, 255, 255, 0.12);
     }
 
     .btn-secondary {
@@ -441,8 +542,8 @@
     }
 
     option:checked {
-      background: linear-gradient(#06b6d4, #06b6d4);
-      background-color: #0891b2;
+      background: linear-gradient(var(--primary), var(--primary));
+      background-color: var(--primary);
       color: #ffffff;
     }
 
@@ -649,7 +750,7 @@
         <h4 class="text-zinc-200 font-semibold">Explore</h4>
         <div class="mt-3 space-y-2 text-zinc-400">
           <a href="/tools" class="block hover:text-zinc-100">All Tools</a>
-          <a href="/stack-builder" class="block hover:text-zinc-100">AI Stack Builder</a>
+          <a href="{{ url_for('main.stack_builder_step') }}" class="block hover:text-zinc-100">Get AI Stack</a>
           <a href="/weekly-ai-tools" class="block hover:text-zinc-100">Weekly AI Tools</a>
           <a href="/submit-tool" class="block hover:text-zinc-100">Submit Tool</a>
         </div>

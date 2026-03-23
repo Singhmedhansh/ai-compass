@@ -123,148 +123,6 @@ def _validate_runtime_config(app: Flask, is_production: bool) -> None:
             raise RuntimeError("Invalid ADMIN_PASSWORD_HASH format. Expected bcrypt hash.")
 
 
-def _ensure_user_schema_compatibility() -> None:
-    """Add nullable user columns that may be missing in older local databases."""
-    inspector = inspect(db.engine)
-    if "users" not in inspector.get_table_names():
-        return
-
-    existing_columns = {column["name"] for column in inspector.get_columns("users")}
-    ddl_statements = []
-
-    if "display_name" not in existing_columns:
-        ddl_statements.append("ALTER TABLE users ADD COLUMN display_name VARCHAR(255)")
-    if "oauth_picture_url" not in existing_columns:
-        ddl_statements.append("ALTER TABLE users ADD COLUMN oauth_picture_url VARCHAR(500)")
-    if "oauth_provider" not in existing_columns:
-        ddl_statements.append("ALTER TABLE users ADD COLUMN oauth_provider VARCHAR(50)")
-    if "is_admin" not in existing_columns:
-        ddl_statements.append("ALTER TABLE users ADD COLUMN is_admin BOOLEAN NOT NULL DEFAULT 0")
-    if "student_status" not in existing_columns:
-        ddl_statements.append("ALTER TABLE users ADD COLUMN student_status BOOLEAN NOT NULL DEFAULT 0")
-    if "first_login" not in existing_columns:
-        ddl_statements.append("ALTER TABLE users ADD COLUMN first_login BOOLEAN NOT NULL DEFAULT 1")
-    if "onboarding_completed" not in existing_columns:
-        ddl_statements.append("ALTER TABLE users ADD COLUMN onboarding_completed BOOLEAN NOT NULL DEFAULT 0")
-    if "preferences" not in existing_columns:
-        ddl_statements.append("ALTER TABLE users ADD COLUMN preferences TEXT")
-    if "interests" not in existing_columns:
-        ddl_statements.append("ALTER TABLE users ADD COLUMN interests TEXT")
-    if "skill_level" not in existing_columns:
-        ddl_statements.append("ALTER TABLE users ADD COLUMN skill_level VARCHAR(32)")
-    if "pricing_pref" not in existing_columns:
-        ddl_statements.append("ALTER TABLE users ADD COLUMN pricing_pref VARCHAR(32)")
-    if "goals" not in existing_columns:
-        ddl_statements.append("ALTER TABLE users ADD COLUMN goals TEXT")
-    if "theme_preference" not in existing_columns:
-        ddl_statements.append("ALTER TABLE users ADD COLUMN theme_preference VARCHAR(20)")
-    if "notifications_enabled" not in existing_columns:
-        ddl_statements.append("ALTER TABLE users ADD COLUMN notifications_enabled BOOLEAN NOT NULL DEFAULT 1")
-
-    if not ddl_statements:
-        return
-
-    for ddl in ddl_statements:
-        db.session.execute(text(ddl))
-
-    # Preserve UX for existing users: skip first-login onboarding when preferences are already present.
-    if "first_login" not in existing_columns:
-        db.session.execute(
-            text(
-                """
-                UPDATE users
-                SET first_login = CASE
-                    WHEN preferences IS NOT NULL AND TRIM(preferences) != '' THEN 0
-                    ELSE 1
-                END
-                """
-            )
-        )
-    else:
-        db.session.execute(
-            text(
-                """
-                UPDATE users
-                SET first_login = CASE
-                    WHEN first_login IS NULL THEN
-                        CASE
-                            WHEN preferences IS NOT NULL AND TRIM(preferences) != '' THEN 0
-                            ELSE 1
-                        END
-                    ELSE first_login
-                END
-                """
-            )
-        )
-
-    if "onboarding_completed" not in existing_columns:
-        db.session.execute(
-            text(
-                """
-                UPDATE users
-                SET onboarding_completed = CASE
-                    WHEN (
-                        (skill_level IS NOT NULL AND TRIM(skill_level) != '')
-                        OR (pricing_pref IS NOT NULL AND TRIM(pricing_pref) != '')
-                        OR (preferences IS NOT NULL AND TRIM(preferences) != '')
-                    ) THEN 1
-                    WHEN first_login = 0 THEN 1
-                    ELSE 0
-                END
-                """
-            )
-        )
-    else:
-        db.session.execute(
-            text(
-                """
-                UPDATE users
-                SET onboarding_completed = CASE
-                    WHEN onboarding_completed IS NULL THEN
-                        CASE
-                            WHEN (
-                                (skill_level IS NOT NULL AND TRIM(skill_level) != '')
-                                OR (pricing_pref IS NOT NULL AND TRIM(pricing_pref) != '')
-                                OR (preferences IS NOT NULL AND TRIM(preferences) != '')
-                                OR first_login = 0
-                            ) THEN 1
-                            ELSE 0
-                        END
-                    ELSE onboarding_completed
-                END
-                """
-            )
-        )
-    db.session.commit()
-
-
-def _ensure_tool_view_schema_compatibility() -> None:
-    """Ensure the tool view events table has expected analytics columns."""
-    inspector = inspect(db.engine)
-    if "tool_view_events" not in inspector.get_table_names():
-        return
-
-    existing_columns = {column["name"] for column in inspector.get_columns("tool_view_events")}
-    ddl_statements = []
-
-    if "tool_name" not in existing_columns:
-        ddl_statements.append("ALTER TABLE tool_view_events ADD COLUMN tool_name VARCHAR(255)")
-    if "user_id" not in existing_columns:
-        ddl_statements.append("ALTER TABLE tool_view_events ADD COLUMN user_id INTEGER")
-    if "timestamp" not in existing_columns:
-        ddl_statements.append("ALTER TABLE tool_view_events ADD COLUMN timestamp DATETIME")
-
-    if not ddl_statements:
-        return
-
-    for ddl in ddl_statements:
-        db.session.execute(text(ddl))
-
-    if "timestamp" not in existing_columns:
-        db.session.execute(text("UPDATE tool_view_events SET timestamp = CURRENT_TIMESTAMP WHERE timestamp IS NULL"))
-
-    db.session.commit()
-
 
 def create_app() -> Flask:
     project_root = os.path.dirname(os.path.dirname(__file__))
@@ -306,6 +164,13 @@ def create_app() -> Flask:
     # OAuth credentials (optional – buttons hidden when not configured)
     app.config["GOOGLE_CLIENT_ID"] = os.environ.get("GOOGLE_CLIENT_ID")
     app.config["GOOGLE_CLIENT_SECRET"] = os.environ.get("GOOGLE_CLIENT_SECRET")
+    app.config["GOOGLE_REDIRECT_URI"] = os.getenv("GOOGLE_REDIRECT_URI", "").strip()
+    app.config["GOOGLE_REDIRECT_URI_LOCAL"] = os.getenv(
+        "GOOGLE_REDIRECT_URI_LOCAL", "http://localhost:5000/auth/google/callback"
+    ).strip()
+    app.config["GOOGLE_REDIRECT_URI_PROD"] = os.getenv(
+        "GOOGLE_REDIRECT_URI_PROD", "https://your-production-url/auth/google/callback"
+    ).strip()
     app.config["GITHUB_CLIENT_ID"] = os.getenv("GITHUB_CLIENT_ID", "")
     app.config["GITHUB_CLIENT_SECRET"] = os.getenv("GITHUB_CLIENT_SECRET", "")
     app.config["LINKEDIN_CLIENT_ID"] = os.getenv("LINKEDIN_CLIENT_ID", "")
@@ -327,16 +192,44 @@ def create_app() -> Flask:
         app.config["REMEMBER_COOKIE_SECURE"] = True
         app.config["SESSION_COOKIE_SECURE"] = True
 
+    import sentry_sdk
+    from sentry_sdk.integrations.flask import FlaskIntegration
+    sentry_dsn = os.environ.get("SENTRY_DSN")
+    if sentry_dsn:
+        sentry_sdk.init(
+            dsn=sentry_dsn,
+            integrations=[FlaskIntegration()],
+            traces_sample_rate=1.0,
+            profiles_sample_rate=1.0,
+        )
+
     _validate_runtime_config(app, is_production)
+
+    from flask_caching import Cache
+    global cache
+    cache = Cache()
 
     app.config["SQLALCHEMY_DATABASE_URI"] = _build_database_uri(app)
 
     db.init_app(app)
+    
+    cache_config = {
+        'CACHE_TYPE': 'SimpleCache',
+        'CACHE_DEFAULT_TIMEOUT': 300
+    }
+    if os.environ.get('REDIS_URL'):
+        cache_config['CACHE_TYPE'] = 'RedisCache'
+        cache_config['CACHE_REDIS_URL'] = os.environ.get('REDIS_URL')
+    cache.init_app(app, config=cache_config)
+    
     login_manager.init_app(app)
     login_manager.login_view = "auth.login"
     login_manager.login_message_category = "info"
     bcrypt.init_app(app)
     csrf.init_app(app)
+
+    from flask_migrate import Migrate
+    Migrate(app, db)
 
     from app.auth import auth_bp
     from app.routes import main_bp
@@ -355,10 +248,52 @@ def create_app() -> Flask:
         max_age=app.config["SEND_FILE_MAX_AGE_DEFAULT"],
     )
 
+    from app.logging import setup_logging
+    setup_logging(app)
+
+    from flask_talisman import Talisman
+    Talisman(app, content_security_policy=None, force_https=is_production)
+    
+    from flask_limiter import Limiter
+    from flask_limiter.util import get_remote_address
+    limiter = Limiter(
+        get_remote_address,
+        app=app,
+        default_limits=["500 per day", "100 per hour"],
+        storage_uri="memory://"
+    )
+
     with app.app_context():
-        db.create_all()
-        _ensure_user_schema_compatibility()
-        _ensure_tool_view_schema_compatibility()
+        # Database schema is now managed externally via Alembic (Flask-Migrate)
+        # We explicitly removed dangerous runtime schema mutations here.
+        pass
+
+    @app.teardown_appcontext
+    def shutdown_session(exception=None):
+        db.session.remove()
+
+    from flask import jsonify
+    from sqlalchemy import text
+    from datetime import datetime, timezone
+    
+    @app.route('/health')
+    def health_check():
+        try:
+            db.session.execute(text('SELECT 1'))
+            db_status = 'ok'
+        except Exception as e:
+            db_status = str(e)
+            
+        # Optional basic Redis connection check if URL exists
+        redis_status = 'ok' if not os.environ.get('REDIS_URL') else 'untested'
+        
+        healthy = db_status == 'ok'
+        return jsonify({
+            'status': 'healthy' if healthy else 'degraded',
+            'database': db_status,
+            'redis': redis_status,
+            'timestamp': datetime.now(timezone.utc).isoformat()
+        }), 200 if healthy else 503
 
     @app.errorhandler(404)
     def not_found(_error):
@@ -373,6 +308,16 @@ def create_app() -> Flask:
         if request.path.startswith("/api/"):
             return jsonify({"error": "internal_server_error"}), 500
         return render_template("500.html"), 500
+
+    @app.after_request
+    def enforce_utf8_charset(response):
+        content_type = str(response.headers.get("Content-Type") or "")
+        content_type_lower = content_type.lower()
+        if "charset=" in content_type_lower:
+            return response
+        if content_type_lower.startswith("text/"):
+            response.headers["Content-Type"] = f"{content_type}; charset=utf-8" if content_type else "text/plain; charset=utf-8"
+        return response
 
     # Prime tools cache once at startup to avoid repeated disk reads.
     try:

@@ -27,21 +27,56 @@ function readRuntimeConfig() {
   };
 }
 
+function safeStorageGet(key) {
+  try {
+    return localStorage.getItem(key);
+  } catch (error) {
+    return null;
+  }
+}
+
+function safeStorageSet(key, value) {
+  try {
+    localStorage.setItem(key, value);
+  } catch (error) {
+    console.warn('localStorage write failed:', error);
+  }
+}
+
 const config = window.AI_COMPASS_CONFIG || readRuntimeConfig();
+
+function ensureTopbarNavLinks() {
+  const linkMappings = [
+    { id: 'topbar-login-link', href: config.loginUrl || '/login' },
+    { id: 'topbar-register-link', href: config.registerUrl || '/register' },
+    { id: 'topbar-dashboard-link', href: '/dashboard' },
+  ];
+
+  linkMappings.forEach(({ id, href }) => {
+    const node = document.getElementById(id);
+    if (!node || !href) return;
+    const current = String(node.getAttribute('href') || '').trim();
+    if (!current || current === '#') {
+      node.setAttribute('href', href);
+    }
+  });
+}
+
+const LEGACY_SAVED_TOOLS_KEY = 'ai_compass_saved_tools_local';
 
 let allTools = [];
 let trendingTools = [];
 let selectedCompare = new Set();
 let favorites = new Set([
   ...(config.favoriteIds || []).map((item) => String(item)),
-  ...readLocalArray('ai_compass_saved_tools_local').map((item) => String(item)),
+  ...readSavedToolKeys().map((item) => String(item)),
 ]);
 let studentMode = false;
 let state = {
   category: 'all',
   search: '',
   price: 'all',
-  sort: localStorage.getItem('ai_compass_sort') || 'trending',
+  sort: safeStorageGet('ai_compass_sort') || 'trending',
   studentMode,
   visibleLimit: 16,
 };
@@ -73,7 +108,7 @@ const LOCAL_KEYS = {
   userPrefs: 'ai_compass_user_prefs',
   recentSearches: 'ai_compass_recent_searches',
   recentTools: 'recent_tools',
-  savedTools: 'ai_compass_saved_tools_local',
+  savedTools: 'saved_tools',
   savedStacks: 'ai_compass_saved_stacks',
 };
 
@@ -119,6 +154,34 @@ function writeLocalObject(key, value) {
   }
 }
 
+function uniqueStringArray(values, limit = 48) {
+  const unique = [...new Set((Array.isArray(values) ? values : []).map((item) => String(item || '').trim()).filter(Boolean))];
+  return unique.slice(-1 * Math.max(1, limit));
+}
+
+function readSavedToolKeys() {
+  const modern = readLocalArray(LOCAL_KEYS.savedTools);
+  const legacy = readLocalArray(LEGACY_SAVED_TOOLS_KEY);
+  return uniqueStringArray([...legacy, ...modern]);
+}
+
+function writeSavedToolKeys(values) {
+  const normalized = uniqueStringArray(values);
+  writeLocalArray(LOCAL_KEYS.savedTools, normalized);
+  writeLocalArray(LEGACY_SAVED_TOOLS_KEY, normalized);
+}
+
+function readAccountSavedTools() {
+  const page = document.getElementById('saved-tools-page');
+  if (!page) return [];
+  try {
+    const parsed = JSON.parse(String(page.dataset.accountSavedTools || '[]'));
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    return [];
+  }
+}
+
 function rememberSearchQuery(query) {
   const value = String(query || '').trim().toLowerCase();
   if (!value) return;
@@ -138,17 +201,17 @@ function rememberViewedTool(toolKey) {
 function rememberSavedTool(toolKey) {
   const key = String(toolKey || '').trim();
   if (!key) return;
-  const saved = readLocalArray(LOCAL_KEYS.savedTools);
+  const saved = readSavedToolKeys();
   if (saved.includes(key)) return;
   saved.push(key);
-  writeLocalArray(LOCAL_KEYS.savedTools, saved.slice(-48));
+  writeSavedToolKeys(saved.slice(-48));
 }
 
 function forgetSavedTool(toolKey) {
   const key = String(toolKey || '').trim();
   if (!key) return;
-  const next = readLocalArray(LOCAL_KEYS.savedTools).filter((item) => item !== key);
-  writeLocalArray(LOCAL_KEYS.savedTools, next);
+  const next = readSavedToolKeys().filter((item) => item !== key);
+  writeSavedToolKeys(next);
 }
 
 function saveUserMemoryPrefs() {
@@ -210,7 +273,7 @@ function renderPersonalizationCards(targetId, tools, emptyMessage) {
 }
 
 async function renderLocalMemorySections() {
-  const hasSlots = document.getElementById('recommended-for-you-grid') || document.getElementById('recommended-local-grid') || document.getElementById('recently-viewed-local-grid') || document.getElementById('saved-tools-local-grid');
+  const hasSlots = document.getElementById('recommended-for-you-grid') || document.getElementById('recommended-local-grid') || document.getElementById('recently-viewed-local-grid') || document.getElementById('saved-tools-local-grid') || document.getElementById('saved-tools-merged-grid');
   if (!hasSlots) return;
 
   let tools = Array.isArray(allTools) && allTools.length ? allTools : [];
@@ -226,9 +289,11 @@ async function renderLocalMemorySections() {
   const byKey = new Map(tools.map((tool) => [getToolKey(tool), tool]));
   const recentSearches = readLocalArray(LOCAL_KEYS.recentSearches);
   const searchTokens = recentSearches.slice(0, 6).flatMap((value) => String(value).split(/\s+/).filter(Boolean));
-  const savedTools = readLocalArray(LOCAL_KEYS.savedTools);
+  const savedTools = readSavedToolKeys();
+  const accountSavedTools = readAccountSavedTools();
+  const accountSavedKeys = accountSavedTools.map((tool) => getToolKey(tool));
   const recentTools = readLocalArray(LOCAL_KEYS.recentTools);
-  const savedSet = new Set(savedTools);
+  const savedSet = new Set([...savedTools, ...accountSavedKeys]);
   const recentSet = new Set(recentTools);
 
   const recommended = tools
@@ -238,7 +303,9 @@ async function renderLocalMemorySections() {
     .map((item) => item.tool);
 
   const recentCards = recentTools.map((key) => byKey.get(key)).filter(Boolean).slice(0, 8);
-  const savedCards = savedTools.map((key) => byKey.get(key)).filter(Boolean).slice(0, 8);
+  const accountByKey = new Map(accountSavedTools.map((tool) => [getToolKey(tool), tool]));
+  const mergedSavedKeys = uniqueStringArray([...savedTools, ...accountSavedKeys], 96).reverse();
+  const savedCards = mergedSavedKeys.map((key) => byKey.get(key) || accountByKey.get(key)).filter(Boolean).slice(0, 12);
 
   const recSection = document.getElementById('recommended-for-you') || document.getElementById('recommended-local');
   if (recSection && recommended.length) recSection.classList.remove('hidden');
@@ -251,6 +318,7 @@ async function renderLocalMemorySections() {
   renderPersonalizationCards('recommended-local-grid', recommended, 'Search and save tools to unlock recommendations.');
   renderPersonalizationCards('recently-viewed-local-grid', recentCards, 'No recent tools yet.');
   renderPersonalizationCards('saved-tools-local-grid', savedCards, 'No saved tools yet.');
+  renderPersonalizationCards('saved-tools-merged-grid', savedCards, 'No saved tools yet. Save tools from browse pages to see them here.');
 }
 
 function renderSavedStacksSection() {
@@ -283,7 +351,7 @@ function exportSavedData() {
     userPrefs: readLocalObject(LOCAL_KEYS.userPrefs),
     recentSearches: readLocalArray(LOCAL_KEYS.recentSearches),
     recentTools: readLocalArray(LOCAL_KEYS.recentTools),
-    savedTools: readLocalArray(LOCAL_KEYS.savedTools),
+    savedTools: readSavedToolKeys(),
     savedStacks: readLocalArray(LOCAL_KEYS.savedStacks),
   };
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
@@ -306,7 +374,7 @@ function importSavedData(file) {
       if (parsed.userPrefs && typeof parsed.userPrefs === 'object') writeLocalObject(LOCAL_KEYS.userPrefs, parsed.userPrefs);
       if (Array.isArray(parsed.recentSearches)) writeLocalArray(LOCAL_KEYS.recentSearches, parsed.recentSearches.slice(0, 20));
       if (Array.isArray(parsed.recentTools)) writeLocalArray(LOCAL_KEYS.recentTools, parsed.recentTools.slice(0, 24));
-      if (Array.isArray(parsed.savedTools)) writeLocalArray(LOCAL_KEYS.savedTools, parsed.savedTools.slice(-48));
+      if (Array.isArray(parsed.savedTools)) writeSavedToolKeys(parsed.savedTools.slice(-48));
       if (Array.isArray(parsed.savedStacks)) writeLocalArray(LOCAL_KEYS.savedStacks, parsed.savedStacks.slice(-12));
       renderLocalMemorySections();
       renderSavedStacksSection();
@@ -343,7 +411,7 @@ function applyTheme(themeName) {
   document.documentElement.classList.remove('light', 'dark');
   document.documentElement.classList.add(theme);
   document.documentElement.setAttribute('data-theme', theme);
-  localStorage.setItem('theme', theme);
+  safeStorageSet('theme', theme);
   updateThemeToggleUI(theme);
 }
 
@@ -597,7 +665,7 @@ function renderTools(tools, totalFiltered = tools.length) {
     const bestFor = tool.bestFor || tool.subcategory || 'General use';
     const isFavorite = favorites.has(key);
     const isCompared = selectedCompare.has(key);
-    const favoriteTitle = config.isAuthenticated ? 'Save this tool' : 'Please log in to use this feature';
+    const favoriteTitle = config.isAuthenticated ? 'Save this tool' : 'Save in this browser';
     const studentBadges = state.studentMode ? `
       <div class="flex items-center gap-1.5 flex-wrap">
         ${tool.studentPerk ? '<span class="text-[10px] bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 rounded-md px-2 py-0.5">🎓 Student Perk</span>' : ''}
@@ -951,6 +1019,7 @@ function updateSortLabel() {
 
     document.querySelectorAll('.sort-option').forEach((option) => {
       const isActive = option.getAttribute('data-sort-value') === state.sort;
+      option.classList.toggle('selected', isActive);
       option.classList.toggle('bg-zinc-700/80', isActive);
       option.classList.toggle('text-zinc-100', isActive);
     });
@@ -1060,8 +1129,8 @@ function updateStudentModeUI(isEnabled) {
   state.studentMode = isEnabled;
   
   // Save to localStorage for persistence (keep both keys for compatibility)
-  localStorage.setItem('student_mode', String(isEnabled));
-  localStorage.setItem('ai_compass_student_mode', String(isEnabled));
+  safeStorageSet('student_mode', String(isEnabled));
+  safeStorageSet('ai_compass_student_mode', String(isEnabled));
   
   // Update body class for CSS styling
   document.body.classList.toggle('student-mode', isEnabled);
@@ -1239,7 +1308,7 @@ function setSort(sortType) {
   try {
     state.sort = sortType;
     state.visibleLimit = TOOL_PAGE_SIZE;
-    localStorage.setItem('ai_compass_sort', sortType);
+    safeStorageSet('ai_compass_sort', sortType);
     saveUserMemoryPrefs();
     updateSortLabel();
     closeSortMenu();
@@ -1280,8 +1349,20 @@ async function refreshData() {
 }
 
 async function toggleFavorite(toolKey) {
+  if (!toolKey) return;
+
   if (!config.isAuthenticated) {
-    showLoginPrompt();
+    if (favorites.has(toolKey)) {
+      favorites.delete(toolKey);
+      forgetSavedTool(toolKey);
+      showToast('Removed from browser saved tools.');
+    } else {
+      favorites.add(toolKey);
+      rememberSavedTool(toolKey);
+      showToast('Saved in this browser. Sign in to sync across devices.');
+    }
+    applyAndRender();
+    renderLocalMemorySections();
     return;
   }
 
@@ -1296,11 +1377,25 @@ async function toggleFavorite(toolKey) {
       forgetSavedTool(toolKey);
     }
     applyAndRender();
+    renderLocalMemorySections();
   } catch (error) {
     if (error && error.status === 401) {
       showLoginPrompt();
       return;
     }
+
+    // Keep Save Tool usable during transient API/network failures.
+    if (favorites.has(toolKey)) {
+      favorites.delete(toolKey);
+      forgetSavedTool(toolKey);
+      showToast('Removed from browser saved tools. Server sync will retry later.');
+    } else {
+      favorites.add(toolKey);
+      rememberSavedTool(toolKey);
+      showToast('Saved in this browser. Server sync will retry later.');
+    }
+    applyAndRender();
+    renderLocalMemorySections();
     console.error(error);
   }
 }
@@ -1539,7 +1634,7 @@ function initToolsPage() {
     sort: params.get('sort') || 'popular',
     search: params.get('q') || '',
   };
-  prefs.studentMode = String(localStorage.getItem('student_mode') || '').toLowerCase() === 'true';
+  prefs.studentMode = String(safeStorageGet('student_mode') || '').toLowerCase() === 'true';
   prefs.updatedAt = new Date().toISOString();
   writeLocalObject(LOCAL_KEYS.userPrefs, prefs);
 
@@ -1551,7 +1646,9 @@ function initToolsPage() {
 
 document.addEventListener('DOMContentLoaded', async () => {
   try {
-    const persistedTheme = localStorage.getItem('theme') || (document.documentElement.classList.contains('light') ? 'light' : 'dark');
+    ensureTopbarNavLinks();
+
+    const persistedTheme = safeStorageGet('theme') || (document.documentElement.classList.contains('light') ? 'light' : 'dark');
     applyTheme(persistedTheme);
 
     const themeToggle = document.getElementById('theme-toggle');
@@ -1571,17 +1668,30 @@ document.addEventListener('DOMContentLoaded', async () => {
     const profileTrigger = document.querySelector('.profile-trigger');
     const profileMenu = document.querySelector('.profile-menu');
     if (profileRoot && profileTrigger && profileMenu) {
+      const setProfileMenuOpen = (isOpen) => {
+        profileTrigger.setAttribute('aria-expanded', String(isOpen));
+        profileMenu.classList.toggle('hidden', !isOpen);
+        profileMenu.style.display = isOpen ? 'block' : 'none';
+      };
+
+      setProfileMenuOpen(false);
+
       profileTrigger.addEventListener('click', (event) => {
         event.preventDefault();
+        event.stopPropagation();
         const expanded = profileTrigger.getAttribute('aria-expanded') === 'true';
-        profileTrigger.setAttribute('aria-expanded', String(!expanded));
-        profileMenu.classList.toggle('hidden', expanded);
+        setProfileMenuOpen(!expanded);
       });
 
       document.addEventListener('click', (event) => {
         if (!profileRoot.contains(event.target)) {
-          profileTrigger.setAttribute('aria-expanded', 'false');
-          profileMenu.classList.add('hidden');
+          setProfileMenuOpen(false);
+        }
+      });
+
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+          setProfileMenuOpen(false);
         }
       });
     }
@@ -1597,7 +1707,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Initialize Student Mode from server state (source of truth)
     const bootToggle = document.getElementById('student-mode-toggle') || document.getElementById('studentToggle');
-    const localStudentMode = String(localStorage.getItem('student_mode') || localStorage.getItem('ai_compass_student_mode') || '').toLowerCase() === 'true';
+    const localStudentMode = String(safeStorageGet('student_mode') || safeStorageGet('ai_compass_student_mode') || '').toLowerCase() === 'true';
     const serverStudentMode = bootToggle
       ? String(bootToggle.getAttribute('aria-pressed') || bootToggle.getAttribute('aria-checked') || '').toLowerCase() === 'true'
       : localStudentMode;
@@ -1606,8 +1716,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     updateStudentModeUI(serverStudentMode);
 
     const studentToggle = document.getElementById('student-mode-toggle') || document.getElementById('studentToggle');
-    if (studentToggle) {
+    if (studentToggle && studentToggle.dataset.boundStudentToggle !== '1') {
+      studentToggle.dataset.boundStudentToggle = '1';
       studentToggle.addEventListener('click', toggleStudentMode);
+      studentToggle.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          toggleStudentMode();
+        }
+      });
     }
 
     const toolsPage = document.getElementById('tools-page');

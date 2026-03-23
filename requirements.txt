@@ -2,6 +2,10 @@ flask
 flask-login
 flask-sqlalchemy
 flask-bcrypt
+flask
+flask-login
+flask-sqlalchemy
+flask-bcrypt
 flask-wtf
 pymysql
 email-validator
@@ -10,3 +14,13 @@ requests
 beautifulsoup4
 gunicorn
 whitenoise
+python-json-logger
+flask-talisman
+Flask-Limiter
+pytest
+pytest-flask
+pytest-cov
+Flask-Caching
+redis
+sentry-sdk
+filelock
