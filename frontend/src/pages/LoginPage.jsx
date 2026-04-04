@@ -1,5 +1,5 @@
 import { Eye, EyeOff } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 function GoogleIcon() {
@@ -13,6 +13,27 @@ function GoogleIcon() {
   )
 }
 
+function Toast({ message, isVisible }) {
+  const [opacity, setOpacity] = useState(isVisible ? 1 : 0)
+
+  useEffect(() => {
+    setOpacity(isVisible ? 1 : 0)
+  }, [isVisible])
+
+  return (
+    <div
+      className="fixed top-6 right-6 z-50 px-4 py-3 rounded-lg bg-emerald-500 text-white font-medium text-sm shadow-lg"
+      style={{
+        opacity,
+        transition: 'opacity 0.3s ease-in-out',
+        pointerEvents: isVisible ? 'auto' : 'none',
+      }}
+    >
+      {message}
+    </div>
+  )
+}
+
 function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
@@ -22,6 +43,8 @@ function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [showToast, setShowToast] = useState(false)
+  const [toastMessage, setToastMessage] = useState('')
 
   const successMessage = location.state?.message || ''
 
@@ -45,8 +68,18 @@ function LoginPage() {
         throw new Error(payload.error || 'Invalid email or password.')
       }
 
+      // Save user to localStorage
       localStorage.setItem('user', JSON.stringify(payload))
-      navigate('/dashboard')
+
+      // Show success toast
+      const displayName = payload.name || 'user'
+      setToastMessage(`Successfully signed in! Welcome back, ${displayName}`)
+      setShowToast(true)
+
+      // Navigate to dashboard after 1 second
+      setTimeout(() => {
+        navigate('/dashboard', { replace: true })
+      }, 1000)
     } catch (requestError) {
       setError(requestError.message || 'Unable to sign in. Please try again.')
     } finally {
@@ -55,7 +88,9 @@ function LoginPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-[calc(100vh-4rem)] w-full items-center justify-center px-4 py-8">
+    <>
+      <Toast message={toastMessage} isVisible={showToast} />
+      <main className="mx-auto flex min-h-[calc(100vh-4rem)] w-full items-center justify-center px-4 py-8">
       <section className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-xl sm:p-8">
         <h1 className="text-2xl font-bold text-white">Welcome back</h1>
         <p className="mt-2 text-sm text-slate-400">Sign in to your AI Compass account</p>
@@ -121,7 +156,7 @@ function LoginPage() {
         </form>
 
         <a
-          href="/auth/google"
+          href="http://localhost:5000/auth/google"
           className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-slate-700 bg-transparent px-4 py-2.5 text-sm font-medium text-slate-200 transition hover:bg-slate-800"
         >
           <GoogleIcon />
@@ -136,6 +171,7 @@ function LoginPage() {
         </p>
       </section>
     </main>
+    </>
   )
 }
 

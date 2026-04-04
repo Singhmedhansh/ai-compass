@@ -25,6 +25,22 @@ function Navbar() {
   const navigate = useNavigate()
   const [searchValue, setSearchValue] = useState('')
   const [isDark, setIsDark] = useState(getInitialTheme)
+  const [user, setUser] = useState(null)
+
+  useEffect(() => {
+    try {
+      const rawUser = localStorage.getItem('user')
+      if (!rawUser) {
+        setUser(null)
+        return
+      }
+
+      const parsed = JSON.parse(rawUser)
+      setUser(parsed && typeof parsed === 'object' ? parsed : null)
+    } catch {
+      setUser(null)
+    }
+  }, [])
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', isDark)
@@ -50,6 +66,14 @@ function Navbar() {
 
     navigate(`/tools?q=${encodeURIComponent(query)}`)
   }
+
+  const handleLogout = () => {
+    localStorage.removeItem('user')
+    setUser(null)
+    navigate('/')
+  }
+
+  const avatarLetter = String(user?.name || user?.email || 'U').charAt(0).toUpperCase()
 
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/90 backdrop-blur dark:border-slate-800 dark:bg-slate-950/90">
@@ -81,17 +105,47 @@ function Navbar() {
             {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>
 
-          <Link to="/login">
-            <Button variant="ghost" size="sm">
-              Login
-            </Button>
-          </Link>
+          {user ? (
+            <>
+              <div className="relative flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-indigo-600 text-sm font-bold text-white">
+                {avatarLetter}
+                {user?.picture ? (
+                  <img
+                    src={user.picture}
+                    alt="Profile"
+                    className="absolute inset-0 h-8 w-8 rounded-full object-cover"
+                    onError={(event) => {
+                      event.currentTarget.style.display = 'none'
+                    }}
+                  />
+                ) : null}
+              </div>
 
-          <Link to="/register">
-            <Button variant="primary" size="sm">
-              Register
-            </Button>
-          </Link>
+              <Link to="/dashboard">
+                <Button variant="ghost" size="sm">
+                  Dashboard
+                </Button>
+              </Link>
+
+              <Button variant="primary" size="sm" onClick={handleLogout}>
+                Logout
+              </Button>
+            </>
+          ) : (
+            <>
+              <Link to="/login">
+                <Button variant="ghost" size="sm">
+                  Login
+                </Button>
+              </Link>
+
+              <Link to="/register">
+                <Button variant="primary" size="sm">
+                  Register
+                </Button>
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </header>

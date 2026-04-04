@@ -180,6 +180,28 @@ function ToolDetailPage() {
     }
   }, [slug])
 
+  useEffect(() => {
+    const normalizedSlug = String(slug || '').trim().toLowerCase()
+    if (!normalizedSlug) {
+      return
+    }
+
+    try {
+      const raw = localStorage.getItem('recentlyViewed')
+      const parsed = raw ? JSON.parse(raw) : []
+      const existing = Array.isArray(parsed)
+        ? parsed
+            .map((item) => (typeof item === 'string' ? item.trim().toLowerCase() : ''))
+            .filter(Boolean)
+        : []
+
+      const deduped = [normalizedSlug, ...existing.filter((item) => item !== normalizedSlug)].slice(0, 10)
+      localStorage.setItem('recentlyViewed', JSON.stringify(deduped))
+    } catch {
+      localStorage.setItem('recentlyViewed', JSON.stringify([normalizedSlug]))
+    }
+  }, [slug])
+
   const priceKey = (tool?.pricing || 'free').toLowerCase().includes('paid')
     ? 'paid'
     : (tool?.pricing || '').toLowerCase().includes('freemium')

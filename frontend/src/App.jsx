@@ -1,6 +1,7 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 
 import { Navbar } from './components/ui'
+import AuthCallbackPage from './pages/AuthCallbackPage'
 import DashboardPage from './pages/DashboardPage'
 import DirectoryPage from './pages/DirectoryPage'
 import HomePage from './pages/HomePage'
@@ -15,6 +16,7 @@ function App() {
       <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-white">
         <Navbar />
         <Routes>
+          <Route path="/auth/callback" element={<AuthCallbackPage />} />
           <Route path="/" element={<HomePage />} />
           <Route path="/tools" element={<DirectoryPage />} />
           <Route path="/tools/:slug" element={<ToolDetailPage />} />
