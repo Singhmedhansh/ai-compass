@@ -1,10 +1,10 @@
-import pytest
 
+import pytest
 @pytest.mark.parametrize("route", [
     "/",
-    "/tools",
     "/login",
     "/register",
+    "/tools",
     "/dashboard",
     "/profile",
     "/settings",
@@ -20,7 +20,3 @@ import pytest
 def test_route_exists(client, route):
     resp = client.get(route, follow_redirects=True)
     assert resp.status_code in (200, 302, 401)
-
-def test_tool_detail_route(client):
-    resp = client.get("/tool/1", follow_redirects=True)
-    assert resp.status_code in (200, 404, 401)

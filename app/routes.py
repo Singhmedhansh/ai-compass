@@ -1,14 +1,17 @@
 import json
 import os
 import re
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
 from math import ceil
 from html import escape
 from datetime import datetime, timedelta, timezone
 from functools import wraps
 from urllib.parse import urlencode, urlparse
 
-from flask import Blueprint, Response, abort, current_app, flash, jsonify, redirect, render_template, request, session, url_for
-from flask_login import current_user, login_required
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, session, abort, Response, g, current_app
+from flask_login import login_required
+from werkzeug.local import LocalProxy
 
 from app import db, csrf
 from app.discovery import (
@@ -22,19 +25,128 @@ from app.discovery import (
     update_queue_tool_by_name,
 )
 from app.models import BugReport, Favorite, NewsletterSubscriber, SavedStack, Submission, ToolRating, ToolView, User
-from app.recommendations import recommend_tools
-from app.search_service import _search_score, _tokenize_query
-from app.tool_cache import get_cached_tools
-from scripts.tool_discovery import run_discovery_pipeline
+from app.services.tool_service import get_all_tools
+main_bp = Blueprint("main", __name__)
+
+
+# --- Service-layer tools route ---
+@main_bp.route("/tools")
+def tools():
+    tools_data = get_all_tools()
+    return render_template("tools.html", tools=tools_data)
+from app.rate_limit import is_rate_limited
+from app.search_utils import search_tools, smart_search_fallback, limit_results
 
 
 main_bp = Blueprint("main", __name__)
+
+
+def _get_current_user_proxy():
+    from flask_login import current_user as _current_user
+    return _current_user
+
+
+current_user = LocalProxy(_get_current_user_proxy)
+
+
+def _client_ip():
+    forwarded = str(request.headers.get("X-Forwarded-For") or "").strip()
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return str(request.remote_addr or "unknown")
+
+
+def _load_tools_for_request():
+    cached = getattr(g, "_normalized_tools_cache", None)
+    if cached is None:
+        cached = load_normalized_tools()
+        g._normalized_tools_cache = cached
+    return cached
+
+
+def _unique_tool_list(tools):
+    return unique_tools_by_name_casefold(unique_tools_by_identity(tools or []))
+
+
+def get_cached_tools(*args, **kwargs):
+    if FAST_ROUTE_MODE:
+        return []
+    from app.tool_cache import get_cached_tools as _get_cached_tools
+    return _get_cached_tools(*args, **kwargs)
+
+
+def recommend_tools(*args, **kwargs):
+    if FAST_ROUTE_MODE:
+        return []
+    from app.services.recommendation_service import recommend_tools as _recommend_tools
+    return _recommend_tools(*args, **kwargs)
+
+
+def enrich_tool_with_freshness(*args, **kwargs):
+    if FAST_ROUTE_MODE:
+        return args[0] if args else {}
+    from app.recommendations import enrich_tool_with_freshness as _enrich_tool_with_freshness
+    return _enrich_tool_with_freshness(*args, **kwargs)
+
+
+def get_smart_recommendation_text(*args, **kwargs):
+    if FAST_ROUTE_MODE:
+        return "Recommendations are temporarily disabled in fast mode."
+    from app.recommendations import get_smart_recommendation_text as _get_smart_recommendation_text
+    return _get_smart_recommendation_text(*args, **kwargs)
+
+
+def compute_tool_score(*args, **kwargs):
+    if FAST_ROUTE_MODE:
+        return 0
+    from app.services.recommendation_service import compute_tool_score as _compute_tool_score
+    return _compute_tool_score(*args, **kwargs)
+
+
+def generate_reason(*args, **kwargs):
+    if FAST_ROUTE_MODE:
+        return "Recommended for broad fit."
+    from app.services.recommendation_service import generate_reason as _generate_reason
+    return _generate_reason(*args, **kwargs)
+
+
+def track_user_activity(*args, **kwargs):
+    if FAST_ROUTE_MODE:
+        return None
+    from app.user_analytics import track_user_activity as _track_user_activity
+    return _track_user_activity(*args, **kwargs)
+
+
+def get_user_insights(*args, **kwargs):
+    if FAST_ROUTE_MODE:
+        return {
+            "total_views": 0,
+            "total_saves": 0,
+            "most_viewed_category": "",
+            "preferred_pricing": "",
+            "last_active": None,
+        }
+    from app.user_analytics import get_user_insights as _get_user_insights
+    return _get_user_insights(*args, **kwargs)
+
+
+def run_discovery_pipeline(*args, **kwargs):
+    if FAST_ROUTE_MODE:
+        return {"queued": 0, "skipped": 0}
+    from scripts.tool_discovery import run_discovery_pipeline as _run_discovery_pipeline
+    return _run_discovery_pipeline(*args, **kwargs)
 
 DATA_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "tools.json")
 DEFAULT_TOOL_ICON = "/static/icons/default.png"
 SUPPORTED_SORTS = {"trending", "rating", "popular", "newest", "latest", "free"}
 SORT_ALIASES = {"latest": "newest"}
 TOOLS_PER_PAGE = 20
+TOOL_NAME_AI_PATTERN = re.compile(r"\bai\b", re.IGNORECASE)
+ENABLE_TOOL_LINK_PING = os.getenv("ENABLE_TOOL_LINK_PING", "").strip().lower() in {"1", "true", "yes", "on"}
+TOOL_URL_HEALTH_CACHE_TTL_SECONDS = 1800
+TOOL_URL_HEALTH_CACHE = {}
+FAST_ROUTE_MODE = os.getenv("FAST_ROUTE_MODE", "false").lower() == "true"
+UNSAFE_CONTROL_CHARS = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
 
 CATEGORIES = [
     "writing",
@@ -129,40 +241,210 @@ def admin_required(f):
         if not current_user.is_authenticated:
             return redirect(url_for("auth.login"))
         if not getattr(current_user, "is_admin", False):
-            flash("Admin access required.", "error")
-            return redirect(url_for("main.dashboard"))
+            flash("Access denied", "danger")
+            return redirect(url_for("main.index"))
         return f(*args, **kwargs)
     return decorated
 
 
-from app import cache
+from app.services.tool_service import fetch_tools_data
 
-@cache.memoize(timeout=300)
 def load_tools():
-    from app.models import Tool
-    tools = Tool.query.filter_by(is_active=True).all()
-    results = []
-    for t in tools:
-        results.append({
-            "id": t.id,
-            "tool_key": t.slug,
-            "name": t.name,
-            "description": t.description,
-            "link": t.link,
-            "website": t.link,
-            "icon": t.icon,
-            "price": t.price,
-            "pricing": t.price,
-            "pricing_model": t.price,
-            "studentPerk": t.student_perk,
-            "rating": t.rating,
-            "weeklyUsers": t.weekly_users,
-            "launchYear": t.launch_year,
-            "created_at": t.created_at.timestamp() if t.created_at else 0,
-            "category": t.category.name if t.category else "",
-            "tags": [tag.name for tag in t.tags]
-        })
-    return results
+    try:
+        return fetch_tools_data(FAST_ROUTE_MODE, DATA_PATH)
+    except Exception:
+        current_app.logger.exception("Failed to load tools dataset")
+        return []
+
+
+def _normalized_tool_name_key(value):
+    # Canonicalize names for dedupe by removing AI token and punctuation noise.
+    text = normalize_text_key(value)
+    text = TOOL_NAME_AI_PATTERN.sub(" ", text)
+    text = re.sub(r"[^a-z0-9]+", " ", text)
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def _tool_url_text(tool):
+    return str(tool.get("link") or tool.get("website") or "").strip()
+
+
+def _tool_url_key(tool):
+    url_value = _tool_url_text(tool)
+    if not url_value:
+        return ""
+    if not url_value.startswith(("http://", "https://")):
+        url_value = f"https://{url_value}"
+    parsed = urlparse(url_value)
+    host = (parsed.netloc or "").strip().lower().replace("www.", "", 1)
+    path = (parsed.path or "").strip().rstrip("/")
+    return f"{host}{path}" if host else ""
+
+
+def _is_valid_tool_url(value):
+    link = str(value or "").strip()
+    if not link:
+        return False
+    if not link.startswith(("http://", "https://")):
+        link = f"https://{link}"
+    parsed = urlparse(link)
+    return parsed.scheme in {"http", "https"} and bool(parsed.netloc)
+
+
+def _tool_description_present(tool):
+    description = str(tool.get("description") or tool.get("tagline") or "").strip()
+    return bool(description)
+
+
+def _tool_url_is_live(url_value):
+    if not ENABLE_TOOL_LINK_PING:
+        return True
+
+    url_text = str(url_value or "").strip()
+    if not url_text:
+        return False
+    if not url_text.startswith(("http://", "https://")):
+        url_text = f"https://{url_text}"
+
+    now_ts = datetime.now(timezone.utc).timestamp()
+    cached = TOOL_URL_HEALTH_CACHE.get(url_text)
+    if cached and (now_ts - cached[0]) <= TOOL_URL_HEALTH_CACHE_TTL_SECONDS:
+        return bool(cached[1])
+
+    request = Request(url_text, method="HEAD", headers={"User-Agent": "AI-Compass/1.0"})
+    is_live = False
+    try:
+        with urlopen(request, timeout=3) as response:
+            status = int(getattr(response, "status", 0) or 0)
+            is_live = 200 <= status < 400
+    except HTTPError as exc:
+        # Treat redirects and method constraints as live URLs.
+        is_live = exc.code in {301, 302, 303, 307, 308, 405}
+    except URLError:
+        is_live = False
+    except Exception:
+        is_live = False
+
+    TOOL_URL_HEALTH_CACHE[url_text] = (now_ts, is_live)
+    return is_live
+
+
+def _tool_quality_score(tool):
+    description_length = len(str(tool.get("description") or "").strip())
+    has_valid_url = 1 if _is_valid_tool_url(_tool_url_text(tool)) else 0
+    has_verified = 1 if tool.get("verified") else 0
+    rating_score = float(tool.get("rating") or 0)
+    users_score = parse_weekly_users(tool.get("weeklyUsers"))
+    return (has_verified, has_valid_url, description_length, rating_score, users_score)
+
+
+def deduplicate_tools(tools):
+    deduped_by_name = {}
+
+    for tool in tools:
+        name_key = _normalized_tool_name_key(tool.get("name"))
+        if not name_key:
+            name_key = normalize_text_key(tool.get("tool_key") or build_tool_key(tool))
+        existing = deduped_by_name.get(name_key)
+        if not existing or _tool_quality_score(tool) > _tool_quality_score(existing):
+            deduped_by_name[name_key] = tool
+
+    return list(deduped_by_name.values())
+
+
+def unique_tools_by_identity(tools):
+    unique_tools = []
+    seen = set()
+
+    for tool in tools:
+        tool_id = tool.get("id") or tool.get("tool_key") or tool.get("name")
+        tool_id = str(tool_id or "").strip().lower()
+        if not tool_id or tool_id in seen:
+            continue
+        seen.add(tool_id)
+        unique_tools.append(tool)
+
+    return unique_tools
+
+
+def unique_tools_by_name_casefold(tools):
+    seen = set()
+    unique_tools = []
+    for tool in tools:
+        name = str(tool.get("name") or "").strip().lower()
+        if not name or name in seen:
+            continue
+        seen.add(name)
+        unique_tools.append(tool)
+    return unique_tools
+
+
+def _tool_identity_key(tool):
+    return str(
+        tool.get("tool_key")
+        or tool.get("id")
+        or _normalized_tool_name_key(tool.get("name"))
+        or ""
+    ).strip().lower()
+
+
+def _annotate_personalization(tools, user=None, query=None, student_mode=False, score_cache=None):
+    score_cache = score_cache if isinstance(score_cache, dict) else {}
+    query_key = normalize_text_key(query)
+    user_id = int(getattr(user, "id", 0) or 0)
+
+    unique = []
+    seen = set()
+    for tool in tools or []:
+        key = _tool_identity_key(tool)
+        if not key or key in seen:
+            continue
+        seen.add(key)
+        unique.append(dict(tool))
+
+    scores = []
+    for item in unique:
+        key = _tool_identity_key(item)
+        cache_key = (user_id, bool(student_mode), query_key, key)
+        cached_score = score_cache.get(cache_key)
+        if cached_score is None:
+            cached_score = float(compute_tool_score(item, user=user, query=query, student_mode=student_mode) or 0)
+            score_cache[cache_key] = cached_score
+
+        item["ai_score"] = float(item.get("ai_score") or cached_score)
+        if not item.get("reason"):
+            item["reason"] = generate_reason(item, user=user, query=query, student_mode=student_mode)
+        scores.append(item["ai_score"])
+
+    if not unique:
+        return []
+
+    min_score = min(scores)
+    max_score = max(scores)
+    spread = max_score - min_score
+
+    for item in unique:
+        if spread <= 0:
+            confidence = 82 if item.get("ai_score", 0) > 0 else 0
+        else:
+            confidence = int(round(((float(item.get("ai_score") or 0) - min_score) / spread) * 100))
+        item["confidence_score"] = max(0, min(100, confidence))
+
+    return unique
+
+
+def _select_top_pick(tools, user=None, query=None, student_mode=False, score_cache=None):
+    ranked = _annotate_personalization(tools, user=user, query=query, student_mode=student_mode, score_cache=score_cache)
+    if not ranked:
+        return None
+    return max(ranked, key=lambda item: float(item.get("ai_score") or 0))
+
+
+def load_normalized_tools(dedupe=True):
+    normalized = [normalize_tool(tool) for tool in load_tools()]
+    if dedupe:
+        return deduplicate_tools(normalized)
+    return normalized
 
 
 def _tool_tags(tool):
@@ -186,7 +468,7 @@ def _is_free_tool(tool):
 
 
 def _filter_collection_tools(kind):
-    tools = [normalize_tool(tool) for tool in load_tools()]
+    tools = load_normalized_tools()
 
     def keep(tool):
         category = str(tool.get("category") or "").strip().lower()
@@ -253,9 +535,8 @@ def _tool_last_updated_days(tool):
 
 
 def _tool_verification_state(tool):
-    has_link = bool(str(tool.get("link") or tool.get("website") or "").strip())
-    rating = float(tool.get("rating") or 0)
-    return has_link and rating >= 3.8
+    link = _tool_url_text(tool)
+    return _is_valid_tool_url(link) and _tool_description_present(tool) and _tool_url_is_live(link)
 
 
 def _tool_activity_today_estimate(tool):
@@ -274,11 +555,13 @@ def _annotate_tool_trust_and_freshness(tool):
     if days < 7:
         updated_label = "Updated recently"
     elif days < 30:
-        updated_label = "Updated this month"
+        updated_label = "Actively maintained"
+    elif days < 180:
+        updated_label = "Stable"
     else:
-        updated_label = "Updated a while ago"
+        updated_label = "Needs review"
 
-    tool["last_updated_days"] = min(days, 30)
+    tool["last_updated_days"] = days
     tool["last_updated_label"] = updated_label
     tool["verified"] = _tool_verification_state(tool)
     tool["recently_updated"] = days <= 7
@@ -312,11 +595,11 @@ def _tool_priority_labels(tools):
 
 def _label_badge_text(label_key):
     if label_key == "best_overall":
-        return "ðŸ† Best Overall"
+        return "Best Overall"
     if label_key == "best_free":
-        return "ðŸ†“ Best Free Option"
+        return "Best Free Option"
     if label_key == "best_student":
-        return "ðŸŽ“ Best for Students"
+        return "Best for Students"
     return ""
 
 
@@ -341,43 +624,111 @@ def _get_greeting_prefix(user_name):
             return "Good evening"
 
 
+def sanitize_utf_text(value):
+    text = str(value or "")
+    text = text.encode("utf-8", "ignore").decode("utf-8", "ignore")
+    replacements = {
+        "\u2018": "'",
+        "\u2019": "'",
+        "\u201c": '"',
+        "\u201d": '"',
+        "\u2013": "-",
+        "\u2014": "-",
+        "\u2026": "...",
+        "\ufffd": "",
+    }
+    for src, dst in replacements.items():
+        text = text.replace(src, dst)
+    if any(token in text for token in ("Ã", "â", "ðŸ")):
+        try:
+            repaired = text.encode("latin-1", "ignore").decode("utf-8", "ignore")
+            if repaired:
+                text = repaired
+        except Exception:
+            pass
+    return UNSAFE_CONTROL_CHARS.sub("", text)
+
+
+def sanitize_text_payload(value):
+    if isinstance(value, str):
+        return sanitize_utf_text(value)
+    if isinstance(value, list):
+        return [sanitize_text_payload(item) for item in value]
+    if isinstance(value, dict):
+        return {key: sanitize_text_payload(item) for key, item in value.items()}
+    return value
+
+
+def strip_html_tags(value):
+    text = str(value or "")
+    return re.sub(r"<[^>]+>", "", text)
+
+
 def _build_ai_recommendation_copy(goal_label, budget_label, platform_label, student_mode, tools, user_name=None):
     if not tools:
         return {
             "summary": "No strong recommendation yet. Try adjusting your filters to see personalized suggestions.",
-            "decision_shortcut": "ðŸ’¡ Tip: Broaden one filter to unlock recommendations.",
+            "decision_shortcut": "Tip: Broaden one filter to unlock recommendations.",
             "alternatives": [],
         }
 
     primary = tools[0]
     secondary = tools[1] if len(tools) > 1 else None
-    primary_name = primary.get('name') or 'this tool'
-    
-    # Determine greeting to use
-    greeting = user_name[:user_name.find(' ')] if user_name and ' ' in user_name else user_name
-    greeting = greeting or "Hey"
-    
-    # Use conversational, human-like tone with variation
-    import random
-    tone = random.choice([
-        f"{greeting}, for {goal_label}, <strong>{primary_name}</strong> is your best choice â€” it's fast, reliable, and widely trusted.",
-        f"{greeting}, if you're focusing on {goal_label}, go with <strong>{primary_name}</strong>. It's one of the strongest options right now.",
-        f"{greeting}, <strong>{primary_name}</strong> is perfect for {goal_label}. It's currently one of the most popular and reliable tools.",
-    ])
-    
+    primary_name = sanitize_utf_text(primary.get('name') or 'this tool')
+    rating_hint = "highly rated" if float(primary.get("rating") or 0) >= 4.4 else "popular"
+    primary_tags = {normalize_text_key(tag) for tag in (primary.get("tags") or []) if normalize_text_key(tag)}
+    beginner_hint = " and beginner-friendly" if ({"easy", "beginner"} & primary_tags) else ""
+
+    tone = (
+        f"Since you're exploring {goal_label} tools, {primary_name} is a great fit "
+        f"because it's {rating_hint}{beginner_hint}."
+    )
+
     if secondary:
-        secondary_name = secondary.get('name') or 'another tool'
-        tone += f" <strong>{secondary_name}</strong> works well as a solid backup."
-    
-    # Keep shortcut brief and action-oriented
-    shortcut = f"ðŸ‘‰ Go with {primary_name} â€” that's your winner here."
+        secondary_name = sanitize_utf_text(secondary.get('name') or 'another tool')
+        tone += f" {secondary_name} is a strong backup option for similar workflows."
+
+    shortcut = f"Start with {primary_name} for the quickest win."
     alternatives = [tool for tool in tools[1:3]]
     
-    return {
-        "summary": tone,
-        "decision_shortcut": shortcut,
-        "alternatives": alternatives,
-    }
+    return sanitize_text_payload(
+        {
+            "summary": strip_html_tags(tone),
+            "decision_shortcut": strip_html_tags(shortcut),
+            "alternatives": alternatives,
+        }
+    )
+
+
+def _apply_stack_confidence_scores(items):
+    rows = list(items or [])
+    if not rows:
+        return rows
+
+    raw_scores = [float(row.get("ai_score") or 0) for row in rows]
+    min_score = min(raw_scores)
+    max_score = max(raw_scores)
+    spread = max_score - min_score
+
+    if spread <= 0.001:
+        # Stable descending scores when model outputs near-identical values.
+        base = 92
+        for idx, row in enumerate(rows):
+            confidence = max(72, min(98, base - (idx * 3)))
+            row["confidence_score"] = confidence
+            row["ai_score"] = float(confidence)
+        return rows
+
+    for row in rows:
+        raw = float(row.get("ai_score") or 0)
+        normalized = (raw - min_score) / spread
+        confidence = int(round(72 + (normalized * 26)))
+        confidence = max(72, min(98, confidence))
+        row["confidence_score"] = confidence
+        row["ai_score"] = float(confidence)
+
+    rows.sort(key=lambda row: float(row.get("confidence_score") or 0), reverse=True)
+    return rows
 
 
 def _nl_query_to_preferences(query_text):
@@ -422,13 +773,27 @@ def _nl_query_to_preferences(query_text):
     return {"goal": goal, "budget": budget, "platform": platform}
 
 
+def format_number(value):
+    try:
+        number = int(float(value or 0))
+    except (TypeError, ValueError):
+        number = 0
+
+    number = max(0, number)
+    if number >= 1_000_000_000:
+        formatted = f"{number / 1_000_000_000:.1f}".rstrip("0").rstrip(".")
+        return f"{formatted}B+"
+    if number >= 1_000_000:
+        formatted = f"{number / 1_000_000:.1f}".rstrip("0").rstrip(".")
+        return f"{formatted}M+"
+    if number >= 1_000:
+        formatted = f"{number / 1_000:.1f}".rstrip("0").rstrip(".")
+        return f"{formatted}K+"
+    return f"{number}+"
+
+
 def _format_weekly_users_from_views(value):
-    value = int(value or 0)
-    if value >= 1_000_000:
-        return f"{value / 1_000_000:.1f}M+"
-    if value >= 1_000:
-        return f"{value / 1_000:.1f}K+"
-    return str(value)
+    return format_number(value)
 
 
 def apply_dynamic_weekly_users(tools, weekly_view_map):
@@ -529,6 +894,95 @@ def _parse_bool(value):
 
 def normalize_text_key(value):
     return re.sub(r"\s+", " ", str(value or "").strip().lower())
+
+
+def _split_csv_tokens(value):
+    items = []
+    seen = set()
+    for raw_item in str(value or "").split(","):
+        token = normalize_text_key(raw_item)
+        if not token or token in seen:
+            continue
+        seen.add(token)
+        items.append(token)
+    return items
+
+
+def parse_user_preferences(user):
+    raw = str(getattr(user, "preferences", "") or "").strip()
+    if not raw:
+        return {}
+    try:
+        parsed = json.loads(raw)
+    except (json.JSONDecodeError, TypeError, ValueError):
+        return {}
+
+    if isinstance(parsed, dict):
+        merged = dict(parsed)
+        if not merged.get("skill_level") and str(getattr(user, "skill_level", "") or "").strip():
+            merged["skill_level"] = normalize_text_key(getattr(user, "skill_level"))
+        if not merged.get("preferred_pricing") and str(getattr(user, "pricing_pref", "") or "").strip():
+            merged["preferred_pricing"] = normalize_text_key(getattr(user, "pricing_pref"))
+
+        existing_goals = merged.get("goals")
+        if not existing_goals:
+            merged_goals = _split_csv_tokens(getattr(user, "goals", ""))
+            if merged_goals:
+                merged["goals"] = merged_goals
+
+        if not (merged.get("interest_tags") or merged.get("interests")):
+            merged_interests = _split_csv_tokens(getattr(user, "interests", ""))
+            if merged_interests:
+                merged["interest_tags"] = merged_interests
+                merged["interests"] = merged_interests
+
+        return merged
+
+    # Backward compatibility: older profile settings stored a plain list.
+    if isinstance(parsed, list):
+        interests = [str(item).strip() for item in parsed if str(item).strip()]
+        return {
+            "interest_tags": interests,
+            "interests": interests,
+        }
+    return {}
+
+
+def save_user_preferences(user, payload):
+    user.preferences = json.dumps(payload)
+
+
+def is_onboarding_complete(user):
+    if bool(getattr(user, "onboarding_completed", False)):
+        return True
+
+    if getattr(user, "first_login", False):
+        return False
+
+    prefs = parse_user_preferences(user)
+    skill_level = str(getattr(user, "skill_level", "") or prefs.get("skill_level") or "").strip().lower()
+    preferred_pricing = str(getattr(user, "pricing_pref", "") or prefs.get("preferred_pricing") or "").strip().lower()
+    return bool(skill_level and preferred_pricing)
+
+
+def user_interest_categories(user):
+    prefs = parse_user_preferences(user)
+    categories = set()
+
+    most_viewed = normalize_text_key(prefs.get("most_viewed_category"))
+    if most_viewed:
+        categories.add(most_viewed)
+
+    for token in prefs.get("interest_tags") or prefs.get("interests") or []:
+        normalized = normalize_text_key(token)
+        if not normalized:
+            continue
+        if normalized in CATEGORY_ALIASES_BROWSE:
+            categories.add(CATEGORY_ALIASES_BROWSE[normalized])
+        if normalized in CATEGORIES:
+            categories.add(normalized)
+
+    return categories
 
 
 def normalize_category_filter(value):
@@ -703,6 +1157,38 @@ def _to_set(items):
     return {str(item).strip().lower() for item in items if str(item).strip()}
 
 
+def _tokenize_query(query):
+    return [token for token in re.findall(r"[a-z0-9]+", str(query or "").lower()) if token]
+
+
+def _search_score(tool, query_tokens):
+    if not query_tokens:
+        return 0
+
+    name = str(tool.get("name") or "").lower()
+    category = str(tool.get("category") or "").lower()
+    description = str(tool.get("description") or "").lower()
+    tags = " ".join(str(tag).lower() for tag in (tool.get("tags") or []))
+
+    score = 0
+    for token in query_tokens:
+        if token in name:
+            score += 70
+            if name.startswith(token):
+                score += 20
+        if token in tags:
+            score += 40
+        if token in category:
+            score += 25
+        if token in description:
+            score += 10
+
+    if all(token in name for token in query_tokens):
+        score += 30
+
+    return score
+
+
 def trending_score(tool, views=0):
     rating = float(tool.get("rating") or 0)
     weekly_users = parse_weekly_users(tool.get("weeklyUsers"))
@@ -711,8 +1197,7 @@ def trending_score(tool, views=0):
 
 def get_tool_by_key(tool_key):
     key_text = str(tool_key)
-    for tool in load_tools():
-        normalized = normalize_tool(tool)
+    for normalized in load_normalized_tools():
         if normalized["tool_key"] == key_text or str(normalized.get("id")) == key_text:
             return normalized
     return None
@@ -723,7 +1208,7 @@ def get_related_tools(tool_id, limit=5):
     if not base_tool:
         return []
 
-    tools = [normalize_tool(tool) for tool in load_tools()]
+    tools = load_normalized_tools()
     base_key = base_tool["tool_key"]
     base_category = str(base_tool.get("category", "")).strip().lower()
     base_subcategory = str(base_tool.get("subcategory") or base_tool.get("subCategory") or "").strip().lower()
@@ -956,15 +1441,16 @@ def _stack_result_summary(generated_stack, goal=None, budget=None, platform=None
             "ai_summary": "No clear recommendation yet. Try broader filters.",
             "best_choice": None,
             "confidence": 0,
-            "decision_shortcut": "ðŸ‘‰ If you just want ONE tool: broaden your filters first",
+            "decision_shortcut": "If you just want one tool: broaden your filters first.",
             "alternatives": [],
         }
 
     best = generated_stack[0]
     backup = generated_stack[1] if len(generated_stack) > 1 else None
 
-    top_score = float(best.get("ai_score") or 0)
-    confidence = max(74, min(98, int(round(top_score * 0.9))))
+    top_score = float(best.get("confidence_score") or best.get("ai_score") or 0)
+    top_score = max(0.0, min(100.0, top_score))
+    confidence = max(74, min(98, int(round(top_score))))
 
     budget_label = normalize_text_key(budget) or "paid"
     platform_label = normalize_text_key(platform) or "web"
@@ -995,10 +1481,10 @@ def _stack_result_summary(generated_stack, goal=None, budget=None, platform=None
             item["priority_label"] = _label_badge_text(label_key)
 
     return {
-        "ai_summary": summary,
+        "ai_summary": strip_html_tags(sanitize_utf_text(summary)),
         "best_choice": best,
-        "confidence": confidence,
-        "decision_shortcut": ai_copy.get("decision_shortcut"),
+        "confidence": max(0, min(100, int(confidence))),
+        "decision_shortcut": strip_html_tags(sanitize_utf_text(ai_copy.get("decision_shortcut") or "")),
         "alternatives": ai_copy.get("alternatives", []),
     }
 
@@ -1024,13 +1510,19 @@ def _recommend_tools_scored(tools, user_input):
         tool_copy = dict(tool)
         tool_copy["pricing"] = _stack_tool_pricing(tool_copy)
         tool_copy["student_perk"] = _stack_tool_student_perk(tool_copy)
-        tool_copy["ai_score"] = score
+        tool_copy["ai_score"] = round(max(0.0, min(100.0, float(score or 0))), 1)
         tool_copy["reason"] = explain_tool(tool_copy, user_input)
         tool_copy["best_for"] = _stack_goal_label(user_input.get("goal"))
         tool_copy["strength"] = _stack_tool_strength(tool_copy)
         tool_copy["why_selected"] = f"Best match: {tool_copy['reason']}"
+        if tool_copy.get("name"):
+            tool_copy["name"] = sanitize_utf_text(tool_copy.get("name"))
+        if tool_copy.get("reason"):
+            tool_copy["reason"] = sanitize_utf_text(tool_copy.get("reason"))
+        if tool_copy.get("why_selected"):
+            tool_copy["why_selected"] = sanitize_utf_text(tool_copy.get("why_selected"))
         results.append(tool_copy)
-    return results
+    return _apply_stack_confidence_scores(results)
 
 
 def _recommend_tools_with_optional_llm(tools, user_input):
@@ -1095,21 +1587,21 @@ def _recommend_tools_with_optional_llm(tools, user_input):
             base = dict(by_name[name])
             base["pricing"] = _stack_tool_pricing(base)
             base["student_perk"] = _stack_tool_student_perk(base)
-            base["ai_score"] = score_tool(base, user_input)
+            base["ai_score"] = float(score_tool(base, user_input) or 0)
             base["reason"] = str((item or {}).get("reason") or explain_tool(base, user_input))
             base["best_for"] = _stack_goal_label(user_input.get("goal"))
             base["strength"] = _stack_tool_strength(base)
             base["why_selected"] = f"Best match: {base['reason']}"
             llm_results.append(base)
 
-        return llm_results or None
+        return _apply_stack_confidence_scores(llm_results) or None
     except Exception:
         return None
 
 
 def build_ai_stack(goal=None, budget=None, platform=None, student_mode=False):
     """Build a ranked and deduplicated AI stack from user preferences."""
-    tools = [normalize_tool(tool) for tool in load_tools()]
+    tools = load_normalized_tools()
     user_input = _stack_build_user_input(
         goal=goal,
         budget=budget,
@@ -1357,7 +1849,7 @@ def generate_tool_finder_stack(goal, budget, platform, min_items=3, max_items=6)
     if platform not in TOOL_FINDER_PLATFORM_MAP:
         platform = "any"
 
-    all_tools = [normalize_tool(tool) for tool in load_tools()]
+    all_tools = load_normalized_tools()
 
     def score_rows(tools):
         rows = []
@@ -1389,9 +1881,38 @@ def generate_tool_finder_stack(goal, budget, platform, min_items=3, max_items=6)
         if not key or key in seen:
             continue
         seen.add(key)
-        selected.append(tool)
+        selected.append(dict(tool))
         if len(selected) >= max_items:
             break
+
+    user_for_score = current_user if current_user.is_authenticated else None
+    student_mode = session.get("student_mode", False)
+    goal_label = TOOL_FINDER_GOAL_MAP.get(goal, goal)
+    for item in selected:
+        item["ai_score"] = compute_tool_score(
+            item,
+            user=user_for_score,
+            query=goal_label,
+            student_mode=student_mode,
+        )
+        item["reason"] = generate_reason(
+            item,
+            user=user_for_score,
+            query=goal_label,
+            student_mode=student_mode,
+        )
+
+    selected.sort(key=lambda row: (float(row.get("ai_score") or 0), float(row.get("rating") or 0)), reverse=True)
+    if selected:
+        min_score = min(float(item.get("ai_score") or 0) for item in selected)
+        max_score = max(float(item.get("ai_score") or 0) for item in selected)
+        spread = max_score - min_score
+        for item in selected:
+            if spread <= 0:
+                confidence = 82
+            else:
+                confidence = int(round(((float(item.get("ai_score") or 0) - min_score) / spread) * 100))
+            item["confidence_score"] = max(0, min(100, confidence))
 
     return selected
 
@@ -1420,7 +1941,7 @@ def _finder_score(tool, goal):
 
 
 def recommend_finder_tools(goal, budget, limit=5):
-    tools = [normalize_tool(tool) for tool in load_tools()]
+    tools = load_normalized_tools()
     filtered = [tool for tool in tools if _matches_finder_budget(tool, budget)]
 
     scored = []
@@ -1434,99 +1955,75 @@ def recommend_finder_tools(goal, budget, limit=5):
 
 
 def get_favorite_tool_keys(user_id):
+    if FAST_ROUTE_MODE:
+        return set()
     rows = Favorite.query.filter_by(user_id=user_id).all()
     return {row.tool_id for row in rows}
 
 
-def get_view_map():
-    rows = (
-        db.session.query(ToolView.tool_name, db.func.count(ToolView.id))
-        .filter(ToolView.tool_name.isnot(None))
-        .group_by(ToolView.tool_name)
-        .all()
-    )
-    return {str(tool_name): int(count) for tool_name, count in rows}
+from app.services.tool_service import fetch_tool_view_counts
 
+def get_view_map():
+    if FAST_ROUTE_MODE:
+        return {}
+    return fetch_tool_view_counts()
+
+
+
+from app.services.tool_service import (
+    fetch_favorite_count_map,
+    fetch_rating_metrics_map,
+)
 
 def get_favorite_count_map():
-    rows = (
-        db.session.query(Favorite.tool_id, db.func.count(Favorite.id))
-        .filter(Favorite.tool_id.isnot(None))
-        .group_by(Favorite.tool_id)
-        .all()
-    )
-    return {str(tool_id): int(count) for tool_id, count in rows}
+    if FAST_ROUTE_MODE:
+        return {}
+    return fetch_favorite_count_map()
 
 
 def get_rating_metrics_map():
-    rows = (
-        db.session.query(ToolRating.tool_name, db.func.avg(ToolRating.rating), db.func.count(ToolRating.id))
-        .filter(ToolRating.tool_name.isnot(None))
-        .group_by(ToolRating.tool_name)
-        .all()
-    )
-    metrics = {}
-    for tool_name, avg_rating, count in rows:
-        metrics[str(tool_name)] = {
-            "avg": round(float(avg_rating or 0), 2),
-            "count": int(count or 0),
-        }
-    return metrics
+    if FAST_ROUTE_MODE:
+        return {}
+    return fetch_rating_metrics_map()
 
+
+
+from app.services.tool_service import (
+    fetch_recent_click_map,
+    fetch_weekly_view_map,
+)
 
 def get_recent_click_map(hours=72):
-    since = datetime.now(timezone.utc) - timedelta(hours=hours)
-    rows = (
-        db.session.query(ToolView.tool_name, db.func.count(ToolView.id))
-        .filter(ToolView.tool_name.isnot(None))
-        .filter(ToolView.timestamp >= since)
-        .group_by(ToolView.tool_name)
-        .all()
-    )
-    return {str(tool_name): int(count) for tool_name, count in rows}
+    if FAST_ROUTE_MODE:
+        return {}
+    return fetch_recent_click_map(hours=hours)
 
 
 def get_weekly_view_map(days=7):
-    since = datetime.now(timezone.utc) - timedelta(days=days)
-    rows = (
-        db.session.query(ToolView.tool_name, db.func.count(ToolView.id))
-        .filter(ToolView.tool_name.isnot(None))
-        .filter(ToolView.timestamp >= since)
-        .group_by(ToolView.tool_name)
-        .all()
-    )
-    return {str(tool_name): int(count) for tool_name, count in rows}
+    if FAST_ROUTE_MODE:
+        return {}
+    return fetch_weekly_view_map(days=days)
 
+
+
+from app.services.tool_service import fetch_views_per_day, insert_tool_view
+from flask_login import current_user
 
 def get_views_per_day(days=7):
-    since = datetime.now(timezone.utc) - timedelta(days=days - 1)
-    rows = (
-        db.session.query(db.func.date(ToolView.timestamp), db.func.count(ToolView.id))
-        .filter(ToolView.timestamp >= since)
-        .group_by(db.func.date(ToolView.timestamp))
-        .all()
-    )
-
-    by_day = {str(day): int(count) for day, count in rows}
-    timeline = []
-    for offset in range(days):
-        day = (since + timedelta(days=offset)).date().isoformat()
-        timeline.append({"date": day, "views": by_day.get(day, 0)})
-    return timeline
+    if FAST_ROUTE_MODE:
+        return []
+    return fetch_views_per_day(days=days)
 
 
 def log_tool_view(tool_key):
-    row = ToolView(
-        tool_name=str(tool_key),
-        user_id=current_user.id if current_user.is_authenticated else None,
-        timestamp=datetime.now(timezone.utc),
-    )
-    db.session.add(row)
-    db.session.commit()
+    if FAST_ROUTE_MODE:
+        return None
+    user_id = current_user.id if current_user.is_authenticated else None
+    insert_tool_view(tool_key, user_id)
 
 
 def get_most_viewed_tools(limit=8):
-    tools = [normalize_tool(tool) for tool in load_tools()]
+    tools = load_normalized_tools()
     by_key = {tool["tool_key"]: tool for tool in tools}
     total_views = get_view_map()
     ranked = sorted(total_views.items(), key=lambda item: item[1], reverse=True)[:limit]
@@ -1541,7 +2038,7 @@ def get_most_viewed_tools(limit=8):
 
 
 def get_trending_tools_by_views(limit=8):
-    tools = [normalize_tool(tool) for tool in load_tools()]
+    tools = load_normalized_tools()
     by_key = {tool["tool_key"]: tool for tool in tools}
     weekly_views = get_weekly_view_map(days=7)
     ranked = sorted(weekly_views.items(), key=lambda item: item[1], reverse=True)[:limit]
@@ -1556,7 +2053,7 @@ def get_trending_tools_by_views(limit=8):
 
 
 def get_trending_homepage_tools(limit=6):
-    tools = [normalize_tool(tool) for tool in load_tools()]
+    tools = load_normalized_tools()
     total_views = get_view_map()
     favorite_counts = get_favorite_count_map()
     rating_metrics = get_rating_metrics_map()
@@ -1594,6 +2091,8 @@ def get_trending_homepage_tools(limit=6):
 
 
 def get_tool_rating_summary(tool_key):
+    if FAST_ROUTE_MODE:
+        return {"average": 0.0, "count": 0}
     avg_rating, review_count = (
         db.session.query(db.func.avg(ToolRating.rating), db.func.count(ToolRating.id))
         .filter(ToolRating.tool_name == str(tool_key))
@@ -1606,6 +2105,8 @@ def get_tool_rating_summary(tool_key):
 
 
 def get_user_tool_rating(tool_key, user_id):
+    if FAST_ROUTE_MODE:
+        return 0
     if not user_id:
         return 0
     row = ToolRating.query.filter_by(tool_name=str(tool_key), user_id=user_id).first()
@@ -1613,37 +2114,22 @@ def get_user_tool_rating(tool_key, user_id):
 
 
 @main_bp.route("/")
-def index():
-    favorite_ids = []
-    if current_user.is_authenticated:
-        favorite_ids = list(get_favorite_tool_keys(current_user.id))
-
-    tools = [normalize_tool(tool) for tool in load_tools()]
-    trending_tools = get_trending_homepage_tools(limit=6)
-    categories = {
-        str(tool.get("category") or "").strip().lower()
-        for tool in tools
-        if str(tool.get("category") or "").strip()
-    }
-    total_users = User.query.count()
-    launch_user_floor = int(os.getenv("LAUNCH_USER_FLOOR", "12000") or "12000")
-    total_users_display = max(total_users, launch_user_floor)
-    recent_tools = sorted(
-        tools,
-        key=lambda item: (int(item.get("launchYear") or 0), float(item.get("rating") or 0)),
-        reverse=True,
-    )[:8]
-
+def home():
+    trust_signals = _trust_signals_context()
     return render_template(
         "index.html",
-        favorite_ids=favorite_ids,
-        recent_tools=recent_tools,
-        trending_tools=trending_tools,
-        total_categories=len(categories),
-        total_users=total_users_display,
-        trust_signals=_trust_signals_context(),
+        trust_signals=trust_signals,
+        total_users=trust_signals.get("active_learners", 0),
         updated_label=datetime.now(timezone.utc).strftime("%b %d, %Y"),
     )
+
+
+main_bp.add_url_rule("/", endpoint="index", view_func=home)
+
+
+@main_bp.route("/health")
+def health():
+    return {"status": "ok"}
 
 
 @main_bp.route("/newsletter/subscribe", methods=["POST"])
@@ -1752,25 +2238,16 @@ def tools_paginated():
         except ValueError:
             return 0
 
-    def matches_query(tool, query_text):
-        if not query_text:
-            return True
+    def curated_unique_tools(items, limit=None):
+        curated = unique_tools_by_name_casefold(unique_tools_by_identity(items))
+        if limit is not None:
+            return curated[:limit]
+        return curated
 
-        haystack = " ".join(
-            [
-                str(tool.get("name") or ""),
-                str(tool.get("description") or ""),
-                str(tool.get("category") or ""),
-                str(tool.get("bestFor") or ""),
-                " ".join(str(tag) for tag in (tool.get("tags") or [])),
-            ]
-        ).lower()
-        return query_text in haystack
-
-    raw_tools = load_tools()
+    raw_tools = load_normalized_tools()
     tools = []
     for tool in raw_tools:
-        item = normalize_tool(tool)
+        item = dict(tool)
         item["category"] = normalize_browse_category(item.get("category"))
         item["pricing"] = normalize_pricing(item.get("pricing") or item.get("price"))
         item["created_at"] = item.get("created_at") or item.get("createdAt") or item.get("launchYear")
@@ -1797,21 +2274,109 @@ def tools_paginated():
     if category:
         tools = [t for t in tools if t["category"] == category]
 
-    if query:
-        tools = [t for t in tools if matches_query(t, query)]
-
     if pricing:
         tools = [t for t in tools if t["pricing"] == pricing]
 
-    if sort == "latest":
-        tools.sort(key=lambda x: created_sort_value(x), reverse=True)
-    elif sort == "free":
-        tools.sort(key=lambda x: x["pricing"] == "free", reverse=True)
-    elif sort == "trending":
-        # Sort by trending status first, then by weekly user count
-        tools.sort(key=lambda x: (x.get("trending", False), parse_weekly_users(x.get("weeklyUsers", ""))), reverse=True)
-    elif sort == "popular":
-        tools.sort(key=lambda x: x.get("popularity", 0), reverse=True)
+    showing_closest_matches = False
+    search_message = ""
+    search_pool = list(tools)
+    score_user = current_user if current_user.is_authenticated else None
+    student_mode = session.get("student_mode", False)
+    score_cache = {}
+
+    if query:
+        if current_user.is_authenticated:
+            track_user_activity(
+                current_user.id,
+                "search",
+                "search",
+                {
+                    "query": query,
+                    "source": "tools_page",
+                    "category": category or "",
+                    "pricing": pricing or "",
+                },
+            )
+
+        ranked_matches = search_tools(search_pool, query, user=score_user, student_mode=student_mode)
+        tools = curated_unique_tools(ranked_matches)
+
+        if tools:
+            search_message = f"Showing best matches for '{query}'"
+
+        if not tools:
+            # First fallback: category contains query.
+            category_fallback = [
+                tool for tool in search_pool
+                if query in str(tool.get("category") or "").lower()
+            ]
+            tools = curated_unique_tools(category_fallback)
+
+        if not tools:
+            # Second fallback: trending tools from current filtered pool.
+            fallback_tools = smart_search_fallback(
+                tools=search_pool or load_normalized_tools(),
+                query=query,
+                results_limit=20,
+                user=score_user,
+                student_mode=student_mode,
+            )
+            filtered_fallback = []
+            for tool in fallback_tools:
+                normalized_category = normalize_browse_category(tool.get("category"))
+                normalized_pricing = normalize_pricing(tool.get("pricing") or tool.get("price"))
+                if category and normalized_category != category:
+                    continue
+                if pricing and normalized_pricing != pricing:
+                    continue
+                if session.get("student_mode", False) and normalized_pricing != "free":
+                    continue
+                item = dict(tool)
+                item["category"] = normalized_category
+                item["pricing"] = normalized_pricing
+                filtered_fallback.append(item)
+
+            tools = curated_unique_tools(limit_results(filtered_fallback, limit=20))
+            if tools:
+                showing_closest_matches = True
+                search_message = f"Showing best matches for '{query}'"
+
+    tools = unique_tools_by_name_casefold(unique_tools_by_identity(tools))
+
+    if not query:
+        if sort == "latest":
+            tools.sort(key=lambda x: created_sort_value(x), reverse=True)
+        elif sort == "free":
+            tools.sort(key=lambda x: x["pricing"] == "free", reverse=True)
+        elif sort == "trending":
+            # Sort by trending status first, then by weekly user count
+            tools.sort(key=lambda x: (x.get("trending", False), parse_weekly_users(x.get("weeklyUsers", ""))), reverse=True)
+        elif sort == "popular":
+            tools.sort(
+                key=lambda x: (
+                    compute_tool_score(x, user=score_user, student_mode=student_mode),
+                    x.get("popularity", 0),
+                ),
+                reverse=True,
+            )
+
+    tools = _annotate_personalization(
+        tools,
+        user=score_user,
+        query=query,
+        student_mode=student_mode,
+        score_cache=score_cache,
+    )
+
+    top_pick = None
+    if current_user.is_authenticated:
+        top_pick = _select_top_pick(
+            tools,
+            user=score_user,
+            query=query,
+            student_mode=student_mode,
+            score_cache=score_cache,
+        )
 
     top_recommendations = tools[:5]
     labels = _tool_priority_labels(top_recommendations)
@@ -1864,6 +2429,8 @@ def tools_paginated():
     return render_template(
         "browse.html",
         tools=paginated_tools,
+        showing_closest_matches=showing_closest_matches,
+        search_message=search_message,
         current_category=category,
         current_pricing=pricing,
         current_sort=sort,
@@ -1881,6 +2448,7 @@ def tools_paginated():
         alternatives=ai_reco.get("alternatives", []) if show_ai_recommendation else [],
         show_ai_recommendation=show_ai_recommendation,
         active_query=query,
+        top_pick=top_pick,
     )
 
 
@@ -1938,13 +2506,83 @@ def collection_free():
         "Browse high-quality free AI tools across writing, coding, image generation, research, and productivity.",
     )
 
+def _format_last_active(last_active_datetime):
+    """Format a datetime to a human-readable 'time ago' string"""
+    if not last_active_datetime:
+        return "Never"
+
+    # Ensure we're comparing timezone-aware datetimes.
+    if last_active_datetime.tzinfo is None:
+        last_active_datetime = last_active_datetime.replace(tzinfo=timezone.utc)
+
+    now = datetime.now(timezone.utc)
+    diff = now - last_active_datetime
+
+    # Calculate various time units.
+    seconds = diff.total_seconds()
+    minutes = int(seconds // 60)
+    hours = int(seconds // 3600)
+    days = int(seconds // 86400)
+    weeks = int(days // 7)
+
+    if minutes < 1:
+        return "Just now"
+    if minutes < 60:
+        return f"{minutes} minute{'s' if minutes != 1 else ''} ago"
+    if hours < 24:
+        return f"{hours} hour{'s' if hours != 1 else ''} ago"
+    if days < 7:
+        return f"{days} day{'s' if days != 1 else ''} ago"
+    if weeks < 4:
+        return f"{weeks} week{'s' if weeks != 1 else ''} ago"
+    if days < 365:
+        months = int(days // 30)
+        return f"{months} month{'s' if months != 1 else ''} ago"
+    years = int(days // 365)
+    return f"{years} year{'s' if years != 1 else ''} ago"
+
+
+def _generate_next_steps(user_insights):
+    """Generate suggested next actions based on user activity"""
+    steps = []
+
+    total_views = user_insights.get("total_views", 0)
+    total_saves = user_insights.get("total_saves", 0)
+
+    # Step 1: Explore more if low engagement.
+    if total_views < 5:
+        steps.append("Explore more tools to find the perfect fit")
+
+    # Step 2: Save favorites if not already.
+    if total_saves == 0:
+        steps.append("Save your favorite tools to create a collection")
+
+    # Step 3: Build a stack if enough saves.
+    if total_saves > 0 and total_saves < 3:
+        steps.append("Build your first AI stack with saved tools")
+
+    # Step 4: Compare tools if enough saves.
+    if total_saves >= 3:
+        steps.append("Compare your favorite tools to make informed decisions")
+
+    # Always suggest discovery if high engagement.
+    if total_views > 20:
+        steps.append("Discover new tools by category to expand your toolkit")
+
+    # Return top 2-3 steps.
+    return steps[:3] if steps else ["Explore our tool collection to get started"]
+
 
 @main_bp.route("/dashboard")
 @login_required
 def dashboard():
-    tools = [normalize_tool(tool) for tool in load_tools()]
+    if not is_onboarding_complete(current_user):
+        return redirect(url_for("main.onboarding"))
+
+    tools = load_normalized_tools()
     sort_type = get_sort_type_from_request(default="trending")
     student_mode = session.get("student_mode", False)
+    score_cache = {}
     by_key = {tool["tool_key"]: tool for tool in tools}
     view_map = get_view_map()
 
@@ -1956,9 +2594,76 @@ def dashboard():
     recent_tools = [by_key[key] for key in recent_keys if key in by_key]
     recent_tools = sort_tools(recent_tools, sort_type=sort_type, view_map=view_map, student_mode=student_mode)[:8]
 
-    recommended_tools = recommend_tools(tools, favorite_tools, limit=16, student_mode=student_mode)
-    recommended_tools = sort_tools(recommended_tools, sort_type=sort_type, view_map=view_map, student_mode=student_mode)[:8]
+    recommended_tools = recommend_tools(tools, favorite_tools, limit=5, student_mode=student_mode, user=current_user)
+    recommended_tools = unique_tools_by_identity(recommended_tools)
+    recommended_tools = sort_tools(recommended_tools, sort_type=sort_type, view_map=view_map, student_mode=student_mode)[:5]
+    recommended_tools = _annotate_personalization(
+        recommended_tools,
+        user=current_user,
+        student_mode=student_mode,
+        score_cache=score_cache,
+    )
+    favorite_tools = _annotate_personalization(
+        favorite_tools,
+        user=current_user,
+        student_mode=student_mode,
+        score_cache=score_cache,
+    )
+    recent_tools = _annotate_personalization(
+        recent_tools,
+        user=current_user,
+        student_mode=student_mode,
+        score_cache=score_cache,
+    )
     trending_tools = sort_tools(tools, sort_type=sort_type, view_map=view_map, student_mode=student_mode)[:8]
+    trending_tools = _annotate_personalization(
+        trending_tools,
+        user=current_user,
+        student_mode=student_mode,
+        score_cache=score_cache,
+    )
+    top_pick = _select_top_pick(
+        tools,
+        user=current_user,
+        student_mode=student_mode,
+        score_cache=score_cache,
+    )
+    stacks_created = SavedStack.query.filter_by(user_id=current_user.id).count()
+
+    # Get user activity insights
+    user_insights = get_user_insights(current_user.id)
+    preferred_pricing = str(user_insights.get("preferred_pricing") or "").strip().lower()
+    if preferred_pricing == "free":
+        preferred_pricing_label = "Free"
+    elif preferred_pricing == "freemium":
+        preferred_pricing_label = "Freemium"
+    else:
+        preferred_pricing_label = "Flexible"
+
+    if stacks_created == 0 and user_insights.get("total_saves", 0) > 0:
+        next_step = {
+            "label": "Build your AI stack",
+            "description": "Turn your saved tools into a practical stack for your daily workflow.",
+            "href": url_for("main.stack_builder"),
+        }
+    else:
+        next_step = {
+            "label": "Explore trending tools",
+            "description": "Discover fresh tools aligned with what you already like.",
+            "href": url_for("main.tools_paginated", sort="trending"),
+        }
+
+    activity_stats = {
+        "tools_viewed": user_insights.get("total_views", 0),
+        "tools_saved": user_insights.get("total_saves", 0),
+        "top_category": user_insights.get("most_viewed_category") or "Exploring",
+        "preferred_pricing": preferred_pricing_label,
+        "stacks_created": stacks_created,
+        "last_active": user_insights.get("last_active"),
+        "last_active_label": _format_last_active(user_insights.get("last_active")),
+        "next_steps": _generate_next_steps(user_insights),
+        "next_step": next_step,
+    }
 
     return render_template(
         "dashboard.html",
@@ -1966,44 +2671,30 @@ def dashboard():
         recent_tools=recent_tools,
         recommended_tools=recommended_tools,
         trending_tools=trending_tools,
+        activity_stats=activity_stats,
         sort_type=sort_type,
         sort_options=["trending", "rating", "popular", "newest", "free"],
         trust_signals=_trust_signals_context(),
         greeting_message=_get_greeting_prefix(current_user.display_name) if current_user.is_authenticated else "Welcome",
+        top_pick=top_pick,
     )
-
-
-
-
-def _parse_onboarding_preferences(user):
-    raw = str(getattr(user, "preferences", "") or "").strip()
-    if not raw:
-        return {}
-    try:
-        parsed = json.loads(raw)
-    except (json.JSONDecodeError, TypeError, ValueError):
-        return {}
-    if isinstance(parsed, dict):
-        return parsed
-    if isinstance(parsed, list):
-        interests = [str(item).strip() for item in parsed if str(item).strip()]
-        return {
-            "interest_tags": interests,
-            "interests": interests,
-        }
-    return {}
 
 
 @main_bp.route("/onboarding", methods=["GET", "POST"])
 @login_required
 def onboarding():
-    existing_prefs = _parse_onboarding_preferences(current_user)
+    existing_prefs = parse_user_preferences(current_user)
+    existing_prefs["use_for"] = normalize_text_key(existing_prefs.get("use_for") or existing_prefs.get("most_viewed_category"))
+    existing_prefs["skill_level"] = normalize_text_key(existing_prefs.get("skill_level") or getattr(current_user, "skill_level", ""))
+    existing_prefs["preferred_pricing"] = normalize_text_key(existing_prefs.get("preferred_pricing") or getattr(current_user, "pricing_pref", ""))
+    existing_prefs["goals"] = existing_prefs.get("goals") or _split_csv_tokens(getattr(current_user, "goals", ""))
 
     if request.method == "POST":
-        use_for = normalize_text_key(request.form.get("use_for"))
+        use_for = normalize_text_key(request.form.get("use_for") or request.form.get("primary_interest"))
         skill_level = normalize_text_key(request.form.get("skill_level"))
-        preferred_pricing = normalize_text_key(request.form.get("preferred_pricing"))
+        preferred_pricing = normalize_text_key(request.form.get("preferred_pricing") or request.form.get("pricing_pref"))
         interests_raw = str(request.form.get("interest_tags") or "").strip()
+        goals_raw = str(request.form.get("goals") or "").strip()
 
         allowed_use_for = {"coding", "writing", "studying", "research", "design", "productivity"}
         allowed_skill = {"beginner", "intermediate", "advanced"}
@@ -2013,56 +2704,67 @@ def onboarding():
             flash("Please complete all required onboarding fields.", "warning")
             return render_template("onboarding.html", onboarding_values=existing_prefs)
 
-        tags = []
-        if interests_raw:
-            seen = set()
-            for item in interests_raw.split(","):
-                token = normalize_text_key(item)
-                if not token or token in seen:
-                    continue
-                seen.add(token)
-                tags.append(token)
+        tags = _split_csv_tokens(interests_raw)
+        goals = _split_csv_tokens(goals_raw)
 
-        prefs = _parse_onboarding_preferences(current_user)
+        prefs = parse_user_preferences(current_user)
         prefs.update(
             {
+                "use_for": use_for,
+                "primary_interest": use_for,
                 "most_viewed_category": use_for,
                 "preferred_pricing": preferred_pricing,
                 "skill_level": skill_level,
                 "interest_tags": tags,
                 "interests": tags,
+                "goals": goals,
             }
         )
-        current_user.preferences = json.dumps(prefs)
-        current_user.skill_level = skill_level
-        current_user.pricing_pref = preferred_pricing
-        current_user.interests = ", ".join(tags) if tags else None
-        current_user.onboarding_completed = True
-        current_user.first_login = False
+
+        User.query.filter_by(id=int(current_user.id)).update(
+            {
+                "interests": ", ".join(tags) if tags else None,
+                "skill_level": skill_level,
+                "pricing_pref": preferred_pricing,
+                "goals": ", ".join(goals) if goals else None,
+                "onboarding_completed": True,
+                "preferences": json.dumps(prefs),
+                "first_login": False,
+            },
+            synchronize_session=False,
+        )
         db.session.commit()
 
         flash("Preferences saved. Your recommendations are now personalized.", "success")
         return redirect(url_for("main.dashboard"))
 
     return render_template("onboarding.html", onboarding_values=existing_prefs)
+
+
 @main_bp.route("/profile", methods=["GET", "POST"])
 @login_required
 def profile():
     user = current_user
-    existing_preferences = []
-    try:
-        raw_preferences = str(user.preferences or "").strip()
-        parsed_preferences = json.loads(raw_preferences) if raw_preferences else []
-        if isinstance(parsed_preferences, list):
-            existing_preferences = [str(item).strip() for item in parsed_preferences if str(item).strip()]
-    except (json.JSONDecodeError, TypeError, ValueError):
-        existing_preferences = []
+    prefs = parse_user_preferences(user)
+    existing_preferences = [str(item).strip() for item in prefs.get("interests") or prefs.get("interest_tags") or [] if str(item).strip()]
+    preference_options = ["Coding", "Writing", "Research", "Productivity", "Image Generation", "Video Generation"]
+    known_preference_tokens = {normalize_text_key(option) for option in preference_options}
+    custom_preferences = [item for item in existing_preferences if normalize_text_key(item) not in known_preference_tokens]
+    goals_pref = prefs.get("goals")
+    if isinstance(goals_pref, str):
+        goals_pref = _split_csv_tokens(goals_pref)
+    elif not isinstance(goals_pref, list):
+        goals_pref = []
+    existing_goals = [str(item).strip() for item in (goals_pref or _split_csv_tokens(user.goals)) if str(item).strip()]
 
     if request.method == "POST":
         display_name = str(request.form.get("display_name") or "").strip()
+        skill_level = normalize_text_key(request.form.get("skill_level"))
+        preferred_pricing = normalize_text_key(request.form.get("preferred_pricing") or request.form.get("pricing_pref"))
         student_status = _parse_bool(request.form.get("student_status"))
         preferences = request.form.getlist("preferences")
         custom_preferences = str(request.form.get("custom_preferences") or "").strip()
+        goals = _split_csv_tokens(request.form.get("goals"))
         if custom_preferences:
             preferences.extend([item.strip() for item in custom_preferences.split(",") if item.strip()])
 
@@ -2077,7 +2779,37 @@ def profile():
 
         user.display_name = display_name or None
         user.student_status = student_status
-        user.preferences = json.dumps(deduped_preferences)
+
+        allowed_skill_levels = {"", "beginner", "intermediate", "advanced"}
+        allowed_pricing = {"", "free", "freemium", "paid"}
+        if skill_level not in allowed_skill_levels or preferred_pricing not in allowed_pricing:
+            flash("Please select valid profile preferences.", "error")
+            return redirect(url_for("main.profile"))
+
+        prefs["interests"] = deduped_preferences
+        prefs["interest_tags"] = deduped_preferences
+        prefs["goals"] = goals
+        if skill_level:
+            prefs["skill_level"] = skill_level
+            user.skill_level = skill_level
+        else:
+            prefs.pop("skill_level", None)
+            user.skill_level = None
+        if preferred_pricing:
+            prefs["preferred_pricing"] = preferred_pricing
+            user.pricing_pref = preferred_pricing
+        else:
+            prefs.pop("preferred_pricing", None)
+            user.pricing_pref = None
+        if deduped_preferences:
+            prefs["most_viewed_category"] = normalize_text_key(deduped_preferences[0])
+
+        user.interests = ", ".join(deduped_preferences) if deduped_preferences else None
+        user.goals = ", ".join(goals) if goals else None
+        if user.skill_level and user.pricing_pref:
+            user.onboarding_completed = True
+
+        save_user_preferences(user, prefs)
         db.session.commit()
 
         flash("Profile updated successfully.", "success")
@@ -2086,7 +2818,11 @@ def profile():
     return render_template(
         "profile.html",
         preferences=existing_preferences,
-        preference_options=["Coding", "Writing", "Research", "Productivity", "Image Generation", "Video Generation"],
+        skill_level=str(prefs.get("skill_level") or ""),
+        preferred_pricing=str(prefs.get("preferred_pricing") or ""),
+        goals=", ".join(existing_goals),
+        preference_options=preference_options,
+        custom_preferences=", ".join(custom_preferences),
     )
 
 
@@ -2118,7 +2854,7 @@ def settings():
 
 @main_bp.route("/saved-tools")
 def saved_tools():
-    tools = [normalize_tool(tool) for tool in load_tools()]
+    tools = load_normalized_tools()
     by_key = {tool["tool_key"]: tool for tool in tools}
 
     account_saved_tools = []
@@ -2131,14 +2867,14 @@ def saved_tools():
 
     return render_template(
         "saved_tools.html",
-        account_saved_tools=account_saved_tools,
+        account_saved_tools=sanitize_text_payload(account_saved_tools),
         recent_tools=recent_tools,
         trust_signals=_trust_signals_context(),
     )
 
 
 def _compare_context_from_keys(selected_keys):
-    tools = [normalize_tool(tool) for tool in load_tools()]
+    tools = load_normalized_tools()
     sort_type = get_sort_type_from_request(default="trending")
     student_mode = session.get("student_mode", False)
     view_map = get_view_map()
@@ -2265,6 +3001,10 @@ def stack_builder_step():
             alternatives=[],
         )
     
+    if not current_user.is_authenticated:
+        next_url = url_for("main.stack_builder_step")
+        return redirect(url_for("auth.login", next=next_url))
+
     # POST handler - process form submission
     current_step = int(request.form.get("current_step", 1))
     action = request.form.get("action", "next")
@@ -2348,6 +3088,67 @@ def stack_builder_step():
         decision_shortcut=None,
         alternatives=[],
     )
+
+
+@main_bp.route("/generate-stack", methods=["POST"])
+def generate_stack_api():
+    if not current_user.is_authenticated:
+        return jsonify({"error": "login_required"}), 401
+
+    payload = request.get_json(silent=True) or {}
+
+    selected_goal = str(payload.get("goal") or "").strip()
+    selected_budget = str(payload.get("budget") or "").strip()
+    selected_platform = str(payload.get("platform") or "").strip()
+    student_mode = bool(payload.get("student_mode"))
+
+    if not selected_goal or not selected_budget or not selected_platform:
+        return jsonify({
+            "error": "Missing required selections.",
+            "tools": [],
+        }), 400
+
+    session["student_mode"] = student_mode
+    session.modified = True
+
+    generated_stack = build_ai_stack(
+        goal=selected_goal,
+        budget=selected_budget,
+        platform=selected_platform,
+        student_mode=student_mode,
+    )
+
+    if not generated_stack:
+        return jsonify({
+            "tools": [],
+            "message": "No tools found matching your criteria.",
+            "ai_summary": None,
+            "best_choice": None,
+            "confidence": 0,
+            "decision_shortcut": None,
+            "alternatives": [],
+        })
+
+    session["stack_builder_used"] = True
+    session.modified = True
+
+    summary = _stack_result_summary(
+        generated_stack,
+        goal=selected_goal,
+        budget=selected_budget,
+        platform=selected_platform,
+        student_mode=student_mode,
+    )
+
+    return jsonify({
+        "tools": generated_stack,
+        "summary": summary.get("ai_summary"),
+        "ai_summary": summary.get("ai_summary"),
+        "best_choice": summary.get("best_choice"),
+        "confidence": summary.get("confidence", 0),
+        "decision_shortcut": summary.get("decision_shortcut"),
+        "alternatives": summary.get("alternatives", []),
+    })
 
 
 @main_bp.route("/ai-tool-finder", methods=["GET", "POST"])
@@ -2537,20 +3338,22 @@ def ai_tool_finder_results():
 
 @main_bp.route("/api/tools")
 def api_tools():
-    tools = [normalize_tool(tool) for tool in load_tools()]
+    tools = _load_tools_for_request()
     tools = apply_dynamic_weekly_users(tools, get_weekly_view_map())
+    tools = _unique_tool_list(tools)
     sort_type = get_sort_type_from_request(default="trending")
     student_mode = session.get("student_mode", False)
     if student_mode:
         tools = [tool for tool in tools if _is_free_tool(tool)]
     tools = sort_tools(tools, sort_type=sort_type, view_map=get_view_map(), student_mode=student_mode)
-    return jsonify(tools)
+    return jsonify(sanitize_text_payload(tools))
 
 
 @main_bp.route("/api/tools/trending")
 def api_tools_trending():
-    tools = [normalize_tool(tool) for tool in load_tools()]
+    tools = _load_tools_for_request()
     tools = apply_dynamic_weekly_users(tools, get_weekly_view_map())
+    tools = _unique_tool_list(tools)
     sort_type = get_sort_type_from_request(default="trending")
     student_mode = session.get("student_mode", False)
     view_map = get_view_map()
@@ -2558,20 +3361,21 @@ def api_tools_trending():
         tools = [tool for tool in tools if _is_free_tool(tool)]
 
     top = sort_tools(tools, sort_type=sort_type, view_map=view_map, student_mode=student_mode)[:10]
-    return jsonify(top)
+    return jsonify(sanitize_text_payload(top))
 
 
 @main_bp.route("/api/tools/category/<category>")
 def api_tools_category(category):
-    tools = [normalize_tool(tool) for tool in load_tools()]
+    tools = _load_tools_for_request()
     tools = apply_dynamic_weekly_users(tools, get_weekly_view_map())
+    tools = _unique_tool_list(tools)
     sort_type = get_sort_type_from_request(default="trending")
     student_mode = session.get("student_mode", False)
     if student_mode:
         tools = [tool for tool in tools if _is_free_tool(tool)]
     filtered = [tool for tool in tools if str(tool.get("category", "")).lower() == category.lower()]
     filtered = sort_tools(filtered, sort_type=sort_type, view_map=get_view_map(), student_mode=student_mode)
-    return jsonify(filtered)
+    return jsonify(sanitize_text_payload(filtered))
 
 
 @main_bp.route("/api/tools/<tool_id>")
@@ -2580,54 +3384,114 @@ def api_tool_detail(tool_id):
     if not tool:
         return jsonify({"error": "Tool not found"}), 404
     tool = apply_dynamic_weekly_users([tool], get_weekly_view_map())[0]
-    return jsonify(tool)
+    return jsonify(sanitize_text_payload(tool))
 
 
 @main_bp.route("/api/search")
 def api_search():
     try:
         query = str(request.args.get("q", "") or "").strip()
-        tokens = _tokenize_query(query)
-        if not tokens:
-            return jsonify({"results": [], "message": "", "showing_closest_matches": False})
-
-        tools = [normalize_tool(tool) for tool in load_tools()]
-        ranked = []
-        for tool in tools:
-            score = _search_score(tool, tokens)
-            if score <= 0:
-                continue
-            ranked.append((score, float(tool.get("rating") or 0), parse_weekly_users(tool.get("weeklyUsers")), tool))
-
-        ranked.sort(key=lambda item: (item[0], item[1], item[2]), reverse=True)
-
-        top = []
-        for score, _, _, tool in ranked[:10]:
-            top.append(
-                {
-                    "name": tool.get("name", ""),
-                    "slug": tool.get("tool_key") or build_tool_slug(tool),
-                    "category": tool.get("category", ""),
-                    "description": tool.get("description", ""),
-                    "tags": tool.get("tags", []),
-                    "icon": tool.get("icon") or DEFAULT_TOOL_ICON,
-                    "score": score,
-                }
+        if query and current_user.is_authenticated:
+            track_user_activity(
+                current_user.id,
+                "search",
+                "search",
+                {"query": query, "source": "api_search"},
             )
 
-        return jsonify({"results": top, "message": "", "showing_closest_matches": False})
+        if not query:
+            return jsonify({"results": [], "message": "", "showing_closest_matches": False})
+
+        tools = _load_tools_for_request()
+        score_user = current_user if current_user.is_authenticated else None
+        student_mode = session.get("student_mode", False)
+        ranked_matches = unique_tools_by_identity(search_tools(tools, query, user=score_user, student_mode=student_mode))
+
+        def serialize_result(tool, score):
+            return {
+                "name": tool.get("name", ""),
+                "slug": tool.get("tool_key") or build_tool_slug(tool),
+                "category": tool.get("category", ""),
+                "description": tool.get("description", ""),
+                "tags": tool.get("tags", []),
+                "icon": tool.get("icon") or DEFAULT_TOOL_ICON,
+                "score": score,
+                "confidence_score": max(0, min(100, int(score))),
+                "reason": tool.get("reason") or generate_reason(tool, user=score_user, query=query, student_mode=student_mode),
+            }
+
+        top = []
+        seen = set()
+        for index, tool in enumerate(ranked_matches):
+            slug = str(tool.get("tool_key") or build_tool_slug(tool)).strip().lower()
+            name_key = _normalized_tool_name_key(tool.get("name"))
+            dedupe_key = slug or name_key
+            if not dedupe_key or dedupe_key in seen:
+                continue
+            seen.add(dedupe_key)
+            top.append(serialize_result(tool, score=max(1, 100 - index)))
+            if len(top) >= 5:
+                break
+
+        showing_closest_matches = False
+        message = ""
+        if not top:
+            category_fallback = [
+                tool for tool in tools
+                if query.lower() in str(tool.get("category") or "").lower()
+            ]
+            if category_fallback:
+                fallback_tools = limit_results(category_fallback, limit=5)
+            else:
+                fallback_tools = smart_search_fallback(
+                    tools,
+                    query,
+                    results_limit=5,
+                    user=score_user,
+                    student_mode=student_mode,
+                )
+
+            fallback_tools = unique_tools_by_identity(limit_results(fallback_tools, limit=5))
+            for tool in fallback_tools:
+                slug = str(tool.get("tool_key") or build_tool_slug(tool)).strip().lower()
+                name_key = _normalized_tool_name_key(tool.get("name"))
+                dedupe_key = slug or name_key
+                if not dedupe_key or dedupe_key in seen:
+                    continue
+                seen.add(dedupe_key)
+                top.append(serialize_result(tool, score=0))
+                if len(top) >= 5:
+                    break
+
+            if top:
+                showing_closest_matches = True
+                message = "Showing closest matches"
+
+        return jsonify(
+            sanitize_text_payload(
+                {
+                    "results": top[:5],
+                    "message": message or "",
+                    "showing_closest_matches": bool(showing_closest_matches),
+                }
+            )
+        )
     except Exception:
         current_app.logger.exception("Search API failed")
-        return jsonify({
-            "results": [],
-            "message": "Search is temporarily unavailable.",
-            "showing_closest_matches": False,
-        }), 500
+        return jsonify(
+            {
+                "results": [],
+                "message": "Search is temporarily unavailable.",
+                "showing_closest_matches": False,
+            }
+        ), 500
 
 
 @main_bp.route("/api/favorite", methods=["POST"])
-@login_required
 def api_favorite():
+    if not current_user.is_authenticated:
+        return jsonify({"error": "login_required"}), 401
+
     payload = request.get_json(silent=True) or {}
     tool_id = str(payload.get("tool_id", "")).strip()
     if not tool_id:
@@ -2642,6 +3506,14 @@ def api_favorite():
     row = Favorite(user_id=current_user.id, tool_id=tool_id)
     db.session.add(row)
     db.session.commit()
+
+    track_user_activity(
+        current_user.id,
+        tool_id,
+        "save",
+        {"source": "api_favorite"},
+    )
+
     return jsonify({"ok": True, "favorited": True})
 
 
@@ -2653,6 +3525,13 @@ def api_view():
         return jsonify({"error": "tool_id is required"}), 400
 
     log_tool_view(tool_id)
+    if current_user.is_authenticated:
+        track_user_activity(
+            current_user.id,
+            tool_id,
+            "view",
+            {"source": "api_view"},
+        )
 
     recent_tools = session.get("recent_tools", [])
     recent_tools = [item for item in recent_tools if item != tool_id]
@@ -2662,7 +3541,38 @@ def api_view():
     return jsonify({"ok": True, "views": int(get_view_map().get(tool_id, 0))})
 
 
-# â”€â”€ Tool Detail â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+@main_bp.route("/api/activity/track", methods=["POST"])
+@login_required
+def api_track_activity():
+    """Track user activity (view, save, search, rate)."""
+    payload = request.get_json(silent=True) or {}
+    tool_id = str(payload.get("tool_id", "")).strip()
+    action = str(payload.get("action", "")).strip().lower()
+    
+    if not tool_id or not action:
+        return jsonify({"error": "tool_id and action are required"}), 400
+    
+    if action not in ["view", "save", "search", "rate"]:
+        return jsonify({"error": "action must be one of: view, save, search, rate"}), 400
+    
+    metadata = payload.get("metadata")
+    track_user_activity(current_user.id, tool_id, action, metadata)
+    
+    return jsonify({"ok": True, "action": action, "tool_id": tool_id})
+
+
+@main_bp.route("/api/user/insights", methods=["GET"])
+@login_required
+def api_user_insights():
+    """Get user activity insights and behavior summary"""
+    insights = get_user_insights(current_user.id)
+    return jsonify({
+        "ok": True,
+        "insights": insights,
+    })
+
+
+# ── Tool Detail ───────────────────────────────────────────────────────────────
 
 @main_bp.route("/tool/<tool_id>")
 def tool_detail(tool_id):
@@ -2671,12 +3581,14 @@ def tool_detail(tool_id):
     if not tool:
         abort(404)
 
-    all_tools = [normalize_tool(t) for t in load_tools()]
+    all_tools = load_normalized_tools()
     favorite_ids: set = set()
     is_favorited = False
     if current_user.is_authenticated:
         favorite_ids = get_favorite_tool_keys(current_user.id)
         is_favorited = tool["tool_key"] in favorite_ids
+        # Track view activity
+        track_user_activity(current_user.id, tool["tool_key"], "view")
 
     rating_summary = get_tool_rating_summary(tool["tool_key"])
     user_rating = get_user_tool_rating(tool["tool_key"], current_user.id if current_user.is_authenticated else None)
@@ -2687,6 +3599,9 @@ def tool_detail(tool_id):
     weekly_views = int(get_weekly_view_map().get(tool["tool_key"], 0))
     tool["weeklyUsers"] = _format_weekly_users_from_views(weekly_views) if weekly_views > 0 else tool.get("weeklyUsers")
     today_views_estimate = max(12, int(round((weekly_views or 0) / 7.0))) if weekly_views else int(tool.get("activity_today") or 0)
+
+    # Enrich tool with freshness data
+    tool = enrich_tool_with_freshness(tool)
 
     # Record in session history
     recent = session.get("recent_tools", [])
@@ -2766,7 +3681,7 @@ def rate_tool(tool_id):
     return redirect(url_for("main.tool_detail", tool_id=tool_id))
 
 
-# â”€â”€ Submit Tool â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ── Submit Tool ───────────────────────────────────────────────────────────────
 
 @main_bp.route("/submit-tool", methods=["GET", "POST"])
 def submit_tool():
@@ -2811,10 +3726,10 @@ def submit_tool():
     return render_template("submit_tool.html")
 
 
-# â”€â”€ Weekly Updates Feed â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ── Weekly Updates Feed ───────────────────────────────────────────────────────
 
 def _weekly_newest_tools(limit=10):
-    all_tools = [normalize_tool(t) for t in load_tools()]
+    all_tools = load_normalized_tools()
     recent_tools = sorted(
         all_tools,
         key=lambda t: (
@@ -2831,7 +3746,7 @@ def _weekly_newest_tools(limit=10):
 
 
 def _weekly_popular_tools(limit=4):
-    all_tools = [normalize_tool(t) for t in load_tools()]
+    all_tools = load_normalized_tools()
     ranked = sorted(
         all_tools,
         key=lambda t: (
@@ -2844,7 +3759,7 @@ def _weekly_popular_tools(limit=4):
 
 
 def _trust_signals_context():
-    tools = [normalize_tool(t) for t in load_tools()]
+    tools = load_normalized_tools()
     indexed_count = len(tools)
     free_or_freemium = [
         t for t in tools
@@ -2852,10 +3767,15 @@ def _trust_signals_context():
     ]
     weekly_users_total = sum(parse_weekly_users(t.get("weeklyUsers")) for t in tools)
     active_learners = max(10000, int(round(weekly_users_total / 1000.0)) * 100)
+    indexed_tools = max(indexed_count, 500)
+    free_options = len(free_or_freemium)
     return {
         "active_learners": active_learners,
-        "indexed_tools": max(indexed_count, 500),
-        "free_options": len(free_or_freemium),
+        "active_learners_compact": format_number(active_learners),
+        "indexed_tools": indexed_tools,
+        "indexed_tools_compact": format_number(indexed_tools),
+        "free_options": free_options,
+        "free_options_compact": format_number(free_options),
     }
 
 
@@ -2874,6 +3794,10 @@ def updates():
 @main_bp.route("/report-bug", methods=["GET", "POST"])
 def report_bug():
     if request.method == "POST":
+        if is_rate_limited(f"report_bug:{_client_ip()}", limit=10, window_seconds=60):
+            flash("Too many reports submitted too quickly. Please wait a minute.", "error")
+            return render_template("report_bug.html")
+
         description = str(request.form.get("bug_description") or "").strip()
         page_url = str(request.form.get("page_url") or "").strip()
         email = str(request.form.get("email") or "").strip().lower()
@@ -2899,72 +3823,205 @@ def report_bug():
     return render_template("report_bug.html")
 
 
-# â”€â”€ Admin Panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ── Admin Panel ───────────────────────────────────────────────────────────────
+
+def _admin_tools_payload():
+    try:
+        with open(DATA_PATH, "r", encoding="utf-8") as handle:
+            payload = json.load(handle)
+    except (OSError, json.JSONDecodeError):
+        return [], []
+
+    if isinstance(payload, dict):
+        tools = payload.get("tools", [])
+    else:
+        tools = payload
+
+    if not isinstance(tools, list):
+        tools = []
+    return payload, tools
+
+
+def _persist_admin_tools(payload, tools):
+    data = payload if isinstance(payload, dict) else list(tools)
+    if isinstance(data, dict):
+        data["tools"] = list(tools)
+
+    with open(DATA_PATH, "w", encoding="utf-8") as handle:
+        json.dump(data, handle, ensure_ascii=False, indent=2)
+
+    from app.tool_cache import refresh_tools_cache as _refresh_tools_cache
+
+    _refresh_tools_cache(DATA_PATH)
+
+
+def _admin_tool_id(tool):
+    key = str(tool.get("tool_key") or "").strip()
+    if key:
+        return key
+    row_id = str(tool.get("id") or "").strip()
+    if row_id:
+        return row_id
+    return _normalized_tool_name_key(tool.get("name"))
+
+
+def _tool_index_by_admin_id(tools, tool_id):
+    lookup = str(tool_id or "").strip().lower()
+    for index, item in enumerate(tools):
+        if _admin_tool_id(item).lower() == lookup:
+            return index
+    return -1
+
+
+def _admin_summary():
+    all_tools = load_normalized_tools()
+    view_map = get_view_map()
+    pending = Submission.query.filter_by(status="pending").order_by(Submission.submitted_at.desc()).all()
+    bug_reports = BugReport.query.order_by(BugReport.created_at.desc()).limit(50).all()
+    total_users = User.query.count()
+    total_tools = len(all_tools)
+    total_saves = Favorite.query.count()
+    total_views = sum(view_map.values())
+    return {
+        "total_users": total_users,
+        "total_users_compact": format_number(total_users),
+        "total_tools": total_tools,
+        "total_tools_compact": format_number(total_tools),
+        "total_saves": total_saves,
+        "total_saves_compact": format_number(total_saves),
+        "total_views": total_views,
+        "total_views_compact": format_number(total_views),
+        "pending_submissions": len(pending),
+        "open_bug_reports": len([r for r in bug_reports if str(r.status or "open").lower() == "open"]),
+    }, pending, bug_reports
 
 @main_bp.route("/admin")
+@main_bp.route("/admin/dashboard")
 @admin_required
 def admin():
-    pending = Submission.query.filter_by(status="pending").order_by(Submission.submitted_at.desc()).all()
-    approved = Submission.query.filter_by(status="approved").order_by(Submission.submitted_at.desc()).limit(20).all()
-    all_tools = [normalize_tool(t) for t in load_tools()]
-    view_map = get_view_map()
-    queue = load_discovery_queue()
-    queue_items = [
-        {
-            "index": index,
-            "tool_name": build_queue_tool_key(item.get("tool", {})),
-            "status": item.get("status", "pending"),
-            "tool": item.get("tool", {}),
-        }
-        for index, item in enumerate(queue)
-    ]
-    pending_discovery = [item for item in queue_items if item["status"] == "pending"]
-
-    analytics = {
-        "total_tools": len(all_tools),
-        "pending_submissions": len(pending),
-        "pending_discovery": len(pending_discovery),
-        "total_views": sum(view_map.values()),
-    }
-
-    most_viewed_tools = get_most_viewed_tools(limit=8)
-    views_per_day = get_views_per_day(days=7)
-    trending_by_views = get_trending_tools_by_views(limit=8)
-    bug_reports = BugReport.query.order_by(BugReport.created_at.desc()).limit(50).all()
-    open_bug_reports = [report for report in bug_reports if str(report.status or "open").lower() == "open"]
-
-    return render_template(
-        "admin.html",
-        pending_submissions=pending,
-        approved_submissions=approved,
-        discovery_queue=pending_discovery,
-        discovery_stats=load_discovery_stats(),
-        notifications=load_notifications()[:10],
-        analytics=analytics,
-        most_viewed_tools=most_viewed_tools,
-        views_per_day=views_per_day,
-        trending_by_views=trending_by_views,
-        bug_reports=bug_reports,
-        open_bug_reports=open_bug_reports,
-    )
+    analytics, pending, bug_reports = _admin_summary()
+    return render_template("admin/dashboard.html", analytics=analytics, pending_submissions=pending[:8], bug_reports=bug_reports[:8])
 
 
 @main_bp.route("/admin/users")
 @admin_required
 def admin_users():
-    return admin()
-
-
-@main_bp.route("/admin/tools")
-@admin_required
-def admin_tools():
-    return admin()
+    users = User.query.order_by(User.created_at.desc()).all()
+    return render_template("admin/users.html", users=users)
 
 
 @main_bp.route("/admin/analytics")
 @admin_required
 def admin_analytics():
-    return admin()
+    analytics, _, _ = _admin_summary()
+    analytics["most_viewed_tools"] = get_most_viewed_tools(limit=8)
+    analytics["views_per_day"] = get_views_per_day(days=7)
+    return render_template("admin/analytics.html", analytics=analytics)
+
+
+@main_bp.route("/admin/tools")
+@admin_required
+def admin_tools():
+    tools = load_tools()
+    tools = sorted(tools, key=lambda item: str(item.get("name") or "").lower())
+    rows = []
+    for tool in tools:
+        item = dict(tool)
+        item["admin_id"] = _admin_tool_id(item)
+        rows.append(item)
+    return render_template("admin/tools.html", tools=rows)
+
+
+@main_bp.route("/admin/tools/add", methods=["GET", "POST"])
+@admin_required
+def admin_tools_add():
+    if request.method == "POST":
+        payload, tools = _admin_tools_payload()
+        name = str(request.form.get("name") or "").strip()
+        category = str(request.form.get("category") or "other").strip()
+        description = str(request.form.get("description") or "").strip()
+        link = str(request.form.get("link") or "").strip()
+        price = str(request.form.get("price") or "Freemium").strip()
+        tags_raw = str(request.form.get("tags") or "").strip()
+
+        if not name:
+            flash("Tool name is required.", "error")
+            return redirect(url_for("main.admin_tools_add"))
+
+        next_id = max([int(t.get("id") or 0) for t in tools if str(t.get("id") or "").isdigit()] + [0]) + 1
+        new_tool = {
+            "id": next_id,
+            "name": name,
+            "category": category,
+            "description": description,
+            "link": link,
+            "price": price,
+            "tags": [segment.strip() for segment in tags_raw.split(",") if segment.strip()],
+        }
+        tools.append(new_tool)
+        _persist_admin_tools(payload, tools)
+        flash("Tool added.", "success")
+        return redirect(url_for("main.admin_tools"))
+
+    return render_template("admin/tools.html", tools=None, form_mode="add")
+
+
+@main_bp.route("/admin/tools/edit/<tool_id>", methods=["GET", "POST"])
+@admin_required
+def admin_tools_edit(tool_id):
+    payload, tools = _admin_tools_payload()
+    index = _tool_index_by_admin_id(tools, tool_id)
+    if index < 0:
+        flash("Tool not found.", "error")
+        return redirect(url_for("main.admin_tools"))
+
+    if request.method == "POST":
+        tool = dict(tools[index])
+        tool["name"] = str(request.form.get("name") or tool.get("name") or "").strip()
+        tool["category"] = str(request.form.get("category") or tool.get("category") or "other").strip()
+        tool["description"] = str(request.form.get("description") or tool.get("description") or "").strip()
+        tool["link"] = str(request.form.get("link") or tool.get("link") or "").strip()
+        tool["price"] = str(request.form.get("price") or tool.get("price") or "Freemium").strip()
+        tags_raw = str(request.form.get("tags") or "").strip()
+        tool["tags"] = [segment.strip() for segment in tags_raw.split(",") if segment.strip()]
+        tools[index] = tool
+        _persist_admin_tools(payload, tools)
+        flash("Tool updated.", "success")
+        return redirect(url_for("main.admin_tools"))
+
+    selected = dict(tools[index])
+    selected["admin_id"] = _admin_tool_id(selected)
+    return render_template("admin/tools.html", tools=None, form_mode="edit", tool_item=selected)
+
+
+@main_bp.route("/admin/tools/delete/<tool_id>", methods=["POST"])
+@admin_required
+def admin_tools_delete(tool_id):
+    payload, tools = _admin_tools_payload()
+    index = _tool_index_by_admin_id(tools, tool_id)
+    if index < 0:
+        flash("Tool not found.", "error")
+        return redirect(url_for("main.admin_tools"))
+
+    removed = tools.pop(index)
+    _persist_admin_tools(payload, tools)
+    flash(f"Deleted '{removed.get('name', 'tool')}'.", "success")
+    return redirect(url_for("main.admin_tools"))
+
+
+@main_bp.route("/admin/submissions")
+@admin_required
+def admin_submissions():
+    pending = Submission.query.filter_by(status="pending").order_by(Submission.submitted_at.desc()).all()
+    approved = Submission.query.filter_by(status="approved").order_by(Submission.submitted_at.desc()).limit(100).all()
+    return render_template("admin/submissions.html", pending_submissions=pending, approved_submissions=approved)
+
+
+@main_bp.route("/admin/feedback")
+@admin_required
+def admin_feedback():
+    bug_reports = BugReport.query.order_by(BugReport.created_at.desc()).all()
+    return render_template("admin/feedback.html", bug_reports=bug_reports)
 
 
 @main_bp.route("/admin/bug-report/<int:report_id>/resolve", methods=["POST"])
@@ -3069,12 +4126,12 @@ def admin_reject_tool(tool_name):
     return redirect(url_for("main.admin"))
 
 
-# â”€â”€ Public API additions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ── Public API additions ──────────────────────────────────────────────────────
 
 @main_bp.route("/api/tools/fastest-growing")
 def api_tools_fastest_growing():
     """Tools with the highest weeklyUsers values."""
-    tools = [normalize_tool(t) for t in load_tools()]
+    tools = load_normalized_tools()
     ranked = sorted(tools, key=lambda t: parse_weekly_users(t.get("weeklyUsers")), reverse=True)
     return jsonify(ranked[:10])
 
@@ -3082,7 +4139,7 @@ def api_tools_fastest_growing():
 @main_bp.route("/api/tools/student-picks")
 def api_tools_student_picks():
     """Tools that have student perks."""
-    tools = [normalize_tool(t) for t in load_tools()]
+    tools = load_normalized_tools()
     picks = [t for t in tools if t.get("studentPerk")]
     picks.sort(key=lambda t: float(t.get("rating") or 0), reverse=True)
     return jsonify(picks[:10])
@@ -3090,7 +4147,7 @@ def api_tools_student_picks():
 
 @main_bp.route("/sitemap.xml")
 def sitemap_xml():
-    tools = [normalize_tool(tool) for tool in load_tools()]
+    tools = load_normalized_tools()
     base_url = request.url_root.rstrip("/")
     today = datetime.now(timezone.utc).date().isoformat()
 
@@ -3138,7 +4195,3 @@ def sitemap_xml():
         + "\n</urlset>"
     )
     return Response(xml, mimetype="application/xml")
-
-
-
-

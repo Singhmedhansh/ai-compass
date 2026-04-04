@@ -18,11 +18,11 @@
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 min-w-full lg:min-w-[420px]">
         <div class="glass rounded-2xl p-4">
           <div class="text-[11px] uppercase tracking-wide text-zinc-500">Tools</div>
-          <div class="mt-1 text-xl text-zinc-100 font-bold">{{ trust_signals.indexed_tools if trust_signals else total_tools }}+ AI</div>
+          <div class="mt-1 text-xl text-zinc-100 font-bold stat-number max-w-[12ch]">{{ trust_signals.indexed_tools_compact if trust_signals else total_tools }} AI</div>
         </div>
         <div class="glass rounded-2xl p-4">
           <div class="text-[11px] uppercase tracking-wide text-zinc-500">Community</div>
-          <div class="mt-1 text-xl text-zinc-100 font-bold">{{ trust_signals.active_learners if trust_signals else total_users }}+</div>
+          <div class="mt-1 text-xl text-zinc-100 font-bold stat-number max-w-[10ch]">{{ trust_signals.active_learners_compact if trust_signals else total_users }}</div>
         </div>
         <div class="glass rounded-2xl p-4">
           <div class="text-[11px] uppercase tracking-wide text-zinc-500">Freshness</div>

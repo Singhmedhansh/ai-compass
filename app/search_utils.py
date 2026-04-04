@@ -1,6 +1,6 @@
 import re
 from typing import Iterable, List
-from app.recommendations import compute_tool_score, generate_reason
+from app.services.recommendation_service import compute_tool_score, generate_reason
 
 
 QUERY_SYNONYMS = {
@@ -77,64 +77,30 @@ def _expanded_query_tokens(query: str) -> List[str]:
     return ordered
 
 
-def _search_score(tool, tokens: Iterable[str]) -> int:
-    name = _normalize(tool.get("name"))
-    description = _normalize(tool.get("description") or tool.get("tagline"))
-    category = _normalize(tool.get("category"))
-    tags = " ".join(_tags(tool))
-
-    name_c = _compact(name)
-    description_c = _compact(description)
-    category_c = _compact(category)
-    tags_c = _compact(tags)
-
-    score = 0
-    for token in tokens:
-        token_n = _normalize(token)
-        token_c = _compact(token_n)
-        if not token_n:
-            continue
-
-        if token_n in name or token_c in name_c:
-            score += 80
-            if name.startswith(token_n):
-                score += 15
-        if token_n in tags or token_c in tags_c:
-            score += 60
-        if token_n in category or token_c in category_c:
-            score += 45
-        if token_n in description or token_c in description_c:
-            score += 20
-
-    return score
-
-
+# --- Unified search_tools at module level ---
 def search_tools(tools, query: str, user=None, student_mode: bool = False):
-    tokens = _expanded_query_tokens(query)
-    if not tokens:
+    """
+    Filter tools by query (name or description),
+    score with compute_tool_score, sort by score descending, return tools only.
+    """
+    if not query or not tools:
         return []
 
-    scored = []
+    query_lc = query.strip().lower()
+    filtered = []
     for tool in tools:
-        text_score = _search_score(tool, tokens)
-        if text_score <= 0:
-            continue
+        name = str(tool.get("name") or "").lower()
+        desc = str(tool.get("description") or tool.get("tagline") or "").lower()
+        if query_lc in name or query_lc in desc:
+            filtered.append(tool)
 
-        personal_score = compute_tool_score(
-            tool,
-            user=user,
-            query=query,
-            student_mode=student_mode,
-        )
-        final_score = text_score + personal_score
+    scored = []
+    for tool in filtered:
+        score = compute_tool_score(tool, user=user, query=query, student_mode=student_mode)
+        scored.append((score, tool))
 
-        item = dict(tool)
-        item["ai_score"] = round(final_score, 2)
-        item["reason"] = generate_reason(item, user=user, query=query, student_mode=student_mode)
-        scored.append((final_score, float(tool.get("rating") or 0), item))
-
-    scored.sort(key=lambda row: (row[0], row[1]), reverse=True)
-    return [tool for _, _, tool in scored]
+    scored.sort(key=lambda row: row[0], reverse=True)
+    return [tool for _, tool in scored]
 
 
 def smart_search_fallback(tools, query: str, results_limit: int = 20, user=None, student_mode: bool = False):
