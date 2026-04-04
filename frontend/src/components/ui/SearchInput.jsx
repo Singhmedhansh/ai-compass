@@ -4,6 +4,7 @@ function SearchInput({
   value,
   onChange,
   onClear,
+  onKeyDown,
   placeholder = 'Search AI tools...',
 }) {
   const hasValue = Boolean(value)
@@ -29,6 +30,7 @@ function SearchInput({
         type="search"
         value={value}
         onChange={handleChange}
+        onKeyDown={onKeyDown}
         placeholder={placeholder}
         className="h-10 w-full rounded-xl border border-slate-300 bg-white pl-10 pr-10 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500"
       />

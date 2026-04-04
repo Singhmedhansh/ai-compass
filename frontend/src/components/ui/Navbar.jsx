@@ -1,6 +1,6 @@
 import { Moon, Sun } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 import Button from './Button'
 import SearchInput from './SearchInput'
@@ -22,6 +22,7 @@ function getInitialTheme() {
 }
 
 function Navbar() {
+  const navigate = useNavigate()
   const [searchValue, setSearchValue] = useState('')
   const [isDark, setIsDark] = useState(getInitialTheme)
 
@@ -34,6 +35,20 @@ function Navbar() {
     const nextMode = !isDark
 
     setIsDark(nextMode)
+  }
+
+  const handleSearchKeyDown = (event) => {
+    if (event.key !== 'Enter') {
+      return
+    }
+
+    const query = searchValue.trim()
+    if (!query) {
+      navigate('/tools')
+      return
+    }
+
+    navigate(`/tools?q=${encodeURIComponent(query)}`)
   }
 
   return (
@@ -51,6 +66,7 @@ function Navbar() {
             value={searchValue}
             onChange={setSearchValue}
             onClear={() => setSearchValue('')}
+            onKeyDown={handleSearchKeyDown}
             placeholder="Search tools, categories, and tags"
           />
         </div>
