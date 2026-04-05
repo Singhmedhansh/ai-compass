@@ -6,6 +6,7 @@ import Button from './Button'
 import SearchInput from './SearchInput'
 
 const STORAGE_KEY = 'ai-compass-theme'
+const ADMIN_EMAILS = ['singhmedhansh07@gmail.com']
 
 function getInitialTheme() {
   if (typeof window === 'undefined') {
@@ -21,26 +22,29 @@ function getInitialTheme() {
   return window.matchMedia('(prefers-color-scheme: dark)').matches
 }
 
+function getInitialUser() {
+  if (typeof window === 'undefined') {
+    return null
+  }
+
+  try {
+    const rawUser = localStorage.getItem('user')
+    if (!rawUser) {
+      return null
+    }
+    const parsed = JSON.parse(rawUser)
+    return parsed && typeof parsed === 'object' ? parsed : null
+  } catch {
+    return null
+  }
+}
+
 function Navbar() {
   const navigate = useNavigate()
   const [searchValue, setSearchValue] = useState('')
   const [isDark, setIsDark] = useState(getInitialTheme)
-  const [user, setUser] = useState(null)
-
-  useEffect(() => {
-    try {
-      const rawUser = localStorage.getItem('user')
-      if (!rawUser) {
-        setUser(null)
-        return
-      }
-
-      const parsed = JSON.parse(rawUser)
-      setUser(parsed && typeof parsed === 'object' ? parsed : null)
-    } catch {
-      setUser(null)
-    }
-  }, [])
+  const [user, setUser] = useState(getInitialUser)
+  const isAdmin = Boolean(user && ADMIN_EMAILS.includes(user.email))
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', isDark)
@@ -96,6 +100,18 @@ function Navbar() {
         </div>
 
         <div className="order-2 ml-auto flex items-center gap-2 sm:order-3">
+          <Link to="/collections">
+            <Button variant="ghost" size="sm" className="text-gray-900 dark:text-white">
+              Collections
+            </Button>
+          </Link>
+
+          {isAdmin ? (
+            <Link to="/admin" className="px-1 text-xs font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200">
+              Admin
+            </Link>
+          ) : null}
+
           <button
             type="button"
             onClick={toggleDarkMode}

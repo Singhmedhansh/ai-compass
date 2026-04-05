@@ -18,6 +18,33 @@ const STAT_CONFIG = [
   { label: 'Updated Weekly', value: 1, suffix: '' },
 ]
 
+const POPULAR_COLLECTIONS = [
+  {
+    slug: 'best-free-tools',
+    title: 'Best Free Tools',
+    emoji: '🆓',
+    description: 'Top no-cost tools for students and creators.',
+  },
+  {
+    slug: 'best-for-coding',
+    title: 'Best for Coding',
+    emoji: '💻',
+    description: 'Powerful coding assistants and developer picks.',
+  },
+  {
+    slug: 'trending',
+    title: 'Trending Now',
+    emoji: '🔥',
+    description: 'The fastest-rising AI tools right now.',
+  },
+  {
+    slug: 'top-rated',
+    title: 'Top Rated',
+    emoji: '⭐',
+    description: 'Highest-rated tools across the catalog.',
+  },
+]
+
 function mapTool(rawTool) {
   return {
     slug: rawTool.slug,
@@ -37,6 +64,7 @@ function HomePage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [stats, setStats] = useState([0, 0, 0])
+  const [collectionCounts, setCollectionCounts] = useState({})
 
   useEffect(() => {
     let frame = null
@@ -128,6 +156,37 @@ function HomePage() {
 
     return () => {
       controller.abort()
+    }
+  }, [])
+
+  useEffect(() => {
+    let mounted = true
+
+    async function loadCollectionCounts() {
+      const entries = await Promise.all(
+        POPULAR_COLLECTIONS.map(async (collection) => {
+          try {
+            const response = await fetch(`/api/v1/collections/${collection.slug}`)
+            if (!response.ok) {
+              return [collection.slug, 0]
+            }
+            const data = await response.json()
+            return [collection.slug, Number(data?.count || 0)]
+          } catch {
+            return [collection.slug, 0]
+          }
+        }),
+      )
+
+      if (mounted) {
+        setCollectionCounts(Object.fromEntries(entries))
+      }
+    }
+
+    loadCollectionCounts()
+
+    return () => {
+      mounted = false
     }
   }, [])
 
@@ -277,6 +336,34 @@ function HomePage() {
               <h3 className="mt-2 text-lg font-semibold text-slate-900 dark:text-slate-100">{item.title}</h3>
               <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{item.detail}</p>
             </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="mx-auto w-full max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
+        <div className="mb-6 flex items-center justify-between gap-4">
+          <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Browse by Collection</h2>
+          <Link to="/collections" className="text-sm font-semibold text-indigo-600 hover:text-indigo-500 dark:text-indigo-400">
+            See all collections →
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {POPULAR_COLLECTIONS.map((collection) => (
+            <Link
+              key={collection.slug}
+              to={`/collections/${collection.slug}`}
+              className="group rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-indigo-300 hover:shadow-md dark:border-slate-800 dark:bg-slate-900 dark:hover:border-indigo-500"
+            >
+              <div className="text-2xl" aria-hidden="true">
+                {collection.emoji}
+              </div>
+              <h3 className="mt-3 font-semibold text-slate-900 dark:text-slate-100">{collection.title}</h3>
+              <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{collection.description}</p>
+              <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-indigo-600 dark:text-indigo-400">
+                {(collectionCounts[collection.slug] ?? 0).toLocaleString()} tools
+              </p>
+            </Link>
           ))}
         </div>
       </section>
