@@ -92,6 +92,7 @@ function DashboardPage() {
   const [user, setUser] = useState(() => readUserFromLocalStorage())
   const [recommendations, setRecommendations] = useState([])
   const [favorites, setFavorites] = useState([])
+  const [savedStack, setSavedStack] = useState(null)
   const [recentlyViewedTools, setRecentlyViewedTools] = useState([])
   const [recentlyViewedSlugs, setRecentlyViewedSlugs] = useState(() => readRecentlyViewedSlugs())
   const [loading, setLoading] = useState(true)
@@ -139,21 +140,27 @@ function DashboardPage() {
 
         setUser(mergedUser)
 
-        const [recommendationsResponse, favoritesResponse] = await Promise.all([
+        const userIdForStack = mergedUser?.id || storedUser?.id || ''
+
+        const [recommendationsResponse, favoritesResponse, stackResponse] = await Promise.all([
           fetch('/api/v1/recommendations', { signal: controller.signal }),
           fetch('/api/v1/favorites', { signal: controller.signal }),
+          fetch(`/api/v1/stack?user_id=${encodeURIComponent(userIdForStack)}`, { signal: controller.signal }),
         ])
 
         const recommendationsPayload = recommendationsResponse.ok ? await recommendationsResponse.json() : []
         const favoritesPayload = favoritesResponse.ok ? await favoritesResponse.json() : []
+        const stackPayload = stackResponse.ok ? await stackResponse.json() : { stack: null }
 
         const normalizedRecommendations = Array.isArray(recommendationsPayload)
           ? recommendationsPayload.map(normalizeTool).slice(0, 6)
           : []
         const normalizedFavorites = Array.isArray(favoritesPayload) ? favoritesPayload.map(normalizeTool) : []
+        const resolvedStack = stackPayload?.stack || null
 
         setRecommendations(normalizedRecommendations)
         setFavorites(normalizedFavorites)
+        setSavedStack(resolvedStack)
 
         const recentSlugs = readRecentlyViewedSlugs()
         setRecentlyViewedSlugs(recentSlugs)
@@ -219,7 +226,7 @@ function DashboardPage() {
   return (
     <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[16rem_minmax(0,1fr)]">
-        <aside className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 lg:sticky lg:top-24 lg:h-fit">
+        <aside className="rounded-2xl border border-slate-200 bg-white p-4 text-gray-900 shadow-sm dark:border-slate-700 dark:bg-gray-800 dark:text-white lg:sticky lg:top-24 lg:h-fit">
           <p className="px-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Dashboard</p>
           <nav className="mt-3 space-y-1">
             <button
@@ -285,33 +292,33 @@ function DashboardPage() {
           </section>
 
           <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            <div className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+            <div className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-gray-800">
               <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-lg bg-red-500/10 text-red-500">
                 <Heart className="h-4 w-4" />
               </div>
               <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Tools Saved</p>
-              <p className="mt-2 text-2xl font-bold text-slate-900 dark:text-slate-100">{favorites.length}</p>
+              <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">{favorites.length}</p>
             </div>
-            <div className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+            <div className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-gray-800">
               <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-lg bg-blue-500/10 text-blue-500">
                 <Grid3X3 className="h-4 w-4" />
               </div>
               <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Categories Explored</p>
-              <p className="mt-2 text-2xl font-bold text-slate-900 dark:text-slate-100">{categoriesExplored}</p>
+              <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">{categoriesExplored}</p>
             </div>
-            <div className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+            <div className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-gray-800">
               <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-500">
                 <Eye className="h-4 w-4" />
               </div>
               <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Tools Visited</p>
-              <p className="mt-2 text-2xl font-bold text-slate-900 dark:text-slate-100">{recentlyViewedSlugs.length}</p>
+              <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">{recentlyViewedSlugs.length}</p>
             </div>
-            <div className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+            <div className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-gray-800">
               <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-lg bg-purple-500/10 text-purple-500">
                 <Calendar className="h-4 w-4" />
               </div>
               <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Member Since</p>
-              <p className="mt-2 text-2xl font-bold text-slate-900 dark:text-slate-100">
+              <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
                 {user?.member_since || formatMemberSince(user?.created_at) || 'Unknown'}
               </p>
             </div>
@@ -395,6 +402,50 @@ function DashboardPage() {
                 {favorites.map((tool) => (
                   <Card key={tool.slug || tool.name} tool={tool} />
                 ))}
+              </div>
+            )}
+          </section>
+
+          <section>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">My AI Stack</h2>
+
+            {!savedStack ? (
+              <div className="mt-3 rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center dark:border-slate-700 dark:bg-slate-900/60">
+                <p className="text-sm text-slate-600 dark:text-slate-400">No stack saved yet</p>
+                <Button className="mt-4" onClick={() => navigate('/ai-tool-finder')}>
+                  Build My Stack
+                </Button>
+              </div>
+            ) : (
+              <div className="mt-3 rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-gray-800">
+                <div className="flex flex-wrap gap-2">
+                  <span className="rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-200">
+                    Goal: {savedStack.goal || 'N/A'}
+                  </span>
+                  <span className="rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-200">
+                    Budget: {savedStack.budget || 'N/A'}
+                  </span>
+                  <span className="rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-200">
+                    Level: {savedStack.level || 'N/A'}
+                  </span>
+                </div>
+                <div className="mt-4">
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white">Saved tools</p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {Array.isArray(savedStack.tools) && savedStack.tools.length > 0 ? (
+                      savedStack.tools.map((toolName, index) => (
+                        <span
+                          key={`saved-stack-tool-${index}`}
+                          className="rounded-lg border border-slate-300 px-2.5 py-1 text-xs text-slate-700 dark:border-slate-600 dark:text-slate-200"
+                        >
+                          {toolName}
+                        </span>
+                      ))
+                    ) : (
+                      <p className="text-sm text-slate-600 dark:text-slate-400">No tools in saved stack</p>
+                    )}
+                  </div>
+                </div>
               </div>
             )}
           </section>

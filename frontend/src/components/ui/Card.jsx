@@ -54,7 +54,7 @@ function Card({ tool = {} }) {
     <button
       type="button"
       onClick={() => navigate(`/tools/${slug}`)}
-      className="group flex w-full flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-indigo-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-indigo-500 dark:focus-visible:ring-offset-slate-950"
+      className="group flex w-full flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-4 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-indigo-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 dark:border-gray-700 dark:bg-gray-800 dark:hover:border-indigo-500 dark:focus-visible:ring-offset-slate-950"
     >
       <div className="flex items-start gap-3">
         <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden" aria-hidden="true">
@@ -78,9 +78,9 @@ function Card({ tool = {} }) {
         </div>
 
         <div className="min-w-0 flex-1">
-          <h3 className="truncate text-base font-semibold text-slate-900 dark:text-slate-100">{name}</h3>
+          <h3 className="truncate text-base font-semibold text-gray-900 dark:text-white">{name}</h3>
           <p
-            className="mt-1 overflow-hidden text-sm text-slate-600 dark:text-slate-300"
+            className="mt-1 overflow-hidden text-sm text-gray-600 dark:text-gray-400"
             style={{
               display: '-webkit-box',
               WebkitLineClamp: 2,

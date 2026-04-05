@@ -212,7 +212,8 @@ function HomePage() {
         </div>
       </section>
 
-      <section className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+      <section className="bg-gray-50 dark:bg-gray-900">
+        <div className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="mb-8 flex items-center justify-between gap-4">
           <h2 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Featured Tools</h2>
           <Link to="/tools" className="text-sm font-semibold text-indigo-600 hover:text-indigo-500 dark:text-indigo-400">
@@ -257,6 +258,7 @@ function HomePage() {
             </div>
           </div>
         )}
+        </div>
       </section>
 
       <section className="mx-auto w-full max-w-7xl px-4 pb-16 pt-4 sm:px-6 lg:px-8">

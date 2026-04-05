@@ -1,0 +1,1452 @@
+[
+  {
+    "id": 1,
+    "name": "ChatGPT",
+    "icon": "/static/icons/chatgpt.svg",
+    "maker": "OpenAI",
+    "tagline": "Conversational AI for writing, research, and problem-solving",
+    "category": "Writing & Docs",
+    "subCategory": "AI Writing Assistant",
+    "price": "Freemium",
+    "pricingDetail": "Free tier available; Plus at $20/month",
+    "bestFor": "Essays, brainstorming, and explaining complex topics",
+    "tags": [
+      "writing",
+      "chatbot",
+      "research",
+      "homework"
+    ],
+    "trending": true,
+    "rating": 4.8,
+    "weeklyUsers": "100M+",
+    "link": "https://chat.openai.com",
+    "apiAvailable": true,
+    "openSource": false,
+    "studentPerk": true,
+    "uniHack": "Use the system prompt to set yourself as a student needing step-by-step explanations",
+    "features": [
+      "GPT-4o model access",
+      "Image understanding",
+      "Code interpreter",
+      "Custom GPTs"
+    ],
+    "platforms": [
+      "Web",
+      "iOS",
+      "Android"
+    ],
+    "languages": "50+",
+    "launchYear": 2022,
+    "description": "ChatGPT is OpenAI's flagship conversational AI, capable of drafting essays, solving math problems, debugging code, and explaining complex concepts. Students use it daily for homework help, study summaries, and creative projects. The free tier provides solid functionality, while Plus unlocks GPT-4o for advanced tasks.",
+    "use_cases": [
+      "studying",
+      "writing"
+    ],
+    "difficulty": "beginner",
+    "student_friendly": true,
+    "pricing_tier": "freemium",
+    "popularity_score": 1,
+    "weekly_users_estimate": "100M+"
+  },
+  {
+    "id": 2,
+    "name": "Claude",
+    "icon": "/static/icons/claude.svg",
+    "maker": "Anthropic",
+    "tagline": "Thoughtful AI assistant with deep reasoning and long-context support",
+    "category": "Writing & Docs",
+    "subCategory": "AI Writing Assistant",
+    "price": "Freemium",
+    "pricingDetail": "Free tier; Pro at $20/month",
+    "bestFor": "Long essays, document analysis, and nuanced reasoning",
+    "tags": [
+      "writing",
+      "research",
+      "analysis",
+      "long-context"
+    ],
+    "trending": true,
+    "rating": 4.8,
+    "weeklyUsers": "10M+",
+    "link": "https://claude.ai",
+    "apiAvailable": true,
+    "openSource": false,
+    "studentPerk": true,
+    "uniHack": "Upload your entire textbook chapter and ask Claude to quiz you or summarize key concepts",
+    "features": [
+      "200K token context window",
+      "Document upload",
+      "Artifact creation",
+      "Deep reasoning"
+    ],
+    "platforms": [
+      "Web",
+      "iOS",
+      "Android"
+    ],
+    "languages": "50+",
+    "launchYear": 2023,
+    "description": "Claude by Anthropic excels at nuanced writing, thorough analysis, and handling very long documents in a single conversation. It is known for careful reasoning and safety-conscious responses, making it ideal for academic work. Students appreciate its ability to read and summarize entire research papers or textbooks.",
+    "use_cases": [
+      "studying",
+      "writing"
+    ],
+    "difficulty": "beginner",
+    "student_friendly": true,
+    "pricing_tier": "freemium",
+    "popularity_score": 0.9,
+    "weekly_users_estimate": "10M+"
+  },
+  {
+    "id": 3,
+    "name": "Grammarly",
+    "icon": "/static/icons/grammarly.svg",
+    "maker": "Grammarly Inc.",
+    "tagline": "AI-powered grammar, style, and plagiarism checker",
+    "category": "Writing & Docs",
+    "subCategory": "Grammar & Style",
+    "price": "Freemium",
+    "pricingDetail": "Free basic; Premium ~$12/month, student discounts available",
+    "bestFor": "Polishing essays and checking grammar in real time",
+    "tags": [
+      "grammar",
+      "writing",
+      "plagiarism",
+      "editing"
+    ],
+    "trending": false,
+    "rating": 4.6,
+    "weeklyUsers": "30M+",
+    "link": "https://grammarly.com",
+    "apiAvailable": false,
+    "openSource": false,
+    "studentPerk": true,
+    "uniHack": "Install the browser extension to get feedback directly inside Google Docs and Canvas",
+    "features": [
+      "Real-time grammar correction",
+      "Tone suggestions",
+      "Plagiarism detector",
+      "Browser extension"
+    ],
+    "platforms": [
+      "Web",
+      "Desktop",
+      "iOS",
+      "Android"
+    ],
+    "languages": "1",
+    "launchYear": 2009,
+    "description": "Grammarly is an AI writing assistant that catches grammar mistakes, suggests clearer phrasing, and checks for plagiarism. Its browser extension integrates seamlessly into students' existing workflows across email, docs, and LMS platforms. The premium plan provides genre-specific writing style guidance and citation assistance.",
+    "use_cases": [
+      "studying",
+      "writing"
+    ],
+    "difficulty": "beginner",
+    "student_friendly": true,
+    "pricing_tier": "freemium",
+    "popularity_score": 0.9,
+    "weekly_users_estimate": "30M+"
+  },
+  {
+    "id": 4,
+    "name": "Notion AI",
+    "icon": "/static/icons/notionai.svg",
+    "maker": "Notion Labs",
+    "tagline": "AI-enhanced note-taking and knowledge management",
+    "category": "Writing & Docs",
+    "subCategory": "Notes & Knowledge Base",
+    "price": "Freemium",
+    "pricingDetail": "Free Notion plan; AI add-on $10/month",
+    "bestFor": "Organizing lecture notes and generating study wikis",
+    "tags": [
+      "notes",
+      "productivity",
+      "writing",
+      "wiki"
+    ],
+    "trending": true,
+    "rating": 4.6,
+    "weeklyUsers": "20M+",
+    "link": "https://notion.so",
+    "apiAvailable": true,
+    "openSource": false,
+    "studentPerk": true,
+    "uniHack": "Create a class dashboard in Notion and let AI auto-summarize your meeting notes into action items",
+    "features": [
+      "AI summarization",
+      "Action item extraction",
+      "Smart autofill",
+      "Template gallery"
+    ],
+    "platforms": [
+      "Web",
+      "Desktop",
+      "iOS",
+      "Android"
+    ],
+    "languages": "10+",
+    "launchYear": 2016,
+    "description": "Notion AI integrates generative AI directly into the popular all-in-one workspace, helping students draft notes, summarize lengthy readings, and generate structured study plans. It lets you chat with your entire Notion database to quickly surface important information. The free tier is generous for individual students.",
+    "use_cases": [
+      "studying",
+      "writing"
+    ],
+    "difficulty": "beginner",
+    "student_friendly": true,
+    "pricing_tier": "freemium",
+    "popularity_score": 0.9,
+    "weekly_users_estimate": "20M+"
+  },
+  {
+    "id": 5,
+    "name": "Quillbot",
+    "icon": "/static/icons/quillbot.svg",
+    "maker": "QuillBot AI",
+    "tagline": "AI paraphrasing, summarization, and citation tool",
+    "category": "Writing & Docs",
+    "subCategory": "Paraphrasing & Summarization",
+    "price": "Freemium",
+    "pricingDetail": "Free limited use; Premium ~$8/month",
+    "bestFor": "Paraphrasing academic text and generating citations",
+    "tags": [
+      "paraphrasing",
+      "summarization",
+      "citations",
+      "writing"
+    ],
+    "trending": false,
+    "rating": 4.5,
+    "weeklyUsers": "5M+",
+    "link": "https://quillbot.com",
+    "apiAvailable": false,
+    "openSource": false,
+    "studentPerk": true,
+    "uniHack": "Use the summarizer on dense research papers before reading to understand what you are getting into",
+    "features": [
+      "Paraphrasing modes",
+      "Citation generator",
+      "Grammar checker",
+      "Summarizer"
+    ],
+    "platforms": [
+      "Web",
+      "Desktop"
+    ],
+    "languages": "30+",
+    "launchYear": 2017,
+    "description": "QuillBot helps students rephrase complex academic writing into clearer prose and automatically generates citations in APA, MLA, or Chicago format. The summarizer can condense long journal articles into key bullet points in seconds. It also integrates with Google Docs and Microsoft Word for seamless editing.",
+    "use_cases": [
+      "studying",
+      "writing"
+    ],
+    "difficulty": "beginner",
+    "student_friendly": true,
+    "pricing_tier": "freemium",
+    "popularity_score": 0.82,
+    "weekly_users_estimate": "5M+"
+  },
+  {
+    "id": 6,
+    "name": "GitHub Copilot",
+    "icon": "/static/icons/copilot.svg",
+    "maker": "GitHub / Microsoft",
+    "tagline": "AI pair programmer that autocompletes code in real time",
+    "category": "Coding",
+    "subCategory": "Code Completion",
+    "price": "Freemium",
+    "pricingDetail": "Free for students via GitHub Education; $10/month otherwise",
+    "bestFor": "Coding assignments and project development",
+    "tags": [
+      "coding",
+      "autocomplete",
+      "programming",
+      "IDE"
+    ],
+    "trending": true,
+    "rating": 4.8,
+    "weeklyUsers": "5M+",
+    "link": "https://github.com/features/copilot",
+    "apiAvailable": true,
+    "openSource": false,
+    "studentPerk": true,
+    "uniHack": "Apply for the GitHub Student Developer Pack to get Copilot completely free",
+    "features": [
+      "Line-by-line code suggestions",
+      "Whole function generation",
+      "Multi-language support",
+      "VS Code integration"
+    ],
+    "platforms": [
+      "Desktop",
+      "Web"
+    ],
+    "languages": "50+",
+    "launchYear": 2021,
+    "description": "GitHub Copilot is an AI pair programmer built into VS Code, JetBrains, and other popular editors that suggests code completions in real time. It helps students move past syntax barriers and learn new languages faster by showing contextually relevant code examples. Students enrolled in the GitHub Education program get it free.",
+    "use_cases": [
+      "coding",
+      "debugging"
+    ],
+    "difficulty": "intermediate",
+    "student_friendly": true,
+    "pricing_tier": "freemium",
+    "popularity_score": 0.82,
+    "weekly_users_estimate": "5M+"
+  },
+  {
+    "id": 7,
+    "name": "Cursor",
+    "icon": "/static/icons/cursor.svg",
+    "maker": "Anysphere",
+    "tagline": "AI-first code editor with chat, autocomplete, and codebase understanding",
+    "category": "Coding",
+    "subCategory": "AI Code Editor",
+    "price": "Freemium",
+    "pricingDetail": "Free Hobby plan; Pro at $20/month",
+    "bestFor": "Building full-stack projects with AI assistance throughout",
+    "tags": [
+      "coding",
+      "editor",
+      "AI",
+      "full-stack"
+    ],
+    "trending": true,
+    "rating": 4.7,
+    "weeklyUsers": "1M+",
+    "link": "https://cursor.sh",
+    "apiAvailable": false,
+    "openSource": false,
+    "studentPerk": false,
+    "uniHack": "Use the Ctrl+K inline edit shortcut to refactor messy assignment code without switching context",
+    "features": [
+      "Codebase-aware chat",
+      "Inline code editing",
+      "Multi-file edits",
+      "Terminal integration"
+    ],
+    "platforms": [
+      "Desktop"
+    ],
+    "languages": "50+",
+    "launchYear": 2023,
+    "description": "Cursor is a fork of VS Code built with AI at its core, enabling students to chat with their entire codebase, generate multi-file edits, and fix bugs by describing them in plain English. Its composer feature can scaffold entire applications from a short description. The free Hobby tier provides generous monthly AI completions.",
+    "use_cases": [
+      "coding",
+      "debugging"
+    ],
+    "difficulty": "intermediate",
+    "student_friendly": false,
+    "pricing_tier": "freemium",
+    "popularity_score": 0.72,
+    "weekly_users_estimate": "1M+"
+  },
+  {
+    "id": 8,
+    "name": "Replit AI",
+    "icon": "/static/icons/replit.svg",
+    "maker": "Replit",
+    "tagline": "Browser-based coding environment with built-in AI assistant",
+    "category": "Coding",
+    "subCategory": "Online IDE",
+    "price": "Freemium",
+    "pricingDetail": "Free tier; Core plan $20/month",
+    "bestFor": "Coding directly in the browser without setup",
+    "tags": [
+      "coding",
+      "browser",
+      "beginner",
+      "collaboration"
+    ],
+    "trending": false,
+    "rating": 4.4,
+    "weeklyUsers": "2M+",
+    "link": "https://replit.com",
+    "apiAvailable": true,
+    "openSource": false,
+    "studentPerk": true,
+    "uniHack": "Share a Replit link with classmates to collaborate on coding assignments in real time",
+    "features": [
+      "In-browser IDE",
+      "AI code generation",
+      "Real-time collaboration",
+      "50+ languages"
+    ],
+    "platforms": [
+      "Web",
+      "iOS",
+      "Android"
+    ],
+    "languages": "50+",
+    "launchYear": 2016,
+    "description": "Replit lets students code in over 50 programming languages directly in the browser without any local setup. Its integrated AI assistant can explain errors, generate boilerplate, and suggest improvements. Real-time multiplayer coding makes it perfect for pair programming on group assignments.",
+    "use_cases": [
+      "coding",
+      "debugging"
+    ],
+    "difficulty": "intermediate",
+    "student_friendly": true,
+    "pricing_tier": "freemium",
+    "popularity_score": 0.72,
+    "weekly_users_estimate": "2M+"
+  },
+  {
+    "id": 9,
+    "name": "Tabnine",
+    "icon": "/static/icons/tabnine.svg",
+    "maker": "Tabnine Ltd.",
+    "tagline": "Privacy-first AI code completion for every IDE",
+    "category": "Coding",
+    "subCategory": "Code Completion",
+    "price": "Freemium",
+    "pricingDetail": "Free basic; Dev plan $12/month",
+    "bestFor": "Code autocomplete with strong privacy controls",
+    "tags": [
+      "coding",
+      "autocomplete",
+      "privacy",
+      "IDE"
+    ],
+    "trending": false,
+    "rating": 4.3,
+    "weeklyUsers": "500K+",
+    "link": "https://tabnine.com",
+    "apiAvailable": false,
+    "openSource": false,
+    "studentPerk": false,
+    "uniHack": "Enable whole-line completions in your campus-approved IDE for faster coding assignments",
+    "features": [
+      "Whole-line completions",
+      "Local model option",
+      "All major IDEs",
+      "Team sharing"
+    ],
+    "platforms": [
+      "Desktop"
+    ],
+    "languages": "30+",
+    "launchYear": 2018,
+    "description": "Tabnine provides AI-powered code completion that runs locally or in the cloud and integrates with virtually every major IDE. Its privacy-first architecture is especially useful at universities with strict data policies. The free tier covers most student needs with accurate single and multi-line suggestions.",
+    "use_cases": [
+      "coding",
+      "debugging"
+    ],
+    "difficulty": "intermediate",
+    "student_friendly": false,
+    "pricing_tier": "freemium",
+    "popularity_score": 0.62,
+    "weekly_users_estimate": "500K+"
+  },
+  {
+    "id": 10,
+    "name": "Codeium",
+    "icon": "/static/icons/codeium.svg",
+    "maker": "Exafunction",
+    "tagline": "Free AI coding assistant with autocomplete and chat",
+    "category": "Coding",
+    "subCategory": "Code Completion",
+    "price": "Free",
+    "pricingDetail": "Always free for individuals",
+    "bestFor": "Free alternative to Copilot for student projects",
+    "tags": [
+      "coding",
+      "free",
+      "autocomplete",
+      "IDE"
+    ],
+    "trending": false,
+    "rating": 4.5,
+    "weeklyUsers": "500K+",
+    "link": "https://codeium.com",
+    "apiAvailable": false,
+    "openSource": false,
+    "studentPerk": true,
+    "uniHack": "Install Codeium in VS Code for free Copilot-level completions with no credit card required",
+    "features": [
+      "Free forever plan",
+      "IDE plugins",
+      "AI chat",
+      "Context-aware completions"
+    ],
+    "platforms": [
+      "Desktop",
+      "Web"
+    ],
+    "languages": "70+",
+    "launchYear": 2022,
+    "description": "Codeium offers fast, accurate AI code completions and an in-editor chat assistant completely free for individual developers and students. It supports more than 70 programming languages and integrates with VS Code, JetBrains, Neovim, and others. It is a popular choice for students who cannot access paid alternatives.",
+    "use_cases": [
+      "coding",
+      "debugging"
+    ],
+    "difficulty": "intermediate",
+    "student_friendly": true,
+    "pricing_tier": "free",
+    "popularity_score": 0.62,
+    "weekly_users_estimate": "500K+"
+  },
+  {
+    "id": 11,
+    "name": "Perplexity AI",
+    "icon": "/static/icons/perplexity.svg",
+    "maker": "Perplexity AI",
+    "tagline": "AI search engine with cited real-time answers",
+    "category": "Research",
+    "subCategory": "AI Search",
+    "price": "Freemium",
+    "pricingDetail": "Free tier; Pro $20/month",
+    "bestFor": "Getting sourced answers to research questions instantly",
+    "tags": [
+      "research",
+      "search",
+      "citations",
+      "real-time"
+    ],
+    "trending": true,
+    "rating": 4.7,
+    "weeklyUsers": "10M+",
+    "link": "https://perplexity.ai",
+    "apiAvailable": true,
+    "openSource": false,
+    "studentPerk": false,
+    "uniHack": "Use the Focus > Academic mode to restrict results to scholarly sources like arXiv and PubMed",
+    "features": [
+      "Real-time web search",
+      "Citation links",
+      "Academic mode",
+      "Follow-up questions"
+    ],
+    "platforms": [
+      "Web",
+      "iOS",
+      "Android"
+    ],
+    "languages": "20+",
+    "launchYear": 2022,
+    "description": "Perplexity AI acts as an AI-powered research engine that provides direct answers to questions with citations to real web sources. Students can use its Academic focus mode to surface peer-reviewed papers and academic content. Every answer includes clickable source links, making fact-checking straightforward.",
+    "use_cases": [
+      "research",
+      "studying"
+    ],
+    "difficulty": "intermediate",
+    "student_friendly": false,
+    "pricing_tier": "freemium",
+    "popularity_score": 0.9,
+    "weekly_users_estimate": "10M+"
+  },
+  {
+    "id": 12,
+    "name": "Elicit",
+    "icon": "/static/icons/elicit.svg",
+    "maker": "Elicit",
+    "tagline": "AI research assistant for finding and summarizing papers",
+    "category": "Research",
+    "subCategory": "Literature Review",
+    "price": "Freemium",
+    "pricingDetail": "Free tier; Plus $10/month",
+    "bestFor": "Literature reviews and systematic research synthesis",
+    "tags": [
+      "research",
+      "papers",
+      "literature review",
+      "academic"
+    ],
+    "trending": false,
+    "rating": 4.5,
+    "weeklyUsers": "300K+",
+    "link": "https://elicit.com",
+    "apiAvailable": false,
+    "openSource": false,
+    "studentPerk": true,
+    "uniHack": "Paste your research question and let Elicit pull the top 20 papers with auto-extracted key findings",
+    "features": [
+      "Semantic paper search",
+      "Auto-extraction of study data",
+      "Literature mapping",
+      "Citation export"
+    ],
+    "platforms": [
+      "Web"
+    ],
+    "languages": "5+",
+    "launchYear": 2021,
+    "description": "Elicit is designed for academic research, helping students find relevant papers, extract key data from studies, and map the literature around any topic. Its semantic search goes beyond keyword matching to surface conceptually related work. Researchers and students use it to conduct systematic reviews far faster than manually.",
+    "use_cases": [
+      "research",
+      "studying"
+    ],
+    "difficulty": "intermediate",
+    "student_friendly": true,
+    "pricing_tier": "freemium",
+    "popularity_score": 0.52,
+    "weekly_users_estimate": "300K+"
+  },
+  {
+    "id": 13,
+    "name": "Consensus",
+    "icon": "/static/icons/consensus.svg",
+    "maker": "Consensus NLP",
+    "tagline": "Search engine that finds scientific consensus on research questions",
+    "category": "Research",
+    "subCategory": "Scientific Search",
+    "price": "Freemium",
+    "pricingDetail": "Free limited; Premium $9/month",
+    "bestFor": "Quickly finding what scientific evidence says on a topic",
+    "tags": [
+      "research",
+      "science",
+      "evidence",
+      "papers"
+    ],
+    "trending": false,
+    "rating": 4.4,
+    "weeklyUsers": "200K+",
+    "link": "https://consensus.app",
+    "apiAvailable": false,
+    "openSource": false,
+    "studentPerk": false,
+    "uniHack": "Ask a yes/no research question to see what percentage of studies support or refute the claim",
+    "features": [
+      "Consensus meter",
+      "Paper snippets",
+      "Study highlights",
+      "Export to citation managers"
+    ],
+    "platforms": [
+      "Web"
+    ],
+    "languages": "5+",
+    "launchYear": 2022,
+    "description": "Consensus searches over 200 million scientific papers and aggregates findings into a consensus meter showing how much the research agrees or disagrees on a topic. Students can type a research question in plain English and get evidence-backed summaries instead of raw search results. It is especially useful for health, psychology, and social science topics.",
+    "use_cases": [
+      "research",
+      "studying"
+    ],
+    "difficulty": "intermediate",
+    "student_friendly": false,
+    "pricing_tier": "freemium",
+    "popularity_score": 0.52,
+    "weekly_users_estimate": "200K+"
+  },
+  {
+    "id": 14,
+    "name": "Semantic Scholar",
+    "icon": "/static/icons/semanticscholar.svg",
+    "maker": "Allen Institute for AI",
+    "tagline": "Free AI-powered academic search engine with paper insights",
+    "category": "Research",
+    "subCategory": "Academic Search",
+    "price": "Free",
+    "pricingDetail": "Always free",
+    "bestFor": "Finding and understanding academic papers with AI insights",
+    "tags": [
+      "research",
+      "papers",
+      "free",
+      "academic"
+    ],
+    "trending": false,
+    "rating": 4.5,
+    "weeklyUsers": "3M+",
+    "link": "https://semanticscholar.org",
+    "apiAvailable": true,
+    "openSource": false,
+    "studentPerk": true,
+    "uniHack": "Use the TLDR feature to get a two-sentence summary of any paper before deciding to read the full version",
+    "features": [
+      "TLDR summaries",
+      "Citation graph",
+      "Author profiles",
+      "Research alerts"
+    ],
+    "platforms": [
+      "Web"
+    ],
+    "languages": "10+",
+    "launchYear": 2015,
+    "description": "Semantic Scholar is a free academic search engine powered by AI that covers over 200 million papers across all fields. Its AI-generated TLDR feature gives students a quick summary of any paper, while citation graphs help them trace how ideas evolve across the literature. Entirely free, making it ideal for budget-conscious students.",
+    "use_cases": [
+      "research",
+      "studying"
+    ],
+    "difficulty": "intermediate",
+    "student_friendly": true,
+    "pricing_tier": "free",
+    "popularity_score": 0.72,
+    "weekly_users_estimate": "3M+"
+  },
+  {
+    "id": 15,
+    "name": "SciSpace",
+    "icon": "/static/icons/scispace.svg",
+    "maker": "SciSpace",
+    "tagline": "AI copilot for reading and understanding research papers",
+    "category": "Research",
+    "subCategory": "Paper Reading",
+    "price": "Freemium",
+    "pricingDetail": "Free limited; Premium $12/month",
+    "bestFor": "Understanding dense research papers with AI explanations",
+    "tags": [
+      "research",
+      "papers",
+      "reading",
+      "explanation"
+    ],
+    "trending": false,
+    "rating": 4.4,
+    "weeklyUsers": "400K+",
+    "link": "https://typeset.io",
+    "apiAvailable": false,
+    "openSource": false,
+    "studentPerk": false,
+    "uniHack": "Highlight any confusing paragraph and click Ask to get an instant plain-English explanation",
+    "features": [
+      "In-paper Q&A",
+      "Math and table explanation",
+      "Related paper discovery",
+      "Citation extraction"
+    ],
+    "platforms": [
+      "Web"
+    ],
+    "languages": "10+",
+    "launchYear": 2020,
+    "description": "SciSpace lets students upload research papers or find them via search and then ask the AI copilot questions about the content inline. It can explain complex equations, interpret tables, and suggest related papers for deeper reading. The tool is especially helpful for students entering a new research area who encounter unfamiliar jargon.",
+    "use_cases": [
+      "research",
+      "studying"
+    ],
+    "difficulty": "intermediate",
+    "student_friendly": false,
+    "pricing_tier": "freemium",
+    "popularity_score": 0.52,
+    "weekly_users_estimate": "400K+"
+  },
+  {
+    "id": 16,
+    "name": "Connected Papers",
+    "icon": "/static/icons/connectedpapers.svg",
+    "maker": "Connected Papers",
+    "tagline": "Visual graph of connected research papers for literature exploration",
+    "category": "Research",
+    "subCategory": "Citation Mapping",
+    "price": "Freemium",
+    "pricingDetail": "5 free graphs; $3/month for unlimited",
+    "bestFor": "Visualizing how papers relate and finding seminal works",
+    "tags": [
+      "research",
+      "citations",
+      "visualization",
+      "literature"
+    ],
+    "trending": false,
+    "rating": 4.4,
+    "weeklyUsers": "100K+",
+    "link": "https://connectedpapers.com",
+    "apiAvailable": false,
+    "openSource": false,
+    "studentPerk": false,
+    "uniHack": "Start with one key paper to generate a graph and instantly spot the 5 most-cited foundational works",
+    "features": [
+      "Visual graph explorer",
+      "Paper clustering",
+      "Prior and derivative works",
+      "Export to list"
+    ],
+    "platforms": [
+      "Web"
+    ],
+    "languages": "5+",
+    "launchYear": 2020,
+    "description": "Connected Papers generates an interactive visual graph of papers related to a seed paper, showing how research fields branch and connect. Students use it to quickly identify the seminal works in a field and discover derivative research they might have missed. The graph clusters help visualize sub-topics within a research area.",
+    "use_cases": [
+      "research",
+      "studying"
+    ],
+    "difficulty": "intermediate",
+    "student_friendly": false,
+    "pricing_tier": "freemium",
+    "popularity_score": 0.52,
+    "weekly_users_estimate": "100K+"
+  },
+  {
+    "id": 17,
+    "name": "Anki",
+    "icon": "/static/icons/anki.svg",
+    "maker": "Damien Elmes",
+    "tagline": "Spaced repetition flashcard system for long-term memory retention",
+    "category": "Study Tools",
+    "subCategory": "Flashcards",
+    "price": "Free",
+    "pricingDetail": "Free on desktop and Android; $25 one-time on iOS",
+    "bestFor": "Memorizing vocabulary, formulas, and facts with proven science",
+    "tags": [
+      "flashcards",
+      "spaced repetition",
+      "memory",
+      "studying"
+    ],
+    "trending": false,
+    "rating": 4.7,
+    "weeklyUsers": "5M+",
+    "link": "https://apps.ankiweb.net",
+    "apiAvailable": false,
+    "openSource": true,
+    "studentPerk": true,
+    "uniHack": "Import community decks for your medical school, bar exam, or language class to save card-making time",
+    "features": [
+      "Spaced repetition algorithm",
+      "Rich media cards",
+      "Community deck library",
+      "Cross-device sync"
+    ],
+    "platforms": [
+      "Desktop",
+      "iOS",
+      "Android",
+      "Web"
+    ],
+    "languages": "50+",
+    "launchYear": 2006,
+    "description": "Anki is the gold-standard spaced repetition flashcard app used by medical students, language learners, and professionals worldwide. Its algorithm schedules card reviews at optimal intervals to maximize long-term memory retention with minimum study time. Thousands of community-shared decks cover virtually every subject students need.",
+    "use_cases": [
+      "research",
+      "studying"
+    ],
+    "difficulty": "intermediate",
+    "student_friendly": true,
+    "pricing_tier": "free",
+    "popularity_score": 0.82,
+    "weekly_users_estimate": "5M+"
+  },
+  {
+    "id": 18,
+    "name": "Quizlet",
+    "icon": "/static/icons/quizlet.svg",
+    "maker": "Quizlet Inc.",
+    "tagline": "AI-powered flashcards and study modes for any subject",
+    "category": "Study Tools",
+    "subCategory": "Flashcards",
+    "price": "Freemium",
+    "pricingDetail": "Free basic; Plus $35/year",
+    "bestFor": "Creating and studying flashcard sets with AI explanations",
+    "tags": [
+      "flashcards",
+      "studying",
+      "quiz",
+      "AI"
+    ],
+    "trending": false,
+    "rating": 4.5,
+    "weeklyUsers": "20M+",
+    "link": "https://quizlet.com",
+    "apiAvailable": false,
+    "openSource": false,
+    "studentPerk": true,
+    "uniHack": "Use the Q-Chat feature to have the AI quiz you conversationally instead of clicking through cards",
+    "features": [
+      "AI Q-Chat tutor",
+      "Learn mode",
+      "Test mode",
+      "Shared study sets"
+    ],
+    "platforms": [
+      "Web",
+      "iOS",
+      "Android"
+    ],
+    "languages": "20+",
+    "launchYear": 2005,
+    "description": "Quizlet is one of the most popular study platforms among students, combining AI-powered flashcard creation with interactive study modes like Learn, Spell, and Match. The Q-Chat AI tutor engages students conversationally to reinforce concepts. Millions of pre-made sets cover everything from AP exams to university-level courses.",
+    "use_cases": [
+      "research",
+      "studying"
+    ],
+    "difficulty": "intermediate",
+    "student_friendly": true,
+    "pricing_tier": "freemium",
+    "popularity_score": 0.9,
+    "weekly_users_estimate": "20M+"
+  },
+  {
+    "id": 19,
+    "name": "Khan Academy Khanmigo",
+    "icon": "/static/icons/khanmigo.svg",
+    "maker": "Khan Academy",
+    "tagline": "AI tutor that guides students through problems without giving answers away",
+    "category": "Study Tools",
+    "subCategory": "AI Tutoring",
+    "price": "Freemium",
+    "pricingDetail": "Free for students; donation-based",
+    "bestFor": "Math tutoring and concept mastery through guided practice",
+    "tags": [
+      "tutoring",
+      "math",
+      "guided learning",
+      "K-12"
+    ],
+    "trending": false,
+    "rating": 4.6,
+    "weeklyUsers": "5M+",
+    "link": "https://khanacademy.org",
+    "apiAvailable": false,
+    "openSource": false,
+    "studentPerk": true,
+    "uniHack": "When stuck on a proof, ask Khanmigo to ask you leading questions rather than showing the solution",
+    "features": [
+      "Socratic tutoring style",
+      "Curriculum alignment",
+      "Progress tracking",
+      "Essay feedback"
+    ],
+    "platforms": [
+      "Web",
+      "iOS",
+      "Android"
+    ],
+    "languages": "40+",
+    "launchYear": 2023,
+    "description": "Khanmigo is Khan Academy's GPT-4-powered AI tutor that teaches through guided questioning rather than simply giving answers. It is designed for K-12 through introductory college subjects and is deeply integrated with Khan Academy's curriculum and practice exercises. The platform is free or donation-based, making it one of the most accessible AI tutors available.",
+    "use_cases": [
+      "research",
+      "studying"
+    ],
+    "difficulty": "intermediate",
+    "student_friendly": true,
+    "pricing_tier": "freemium",
+    "popularity_score": 0.82,
+    "weekly_users_estimate": "5M+"
+  },
+  {
+    "id": 20,
+    "name": "Photomath",
+    "icon": "/static/icons/photomath.svg",
+    "maker": "Google",
+    "tagline": "Snap a math problem and get step-by-step solutions instantly",
+    "category": "Study Tools",
+    "subCategory": "Math Solver",
+    "price": "Freemium",
+    "pricingDetail": "Free basic; Plus $10/month for animated explanations",
+    "bestFor": "Understanding math problem-solving steps from a photo",
+    "tags": [
+      "math",
+      "solver",
+      "camera",
+      "step-by-step"
+    ],
+    "trending": false,
+    "rating": 4.6,
+    "weeklyUsers": "3M+",
+    "link": "https://photomath.com",
+    "apiAvailable": false,
+    "openSource": false,
+    "studentPerk": false,
+    "uniHack": "Don't just copy the answer \u00e2\u20ac\u201d read through each step to understand the method for your exam",
+    "features": [
+      "Camera math scanning",
+      "Step-by-step solutions",
+      "Multiple solving methods",
+      "Graphing"
+    ],
+    "platforms": [
+      "iOS",
+      "Android"
+    ],
+    "languages": "30+",
+    "launchYear": 2014,
+    "description": "Photomath lets students photograph any handwritten or printed math problem and instantly receive detailed step-by-step solutions. It supports arithmetic through calculus and explains each step clearly, helping students understand methods rather than just copying answers. The Plus plan adds animated explanations and expert-created problem walkthroughs.",
+    "use_cases": [
+      "research",
+      "studying"
+    ],
+    "difficulty": "intermediate",
+    "student_friendly": false,
+    "pricing_tier": "freemium",
+    "popularity_score": 0.72,
+    "weekly_users_estimate": "3M+"
+  },
+  {
+    "id": 21,
+    "name": "Wolfram Alpha",
+    "icon": "/static/icons/wolframalpha.svg",
+    "maker": "Wolfram Research",
+    "tagline": "Computational knowledge engine for math, science, and more",
+    "category": "Study Tools",
+    "subCategory": "Math Solver",
+    "price": "Freemium",
+    "pricingDetail": "Free basic; Pro $7.25/month",
+    "bestFor": "Solving complex math, chemistry, and physics problems computationally",
+    "tags": [
+      "math",
+      "science",
+      "computation",
+      "formulas"
+    ],
+    "trending": false,
+    "rating": 4.7,
+    "weeklyUsers": "5M+",
+    "link": "https://wolframalpha.com",
+    "apiAvailable": true,
+    "openSource": false,
+    "studentPerk": true,
+    "uniHack": "Type 'solve x^2+5x+6=0 step by step' to see full derivation instead of just the answer",
+    "features": [
+      "Step-by-step solutions",
+      "Graphing",
+      "Scientific data",
+      "Unit conversions"
+    ],
+    "platforms": [
+      "Web",
+      "iOS",
+      "Android"
+    ],
+    "languages": "5+",
+    "launchYear": 2009,
+    "description": "Wolfram Alpha is a computational knowledge engine that can solve calculus problems, balance chemical equations, interpret statistical data, and answer scientific questions with precise, sourced answers. Students in STEM fields rely on it for complex problem-solving beyond basic calculators. Its Pro plan provides detailed step-by-step solutions for studying.",
+    "use_cases": [
+      "research",
+      "studying"
+    ],
+    "difficulty": "intermediate",
+    "student_friendly": true,
+    "pricing_tier": "freemium",
+    "popularity_score": 0.82,
+    "weekly_users_estimate": "5M+"
+  },
+  {
+    "id": 22,
+    "name": "Socratic by Google",
+    "icon": "/static/icons/socratic.svg",
+    "maker": "Google",
+    "tagline": "AI homework helper that explains concepts visually",
+    "category": "Study Tools",
+    "subCategory": "Homework Help",
+    "price": "Free",
+    "pricingDetail": "Always free",
+    "bestFor": "Getting visual explanations to homework questions via camera",
+    "tags": [
+      "homework",
+      "visual",
+      "free",
+      "explanation"
+    ],
+    "trending": false,
+    "rating": 4.4,
+    "weeklyUsers": "2M+",
+    "link": "https://socratic.org",
+    "apiAvailable": false,
+    "openSource": false,
+    "studentPerk": true,
+    "uniHack": "Take a photo of your homework question to get curated video explanations linked to the topic",
+    "features": [
+      "Camera Q&A",
+      "Visual explanations",
+      "Video links",
+      "Multi-subject support"
+    ],
+    "platforms": [
+      "iOS",
+      "Android"
+    ],
+    "languages": "10+",
+    "launchYear": 2013,
+    "description": "Socratic by Google uses AI to identify questions from photos and surface the best explanations, videos, and resources available online. It covers math, science, English, and history for middle and high school students. The visual and video-focused approach suits students who learn better from diagrams than from text.",
+    "use_cases": [
+      "research",
+      "studying"
+    ],
+    "difficulty": "intermediate",
+    "student_friendly": true,
+    "pricing_tier": "free",
+    "popularity_score": 0.72,
+    "weekly_users_estimate": "2M+"
+  },
+  {
+    "id": 23,
+    "name": "Todoist AI",
+    "icon": "/static/icons/todoist.svg",
+    "maker": "Doist",
+    "tagline": "Smart task manager with AI natural language scheduling",
+    "category": "Productivity",
+    "subCategory": "Task Management",
+    "price": "Freemium",
+    "pricingDetail": "Free basic; Pro $4/month",
+    "bestFor": "Organizing assignments and deadlines with natural language",
+    "tags": [
+      "productivity",
+      "tasks",
+      "scheduling",
+      "deadlines"
+    ],
+    "trending": false,
+    "rating": 4.5,
+    "weeklyUsers": "5M+",
+    "link": "https://todoist.com",
+    "apiAvailable": true,
+    "openSource": false,
+    "studentPerk": false,
+    "uniHack": "Type 'submit chemistry lab every Friday at 11pm' and AI will create recurring reminders automatically",
+    "features": [
+      "Natural language input",
+      "Priority levels",
+      "Calendar sync",
+      "Collaboration"
+    ],
+    "platforms": [
+      "Web",
+      "Desktop",
+      "iOS",
+      "Android"
+    ],
+    "languages": "20+",
+    "launchYear": 2007,
+    "description": "Todoist uses AI to parse natural language task entries, automatically setting due dates, priorities, and recurring schedules. Students can dump all their assignments in plain text and let the app organize them by priority and deadline. Cross-device sync and calendar integration keep academic schedules consistent everywhere.",
+    "use_cases": [
+      "productivity",
+      "organization"
+    ],
+    "difficulty": "beginner",
+    "student_friendly": false,
+    "pricing_tier": "freemium",
+    "popularity_score": 0.82,
+    "weekly_users_estimate": "5M+"
+  },
+  {
+    "id": 24,
+    "name": "Motion",
+    "icon": "/static/icons/motion.svg",
+    "maker": "Motion",
+    "tagline": "AI scheduler that automatically plans your day around your tasks",
+    "category": "Productivity",
+    "subCategory": "AI Scheduling",
+    "price": "Paid",
+    "pricingDetail": "$19/month; student discount sometimes available",
+    "bestFor": "Auto-scheduling study blocks around classes and deadlines",
+    "tags": [
+      "scheduling",
+      "calendar",
+      "AI",
+      "time management"
+    ],
+    "trending": true,
+    "rating": 4.4,
+    "weeklyUsers": "200K+",
+    "link": "https://usemotion.com",
+    "apiAvailable": false,
+    "openSource": false,
+    "studentPerk": false,
+    "uniHack": "Add all assignments as tasks with deadlines and let Motion block out study time automatically",
+    "features": [
+      "Auto task scheduling",
+      "Calendar integration",
+      "Priority management",
+      "Meeting booking"
+    ],
+    "platforms": [
+      "Web",
+      "Desktop",
+      "iOS",
+      "Android"
+    ],
+    "languages": "5+",
+    "launchYear": 2019,
+    "description": "Motion uses AI to automatically build and rebuild your daily schedule based on your tasks, deadlines, meetings, and personal work style. Students can input all upcoming deadlines and the app will allocate focused study blocks across the calendar, automatically rescheduling when conflicts arise. It reduces the cognitive load of planning exam prep periods.",
+    "use_cases": [
+      "productivity",
+      "organization"
+    ],
+    "difficulty": "beginner",
+    "student_friendly": false,
+    "pricing_tier": "paid",
+    "popularity_score": 0.52,
+    "weekly_users_estimate": "200K+"
+  },
+  {
+    "id": 25,
+    "name": "Otter.ai",
+    "icon": "/static/icons/otterai.svg",
+    "maker": "Otter.ai",
+    "tagline": "AI meeting and lecture transcription with real-time notes",
+    "category": "Productivity",
+    "subCategory": "Transcription",
+    "price": "Freemium",
+    "pricingDetail": "Free 300 min/month; Pro $17/month",
+    "bestFor": "Transcribing lectures and study group discussions automatically",
+    "tags": [
+      "transcription",
+      "lectures",
+      "notes",
+      "audio"
+    ],
+    "trending": false,
+    "rating": 4.4,
+    "weeklyUsers": "1M+",
+    "link": "https://otter.ai",
+    "apiAvailable": true,
+    "openSource": false,
+    "studentPerk": true,
+    "uniHack": "Enable Otter on your phone during lecture and review the searchable transcript instead of handwritten notes",
+    "features": [
+      "Live transcription",
+      "Speaker identification",
+      "Summary generation",
+      "Searchable notes"
+    ],
+    "platforms": [
+      "Web",
+      "iOS",
+      "Android"
+    ],
+    "languages": "5+",
+    "launchYear": 2016,
+    "description": "Otter.ai provides real-time transcription of lectures, study sessions, and video calls, producing searchable, speaker-labeled notes. Its AI generates automatic summaries so students can review key points without rewatching entire recordings. Integrations with Zoom and Google Meet make it easy to capture any online class.",
+    "use_cases": [
+      "productivity",
+      "organization"
+    ],
+    "difficulty": "beginner",
+    "student_friendly": true,
+    "pricing_tier": "freemium",
+    "popularity_score": 0.72,
+    "weekly_users_estimate": "1M+"
+  },
+  {
+    "id": 26,
+    "name": "Midjourney",
+    "icon": "/static/icons/midjourney.svg",
+    "maker": "Midjourney Inc.",
+    "tagline": "Leading AI image generator for stunning artistic visuals",
+    "category": "Image Generation",
+    "subCategory": "Art Generation",
+    "price": "Paid",
+    "pricingDetail": "Basic plan $10/month",
+    "bestFor": "Creating high-quality artistic images for presentations and projects",
+    "tags": [
+      "image generation",
+      "art",
+      "design",
+      "creative"
+    ],
+    "trending": true,
+    "rating": 4.8,
+    "weeklyUsers": "5M+",
+    "link": "https://midjourney.com",
+    "apiAvailable": false,
+    "openSource": false,
+    "studentPerk": false,
+    "uniHack": "Use descriptive style keywords like 'editorial illustration' or 'flat design infographic' for cleaner academic visuals",
+    "features": [
+      "Photorealistic generation",
+      "Style control",
+      "Upscaling",
+      "Variation generation"
+    ],
+    "platforms": [
+      "Web"
+    ],
+    "languages": "10+",
+    "launchYear": 2022,
+    "description": "Midjourney is the leading AI image generation platform known for producing stunning artistic and photorealistic images from text prompts. Students use it to create custom visuals for presentations, posters, and creative projects. The web interface replaced the Discord-only workflow, making it significantly more accessible for everyday use.",
+    "use_cases": [
+      "creating",
+      "content creation"
+    ],
+    "difficulty": "beginner",
+    "student_friendly": false,
+    "pricing_tier": "paid",
+    "popularity_score": 0.82,
+    "weekly_users_estimate": "5M+"
+  },
+  {
+    "id": 27,
+    "name": "DALL-E 3",
+    "icon": "/static/icons/dalle.svg",
+    "maker": "OpenAI",
+    "tagline": "OpenAI's image generator with precise prompt understanding",
+    "category": "Image Generation",
+    "subCategory": "Text to Image",
+    "price": "Freemium",
+    "pricingDetail": "Accessible via ChatGPT Plus at $20/month",
+    "bestFor": "Generating images that precisely match complex text descriptions",
+    "tags": [
+      "image generation",
+      "text-to-image",
+      "creative",
+      "accurate"
+    ],
+    "trending": false,
+    "rating": 4.6,
+    "weeklyUsers": "10M+",
+    "link": "https://openai.com/dall-e-3",
+    "apiAvailable": true,
+    "openSource": false,
+    "studentPerk": false,
+    "uniHack": "Ask ChatGPT to help you craft a detailed DALL-E prompt to get exactly the visual you need for your poster",
+    "features": [
+      "Precise prompt following",
+      "Text in images",
+      "Multiple sizes",
+      "API access"
+    ],
+    "platforms": [
+      "Web",
+      "iOS",
+      "Android"
+    ],
+    "languages": "10+",
+    "launchYear": 2023,
+    "description": "DALL-E 3 is OpenAI's image generation model built into ChatGPT that excels at understanding nuanced, complex prompts and generating images that closely match the description. It can render legible text within images, making it useful for creating infographics, posters, and slides. Access through ChatGPT Plus includes up to 50 image generations per day.",
+    "use_cases": [
+      "creating",
+      "content creation"
+    ],
+    "difficulty": "beginner",
+    "student_friendly": false,
+    "pricing_tier": "freemium",
+    "popularity_score": 0.9,
+    "weekly_users_estimate": "10M+"
+  },
+  {
+    "id": 28,
+    "name": "Adobe Firefly",
+    "icon": "/static/icons/firefly.svg",
+    "maker": "Adobe",
+    "tagline": "AI image generator built for commercial safe, responsible creation",
+    "category": "Image Generation",
+    "subCategory": "Text to Image",
+    "price": "Freemium",
+    "pricingDetail": "Free 25 credits/month; Firefly Premium $9.99/month",
+    "bestFor": "Creating images safe for academic and commercial use",
+    "tags": [
+      "image generation",
+      "safe",
+      "commercial",
+      "design"
+    ],
+    "trending": false,
+    "rating": 4.4,
+    "weeklyUsers": "3M+",
+    "link": "https://firefly.adobe.com",
+    "apiAvailable": true,
+    "openSource": false,
+    "studentPerk": true,
+    "uniHack": "Use Firefly inside Photoshop via Generative Fill to add or remove elements from existing project photos",
+    "features": [
+      "Generative fill",
+      "Text effects",
+      "Vector recolor",
+      "Reference image upload"
+    ],
+    "platforms": [
+      "Web",
+      "Desktop"
+    ],
+    "languages": "20+",
+    "launchYear": 2023,
+    "description": "Adobe Firefly is trained on licensed and public domain content, making it safe for academic submissions and commercial student projects without copyright concerns. It integrates with Photoshop, Illustrator, and Express for a seamless creative workflow. Students with an Adobe Creative Cloud subscription often get Firefly credits included.",
+    "use_cases": [
+      "creating",
+      "content creation"
+    ],
+    "difficulty": "beginner",
+    "student_friendly": true,
+    "pricing_tier": "freemium",
+    "popularity_score": 0.72,
+    "weekly_users_estimate": "3M+"
+  },
+  {
+    "id": 29,
+    "name": "Stable Diffusion",
+    "icon": "/static/icons/stablediffusion.svg",
+    "maker": "Stability AI",
+    "tagline": "Open-source AI image generator you can run locally",
+    "category": "Image Generation",
+    "subCategory": "Text to Image",
+    "price": "Free",
+    "pricingDetail": "Free open-source; hosted options available",
+    "bestFor": "Students who want full control and privacy for image generation",
+    "tags": [
+      "image generation",
+      "open source",
+      "local",
+      "customizable"
+    ],
+    "trending": false,
+    "rating": 4.4,
+    "weeklyUsers": "2M+",
+    "link": "https://stability.ai",
+    "apiAvailable": true,
+    "openSource": true,
+    "studentPerk": false,
+    "uniHack": "Run it locally on your campus GPU cluster for free unlimited generations without usage limits",
+    "features": [
+      "Fully open source",
+      "Unlimited local use",
+      "Custom fine-tuning",
+      "Huge community ecosystem"
+    ],
+    "platforms": [
+      "Desktop",
+      "Web"
+    ],
+    "languages": "10+",
+    "launchYear": 2022,
+    "description": "Stable Diffusion is the leading open-source text-to-image model that students can run locally on their own hardware for unlimited image generation without usage limits. Its vibrant community has created thousands of fine-tuned models for specific styles and subjects. Local use ensures privacy and no per-image costs.",
+    "use_cases": [
+      "creating",
+      "content creation"
+    ],
+    "difficulty": "beginner",
+    "student_friendly": false,
+    "pricing_tier": "free",
+    "popularity_score": 0.72,
+    "weekly_users_estimate": "2M+"
+  },
+  {
+    "id": 30,
+    "name": "Leonardo AI",
+    "icon": "/static/icons/leonardoai.svg",
+    "maker": "Leonardo AI",
+    "tagline": "AI image platform with fine-tuned models for creative projects",
+    "category": "Image Generation",
+    "subCategory": "Art Generation",
+    "price": "Freemium",
+    "pricingDetail": "Free 150 tokens/day; Apprentice $10/month",
+    "bestFor": "Creating consistent character and game-asset visuals",
+    "tags": [
+      "image generation",
+      "game art",
+      "character design",
+      "creative"
+    ],
+    "trending": false,
+    "rating": 4.5,
+    "weeklyUsers": "1M+",
+    "link": "https://leonardo.ai",
+    "apiAvailable": true,
+    "openSource": false,
+    "studentPerk": false,
+    "uniHack": "Use the Canvas editor to iteratively edit generated images for consistent visual style across a project",
+    "features": [
+      "Multiple model options",
+      "Canvas editor",
+      "Character reference",
+      "Motion generation"
+    ],
+    "platforms": [
+      "Web"
+    ],
+    "languages": "10+",
+    "launchYear": 2022,
+    "description": "Leonardo AI offers a wide range of fine-tuned image generation models suited for game design, concept art, and creative projects. The platform provides detailed control over style, aspect ratio, and character consistency across multiple generations. Its generous daily free token allowance makes it accessible to students on a budget.",
+    "use_cases": [
+      "creating",
+      "content creation"
+    ],
+    "difficulty": "beginner",
+    "student_friendly": false,
+    "pricing_tier": "freemium",
+    "popularity_score": 0.72,
+    "weekly_users_estimate": "1M+"
+  }
+]

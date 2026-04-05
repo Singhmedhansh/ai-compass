@@ -80,7 +80,7 @@ function Navbar() {
       <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center gap-3 px-4 py-3 sm:px-6 lg:px-8">
         <Link
           to="/"
-          className="shrink-0 text-lg font-bold tracking-tight text-indigo-600 transition-colors hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
+          className="shrink-0 text-lg font-bold tracking-tight text-gray-900 transition-colors hover:text-indigo-700 dark:text-white dark:hover:text-indigo-300"
         >
           AI Compass
         </Link>
@@ -122,7 +122,7 @@ function Navbar() {
               </div>
 
               <Link to="/dashboard">
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost" size="sm" className="text-gray-900 dark:text-white">
                   Dashboard
                 </Button>
               </Link>
@@ -134,7 +134,7 @@ function Navbar() {
           ) : (
             <>
               <Link to="/login">
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost" size="sm" className="text-gray-900 dark:text-white">
                   Login
                 </Button>
               </Link>

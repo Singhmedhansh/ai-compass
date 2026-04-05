@@ -4195,3 +4195,19 @@ def sitemap_xml():
         + "\n</urlset>"
     )
     return Response(xml, mimetype="application/xml")
+
+
+# ── Catch-all Route (Redirect to React Frontend) ──────────────────────────────
+
+@main_bp.route('/', defaults={'path': ''})
+@main_bp.route('/<path:path>')
+def catch_all(path):
+    """
+    Catch-all route that redirects unmatched paths to the React frontend.
+    Excludes /api/ and /auth/ routes which should return 404 if not already handled.
+    """
+    # Don't redirect /api/ or /auth/ routes - let them 404 if not already matched
+    if path.startswith('api/') or path.startswith('auth/'):
+        abort(404)
+    # Redirect all other routes to React frontend
+    return redirect(f'http://localhost:5173/{path}')

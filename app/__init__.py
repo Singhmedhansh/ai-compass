@@ -7,6 +7,7 @@ from collections import Counter
 from flask import Flask, render_template, session, request, jsonify, current_app
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, current_user
+from flask_session import Session
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import CSRFProtect
 from sqlalchemy import inspect, text
@@ -99,6 +100,14 @@ def create_app(config: dict | None = None) -> Flask:
 
     # FIXED SECRET KEY (no setdefault)
     app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev-secret-key")
+    app.config["FRONTEND_URL"] = os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip("/")
+    app.config["GOOGLE_CLIENT_ID"] = os.getenv("GOOGLE_CLIENT_ID", "")
+    app.config["GOOGLE_CLIENT_SECRET"] = os.getenv("GOOGLE_CLIENT_SECRET", "")
+    app.config["GOOGLE_REDIRECT_URI"] = os.getenv("GOOGLE_REDIRECT_URI", "http://localhost:5000/auth/google/callback")
+    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+    app.config['SESSION_COOKIE_SECURE'] = False
+    app.config['SESSION_COOKIE_HTTPONLY'] = True
+    app.config['SESSION_TYPE'] = 'filesystem'
 
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
@@ -106,6 +115,8 @@ def create_app(config: dict | None = None) -> Flask:
 
     if not app.config.get("SQLALCHEMY_DATABASE_URI"):
         app.config["SQLALCHEMY_DATABASE_URI"] = _build_database_uri(project_root)
+
+    Session(app)
 
     db.init_app(app)
     login_manager.init_app(app)
@@ -117,11 +128,23 @@ def create_app(config: dict | None = None) -> Flask:
     from app.routes import main_bp
     from app.oauth import oauth_bp, init_oauth
 
-    app.register_blueprint(api_bp)
+    app.register_blueprint(api_bp, url_prefix="/api/v1")
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
     app.register_blueprint(oauth_bp)
     init_oauth(app)
+
+    from flask import request
+
+    @app.after_request
+    def add_cors(response):
+        origin = request.headers.get('Origin', '')
+        if 'localhost:5173' in origin or '127.0.0.1:5173' in origin:
+            response.headers['Access-Control-Allow-Origin'] = origin
+            response.headers['Access-Control-Allow-Credentials'] = 'true'
+            response.headers['Access-Control-Allow-Methods'] = 'GET,POST,PUT,DELETE,OPTIONS'
+            response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization,X-CSRFToken'
+        return response
 
     app.wsgi_app = WhiteNoise(app.wsgi_app, root=app.static_folder)
 
