@@ -18,6 +18,9 @@ function GoogleIcon() {
 function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
+  const googleAuthUrl = import.meta.env.VITE_API_URL
+    ? `${import.meta.env.VITE_API_URL}/auth/google`
+    : '/auth/google'
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -147,7 +150,7 @@ function LoginPage() {
           </div>
 
           <a
-            href="http://localhost:5000/auth/google"
+            href={googleAuthUrl}
             className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-slate-700 bg-transparent px-4 py-2.5 text-sm font-medium text-slate-200 transition hover:bg-slate-800"
           >
             <GoogleIcon />

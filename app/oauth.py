@@ -118,7 +118,10 @@ def login_google():
         return redirect("http://localhost:5173/login?error=google_not_configured")
     try:
         redirect_uri = _google_redirect_uri()
-        return oauth.google.authorize_redirect(redirect_uri)
+        return oauth.google.authorize_redirect(
+            redirect_uri,
+            nonce=False,
+        )
     except Exception as exc:
         err = str(exc or "").lower()
         return redirect("http://localhost:5173/login?error=google_failed")
@@ -129,9 +132,8 @@ def google_callback():
     try:
         try:
             token = oauth.google.authorize_access_token()
-        except Exception as exc:
-            error_text = str(exc).lower()
-            if "mismatching_state" in error_text or "csrf" in error_text:
+        except Exception as e:
+            if "mismatching_state" in str(e).lower():
                 return redirect(url_for("oauth.login_google"))
             raise
 
@@ -154,11 +156,12 @@ def google_callback():
         user.onboarding_completed = True
         db.session.commit()
 
+        callback_picture = user.oauth_picture_url or picture or ""
         params = urlencode({
             "name": user.display_name or name,
             "email": user.email,
             "id": user.id,
-            "picture": user.oauth_picture_url or picture,
+            "picture": callback_picture,
         })
         callback_url = f"http://localhost:5173/auth/callback?{params}"
         return redirect(callback_url)

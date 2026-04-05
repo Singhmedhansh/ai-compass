@@ -40,6 +40,7 @@ export default function AuthCallbackPage() {
     } else {
       navigate('/login?error=missing_params', { replace: true })
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return (

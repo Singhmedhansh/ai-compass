@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom'
 import Badge from './Badge'
 import { domainMap, getAvatarClass } from '../../utils/toolBranding'
 
-const MotionButton = motion.button
+const MotionButton = motion.div
 
 const pricingClasses = {
   free: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300',
@@ -56,7 +56,6 @@ function Card({ tool = {} }) {
 
   return (
     <MotionButton
-      type="button"
       onClick={() => navigate(`/tools/${slug}`)}
       whileHover={{ y: -4, boxShadow: '0 20px 40px rgba(99,102,241,0.15)' }}
       whileTap={{ scale: 0.98 }}

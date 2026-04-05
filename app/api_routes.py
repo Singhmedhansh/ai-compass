@@ -1,6 +1,8 @@
 import json
 import os
 import re
+import subprocess
+import sys
 
 from flask import Blueprint, current_app, jsonify, request
 from flask_login import current_user, login_user
@@ -9,12 +11,14 @@ from app import bcrypt, csrf, db
 from app.ml_recommender import get_recommendations, get_similar_tools
 from app.models import Favorite, User
 from app.search_utils import search_tools
-from app.tool_cache import get_cached_tools
+from app.tool_cache import get_cached_tools, prime_tools_cache
 
 api_bp = Blueprint("api", __name__)
 
 DATA_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "tools.json")
 STACKS_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "stacks")
+SUBMISSIONS_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "submissions.json")
+MODEL_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "recommendation_model.pkl")
 
 GOAL_CATEGORY_MAP = {
     "studying": ["study tools"],
@@ -23,6 +27,51 @@ GOAL_CATEGORY_MAP = {
     "research": ["research"],
     "creating": ["image generation", "video generation"],
     "productivity": ["productivity"],
+}
+
+COLLECTIONS_CONFIG = {
+    "best-free-tools": {
+        "title": "Best Free AI Tools",
+        "description": "Top free AI tools curated for students, creators, and builders.",
+        "meta_title": "Best Free AI Tools 2026 | AI Compass",
+        "meta_description": "Discover the best free AI tools for coding, writing, and research in 2026.",
+    },
+    "best-for-students": {
+        "title": "Best AI Tools for Students",
+        "description": "Student-friendly AI tools for studying, assignments, and productivity.",
+        "meta_title": "Best AI Tools for Students 2026 | AI Compass",
+        "meta_description": "Find top student-friendly AI tools for classes, projects, and exam prep.",
+    },
+    "best-for-coding": {
+        "title": "Best AI Tools for Coding",
+        "description": "Top coding assistants, debuggers, and dev productivity tools.",
+        "meta_title": "Best AI Tools for Coding 2026 | AI Compass",
+        "meta_description": "Explore the best AI coding tools for developers and software teams.",
+    },
+    "best-for-writing": {
+        "title": "Best AI Tools for Writing",
+        "description": "Discover the best writing and documentation AI tools for faster workflows.",
+        "meta_title": "Best AI Tools for Writing 2026 | AI Compass",
+        "meta_description": "Compare top AI writing tools for blogs, docs, and professional communication.",
+    },
+    "best-for-research": {
+        "title": "Best AI Tools for Research",
+        "description": "Leading AI tools for literature review, synthesis, and deep analysis.",
+        "meta_title": "Best AI Tools for Research 2026 | AI Compass",
+        "meta_description": "Discover the best AI research tools for students, academics, and analysts.",
+    },
+    "trending": {
+        "title": "Trending AI Tools Right Now",
+        "description": "See the AI tools rising fastest this week across categories.",
+        "meta_title": "Trending AI Tools 2026 | AI Compass",
+        "meta_description": "Track the most popular and fast-growing AI tools right now.",
+    },
+    "top-rated": {
+        "title": "Top Rated AI Tools",
+        "description": "Highest rated AI tools selected by quality and user feedback.",
+        "meta_title": "Top Rated AI Tools 2026 | AI Compass",
+        "meta_description": "Browse the top rated AI tools based on user ratings and performance.",
+    },
 }
 
 
@@ -103,6 +152,14 @@ def _pricing_value(tool: dict) -> str:
         or tool.get("pricingType")
         or tool.get("pricing_type")
     )
+
+
+def _rating_value(tool: dict) -> float:
+    return float(tool.get("rating") or tool.get("average_rating") or tool.get("averageRating") or 0)
+
+
+def _popularity_value(tool: dict) -> float:
+    return float(tool.get("popularity_score") or 0)
 
 
 def _platform_values(tool: dict) -> list[str]:
@@ -260,11 +317,143 @@ def search_tools_endpoint():
 def recommendations():
     tools = _load_tools()
 
-    def rating_value(tool: dict) -> float:
-        return float(tool.get("rating") or tool.get("average_rating") or tool.get("averageRating") or 0)
-
-    ranked = sorted(tools, key=rating_value, reverse=True)[:6]
+    ranked = sorted(tools, key=_rating_value, reverse=True)[:6]
     return jsonify(ranked)
+
+
+@api_bp.get("/collections/<slug>")
+def get_collection(slug: str):
+    slug_value = str(slug or "").strip().lower()
+    config = COLLECTIONS_CONFIG.get(slug_value)
+
+    if config is None:
+        return jsonify({"error": "Collection not found"}), 404
+
+    tools = _load_tools()
+
+    if slug_value == "best-free-tools":
+        filtered = [
+            tool for tool in tools
+            if str(tool.get("pricing_tier", "")).strip().lower() == "free"
+            or str(tool.get("pricing", "")).strip().lower() == "free"
+        ]
+        filtered = sorted(filtered, key=_rating_value, reverse=True)
+    elif slug_value == "best-for-students":
+        filtered = [tool for tool in tools if tool.get("student_friendly") is True]
+        filtered = sorted(filtered, key=_rating_value, reverse=True)
+    elif slug_value == "best-for-coding":
+        filtered = [tool for tool in tools if _normalize_text(tool.get("category")) == "coding"]
+        filtered = sorted(filtered, key=_rating_value, reverse=True)
+    elif slug_value == "best-for-writing":
+        filtered = [tool for tool in tools if _normalize_text(tool.get("category")) == "writing & docs"]
+        filtered = sorted(filtered, key=_rating_value, reverse=True)
+    elif slug_value == "best-for-research":
+        filtered = [tool for tool in tools if _normalize_text(tool.get("category")) == "research"]
+        filtered = sorted(filtered, key=_rating_value, reverse=True)
+    elif slug_value == "trending":
+        filtered = sorted(tools, key=_popularity_value, reverse=True)[:20]
+    elif slug_value == "top-rated":
+        filtered = sorted(tools, key=_rating_value, reverse=True)[:20]
+    else:
+        filtered = tools
+
+    seen: set[str] = set()
+    unique_tools: list[dict] = []
+    for tool in filtered:
+        name = str(tool.get("name") or "").strip()
+        if not name or name in seen:
+            continue
+        seen.add(name)
+        unique_tools.append(tool)
+
+    payload = {
+        "slug": slug_value,
+        "title": config["title"],
+        "description": config["description"],
+        "tools": unique_tools,
+        "count": len(unique_tools),
+        "meta_title": config["meta_title"],
+        "meta_description": config["meta_description"],
+    }
+    return jsonify(payload)
+
+
+@api_bp.get("/admin/stats")
+def admin_stats():
+    tools = get_cached_tools(DATA_PATH)
+    try:
+        total_users = User.query.count()
+    except Exception:
+        total_users = 0
+
+    payload = {
+        "total_tools": len(tools),
+        "total_users": total_users,
+        "total_favorites": Favorite.query.count(),
+        "model_status": "active" if os.path.exists(MODEL_PATH) else "inactive",
+    }
+    return jsonify(payload)
+
+
+@api_bp.get("/admin/users")
+def admin_users():
+    users = User.query.order_by(User.id.asc()).all()
+    payload = [
+        {
+            "id": user.id,
+            "display_name": user.display_name,
+            "email": user.email,
+            "oauth_provider": user.oauth_provider,
+            "created_at": user.created_at.isoformat() if user.created_at else None,
+            "is_admin": bool(user.is_admin),
+        }
+        for user in users
+    ]
+    return jsonify(payload)
+
+
+@csrf.exempt
+@api_bp.post("/admin/retrain")
+def admin_retrain():
+    project_root = os.path.dirname(os.path.dirname(__file__))
+    result = subprocess.run(
+        [sys.executable, os.path.join("scripts", "train_model.py")],
+        capture_output=True,
+        text=True,
+        cwd=project_root,
+    )
+
+    return jsonify(
+        {
+            "success": result.returncode == 0,
+            "output": result.stdout,
+            "error": result.stderr,
+        }
+    )
+
+
+@csrf.exempt
+@api_bp.post("/admin/clear-cache")
+def admin_clear_cache():
+    prime_tools_cache(DATA_PATH)
+    return jsonify({"success": True, "message": "Cache cleared and reloaded"})
+
+
+@api_bp.get("/admin/submissions")
+def admin_submissions():
+    if not os.path.exists(SUBMISSIONS_PATH):
+        return jsonify([])
+
+    try:
+        with open(SUBMISSIONS_PATH, "r", encoding="utf-8") as submissions_file:
+            payload = json.load(submissions_file)
+    except (OSError, ValueError, TypeError, json.JSONDecodeError):
+        return jsonify([])
+
+    if not isinstance(payload, list):
+        return jsonify([])
+
+    return jsonify(payload)
 
 
 @csrf.exempt
