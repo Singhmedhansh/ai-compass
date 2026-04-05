@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { Link, useParams } from 'react-router-dom'
 
+import { AnimatedGrid, AnimatedItem } from '../components/AnimatedGrid'
+import PageTransition from '../components/PageTransition'
 import { Button, Card, SkeletonCard } from '../components/ui'
 
 function CollectionPage() {
@@ -45,7 +47,8 @@ function CollectionPage() {
   }, [slug])
 
   return (
-    <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <PageTransition>
+      <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <Helmet>
         <title>{collection?.meta_title || 'AI Collections | AI Compass'}</title>
         <meta
@@ -87,11 +90,13 @@ function CollectionPage() {
           ))}
         </section>
       ) : collection?.tools?.length > 0 ? (
-        <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <AnimatedGrid className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {collection.tools.map((tool) => (
-            <Card key={tool.slug || tool.name} tool={tool} />
+            <AnimatedItem key={tool.slug || tool.name}>
+              <Card tool={tool} />
+            </AnimatedItem>
           ))}
-        </section>
+        </AnimatedGrid>
       ) : !error ? (
         <section className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-6 py-14 text-center dark:border-slate-700 dark:bg-slate-900/60">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-white text-3xl shadow-sm dark:bg-slate-800" aria-hidden="true">
@@ -108,7 +113,8 @@ function CollectionPage() {
           </div>
         </section>
       ) : null}
-    </main>
+      </main>
+    </PageTransition>
   )
 }
 

@@ -1,8 +1,9 @@
 import { Eye, Pencil } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import toast from 'react-hot-toast'
+import { toast } from 'sonner'
 
+import PageTransition from '../components/PageTransition'
 import SearchInput from '../components/ui/SearchInput'
 
 const ADMIN_EMAILS = ['singhmedhansh07@gmail.com']
@@ -553,7 +554,8 @@ function AdminPage() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-[1400px] px-4 py-8 sm:px-6 lg:px-8">
+    <PageTransition>
+      <main className="mx-auto w-full max-w-[1400px] px-4 py-8 sm:px-6 lg:px-8">
       <section className="mb-6 rounded-2xl border border-slate-800 bg-slate-950 p-6 shadow-lg">
         <h1 className="text-3xl font-bold tracking-tight text-white">Admin Dashboard</h1>
         <p className="mt-2 text-sm text-slate-300">Platform analytics, inventory control, and model operations.</p>
@@ -624,7 +626,8 @@ function AdminPage() {
           onSave={handleSaveEditedTool}
         />
       ) : null}
-    </main>
+      </main>
+    </PageTransition>
   )
 }
 

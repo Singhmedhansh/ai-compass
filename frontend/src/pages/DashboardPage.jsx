@@ -1,22 +1,13 @@
 import { Calendar, Eye, Grid3X3, Heart, Home, Sparkles, Wand2 } from 'lucide-react'
+import { motion } from 'framer-motion'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+import PageTransition from '../components/PageTransition'
 import { Button, Card } from '../components/ui'
 
-function readUserFromLocalStorage() {
-  try {
-    const stored = localStorage.getItem('user')
-    if (!stored) {
-      return null
-    }
-
-    const parsed = JSON.parse(stored)
-    return parsed && typeof parsed === 'object' ? parsed : null
-  } catch {
-    return null
-  }
-}
+const MotionSection = motion.section
+const MotionDiv = motion.div
 
 function readRecentlyViewedSlugs() {
   try {
@@ -89,7 +80,7 @@ function toProperCase(text) {
 function DashboardPage() {
   const navigate = useNavigate()
 
-  const [user, setUser] = useState(() => readUserFromLocalStorage())
+  const user = JSON.parse(localStorage.getItem('user') || 'null')
   const [recommendations, setRecommendations] = useState([])
   const [favorites, setFavorites] = useState([])
   const [savedStack, setSavedStack] = useState(null)
@@ -107,7 +98,7 @@ function DashboardPage() {
 
       try {
         // Check auth using only localStorage - no fetch to /api/v1/auth/me
-        const storedUser = readUserFromLocalStorage()
+        const storedUser = JSON.parse(localStorage.getItem('user') || 'null')
         if (!storedUser) {
           navigate('/login', { replace: true })
           return
@@ -125,7 +116,6 @@ function DashboardPage() {
               ...mergedUser,
               created_at: fullUserData.created_at || storedUser.created_at,
               member_since: fullUserData.member_since || storedUser.member_since,
-              picture: fullUserData.picture || mergedUser.picture,
             }
             // Update localStorage with the merged data
             localStorage.setItem('user', JSON.stringify(mergedUser))
@@ -137,8 +127,6 @@ function DashboardPage() {
             // Silently ignore auth/me errors
           }
         }
-
-        setUser(mergedUser)
 
         const userIdForStack = mergedUser?.id || storedUser?.id || ''
 
@@ -224,7 +212,8 @@ function DashboardPage() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <PageTransition>
+      <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[16rem_minmax(0,1fr)]">
         <aside className="rounded-2xl border border-slate-200 bg-white p-4 text-gray-900 shadow-sm dark:border-slate-700 dark:bg-gray-800 dark:text-white lg:sticky lg:top-24 lg:h-fit">
           <p className="px-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Dashboard</p>
@@ -264,7 +253,11 @@ function DashboardPage() {
         </aside>
 
         <div className="space-y-6">
-          <section className="rounded-2xl bg-gradient-to-r from-indigo-900/50 to-purple-900/50 border border-indigo-500/20 p-6 shadow-sm">
+          <MotionSection
+            className="rounded-2xl bg-gradient-to-r from-indigo-900/50 to-purple-900/50 border border-indigo-500/20 p-6 shadow-sm"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
                 <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
@@ -275,53 +268,74 @@ function DashboardPage() {
                 </p>
               </div>
 
-              <div className="relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-indigo-600 text-lg font-bold text-white">
-                {avatarLetter}
+              <div className="relative w-12 h-12">
                 {user?.picture ? (
                   <img
                     src={user.picture}
-                    alt="Profile"
-                    className="absolute inset-0 h-11 w-11 rounded-full object-cover"
-                    onError={(event) => {
-                      event.currentTarget.style.display = 'none'
+                    alt={user.name}
+                    referrerPolicy="no-referrer"
+                    className="w-12 h-12 rounded-full object-cover ring-2 ring-indigo-400"
+                    onError={(e) => {
+                      e.target.style.display = 'none'
+                      e.target.nextSibling.style.display = 'flex'
                     }}
                   />
                 ) : null}
+                <div
+                  style={{ display: user?.picture ? 'none' : 'flex' }}
+                  className="w-12 h-12 rounded-full bg-indigo-600 items-center justify-center text-white text-lg font-bold"
+                >
+                  {avatarLetter}
+                </div>
               </div>
             </div>
-          </section>
+          </MotionSection>
 
           <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            <div className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-gray-800">
-              <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-lg bg-red-500/10 text-red-500">
-                <Heart className="h-4 w-4" />
-              </div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Tools Saved</p>
-              <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">{favorites.length}</p>
-            </div>
-            <div className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-gray-800">
-              <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-lg bg-blue-500/10 text-blue-500">
-                <Grid3X3 className="h-4 w-4" />
-              </div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Categories Explored</p>
-              <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">{categoriesExplored}</p>
-            </div>
-            <div className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-gray-800">
-              <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-500">
-                <Eye className="h-4 w-4" />
-              </div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Tools Visited</p>
-              <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">{recentlyViewedSlugs.length}</p>
-            </div>
-            <div className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-gray-800">
-              <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-lg bg-purple-500/10 text-purple-500">
-                <Calendar className="h-4 w-4" />
-              </div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Member Since</p>
-              <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
-                {user?.member_since || formatMemberSince(user?.created_at) || 'Unknown'}
-              </p>
-            </div>
+            {[
+              {
+                key: 'saved',
+                icon: <Heart className="h-4 w-4" />,
+                iconClass: 'bg-red-500/10 text-red-500',
+                label: 'Tools Saved',
+                value: favorites.length,
+              },
+              {
+                key: 'categories',
+                icon: <Grid3X3 className="h-4 w-4" />,
+                iconClass: 'bg-blue-500/10 text-blue-500',
+                label: 'Categories Explored',
+                value: categoriesExplored,
+              },
+              {
+                key: 'visited',
+                icon: <Eye className="h-4 w-4" />,
+                iconClass: 'bg-emerald-500/10 text-emerald-500',
+                label: 'Tools Visited',
+                value: recentlyViewedSlugs.length,
+              },
+              {
+                key: 'member',
+                icon: <Calendar className="h-4 w-4" />,
+                iconClass: 'bg-purple-500/10 text-purple-500',
+                label: 'Member Since',
+                value: user?.member_since || formatMemberSince(user?.created_at) || 'Unknown',
+              },
+            ].map((item, index) => (
+              <MotionDiv
+                key={item.key}
+                className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-gray-800"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: index * 0.1, type: 'spring' }}
+              >
+                <div className={`mb-2 flex h-9 w-9 items-center justify-center rounded-lg ${item.iconClass}`}>
+                  {item.icon}
+                </div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{item.label}</p>
+                <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">{item.value}</p>
+              </MotionDiv>
+            ))}
           </section>
 
           <section className="grid grid-cols-1 gap-3 md:grid-cols-3">
@@ -467,7 +481,8 @@ function DashboardPage() {
           </section>
         </div>
       </div>
-    </main>
+      </main>
+    </PageTransition>
   )
 }
 

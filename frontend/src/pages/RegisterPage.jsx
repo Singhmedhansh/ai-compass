@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
+import PageTransition from '../components/PageTransition'
+
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 function RegisterPage() {
@@ -90,7 +92,8 @@ function RegisterPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-[calc(100vh-4rem)] w-full items-center justify-center px-4 py-8">
+    <PageTransition>
+      <main className="mx-auto flex min-h-[calc(100vh-4rem)] w-full items-center justify-center px-4 py-8">
       <section className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-xl sm:p-8">
         <h1 className="text-2xl font-bold text-white">Create your account</h1>
         <p className="mt-2 text-sm text-slate-400">Join AI Compass and save your favorite tools.</p>
@@ -183,7 +186,8 @@ function RegisterPage() {
           </Link>
         </p>
       </section>
-    </main>
+      </main>
+    </PageTransition>
   )
 }
 

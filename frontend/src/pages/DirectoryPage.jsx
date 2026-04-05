@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 
+import { AnimatedGrid, AnimatedItem } from '../components/AnimatedGrid'
+import PageTransition from '../components/PageTransition'
 import { Button, Card, SearchInput, SkeletonCard } from '../components/ui'
 
 const CATEGORY_OPTIONS = ['All', 'Coding', 'Writing', 'Research', 'Productivity', 'Image Gen', 'Video Gen']
@@ -182,7 +184,8 @@ function DirectoryPage() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <PageTransition>
+      <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <section className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">AI Tools Directory</h1>
         <span className="inline-flex items-center rounded-full bg-indigo-100 px-3 py-1 text-sm font-semibold text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300">
@@ -248,11 +251,13 @@ function DirectoryPage() {
           ))}
         </section>
       ) : filteredTools.length > 0 ? (
-        <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <AnimatedGrid className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {filteredTools.map((tool) => (
-            <Card key={tool.slug || tool.name} tool={tool} />
+            <AnimatedItem key={tool.slug || tool.name}>
+              <Card tool={tool} />
+            </AnimatedItem>
           ))}
-        </section>
+        </AnimatedGrid>
       ) : (
         <section className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-6 py-14 text-center dark:border-slate-700 dark:bg-slate-900/60">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-white text-3xl shadow-sm dark:bg-slate-800" aria-hidden="true">
@@ -269,7 +274,8 @@ function DirectoryPage() {
           </div>
         </section>
       )}
-    </main>
+      </main>
+    </PageTransition>
   )
 }
 

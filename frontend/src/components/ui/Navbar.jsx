@@ -22,34 +22,48 @@ function getInitialTheme() {
   return window.matchMedia('(prefers-color-scheme: dark)').matches
 }
 
-function getInitialUser() {
-  if (typeof window === 'undefined') {
-    return null
-  }
-
-  try {
-    const rawUser = localStorage.getItem('user')
-    if (!rawUser) {
-      return null
-    }
-    const parsed = JSON.parse(rawUser)
-    return parsed && typeof parsed === 'object' ? parsed : null
-  } catch {
-    return null
-  }
-}
-
 function Navbar() {
   const navigate = useNavigate()
   const [searchValue, setSearchValue] = useState('')
   const [isDark, setIsDark] = useState(getInitialTheme)
-  const [user, setUser] = useState(getInitialUser)
+  const [user, setUser] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('user') || 'null')
+    } catch {
+      return null
+    }
+  })
+  const [scrolled, setScrolled] = useState(false)
   const isAdmin = Boolean(user && ADMIN_EMAILS.includes(user.email))
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', isDark)
     window.localStorage.setItem(STORAGE_KEY, isDark ? 'dark' : 'light')
   }, [isDark])
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 20)
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  useEffect(() => {
+    const handleStorageChange = () => {
+      try {
+        setUser(JSON.parse(localStorage.getItem('user') || 'null'))
+      } catch {
+        setUser(null)
+      }
+    }
+
+    window.addEventListener('storage', handleStorageChange)
+    window.addEventListener('userLoggedIn', handleStorageChange)
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
+      window.removeEventListener('userLoggedIn', handleStorageChange)
+    }
+  }, [])
 
   const toggleDarkMode = () => {
     const nextMode = !isDark
@@ -73,14 +87,20 @@ function Navbar() {
 
   const handleLogout = () => {
     localStorage.removeItem('user')
-    setUser(null)
+    window.dispatchEvent(new Event('userLoggedIn'))
     navigate('/')
   }
 
   const avatarLetter = String(user?.name || user?.email || 'U').charAt(0).toUpperCase()
 
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/90 backdrop-blur dark:border-slate-800 dark:bg-slate-950/90">
+    <header
+      className={`sticky top-0 z-50 transition-all duration-300 ${
+        scrolled
+          ? 'bg-gray-950/95 backdrop-blur-md shadow-lg shadow-black/20 border-b border-white/5'
+          : 'bg-transparent border-b border-transparent'
+      }`}
+    >
       <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center gap-3 px-4 py-3 sm:px-6 lg:px-8">
         <Link
           to="/"
@@ -123,18 +143,30 @@ function Navbar() {
 
           {user ? (
             <>
-              <div className="relative flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-indigo-600 text-sm font-bold text-white">
-                {avatarLetter}
-                {user?.picture ? (
+              <div className="relative h-8 w-8">
+                {user?.picture && user.picture.length > 10 ? (
                   <img
                     src={user.picture}
-                    alt="Profile"
-                    className="absolute inset-0 h-8 w-8 rounded-full object-cover"
+                    alt={user?.name || 'Profile'}
+                    referrerPolicy="no-referrer"
+                    crossOrigin="anonymous"
+                    className="h-8 w-8 rounded-full object-cover ring-2 ring-indigo-500"
                     onError={(event) => {
                       event.currentTarget.style.display = 'none'
+                      const fallback = event.currentTarget.parentNode?.querySelector('.avatar-fallback')
+                      if (fallback) {
+                        fallback.style.display = 'flex'
+                      }
                     }}
                   />
                 ) : null}
+                <div
+                  id="nav-avatar-fallback"
+                  style={{ display: user?.picture && user.picture.length > 10 ? 'none' : 'flex' }}
+                  className="avatar-fallback h-8 w-8 rounded-full bg-indigo-600 items-center justify-center text-white text-sm font-bold"
+                >
+                  {avatarLetter}
+                </div>
               </div>
 
               <Link to="/dashboard">

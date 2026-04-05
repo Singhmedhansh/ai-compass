@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 
+import PageTransition from '../components/PageTransition'
+
 const COLLECTIONS = [
   {
     slug: 'best-free-tools',
@@ -81,7 +83,8 @@ function CollectionsPage() {
   }, [])
 
   return (
-    <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <PageTransition>
+      <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <section className="mb-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Browse AI Tool Collections</h1>
         <p className="mt-2 text-slate-600 dark:text-slate-300">
@@ -115,7 +118,8 @@ function CollectionsPage() {
           </Link>
         ))}
       </section>
-    </main>
+      </main>
+    </PageTransition>
   )
 }
 

@@ -1,10 +1,13 @@
 import clsx from 'clsx'
+import { motion } from 'framer-motion'
 import { Star } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import Badge from './Badge'
-import { getAvatarClass, getToolDomain } from '../../utils/toolBranding'
+import { domainMap, getAvatarClass } from '../../utils/toolBranding'
+
+const MotionButton = motion.button
 
 const pricingClasses = {
   free: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300',
@@ -22,6 +25,12 @@ function slugify(value = '') {
     .replace(/\s+/g, '-')
 }
 
+const getLogoUrl = (toolName) => {
+  const domain = domainMap[toolName]
+  if (!domain) return null
+  return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`
+}
+
 function Card({ tool = {} }) {
   const navigate = useNavigate()
   const [imgError, setImgError] = useState(false)
@@ -32,12 +41,7 @@ function Card({ tool = {} }) {
   const rating = Math.max(0, Math.min(5, Number(tool.rating) || 0))
   const pricing = (tool.pricing || 'free').toLowerCase()
   const slug = tool.slug || slugify(name)
-  const domain = getToolDomain(name)
-  const logoUrl = `https://logo.clearbit.com/${domain}`
-
-  useEffect(() => {
-    setImgError(false)
-  }, [name])
+  const logoUrl = getLogoUrl(name)
 
   const ratingStars = Array.from({ length: 5 }, (_, index) => {
     const active = index < Math.round(rating)
@@ -51,18 +55,22 @@ function Card({ tool = {} }) {
   })
 
   return (
-    <button
+    <MotionButton
       type="button"
       onClick={() => navigate(`/tools/${slug}`)}
+      whileHover={{ y: -4, boxShadow: '0 20px 40px rgba(99,102,241,0.15)' }}
+      whileTap={{ scale: 0.98 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
       className="group flex w-full flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-4 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-indigo-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 dark:border-gray-700 dark:bg-gray-800 dark:hover:border-indigo-500 dark:focus-visible:ring-offset-slate-950"
     >
       <div className="flex items-start gap-3">
         <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden" aria-hidden="true">
-          {!imgError ? (
+          {!imgError && logoUrl ? (
             <img
+              key={name}
               src={logoUrl}
               alt={`${name} logo`}
-              className="h-10 w-10 rounded-lg bg-white p-1 object-contain"
+              className="w-10 h-10 rounded-lg object-contain"
               onError={() => setImgError(true)}
             />
           ) : (
@@ -108,7 +116,7 @@ function Card({ tool = {} }) {
           {tool.pricing || 'Free'}
         </span>
       </div>
-    </button>
+    </MotionButton>
   )
 }
 

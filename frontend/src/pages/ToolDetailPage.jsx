@@ -3,6 +3,7 @@ import { Heart, Star } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
+import PageTransition from '../components/PageTransition'
 import { Badge, Button } from '../components/ui'
 import { getAvatarClass, getToolDomain } from '../utils/toolBranding'
 
@@ -234,24 +235,29 @@ function ToolDetailPage() {
 
   if (loading) {
     return (
-      <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6 text-slate-300">Loading tool details...</div>
-      </main>
+      <PageTransition>
+        <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+          <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6 text-slate-300">Loading tool details...</div>
+        </main>
+      </PageTransition>
     )
   }
 
   if (error || !tool) {
     return (
-      <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="rounded-2xl border border-red-500/40 bg-red-500/10 p-6 text-red-200">
-          {error || 'Tool not found.'}
-        </div>
-      </main>
+      <PageTransition>
+        <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+          <div className="rounded-2xl border border-red-500/40 bg-red-500/10 p-6 text-red-200">
+            {error || 'Tool not found.'}
+          </div>
+        </main>
+      </PageTransition>
     )
   }
 
   return (
-    <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <PageTransition>
+      <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div className="flex-1 space-y-6">
           <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-lg">
@@ -478,7 +484,8 @@ function ToolDetailPage() {
           </section>
         </aside>
       </div>
-    </main>
+      </main>
+    </PageTransition>
   )
 }
 
