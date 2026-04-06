@@ -1,4 +1,5 @@
 import os
+import sys
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -153,6 +154,21 @@ def create_app(config: dict | None = None) -> Flask:
         prime_tools_cache(data_path)
     except Exception:
         pass
+
+    try:
+        model_path = os.path.join(project_root, 'data', 'recommendation_model.pkl')
+        if not os.path.exists(model_path):
+            print("ML model not found, training now...")
+            import subprocess
+            result = subprocess.run(
+                [sys.executable, os.path.join(project_root, 'scripts', 'train_model.py')],
+                capture_output=True, text=True, cwd=project_root
+            )
+            print("Model training output:", result.stdout)
+            if result.returncode != 0:
+                print("Model training failed:", result.stderr)
+    except Exception as e:
+        print(f"Could not train model: {e}")
 
     @app.context_processor
     def inject_global_template_vars():
