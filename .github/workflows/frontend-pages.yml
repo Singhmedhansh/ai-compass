@@ -46,7 +46,7 @@ jobs:
         run: cp static/dist/index.html static/dist/404.html
 
       - name: Add custom domain file
-        run: echo "www.ai-compass.com" > static/dist/CNAME
+        run: echo "ai-compass.com" > static/dist/CNAME
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
