@@ -4,14 +4,13 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from collections import Counter
-from flask import Flask, render_template, session, request, jsonify, current_app
+from flask import Flask, session, request, jsonify, current_app
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, current_user
 from flask_session import Session
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import CSRFProtect
 from sqlalchemy import inspect, text
-from whitenoise import WhiteNoise
 
 from app.tool_cache import get_cached_tools, prime_tools_cache
 
@@ -86,7 +85,6 @@ def create_app(config: dict | None = None) -> Flask:
     app = Flask(
         __name__,
         instance_relative_config=True,
-        template_folder=os.path.join(project_root, "templates"),
         static_folder=os.path.join(project_root, "static"),
         static_url_path="/static",
     )
@@ -130,8 +128,8 @@ def create_app(config: dict | None = None) -> Flask:
 
     app.register_blueprint(api_bp, url_prefix="/api/v1")
     app.register_blueprint(auth_bp)
-    app.register_blueprint(main_bp)
     app.register_blueprint(oauth_bp)
+    app.register_blueprint(main_bp)
     init_oauth(app)
 
     from flask import request
@@ -145,8 +143,6 @@ def create_app(config: dict | None = None) -> Flask:
             response.headers['Access-Control-Allow-Methods'] = 'GET,POST,PUT,DELETE,OPTIONS'
             response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization,X-CSRFToken'
         return response
-
-    app.wsgi_app = WhiteNoise(app.wsgi_app, root=app.static_folder)
 
     if not app.config.get("TESTING"):
         with app.app_context():

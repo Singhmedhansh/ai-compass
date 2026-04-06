@@ -1,4 +1,4 @@
-from flask import Blueprint, current_app, flash, redirect, render_template, request, session, url_for
+from flask import Blueprint, current_app, flash, redirect, request, session, url_for
 from flask_login import current_user, login_required, login_user, logout_user
 import json
 
@@ -77,11 +77,7 @@ def register():
     if request.method == "POST":
         if is_rate_limited(f"register:{_client_ip()}", limit=10, window_seconds=60):
             flash("Too many attempts. Please wait a minute and try again.", "error")
-            return render_template(
-                "register.html",
-                google_oauth_enabled=bool(current_app.config.get("GOOGLE_CLIENT_ID")),
-                github_oauth_enabled=bool(current_app.config.get("GITHUB_CLIENT_ID")),
-            )
+            return redirect('/')
 
         name = request.form.get("name", "").strip()
         email = request.form.get("email", "").strip().lower()
@@ -90,28 +86,16 @@ def register():
 
         if not name or not email or not password:
             flash("Full name, email and password are required.", "error")
-            return render_template(
-                "register.html",
-                google_oauth_enabled=bool(current_app.config.get("GOOGLE_CLIENT_ID")),
-                github_oauth_enabled=bool(current_app.config.get("GITHUB_CLIENT_ID")),
-            )
+            return redirect('/')
 
         if confirm_password != password:
             flash("Passwords do not match.", "error")
-            return render_template(
-                "register.html",
-                google_oauth_enabled=bool(current_app.config.get("GOOGLE_CLIENT_ID")),
-                github_oauth_enabled=bool(current_app.config.get("GITHUB_CLIENT_ID")),
-            )
+            return redirect('/')
 
         existing = User.query.filter_by(email=email).first()
         if existing:
             flash("An account already exists for this email.", "error")
-            return render_template(
-                "register.html",
-                google_oauth_enabled=bool(current_app.config.get("GOOGLE_CLIENT_ID")),
-                github_oauth_enabled=bool(current_app.config.get("GITHUB_CLIENT_ID")),
-            )
+            return redirect('/')
 
         password_hash = bcrypt.generate_password_hash(password).decode("utf-8")
         user = User(email=email, password_hash=password_hash, display_name=name, is_admin=False)
@@ -125,11 +109,7 @@ def register():
             return redirect(url_for("main.onboarding"))
         return redirect(url_for("main.dashboard"))
 
-    return render_template(
-        "register.html",
-        google_oauth_enabled=bool(current_app.config.get("GOOGLE_CLIENT_ID")),
-        github_oauth_enabled=bool(current_app.config.get("GITHUB_CLIENT_ID")),
-    )
+    return redirect('/')
 
 
 @auth_bp.route("/login", methods=["GET", "POST"])
@@ -141,11 +121,7 @@ def login():
     if request.method == "POST":
         if is_rate_limited(f"login:{_client_ip()}", limit=20, window_seconds=60):
             flash("Too many attempts. Please wait a minute and try again.", "error")
-            return render_template(
-                "login.html",
-                google_oauth_enabled=bool(current_app.config.get("GOOGLE_CLIENT_ID")),
-                github_oauth_enabled=bool(current_app.config.get("GITHUB_CLIENT_ID")),
-            )
+            return redirect('/')
 
         email = request.form.get("email", "").strip().lower()
         password = request.form.get("password", "")
@@ -156,11 +132,7 @@ def login():
         if admin_email and admin_password_hash and email == admin_email:
             if not bcrypt.check_password_hash(admin_password_hash, password):
                 flash("Invalid email or password.", "error")
-                return render_template(
-                    "login.html",
-                    google_oauth_enabled=bool(current_app.config.get("GOOGLE_CLIENT_ID")),
-                    github_oauth_enabled=bool(current_app.config.get("GITHUB_CLIENT_ID")),
-                )
+                return redirect('/')
 
             if user is None:
                 user = User(email=email, password_hash=admin_password_hash, is_admin=True)
@@ -191,11 +163,7 @@ def login():
 
         flash("Invalid email or password.", "error")
 
-    return render_template(
-        "login.html",
-        google_oauth_enabled=bool(current_app.config.get("GOOGLE_CLIENT_ID")),
-        github_oauth_enabled=bool(current_app.config.get("GITHUB_CLIENT_ID")),
-    )
+    return redirect('/')
 
 
 @auth_bp.route("/logout")
