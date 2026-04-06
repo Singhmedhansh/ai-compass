@@ -117,6 +117,15 @@ def create_app(config: dict | None = None) -> Flask:
     if not app.config.get("SQLALCHEMY_DATABASE_URI"):
         app.config["SQLALCHEMY_DATABASE_URI"] = _build_database_uri(project_root)
 
+    database_uri = str(app.config.get("SQLALCHEMY_DATABASE_URI") or "")
+    engine_options = {
+        "pool_pre_ping": True,
+        "pool_recycle": 300,
+    }
+    if database_uri.startswith("postgres://") or database_uri.startswith("postgresql://"):
+        engine_options["connect_args"] = {"sslmode": "require"}
+    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = engine_options
+
     Session(app)
 
     db.init_app(app)

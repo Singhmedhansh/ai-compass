@@ -11,7 +11,11 @@ DIST_DIR = os.path.join(
 @main_bp.route('/', defaults={'path': ''})
 @main_bp.route('/<path:path>')
 def serve_react(path):
-    if path.startswith('api/') or path.startswith('auth/'):
+    if path.startswith('api/'):
+        from flask import abort
+        abort(404)
+
+    if path.startswith('auth/') and path != 'auth/callback':
         from flask import abort
         abort(404)
 

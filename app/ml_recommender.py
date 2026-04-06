@@ -15,9 +15,12 @@ def load_model():
     )
     if not os.path.exists(path):
         return None
-    with open(path, 'rb') as f:
-        _model = pickle.load(f)
-    return _model
+    try:
+        with open(path, 'rb') as f:
+            _model = pickle.load(f)
+        return _model
+    except Exception:
+        return None
 
 GOAL_MAP = {
     'studying': 'study homework exam research academic learn',
