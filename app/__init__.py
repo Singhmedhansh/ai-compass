@@ -109,6 +109,8 @@ def create_app(config: dict | None = None) -> Flask:
     app.config['SESSION_COOKIE_HTTPONLY'] = True
     app.config['REMEMBER_COOKIE_SECURE'] = True
     app.config['SESSION_TYPE'] = 'filesystem'
+    app.config['SESSION_FILE_DIR'] = os.path.join(project_root, 'instance', 'flask_session')
+    os.makedirs(app.config['SESSION_FILE_DIR'], exist_ok=True)
 
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
