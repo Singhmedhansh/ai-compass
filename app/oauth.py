@@ -142,8 +142,10 @@ def google_callback():
         email = str(userinfo.get("email") or "").strip().lower()
         picture = str(userinfo.get("picture") or "").strip()
 
+        frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:5173')
+
         if not email:
-            return redirect("http://localhost:5173/login?error=google_failed")
+            return redirect(f"{frontend_url}/login?error=google_failed")
 
         user = _get_or_create_oauth_user(email, name, "google")
         if picture and picture != (user.oauth_picture_url or ""):
@@ -163,14 +165,15 @@ def google_callback():
             "id": user.id,
             "picture": callback_picture,
         })
-        callback_url = f"http://localhost:5173/auth/callback?{params}"
+        callback_url = f"{frontend_url}/auth/callback?{params}"
         return redirect(callback_url)
     except Exception as exc:
         import traceback
 
         print("GOOGLE CALLBACK ERROR:", str(exc))
         print(traceback.format_exc())
-        return redirect("http://localhost:5173/login?error=google_failed")
+        frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:5173')
+        return redirect(f"{frontend_url}/login?error=google_failed")
 
 
 # ── GitHub ───────────────────────────────────────────────────────────────────
