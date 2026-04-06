@@ -15,9 +15,12 @@ def serve_react(path):
         from flask import abort
         abort(404)
 
-    if path.startswith('auth/') and path != 'auth/callback':
+    server_auth_routes = ['auth/google', 'auth/google/callback', 'login/google', 'login/github']
+    if any(path == route or path.startswith(f"{route}/") for route in server_auth_routes):
         from flask import abort
         abort(404)
+
+    # /auth/callback is a React route; let it fall through to index.html.
 
     file_path = os.path.join(DIST_DIR, path)
     if path and os.path.exists(file_path) and os.path.isfile(file_path):

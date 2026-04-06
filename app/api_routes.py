@@ -465,13 +465,51 @@ def finder():
     platform = _normalize_text(data.get("platform"))
     level = _normalize_text(data.get("level"))
 
-    results = get_recommendations(
-        goal=goal,
-        budget=budget,
-        platform=platform,
-        level=level,
-        limit=6,
-    )
+    try:
+        from app.ml_recommender import get_recommendations
+
+        results = get_recommendations(
+            goal=goal,
+            budget=budget,
+            platform=platform,
+            level=level,
+            limit=6,
+        )
+        if results:
+            return jsonify({"tools": results, "count": len(results)})
+    except Exception as exc:
+        print(f"ML recommender failed: {exc}")
+
+    tools = get_cached_tools(DATA_PATH) or []
+
+    category_map = {
+        "coding": "Coding",
+        "writing": "Writing & Docs",
+        "research": "Research",
+        "studying": "Study Tools",
+        "creating": "Image Gen",
+        "productivity": "Productivity",
+    }
+
+    filtered = tools
+    if goal and goal in category_map:
+        category = category_map[goal]
+        filtered = [tool for tool in tools if str(tool.get("category", "")).strip() == category] or tools
+
+    if budget == "free":
+        filtered = [
+            tool for tool in filtered
+            if str(tool.get("pricing", "")).lower() == "free"
+            or str(tool.get("pricing_tier", "")).lower() == "free"
+        ] or filtered
+
+    filtered.sort(key=lambda tool: float(tool.get("rating", 0) or 0), reverse=True)
+    results = filtered[:6]
+
+    for result in results:
+        result["match_score"] = 0.5
+        result["reason"] = f"Great tool for {goal or 'your workflow'}"
+
     return jsonify({"tools": results, "count": len(results)})
 
 
