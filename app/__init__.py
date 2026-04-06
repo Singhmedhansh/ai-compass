@@ -68,7 +68,8 @@ def _build_database_uri(project_root: str) -> str:
         return database_url
 
     local_db_path = os.path.join(project_root, "instance", "ai_compass.db")
-    return f"sqlite:///{local_db_path.replace('\\', '/')}"
+    normalized_path = local_db_path.replace('\\', '/')
+    return f"sqlite:///{normalized_path}"
 
 
 def _validate_runtime_config(app: Flask, is_production: bool) -> None:
