@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import PageTransition from '../components/PageTransition'
+import { API_BASE_URL } from '../config/api'
 
 function GoogleIcon() {
   return (
@@ -18,9 +19,7 @@ function GoogleIcon() {
 function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
-  const googleAuthUrl = import.meta.env.VITE_API_URL
-    ? `${import.meta.env.VITE_API_URL}/auth/google`
-    : '/auth/google'
+  const googleAuthUrl = `${API_BASE_URL}/auth/google`
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
