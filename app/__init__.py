@@ -104,9 +104,10 @@ def create_app(config: dict | None = None) -> Flask:
     app.config["GOOGLE_CLIENT_ID"] = os.getenv("GOOGLE_CLIENT_ID", "")
     app.config["GOOGLE_CLIENT_SECRET"] = os.getenv("GOOGLE_CLIENT_SECRET", "")
     app.config["GOOGLE_REDIRECT_URI"] = os.getenv("GOOGLE_REDIRECT_URI", "http://localhost:5000/auth/google/callback")
+    app.config['SESSION_COOKIE_SECURE'] = True
     app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-    app.config['SESSION_COOKIE_SECURE'] = False
     app.config['SESSION_COOKIE_HTTPONLY'] = True
+    app.config['REMEMBER_COOKIE_SECURE'] = True
     app.config['SESSION_TYPE'] = 'filesystem'
 
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
@@ -138,8 +139,14 @@ def create_app(config: dict | None = None) -> Flask:
 
     @app.after_request
     def add_cors(response):
+        allowed_origins = [
+            'http://localhost:5173',
+            'http://localhost:5174',
+            'https://ai-compass-1.onrender.com',
+            os.getenv('FRONTEND_URL', ''),
+        ]
         origin = request.headers.get('Origin', '')
-        if 'localhost:5173' in origin or '127.0.0.1:5173' in origin:
+        if any(origin == o for o in allowed_origins if o):
             response.headers['Access-Control-Allow-Origin'] = origin
             response.headers['Access-Control-Allow-Credentials'] = 'true'
             response.headers['Access-Control-Allow-Methods'] = 'GET,POST,PUT,DELETE,OPTIONS'
@@ -158,17 +165,20 @@ def create_app(config: dict | None = None) -> Flask:
     try:
         model_path = os.path.join(project_root, 'data', 'recommendation_model.pkl')
         if not os.path.exists(model_path):
-            print("ML model not found, training now...")
-            import subprocess
-            result = subprocess.run(
-                [sys.executable, os.path.join(project_root, 'scripts', 'train_model.py')],
-                capture_output=True, text=True, cwd=project_root
-            )
-            print("Model training output:", result.stdout)
-            if result.returncode != 0:
-                print("Model training failed:", result.stderr)
+            print("Training ML model on first startup...")
+            train_script = os.path.join(project_root, 'scripts', 'train_model.py')
+            if os.path.exists(train_script):
+                import subprocess
+                result = subprocess.run(
+                    [sys.executable, train_script],
+                    capture_output=True, text=True, cwd=project_root, timeout=120
+                )
+                if result.returncode == 0:
+                    print("ML model trained successfully")
+                else:
+                    print("ML model training failed:", result.stderr[:500])
     except Exception as e:
-        print(f"Could not train model: {e}")
+        print(f"ML model auto-train skipped: {e}")
 
     @app.context_processor
     def inject_global_template_vars():

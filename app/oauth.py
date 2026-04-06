@@ -108,6 +108,7 @@ def login_google():
     print("CLIENT_ID:", os.getenv("GOOGLE_CLIENT_ID", "MISSING")[:15])
     print("CLIENT_SECRET:", os.getenv("GOOGLE_CLIENT_SECRET", "MISSING")[:5])
     print("REDIRECT_URI:", _google_redirect_uri())
+    frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:5173')
 
     if not os.getenv("GOOGLE_CLIENT_ID"):
         return jsonify({"error": "GOOGLE_CLIENT_ID not set"}), 500
@@ -115,7 +116,7 @@ def login_google():
     print("Google Client ID:", os.getenv("GOOGLE_CLIENT_ID")[:10])
 
     if not os.getenv("GOOGLE_CLIENT_SECRET"):
-        return redirect("http://localhost:5173/login?error=google_not_configured")
+        return redirect(f"{frontend_url}/login?error=google_not_configured")
     try:
         redirect_uri = _google_redirect_uri()
         return oauth.google.authorize_redirect(
@@ -124,7 +125,7 @@ def login_google():
         )
     except Exception as exc:
         err = str(exc or "").lower()
-        return redirect("http://localhost:5173/login?error=google_failed")
+        return redirect(f"{frontend_url}/login?error=google_failed")
 
 
 @oauth_bp.route("/auth/google/callback")
