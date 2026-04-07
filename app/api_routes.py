@@ -5,7 +5,7 @@ import subprocess
 import sys
 
 from flask import Blueprint, current_app, jsonify, request
-from flask_login import current_user, login_user
+from flask_login import current_user, login_user, logout_user
 
 from app import bcrypt, csrf, db
 from app.ml_recommender import get_recommendations, get_similar_tools
@@ -305,12 +305,117 @@ def get_tool_reviews(slug: str):
 
 @api_bp.get("/search")
 def search_tools_endpoint():
-    query = (request.args.get("q") or "").strip()
-    if not query:
+    q = (request.args.get("q") or "").strip().lower()
+    category = (request.args.get("category") or "").strip()
+    pricing = (request.args.get("pricing") or "").strip().lower()
+    sort = (request.args.get("sort") or "relevance").strip().lower()
+
+    if not q and not category:
         return jsonify([])
 
-    results = search_tools(_load_tools(), query, user=current_user if current_user.is_authenticated else None)
-    return jsonify(results)
+    tools = _load_tools() or []
+
+    if q:
+        scored = []
+        for tool in tools:
+            score = 0
+            name = str(tool.get("name") or "").lower()
+            desc = str(tool.get("description") or "").lower()
+            tags = " ".join(tool.get("tags") or []).lower()
+            use_cases = " ".join(tool.get("use_cases") or []).lower()
+            cat = str(tool.get("category") or "").lower()
+
+            # Name matching — highest signal
+            if q == name:
+                score += 100
+            elif name.startswith(q):
+                score += 60
+            elif q in name:
+                score += 50
+
+            # Tag matching — second highest (tags are curated keywords)
+            tag_list = [t.lower() for t in (tool.get("tags") or [])]
+            if q in tag_list:
+                score += 35
+            elif any(q in t for t in tag_list):
+                score += 25
+            elif q in tags:
+                score += 20
+
+            # Use-case matching
+            uc_list = [u.lower() for u in (tool.get("use_cases") or [])]
+            if q in uc_list:
+                score += 28
+            elif any(q in u for u in uc_list):
+                score += 18
+            elif q in use_cases:
+                score += 12
+
+            # Category matching
+            if q == cat:
+                score += 22
+            elif q in cat:
+                score += 15
+
+            # Description matching — lowest signal (noisy)
+            if q in desc:
+                score += 8
+            # Word-boundary match in description (more precise)
+            import re as _re
+            if _re.search(r"\b" + _re.escape(q) + r"\b", desc):
+                score += 4
+
+            # Rating boost (up to +10 for a 5-star tool)
+            try:
+                score += float(tool.get("rating") or 0) * 2
+            except (TypeError, ValueError):
+                pass
+
+            # Trending boost
+            if tool.get("trending"):
+                score += 3
+
+            if score > 0:
+                tool_copy = tool.copy()
+                tool_copy["search_score"] = round(score, 2)
+                scored.append(tool_copy)
+
+        scored.sort(key=lambda x: x["search_score"], reverse=True)
+        tools = scored
+
+    # Apply filters
+    if category:
+        tools = [t for t in tools if t.get("category", "").lower() == category.lower()]
+
+    if pricing == "free":
+        tools = [
+            t for t in tools
+            if str(t.get("pricing_tier") or t.get("pricing") or "").lower() == "free"
+        ]
+    elif pricing == "freemium":
+        tools = [
+            t for t in tools
+            if str(t.get("pricing_tier") or t.get("pricing") or "").lower() in ("free", "freemium")
+        ]
+
+    # Secondary sort overrides
+    if sort == "rating":
+        tools = sorted(tools, key=lambda t: float(t.get("rating") or 0), reverse=True)
+    elif sort == "popularity":
+        tools = sorted(tools, key=lambda t: float(t.get("popularity_score") or 0), reverse=True)
+    elif sort == "name":
+        tools = sorted(tools, key=lambda t: str(t.get("name") or "").lower())
+
+    # Deduplicate by name (preserve score order)
+    seen: set = set()
+    unique = []
+    for t in tools:
+        name_key = str(t.get("name") or "").strip().lower()
+        if name_key and name_key not in seen:
+            seen.add(name_key)
+            unique.append(t)
+
+    return jsonify(unique[:50])
 
 
 @api_bp.get("/recommendations")
@@ -519,6 +624,38 @@ def auth_me():
         return jsonify({"error": "Unauthorized"}), 401
 
     return jsonify(_serialize_user(current_user))
+
+
+@csrf.exempt
+@api_bp.route("/profile", methods=["PUT"])
+def update_profile():
+    if not current_user.is_authenticated:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    payload = request.get_json(silent=True) or {}
+    name = str(payload.get("name") or "").strip()
+
+    if not name:
+        return jsonify({"error": "Display name is required."}), 400
+
+    current_user.display_name = name
+    db.session.commit()
+
+    return jsonify(_serialize_user(current_user))
+
+
+@csrf.exempt
+@api_bp.route("/profile", methods=["DELETE"])
+def delete_profile():
+    if not current_user.is_authenticated:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    user = current_user._get_current_object()
+    db.session.delete(user)
+    db.session.commit()
+    logout_user()
+
+    return jsonify({"success": True})
 
 
 @csrf.exempt

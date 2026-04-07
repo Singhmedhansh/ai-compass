@@ -64,24 +64,48 @@ def get_recommendations(goal=None, budget=None, platform=None, level=None, limit
     for i, tool in enumerate(tools):
         score = float(scores[i])
 
-        pricing = tool.get('pricing_tier', tool.get('pricing', '')).lower()
+        # Pricing boost — reward tools that match user's budget
+        pricing = str(tool.get('pricing_tier') or tool.get('pricing') or '').lower()
         if budget == 'free' and pricing == 'free':
-            score += 0.25
-        elif budget == 'freemium' and pricing in ['free', 'freemium']:
+            score += 0.25  # strong boost for exact free match
+        elif budget == 'free' and pricing == 'freemium':
+            score += 0.10  # partial boost — freemium has a free tier
+        elif budget == 'freemium' and pricing in ('free', 'freemium'):
             score += 0.15
 
+        # Student-friendly boost
         if tool.get('student_friendly'):
-            score += 0.1
+            score += 0.20  # increased from 0.1
 
+        # Rating quality boost
         try:
-            score += (float(tool.get('rating', 0)) / 5.0) * 0.15
-        except:
+            score += (float(tool.get('rating') or 0) / 5.0) * 0.15
+        except (TypeError, ValueError):
             pass
 
+        # Popularity boost
         try:
-            score += float(tool.get('popularity_score', 0.5)) * 0.1
-        except:
+            score += float(tool.get('popularity_score') or 0.5) * 0.10
+        except (TypeError, ValueError):
             pass
+
+        # Recency boost — recently added tools get a small nudge
+        import datetime
+        added = tool.get('added_date') or tool.get('launchYear')
+        if added:
+            try:
+                current_year = datetime.datetime.now().year
+                year = int(str(added)[:4])
+                if current_year - year <= 1:   # added in last year
+                    score += 0.15
+                elif current_year - year <= 2:
+                    score += 0.08
+            except (ValueError, TypeError):
+                pass
+
+        # Trending boost
+        if tool.get('trending'):
+            score += 0.08
 
         final_scores.append((i, score))
 
