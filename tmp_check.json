@@ -1,0 +1,252 @@
+{
+  "ChatGPT": {
+    "category": "Writing & Docs",
+    "tags": [
+      "writing",
+      "chatbot",
+      "research",
+      "homework",
+      "content",
+      "documents",
+      "free",
+      "student-friendly"
+    ],
+    "use_cases": [
+      "Drafting essays and reports",
+      "Proofreading and editing documents",
+      "Summarizing long texts",
+      "Generating blog posts and content",
+      "Creating professional emails and communications"
+    ],
+    "description_snippet": "ChatGPT is OpenAI's flagship conversational AI, capable of drafting essays, solving math problems, debugging code, and e"
+  },
+  "Claude": {
+    "category": "Writing & Docs",
+    "tags": [
+      "writing",
+      "research",
+      "analysis",
+      "long-context",
+      "content",
+      "documents",
+      "student-friendly"
+    ],
+    "use_cases": [
+      "Drafting essays and reports",
+      "Proofreading and editing documents",
+      "Summarizing long texts",
+      "Generating blog posts and content",
+      "Creating professional emails and communications"
+    ],
+    "description_snippet": "Claude by Anthropic excels at nuanced writing, thorough analysis, and handling very long documents in a single conversat"
+  },
+  "GitHub Copilot": {
+    "category": "Coding",
+    "tags": [
+      "coding",
+      "AI",
+      "VS Code",
+      "completion",
+      "programming",
+      "development",
+      "free",
+      "student-friendly"
+    ],
+    "use_cases": [
+      "Writing and completing code faster",
+      "Debugging and fixing errors",
+      "Learning new programming languages",
+      "Reviewing and refactoring code",
+      "Generating boilerplate and project scaffolding"
+    ],
+    "description_snippet": "GitHub Copilot provides AI-powered code completions and chat directly in VS Code, JetBrains, and other editors, dramatic"
+  },
+  "Gemini": {
+    "category": "Writing & Docs",
+    "tags": [
+      "writing",
+      "research",
+      "Google",
+      "multimodal",
+      "content",
+      "documents",
+      "student-friendly",
+      "real-time"
+    ],
+    "use_cases": [
+      "Drafting essays and reports",
+      "Proofreading and editing documents",
+      "Summarizing long texts",
+      "Generating blog posts and content",
+      "Creating professional emails and communications"
+    ],
+    "description_snippet": "Gemini is Google's flagship AI assistant deeply integrated with Google Docs, Sheets, Gmail, and other Workspace tools th"
+  },
+  "Microsoft Copilot": {
+    "category": "Productivity",
+    "tags": [
+      "AI assistant",
+      "free",
+      "web search",
+      "image generation",
+      "productivity",
+      "workflow",
+      "automation",
+      "student-friendly"
+    ],
+    "use_cases": [
+      "Automating repetitive tasks",
+      "Organizing notes and to-do lists",
+      "Managing schedules and workflows",
+      "Summarizing meetings and calls",
+      "Reducing time on manual administrative work"
+    ],
+    "description_snippet": "Microsoft Copilot provides free access to a GPT-4 class AI model with integrated Bing web search and DALL-E 3 image gene"
+  },
+  "Gemini Advanced": {
+    "category": "Productivity",
+    "tags": [
+      "AI assistant",
+      "Google",
+      "long context",
+      "workspace",
+      "productivity",
+      "workflow",
+      "automation",
+      "free"
+    ],
+    "use_cases": [
+      "Automating repetitive tasks",
+      "Organizing notes and to-do lists",
+      "Managing schedules and workflows",
+      "Summarizing meetings and calls",
+      "Reducing time on manual administrative work"
+    ],
+    "description_snippet": "Google Gemini offers a free tier powered by Gemini 1.5 Flash with integration across Google Workspace apps including Doc"
+  },
+  "Gemini in Google Docs": {
+    "category": "Writing & Docs",
+    "tags": [
+      "writing",
+      "Google Docs",
+      "AI",
+      "collaboration",
+      "content",
+      "documents",
+      "free",
+      "student-friendly"
+    ],
+    "use_cases": [
+      "Drafting essays and reports",
+      "Proofreading and editing documents",
+      "Summarizing long texts",
+      "Generating blog posts and content",
+      "Creating professional emails and communications"
+    ],
+    "description_snippet": "Gemini integrated into Google Docs provides AI writing assistance directly in the document students already use for assi"
+  },
+  "Claude for Sheets": {
+    "category": "Data Analysis",
+    "tags": [
+      "Google Sheets",
+      "data analysis",
+      "AI",
+      "spreadsheet",
+      "statistics",
+      "analytics",
+      "api",
+      "free"
+    ],
+    "use_cases": [
+      "Running statistical analysis on datasets",
+      "Visualizing data with charts and graphs",
+      "Cleaning and preprocessing raw data",
+      "Generating insights from research data",
+      "Building interactive dashboards and reports"
+    ],
+    "description_snippet": "Claude for Sheets is a Google Workspace extension that lets students use Claude AI directly in Google Sheets through a C"
+  },
+  "Mistral AI": {
+    "category": "Writing & Docs",
+    "tags": [
+      "AI",
+      "open-weight",
+      "chat",
+      "writing",
+      "content",
+      "documents",
+      "api",
+      "free"
+    ],
+    "use_cases": [
+      "Drafting essays and reports",
+      "Proofreading and editing documents",
+      "Summarizing long texts",
+      "Generating blog posts and content",
+      "Creating professional emails and communications"
+    ],
+    "description_snippet": "Mistral AI releases open-weight models that rival proprietary alternatives and offers a free Le Chat interface for stude"
+  },
+  "Claude Projects": {
+    "category": "Productivity",
+    "tags": [
+      "AI",
+      "context",
+      "projects",
+      "research",
+      "productivity",
+      "workflow",
+      "automation",
+      "student-friendly"
+    ],
+    "use_cases": [
+      "Automating repetitive tasks",
+      "Organizing notes and to-do lists",
+      "Managing schedules and workflows",
+      "Summarizing meetings and calls",
+      "Reducing time on manual administrative work"
+    ],
+    "description_snippet": "Claude Projects lets students create persistent AI workspaces where uploaded documents and custom instructions are remem"
+  },
+  "Grok": {
+    "category": "Research",
+    "tags": [
+      "AI assistant",
+      "real-time",
+      "social",
+      "research",
+      "academic",
+      "papers",
+      "student-friendly"
+    ],
+    "use_cases": [
+      "Finding and summarizing academic papers",
+      "Conducting literature reviews",
+      "Fact-checking and source verification",
+      "Discovering related research and citations",
+      "Synthesizing findings from multiple sources"
+    ],
+    "description_snippet": "Grok by xAI integrates with real-time posts on X to answer questions about current events and trending topics with acces"
+  },
+  "Copilot for Microsoft 365": {
+    "category": "Writing & Docs",
+    "tags": [
+      "Microsoft",
+      "Word",
+      "Excel",
+      "PowerPoint",
+      "writing",
+      "content",
+      "documents",
+      "free"
+    ],
+    "use_cases": [
+      "Drafting essays and reports",
+      "Proofreading and editing documents",
+      "Summarizing long texts",
+      "Generating blog posts and content",
+      "Creating professional emails and communications"
+    ],
+    "description_snippet": "Microsoft Copilot integrates AI across Word, Excel, PowerPoint, Teams, and Outlook through the Microsoft 365 Education s"
+  }
+}

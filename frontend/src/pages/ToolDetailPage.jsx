@@ -44,7 +44,7 @@ function buildStarNodes(rating, className = 'h-4 w-4') {
     return (
       <Star
         key={`star-${index}`}
-        className={clsx(className, active ? 'fill-amber-400 text-amber-400' : 'text-slate-600')}
+        className={clsx(className, active ? 'fill-amber-400 text-amber-400' : 'text-gray-500 dark:text-gray-500')}
       />
     )
   })
@@ -236,8 +236,8 @@ function ToolDetailPage() {
   if (loading) {
     return (
       <PageTransition>
-        <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-          <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6 text-slate-300">Loading tool details...</div>
+        <main className="mx-auto w-full max-w-7xl bg-gray-50 px-4 py-8 dark:bg-gray-950 sm:px-6 lg:px-8">
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">Loading tool details...</div>
         </main>
       </PageTransition>
     )
@@ -246,8 +246,8 @@ function ToolDetailPage() {
   if (error || !tool) {
     return (
       <PageTransition>
-        <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-          <div className="rounded-2xl border border-red-500/40 bg-red-500/10 p-6 text-red-200">
+        <main className="mx-auto w-full max-w-7xl bg-gray-50 px-4 py-8 dark:bg-gray-950 sm:px-6 lg:px-8">
+          <div className="rounded-2xl border border-red-500/40 bg-red-500/10 p-6 text-red-700 dark:text-red-200">
             {error || 'Tool not found.'}
           </div>
         </main>
@@ -257,12 +257,12 @@ function ToolDetailPage() {
 
   return (
     <PageTransition>
-      <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <main className="mx-auto w-full max-w-7xl bg-gray-50 px-4 py-8 dark:bg-gray-950 sm:px-6 lg:px-8">
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div className="flex-1 space-y-6">
-          <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-lg">
+          <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-lg dark:border-gray-700 dark:bg-gray-800">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-              <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-slate-800">
+              <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gray-100 dark:bg-gray-800">
                 {!imgError ? (
                   <img
                     src={logoUrl}
@@ -283,7 +283,7 @@ function ToolDetailPage() {
               </div>
 
               <div className="min-w-0 flex-1">
-                <h1 className="text-2xl font-bold text-white">{tool.name}</h1>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{tool.name}</h1>
                 <div className="mt-3 flex flex-wrap items-center gap-2">
                   <Badge label={tool.category} variant={tool.category} />
                   <span
@@ -295,14 +295,14 @@ function ToolDetailPage() {
                     {tool.pricing}
                   </span>
                 </div>
-                <p className="mt-3 text-sm text-slate-400">{tool.shortDescription}</p>
+                <p className="mt-3 text-sm text-gray-600 dark:text-gray-400">{tool.shortDescription}</p>
 
                 <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <a href={tool.url} target="_blank" rel="noreferrer" className="w-full">
                     <Button className="w-full">Visit Tool</Button>
                   </a>
                   <Button variant="ghost" className="w-full gap-2" onClick={handleFavoriteToggle}>
-                    <Heart className={clsx('h-4 w-4', isFavorite ? 'fill-red-500 text-red-500' : 'text-slate-300')} />
+                    <Heart className={clsx('h-4 w-4', isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-300 dark:text-gray-600')} />
                     Save to Favorites
                   </Button>
                 </div>
@@ -314,53 +314,53 @@ function ToolDetailPage() {
                 tool.tags.map((tag) => (
                   <span
                     key={`${tool.slug}-tag-${tag}`}
-                    className="rounded-full border border-slate-700 bg-slate-800 px-2.5 py-1 text-xs font-medium text-slate-300"
+                    className="rounded-full border border-gray-300 bg-white px-2.5 py-1 text-xs font-medium text-gray-700 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300"
                   >
                     {tag}
                   </span>
                 ))
               ) : (
-                <span className="text-xs text-slate-500">No tags yet</span>
+                <span className="text-xs text-gray-500 dark:text-gray-500">No tags yet</span>
               )}
             </div>
           </section>
 
-          <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-            <h2 className="text-lg font-semibold text-white">About this tool</h2>
-            <p className="mt-3 leading-relaxed text-slate-300">{tool.description}</p>
+          <section className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">About this tool</h2>
+            <p className="mt-3 leading-relaxed text-gray-600 dark:text-gray-400">{tool.description}</p>
           </section>
 
-          <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-            <h2 className="text-lg font-semibold text-white">Community Rating</h2>
+          <section className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Community Rating</h2>
             <div className="mt-4 flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
               <div>
-                <p className="text-5xl font-bold text-white">{(Number(tool.rating) || 0).toFixed(1)}</p>
+                <p className="text-5xl font-bold text-gray-900 dark:text-white">{(Number(tool.rating) || 0).toFixed(1)}</p>
                 <div className="mt-2 flex items-center gap-1">{buildStarNodes(tool.rating, 'h-5 w-5')}</div>
-                <p className="mt-2 text-sm text-slate-400">Based on {tool.ratingCount || 0} ratings</p>
+                <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">Based on {tool.ratingCount || 0} ratings</p>
               </div>
 
               <div className="w-full max-w-md space-y-3">
                 {[5, 4, 3, 2, 1].map((label, index) => (
                   <div key={`rating-bar-${label}`} className="flex items-center gap-3">
-                    <span className="w-10 text-sm text-slate-300">{label}★</span>
-                    <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-800">
+                    <span className="w-10 text-sm text-gray-600 dark:text-gray-400">{label}★</span>
+                    <div className="h-2 flex-1 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-900">
                       <div
                         className="h-full rounded-full bg-indigo-500"
                         style={{ width: `${ratingBars[index]}%` }}
                       />
                     </div>
-                    <span className="w-12 text-right text-xs text-slate-400">{ratingBars[index]}%</span>
+                    <span className="w-12 text-right text-xs text-gray-600 dark:text-gray-400">{ratingBars[index]}%</span>
                   </div>
                 ))}
               </div>
             </div>
           </section>
 
-          <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-            <h2 className="text-lg font-semibold text-white">Reviews</h2>
+          <section className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Reviews</h2>
 
             {reviews.length === 0 ? (
-              <p className="mt-4 text-sm text-slate-400">No reviews yet. Be the first!</p>
+              <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">No reviews yet. Be the first!</p>
             ) : (
               <div className="mt-4 space-y-4">
                 {reviews.map((review, index) => {
@@ -370,18 +370,18 @@ function ToolDetailPage() {
                   const reviewText = review.text || review.review || review.comment || ''
 
                   return (
-                    <article key={`${username}-${index}`} className="rounded-xl border border-slate-800 bg-slate-950/40 p-4">
+                    <article key={`${username}-${index}`} className="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900">
                       <div className="flex items-start gap-3">
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-600/30 text-sm font-bold text-indigo-200">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-600/30 text-sm font-bold text-indigo-600 dark:text-indigo-300">
                           {username.charAt(0).toUpperCase()}
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-center justify-between gap-2">
-                            <p className="font-semibold text-white">{username}</p>
-                            <p className="text-xs text-slate-500">{reviewDate}</p>
+                            <p className="font-semibold text-gray-900 dark:text-white">{username}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-500">{reviewDate}</p>
                           </div>
                           <div className="mt-1 flex items-center gap-1">{buildStarNodes(reviewRating)}</div>
-                          <p className="mt-2 text-sm leading-relaxed text-slate-300">{reviewText}</p>
+                          <p className="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-400">{reviewText}</p>
                         </div>
                       </div>
                     </article>
@@ -393,34 +393,34 @@ function ToolDetailPage() {
         </div>
 
         <aside className="space-y-6 lg:sticky lg:top-24 lg:h-fit lg:w-80">
-          <section className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
-            <h3 className="text-base font-semibold text-white">Quick info</h3>
+          <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-800">
+            <h3 className="text-base font-semibold text-gray-900 dark:text-white">Quick info</h3>
             <dl className="mt-4 space-y-3 text-sm">
               <div className="flex items-center justify-between gap-4">
-                <dt className="text-slate-400">Pricing</dt>
-                <dd className="text-slate-200">{tool.pricing}</dd>
+                <dt className="text-gray-600 dark:text-gray-400">Pricing</dt>
+                <dd className="text-gray-900 dark:text-gray-100">{tool.pricing}</dd>
               </div>
               <div className="flex items-center justify-between gap-4">
-                <dt className="text-slate-400">Platform</dt>
-                <dd className="text-slate-200">{tool.platform || 'Web'}</dd>
+                <dt className="text-gray-600 dark:text-gray-400">Platform</dt>
+                <dd className="text-gray-900 dark:text-gray-100">{tool.platform || 'Web'}</dd>
               </div>
               <div className="flex items-center justify-between gap-4">
-                <dt className="text-slate-400">Category</dt>
-                <dd className="text-slate-200">{tool.category}</dd>
+                <dt className="text-gray-600 dark:text-gray-400">Category</dt>
+                <dd className="text-gray-900 dark:text-gray-100">{tool.category}</dd>
               </div>
               <div className="flex items-center justify-between gap-4">
-                <dt className="text-slate-400">Last updated</dt>
-                <dd className="text-slate-200">{formatDate(tool.lastUpdated)}</dd>
+                <dt className="text-gray-600 dark:text-gray-400">Last updated</dt>
+                <dd className="text-gray-900 dark:text-gray-100">{formatDate(tool.lastUpdated)}</dd>
               </div>
               <div className="flex items-center justify-between gap-4">
-                <dt className="text-slate-400">Student friendly</dt>
+                <dt className="text-gray-600 dark:text-gray-400">Student friendly</dt>
                 <dd>
                   <span
                     className={clsx(
                       'inline-flex rounded-full px-2 py-1 text-xs font-semibold ring-1 ring-inset',
                       tool.studentFriendly
-                        ? 'bg-emerald-500/20 text-emerald-300 ring-emerald-500/30'
-                        : 'bg-slate-700 text-slate-200 ring-slate-600',
+                        ? 'bg-emerald-500/20 text-emerald-600 ring-emerald-500/30 dark:text-emerald-300'
+                        : 'bg-gray-200 text-gray-700 ring-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:ring-gray-600',
                     )}
                   >
                     {tool.studentFriendly ? 'Yes' : 'No'}
@@ -430,11 +430,11 @@ function ToolDetailPage() {
             </dl>
           </section>
 
-          <section className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
-            <h3 className="text-base font-semibold text-white">Related Tools</h3>
+          <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-800">
+            <h3 className="text-base font-semibold text-gray-900 dark:text-white">Related Tools</h3>
 
             {relatedTools.length === 0 ? (
-              <p className="mt-3 text-sm text-slate-400">No related tools found.</p>
+              <p className="mt-3 text-sm text-gray-600 dark:text-gray-400">No related tools found.</p>
             ) : (
               <div className="mt-4 space-y-3">
                 {relatedTools.map((relatedTool) => {
@@ -446,9 +446,9 @@ function ToolDetailPage() {
                       key={relatedTool.slug}
                       type="button"
                       onClick={() => navigate(`/tools/${relatedTool.slug}`)}
-                      className="flex w-full items-center gap-3 rounded-xl border border-slate-800 bg-slate-950/30 p-3 text-left transition hover:border-indigo-400/40 hover:bg-slate-950"
+                      className="flex w-full items-center gap-3 rounded-xl border border-gray-200 bg-white p-3 text-left transition hover:border-indigo-300 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-900 dark:hover:border-indigo-500 dark:hover:bg-gray-800"
                     >
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-800">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
                         {!relatedImgError ? (
                           <img
                             src={relatedLogo}
@@ -473,7 +473,7 @@ function ToolDetailPage() {
                         )}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-semibold text-white">{relatedTool.name}</p>
+                        <p className="truncate text-sm font-semibold text-gray-900 dark:text-white">{relatedTool.name}</p>
                         <div className="mt-1 flex items-center gap-0.5">{buildStarNodes(relatedTool.rating, 'h-3.5 w-3.5')}</div>
                       </div>
                     </button>

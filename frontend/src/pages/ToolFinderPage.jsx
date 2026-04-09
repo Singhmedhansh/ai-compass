@@ -73,12 +73,12 @@ function StepCard({ option, selected, onClick, compact = false }) {
       className={`relative rounded-2xl border p-5 text-left transition focus:outline-none focus:ring-2 focus:ring-indigo-500/60 ${
         selected
           ? 'border-indigo-500 bg-indigo-500/10 shadow-lg shadow-indigo-500/20'
-          : 'border-slate-700 bg-slate-900/80 hover:bg-slate-900'
+          : 'border-gray-300 bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900/80 dark:hover:bg-gray-900'
       } ${compact ? 'min-h-[120px]' : 'min-h-[156px]'}`}
     >
       <div className="text-3xl" aria-hidden="true">{option.emoji}</div>
-      <h3 className="mt-3 text-lg font-semibold text-white">{option.label}</h3>
-      <p className="mt-2 text-sm text-slate-300">{option.description}</p>
+      <h3 className="mt-3 text-lg font-semibold text-gray-900 dark:text-white">{option.label}</h3>
+      <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">{option.description}</p>
       {selected ? (
         <div className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full bg-indigo-500 text-white">
           <Check className="h-4 w-4" />
@@ -93,7 +93,7 @@ function ProgressDots({ step }) {
     <div className="mb-8">
       <div className="relative mx-auto flex w-full max-w-xl items-center justify-between">
         <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 px-5">
-          <div className="h-1 rounded-full bg-slate-700">
+          <div className="h-1 rounded-full bg-gray-300 dark:bg-gray-700">
             <MotionDiv
               className="h-1 rounded-full bg-indigo-500"
               animate={{ width: `${((step - 1) / (TOTAL_STEPS - 1)) * 100}%` }}
@@ -121,12 +121,12 @@ function ProgressDots({ step }) {
                 <MotionDiv
                   animate={{ scale: [1, 1.08, 1] }}
                   transition={{ duration: 1.3, repeat: Number.POSITIVE_INFINITY }}
-                  className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-indigo-500 bg-slate-950 text-indigo-300"
+                  className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-indigo-500 bg-white text-indigo-600 dark:bg-gray-950 dark:text-indigo-300"
                 >
                   <span className="text-sm font-semibold">{dot}</span>
                 </MotionDiv>
               ) : (
-                <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-slate-600 bg-slate-900 text-slate-400">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-gray-300 bg-white text-gray-600 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-400">
                   <span className="text-sm font-semibold">{dot}</span>
                 </div>
               )}

@@ -84,30 +84,30 @@ function EditToolModal({ tool, onClose, onSave }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-      <div className="w-full max-w-lg rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-xl">
-        <h3 className="text-xl font-semibold text-white">Edit Tool</h3>
-        <p className="mt-1 text-sm text-slate-400">Local inline edit preview for admin workflow.</p>
+      <div className="w-full max-w-lg rounded-2xl border border-gray-700 bg-white dark:bg-gray-900 p-6 shadow-xl dark:shadow-gray-900/50">
+        <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Edit Tool</h3>
+        <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">Local inline edit preview for admin workflow.</p>
 
-        <label className="mt-4 block text-sm text-slate-300">Name</label>
+        <label className="mt-4 block text-sm text-gray-700 dark:text-gray-300">Name</label>
         <input
           value={name}
           onChange={(event) => setName(event.target.value)}
-          className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
         />
 
-        <label className="mt-4 block text-sm text-slate-300">Description</label>
+        <label className="mt-4 block text-sm text-gray-700 dark:text-gray-300">Description</label>
         <textarea
           value={description}
           onChange={(event) => setDescription(event.target.value)}
           rows={4}
-          className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
         />
 
         <div className="mt-6 flex justify-end gap-2">
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300 transition hover:bg-slate-800"
+            className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 transition hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
           >
             Cancel
           </button>
@@ -330,51 +330,51 @@ function AdminPage() {
   const renderOverviewTab = () => (
     <div className="space-y-6">
       <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
-        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
-          <p className="text-xs uppercase tracking-wide text-slate-400">Total Tools</p>
-          <p className="mt-2 text-3xl font-bold text-white">{loading ? '...' : stats.total_tools}</p>
+        <div className="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+          <p className="text-xs uppercase tracking-wide text-gray-600 dark:text-gray-400">Total Tools</p>
+          <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">{loading ? '...' : stats.total_tools}</p>
           <p className="mt-1 text-sm text-emerald-400">+12 this week</p>
         </div>
 
-        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
-          <p className="text-xs uppercase tracking-wide text-slate-400">Total Users</p>
-          <p className="mt-2 text-3xl font-bold text-white">{loading ? '...' : stats.total_users}</p>
+        <div className="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+          <p className="text-xs uppercase tracking-wide text-gray-600 dark:text-gray-400">Total Users</p>
+          <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">{loading ? '...' : stats.total_users}</p>
           <p className="mt-1 text-sm text-emerald-400">↑ 2 new today</p>
         </div>
 
-        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
-          <p className="text-xs uppercase tracking-wide text-slate-400">ML Model</p>
+        <div className="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+          <p className="text-xs uppercase tracking-wide text-gray-600 dark:text-gray-400">ML Model</p>
           <div className="mt-3 flex items-center gap-2">
             <span className={`h-3 w-3 rounded-full ${modelActive ? 'animate-pulse bg-emerald-400' : 'bg-rose-400'}`} />
-            <p className="text-lg font-semibold text-white">{modelActive ? 'Active' : 'Inactive'}</p>
+            <p className="text-lg font-semibold text-gray-900 dark:text-white">{modelActive ? 'Active' : 'Inactive'}</p>
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
-          <p className="text-xs uppercase tracking-wide text-slate-400">Collections</p>
-          <p className="mt-2 text-3xl font-bold text-white">{COLLECTIONS_COUNT}</p>
+        <div className="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+          <p className="text-xs uppercase tracking-wide text-gray-600 dark:text-gray-400">Collections</p>
+          <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">{COLLECTIONS_COUNT}</p>
         </div>
 
-        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
-          <p className="text-xs uppercase tracking-wide text-slate-400">Free Tools %</p>
-          <p className="mt-2 text-3xl font-bold text-white">{freeToolsPercent}%</p>
+        <div className="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+          <p className="text-xs uppercase tracking-wide text-gray-600 dark:text-gray-400">Free Tools %</p>
+          <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">{freeToolsPercent}%</p>
         </div>
       </section>
 
-      <section className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
-        <h2 className="text-lg font-semibold text-white">Category Breakdown</h2>
+      <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Category Breakdown</h2>
         <div className="mt-4 space-y-3">
           {categoryBreakdown.map((item) => (
             <div key={item.category} className="grid grid-cols-[160px_1fr_48px] items-center gap-3">
-              <p className="truncate text-sm text-slate-300">{item.category}</p>
-              <div className="h-6 rounded-md bg-slate-800 p-1">
+              <p className="truncate text-sm text-gray-700 dark:text-gray-300">{item.category}</p>
+              <div className="h-6 rounded-md bg-gray-200 p-1 dark:bg-gray-800">
                 <div
                   className={`h-full rounded ${item.barClass}`}
                   style={{ width: `${item.widthPercent}%` }}
                   aria-label={`${item.category} ${item.count}`}
                 />
               </div>
-              <p className="text-right text-sm font-semibold text-slate-200">{item.count}</p>
+              <p className="text-right text-sm font-semibold text-gray-700 dark:text-gray-200">{item.count}</p>
             </div>
           ))}
         </div>
@@ -383,9 +383,9 @@ function AdminPage() {
   )
 
   const renderToolsTab = () => (
-    <section className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
+    <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
       <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <h2 className="text-xl font-semibold text-white">Tools</h2>
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Tools</h2>
         <div className="flex w-full flex-col gap-2 md:w-auto md:flex-row">
           <div className="w-full md:w-80">
             <SearchInput
@@ -408,7 +408,7 @@ function AdminPage() {
       <div className="overflow-x-auto">
         <table className="min-w-full text-left text-sm">
           <thead>
-            <tr className="border-b border-slate-700 text-slate-400">
+            <tr className="border-b border-gray-200 text-gray-600 dark:border-gray-700 dark:text-gray-400">
               <th className="px-3 py-2 font-semibold">Name</th>
               <th className="px-3 py-2 font-semibold">Category</th>
               <th className="px-3 py-2 font-semibold">Rating</th>
@@ -422,18 +422,18 @@ function AdminPage() {
               const slug = getToolSlug(tool)
 
               return (
-                <tr key={slug} className="border-b border-slate-800">
-                  <td className="px-3 py-2 text-slate-100">{tool.name || 'Unknown'}</td>
-                  <td className="px-3 py-2 text-slate-300">{tool.category || 'Uncategorized'}</td>
-                  <td className="px-3 py-2 text-slate-300">{getToolRating(tool).toFixed(1)}</td>
-                  <td className="px-3 py-2 text-slate-300">{tool.pricing || tool.pricing_tier || 'Unknown'}</td>
-                  <td className="px-3 py-2 text-slate-300">{tool.student_friendly === true ? 'Yes' : 'No'}</td>
+                <tr key={slug} className="border-b border-gray-200 dark:border-gray-800">
+                  <td className="px-3 py-2 text-gray-900 dark:text-gray-100">{tool.name || 'Unknown'}</td>
+                  <td className="px-3 py-2 text-gray-700 dark:text-gray-300">{tool.category || 'Uncategorized'}</td>
+                  <td className="px-3 py-2 text-gray-700 dark:text-gray-300">{getToolRating(tool).toFixed(1)}</td>
+                  <td className="px-3 py-2 text-gray-700 dark:text-gray-300">{tool.pricing || tool.pricing_tier || 'Unknown'}</td>
+                  <td className="px-3 py-2 text-gray-700 dark:text-gray-300">{tool.student_friendly === true ? 'Yes' : 'No'}</td>
                   <td className="px-3 py-2">
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
                         onClick={() => window.open(`/tools/${slug}`, '_blank', 'noopener,noreferrer')}
-                        className="rounded-md border border-slate-700 p-1.5 text-slate-300 transition hover:bg-slate-800"
+                        className="rounded-md border border-gray-300 p-1.5 text-gray-700 transition hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
                         aria-label={`View ${tool.name}`}
                       >
                         <Eye className="h-4 w-4" />
@@ -441,7 +441,7 @@ function AdminPage() {
                       <button
                         type="button"
                         onClick={() => setEditingTool(tool)}
-                        className="rounded-md border border-slate-700 p-1.5 text-slate-300 transition hover:bg-slate-800"
+                        className="rounded-md border border-gray-300 p-1.5 text-gray-700 transition hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
                         aria-label={`Edit ${tool.name}`}
                       >
                         <Pencil className="h-4 w-4" />
@@ -454,7 +454,7 @@ function AdminPage() {
 
             {!loading && paginatedTools.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-3 py-6 text-center text-slate-400">
+                <td colSpan={6} className="px-3 py-6 text-center text-gray-500 dark:text-gray-400">
                   No tools found.
                 </td>
               </tr>
@@ -464,7 +464,7 @@ function AdminPage() {
       </div>
 
       <div className="mt-4 flex items-center justify-between">
-        <p className="text-xs text-slate-400">
+        <p className="text-xs text-gray-600 dark:text-gray-400">
           Showing {paginatedTools.length} of {filteredTools.length}
         </p>
         <div className="flex items-center gap-2">
@@ -472,18 +472,18 @@ function AdminPage() {
             type="button"
             onClick={() => setToolsPage((prev) => Math.max(1, prev - 1))}
             disabled={toolsPage <= 1}
-            className="rounded-md border border-slate-700 px-3 py-1 text-sm text-slate-300 transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-md border border-gray-300 px-3 py-1 text-sm text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
           >
             Prev
           </button>
-          <span className="text-sm text-slate-300">
+          <span className="text-sm text-gray-700 dark:text-gray-300">
             Page {toolsPage} / {totalToolsPages}
           </span>
           <button
             type="button"
             onClick={() => setToolsPage((prev) => Math.min(totalToolsPages, prev + 1))}
             disabled={toolsPage >= totalToolsPages}
-            className="rounded-md border border-slate-700 px-3 py-1 text-sm text-slate-300 transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-md border border-gray-300 px-3 py-1 text-sm text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
           >
             Next
           </button>
@@ -493,12 +493,12 @@ function AdminPage() {
   )
 
   const renderUsersTab = () => (
-    <section className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
-      <h2 className="text-xl font-semibold text-white">Users</h2>
+    <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
+      <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Users</h2>
       <div className="mt-4 overflow-x-auto">
         <table className="min-w-full text-left text-sm">
           <thead>
-            <tr className="border-b border-slate-700 text-slate-400">
+            <tr className="border-b border-gray-200 text-gray-600 dark:border-gray-700 dark:text-gray-400">
               <th className="px-3 py-2 font-semibold">ID</th>
               <th className="px-3 py-2 font-semibold">Name</th>
               <th className="px-3 py-2 font-semibold">Email</th>
@@ -509,26 +509,26 @@ function AdminPage() {
           </thead>
           <tbody>
             {users.map((user) => (
-              <tr key={user.id} className="border-b border-slate-800">
-                <td className="px-3 py-2 text-slate-300">{user.id}</td>
-                <td className="px-3 py-2 text-slate-100">{user.display_name || 'Unknown'}</td>
-                <td className="px-3 py-2 text-slate-300">{user.email || 'Unknown'}</td>
-                <td className="px-3 py-2 text-slate-300">{user.oauth_provider || 'password'}</td>
-                <td className="px-3 py-2 text-slate-300">
+              <tr key={user.id} className="border-b border-gray-200 dark:border-gray-800">
+                <td className="px-3 py-2 text-gray-700 dark:text-gray-300">{user.id}</td>
+                <td className="px-3 py-2 text-gray-900 dark:text-gray-100">{user.display_name || 'Unknown'}</td>
+                <td className="px-3 py-2 text-gray-700 dark:text-gray-300">{user.email || 'Unknown'}</td>
+                <td className="px-3 py-2 text-gray-700 dark:text-gray-300">{user.oauth_provider || 'password'}</td>
+                <td className="px-3 py-2 text-gray-700 dark:text-gray-300">
                   {user.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}
                 </td>
                 <td className="px-3 py-2">
                   {user.is_admin ? (
                     <span className="rounded-full bg-emerald-900/60 px-2 py-1 text-xs font-semibold text-emerald-300">Admin</span>
                   ) : (
-                    <span className="rounded-full bg-slate-800 px-2 py-1 text-xs font-semibold text-slate-300">User</span>
+                    <span className="rounded-full bg-gray-200 px-2 py-1 text-xs font-semibold text-gray-700 dark:bg-gray-800 dark:text-gray-300">User</span>
                   )}
                 </td>
               </tr>
             ))}
             {!loading && users.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-3 py-6 text-center text-slate-400">
+                <td colSpan={6} className="px-3 py-6 text-center text-gray-500 dark:text-gray-400">
                   No users found.
                 </td>
               </tr>
@@ -540,12 +540,12 @@ function AdminPage() {
   )
 
   const renderModelTab = () => (
-    <section className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
-      <h2 className="text-xl font-semibold text-white">ML Model</h2>
+    <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
+      <h2 className="text-xl font-semibold text-gray-900 dark:text-white">ML Model</h2>
       <p className={`mt-3 text-lg font-semibold ${modelActive ? 'text-emerald-400' : 'text-rose-400'}`}>
         {modelActive ? 'ML Model: Active ✓' : 'ML Model: Inactive'}
       </p>
-      <p className="mt-2 text-sm text-slate-400">Use quick actions to retrain and refresh cached tool data.</p>
+      <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">Use quick actions to retrain and refresh cached tool data.</p>
     </section>
   )
 
@@ -556,12 +556,12 @@ function AdminPage() {
   return (
     <PageTransition>
       <main className="mx-auto w-full max-w-[1400px] px-4 py-8 sm:px-6 lg:px-8">
-      <section className="mb-6 rounded-2xl border border-slate-800 bg-slate-950 p-6 shadow-lg">
-        <h1 className="text-3xl font-bold tracking-tight text-white">Admin Dashboard</h1>
-        <p className="mt-2 text-sm text-slate-300">Platform analytics, inventory control, and model operations.</p>
+      <section className="mb-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900 dark:shadow-gray-900/50">
+        <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Admin Dashboard</h1>
+        <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">Platform analytics, inventory control, and model operations.</p>
       </section>
 
-      <section className="mb-6 flex items-center gap-6 border-b border-slate-800">
+      <section className="mb-6 flex items-center gap-6 border-b border-gray-200 dark:border-gray-800">
         {TABS.map((tab) => {
           const active = tab === activeTab
           return (
@@ -570,7 +570,7 @@ function AdminPage() {
               type="button"
               onClick={() => setActiveTab(tab)}
               className={`pb-3 text-sm font-semibold transition ${
-                active ? 'border-b-2 border-indigo-500 text-indigo-400' : 'text-slate-400 hover:text-slate-200'
+                active ? 'border-b-2 border-indigo-500 text-indigo-400' : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200'
               }`}
             >
               {tab}
@@ -587,8 +587,8 @@ function AdminPage() {
           {activeTab === 'ML Model' ? renderModelTab() : null}
         </div>
 
-        <aside className="h-fit rounded-2xl border border-slate-800 bg-slate-900 p-5">
-          <h2 className="text-lg font-semibold text-white">Quick Actions</h2>
+        <aside className="h-fit rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Quick Actions</h2>
           <div className="mt-4 space-y-3">
             <button
               type="button"
@@ -603,7 +603,7 @@ function AdminPage() {
               type="button"
               onClick={handleClearCache}
               disabled={runningAction === 'cache'}
-              className="w-full rounded-lg border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:bg-slate-800 disabled:opacity-60"
+              className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-100 disabled:opacity-60 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
             >
               {runningAction === 'cache' ? 'Clearing...' : 'Clear Tool Cache'}
             </button>
@@ -611,7 +611,7 @@ function AdminPage() {
             <a
               href="/data/tools.json"
               download
-              className="block w-full rounded-lg border border-slate-700 px-4 py-2 text-center text-sm font-semibold text-slate-200 transition hover:bg-slate-800"
+              className="block w-full rounded-lg border border-gray-300 px-4 py-2 text-center text-sm font-semibold text-gray-700 transition hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
             >
               Export All Tools JSON
             </a>

@@ -48,7 +48,7 @@ function CollectionPage() {
 
   return (
     <PageTransition>
-      <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <main className="mx-auto w-full max-w-7xl bg-gray-50 px-4 py-8 dark:bg-gray-950 sm:px-6 lg:px-8">
       <Helmet>
         <title>{collection?.meta_title || 'AI Collections | AI Compass'}</title>
         <meta
@@ -58,12 +58,12 @@ function CollectionPage() {
         <meta property="og:title" content={collection?.meta_title || 'AI Collections | AI Compass'} />
       </Helmet>
 
-      <section className="mb-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <section className="mb-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
         <p className="text-sm font-semibold uppercase tracking-wide text-indigo-500">Collection</p>
-        <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
+        <h1 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
           {loading ? 'Loading collection...' : collection?.title || 'Collection not found'}
         </h1>
-        <p className="mt-2 max-w-3xl text-slate-600 dark:text-slate-300">
+        <p className="mt-2 max-w-3xl text-gray-600 dark:text-gray-400">
           {collection?.description || 'Curated tools to help you discover the right AI stack faster.'}
         </p>
         <div className="mt-4 inline-flex items-center rounded-full bg-indigo-100 px-3 py-1 text-sm font-semibold text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300">
@@ -98,12 +98,12 @@ function CollectionPage() {
           ))}
         </AnimatedGrid>
       ) : !error ? (
-        <section className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-6 py-14 text-center dark:border-slate-700 dark:bg-slate-900/60">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-white text-3xl shadow-sm dark:bg-slate-800" aria-hidden="true">
+        <section className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-6 py-14 text-center dark:border-gray-700 dark:bg-gray-900">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-gray-200 bg-white text-3xl shadow-sm dark:border-gray-700 dark:bg-gray-800" aria-hidden="true">
             📭
           </div>
-          <h2 className="mt-5 text-xl font-semibold text-slate-900 dark:text-slate-100">No tools found in this collection</h2>
-          <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+          <h2 className="mt-5 text-xl font-semibold text-gray-900 dark:text-gray-100">No tools found in this collection</h2>
+          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
             Try another collection to discover more tools.
           </p>
           <div className="mt-6">

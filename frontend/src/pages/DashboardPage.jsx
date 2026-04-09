@@ -203,8 +203,8 @@ function DashboardPage() {
 
   if (loading) {
     return (
-      <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200">
+      <main className="mx-auto w-full max-w-7xl bg-gray-50 px-4 py-8 dark:bg-gray-950 sm:px-6 lg:px-8">
+        <div className="rounded-2xl border border-gray-200 bg-white p-6 text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
           Loading your dashboard...
         </div>
       </main>
@@ -213,10 +213,10 @@ function DashboardPage() {
 
   return (
     <PageTransition>
-      <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <main className="mx-auto w-full max-w-7xl bg-gray-50 px-4 py-8 dark:bg-gray-950 sm:px-6 lg:px-8">
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[16rem_minmax(0,1fr)]">
-        <aside className="rounded-2xl border border-slate-200 bg-white p-4 text-gray-900 shadow-sm dark:border-slate-700 dark:bg-gray-800 dark:text-white lg:sticky lg:top-24 lg:h-fit">
-          <p className="px-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Dashboard</p>
+        <aside className="rounded-2xl border border-gray-200 bg-white p-4 text-gray-900 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white lg:sticky lg:top-24 lg:h-fit">
+          <p className="px-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Dashboard</p>
           <nav className="mt-3 space-y-1">
             <button
               type="button"
@@ -228,7 +228,7 @@ function DashboardPage() {
             <button
               type="button"
               onClick={() => navigate('/tools')}
-              className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+              className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-medium text-gray-700 transition hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
             >
               <Grid3X3 className="h-4 w-4" />
               Browse Tools
@@ -236,7 +236,7 @@ function DashboardPage() {
             <button
               type="button"
               onClick={() => navigate('/ai-tool-finder')}
-              className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+              className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-medium text-gray-700 transition hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
             >
               <Wand2 className="h-4 w-4" />
               Tool Finder
@@ -244,7 +244,7 @@ function DashboardPage() {
             <button
               type="button"
               onClick={() => navigate('/tools')}
-              className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+              className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-medium text-gray-700 transition hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
             >
               <Heart className="h-4 w-4" />
               Favorites
@@ -254,16 +254,16 @@ function DashboardPage() {
 
         <div className="space-y-6">
           <MotionSection
-            className="rounded-2xl bg-gradient-to-r from-indigo-900/50 to-purple-900/50 border border-indigo-500/20 p-6 shadow-sm"
+            className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
           >
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                   {greeting}, {displayName}!
                 </h1>
-                <p className="mt-2 text-sm text-slate-700 dark:text-slate-300">
+                <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
                   Here are your personalized AI tool recommendations
                 </p>
               </div>
@@ -324,7 +324,7 @@ function DashboardPage() {
             ].map((item, index) => (
               <MotionDiv
                 key={item.key}
-                className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-gray-800"
+                className="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800"
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: index * 0.1, type: 'spring' }}
@@ -332,7 +332,7 @@ function DashboardPage() {
                 <div className={`mb-2 flex h-9 w-9 items-center justify-center rounded-lg ${item.iconClass}`}>
                   {item.icon}
                 </div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{item.label}</p>
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{item.label}</p>
                 <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">{item.value}</p>
               </MotionDiv>
             ))}
@@ -344,7 +344,7 @@ function DashboardPage() {
               onClick={() => navigate('/tools')}
               className="flex items-center justify-between rounded-xl border border-indigo-500/40 bg-indigo-500/5 px-4 py-3 text-left transition hover:bg-indigo-500/10"
             >
-              <span className="flex items-center gap-2 text-sm font-semibold text-indigo-200">
+              <span className="flex items-center gap-2 text-sm font-semibold text-indigo-600 dark:text-indigo-400">
                 <Grid3X3 className="h-4 w-4" />
                 Browse Tools
               </span>
@@ -355,7 +355,7 @@ function DashboardPage() {
               onClick={() => navigate('/ai-tool-finder')}
               className="flex items-center justify-between rounded-xl border border-indigo-500/40 bg-indigo-500/5 px-4 py-3 text-left transition hover:bg-indigo-500/10"
             >
-              <span className="flex items-center gap-2 text-sm font-semibold text-indigo-200">
+              <span className="flex items-center gap-2 text-sm font-semibold text-indigo-600 dark:text-indigo-400">
                 <Sparkles className="h-4 w-4" />
                 Find My AI Stack
               </span>
@@ -366,7 +366,7 @@ function DashboardPage() {
               onClick={() => navigate('/submit')}
               className="flex items-center justify-between rounded-xl border border-indigo-500/40 bg-indigo-500/5 px-4 py-3 text-left transition hover:bg-indigo-500/10"
             >
-              <span className="flex items-center gap-2 text-sm font-semibold text-indigo-200">
+              <span className="flex items-center gap-2 text-sm font-semibold text-indigo-600 dark:text-indigo-400">
                 <Wand2 className="h-4 w-4" />
                 Submit a Tool
               </span>
@@ -382,8 +382,8 @@ function DashboardPage() {
           <section>
             <div className="mb-3 flex items-end justify-between gap-3">
               <div>
-                <h2 className="text-xl font-bold text-slate-900 dark:text-white">Recommended for You</h2>
-                <p className="text-sm text-slate-600 dark:text-slate-400">Based on your interests</p>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Recommended for You</h2>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Based on your interests</p>
               </div>
               <Sparkles className="h-5 w-5 text-indigo-500" />
             </div>
@@ -396,17 +396,17 @@ function DashboardPage() {
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-slate-500 dark:text-slate-400">No recommendations yet.</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">No recommendations yet.</p>
               )}
             </div>
           </section>
 
           <section>
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white">My Favorites</h2>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">My Favorites</h2>
 
             {favorites.length === 0 ? (
-              <div className="mt-3 rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center dark:border-slate-700 dark:bg-slate-900/60">
-                <p className="text-sm text-slate-600 dark:text-slate-400">No favorites yet</p>
+              <div className="mt-3 rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-6 text-center dark:border-gray-700 dark:bg-gray-900">
+                <p className="text-sm text-gray-600 dark:text-gray-400">No favorites yet</p>
                 <Button className="mt-4" onClick={() => navigate('/tools')}>
                   Explore Tools
                 </Button>
@@ -424,14 +424,14 @@ function DashboardPage() {
             <h2 className="text-xl font-bold text-gray-900 dark:text-white">My AI Stack</h2>
 
             {!savedStack ? (
-              <div className="mt-3 rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center dark:border-slate-700 dark:bg-slate-900/60">
-                <p className="text-sm text-slate-600 dark:text-slate-400">No stack saved yet</p>
+              <div className="mt-3 rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-6 text-center dark:border-gray-700 dark:bg-gray-900">
+                <p className="text-sm text-gray-600 dark:text-gray-400">No stack saved yet</p>
                 <Button className="mt-4" onClick={() => navigate('/ai-tool-finder')}>
                   Build My Stack
                 </Button>
               </div>
             ) : (
-              <div className="mt-3 rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-gray-800">
+              <div className="mt-3 rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-800">
                 <div className="flex flex-wrap gap-2">
                   <span className="rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-200">
                     Goal: {savedStack.goal || 'N/A'}
@@ -450,13 +450,13 @@ function DashboardPage() {
                       savedStack.tools.map((toolName, index) => (
                         <span
                           key={`saved-stack-tool-${index}`}
-                          className="rounded-lg border border-slate-300 px-2.5 py-1 text-xs text-slate-700 dark:border-slate-600 dark:text-slate-200"
+                          className="rounded-lg border border-gray-300 px-2.5 py-1 text-xs text-gray-700 dark:border-gray-600 dark:text-gray-300"
                         >
                           {toolName}
                         </span>
                       ))
                     ) : (
-                      <p className="text-sm text-slate-600 dark:text-slate-400">No tools in saved stack</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">No tools in saved stack</p>
                     )}
                   </div>
                 </div>
@@ -465,10 +465,10 @@ function DashboardPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white">Recently Viewed</h2>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Recently Viewed</h2>
 
             {recentlyViewedTools.length === 0 ? (
-              <p className="mt-3 text-sm text-slate-600 dark:text-slate-400">Start browsing tools to see your history</p>
+              <p className="mt-3 text-sm text-gray-600 dark:text-gray-400">Start browsing tools to see your history</p>
             ) : (
               <div className="mt-3 flex gap-4 overflow-x-auto pb-2">
                 {recentlyViewedTools.map((tool) => (

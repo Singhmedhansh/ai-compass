@@ -185,15 +185,15 @@ function DirectoryPage() {
 
   return (
     <PageTransition>
-      <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <main className="mx-auto w-full max-w-7xl bg-gray-50 px-4 py-8 dark:bg-gray-950 sm:px-6 lg:px-8">
       <section className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">AI Tools Directory</h1>
-        <span className="inline-flex items-center rounded-full bg-indigo-100 px-3 py-1 text-sm font-semibold text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300">
+        <span className="inline-flex items-center rounded-full border border-gray-200 bg-white px-3 py-1 text-sm font-semibold text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
           {loading ? 'Loading...' : `${filteredTools.length} tools`}
         </span>
       </section>
 
-      <section className="sticky top-16 z-20 mb-6 rounded-2xl border border-slate-200 bg-white/95 p-4 shadow-sm backdrop-blur dark:border-slate-800 dark:bg-slate-950/90">
+      <section className="sticky top-16 z-20 mb-6 rounded-2xl border border-gray-200 bg-white/95 p-4 shadow-sm backdrop-blur dark:border-gray-700 dark:bg-gray-800/95">
         <div className="flex gap-2 overflow-x-auto pb-1">
           {CATEGORY_OPTIONS.map((option) => {
             const active = option === category
@@ -206,7 +206,7 @@ function DirectoryPage() {
                 className={`rounded-full px-3 py-1.5 text-sm font-semibold transition ${
                   active
                     ? 'bg-indigo-600 text-white'
-                    : 'bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
+                    : 'bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800'
                 }`}
               >
                 {option}
@@ -219,7 +219,7 @@ function DirectoryPage() {
           <select
             value={sortBy}
             onChange={(event) => setSortBy(event.target.value)}
-            className="h-10 rounded-xl border border-slate-300 bg-white px-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+            className="h-10 rounded-xl border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100"
             aria-label="Sort tools"
           >
             {SORT_OPTIONS.map((option) => (
@@ -259,12 +259,12 @@ function DirectoryPage() {
           ))}
         </AnimatedGrid>
       ) : (
-        <section className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-6 py-14 text-center dark:border-slate-700 dark:bg-slate-900/60">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-white text-3xl shadow-sm dark:bg-slate-800" aria-hidden="true">
+        <section className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-6 py-14 text-center dark:border-gray-700 dark:bg-gray-900">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-gray-200 bg-white text-3xl shadow-sm dark:border-gray-700 dark:bg-gray-800" aria-hidden="true">
             🔎
           </div>
-          <h2 className="mt-5 text-xl font-semibold text-slate-900 dark:text-slate-100">No tools found for this filter</h2>
-          <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+          <h2 className="mt-5 text-xl font-semibold text-gray-900 dark:text-gray-100">No tools found for this filter</h2>
+          <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
             Try a broader category, clear the search term, or reset all filters.
           </p>
           <div className="mt-6">

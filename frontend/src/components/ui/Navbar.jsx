@@ -1,9 +1,10 @@
-import { Moon, Sun } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { ChevronDown, LayoutDashboard, LogOut, Moon, Shield, Sparkles, Sun, UserCircle2 } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
 import Button from './Button'
 import SearchInput from './SearchInput'
+import useClickOutside from '../../hooks/useClickOutside'
 
 const STORAGE_KEY = 'ai-compass-theme'
 const ADMIN_EMAILS = ['singhmedhansh07@gmail.com']
@@ -26,6 +27,7 @@ function Navbar() {
   const navigate = useNavigate()
   const [searchValue, setSearchValue] = useState('')
   const [isDark, setIsDark] = useState(getInitialTheme)
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
   const [user, setUser] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem('user') || 'null')
@@ -34,12 +36,38 @@ function Navbar() {
     }
   })
   const [scrolled, setScrolled] = useState(false)
-  const isAdmin = Boolean(user && ADMIN_EMAILS.includes(user.email))
+  const menuRef = useClickOutside(() => setIsProfileMenuOpen(false))
+  const isAdmin = Boolean(user && (user.is_admin || ADMIN_EMAILS.includes(user.email)))
+  const avatarLetter = useMemo(
+    () => String(user?.name || user?.email || 'U').charAt(0).toUpperCase(),
+    [user?.email, user?.name],
+  )
+
+  const syncThemeFromStorage = () => {
+    if (typeof window === 'undefined') {
+      return
+    }
+
+    const storedTheme = window.localStorage.getItem(STORAGE_KEY)
+    setIsDark(storedTheme ? storedTheme === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches)
+  }
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', isDark)
     window.localStorage.setItem(STORAGE_KEY, isDark ? 'dark' : 'light')
   }, [isDark])
+
+  useEffect(() => {
+    const handleThemeChange = () => syncThemeFromStorage()
+
+    window.addEventListener('storage', handleThemeChange)
+    window.addEventListener('themeChanged', handleThemeChange)
+
+    return () => {
+      window.removeEventListener('storage', handleThemeChange)
+      window.removeEventListener('themeChanged', handleThemeChange)
+    }
+  }, [])
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20)
@@ -88,17 +116,16 @@ function Navbar() {
   const handleLogout = () => {
     localStorage.removeItem('user')
     window.dispatchEvent(new Event('userLoggedIn'))
+    setIsProfileMenuOpen(false)
     navigate('/')
   }
-
-  const avatarLetter = String(user?.name || user?.email || 'U').charAt(0).toUpperCase()
 
   return (
     <header
       className={`sticky top-0 z-50 transition-all duration-300 ${
         scrolled
-          ? 'bg-gray-950/95 backdrop-blur-md shadow-lg shadow-black/20 border-b border-white/5'
-          : 'bg-transparent border-b border-transparent'
+          ? 'border-b border-gray-100 bg-white/95 shadow-lg shadow-black/5 backdrop-blur-md dark:border-gray-800 dark:bg-gray-950/95 dark:shadow-black/20'
+          : 'border-b border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-950'
       }`}
     >
       <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center gap-3 px-4 py-3 sm:px-6 lg:px-8">
@@ -121,13 +148,13 @@ function Navbar() {
 
         <div className="order-2 ml-auto flex items-center gap-2 sm:order-3">
           <Link to="/collections">
-            <Button variant="ghost" size="sm" className="text-gray-900 dark:text-white">
+            <Button variant="ghost" size="sm" className="text-gray-700 dark:text-gray-300">
               Collections
             </Button>
           </Link>
 
           {isAdmin ? (
-            <Link to="/admin" className="px-1 text-xs font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200">
+            <Link to="/admin" className="px-1 text-xs font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
               Admin
             </Link>
           ) : null}
@@ -135,54 +162,134 @@ function Navbar() {
           <button
             type="button"
             onClick={toggleDarkMode}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-700 transition-colors hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
             aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
           >
             {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>
 
           {user ? (
-            <>
-              <div className="relative h-8 w-8">
-                {user?.picture && user.picture.length > 10 ? (
-                  <img
-                    src={user.picture}
-                    alt={user?.name || 'Profile'}
-                    referrerPolicy="no-referrer"
-                    crossOrigin="anonymous"
-                    className="h-8 w-8 rounded-full object-cover ring-2 ring-indigo-500"
-                    onError={(event) => {
-                      event.currentTarget.style.display = 'none'
-                      const fallback = event.currentTarget.parentNode?.querySelector('.avatar-fallback')
-                      if (fallback) {
-                        fallback.style.display = 'flex'
-                      }
-                    }}
-                  />
-                ) : null}
-                <div
-                  id="nav-avatar-fallback"
-                  style={{ display: user?.picture && user.picture.length > 10 ? 'none' : 'flex' }}
-                  className="avatar-fallback h-8 w-8 rounded-full bg-indigo-600 items-center justify-center text-white text-sm font-bold"
-                >
-                  {avatarLetter}
+            <div className="relative" ref={menuRef}>
+              <button
+                type="button"
+                onClick={() => setIsProfileMenuOpen((value) => !value)}
+                className="flex items-center gap-2 rounded-full border border-gray-300 bg-white px-1.5 py-1 text-left shadow-sm transition hover:border-indigo-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:border-gray-600 dark:bg-gray-900"
+                aria-haspopup="menu"
+                aria-expanded={isProfileMenuOpen}
+              >
+                <div className="relative h-8 w-8 overflow-hidden rounded-full ring-2 ring-indigo-500">
+                  {user?.picture && user.picture.length > 10 ? (
+                    <img
+                      src={user.picture}
+                      alt={user?.name || 'Profile'}
+                      referrerPolicy="no-referrer"
+                      crossOrigin="anonymous"
+                      className="h-full w-full object-cover"
+                      onError={(event) => {
+                        event.currentTarget.style.display = 'none'
+                        const fallback = event.currentTarget.parentNode?.querySelector('.avatar-fallback')
+                        if (fallback) {
+                          fallback.style.display = 'flex'
+                        }
+                      }}
+                    />
+                  ) : null}
+                  <div
+                    id="nav-avatar-fallback"
+                    style={{ display: user?.picture && user.picture.length > 10 ? 'none' : 'flex' }}
+                    className="avatar-fallback h-8 w-8 items-center justify-center rounded-full bg-indigo-600 text-sm font-bold text-white"
+                  >
+                    {avatarLetter}
+                  </div>
                 </div>
-              </div>
+                <ChevronDown className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+              </button>
 
-              <Link to="/dashboard">
-                <Button variant="ghost" size="sm" className="text-gray-900 dark:text-white">
-                  Dashboard
-                </Button>
-              </Link>
+              {isProfileMenuOpen ? (
+                <div
+                  role="menu"
+                  aria-label="Profile menu"
+                  className="absolute right-0 mt-2 w-64 overflow-hidden rounded-2xl border border-gray-200 bg-white p-2 shadow-2xl shadow-black/10 dark:border-gray-700 dark:bg-gray-800"
+                >
+                  <div className="px-3 py-2">
+                    <p className="truncate text-sm font-semibold text-gray-900 dark:text-white">{user?.name || 'My account'}</p>
+                    <p className="truncate text-xs text-gray-500 dark:text-gray-400">{user?.email || ''}</p>
+                  </div>
 
-              <Button variant="primary" size="sm" onClick={handleLogout}>
-                Logout
-              </Button>
-            </>
+                  <div className="my-2 border-t border-gray-100 dark:border-gray-800" />
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsProfileMenuOpen(false)
+                      navigate('/dashboard')
+                    }}
+                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-900"
+                    role="menuitem"
+                  >
+                    <LayoutDashboard className="h-4 w-4" />
+                    My Dashboard
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsProfileMenuOpen(false)
+                      navigate('/profile')
+                    }}
+                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-900"
+                    role="menuitem"
+                  >
+                    <UserCircle2 className="h-4 w-4" />
+                    Profile &amp; Settings
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsProfileMenuOpen(false)
+                      navigate('/ai-tool-finder')
+                    }}
+                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-900"
+                    role="menuitem"
+                  >
+                    <Sparkles className="h-4 w-4" />
+                    My AI Stack
+                  </button>
+
+                  {isAdmin ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsProfileMenuOpen(false)
+                        navigate('/admin')
+                      }}
+                      className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-900"
+                      role="menuitem"
+                    >
+                      <Shield className="h-4 w-4" />
+                      Admin Panel
+                    </button>
+                  ) : null}
+
+                  <div className="my-2 border-t border-gray-100 dark:border-gray-800" />
+
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold text-rose-600 transition hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-500/10"
+                    role="menuitem"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Logout
+                  </button>
+                </div>
+              ) : null}
+            </div>
           ) : (
             <>
               <Link to="/login">
-                <Button variant="ghost" size="sm" className="text-gray-900 dark:text-white">
+                <Button variant="ghost" size="sm" className="text-gray-700 dark:text-gray-300">
                   Login
                 </Button>
               </Link>

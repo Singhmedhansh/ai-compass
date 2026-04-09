@@ -18,7 +18,9 @@
       "content",
       "documents",
       "free",
-      "student-friendly"
+      "student-friendly",
+      "coding",
+      "programming"
     ],
     "trending": true,
     "rating": 4.8,
@@ -47,7 +49,8 @@
       "Proofreading and editing documents",
       "Summarizing long texts",
       "Generating blog posts and content",
-      "Creating professional emails and communications"
+      "Creating professional emails and communications",
+      "Writing and debugging code across any language"
     ],
     "difficulty": "beginner",
     "student_friendly": true,
@@ -73,7 +76,10 @@
       "long-context",
       "content",
       "documents",
-      "student-friendly"
+      "student-friendly",
+      "coding",
+      "programming",
+      "debugging"
     ],
     "trending": true,
     "rating": 4.8,
@@ -102,7 +108,8 @@
       "Proofreading and editing documents",
       "Summarizing long texts",
       "Generating blog posts and content",
-      "Creating professional emails and communications"
+      "Creating professional emails and communications",
+      "Writing and reviewing code with detailed explanations"
     ],
     "difficulty": "beginner",
     "student_friendly": true,
@@ -186,7 +193,9 @@
       "content",
       "documents",
       "free",
-      "student-friendly"
+      "student-friendly",
+      "coding",
+      "documentation"
     ],
     "trending": true,
     "rating": 4.6,
@@ -216,7 +225,8 @@
       "Proofreading and editing documents",
       "Summarizing long texts",
       "Generating blog posts and content",
-      "Creating professional emails and communications"
+      "Creating professional emails and communications",
+      "Documenting code and technical notes"
     ],
     "difficulty": "beginner",
     "student_friendly": true,
@@ -569,7 +579,9 @@
       "real-time",
       "academic",
       "papers",
-      "student-friendly"
+      "student-friendly",
+      "coding",
+      "programming"
     ],
     "trending": true,
     "rating": 4.7,
@@ -598,7 +610,8 @@
       "Conducting literature reviews",
       "Fact-checking and source verification",
       "Discovering related research and citations",
-      "Synthesizing findings from multiple sources"
+      "Synthesizing findings from multiple sources",
+      "Finding code examples and library documentation"
     ],
     "difficulty": "intermediate",
     "student_friendly": false,
@@ -883,7 +896,8 @@
       "studying",
       "learning",
       "education",
-      "student-friendly"
+      "student-friendly",
+      "coding"
     ],
     "trending": false,
     "rating": 4.7,
@@ -1439,7 +1453,8 @@
       "accurate",
       "ai art",
       "visual",
-      "api"
+      "api",
+      "coding"
     ],
     "trending": false,
     "rating": 4.6,
@@ -1494,7 +1509,8 @@
       "design",
       "ai art",
       "visual",
-      "student-friendly"
+      "student-friendly",
+      "coding"
     ],
     "trending": false,
     "rating": 4.4,
@@ -2129,7 +2145,8 @@
       "flyers",
       "visual",
       "creative",
-      "student-friendly"
+      "student-friendly",
+      "coding"
     ],
     "trending": false,
     "rating": 4.3,
@@ -2234,7 +2251,8 @@
       "CSV",
       "statistics",
       "analytics",
-      "student-friendly"
+      "student-friendly",
+      "coding"
     ],
     "trending": true,
     "rating": 4.5,
@@ -2338,7 +2356,9 @@
       "content",
       "documents",
       "student-friendly",
-      "real-time"
+      "real-time",
+      "coding",
+      "programming"
     ],
     "trending": true,
     "rating": 4.6,
@@ -2370,7 +2390,8 @@
       "Proofreading and editing documents",
       "Summarizing long texts",
       "Generating blog posts and content",
-      "Creating professional emails and communications"
+      "Creating professional emails and communications",
+      "Writing code and scripts across programming languages"
     ]
   },
   {
@@ -2392,7 +2413,9 @@
       "workflow",
       "automation",
       "free",
-      "collaboration"
+      "collaboration",
+      "coding",
+      "programming"
     ],
     "trending": false,
     "rating": 4.4,
@@ -2425,7 +2448,8 @@
       "Organizing notes and to-do lists",
       "Managing schedules and workflows",
       "Summarizing meetings and calls",
-      "Reducing time on manual administrative work"
+      "Reducing time on manual administrative work",
+      "Writing code snippets and scripts"
     ]
   },
   {
@@ -5283,7 +5307,8 @@
       "biomedical",
       "data analysis",
       "analytics",
-      "student-friendly"
+      "student-friendly",
+      "coding"
     ],
     "trending": false,
     "rating": 4.6,
@@ -5544,7 +5569,9 @@
       "productivity",
       "research",
       "workflow",
-      "automation"
+      "automation",
+      "coding",
+      "programming"
     ],
     "trending": false,
     "rating": 4.5,
@@ -5576,7 +5603,8 @@
       "Organizing notes and to-do lists",
       "Managing schedules and workflows",
       "Summarizing meetings and calls",
-      "Reducing time on manual administrative work"
+      "Reducing time on manual administrative work",
+      "Generating and explaining code"
     ]
   },
   {
@@ -6021,7 +6049,8 @@
       "photography",
       "design",
       "visual",
-      "student-friendly"
+      "student-friendly",
+      "coding"
     ],
     "trending": false,
     "rating": 4.3,
@@ -6334,7 +6363,8 @@
       "data collection",
       "academic",
       "papers",
-      "student-friendly"
+      "student-friendly",
+      "coding"
     ],
     "trending": false,
     "rating": 4.5,
@@ -6862,7 +6892,8 @@
       "tools",
       "content",
       "documents",
-      "student-friendly"
+      "student-friendly",
+      "coding"
     ],
     "trending": false,
     "rating": 4.2,
@@ -7966,7 +7997,9 @@
       "content",
       "documents",
       "api",
-      "free"
+      "free",
+      "coding",
+      "programming"
     ],
     "trending": true,
     "rating": 4.6,
@@ -7996,7 +8029,8 @@
       "Proofreading and editing documents",
       "Summarizing long texts",
       "Generating blog posts and content",
-      "Creating professional emails and communications"
+      "Creating professional emails and communications",
+      "Writing and completing code in multiple languages"
     ]
   },
   {
@@ -8694,7 +8728,8 @@
       "multi-doc",
       "academic",
       "papers",
-      "student-friendly"
+      "student-friendly",
+      "coding"
     ],
     "trending": false,
     "rating": 4.4,
@@ -8744,7 +8779,8 @@
       "explanation",
       "comprehension",
       "academic",
-      "student-friendly"
+      "student-friendly",
+      "coding"
     ],
     "trending": false,
     "rating": 4.3,
@@ -9111,7 +9147,9 @@
       "productivity",
       "workflow",
       "automation",
-      "student-friendly"
+      "student-friendly",
+      "coding",
+      "programming"
     ],
     "trending": true,
     "rating": 4.7,
@@ -9143,7 +9181,8 @@
       "Organizing notes and to-do lists",
       "Managing schedules and workflows",
       "Summarizing meetings and calls",
-      "Reducing time on manual administrative work"
+      "Reducing time on manual administrative work",
+      "Managing multi-file coding projects with persistent context"
     ]
   },
   {
@@ -10471,7 +10510,8 @@
       "form fill",
       "workflow",
       "automation",
-      "student-friendly"
+      "student-friendly",
+      "coding"
     ],
     "trending": false,
     "rating": 4.4,
@@ -10577,7 +10617,8 @@
       "productivity",
       "workflow",
       "automation",
-      "student-friendly"
+      "student-friendly",
+      "coding"
     ],
     "trending": false,
     "rating": 4.6,
@@ -12040,7 +12081,8 @@
       "learning",
       "studying",
       "education",
-      "student-friendly"
+      "student-friendly",
+      "coding"
     ],
     "trending": false,
     "rating": 4.5,
@@ -12562,7 +12604,8 @@
       "natural language",
       "statistics",
       "analytics",
-      "student-friendly"
+      "student-friendly",
+      "coding"
     ],
     "trending": false,
     "rating": 4.3,
@@ -12820,7 +12863,9 @@
       "research",
       "academic",
       "papers",
-      "student-friendly"
+      "student-friendly",
+      "coding",
+      "programming"
     ],
     "trending": true,
     "rating": 4.3,
@@ -12852,7 +12897,8 @@
       "Conducting literature reviews",
       "Fact-checking and source verification",
       "Discovering related research and citations",
-      "Synthesizing findings from multiple sources"
+      "Synthesizing findings from multiple sources",
+      "Coding assistance and debugging"
     ]
   },
   {
@@ -14654,7 +14700,8 @@
       "AI",
       "statistics",
       "analytics",
-      "student-friendly"
+      "student-friendly",
+      "coding"
     ],
     "trending": false,
     "rating": 4.4,
@@ -14809,7 +14856,8 @@
       "visual",
       "design",
       "creative",
-      "student-friendly"
+      "student-friendly",
+      "coding"
     ],
     "trending": false,
     "rating": 4.3,
@@ -15752,7 +15800,8 @@
       "productivity",
       "workflow",
       "free",
-      "student-friendly"
+      "student-friendly",
+      "coding"
     ],
     "trending": false,
     "rating": 4.5,
@@ -17762,7 +17811,8 @@
       "AI",
       "papers",
       "academic",
-      "student-friendly"
+      "student-friendly",
+      "coding"
     ],
     "trending": false,
     "rating": 4.5,
@@ -19554,7 +19604,8 @@
       "quick",
       "visual",
       "creative",
-      "student-friendly"
+      "student-friendly",
+      "coding"
     ],
     "trending": false,
     "rating": 4.4,
@@ -22397,7 +22448,10 @@
       "workspace",
       "content",
       "documents",
-      "student-friendly"
+      "student-friendly",
+      "coding",
+      "documentation",
+      "notes"
     ],
     "trending": false,
     "rating": 4.4,
@@ -22430,7 +22484,8 @@
       "Proofreading and editing documents",
       "Summarizing long texts",
       "Generating blog posts and content",
-      "Creating professional emails and communications"
+      "Creating professional emails and communications",
+      "Documenting code and technical notes"
     ]
   },
   {
@@ -22452,7 +22507,9 @@
       "academic",
       "papers",
       "student-friendly",
-      "real-time"
+      "real-time",
+      "coding",
+      "programming"
     ],
     "trending": true,
     "rating": 4.7,
@@ -22484,7 +22541,8 @@
       "Conducting literature reviews",
       "Fact-checking and source verification",
       "Discovering related research and citations",
-      "Synthesizing findings from multiple sources"
+      "Synthesizing findings from multiple sources",
+      "Finding code examples and library documentation"
     ]
   },
   {
@@ -22658,7 +22716,8 @@
       "premium",
       "academic",
       "papers",
-      "student-friendly"
+      "student-friendly",
+      "coding"
     ],
     "trending": false,
     "rating": 4.7,
@@ -23893,7 +23952,8 @@
       "mobile",
       "academic",
       "papers",
-      "student-friendly"
+      "student-friendly",
+      "coding"
     ],
     "trending": false,
     "rating": 4.3,
@@ -24002,7 +24062,9 @@
       "productivity",
       "workflow",
       "automation",
-      "student-friendly"
+      "student-friendly",
+      "coding",
+      "programming"
     ],
     "trending": false,
     "rating": 4.4,
@@ -24035,7 +24097,8 @@
       "Organizing notes and to-do lists",
       "Managing schedules and workflows",
       "Summarizing meetings and calls",
-      "Reducing time on manual administrative work"
+      "Reducing time on manual administrative work",
+      "Writing code snippets and scripts"
     ]
   },
   {
@@ -24057,7 +24120,9 @@
       "productivity",
       "workflow",
       "automation",
-      "free"
+      "free",
+      "coding",
+      "programming"
     ],
     "trending": true,
     "rating": 4.5,
@@ -24089,7 +24154,8 @@
       "Organizing notes and to-do lists",
       "Managing schedules and workflows",
       "Summarizing meetings and calls",
-      "Reducing time on manual administrative work"
+      "Reducing time on manual administrative work",
+      "Generating and explaining code"
     ]
   },
   {

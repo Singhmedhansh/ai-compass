@@ -1,0 +1,8 @@
+﻿Patched 36 tools (22 auto-extended via description)
+Saved data/tools.json
+
+ChatGPT tags: ['writing', 'chatbot', 'research', 'homework', 'content', 'documents', 'free', 'student-friendly', 'coding', 'programming']
+ChatGPT use_cases: ['Drafting essays and reports', 'Proofreading and editing documents', 'Summarizing long texts', 'Generating blog posts and content', 'Creating professional emails and communications', 'Writing and debugging code across any language']
+
+Claude tags: ['writing', 'research', 'analysis', 'long-context', 'content', 'documents', 'student-friendly', 'coding', 'programming', 'debugging']
+Claude use_cases: ['Drafting essays and reports', 'Proofreading and editing documents', 'Summarizing long texts', 'Generating blog posts and content', 'Creating professional emails and communications', 'Writing and reviewing code with detailed explanations']

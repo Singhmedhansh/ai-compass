@@ -1,0 +1,5 @@
+﻿Loaded 500 tools
+Vocabulary size: 1000
+Matrix shape: (500, 1000)
+Saved to data/recommendation_model.pkl
+Done!

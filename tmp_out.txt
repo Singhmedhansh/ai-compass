@@ -1,0 +1,65 @@
+﻿Total: 500
+Keys: ['id', 'name', 'icon', 'maker', 'tagline', 'category', 'subCategory', 'price', 'pricingDetail', 'bestFor', 'tags', 'trending', 'rating', 'weeklyUsers', 'link', 'apiAvailable', 'openSource', 'studentPerk', 'uniHack', 'features', 'platforms', 'languages', 'launchYear', 'description', 'use_cases', 'difficulty', 'student_friendly', 'pricing_tier', 'popularity_score', 'weekly_users_estimate']
+
+name: ChatGPT
+description: ChatGPT is OpenAI's flagship conversational AI, capable of drafting essays, solving math problems, debugging code, and explaining complex concepts. Students use it daily for homework help, study summa
+tags: ['writing', 'chatbot', 'research', 'homework']
+use_cases: ['studying', 'writing']
+category: Writing & Docs
+pricing_tier: freemium
+pricing: None
+student_friendly: True
+difficulty: beginner
+platforms: ['Web', 'iOS', 'Android']
+
+--- Tool 1: Claude ---
+  cat: Writing & Docs | pricing_tier: freemium | pricing: None
+  student_friendly: True | difficulty: beginner
+  tags: ['writing', 'research', 'analysis', 'long-context']
+  use_cases: ['studying', 'writing']
+  platforms: ['Web', 'iOS', 'Android']
+
+--- Tool 2: Grammarly ---
+  cat: Writing & Docs | pricing_tier: freemium | pricing: None
+  student_friendly: True | difficulty: beginner
+  tags: ['grammar', 'writing', 'plagiarism', 'editing']
+  use_cases: ['studying', 'writing']
+  platforms: ['Web', 'Desktop', 'iOS', 'Android']
+
+--- Tool 50: Napkin AI ---
+  cat: Design | pricing_tier: None | pricing: None
+  student_friendly: None | difficulty: None
+  tags: ['diagrams', 'infographics', 'visualization', 'design']
+  use_cases: None
+  platforms: ['Web']
+
+--- Tool 100: SPSS ---
+  cat: Data Analysis | pricing_tier: None | pricing: None
+  student_friendly: None | difficulty: None
+  tags: ['statistics', 'social science', 'SPSS', 'research']
+  use_cases: None
+  platforms: ['Desktop']
+
+--- Tool 200: Goblin Tools ---
+  cat: Productivity | pricing_tier: None | pricing: None
+  student_friendly: None | difficulty: None
+  tags: ['ADHD', 'neurodiversity', 'task breakdown', 'productivity']
+  use_cases: None
+  platforms: ['Web', 'iOS', 'Android']
+
+--- Tool 300: Khanmigo ---
+  cat: Study Tools | pricing_tier: None | pricing: None
+  student_friendly: None | difficulty: None
+  tags: ['tutoring', 'Socratic', 'Khan Academy', 'learning']
+  use_cases: None
+  platforms: ['Web']
+
+Category distribution: {'Study Tools': 86, 'Productivity': 84, 'Coding': 83, 'Research': 62, 'Writing & Docs': 41, 'Data Analysis': 40, 'Design': 37, 'Presentation': 25, 'Image Generation': 23, 'Video Generation': 19}
+Pricing distribution: {'': 470, 'freemium': 23, 'free': 5, 'paid': 2}
+Missing/short description: 0
+Missing/few tags: 0
+Missing/few use_cases: 470
+Missing difficulty: 470
+Missing student_friendly: 470
+Missing pricing_tier: 470
+Missing platforms: 0

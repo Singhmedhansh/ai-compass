@@ -61,7 +61,7 @@ export default function HomePage() {
 
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       <div className="relative overflow-hidden bg-gradient-to-b from-indigo-950 via-gray-950 to-gray-950 text-center py-20 px-4">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-20 left-1/4 w-80 h-80 rounded-full bg-indigo-600/20 blur-3xl" />
@@ -112,26 +112,28 @@ export default function HomePage() {
         whileInView="visible"
         viewport={{ once: true, amount: 0.2 }}
         variants={sectionReveal}
-        className="max-w-6xl mx-auto px-4 py-16"
+        className="bg-gray-50 dark:bg-gray-950"
       >
-        <motion.h2 variants={cardReveal} className="text-3xl font-bold text-gray-900 dark:text-white mb-8">
-          Featured Tools
-        </motion.h2>
-        {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {Array(6)
-              .fill(0)
-              .map((_, i) => <SkeletonCard key={i} />)}
-          </div>
-        ) : (
-          <AnimatedGrid className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {tools.map((tool) => (
-              <AnimatedItem key={tool.slug || tool.name}>
-                <Card tool={tool} />
-              </AnimatedItem>
-            ))}
-          </AnimatedGrid>
-        )}
+        <div className="max-w-6xl mx-auto px-4 py-16">
+          <motion.h2 variants={cardReveal} className="text-3xl font-bold text-gray-900 dark:text-white mb-8">
+            Featured Tools
+          </motion.h2>
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {Array(6)
+                .fill(0)
+                .map((_, i) => <SkeletonCard key={i} />)}
+            </div>
+          ) : (
+            <AnimatedGrid className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {tools.map((tool) => (
+                <AnimatedItem key={tool.slug || tool.name}>
+                  <Card tool={tool} />
+                </AnimatedItem>
+              ))}
+            </AnimatedGrid>
+          )}
+        </div>
       </MotionSection>
 
       <MotionSection
@@ -139,7 +141,7 @@ export default function HomePage() {
         whileInView="visible"
         viewport={{ once: true, amount: 0.25 }}
         variants={sectionReveal}
-        className="bg-gray-50 dark:bg-gray-900 py-16 px-4"
+        className="bg-gray-50 dark:bg-gray-950 py-16 px-4"
       >
         <div className="max-w-6xl mx-auto">
           <motion.h2 variants={cardReveal} className="text-2xl font-bold text-gray-900 dark:text-white mb-8">
@@ -168,7 +170,7 @@ export default function HomePage() {
         whileInView="visible"
         viewport={{ once: true, amount: 0.25 }}
         variants={sectionReveal}
-        className="py-16 px-4"
+        className="bg-gray-50 dark:bg-gray-950 py-16 px-4"
       >
         <div className="max-w-6xl mx-auto">
           <motion.h2 variants={cardReveal} className="text-2xl font-bold text-gray-900 dark:text-white mb-8">
@@ -185,7 +187,7 @@ export default function HomePage() {
               >
                 <div className="text-3xl font-bold text-indigo-600 mb-2">Step {item.step}</div>
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{item.title}</h3>
-                <p className="text-gray-600 dark:text-gray-300">{item.detail}</p>
+                <p className="text-gray-600 dark:text-gray-400">{item.detail}</p>
               </motion.div>
             ))}
           </div>
