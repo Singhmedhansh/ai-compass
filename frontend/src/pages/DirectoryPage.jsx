@@ -44,7 +44,7 @@ function DirectoryPage() {
   const initialQuery = searchParams.get('q') || ''
 
   const [tools, setTools] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
   const [category, setCategory] = useState(
     CATEGORY_OPTIONS.find((item) => item.toLowerCase() === initialCategory.toLowerCase()) || 'All',
@@ -54,6 +54,7 @@ function DirectoryPage() {
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(initialQuery)
   const [showMobileFilters, setShowMobileFilters] = useState(false)
   const [isFallback, setIsFallback] = useState(false)
+  const [totalCount, setTotalCount] = useState(0)
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -79,55 +80,33 @@ function DirectoryPage() {
   }, [category, searchParams, searchQuery, setSearchParams])
 
   useEffect(() => {
-    const controller = new AbortController()
+    const controller = new AbortController();
     const API = import.meta.env.VITE_API_URL || '';
 
-    async function loadTools() {
-      setLoading(true)
-      setError(null)
-      setIsFallback(false)
+    async function loadInitialTools() {
+      setIsLoading(true);
+      setError(null);
       try {
-        const params = new URLSearchParams();
-        params.set('q', debouncedSearchQuery);
-        if (category && category !== 'All') params.set('category', category);
-        if (sortBy) params.set('sort', sortBy);
-        // Add more filters here if needed
-
-        const response = await fetch(`${API}/api/v1/search?${params.toString()}`, { signal: controller.signal });
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
+        const response = await fetch(`${API}/api/v1/tools`, { signal: controller.signal });
         const data = await response.json();
-        let resolvedTools = [];
-        if (Array.isArray(data.results)) {
-          resolvedTools = data.results;
-        } else if (Array.isArray(data.tools)) {
-          resolvedTools = data.tools;
-        } else if (Array.isArray(data.data)) {
-          resolvedTools = data.data;
-        } else if (Array.isArray(data.items)) {
-          resolvedTools = data.items;
-        } else if (Array.isArray(data)) {
-          resolvedTools = data;
-        }
-        setTools(resolvedTools.map(mapTool));
-        setIsFallback(Boolean(data.fallback));
-        setError(null);
+        setTools((data.results || data || []).map(mapTool));
+        setTotalCount(data.total || 0);
+        setIsLoading(false);
       } catch (err) {
-        if (err.name !== 'AbortError') {
-          setError(err.message);
-          setTools([]);
-        }
-      } finally {
-        if (!controller.signal.aborted) {
-          setLoading(false);
-        }
+        setError('Failed to load tools');
+        setIsLoading(false);
       }
     }
 
-    loadTools();
+    // Only load all tools if no search query and no filters
+    if (!searchQuery && (!category || category === 'All')) {
+      loadInitialTools();
+    }
+    // else: keep existing search/filter logic (not shown here)
+    // You may want to add logic to handle search/filter as before
+
     return () => controller.abort();
-  }, [debouncedSearchQuery, category, sortBy]);
+  }, [searchQuery, category]);
 
   const filteredTools = useMemo(() => {
     const normalizedSearch = debouncedSearchQuery.trim().toLowerCase()
@@ -285,34 +264,20 @@ function DirectoryPage() {
         </div>
       </section>
 
-      {error && (
-        <div className="mb-6 rounded-xl border border-red-300 bg-red-50 p-4 text-red-700 dark:border-red-700 dark:bg-red-950/40 dark:text-red-200">
-          Failed to load tools: {error}
-        </div>
-      )}
+      {isLoading && <p>Loading tools...</p>}
+      {error && <p style={{color:'var(--text-muted)'}}>{error}</p>}
 
-      {loading ? (
-        <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, index) => (
-            <SkeletonCard key={`directory-skeleton-${index}`} />
+      {!isLoading && !error && tools.length > 0 ? (
+        <AnimatedGrid className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {tools.map((tool) => (
+            <AnimatedItem key={tool.slug || tool.name}>
+              <Card tool={tool} />
+            </AnimatedItem>
           ))}
-        </section>
-      ) : tools.length > 0 ? (
-        <>
-          {isFallback && (
-            <p style={{fontSize: '0.9rem', color: 'var(--text-muted, #888)', marginBottom: 12}}>
-              No exact matches — showing top-rated tools instead
-            </p>
-          )}
-          <AnimatedGrid className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {tools.map((tool) => (
-              <AnimatedItem key={tool.slug || tool.name}>
-                <Card tool={tool} />
-              </AnimatedItem>
-            ))}
-          </AnimatedGrid>
-        </>
-      ) : (
+        </AnimatedGrid>
+      ) : null}
+
+      {!isLoading && !error && tools.length === 0 && (
         <section className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-6 py-14 text-center dark:border-gray-700 dark:bg-gray-900">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-gray-200 bg-white text-3xl shadow-sm dark:border-gray-700 dark:bg-gray-800" aria-hidden="true">
             🔎

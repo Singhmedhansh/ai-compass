@@ -229,19 +229,11 @@ def _pricing_value(tool: dict) -> str:
         or tool.get("price")
         or tool.get("pricingType")
     )
+@api_bp.get("/tools")
 def list_tools():
-    tools = _load_tools()
-    category = (request.args.get("category") or "").strip().lower()
-
-    if category:
-        filtered = []
-        for tool in tools:
-            tool_category = str(tool.get("category") or "").strip().lower()
-            if tool_category == category:
-                filtered.append(tool)
-        return jsonify(filtered)
-
-    return jsonify(tools)
+    from app.tool_cache import get_cached_tools
+    tools = get_cached_tools()
+    return jsonify({"results": tools, "total": len(tools), "fallback": False})
 
 
 @api_bp.get("/tools/<slug>")
