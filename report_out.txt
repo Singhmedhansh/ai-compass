@@ -1,0 +1,191 @@
+﻿COMMAND: python -m py_compile app/api_routes.py
+File "app/api_routes.py", line 370
+    }
+    ^
+SyntaxError: unmatched '}'
+---
+COMMAND: python -c "from app import create_app"
+---
+COMMAND: python -c "from app.models import User"
+---
+COMMAND: python -m py_compile app/forms.py
+---
+COMMAND: python -m py_compile app/ml_recommender.py
+---
+COMMAND: python -m py_compile app/search_utils.py
+File "app/search_utils.py", line 108
+    tool_index is the pre-built index entry (see STEP 2D).
+                                                      ^
+SyntaxError: invalid decimal literal
+---
+COMMAND: python -m py_compile app/tool_cache.py
+---
+Total tools: 500
+Categories: {'Design', 'Data Analysis', 'Video Gen', 'Writing & Docs', 'Productivity', 'Study Tools', 'Coding', 'Research', 'Image Gen'}
+Pricings: {'MISSING'}
+Missing use_cases: 0
+Missing tags: 0
+Missing student_perk: 500
+
+--- FIRST TOOL ---
+{
+  "id": 1,
+  "name": "ChatGPT",
+  "icon": "/static/icons/chatgpt.svg",
+  "maker": "OpenAI",
+  "tagline": "Conversational AI for writing, research, and problem-solving",
+  "category": "Writing & Docs",
+  "subCategory": "AI Writing Assistant",
+  "price": "Freemium",
+  "pricingDetail": "Free tier available; Plus at $20/month",
+  "bestFor": "Essays, brainstorming, and explaining complex topics",
+  "tags": [
+    "writing",
+    "chatbot",
+    "research",
+    "homework",
+    "content",
+    "documents",
+    "free",
+    "student-friendly",
+    "coding",
+    "programming"
+  ],
+  "trending": true,
+  "featured": false,
+  "rating": 4.8,
+  "weeklyUsers": "100M+",
+  "link": "https://chat.openai.com",
+  "apiAvailable": true,
+  "openSource": false,
+  "studentPerk": true,
+  "uniHack": "Use the system prompt to set yourself as a student needing step-by-step explanations",
+  "features": [
+    "GPT-4o model access",
+    "Image understanding",
+    "Code interpreter",
+    "Custom GPTs"
+  ],
+  "platforms": [
+    "Web",
+    "iOS",
+    "Android"
+  ],
+  "languages": "50+",
+  "launchYear": 2022,
+  "description": "ChatGPT is OpenAI's flagship conversational AI, capable of drafting essays, solving math problems, debugging code, and explaining complex concepts. Students use it daily for homework help, study summaries, and creative projects. The free tier provides solid functionality, while Plus unlocks GPT-4o for advanced tasks.",
+  "use_cases": [
+    "Drafting essays and reports",
+    "Proofreading and editing documents",
+    "Summarizing long texts",
+    "Generating blog posts and content",
+    "Creating professional emails and communications",
+    "Writing and debugging code across any language"
+  ],
+  "difficulty": "beginner",
+  "student_friendly": true,
+  "review_count": 0,
+  "company": "OpenAI",
+  "logo_emoji": "\ud83e\udd16",
+  "pricing_tier": "freemium",
+  "popularity_score": 1,
+  "weekly_users_estimate": "100M+"
+}
+
+--- RANDOM TOOL ---
+{
+  "id": 11,
+  "name": "Perplexity AI",
+  "icon": "/static/icons/perplexity.svg",
+  "maker": "Perplexity AI",
+  "tagline": "AI search engine with cited real-time answers",
+  "category": "Research",
+  "subCategory": "AI Search",
+  "price": "Freemium",
+  "pricingDetail": "Free tier; Pro $20/month",
+  "bestFor": "Getting sourced answers to research questions instantly",
+  "tags": [
+    "research",
+    "search",
+    "citations",
+    "real-time",
+    "academic",
+    "papers",
+    "student-friendly",
+    "coding",
+    "programming"
+  ],
+  "trending": true,
+  "rating": 4.7,
+  "weeklyUsers": "10M+",
+  "link": "https://perplexity.ai",
+  "apiAvailable": true,
+  "openSource": false,
+  "studentPerk": false,
+  "uniHack": "Use the Focus > Academic mode to restrict results to scholarly sources like arXiv and PubMed",
+  "features": [
+    "Real-time web search",
+    "Citation links",
+    "Academic mode",
+    "Follow-up questions"
+  ],
+  "platforms": [
+    "Web",
+    "iOS",
+    "Android"
+  ],
+  "languages": "20+",
+  "launchYear": 2022,
+  "description": "Perplexity AI acts as an AI-powered research engine that provides direct answers to questions with citations to real web sources. Students can use its Academic focus mode to surface peer-reviewed papers and academic content. Every answer includes clickable source links, making fact-checking straightforward.",
+  "use_cases": [
+    "Finding and summarizing academic papers",
+    "Conducting literature reviews",
+    "Fact-checking and source verification",
+    "Discovering related research and citations",
+    "Synthesizing findings from multiple sources",
+    "Finding code examples and library documentation"
+  ],
+  "difficulty": "intermediate",
+  "student_friendly": false,
+  "pricing_tier": "freemium",
+  "popularity_score": 0.9,
+  "weekly_users_estimate": "10M+"
+}
+Field 'tags' is missing from 0 tools
+Field 'use_cases' is missing from 0 tools
+Field 'strengths' is missing from 500 tools
+Field 'pricing' is missing from 500 tools
+Field 'student_perk' is missing from 500 tools
+Field 'trending' is missing from 0 tools
+Field 'featured' is missing from 495 tools
+Field 'platforms' is missing from 0 tools
+Field 'category' is missing from 0 tools
+Field 'rating' is missing from 0 tools
+Field 'review_count' is missing from 495 tools
+Field 'company' is missing from 495 tools
+Field 'logo_emoji' is missing from 495 tools
+COMMAND: python -c "from app import create_app; app = create_app(); print('APP BOOT: OK')"
+[2026-04-11 13:26:08,533] ERROR in __init__: Failed to register api_routes: unmatched '}' (api_routes.py, line 370)
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    from app import create_app; app = create_app(); print('APP BOOT: OK')
+                                      ~~~~~~~~~~^^
+  File "C:\Users\singh\New folder (2)\ai-compass\app\__init__.py", line 177, in create_app
+    _register_blueprints(app)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\singh\New folder (2)\ai-compass\app\__init__.py", line 163, in _register_blueprints
+    from app import api_routes
+  File "C:\Users\singh\New folder (2)\ai-compass\app\api_routes.py", line 370
+    }
+    ^
+SyntaxError: unmatched '}'
+---
+COMMAND: python -c "from app.models import User; print('MODELS: OK')"
+MODELS: OK
+---
+COMMAND: python -c "from app.forms import *; print('FORMS: OK')"
+FORMS: OK
+---
+COMMAND: python -c "from app.ml_recommender import get_recommendations; print('RECOMMENDER: OK')"
+RECOMMENDER: OK
+---

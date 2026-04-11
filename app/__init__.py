@@ -8,7 +8,13 @@ from collections import Counter
 from flask import Flask, session, request, jsonify, current_app
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, current_user
-from flask_session import Session
+
+# --- Safe flask_session import (Fix 3a) ---
+try:
+    from flask_session import Session
+    USE_SERVER_SESSION = True
+except ImportError:
+    USE_SERVER_SESSION = False
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import CSRFProtect
 from sqlalchemy import inspect, text
@@ -128,23 +134,48 @@ def create_app(config: dict | None = None) -> Flask:
         engine_options["connect_args"] = {"sslmode": "require"}
     app.config["SQLALCHEMY_ENGINE_OPTIONS"] = engine_options
 
-    Session(app)
+    if USE_SERVER_SESSION:
+        Session(app)
+
 
     db.init_app(app)
     login_manager.init_app(app)
     bcrypt.init_app(app)
     csrf.init_app(app)
 
-    from app.api_routes import api_bp
-    from app.auth import auth_bp
-    from app.routes import main_bp
-    from app.oauth import oauth_bp, init_oauth
+    # --- Safe blueprint registration (Fix 3b) ---
+    def _register_blueprints(app):
+        try:
+            from app import routes
+            app.register_blueprint(routes.main_bp)
+        except Exception as e:
+            app.logger.error(f"Failed to register routes: {e}")
+            raise
 
-    app.register_blueprint(api_bp, url_prefix="/api/v1")
-    app.register_blueprint(auth_bp)
-    app.register_blueprint(oauth_bp)
-    app.register_blueprint(main_bp)
-    init_oauth(app)
+        try:
+            from app import auth
+            app.register_blueprint(auth.auth_bp)
+        except Exception as e:
+            app.logger.error(f"Failed to register auth: {e}")
+            raise
+
+        try:
+            from app import api_routes
+            app.register_blueprint(api_routes.api_bp, url_prefix="/api/v1")
+            app.register_blueprint(api_routes.compat_bp, url_prefix="/api")
+        except Exception as e:
+            app.logger.error(f"Failed to register api_routes: {e}")
+            raise
+
+        try:
+            from app import oauth
+            app.register_blueprint(oauth.oauth_bp)
+            oauth.init_oauth(app)
+        except Exception as e:
+            app.logger.warning(f"OAuth not available: {e}")
+            # OAuth is optional — do not raise
+
+    _register_blueprints(app)
 
     from flask import request
 

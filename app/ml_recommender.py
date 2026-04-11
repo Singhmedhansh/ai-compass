@@ -1,14 +1,75 @@
 import os
 import pickle
-import numpy as np
+from typing import TYPE_CHECKING
 from sklearn.metrics.pairwise import cosine_similarity
 
-_model = None
+
+# Use a module-level state dict instead of global
+_state = {"model": None}
+
+GOAL_CATEGORY_MAP = {
+    "writing":     ["Writing & Chat"],
+    "coding":      ["Coding"],
+    "image":       ["Image Generation"],
+    "video":       ["Video Generation"],
+    "audio":       ["Audio & Voice"],
+    "music":       ["Audio & Voice"],
+    "research":    ["Research"],
+    "study":       ["Research"],
+    "productivity":["Productivity"],
+    "design":      ["Image Generation"],
+    "education":   ["Research", "Productivity"],
+    "data":        ["Research", "Coding"],
+    "chat":        ["Writing & Chat"],
+}
+
+USE_CASE_TAG_MAP = {
+    "essay":           ["writing", "academic", "summarization"],
+    "blog":            ["writing", "content", "seo"],
+    "email":           ["writing", "productivity", "communication"],
+    "resume":          ["writing", "career"],
+    "creative writing":["writing", "creative", "storytelling"],
+    "report":          ["writing", "research", "summarization"],
+    "web app":         ["coding", "fullstack", "deployment"],
+    "frontend":        ["coding", "ui", "react"],
+    "debugging":       ["coding", "debugging", "ide"],
+    "data science":    ["coding", "data", "python"],
+    "automation":      ["coding", "scripting"],
+    "mobile app":      ["coding", "mobile"],
+    "research paper":  ["research", "citations", "academic"],
+    "fact checking":   ["research", "search", "citations"],
+    "youtube":         ["video", "editing", "content"],
+    "social media":    ["image", "video", "content"],
+    "podcast":         ["audio", "transcription", "voice"],
+    "logo":            ["design", "image", "branding"],
+    "photo editing":   ["image", "photography", "editing"],
+    "music":           ["music", "audio", "creative"],
+    "meetings":        ["productivity", "transcription", "notes"],
+    "notes":           ["productivity", "notes", "organization"],
+    "presentation":    ["productivity", "design", "slides"],
+    "exam prep":       ["education", "academic", "quiz"],
+    "study":           ["education", "academic", "summarization"],
+    "language":        ["education", "translation"],
+    "summarize":       ["summarization", "research"],
+    "translation":     ["translation", "language"],
+}
+
+PRICING_SCORE_MAP = {
+    # (user_budget, tool_pricing) -> score delta
+    ("free",      "free"):      40,
+    ("free",      "freemium"):  20,
+    ("free",      "paid"):     -30,
+    ("freemium",  "free"):      30,
+    ("freemium",  "freemium"):  30,
+    ("freemium",  "paid"):     -10,
+    ("paid",      "free"):      10,
+    ("paid",      "freemium"):  15,
+    ("paid",      "paid"):      20,
+}
 
 def load_model():
-    global _model
-    if _model is not None:
-        return _model
+    if _state["model"] is not None:
+        return _state["model"]
     path = os.path.join(
         os.path.dirname(os.path.dirname(__file__)),
         'data', 'recommendation_model.pkl'
@@ -17,9 +78,9 @@ def load_model():
         return None
     try:
         with open(path, 'rb') as f:
-            _model = pickle.load(f)
-        return _model
-    except Exception:
+            _state["model"] = pickle.load(f)
+        return _state["model"]
+    except (OSError, pickle.UnpicklingError):
         return None
 
 GOAL_MAP = {
@@ -37,94 +98,158 @@ LEVEL_MAP = {
     'advanced': 'advanced professional developer api technical'
 }
 
-def get_recommendations(goal=None, budget=None, platform=None, level=None, limit=6):
-    model = load_model()
-    if not model:
-        return _fallback(limit)
+def score_tool(tool, goal, budget, platform, experience_level, use_case):
+    """
+    Returns an integer score for a tool given user inputs.
+    Returns 0 if the tool fails the category hard gate.
+    """
+    # ── HARD GATE: category must match goal ─────────────────
+    allowed = GOAL_CATEGORY_MAP.get(goal.lower().strip(), [])
+    if allowed and tool.get("category") not in allowed:
+        return 0
 
-    tools = model['tools']
-    vectorizer = model['vectorizer']
-    tfidf_matrix = model['tfidf_matrix']
+    score = 50  # base score for passing the gate
 
-    query_parts = []
-    if goal:
-        query_parts.append(GOAL_MAP.get(goal, goal))
-    if level:
-        query_parts.append(LEVEL_MAP.get(level, level))
-    if platform and platform != 'any':
-        query_parts.append(platform)
-    if budget and budget != 'any':
-        query_parts.append(budget)
+    # ── USE CASE TAG MATCH ───────────────────────────────────
+    if use_case:
+        uc_lower = use_case.lower().strip()
+        matched_tags = []
+        for key, tags in USE_CASE_TAG_MAP.items():
+            if key in uc_lower or uc_lower in key:
+                matched_tags.extend(tags)
 
-    query = ' '.join(query_parts) or 'popular ai tool'
-    query_vec = vectorizer.transform([query])
-    scores = cosine_similarity(query_vec, tfidf_matrix)[0]
+        tool_tags = [t.lower() for t in tool.get("tags", [])]
+        for tag in matched_tags:
+            if tag in tool_tags:
+                score += 20
+            elif any(tag in t for t in tool_tags):
+                score += 8
 
-    final_scores = []
-    for i, tool in enumerate(tools):
-        score = float(scores[i])
+        tool_uses = [u.lower() for u in tool.get("use_cases", [])]
+        for uc in tool_uses:
+            if uc_lower in uc or any(w in uc for w in uc_lower.split()):
+                score += 15
 
-        # Pricing boost — reward tools that match user's budget
-        pricing = str(tool.get('pricing_tier') or tool.get('pricing') or '').lower()
-        if budget == 'free' and pricing == 'free':
-            score += 0.25  # strong boost for exact free match
-        elif budget == 'free' and pricing == 'freemium':
-            score += 0.10  # partial boost — freemium has a free tier
-        elif budget == 'freemium' and pricing in ('free', 'freemium'):
-            score += 0.15
+    # ── BUDGET MATCH ─────────────────────────────────────────
+    tool_pricing = tool.get("pricing", "freemium").lower()
+    user_budget  = budget.lower().strip()
+    score += PRICING_SCORE_MAP.get((user_budget, tool_pricing), 0)
 
-        # Student-friendly boost
-        if tool.get('student_friendly'):
-            score += 0.20  # increased from 0.1
+    # ── PLATFORM MATCH ───────────────────────────────────────
+    tool_platforms = [p.lower() for p in tool.get("platforms", [])]
+    platform_lower = platform.lower().strip()
+    platform_hits = {
+        "web":     ["web"],
+        "mobile":  ["ios", "android"],
+        "desktop": ["windows", "mac", "linux"],
+        "api":     ["api"],
+    }
+    for p in platform_hits.get(platform_lower, [platform_lower]):
+        if p in tool_platforms:
+            score += 20
+            break
 
-        # Rating quality boost
-        try:
-            score += (float(tool.get('rating') or 0) / 5.0) * 0.15
-        except (TypeError, ValueError):
-            pass
+    # ── EXPERIENCE LEVEL ─────────────────────────────────────
+    tool_tags_lower = [t.lower() for t in tool.get("tags", [])]
+    if experience_level in ("beginner", "novice"):
+        if any(t in tool_tags_lower for t in ["beginner-friendly", "no-code", "easy"]):
+            score += 25
+        if tool_pricing in ("free", "freemium"):
+            score += 8
+    elif experience_level in ("advanced", "expert"):
+        tool_platforms_lower = [p.lower() for p in tool.get("platforms", [])]
+        if "api" in tool_platforms_lower:
+            score += 20
+        if any(t in tool_tags_lower for t in ["open-source", "advanced", "api"]):
+            score += 15
 
-        # Popularity boost
-        try:
-            score += float(tool.get('popularity_score') or 0.5) * 0.10
-        except (TypeError, ValueError):
-            pass
+    # ── STUDENT PERK ─────────────────────────────────────────
+    if tool.get("student_perk") or tool.get("studentPerk"):
+        score += 10
 
-        # Recency boost — recently added tools get a small nudge
-        import datetime
-        added = tool.get('added_date') or tool.get('launchYear')
-        if added:
-            try:
-                current_year = datetime.datetime.now().year
-                year = int(str(added)[:4])
-                if current_year - year <= 1:   # added in last year
-                    score += 0.15
-                elif current_year - year <= 2:
-                    score += 0.08
-            except (ValueError, TypeError):
-                pass
+    # ── QUALITY SIGNALS ──────────────────────────────────────
+    rating = float(tool.get("rating", 3.0))
+    score += rating * 5
+    if tool.get("trending"):
+        score += 8
+    if tool.get("featured"):
+        score += 5
+    reviews = int(tool.get("review_count", 0))
+    if reviews > 10000:
+        score += 8
+    elif reviews > 1000:
+        score += 4
 
-        # Trending boost
-        if tool.get('trending'):
-            score += 0.08
+    return max(score, 0)
 
-        final_scores.append((i, score))
+def build_reason(tool, goal, budget, use_case):
+    """Human-readable explanation for why this tool was recommended."""
+    parts = []
+    rating = tool.get("rating", 0)
+    if rating >= 4.7:
+        parts.append(f"top-rated ({rating}★)")
+    pricing = tool.get("pricing", "")
+    if pricing == "free":
+        parts.append("completely free")
+    elif pricing == "freemium":
+        parts.append("free tier available")
+    if tool.get("student_perk") or tool.get("studentPerk"):
+        parts.append("student discount")
+    if tool.get("trending"):
+        parts.append("trending this week")
+    if use_case:
+        parts.append(f"great for {use_case}")
+    category = tool.get("category", goal)
+    base = f"Best-fit {category} tool"
+    return (base + " — " + ", ".join(parts)) if parts else base
 
-    final_scores.sort(key=lambda x: x[1], reverse=True)
+def get_recommendations(goal=None, budget=None, platform=None, level=None, use_case="", limit=6):
+    """
+    Returns a list of recommended tools with scores and reasons.
+    Guaranteed to return only tools matching the correct category for goal.
+    """
+    from app.tool_cache import get_cached_tools
+    import os
+    data_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "tools.json")
+    tools = get_cached_tools(data_path)
+
+    scored = []
+    # Note: Using 'level' mapping to 'experience_level' and mapping default args
+    goal = goal or ""
+    budget = budget or "freemium"
+    platform = platform or "web"
+    experience_level = level or "intermediate"
+
+    for tool in tools:
+        s = score_tool(tool, goal, budget, platform, experience_level, use_case)
+        if s > 0:
+            scored.append((tool, s))
+
+    scored.sort(key=lambda x: x[1], reverse=True)
+
+    # Fallback: if fewer than 3 results, relax budget penalty and retry
+    if len(scored) < 3:
+        scored = []
+        for tool in tools:
+            allowed = GOAL_CATEGORY_MAP.get(goal.lower().strip(), [])
+            if allowed and tool.get("category") not in allowed:
+                continue
+            # Simplified score without budget penalty
+            s = float(tool.get("rating", 3.0)) * 10
+            if tool.get("trending"):
+                s += 8
+            if tool.get("featured"):
+                s += 5
+            scored.append((tool, s))
+        scored.sort(key=lambda x: x[1], reverse=True)
 
     results = []
-    seen_names = set()
-    for i, score in final_scores:
-        tool = tools[i]
-        name = tool.get('name', '')
-        if name in seen_names:
-            continue
-        seen_names.add(name)
-        t = tool.copy()
-        t['match_score'] = round(score, 3)
-        t['reason'] = _reason(tool, goal, budget, level)
-        results.append(t)
-        if len(results) >= limit:
-            break
+    for tool, s in scored[:limit]:
+        results.append({
+            **tool,
+            "_score":  round(s, 2),
+            "_reason": build_reason(tool, goal, budget, use_case),
+        })
 
     return results
 
@@ -172,10 +297,12 @@ def _reason(tool, goal, budget, level):
         parts.append("matches your preferences")
     return "This tool is " + ", ".join(parts)
 
-def _fallback(limit=6):
+    if TYPE_CHECKING:
+        from app.tool_cache import get_cached_tools
     try:
         from app.tool_cache import get_cached_tools
         tools = get_cached_tools() or []
         return sorted(tools, key=lambda t: float(t.get('rating', 0)), reverse=True)[:limit]
-    except:
+    except Exception as e:
+        # This must be broad because tool cache can fail for many reasons (IO, import, etc.)
         return []

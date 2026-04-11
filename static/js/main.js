@@ -529,8 +529,9 @@ async function fetchTrendingTools() {
   return response.json();
 }
 
+
 async function fetchSearchSuggestions(query, options = {}) {
-  const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`, {
+  const response = await fetch(`/api/suggestions?q=${encodeURIComponent(query)}`, {
     signal: options.signal,
   });
   if (!response.ok) throw new Error('Failed to fetch search suggestions');
@@ -895,45 +896,62 @@ function hideSearchSuggestions() {
   box.innerHTML = '';
 }
 
+
 function renderSearchSuggestions(results, query) {
   const box = document.getElementById('search-suggestions');
   if (!box) return;
 
   if (!Array.isArray(results) || !results.length) {
-    box.innerHTML = '<div class="px-3 py-2 text-xs text-zinc-500">No matching tools found.</div>';
+    box.innerHTML = '<div class="px-3 py-2 text-xs text-zinc-500">No suggestions found.</div>';
     box.classList.remove('hidden');
     return;
   }
 
   const visibleResults = results.slice(0, 6);
 
-  box.innerHTML = visibleResults.map((tool) => {
-    const slug = escapeHtml(tool.slug || '');
-    const nameHtml = highlightQuery(tool.name || '', query);
-    const descHtml = highlightQuery(tool.description || '', query);
-    const categoryHtml = highlightQuery(tool.category || 'general', query);
-    const tagText = Array.isArray(tool.tags) ? tool.tags.slice(0, 2).join(' • ') : '';
-    const tagHtml = highlightQuery(tagText, query);
-    return `
-      <a href="/tool/${slug}" class="block rounded-lg px-2.5 py-2 hover:bg-white/6 transition-colors">
-        <div class="flex items-start gap-2.5">
-          ${renderToolIcon(tool, 'w-8 h-8', 'rounded-md')}
-          <div class="min-w-0 flex-1">
-            <div class="text-sm text-zinc-100 truncate">${nameHtml}</div>
-            <div class="text-[11px] text-zinc-500 truncate">${categoryHtml}${tagText ? ' · ' + tagHtml : ''}</div>
-            <div class="text-[11px] text-zinc-400 line-clamp-1 mt-0.5">${descHtml}</div>
-          </div>
-        </div>
-      </a>
-    `;
+  box.innerHTML = visibleResults.map((item) => {
+    if (item.type === 'tool') {
+      return `
+        <a href="#" class="block rounded-lg px-2.5 py-2 hover:bg-white/6 transition-colors suggestion-item" data-type="tool" data-label="${escapeHtml(item.label)}">
+          <span class="mr-2">${escapeHtml(item.icon || '')}</span>
+          <span class="font-semibold">${highlightQuery(item.label, query)}</span>
+          <span class="ml-2 text-xs text-zinc-400">${escapeHtml(item.sub || '')}</span>
+        </a>
+      `;
+    } else if (item.type === 'tag') {
+      return `
+        <a href="#" class="block rounded-lg px-2.5 py-2 hover:bg-white/6 transition-colors suggestion-item" data-type="tag" data-label="${escapeHtml(item.label)}">
+          <span class="mr-2">#</span>
+          <span class="font-semibold">${highlightQuery(item.label, query)}</span>
+          <span class="ml-2 text-xs text-zinc-400">${escapeHtml(item.sub || '')}</span>
+        </a>
+      `;
+    } else if (item.type === 'usecase') {
+      return `
+        <a href="#" class="block rounded-lg px-2.5 py-2 hover:bg-white/6 transition-colors suggestion-item" data-type="usecase" data-label="${escapeHtml(item.label)}">
+          <span class="mr-2">💡</span>
+          <span class="font-semibold">${highlightQuery(item.label, query)}</span>
+          <span class="ml-2 text-xs text-zinc-400">${escapeHtml(item.sub || '')}</span>
+        </a>
+      `;
+    }
+    return '';
   }).join('');
 
-  if (results.length > visibleResults.length) {
-    box.innerHTML += `<div class="px-3 py-2 text-[11px] text-zinc-500 border-t border-white/8">Showing ${visibleResults.length} of ${results.length} matches. Keep typing to narrow results.</div>`;
-  }
-
   box.classList.remove('hidden');
+
+  // Add click handler for suggestions
+  box.querySelectorAll('.suggestion-item').forEach((el) => {
+    el.addEventListener('click', (e) => {
+      e.preventDefault();
+      const label = el.getAttribute('data-label');
+      document.getElementById('search-input').value = label;
+      hideSearchSuggestions();
+      searchTools(label);
+    });
+  });
 }
+
 
 function requestSearchSuggestions(query) {
   const trimmed = String(query || '').trim();
@@ -943,22 +961,25 @@ function requestSearchSuggestions(query) {
   }
 
   if (searchSuggestTimer) clearTimeout(searchSuggestTimer);
+  // Debounce at 180ms
   searchSuggestTimer = setTimeout(async () => {
     try {
+      // Show spinner
+      const box = document.getElementById('search-suggestions');
+      if (box) {
+        box.innerHTML = '<div class="px-3 py-2 text-xs text-zinc-400 flex items-center"><span class="loader mr-2"></span>Loading suggestions...</div>';
+        box.classList.remove('hidden');
+      }
       if (searchSuggestController) searchSuggestController.abort();
       searchSuggestController = new AbortController();
       const data = await fetchSearchSuggestions(trimmed, { signal: searchSuggestController.signal });
-      if (!data || !Array.isArray(data.results)) {
-        renderSearchSuggestions([], trimmed);
-        return;
-      }
-      renderSearchSuggestions(data.results || [], trimmed);
+      renderSearchSuggestions(data, trimmed);
     } catch (error) {
       if (error.name !== 'AbortError') {
         hideSearchSuggestions();
       }
     }
-  }, 120);
+  }, 180);
 }
 
 function updateCategoryCounts() {
@@ -1095,6 +1116,7 @@ function setPriceFilter(price) {
   applyAndRender();
 }
 
+
 function searchTools(query) {
   state.search = String(query || '');
   state.visibleLimit = TOOL_PAGE_SIZE;
@@ -1102,6 +1124,16 @@ function searchTools(query) {
   saveUserMemoryPrefs();
   applyAndRender();
   requestSearchSuggestions(query);
+  persistSearchStateToUrl();
+}
+
+function persistSearchStateToUrl() {
+  const params = new URLSearchParams();
+  if (state.search) params.set('q', state.search);
+  if (state.category && state.category !== 'all') params.set('category', state.category);
+  if (state.price && state.price !== 'all') params.set('pricing', state.price);
+  if (state.sort && state.sort !== 'trending') params.set('sort', state.sort);
+  window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
 }
 
 function updateHeroCopy() {

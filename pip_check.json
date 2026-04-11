@@ -1,0 +1,1 @@
+"streamlit-extras 0.7.8 has requirement protobuf>=5.27.3, but you have protobuf 4.25.9.\ntensorflow 2.21.0 has requirement protobuf<8.0.0,>=6.31.1, but you have protobuf 4.25.9.\n"

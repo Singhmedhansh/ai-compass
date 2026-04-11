@@ -37,6 +37,7 @@ function getTrendingScore(tool) {
   return ratingWeight + reviewWeight + freshnessBonus
 }
 
+
 function DirectoryPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const initialCategory = searchParams.get('category') || 'All'
@@ -51,31 +52,28 @@ function DirectoryPage() {
   const [sortBy, setSortBy] = useState('Trending')
   const [searchQuery, setSearchQuery] = useState(initialQuery)
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(initialQuery)
+  const [showMobileFilters, setShowMobileFilters] = useState(false)
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearchQuery(searchQuery)
     }, 300)
-
     return () => clearTimeout(timer)
   }, [searchQuery])
 
   useEffect(() => {
     const nextParams = new URLSearchParams(searchParams)
-
     if (category !== 'All') {
       nextParams.set('category', category)
     } else {
       nextParams.delete('category')
     }
-
     const query = searchQuery.trim()
     if (query) {
       nextParams.set('q', query)
     } else {
       nextParams.delete('q')
     }
-
     setSearchParams(nextParams, { replace: true })
   }, [category, searchParams, searchQuery, setSearchParams])
 
@@ -191,9 +189,53 @@ function DirectoryPage() {
         <span className="inline-flex items-center rounded-full border border-gray-200 bg-white px-3 py-1 text-sm font-semibold text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
           {loading ? 'Loading...' : `${filteredTools.length} tools`}
         </span>
+        {/* Mobile Filters Button */}
+        <button
+          className="md:hidden ml-auto rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+          onClick={() => setShowMobileFilters(true)}
+        >
+          Filters
+        </button>
       </section>
 
-      <section className="sticky top-16 z-20 mb-6 rounded-2xl border border-gray-200 bg-white/95 p-4 shadow-sm backdrop-blur dark:border-gray-700 dark:bg-gray-800/95">
+      {/* Mobile Filter Drawer */}
+      {showMobileFilters && (
+        <div className="fixed inset-0 z-50 flex items-end md:hidden">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowMobileFilters(false)} />
+          <div className="relative w-full rounded-t-2xl bg-white dark:bg-gray-900 p-6 shadow-2xl animate-slide-up">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold">Filters</h2>
+              <button className="text-2xl" onClick={() => setShowMobileFilters(false)}>&times;</button>
+            </div>
+            <div className="mb-4">
+              <label className="block text-xs font-semibold mb-1">Category</label>
+              <select
+                className="w-full rounded-lg border border-gray-300 p-2 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
+                value={category}
+                onChange={e => setCategory(e.target.value)}
+              >
+                {CATEGORY_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+              </select>
+            </div>
+            <div className="mb-4">
+              <label className="block text-xs font-semibold mb-1">Sort By</label>
+              <select
+                className="w-full rounded-lg border border-gray-300 p-2 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
+                value={sortBy}
+                onChange={e => setSortBy(e.target.value)}
+              >
+                {SORT_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+              </select>
+            </div>
+            <div className="flex gap-2">
+              <button className="flex-1 rounded-lg bg-indigo-600 text-white py-2 font-semibold" onClick={() => setShowMobileFilters(false)}>Apply</button>
+              <button className="flex-1 rounded-lg bg-gray-200 text-gray-700 py-2 font-semibold dark:bg-gray-700 dark:text-gray-200" onClick={handleReset}>Reset</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <section className="sticky top-16 z-20 mb-6 rounded-2xl border border-gray-200 bg-white/95 p-4 shadow-sm backdrop-blur dark:border-gray-700 dark:bg-gray-800/95 hidden md:block">
         <div className="flex gap-2 overflow-x-auto pb-1">
           {CATEGORY_OPTIONS.map((option) => {
             const active = option === category

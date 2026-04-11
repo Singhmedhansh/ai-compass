@@ -1,0 +1,6 @@
+--- FILE 1 ---
+  File "app/api_routes.py", line 370
+    }
+    ^
+SyntaxError: unmatched '}'
+--- FILE 2 ---

@@ -27,6 +27,26 @@ def _load_tools_from_disk(data_path: str) -> List[Dict[str, Any]]:
     return tools if isinstance(tools, list) else []
 
 
+
+SEARCH_INDEX = []
+
+def build_search_index(tools):
+    """Builds the global search index for search_utils.py."""
+    global SEARCH_INDEX
+    SEARCH_INDEX = []
+    for tool in tools:
+        SEARCH_INDEX.append({
+            "_raw":             tool,
+            "_name_lower":      tool.get("name", "").lower(),
+            "_category_lower":  tool.get("category", "").lower(),
+            "_tags_lower":      [t.lower() for t in tool.get("tags", [])],
+            "_desc_lower":      tool.get("description", "").lower(),
+            "_longdesc_lower":  tool.get("long_description", "").lower(),
+            "_uses_lower":      [u.lower() for u in tool.get("use_cases", [])],
+            "_strengths_lower": [s.lower() for s in tool.get("strengths", [])],
+            "_company_lower":   tool.get("company", "").lower(),
+        })
+
 def prime_tools_cache(data_path: str) -> List[Dict[str, Any]]:
     """Load tools into module-level cache once (startup-safe)."""
     global _TOOLS_CACHE, _TOOLS_CACHE_MTIME
@@ -36,6 +56,7 @@ def prime_tools_cache(data_path: str) -> List[Dict[str, Any]]:
             _TOOLS_CACHE_MTIME = os.path.getmtime(data_path)
         except OSError:
             _TOOLS_CACHE_MTIME = None
+        build_search_index(_TOOLS_CACHE)
     return list(_TOOLS_CACHE)
 
 
@@ -65,4 +86,5 @@ def refresh_tools_cache(data_path: str) -> List[Dict[str, Any]]:
         _TOOLS_CACHE_MTIME = os.path.getmtime(data_path)
     except OSError:
         _TOOLS_CACHE_MTIME = None
+    build_search_index(_TOOLS_CACHE)
     return list(_TOOLS_CACHE)

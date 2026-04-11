@@ -10,7 +10,7 @@ const MotionButton = motion.button
 const MotionDiv = motion.div
 const MotionArticle = motion.article
 
-const TOTAL_STEPS = 4
+const TOTAL_STEPS = 5
 
 const GOAL_OPTIONS = [
   { id: 'studying', emoji: '🎓', label: 'Studying', description: 'Homework, essays, exam prep' },
@@ -57,7 +57,8 @@ function normalizeTool(rawTool) {
     pricing,
     category,
     platformLabel,
-    reason: rawTool?.reason || 'Strong overall match for your preferences.',
+    reason: rawTool?.reason || rawTool?._reason || 'Strong overall match for your preferences.',
+    _reason: rawTool?._reason || rawTool?.reason || '',
     rating: Number(rawTool?.rating || rawTool?.averageRating || rawTool?.average_rating || 0),
   }
 }
@@ -141,7 +142,7 @@ function ProgressDots({ step }) {
 function ToolFinderPage() {
   const navigate = useNavigate()
   const [step, setStep] = useState(1)
-  const [answers, setAnswers] = useState({ goal: '', budget: '', platform: '', level: '' })
+  const [answers, setAnswers] = useState({ goal: '', use_case: '', budget: '', platform: '', level: '' })
   const [results, setResults] = useState([])
   const [loadingResults, setLoadingResults] = useState(false)
   const [savingStack, setSavingStack] = useState(false)
@@ -156,6 +157,7 @@ function ToolFinderPage() {
 
   const canContinue =
     (step === 1 && Boolean(answers.goal)) ||
+    step === 1.5 || // use_case can be skipped
     (step === 2 && Boolean(answers.budget)) ||
     (step === 3 && Boolean(answers.platform)) ||
     (step === 4 && Boolean(answers.level))
@@ -191,25 +193,30 @@ function ToolFinderPage() {
   }
 
   const handleContinue = async () => {
-    if (!canContinue) {
+    if (step === 1) {
+      setStep(1.5)
       return
     }
-
+    if (step === 1.5) {
+      setStep(2)
+      return
+    }
     if (step < 4) {
       setStep((previous) => previous + 1)
       return
     }
-
     await fetchResults()
   }
 
   const handleBack = () => {
     setError('')
+    if (step === 2) { setStep(1.5); return }
+    if (step === 1.5) { setStep(1); return }
     setStep((previous) => Math.max(1, previous - 1))
   }
 
   const handleRestart = () => {
-    setAnswers({ goal: '', budget: '', platform: '', level: '' })
+    setAnswers({ goal: '', use_case: '', budget: '', platform: '', level: '' })
     setResults([])
     setError('')
     setStep(1)
@@ -266,6 +273,43 @@ function ToolFinderPage() {
                 onClick={() => selectOption('goal', option.id)}
               />
             ))}
+          </div>
+        </section>
+      )
+    }
+
+    // Use Case Step (step 1.5)
+    if (step === 1.5) {
+      return (
+        <section>
+          <h2 className="text-xl font-semibold text-white">What specifically do you want to do?</h2>
+          <p className="text-slate-300 mb-2">
+            Be specific — "write essays" gets better results than "writing"
+          </p>
+          <input
+            type="text"
+            className="wizard-input w-full rounded-lg border border-slate-600 bg-slate-900 px-4 py-2 text-white mb-4"
+            placeholder="e.g. write essays, build a web app, edit YouTube videos..."
+            value={answers.use_case}
+            onChange={e => setAnswers(prev => ({ ...prev, use_case: e.target.value }))}
+            maxLength={120}
+            autoFocus
+          />
+          <div className="wizard-nav flex gap-2">
+            <button
+              className="btn-secondary border border-slate-600 bg-slate-800 px-4 py-2 rounded-lg text-white"
+              onClick={() => { setAnswers(prev => ({ ...prev, use_case: '' })); setStep(2); }}
+              type="button"
+            >
+              Skip
+            </button>
+            <button
+              className="btn-primary bg-indigo-600 px-4 py-2 rounded-lg text-white"
+              onClick={() => setStep(2)}
+              type="button"
+            >
+              Next →
+            </button>
           </div>
         </section>
       )
@@ -375,6 +419,12 @@ function ToolFinderPage() {
 
               <h3 className="text-lg font-semibold text-white">{tool.name}</h3>
               <p className="mt-1 text-xs font-medium uppercase tracking-wide text-indigo-300">{tool.category}</p>
+              {tool._reason && (
+                <p className="tool-reason mt-2 flex items-start gap-1.5 text-xs">
+                  <span className="reason-icon mt-0.5 flex-shrink-0">✦</span>
+                  {tool._reason}
+                </p>
+              )}
               <p className="mt-3 line-clamp-3 text-sm text-slate-300">{tool.description}</p>
 
               <div className="mt-4 flex items-center justify-between text-sm text-slate-300">

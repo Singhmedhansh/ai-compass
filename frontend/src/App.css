@@ -1,3 +1,32 @@
+/* --- AI Compass tool finder and search UI styles --- */
+.tool-reason {
+  font-size: 0.82rem;
+  color: var(--text-muted, #888);
+  margin: 4px 0 8px 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+  line-height: 1.4;
+}
+
+.reason-icon {
+  color: var(--accent, #6c5ce7);
+  font-size: 0.75rem;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.fallback-msg {
+  font-size: 0.9rem;
+  color: var(--text-muted, #888);
+  margin-bottom: 12px;
+}
+
+.result-count {
+  font-size: 0.85rem;
+  color: var(--text-muted, #888);
+  margin-bottom: 16px;
+}
 .counter {
   font-size: 16px;
   padding: 5px 10px;

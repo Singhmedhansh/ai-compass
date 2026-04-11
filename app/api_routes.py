@@ -1,3 +1,79 @@
+from flask import Blueprint
+
+api_bp = Blueprint("api", __name__)
+
+@api_bp.get("/suggestions")
+def search_suggestions():
+    from app.search_utils import tokenize_and_expand_query, ALIASES
+    q = (request.args.get("q") or "").strip()
+    if not q:
+        return jsonify([])
+
+    tools = _load_tools() or []
+    tokens = tokenize_and_expand_query(q)
+    suggestions = []
+    seen_tools = set()
+    seen_tags = set()
+    seen_usecases = set()
+
+    # Priority 1: Tool name matches
+    for tool in tools:
+        name = str(tool.get("name") or "")
+        name_lower = name.lower()
+        if any(token in name_lower for token in tokens):
+            key = name_lower
+            if key not in seen_tools:
+                suggestions.append({
+                    "type": "tool",
+                    "label": name,
+                    "sub": tool.get("category", ""),
+                    "icon": tool.get("logo_emoji", "")
+                })
+                seen_tools.add(key)
+            if len([s for s in suggestions if s["type"] == "tool"]) >= 2:
+                break
+
+    # Priority 2: Tag matches
+    tag_counts = {}
+    for tool in tools:
+        for tag in tool.get("tags", []):
+            tag_lower = str(tag).lower()
+            if any(token in tag_lower for token in tokens):
+                tag_counts[tag_lower] = tag_counts.get(tag_lower, 0) + 1
+    tag_items = sorted(tag_counts.items(), key=lambda x: -x[1])
+    for tag, count in tag_items:
+        if tag not in seen_tags:
+            suggestions.append({
+                "type": "tag",
+                "label": f"#{tag}",
+                "sub": f"{count} tools",
+                "icon": "#"
+            })
+            seen_tags.add(tag)
+        if len([s for s in suggestions if s["type"] == "tag"]) >= 2:
+            break
+
+    # Priority 3: Use case matches
+    for tool in tools:
+        for uc in tool.get("use_cases", []):
+            uc_lower = str(uc).lower()
+            if any(token in uc_lower for token in tokens):
+                key = uc_lower
+                if key not in seen_usecases:
+                    suggestions.append({
+                        "type": "usecase",
+                        "label": uc,
+                        "sub": tool.get("name", ""),
+                        "icon": "💡"
+                    })
+                    seen_usecases.add(key)
+                if len([s for s in suggestions if s["type"] == "usecase"]) >= 2:
+                    break
+        if len([s for s in suggestions if s["type"] == "usecase"]) >= 2:
+            break
+
+    # Cap at 6 suggestions
+    return jsonify(suggestions[:6])
 import json
 import os
 import re
@@ -14,6 +90,8 @@ from app.search_utils import search_tools
 from app.tool_cache import get_cached_tools, prime_tools_cache
 
 api_bp = Blueprint("api", __name__)
+compat_bp = Blueprint("compat", __name__)  # registered at /api for backward compat
+
 
 DATA_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "tools.json")
 STACKS_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "stacks")
@@ -150,117 +228,7 @@ def _pricing_value(tool: dict) -> str:
         tool.get("pricing")
         or tool.get("price")
         or tool.get("pricingType")
-        or tool.get("pricing_type")
     )
-
-
-def _rating_value(tool: dict) -> float:
-    return float(tool.get("rating") or tool.get("average_rating") or tool.get("averageRating") or 0)
-
-
-def _popularity_value(tool: dict) -> float:
-    return float(tool.get("popularity_score") or 0)
-
-
-def _platform_values(tool: dict) -> list[str]:
-    platforms = tool.get("platforms")
-    if isinstance(platforms, list):
-        return [_normalize_text(item) for item in platforms if item]
-
-    single = _normalize_text(tool.get("platform"))
-    return [single] if single else []
-
-
-def _matches_budget(tool: dict, budget: str) -> bool:
-    pricing = _pricing_value(tool)
-
-    if budget == "free":
-        return pricing == "free"
-
-    if budget == "freemium":
-        return pricing in {"free", "freemium"}
-
-    return True
-
-
-def _matches_platform(tool: dict, platform: str) -> bool:
-    if not platform:
-        return True
-
-    platforms = _platform_values(tool)
-
-    if platform == "web":
-        return any(item in {"web", "browser"} for item in platforms)
-
-    if platform == "desktop":
-        return any("desktop" in item for item in platforms)
-
-    if platform == "mobile":
-        return any(item in {"ios", "android", "mobile"} for item in platforms)
-
-    if platform == "api":
-        if bool(tool.get("apiAvailable") or tool.get("api_available")):
-            return True
-        tags = tool.get("tags")
-        if isinstance(tags, list):
-            normalized_tags = {_normalize_text(tag) for tag in tags}
-            return "api" in normalized_tags or "coding" in normalized_tags
-        return False
-
-    return True
-
-
-def _score_tool(tool: dict, goal: str, budget: str, platform: str, level: str) -> tuple[float, str]:
-    score = 0.0
-    reasons: list[str] = []
-
-    category = _normalize_text(tool.get("category"))
-    preferred_categories = GOAL_CATEGORY_MAP.get(goal, [])
-    if category in preferred_categories:
-        score += 3.0
-        reasons.append(f"matches your {goal} goal")
-
-    rating = float(tool.get("rating") or tool.get("average_rating") or tool.get("averageRating") or 0)
-    score += min(5.0, max(0.0, rating)) * 1.2
-
-    if bool(tool.get("trending")):
-        score += 1.0
-        reasons.append("currently trending")
-
-    if _matches_budget(tool, budget):
-        score += 1.4
-        if budget == "free":
-            reasons.append("fits your free-only budget")
-        elif budget == "freemium":
-            reasons.append("includes a free or freemium plan")
-
-    if _matches_platform(tool, platform):
-        score += 1.5
-        reasons.append(f"works well on {platform}")
-
-    if level == "beginner":
-        if bool(tool.get("studentPerk") or tool.get("student_perk")):
-            score += 1.2
-            reasons.append("beginner-friendly with student perks")
-    elif level == "advanced":
-        if bool(tool.get("apiAvailable") or tool.get("api_available")):
-            score += 1.2
-            reasons.append("supports advanced API workflows")
-        if bool(tool.get("openSource") or tool.get("open_source")):
-            score += 0.6
-
-    if not reasons:
-        reasons.append("strong overall fit for your preferences")
-
-    return score, "; ".join(reasons).capitalize() + "."
-
-
-@api_bp.route("/ping")
-def ping():
-    return {"status": "ok"}
-
-
-@api_bp.get("/tools")
 def list_tools():
     tools = _load_tools()
     category = (request.args.get("category") or "").strip().lower()
@@ -303,119 +271,26 @@ def get_tool_reviews(slug: str):
     return jsonify([])
 
 
+from app.search_utils import search_tools
+
 @api_bp.get("/search")
-def search_tools_endpoint():
-    q = (request.args.get("q") or "").strip().lower()
-    category = (request.args.get("category") or "").strip()
-    pricing = (request.args.get("pricing") or "").strip().lower()
-    sort = (request.args.get("sort") or "relevance").strip().lower()
+def api_search():
+    raw_query   = request.args.get('q', '').strip()[:150]
+    category    = request.args.get('category', 'All')
+    pricing     = request.args.get('pricing', 'All')
+    student     = request.args.get('student_only', 'false') == 'true'
+    trending    = request.args.get('trending_only', 'false') == 'true'
+    sort_by     = request.args.get('sort', 'Relevance')
 
-    if not q and not category:
-        return jsonify([])
-
-    tools = _load_tools() or []
-
-    if q:
-        scored = []
-        for tool in tools:
-            score = 0
-            name = str(tool.get("name") or "").lower()
-            desc = str(tool.get("description") or "").lower()
-            tags = " ".join(tool.get("tags") or []).lower()
-            use_cases = " ".join(tool.get("use_cases") or []).lower()
-            cat = str(tool.get("category") or "").lower()
-
-            # Name matching — highest signal
-            if q == name:
-                score += 100
-            elif name.startswith(q):
-                score += 60
-            elif q in name:
-                score += 50
-
-            # Tag matching — second highest (tags are curated keywords)
-            tag_list = [t.lower() for t in (tool.get("tags") or [])]
-            if q in tag_list:
-                score += 35
-            elif any(q in t for t in tag_list):
-                score += 25
-            elif q in tags:
-                score += 20
-
-            # Use-case matching
-            uc_list = [u.lower() for u in (tool.get("use_cases") or [])]
-            if q in uc_list:
-                score += 28
-            elif any(q in u for u in uc_list):
-                score += 18
-            elif q in use_cases:
-                score += 12
-
-            # Category matching
-            if q == cat:
-                score += 22
-            elif q in cat:
-                score += 15
-
-            # Description matching — lowest signal (noisy)
-            if q in desc:
-                score += 8
-            # Word-boundary match in description (more precise)
-            import re as _re
-            if _re.search(r"\b" + _re.escape(q) + r"\b", desc):
-                score += 4
-
-            # Rating boost (up to +10 for a 5-star tool)
-            try:
-                score += float(tool.get("rating") or 0) * 2
-            except (TypeError, ValueError):
-                pass
-
-            # Trending boost
-            if tool.get("trending"):
-                score += 3
-
-            if score > 0:
-                tool_copy = tool.copy()
-                tool_copy["search_score"] = round(score, 2)
-                scored.append(tool_copy)
-
-        scored.sort(key=lambda x: x["search_score"], reverse=True)
-        tools = scored
-
-    # Apply filters
-    if category:
-        tools = [t for t in tools if t.get("category", "").lower() == category.lower()]
-
-    if pricing == "free":
-        tools = [
-            t for t in tools
-            if str(t.get("pricing_tier") or t.get("pricing") or "").lower() == "free"
-        ]
-    elif pricing == "freemium":
-        tools = [
-            t for t in tools
-            if str(t.get("pricing_tier") or t.get("pricing") or "").lower() in ("free", "freemium")
-        ]
-
-    # Secondary sort overrides
-    if sort == "rating":
-        tools = sorted(tools, key=lambda t: float(t.get("rating") or 0), reverse=True)
-    elif sort == "popularity":
-        tools = sorted(tools, key=lambda t: float(t.get("popularity_score") or 0), reverse=True)
-    elif sort == "name":
-        tools = sorted(tools, key=lambda t: str(t.get("name") or "").lower())
-
-    # Deduplicate by name (preserve score order)
-    seen: set = set()
-    unique = []
-    for t in tools:
-        name_key = str(t.get("name") or "").strip().lower()
-        if name_key and name_key not in seen:
-            seen.add(name_key)
-            unique.append(t)
-
-    return jsonify(unique[:50])
+    output = search_tools(
+        raw_query=raw_query,
+        category_filter=category,
+        pricing_filter_ui=pricing,
+        student_only=student,
+        trending_only=trending,
+        sort_by=sort_by
+    )
+    return jsonify(output)
 
 
 @api_bp.get("/recommendations")
@@ -437,78 +312,72 @@ def get_collection(slug: str):
     tools = _load_tools()
 
     if slug_value == "best-free-tools":
-        filtered = [
-            tool for tool in tools
-            if str(tool.get("pricing_tier", "")).strip().lower() == "free"
-            or str(tool.get("pricing", "")).strip().lower() == "free"
-        ]
-        filtered = sorted(filtered, key=_rating_value, reverse=True)
-    elif slug_value == "best-for-students":
-        filtered = [tool for tool in tools if tool.get("student_friendly") is True]
-        filtered = sorted(filtered, key=_rating_value, reverse=True)
-    elif slug_value == "best-for-coding":
-        filtered = [tool for tool in tools if _normalize_text(tool.get("category")) == "coding"]
-        filtered = sorted(filtered, key=_rating_value, reverse=True)
-    elif slug_value == "best-for-writing":
-        filtered = [tool for tool in tools if _normalize_text(tool.get("category")) == "writing & docs"]
-        filtered = sorted(filtered, key=_rating_value, reverse=True)
-    elif slug_value == "best-for-research":
-        filtered = [tool for tool in tools if _normalize_text(tool.get("category")) == "research"]
-        filtered = sorted(filtered, key=_rating_value, reverse=True)
-    elif slug_value == "trending":
-        filtered = sorted(tools, key=_popularity_value, reverse=True)[:20]
-    elif slug_value == "top-rated":
-        filtered = sorted(tools, key=_rating_value, reverse=True)[:20]
-    else:
-        filtered = tools
+        from app.tool_cache import SEARCH_INDEX
 
-    seen: set[str] = set()
-    unique_tools: list[dict] = []
-    for tool in filtered:
-        name = str(tool.get("name") or "").strip()
-        if not name or name in seen:
-            continue
-        seen.add(name)
-        unique_tools.append(tool)
+        @api_bp.route('/api/suggestions')
+        def api_suggestions():
+            q = request.args.get('q', '').strip().lower()
+            if len(q) < 2:
+                return jsonify([])
 
-    payload = {
-        "slug": slug_value,
-        "title": config["title"],
-        "description": config["description"],
-        "tools": unique_tools,
-        "count": len(unique_tools),
-        "meta_title": config["meta_title"],
-        "meta_description": config["meta_description"],
-    }
-    return jsonify(payload)
+            suggestions = []
+            seen = set()
 
+            # Priority 1: tool name matches
+            for entry in SEARCH_INDEX:
+                tool = entry["_raw"]
+                if q in entry["_name_lower"] and tool["name"] not in seen:
+                    suggestions.append({
+                        "type": "tool",
+                        "label": tool["name"],
+                        "sub": tool["category"],
+                        "icon": tool.get("logo_emoji", "🤖")
+                    })
+                    seen.add(tool["name"])
+                if len([s for s in suggestions if s["type"] == "tool"]) >= 3:
+                    break
 
-@api_bp.get("/admin/stats")
-def admin_stats():
-    tools = get_cached_tools(DATA_PATH)
-    try:
-        total_users = User.query.count()
-    except Exception:
-        total_users = 0
+            # Priority 2: tag matches
+            for entry in SEARCH_INDEX:
+                for tag in entry["_tags_lower"]:
+                    if q in tag and tag not in seen:
+                        count = sum(1 for e in SEARCH_INDEX if tag in e["_tags_lower"])
+                        suggestions.append({
+                            "type": "tag",
+                            "label": tag,
+                            "sub": f"{count} tools",
+                            "icon": "🏷️"
+                        })
+                        seen.add(tag)
+                    if len([s for s in suggestions if s["type"] == "tag"]) >= 2:
+                        break
 
-    payload = {
-        "total_tools": len(tools),
-        "total_users": total_users,
-        "total_favorites": Favorite.query.count(),
-        "model_status": "active" if os.path.exists(MODEL_PATH) else "inactive",
-    }
-    return jsonify(payload)
+            # Priority 3: use case matches
+            for entry in SEARCH_INDEX:
+                for uc in entry["_uses_lower"]:
+                    if q in uc and uc not in seen:
+                        suggestions.append({
+                            "type": "usecase",
+                            "label": uc.title(),
+                            "sub": "Use case",
+                            "icon": "→"
+                        })
+                        seen.add(uc)
+                    if len([s for s in suggestions if s["type"] == "usecase"]) >= 2:
+                        break
 
+            return jsonify(suggestions[:6])
 
 @api_bp.get("/admin/users")
 def admin_users():
-    users = User.query.order_by(User.id.asc()).all()
+    if not current_user.is_authenticated or not getattr(current_user, 'is_admin', False):
+        return jsonify({"error": "Unauthorized"}), 401
+    users = User.query.all()
     payload = [
         {
             "id": user.id,
-            "display_name": user.display_name,
             "email": user.email,
-            "oauth_provider": user.oauth_provider,
+            "name": user.display_name,
             "created_at": user.created_at.isoformat() if user.created_at else None,
             "is_admin": bool(user.is_admin),
         }
@@ -569,6 +438,8 @@ def finder():
     budget = _normalize_text(data.get("budget"))
     platform = _normalize_text(data.get("platform"))
     level = _normalize_text(data.get("level"))
+    # Always collect use_case from both form and JSON for compatibility
+    use_case = request.form.get("use_case", "").strip() or _normalize_text(data.get("use_case"))
 
     try:
         from app.ml_recommender import get_recommendations
@@ -578,9 +449,11 @@ def finder():
             budget=budget,
             platform=platform,
             level=level,
+            use_case=use_case,
             limit=6,
         )
         if results:
+            # Results already include _reason; return as-is
             return jsonify({"tools": results, "count": len(results)})
     except Exception as exc:
         print(f"ML recommender failed: {exc}")
@@ -819,3 +692,24 @@ def get_stack():
     with open(stack_path, 'r', encoding='utf-8') as f:
         stack = json.load(f)
     return jsonify({'stack': stack}), 200
+
+
+# ── Backward-compat alias: /api/search → same logic as /api/v1/search ──────────
+@compat_bp.get("/search")
+def compat_search():
+    raw_query   = request.args.get('q', '').strip()[:150]
+    category    = request.args.get('category', 'All')
+    pricing     = request.args.get('pricing', 'All')
+    student     = request.args.get('student_only', 'false') == 'true'
+    trending    = request.args.get('trending_only', 'false') == 'true'
+    sort_by     = request.args.get('sort', 'Relevance')
+
+    output = search_tools(
+        raw_query=raw_query,
+        category_filter=category,
+        pricing_filter_ui=pricing,
+        student_only=student,
+        trending_only=trending,
+        sort_by=sort_by
+    )
+    return jsonify(output)

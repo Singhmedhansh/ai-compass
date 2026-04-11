@@ -27,8 +27,8 @@ class ToolSchema(Schema):
     description = fields.Str(required=True)
     category = fields.Str(required=True)
     tags = fields.List(fields.Str())
-    price = fields.Str(validate=validate.OneOf(["free", "freemium", "paid"]), missing="free")
-    student_perk = fields.Bool(missing=False)
+    price = fields.Str(validate=validate.OneOf(["free", "freemium", "paid"]), load_default="free")
+    student_perk = fields.Bool(load_default=False)
 
     @post_load
     def sanitize_input(self, data, **kwargs):

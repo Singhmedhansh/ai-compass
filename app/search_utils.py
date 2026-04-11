@@ -1,139 +1,208 @@
 import re
-from typing import Iterable, List
-from app.services.recommendation_service import compute_tool_score, generate_reason
+from typing import List
 
-
-QUERY_SYNONYMS = {
-    "editing": ["writing", "grammar", "proofreading"],
-    "coding": ["development", "programming"],
-    "design": ["ui", "ux", "graphics"],
-    "developer": ["coding", "development", "programming"],
-    "study": ["notes", "flashcards", "learning", "study tools"],
-    "research": ["analysis", "papers", "citations", "insights"],
-    "image": ["image generation", "art", "design", "visual"],
-    "video": ["video generation", "editing", "creator", "shorts"],
+STOPWORDS = {
+    "for", "a", "an", "the", "to", "and", "or", "with", "that",
+    "is", "in", "of", "my", "me", "i", "on", "best", "good",
+    "top", "tool", "tools", "ai", "app", "need", "want", "use",
+    "using", "help", "make", "build", "create", "get", "find",
 }
 
+INTENT_MAP = {
+    # Pricing intent
+    "free":         {"pricing": ["free", "freemium"]},
+    "cheap":        {"pricing": ["free", "freemium"]},
+    "paid":         {"pricing": ["paid"]},
+    "premium":      {"pricing": ["paid"]},
+    "open source":  {"pricing": ["free"]},
+    "opensource":   {"pricing": ["free"]},
 
-def _safe_text(value) -> str:
-    text = str(value or "")
-    text = text.encode("utf-8", "ignore").decode("utf-8", "ignore")
-    replacements = {
-        "\u2018": "'",
-        "\u2019": "'",
-        "\u201c": '"',
-        "\u201d": '"',
-        "\u2013": "-",
-        "\u2014": "-",
-        "\u2026": "...",
-        "\ufffd": "",
-    }
-    for src, dst in replacements.items():
-        text = text.replace(src, dst)
-    if any(token in text for token in ("Ã", "â", "ðŸ")):
-        try:
-            repaired = text.encode("latin-1", "ignore").decode("utf-8", "ignore")
-            if repaired:
-                text = repaired
-        except Exception:
-            pass
-    return text.encode("utf-8", "ignore").decode("utf-8", "ignore")
+    # Audience intent
+    "student":      {"boost_field": "student_perk", "boost": 25},
+    "students":     {"boost_field": "student_perk", "boost": 25},
+    "beginner":     {"boost_tag": "beginner-friendly", "boost": 20},
 
+    # Category intent
+    "write":        {"category": "Writing & Chat"},
+    "writing":      {"category": "Writing & Chat"},
+    "essay":        {"category": "Writing & Chat"},
+    "blog":         {"category": "Writing & Chat"},
+    "email":        {"category": "Writing & Chat"},
+    "code":         {"category": "Coding"},
+    "coding":       {"category": "Coding"},
+    "programming":  {"category": "Coding"},
+    "debug":        {"category": "Coding"},
+    "image":        {"category": "Image Generation"},
+    "photo":        {"category": "Image Generation"},
+    "picture":      {"category": "Image Generation"},
+    "art":          {"category": "Image Generation"},
+    "draw":         {"category": "Image Generation"},
+    "design":       {"category": "Image Generation"},
+    "video":        {"category": "Video Generation"},
+    "film":         {"category": "Video Generation"},
+    "edit video":   {"category": "Video Generation"},
+    "music":        {"category": "Audio & Voice"},
+    "audio":        {"category": "Audio & Voice"},
+    "voice":        {"category": "Audio & Voice"},
+    "song":         {"category": "Audio & Voice"},
+    "podcast":      {"category": "Audio & Voice"},
+    "research":     {"category": "Research"},
+    "study":        {"category": "Research"},
+    "notes":        {"category": "Productivity"},
+    "productivity": {"category": "Productivity"},
+    "meeting":      {"category": "Productivity"},
+}
 
-def _normalize(text: str) -> str:
-    value = _safe_text(text).strip().lower()
-    value = re.sub(r"\s+", " ", value)
-    return value
+def parse_intent(raw_query):
+    """
+    Tokenizes query, strips stopwords, resolves pricing/category/boost intents.
+    Returns: (tokens, pricing_filter, category_hint, boosts)
+    """
+    q = raw_query.lower().strip()
+    tokens = [w for w in q.split() if w not in STOPWORDS and len(w) > 1]
 
+    pricing_filter = None
+    category_hint  = None
+    boosts         = {}
 
-def _compact(text: str) -> str:
-    return _normalize(text).replace(" ", "")
+    # Check multi-word phrases first
+    for phrase, intent in INTENT_MAP.items():
+        if phrase in q:
+            if "pricing"      in intent and not pricing_filter:
+                pricing_filter = intent["pricing"]
+            if "category"     in intent and not category_hint:
+                category_hint  = intent["category"]
+            if "boost_field"  in intent:
+                boosts[intent["boost_field"]] = intent["boost"]
+            if "boost_tag"    in intent:
+                boosts["_tag_" + intent["boost_tag"]] = intent["boost"]
 
+    return tokens, pricing_filter, category_hint, boosts
 
-def _tags(tool) -> List[str]:
-    value = tool.get("tags") or []
-    if isinstance(value, list):
-        return [str(item).strip().lower() for item in value if str(item).strip()]
-    if isinstance(value, str):
-        return [token.strip().lower() for token in value.split(",") if token.strip()]
-    return []
+def score_token_against_tool(token, tool_index):
+    """Score a single token against a pre-built tool index entry."""
+    score = 0.0
+    name = tool_index["_name_lower"]
 
+    if name == token:             score += 100
+    elif name.startswith(token):  score += 65
+    elif token in name:           score += 45
 
-def _expanded_query_tokens(query: str) -> List[str]:
-    base = [token for token in re.findall(r"[a-z0-9]+", _normalize(query)) if token]
-    expanded = list(base)
-    for token in base:
-        for synonym in QUERY_SYNONYMS.get(token, []):
-            expanded.extend(re.findall(r"[a-z0-9]+", _normalize(synonym)))
-    # stable unique order
-    seen = set()
-    ordered = []
-    for token in expanded:
-        key = _normalize(token)
-        if not key or key in seen:
+    if token in tool_index["_category_lower"]:
+        score += 35
+
+    for tag in tool_index["_tags_lower"]:
+        if token == tag:          score += 30
+        elif token in tag:        score += 18
+        elif tag in token:        score += 12
+
+    for uc in tool_index["_uses_lower"]:
+        if token in uc:           score += 16
+
+    for s in tool_index["_strengths_lower"]:
+        if token in s:            score += 16
+
+    if token in tool_index["_desc_lower"]:
+        score += 10
+
+    if token in tool_index["_longdesc_lower"]:
+        score += 5
+
+    if token in tool_index["_company_lower"]:
+        score += 22
+
+    return score
+
+def search_tools(raw_query, category_filter="All", pricing_filter_ui="All",
+                 student_only=False, trending_only=False, sort_by="Relevance", limit=50):
+
+    from app.tool_cache import SEARCH_INDEX
+
+    tokens, pricing_intent, category_hint, boosts = parse_intent(raw_query)
+
+    # Resolve effective pricing — UI filter wins over intent
+    effective_pricing = None
+    if pricing_filter_ui not in ("All", "", None):
+        effective_pricing = [pricing_filter_ui.lower()]
+    elif pricing_intent:
+        effective_pricing = pricing_intent
+
+    # Resolve effective category — UI filter wins over intent
+    effective_category = None
+    if category_filter not in ("All", "", None):
+        effective_category = category_filter
+    elif category_hint and len(tokens) <= 2:
+        # Only gate by category hint for short focused queries
+        effective_category = category_hint
+
+    results = []
+
+    for entry in SEARCH_INDEX:
+        tool = entry["_raw"]
+
+        # ── HARD FILTERS ────────────────────────────────────
+        tool_pricing = tool.get("pricing", "freemium").lower()
+        if effective_pricing and tool_pricing not in effective_pricing:
             continue
-        seen.add(key)
-        ordered.append(key)
-    return ordered
+        if effective_category and tool.get("category") != effective_category:
+            continue
+        if student_only and not (tool.get("student_perk") or tool.get("studentPerk")):
+            continue
+        if trending_only and not tool.get("trending"):
+            continue
 
+        # ── SCORING ─────────────────────────────────────────
+        if not tokens:
+            score = (float(tool.get("rating", 3.0)) * 8
+                     + (15 if tool.get("trending") else 0)
+                     + (10 if tool.get("featured")  else 0))
+        else:
+            score = sum(score_token_against_tool(t, entry) for t in tokens)
 
-# --- Unified search_tools at module level ---
-def search_tools(tools, query: str, user=None, student_mode: bool = False):
-    """
-    Filter tools by query (name or description),
-    score with compute_tool_score, sort by score descending, return tools only.
-    """
-    if not query or not tools:
-        return []
+            # Phrase bonus
+            phrase = " ".join(tokens)
+            if phrase in entry["_name_lower"]:           score += 40
+            if phrase in entry["_desc_lower"]:           score += 25
+            if phrase in " ".join(entry["_tags_lower"]): score += 20
 
-    query_lc = query.strip().lower()
-    filtered = []
-    for tool in tools:
-        name = str(tool.get("name") or "").lower()
-        desc = str(tool.get("description") or tool.get("tagline") or "").lower()
-        if query_lc in name or query_lc in desc:
-            filtered.append(tool)
+            # Category hint soft boost
+            if category_hint and tool.get("category") == category_hint:
+                score += 20
 
-    scored = []
-    for tool in filtered:
-        score = compute_tool_score(tool, user=user, query=query, student_mode=student_mode)
-        scored.append((score, tool))
+            # Apply boosts from intent
+            for boost_key, bonus in boosts.items():
+                if boost_key == "student_perk":
+                    if tool.get("student_perk") or tool.get("studentPerk"):
+                        score += bonus
+                elif boost_key.startswith("_tag_"):
+                    tag = boost_key[5:]
+                    if tag in entry["_tags_lower"]:
+                        score += bonus
 
-    scored.sort(key=lambda row: row[0], reverse=True)
-    return [tool for _, tool in scored]
+            # Quality multiplier — better tools rank higher when scores are close
+            score += float(tool.get("rating", 0)) * 3
+            if tool.get("trending"): score += 6
+            if tool.get("featured"): score += 4
 
+        if score > 0:
+            results.append({**tool, "_score": score})
 
-def smart_search_fallback(tools, query: str, results_limit: int = 20, user=None, student_mode: bool = False):
-    # Fallback to best-rated and most popular tools when strict matches are unavailable.
-    candidates = sorted(
-        tools,
-        key=lambda item: (
-            float(item.get("rating") or 0),
-            str(item.get("weeklyUsers") or ""),
-            bool(item.get("trending") or item.get("trending_this_week")),
-        ),
-        reverse=True,
-    )
+    # ── FALLBACK ────────────────────────────────────────────
+    if not results and tokens:
+        # Return top 6 by rating as fallback
+        fallback = sorted(SEARCH_INDEX,
+                          key=lambda x: x["_raw"].get("rating", 0),
+                          reverse=True)[:6]
+        return {"results": [f["_raw"] for f in fallback], "fallback": True, "total": 0}
 
-    ranked = search_tools(candidates, query, user=user, student_mode=student_mode)
-    if ranked:
-        return ranked[:results_limit]
+    # ── SORT ────────────────────────────────────────────────
+    if sort_by == "Rating":
+        results.sort(key=lambda x: float(x.get("rating", 0)), reverse=True)
+    elif sort_by == "Reviews":
+        results.sort(key=lambda x: int(x.get("review_count", 0)), reverse=True)
+    elif sort_by == "Trending":
+        results.sort(key=lambda x: (bool(x.get("trending", False)), float(x.get("rating", 0))), reverse=True)
+    else:  # Relevance (default)
+        results.sort(key=lambda x: x["_score"], reverse=True)
 
-    scored = []
-    for tool in candidates:
-        personal_score = compute_tool_score(tool, user=user, student_mode=student_mode)
-        item = dict(tool)
-        item["ai_score"] = round(personal_score, 2)
-        item["reason"] = generate_reason(item, user=user, student_mode=student_mode)
-        scored.append((personal_score, float(tool.get("rating") or 0), item))
-
-    scored.sort(key=lambda row: (row[0], row[1]), reverse=True)
-    return [tool for _, _, tool in scored[:results_limit]]
-
-
-def limit_results(items, limit: int = 20):
-    try:
-        limit_value = max(1, int(limit))
-    except (TypeError, ValueError):
-        limit_value = 20
-    return list(items or [])[:limit_value]
+    return {"results": results[:limit], "fallback": False, "total": len(results)}
