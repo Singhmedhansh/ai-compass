@@ -159,30 +159,32 @@ def search_tools(raw_query, category_filter="All", pricing_filter_ui="All",
         else:
             score = sum(score_token_against_tool(t, entry) for t in tokens)
 
-            # Phrase bonus
-            phrase = " ".join(tokens)
-            if phrase in entry["_name_lower"]:           score += 40
-            if phrase in entry["_desc_lower"]:           score += 25
-            if phrase in " ".join(entry["_tags_lower"]): score += 20
+            # Only apply bonuses and quality multipliers if there's actual relevance
+            if score > 0:
+                # Phrase bonus
+                phrase = " ".join(tokens)
+                if phrase in entry["_name_lower"]:           score += 40
+                if phrase in entry["_desc_lower"]:           score += 25
+                if phrase in " ".join(entry["_tags_lower"]): score += 20
 
-            # Category hint soft boost
-            if category_hint and tool.get("category") == category_hint:
-                score += 20
+                # Category hint soft boost
+                if category_hint and tool.get("category") == category_hint:
+                    score += 20
 
-            # Apply boosts from intent
-            for boost_key, bonus in boosts.items():
-                if boost_key == "student_perk":
-                    if tool.get("student_perk") or tool.get("studentPerk"):
-                        score += bonus
-                elif boost_key.startswith("_tag_"):
-                    tag = boost_key[5:]
-                    if tag in entry["_tags_lower"]:
-                        score += bonus
+                # Apply boosts from intent
+                for boost_key, bonus in boosts.items():
+                    if boost_key == "student_perk":
+                        if tool.get("student_perk") or tool.get("studentPerk"):
+                            score += bonus
+                    elif boost_key.startswith("_tag_"):
+                        tag = boost_key[5:]
+                        if tag in entry["_tags_lower"]:
+                            score += bonus
 
-            # Quality multiplier — better tools rank higher when scores are close
-            score += float(tool.get("rating", 0)) * 3
-            if tool.get("trending"): score += 6
-            if tool.get("featured"): score += 4
+                # Quality multiplier — better tools rank higher when scores are close
+                score += float(tool.get("rating", 0)) * 3
+                if tool.get("trending"): score += 6
+                if tool.get("featured"): score += 4
 
         if score > 0:
             results.append({**tool, "_score": score})
