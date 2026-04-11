@@ -199,14 +199,11 @@ def create_app(config: dict | None = None) -> Flask:
     if not app.config.get("TESTING"):
         with app.app_context():
             db.create_all()
-
-    try:
-        print(f"[STARTUP] Loading tools from: {data_path}")
-        prime_tools_cache(data_path)
-        from app.tool_cache import get_cached_tools
-        print(f"[STARTUP] Tools loaded: {len(get_cached_tools(data_path))} tools")
-    except Exception as e:
-        print(f"[STARTUP] Failed to load tools: {e}")
+            from app.tool_cache import prime_tools_cache, DEFAULT_TOOLS_PATH, get_cached_tools
+            print(f"[STARTUP] cwd: {os.getcwd()}")
+            print(f"[STARTUP] Loading tools...")
+            prime_tools_cache(DEFAULT_TOOLS_PATH)
+            print(f"[STARTUP] Loaded {len(get_cached_tools())} tools")
 
     try:
         model_path = os.path.join(project_root, 'data', 'recommendation_model.pkl')

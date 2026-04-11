@@ -1,19 +1,15 @@
-
 import json
 import os
 from typing import List, Dict, Any
 from filelock import FileLock, Timeout
 
-# Always resolve relative to this file's location
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DEFAULT_TOOLS_PATH = os.path.join(BASE_DIR, "data", "tools.json")
 
-# Startup check for tools.json existence
 if not os.path.exists(DEFAULT_TOOLS_PATH):
-    raise FileNotFoundError(
-        f"tools.json not found at {DEFAULT_TOOLS_PATH}. "
-        f"BASE_DIR={BASE_DIR}, cwd={os.getcwd()}"
-    )
+    import sys
+    print(f"CRITICAL: tools.json not found at {DEFAULT_TOOLS_PATH}", file=sys.stderr)
+    print(f"cwd={os.getcwd()}, BASE_DIR={BASE_DIR}", file=sys.stderr)
 
 
 _TOOLS_CACHE: List[Dict[str, Any]] | None = None
