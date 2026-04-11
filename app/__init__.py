@@ -88,7 +88,8 @@ def create_app(config: dict | None = None) -> Flask:
     project_root = os.path.dirname(os.path.dirname(__file__))
     _load_local_dotenv(project_root)
 
-    data_path = os.path.join(project_root, "data", "tools.json")
+    from app.tool_cache import DEFAULT_TOOLS_PATH
+    data_path = DEFAULT_TOOLS_PATH
 
     app = Flask(
         __name__,
@@ -200,9 +201,12 @@ def create_app(config: dict | None = None) -> Flask:
             db.create_all()
 
     try:
+        print(f"[STARTUP] Loading tools from: {data_path}")
         prime_tools_cache(data_path)
-    except Exception:
-        pass
+        from app.tool_cache import get_cached_tools
+        print(f"[STARTUP] Tools loaded: {len(get_cached_tools(data_path))} tools")
+    except Exception as e:
+        print(f"[STARTUP] Failed to load tools: {e}")
 
     try:
         model_path = os.path.join(project_root, 'data', 'recommendation_model.pkl')

@@ -1,7 +1,19 @@
+
 import json
 import os
 from typing import List, Dict, Any
 from filelock import FileLock, Timeout
+
+# Always resolve relative to this file's location
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DEFAULT_TOOLS_PATH = os.path.join(BASE_DIR, "data", "tools.json")
+
+# Startup check for tools.json existence
+if not os.path.exists(DEFAULT_TOOLS_PATH):
+    raise FileNotFoundError(
+        f"tools.json not found at {DEFAULT_TOOLS_PATH}. "
+        f"BASE_DIR={BASE_DIR}, cwd={os.getcwd()}"
+    )
 
 
 _TOOLS_CACHE: List[Dict[str, Any]] | None = None
@@ -12,7 +24,7 @@ def _get_lock_path(path: str) -> str:
     return f"{path}.lock"
 
 
-def _load_tools_from_disk(data_path: str) -> List[Dict[str, Any]]:
+def _load_tools_from_disk(data_path: str = DEFAULT_TOOLS_PATH) -> List[Dict[str, Any]]:
     lock = FileLock(_get_lock_path(data_path), timeout=5)
     try:
         with lock:
@@ -47,7 +59,7 @@ def build_search_index(tools):
             "_company_lower":   tool.get("company", "").lower(),
         })
 
-def prime_tools_cache(data_path: str) -> List[Dict[str, Any]]:
+def prime_tools_cache(data_path: str = DEFAULT_TOOLS_PATH) -> List[Dict[str, Any]]:
     """Load tools into module-level cache once (startup-safe)."""
     global _TOOLS_CACHE, _TOOLS_CACHE_MTIME
     if _TOOLS_CACHE is None:
@@ -60,7 +72,7 @@ def prime_tools_cache(data_path: str) -> List[Dict[str, Any]]:
     return list(_TOOLS_CACHE)
 
 
-def get_cached_tools(data_path: str) -> List[Dict[str, Any]]:
+def get_cached_tools(data_path: str = DEFAULT_TOOLS_PATH) -> List[Dict[str, Any]]:
     """Read tools from cache and reload automatically if the file changed."""
     global _TOOLS_CACHE_MTIME
 
@@ -78,7 +90,7 @@ def get_cached_tools(data_path: str) -> List[Dict[str, Any]]:
     return list(_TOOLS_CACHE)
 
 
-def refresh_tools_cache(data_path: str) -> List[Dict[str, Any]]:
+def refresh_tools_cache(data_path: str = DEFAULT_TOOLS_PATH) -> List[Dict[str, Any]]:
     """Force cache reload from disk after tools.json updates."""
     global _TOOLS_CACHE, _TOOLS_CACHE_MTIME
     _TOOLS_CACHE = _load_tools_from_disk(data_path)
