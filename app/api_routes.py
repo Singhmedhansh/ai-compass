@@ -711,13 +711,22 @@ def compat_search():
 @api_bp.get("/tools")
 def list_all_tools():
     """Return all tools for the directory page."""
-    from app.tool_cache import get_cached_tools
-    tools = get_cached_tools()
-    return jsonify({
-        "results": tools,
-        "total": len(tools),
-        "fallback": False
-    })
+    try:
+        from app.tool_cache import get_cached_tools
+        tools = get_cached_tools()
+        if not tools:
+            return jsonify({"error": "tools list is empty or None", "count": len(tools) if tools else -1}), 500
+        return jsonify({
+            "results": tools,
+            "total": len(tools),
+            "fallback": False
+        })
+    except Exception as e:
+        import traceback
+        return jsonify({
+            "error": str(e),
+            "traceback": traceback.format_exc()
+        }), 500
 
 
 @compat_bp.get("/tools")
