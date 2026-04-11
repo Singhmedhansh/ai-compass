@@ -705,3 +705,28 @@ def compat_search():
         sort_by=sort_by
     )
     return jsonify(output)
+
+
+# ── Directory: list all tools ────────────────────────────────────────────────
+@api_bp.get("/tools")
+def list_all_tools():
+    """Return all tools for the directory page."""
+    from app.tool_cache import get_cached_tools
+    tools = get_cached_tools()
+    return jsonify({
+        "results": tools,
+        "total": len(tools),
+        "fallback": False
+    })
+
+
+@compat_bp.get("/tools")
+def list_all_tools_compat():
+    """Compat alias at /api/tools."""
+    from app.tool_cache import get_cached_tools
+    tools = get_cached_tools()
+    return jsonify({
+        "results": tools,
+        "total": len(tools),
+        "fallback": False
+    })
