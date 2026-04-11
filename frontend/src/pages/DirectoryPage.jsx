@@ -53,6 +53,7 @@ function DirectoryPage() {
   const [searchQuery, setSearchQuery] = useState(initialQuery)
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(initialQuery)
   const [showMobileFilters, setShowMobileFilters] = useState(false)
+  const [isFallback, setIsFallback] = useState(false)
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -79,50 +80,54 @@ function DirectoryPage() {
 
   useEffect(() => {
     const controller = new AbortController()
+    const API = import.meta.env.VITE_API_URL || '';
 
     async function loadTools() {
+      setLoading(true)
+      setError(null)
+      setIsFallback(false)
       try {
-        const response = await fetch('/api/v1/tools', { signal: controller.signal })
+        const params = new URLSearchParams();
+        params.set('q', debouncedSearchQuery);
+        if (category && category !== 'All') params.set('category', category);
+        if (sortBy) params.set('sort', sortBy);
+        // Add more filters here if needed
 
+        const response = await fetch(`${API}/api/v1/search?${params.toString()}`, { signal: controller.signal });
         if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
-
-        const data = await response.json()
-
-        let resolvedTools = []
-        if (Array.isArray(data)) {
-          resolvedTools = data
-        } else if (data && typeof data === 'object') {
-          if (Array.isArray(data.tools)) {
-            resolvedTools = data.tools
-          } else if (Array.isArray(data.data)) {
-            resolvedTools = data.data
-          } else if (Array.isArray(data.items)) {
-            resolvedTools = data.items
-          } else if (Array.isArray(data.results)) {
-            resolvedTools = data.results
-          }
+        const data = await response.json();
+        let resolvedTools = [];
+        if (Array.isArray(data.results)) {
+          resolvedTools = data.results;
+        } else if (Array.isArray(data.tools)) {
+          resolvedTools = data.tools;
+        } else if (Array.isArray(data.data)) {
+          resolvedTools = data.data;
+        } else if (Array.isArray(data.items)) {
+          resolvedTools = data.items;
+        } else if (Array.isArray(data)) {
+          resolvedTools = data;
         }
-
-        setTools(resolvedTools.map(mapTool))
-        setError(null)
+        setTools(resolvedTools.map(mapTool));
+        setIsFallback(Boolean(data.fallback));
+        setError(null);
       } catch (err) {
         if (err.name !== 'AbortError') {
-          setError(err.message)
-          setTools([])
+          setError(err.message);
+          setTools([]);
         }
       } finally {
         if (!controller.signal.aborted) {
-          setLoading(false)
+          setLoading(false);
         }
       }
     }
 
-    loadTools()
-
-    return () => controller.abort()
-  }, [])
+    loadTools();
+    return () => controller.abort();
+  }, [debouncedSearchQuery, category, sortBy]);
 
   const filteredTools = useMemo(() => {
     const normalizedSearch = debouncedSearchQuery.trim().toLowerCase()
@@ -292,14 +297,21 @@ function DirectoryPage() {
             <SkeletonCard key={`directory-skeleton-${index}`} />
           ))}
         </section>
-      ) : filteredTools.length > 0 ? (
-        <AnimatedGrid className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {filteredTools.map((tool) => (
-            <AnimatedItem key={tool.slug || tool.name}>
-              <Card tool={tool} />
-            </AnimatedItem>
-          ))}
-        </AnimatedGrid>
+      ) : tools.length > 0 ? (
+        <>
+          {isFallback && (
+            <p style={{fontSize: '0.9rem', color: 'var(--text-muted, #888)', marginBottom: 12}}>
+              No exact matches — showing top-rated tools instead
+            </p>
+          )}
+          <AnimatedGrid className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {tools.map((tool) => (
+              <AnimatedItem key={tool.slug || tool.name}>
+                <Card tool={tool} />
+              </AnimatedItem>
+            ))}
+          </AnimatedGrid>
+        </>
       ) : (
         <section className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-6 py-14 text-center dark:border-gray-700 dark:bg-gray-900">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-gray-200 bg-white text-3xl shadow-sm dark:border-gray-700 dark:bg-gray-800" aria-hidden="true">

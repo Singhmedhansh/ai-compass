@@ -171,7 +171,8 @@ function ToolFinderPage() {
     setError('')
 
     try {
-      const response = await fetch('/api/v1/finder', {
+      const API = import.meta.env.VITE_API_URL || '';
+      const response = await fetch(`${API}/api/v1/finder`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(answers),
@@ -234,7 +235,8 @@ function ToolFinderPage() {
     setSavingStack(true)
 
     try {
-      const response = await fetch('/api/v1/stack', {
+      const API = import.meta.env.VITE_API_URL || '';
+      const response = await fetch(`${API}/api/v1/stack`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
