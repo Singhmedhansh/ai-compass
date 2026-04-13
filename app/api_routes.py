@@ -233,8 +233,11 @@ def _pricing_value(tool: dict) -> str:
 @api_bp.get("/tools")
 def list_tools():
     from app.tool_cache import get_cached_tools
-    tools = get_cached_tools()
-    return jsonify({"results": tools, "total": len(tools), "fallback": False})
+    try:
+        tools = get_cached_tools()
+    except Exception:
+        tools = []
+    return jsonify({"results": tools, "total": len(tools), "fallback": not bool(tools)})
 
 
 @api_bp.get("/tools/<slug>")
@@ -708,35 +711,16 @@ def compat_search():
     return jsonify(output)
 
 
-# ── Directory: list all tools ────────────────────────────────────────────────
-@api_bp.get("/tools")
-def list_all_tools():
-    """Return all tools for the directory page."""
-    try:
-        from app.tool_cache import get_cached_tools
-        tools = get_cached_tools()
-        if not tools:
-            return jsonify({"error": "tools list is empty or None", "count": len(tools) if tools else -1}), 500
-        return jsonify({
-            "results": tools,
-            "total": len(tools),
-            "fallback": False
-        })
-    except Exception as e:
-        import traceback
-        return jsonify({
-            "error": str(e),
-            "traceback": traceback.format_exc()
-        }), 500
-
-
 @compat_bp.get("/tools")
 def list_all_tools_compat():
     """Compat alias at /api/tools."""
     from app.tool_cache import get_cached_tools
-    tools = get_cached_tools()
+    try:
+        tools = get_cached_tools()
+    except Exception:
+        tools = []
     return jsonify({
         "results": tools,
         "total": len(tools),
-        "fallback": False
+        "fallback": not bool(tools)
     })
