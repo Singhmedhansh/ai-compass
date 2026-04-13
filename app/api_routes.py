@@ -273,12 +273,15 @@ def get_tool(slug: str):
 @api_bp.get("/tools/<slug>/reviews")
 def get_tool_reviews(slug: str):
     slug_value = str(slug or "").strip().lower()
-    reviews = (
-        Review.query.filter_by(tool_slug=slug_value, is_hidden=False)
-        .order_by(Review.created_at.desc())
-        .limit(50)
-        .all()
-    )
+    try:
+        reviews = (
+            Review.query.filter_by(tool_slug=slug_value, is_hidden=False)
+            .order_by(Review.created_at.desc())
+            .limit(50)
+            .all()
+        )
+    except Exception:
+        reviews = []
 
     return jsonify({
         "reviews": [{
@@ -356,16 +359,20 @@ def post_review(slug: str):
     if len(body) > 1000:
         return jsonify({"error": "Review must be under 1000 characters"}), 400
 
-    existing = Review.query.filter_by(user_id=current_user.id, tool_slug=slug_value).first()
-    if existing:
-        existing.body = body
-        existing.created_at = datetime.now(timezone.utc)
-        existing.is_hidden = False
-    else:
-        db.session.add(Review(user_id=current_user.id, tool_slug=slug_value, body=body))
+    try:
+        existing = Review.query.filter_by(user_id=current_user.id, tool_slug=slug_value).first()
+        if existing:
+            existing.body = body
+            existing.created_at = datetime.now(timezone.utc)
+            existing.is_hidden = False
+        else:
+            db.session.add(Review(user_id=current_user.id, tool_slug=slug_value, body=body))
 
-    db.session.commit()
-    return jsonify({"success": True})
+        db.session.commit()
+        return jsonify({"success": True})
+    except Exception:
+        db.session.rollback()
+        return jsonify({"error": "Reviews are temporarily unavailable"}), 503
 
 
 from app.search_utils import search_tools
