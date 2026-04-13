@@ -92,6 +92,41 @@ class ToolRating(db.Model):
     )
 
 
+class Rating(db.Model):
+    __tablename__ = "ratings"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
+    tool_slug = db.Column(db.String(120), nullable=False, index=True)
+    value = db.Column(db.Integer, nullable=False)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+
+    user = db.relationship("User", backref="ratings")
+
+    __table_args__ = (
+        db.CheckConstraint("value >= 1 AND value <= 5", name="ck_rating_value_range"),
+        db.UniqueConstraint("user_id", "tool_slug", name="uq_user_tool_rating"),
+    )
+
+
+class Review(db.Model):
+    __tablename__ = "reviews"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    tool_slug = db.Column(db.String(120), nullable=False, index=True)
+    body = db.Column(db.String(1000), nullable=False)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    is_hidden = db.Column(db.Boolean, default=False)
+
+    user = db.relationship("User", backref="reviews")
+
+    __table_args__ = (
+        db.UniqueConstraint("user_id", "tool_slug", name="uq_user_tool_review"),
+    )
+
+
 class SavedStack(db.Model):
     __tablename__ = "saved_stacks"
 

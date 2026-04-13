@@ -1,4 +1,5 @@
 import re
+import sys
 from typing import List
 
 STOPWORDS = {
@@ -51,6 +52,19 @@ INTENT_MAP = {
     "notes":        {"category": "Productivity"},
     "productivity": {"category": "Productivity"},
     "meeting":      {"category": "Productivity"},
+}
+
+TOOL_CONTEXT_BOOSTS = {
+    "claude": ["coding", "analysis", "research", "writing"],
+    "chatgpt": ["coding", "writing", "research", "chat"],
+    "cursor": ["coding", "ide", "debugging", "autocomplete"],
+    "copilot": ["coding", "github", "ide", "autocomplete"],
+    "midjourney": ["image", "art", "design", "creative"],
+    "perplexity": ["research", "search", "citations", "facts"],
+    "grammarly": ["writing", "grammar", "editing", "email"],
+    "notion": ["notes", "productivity", "writing", "organization"],
+    "runway": ["video", "editing", "creative", "film"],
+    "elevenlabs": ["voice", "audio", "tts", "podcast"],
 }
 
 def parse_intent(raw_query):
@@ -111,12 +125,19 @@ def score_token_against_tool(token, tool_index):
     if token in tool_index["_company_lower"]:
         score += 22
 
+    tool_name_lower = tool_index["_name_lower"]
+    for tool_key, contexts in TOOL_CONTEXT_BOOSTS.items():
+        if tool_key in tool_name_lower and token in contexts:
+            score += 30
+
     return score
 
 def search_tools(raw_query, category_filter="All", pricing_filter_ui="All",
                  student_only=False, trending_only=False, sort_by="Relevance", limit=50):
 
     from app.tool_cache import SEARCH_INDEX
+
+    print(f"[SEARCH] query='{raw_query}' index_size={len(SEARCH_INDEX)}", file=sys.stderr)
 
     tokens, pricing_intent, category_hint, boosts = parse_intent(raw_query)
 
@@ -127,24 +148,23 @@ def search_tools(raw_query, category_filter="All", pricing_filter_ui="All",
     elif pricing_intent:
         effective_pricing = pricing_intent
 
-    # Resolve effective category — UI filter wins over intent
-    effective_category = None
+    # Resolve explicit category (UI-selected only) and hint category (intent only)
+    selected_category = None
     if category_filter not in ("All", "", None):
-        effective_category = category_filter
-    elif category_hint and len(tokens) <= 2:
-        # Only gate by category hint for short focused queries
-        effective_category = category_hint
-
+        selected_category = category_filter
     results = []
 
     for entry in SEARCH_INDEX:
         tool = entry["_raw"]
 
+        if tool.get("hidden"):
+            continue
+
         # ── HARD FILTERS ────────────────────────────────────
         tool_pricing = tool.get("pricing", "freemium").lower()
         if effective_pricing and tool_pricing not in effective_pricing:
             continue
-        if effective_category and tool.get("category") != effective_category:
+        if selected_category and tool.get("category") != selected_category:
             continue
         if student_only and not (tool.get("student_perk") or tool.get("studentPerk")):
             continue
@@ -170,6 +190,10 @@ def search_tools(raw_query, category_filter="All", pricing_filter_ui="All",
                 # Category hint soft boost
                 if category_hint and tool.get("category") == category_hint:
                     score += 20
+
+                # Extra boost when explicit category filter matches
+                if selected_category and tool.get("category") == selected_category:
+                    score += 30
 
                 # Apply boosts from intent
                 for boost_key, bonus in boosts.items():

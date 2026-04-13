@@ -10,7 +10,6 @@ const MotionDiv = motion.div
 
 const THEME_STORAGE_KEY = 'ai-compass-theme'
 const NOTIFICATIONS_STORAGE_KEY = 'ai-compass-email-notifications'
-const STUDENT_MODE_STORAGE_KEY = 'ai-compass-student-mode'
 
 function safeParseJson(value) {
   try {
@@ -102,13 +101,14 @@ function ProfilePage() {
   const [isSaving, setIsSaving] = useState(false)
   const [toast, setToast] = useState(null)
   const [favoritesDownloading, setFavoritesDownloading] = useState(false)
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
-  const [deleteConfirmation, setDeleteConfirmation] = useState('')
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deletePassword, setDeletePassword] = useState('')
+  const [deleteError, setDeleteError] = useState('')
+  const [deleteStep, setDeleteStep] = useState(1)
   const [deletingAccount, setDeletingAccount] = useState(false)
   const [preferences, setPreferences] = useState(() => ({
     theme: getStoredTheme(),
     emailNotifications: readStoredBoolean(NOTIFICATIONS_STORAGE_KEY, true),
-    studentMode: readStoredBoolean(STUDENT_MODE_STORAGE_KEY, false),
   }))
 
   const avatarLetter = useMemo(
@@ -196,10 +196,6 @@ function ProfilePage() {
   useEffect(() => {
     localStorage.setItem(NOTIFICATIONS_STORAGE_KEY, String(preferences.emailNotifications))
   }, [preferences.emailNotifications])
-
-  useEffect(() => {
-    localStorage.setItem(STUDENT_MODE_STORAGE_KEY, String(preferences.studentMode))
-  }, [preferences.studentMode])
 
   useEffect(() => {
     if (!toast) {
@@ -296,15 +292,21 @@ function ProfilePage() {
   }
 
   const handleDeleteAccount = async () => {
-    if (deleteConfirmation !== 'DELETE') {
-      showToast('Type DELETE to confirm.', 'error')
+    if (!deletePassword) {
+      setDeleteError('Enter your password')
       return
     }
 
     setDeletingAccount(true)
+    setDeleteError('')
 
     try {
-      const response = await fetch('/api/v1/profile', { method: 'DELETE' })
+      const response = await fetch('/api/v1/profile', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ password: deletePassword }),
+      })
 
       if (!response.ok) {
         const payload = await response.json().catch(() => ({}))
@@ -315,7 +317,7 @@ function ProfilePage() {
       window.dispatchEvent(new Event('userLoggedIn'))
       navigate('/', { replace: true })
     } catch (error) {
-      showToast(error.message || 'Unable to delete your account.', 'error')
+      setDeleteError(error.message || 'Unable to delete your account.')
       setDeletingAccount(false)
     }
   }
@@ -476,12 +478,6 @@ function ProfilePage() {
                   description="Receive product updates and account notices."
                 />
 
-                <ToggleSwitch
-                  checked={preferences.studentMode}
-                  onChange={(checked) => setPreferences((current) => ({ ...current, studentMode: checked }))}
-                  label="Student mode"
-                  description="Tailor recommendations for study workflows."
-                />
               </div>
             </section>
 
@@ -517,8 +513,10 @@ function ProfilePage() {
                   size="md"
                   className="border-rose-200 text-rose-700 hover:bg-rose-50 dark:border-rose-500/30 dark:text-rose-300 dark:hover:bg-rose-500/10"
                   onClick={() => {
-                    setDeleteConfirmation('')
-                    setDeleteModalOpen(true)
+                    setShowDeleteModal(true)
+                    setDeleteStep(1)
+                    setDeletePassword('')
+                    setDeleteError('')
                   }}
                 >
                   Delete account
@@ -545,7 +543,7 @@ function ProfilePage() {
         </section>
 
         <AnimatePresence>
-          {deleteModalOpen ? (
+          {showDeleteModal ? (
             <MotionDiv
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -553,8 +551,10 @@ function ProfilePage() {
               className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/70 px-4 py-8 backdrop-blur-sm"
               onClick={() => {
                 if (!deletingAccount) {
-                  setDeleteModalOpen(false)
-                  setDeleteConfirmation('')
+                  setShowDeleteModal(false)
+                  setDeleteStep(1)
+                  setDeletePassword('')
+                  setDeleteError('')
                 }
               }}
             >
@@ -572,52 +572,105 @@ function ProfilePage() {
                   </div>
                   <div>
                     <h3 className="text-xl font-bold text-slate-900 dark:text-white">Delete Account</h3>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">Type DELETE to confirm permanent account removal.</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                      {deleteStep === 1
+                        ? 'Enter your password to continue with account deletion.'
+                        : 'Final confirmation before permanent account removal.'}
+                    </p>
                   </div>
                 </div>
 
-                <label className="mt-6 block">
-                  <span className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">Confirmation</span>
-                  <input
-                    value={deleteConfirmation}
-                    onChange={(event) => setDeleteConfirmation(event.target.value)}
-                    placeholder="DELETE"
-                    className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 focus:border-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-500 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
-                  />
-                </label>
+                {deleteStep === 1 ? (
+                  <>
+                    <label className="mt-6 block">
+                      <span className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">Password</span>
+                      <input
+                        type="password"
+                        value={deletePassword}
+                        onChange={(event) => setDeletePassword(event.target.value)}
+                        placeholder="Your password"
+                        style={{ fontSize: 16 }}
+                        className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 focus:border-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-500 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+                      />
+                    </label>
 
-                <div className="mt-6 flex flex-wrap justify-end gap-3">
-                  <Button
-                    variant="secondary"
-                    size="md"
-                    onClick={() => {
-                      if (!deletingAccount) {
-                        setDeleteModalOpen(false)
-                        setDeleteConfirmation('')
-                      }
-                    }}
-                    disabled={deletingAccount}
-                  >
-                    Cancel
-                  </Button>
+                    {deleteError ? <p className="mt-3 text-sm text-rose-600 dark:text-rose-300">{deleteError}</p> : null}
 
-                  <Button
-                    variant="primary"
-                    size="md"
-                    className="bg-rose-600 text-white hover:bg-rose-700 focus-visible:ring-rose-500 disabled:bg-rose-400"
-                    onClick={handleDeleteAccount}
-                    disabled={deletingAccount || deleteConfirmation !== 'DELETE'}
-                  >
-                    {deletingAccount ? (
-                      <span className="inline-flex items-center gap-2">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Deleting...
-                      </span>
-                    ) : (
-                      'Delete Account'
-                    )}
-                  </Button>
-                </div>
+                    <div className="mt-6 flex flex-wrap justify-end gap-3">
+                      <Button
+                        variant="secondary"
+                        size="md"
+                        onClick={() => {
+                          setShowDeleteModal(false)
+                          setDeleteStep(1)
+                          setDeletePassword('')
+                          setDeleteError('')
+                        }}
+                      >
+                        Cancel
+                      </Button>
+
+                      <Button
+                        variant="primary"
+                        size="md"
+                        className="bg-rose-600 text-white hover:bg-rose-700 focus-visible:ring-rose-500"
+                        onClick={() => {
+                          if (!deletePassword) {
+                            setDeleteError('Enter your password')
+                            return
+                          }
+                          setDeleteStep(2)
+                          setDeleteError('')
+                        }}
+                      >
+                        Continue
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <p className="mt-6 text-sm text-slate-700 dark:text-slate-300">
+                      You will lose all your favorites, ratings, and reviews. This cannot be undone.
+                    </p>
+
+                    {deleteError ? <p className="mt-3 text-sm text-rose-600 dark:text-rose-300">{deleteError}</p> : null}
+
+                    <div className="mt-6 flex flex-wrap justify-end gap-3">
+                      <Button
+                        variant="secondary"
+                        size="md"
+                        onClick={() => {
+                          if (!deletingAccount) {
+                            setShowDeleteModal(false)
+                            setDeleteStep(1)
+                            setDeletePassword('')
+                            setDeleteError('')
+                          }
+                        }}
+                        disabled={deletingAccount}
+                      >
+                        Cancel
+                      </Button>
+
+                      <Button
+                        variant="primary"
+                        size="md"
+                        className="bg-rose-600 text-white hover:bg-rose-700 focus-visible:ring-rose-500 disabled:bg-rose-400"
+                        onClick={handleDeleteAccount}
+                        disabled={deletingAccount}
+                      >
+                        {deletingAccount ? (
+                          <span className="inline-flex items-center gap-2">
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Deleting...
+                          </span>
+                        ) : (
+                          'Yes, permanently delete my account'
+                        )}
+                      </Button>
+                    </div>
+                  </>
+                )}
               </MotionDiv>
             </MotionDiv>
           ) : null}

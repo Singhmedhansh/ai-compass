@@ -79,13 +79,18 @@ import os
 import re
 import subprocess
 import sys
+from datetime import datetime, timezone
 
+from collections import Counter
+from datetime import datetime, timezone
+from sqlalchemy import func
 from flask import Blueprint, current_app, jsonify, request
-from flask_login import current_user, login_user, logout_user
+from flask_login import current_user, login_required, login_user, logout_user
+from flask_login import current_user, login_required, login_user, logout_user
 
 from app import bcrypt, csrf, db
 from app.ml_recommender import get_recommendations, get_similar_tools
-from app.models import Favorite, User
+from app.models import Favorite, Rating, ToolRating, User
 from app.search_utils import search_tools
 from app.tool_cache import get_cached_tools, prime_tools_cache
 
@@ -199,6 +204,14 @@ def _write_user_stack(user_id: int, payload: dict) -> None:
         json.dump(payload, stack_file, indent=2)
 
 
+def _tools_json_path() -> str:
+    return os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        "data",
+        "tools.json",
+    )
+
+
 def _serialize_user(user: User) -> dict:
     from datetime import datetime, timezone
     
@@ -260,14 +273,99 @@ def get_tool(slug: str):
 @api_bp.get("/tools/<slug>/reviews")
 def get_tool_reviews(slug: str):
     slug_value = str(slug or "").strip().lower()
-    tools = _load_tools()
+    reviews = (
+        Review.query.filter_by(tool_slug=slug_value, is_hidden=False)
+        .order_by(Review.created_at.desc())
+        .limit(50)
+        .all()
+    )
 
-    for tool in tools:
-        if _tool_slug(tool) == slug_value:
-            reviews = tool.get("reviews")
-            return jsonify(reviews if isinstance(reviews, list) else [])
+    return jsonify({
+        "reviews": [{
+            "id": review.id,
+            "user": (review.user.display_name or "Anonymous") if review.user else "Anonymous",
+            "body": review.body,
+            "created_at": review.created_at.isoformat() if review.created_at else None,
+        } for review in reviews],
+        "count": len(reviews),
+        "message": "No reviews yet. Be the first!" if not reviews else None,
+    })
 
-    return jsonify([])
+
+@api_bp.get("/tools/<slug>/ratings")
+def get_tool_ratings(slug: str):
+    slug_value = str(slug or "").strip().lower()
+    result = (
+        db.session.query(
+            func.avg(Rating.value).label("avg"),
+            func.count(Rating.id).label("count"),
+        )
+        .filter(Rating.tool_slug == slug_value)
+        .first()
+    )
+
+    avg = round(float(result.avg), 1) if result and result.avg is not None else 0
+    count = int(result.count or 0) if result else 0
+
+    user_rating = None
+    if current_user.is_authenticated:
+        rating = Rating.query.filter_by(user_id=current_user.id, tool_slug=slug_value).first()
+        user_rating = rating.value if rating else None
+
+    return jsonify({
+        "average": avg,
+        "count": count,
+        "user_rating": user_rating,
+        "message": "Be the first to rate this tool!" if count == 0 else None,
+    })
+
+
+@api_bp.post("/tools/<slug>/ratings")
+@csrf.exempt
+@login_required
+def rate_tool(slug: str):
+    slug_value = str(slug or "").strip().lower()
+    payload = request.get_json(silent=True) or {}
+    value = payload.get("value")
+
+    if not isinstance(value, int) or value < 1 or value > 5:
+        return jsonify({"error": "Rating must be 1-5"}), 400
+
+    existing = Rating.query.filter_by(user_id=current_user.id, tool_slug=slug_value).first()
+
+    if existing:
+        existing.value = value
+        existing.updated_at = datetime.now(timezone.utc)
+    else:
+        db.session.add(Rating(user_id=current_user.id, tool_slug=slug_value, value=value))
+
+    db.session.commit()
+    return jsonify({"success": True, "value": value})
+
+
+@api_bp.post("/tools/<slug>/reviews")
+@csrf.exempt
+@login_required
+def post_review(slug: str):
+    slug_value = str(slug or "").strip().lower()
+    payload = request.get_json(silent=True) or {}
+    body = str(payload.get("body") or "").strip()
+
+    if len(body) < 10:
+        return jsonify({"error": "Review must be at least 10 characters"}), 400
+    if len(body) > 1000:
+        return jsonify({"error": "Review must be under 1000 characters"}), 400
+
+    existing = Review.query.filter_by(user_id=current_user.id, tool_slug=slug_value).first()
+    if existing:
+        existing.body = body
+        existing.created_at = datetime.now(timezone.utc)
+        existing.is_hidden = False
+    else:
+        db.session.add(Review(user_id=current_user.id, tool_slug=slug_value, body=body))
+
+    db.session.commit()
+    return jsonify({"success": True})
 
 
 from app.search_utils import search_tools
@@ -308,69 +406,80 @@ def get_collection(slug: str):
     if config is None:
         return jsonify({"error": "Collection not found"}), 404
 
-    tools = _load_tools()
+    tools = get_cached_tools()
 
     if slug_value == "best-free-tools":
-        from app.tool_cache import SEARCH_INDEX
+        collection_tools = [
+            t for t in tools
+            if str(t.get("pricing", "")).lower() in ["free", "freemium"]
+        ]
+        collection_tools.sort(key=lambda t: float(t.get("rating", 0) or 0), reverse=True)
+    elif slug_value == "best-for-students":
+        collection_tools = [t for t in tools if t.get("student_perk")]
+        collection_tools.sort(key=lambda t: float(t.get("rating", 0) or 0), reverse=True)
+    elif slug_value == "best-for-coding":
+        collection_tools = [
+            t for t in tools
+            if str(t.get("category", "")).strip().lower() == "coding"
+        ]
+        collection_tools.sort(key=lambda t: float(t.get("rating", 0) or 0), reverse=True)
+    elif slug_value == "best-for-writing":
+        collection_tools = [
+            t for t in tools
+            if str(t.get("category", "")).strip().lower() == "writing & chat"
+        ]
+        collection_tools.sort(key=lambda t: float(t.get("rating", 0) or 0), reverse=True)
+    elif slug_value == "best-for-research":
+        collection_tools = [
+            t for t in tools
+            if str(t.get("category", "")).strip().lower() == "research"
+        ]
+        collection_tools.sort(key=lambda t: float(t.get("rating", 0) or 0), reverse=True)
+    elif slug_value == "trending":
+        collection_tools = [t for t in tools if bool(t.get("trending"))]
+        collection_tools.sort(key=lambda t: float(t.get("rating", 0) or 0), reverse=True)
+    elif slug_value == "top-rated":
+        ratings = db.session.query(
+            Rating.tool_slug,
+            func.avg(Rating.value).label("avg"),
+            func.count(Rating.id).label("count"),
+        ).group_by(Rating.tool_slug).having(func.count(Rating.id) >= 1).all()
 
-        @api_bp.route('/api/suggestions')
-        def api_suggestions():
-            q = request.args.get('q', '').strip().lower()
-            if len(q) < 2:
-                return jsonify([])
+        rated_slugs = {
+            r.tool_slug: {"avg": float(r.avg), "count": int(r.count)}
+            for r in ratings
+        }
 
-            suggestions = []
-            seen = set()
+        collection_tools = []
+        for tool in tools:
+            slug_key = _tool_slug(tool)
+            if slug_key in rated_slugs:
+                tool_copy = dict(tool)
+                tool_copy["user_rating"] = rated_slugs[slug_key]["avg"]
+                tool_copy["user_rating_count"] = rated_slugs[slug_key]["count"]
+                collection_tools.append(tool_copy)
 
-            # Priority 1: tool name matches
-            for entry in SEARCH_INDEX:
-                tool = entry["_raw"]
-                if q in entry["_name_lower"] and tool["name"] not in seen:
-                    suggestions.append({
-                        "type": "tool",
-                        "label": tool["name"],
-                        "sub": tool["category"],
-                        "icon": tool.get("logo_emoji", "🤖")
-                    })
-                    seen.add(tool["name"])
-                if len([s for s in suggestions if s["type"] == "tool"]) >= 3:
-                    break
+        collection_tools.sort(
+            key=lambda t: float(t.get("user_rating", 0) or 0),
+            reverse=True,
+        )
+    else:
+        collection_tools = []
 
-            # Priority 2: tag matches
-            for entry in SEARCH_INDEX:
-                for tag in entry["_tags_lower"]:
-                    if q in tag and tag not in seen:
-                        count = sum(1 for e in SEARCH_INDEX if tag in e["_tags_lower"])
-                        suggestions.append({
-                            "type": "tag",
-                            "label": tag,
-                            "sub": f"{count} tools",
-                            "icon": "🏷️"
-                        })
-                        seen.add(tag)
-                    if len([s for s in suggestions if s["type"] == "tag"]) >= 2:
-                        break
-
-            # Priority 3: use case matches
-            for entry in SEARCH_INDEX:
-                for uc in entry["_uses_lower"]:
-                    if q in uc and uc not in seen:
-                        suggestions.append({
-                            "type": "usecase",
-                            "label": uc.title(),
-                            "sub": "Use case",
-                            "icon": "→"
-                        })
-                        seen.add(uc)
-                    if len([s for s in suggestions if s["type"] == "usecase"]) >= 2:
-                        break
-
-            return jsonify(suggestions[:6])
+    return jsonify(
+        {
+            **config,
+            "slug": slug_value,
+            "count": len(collection_tools),
+            "tools": collection_tools,
+        }
+    )
 
 @api_bp.get("/admin/users")
+@login_required
 def admin_users():
-    if not current_user.is_authenticated or not getattr(current_user, 'is_admin', False):
-        return jsonify({"error": "Unauthorized"}), 401
+    if not getattr(current_user, "is_admin", False):
+        return jsonify({"error": "Forbidden"}), 403
     users = User.query.all()
     payload = [
         {
@@ -385,31 +494,181 @@ def admin_users():
     return jsonify(payload)
 
 
-@csrf.exempt
-@api_bp.post("/admin/retrain")
-def admin_retrain():
-    project_root = os.path.dirname(os.path.dirname(__file__))
-    result = subprocess.run(
-        [sys.executable, os.path.join("scripts", "train_model.py")],
-        capture_output=True,
-        text=True,
-        cwd=project_root,
-    )
+@api_bp.get("/admin/stats")
+@login_required
+def admin_stats():
+    if not getattr(current_user, "is_admin", False):
+        return jsonify({"error": "Forbidden"}), 403
+
+    from app.tool_cache import SEARCH_INDEX, get_cached_tools
+
+    tools = get_cached_tools()
+    total_tools = len(tools)
+    category_counts = Counter(t.get("category", "Unknown") for t in tools)
+    free_count = sum(1 for t in tools if str(t.get("pricing", "")).lower() == "free")
+    freemium_count = sum(1 for t in tools if str(t.get("pricing", "")).lower() == "freemium")
+
+    total_users = User.query.count()
+    today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+    new_users_today = User.query.filter(User.created_at >= today_start).count()
+
+    index_size = len(SEARCH_INDEX)
+    ml_status = "Active" if index_size > 0 else "Inactive"
 
     return jsonify(
         {
-            "success": result.returncode == 0,
-            "output": result.stdout,
-            "error": result.stderr,
+            "total_tools": total_tools,
+            "total_users": total_users,
+            "new_users_today": new_users_today,
+            "category_counts": dict(category_counts),
+            "free_tools": free_count,
+            "freemium_tools": freemium_count,
+            "model_status": ml_status,
+            "index_size": index_size,
         }
     )
 
 
+@api_bp.post("/admin/retrain")
+@login_required
+def retrain_model():
+    if not getattr(current_user, "is_admin", False):
+        return jsonify({"error": "Forbidden"}), 403
+    try:
+        from app.tool_cache import SEARCH_INDEX, prime_tools_cache
+
+        data_path = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            "data",
+            "tools.json",
+        )
+        prime_tools_cache(data_path)
+        return jsonify(
+            {
+                "success": True,
+                "message": f"Index rebuilt with {len(SEARCH_INDEX)} tools",
+                "tool_count": len(SEARCH_INDEX),
+            }
+        )
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @csrf.exempt
 @api_bp.post("/admin/clear-cache")
+@login_required
 def admin_clear_cache():
+    if not getattr(current_user, "is_admin", False):
+        return jsonify({"error": "Forbidden"}), 403
     prime_tools_cache(DATA_PATH)
     return jsonify({"success": True, "message": "Cache cleared and reloaded"})
+
+
+@api_bp.put("/admin/tools/<slug>")
+@login_required
+def update_tool(slug):
+    if not getattr(current_user, "is_admin", False):
+        return jsonify({"error": "Forbidden"}), 403
+
+    payload = request.get_json(silent=True) or {}
+    path = _tools_json_path()
+
+    try:
+        with open(path, "r", encoding="utf-8") as tools_file:
+            tools = json.load(tools_file)
+    except (OSError, ValueError, TypeError, json.JSONDecodeError):
+        return jsonify({"error": "Unable to load tools data"}), 500
+
+    updated = None
+    for tool in tools:
+        if str(tool.get("slug") or "").strip().lower() == str(slug).strip().lower():
+            tool["name"] = str(payload.get("name") or tool.get("name") or "").strip()
+            tool["description"] = str(
+                payload.get("description")
+                or tool.get("description")
+                or tool.get("shortDescription")
+                or ""
+            ).strip()
+            updated = tool
+            break
+
+    if updated is None:
+        return jsonify({"error": "Tool not found"}), 404
+
+    with open(path, "w", encoding="utf-8") as tools_file:
+        json.dump(tools, tools_file, indent=2, ensure_ascii=False)
+
+    prime_tools_cache(path)
+    return jsonify({"success": True, "tool": updated})
+
+
+@api_bp.post("/admin/tools/<slug>/hide")
+@login_required
+def hide_tool(slug):
+    if not getattr(current_user, "is_admin", False):
+        return jsonify({"error": "Forbidden"}), 403
+
+    path = _tools_json_path()
+    try:
+        with open(path, "r", encoding="utf-8") as tools_file:
+            tools = json.load(tools_file)
+    except (OSError, ValueError, TypeError, json.JSONDecodeError):
+        return jsonify({"error": "Unable to load tools data"}), 500
+
+    changed = False
+    for tool in tools:
+        if str(tool.get("slug") or "").strip().lower() == str(slug).strip().lower():
+            tool["hidden"] = True
+            changed = True
+            break
+
+    if not changed:
+        return jsonify({"error": "Tool not found"}), 404
+
+    with open(path, "w", encoding="utf-8") as tools_file:
+        json.dump(tools, tools_file, indent=2, ensure_ascii=False)
+
+    prime_tools_cache(path)
+    return jsonify({"success": True})
+
+
+@api_bp.delete("/admin/tools/<slug>")
+@login_required
+def delete_tool(slug):
+    if not getattr(current_user, "is_admin", False):
+        return jsonify({"error": "Forbidden"}), 403
+
+    path = _tools_json_path()
+    try:
+        with open(path, "r", encoding="utf-8") as tools_file:
+            tools = json.load(tools_file)
+    except (OSError, ValueError, TypeError, json.JSONDecodeError):
+        return jsonify({"error": "Unable to load tools data"}), 500
+
+    original_count = len(tools)
+    slug_value = str(slug).strip().lower()
+    tools = [t for t in tools if str(t.get("slug") or "").strip().lower() != slug_value]
+
+    if len(tools) == original_count:
+        return jsonify({"error": "Tool not found"}), 404
+
+    with open(path, "w", encoding="utf-8") as tools_file:
+        json.dump(tools, tools_file, indent=2, ensure_ascii=False)
+
+    prime_tools_cache(path)
+    return jsonify({"success": True})
+
+
+@api_bp.delete("/admin/reviews/<int:review_id>")
+@login_required
+def delete_review(review_id):
+    if not getattr(current_user, "is_admin", False):
+        return jsonify({"error": "Forbidden"}), 403
+
+    review = ToolRating.query.get_or_404(review_id)
+    db.session.delete(review)
+    db.session.commit()
+    return jsonify({"success": True})
 
 
 @api_bp.get("/admin/submissions")
@@ -518,16 +777,25 @@ def update_profile():
 
 @csrf.exempt
 @api_bp.route("/profile", methods=["DELETE"])
-def delete_profile():
-    if not current_user.is_authenticated:
-        return jsonify({"error": "Unauthorized"}), 401
+@login_required
+def delete_account():
+    payload = request.get_json(silent=True) or {}
+    password = str(payload.get("password") or "")
 
     user = current_user._get_current_object()
-    db.session.delete(user)
-    db.session.commit()
+    if not user.password_hash or not bcrypt.check_password_hash(user.password_hash, password):
+        return jsonify({"error": "Incorrect password"}), 401
+
+    user_id = user.id
+    ToolRating.query.filter_by(user_id=user_id).delete()
+    Favorite.query.filter_by(user_id=user_id).delete()
+
     logout_user()
 
-    return jsonify({"success": True})
+    db.session.delete(user)
+    db.session.commit()
+
+    return jsonify({"success": True, "message": "Account deleted"})
 
 
 @csrf.exempt
@@ -584,10 +852,8 @@ def auth_register():
 
 @csrf.exempt
 @api_bp.route("/favorites", methods=["POST"])
+@login_required
 def toggle_favorite():
-    if not current_user.is_authenticated:
-        return jsonify({"error": "Unauthorized"}), 401
-
     payload = request.get_json(silent=True) or {}
     tool_id = str(payload.get("slug") or payload.get("tool_id") or "").strip().lower()
 

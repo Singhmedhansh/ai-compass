@@ -53,6 +53,7 @@ function DirectoryPage() {
   const [searchQuery, setSearchQuery] = useState(initialQuery)
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(initialQuery)
   const [showMobileFilters, setShowMobileFilters] = useState(false)
+  const hasSearchQuery = debouncedSearchQuery.trim().length > 0
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -74,46 +75,56 @@ function DirectoryPage() {
   }, [category, searchQuery, setSearchParams])
 
   useEffect(() => {
-    const controller = new AbortController();
-    const API = import.meta.env.VITE_API_URL || '';
+    const controller = new AbortController()
+    const API = import.meta.env.VITE_API_URL || ''
+    const normalizedQuery = debouncedSearchQuery.trim()
+    const normalizedCategory = category?.trim() || 'All'
+    const isRemoteSearch = Boolean(normalizedQuery)
 
-    async function loadInitialTools() {
-      setIsLoading(true);
-      setError(null);
+    async function loadTools() {
+      setIsLoading(true)
+      setError(null)
       try {
-        // Fetch with optimized timeout (Render API typically responds within 10s even when slow)
-        const abortTimeout = setTimeout(() => controller.abort(), 15000); // 15 second timeout
-        const response = await fetch(`${API}/api/v1/tools`, { signal: controller.signal });
-        clearTimeout(abortTimeout);
-        
+        const abortTimeout = setTimeout(() => controller.abort(), 15000)
+        const endpoint = isRemoteSearch
+          ? `${API}/api/v1/search?${new URLSearchParams({
+              q: normalizedQuery,
+              ...(normalizedCategory !== 'All' ? { category: normalizedCategory } : {}),
+            }).toString()}`
+          : `${API}/api/v1/tools`
+
+        const response = await fetch(endpoint, { signal: controller.signal })
+        clearTimeout(abortTimeout)
+
         if (!response.ok) {
-          throw new Error(`API returned ${response.status}`);
+          throw new Error(`API returned ${response.status}`)
         }
-        const data = await response.json();
-        setTools((data.results || data || []).map(mapTool));
-        setIsLoading(false);
+        const data = await response.json()
+        setTools((data.results || data || []).map(mapTool))
+        setIsLoading(false)
       } catch (err) {
         if (err.name === 'AbortError') {
-          console.warn('API request timeout, falling back to empty state');
-          setError(null);
-          setTools([]);
-          setIsLoading(false);
+          console.warn('API request timeout, falling back to empty state')
+          setError(null)
+          setTools([])
+          setIsLoading(false)
         } else {
-          console.error('DirectoryPage fetch error:', err);
-          setError('Failed to load tools');
-          setIsLoading(false);
+          console.error('DirectoryPage fetch error:', err)
+          setError('Failed to load tools')
+          setIsLoading(false)
         }
       }
     }
 
-    // Only load all tools if no search query and no filters
-    if (!searchQuery && (!category || category === 'All')) {
-      loadInitialTools();
-    }
-    return () => controller.abort();
-  }, [searchQuery, category]);
+    loadTools()
+    return () => controller.abort()
+  }, [debouncedSearchQuery, category])
 
   const filteredTools = useMemo(() => {
+    if (hasSearchQuery) {
+      return tools
+    }
+
     const normalizedSearch = debouncedSearchQuery.trim().toLowerCase()
 
     const byCategory = tools.filter((tool) => {
@@ -162,7 +173,7 @@ function DirectoryPage() {
     })
 
     return sorted
-  }, [category, debouncedSearchQuery, sortBy, tools])
+  }, [category, debouncedSearchQuery, hasSearchQuery, sortBy, tools])
 
   const handleReset = () => {
     setCategory('All')
@@ -276,9 +287,9 @@ function DirectoryPage() {
       {isLoading && <p>Loading tools...</p>}
       {error && <p style={{color:'var(--text-muted)'}}>{error}</p>}
 
-      {!isLoading && !error && tools.length > 0 ? (
+      {!isLoading && !error && filteredTools.length > 0 ? (
         <AnimatedGrid className="tools-grid grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {tools.map((tool) => (
+          {filteredTools.map((tool) => (
             <AnimatedItem key={tool.slug || tool.name}>
               <Card tool={tool} />
             </AnimatedItem>
@@ -286,7 +297,7 @@ function DirectoryPage() {
         </AnimatedGrid>
       ) : null}
 
-      {!isLoading && !error && tools.length === 0 && (
+      {!isLoading && !error && filteredTools.length === 0 && (
         <section className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-6 py-14 text-center dark:border-gray-700 dark:bg-gray-900">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-gray-200 bg-white text-3xl shadow-sm dark:border-gray-700 dark:bg-gray-800" aria-hidden="true">
             🔎

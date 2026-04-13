@@ -1,9 +1,11 @@
 import clsx from 'clsx'
 import { Heart, Star } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import PageTransition from '../components/PageTransition'
+import RatingWidget from '../components/ui/RatingWidget'
+import ReviewsSection from '../components/ui/ReviewsSection'
 import { Badge, Button } from '../components/ui'
 import { getAvatarClass, getToolDomain } from '../utils/toolBranding'
 
@@ -73,38 +75,22 @@ function normalizeTool(rawTool) {
   }
 }
 
-function getRatingPercentages(distribution, fallbackRating, fallbackCount) {
-  const safeCount = Math.max(0, Number(fallbackCount) || 0)
-
-  if (distribution && typeof distribution === 'object') {
-    const counts = [5, 4, 3, 2, 1].map((key) => {
-      const value = distribution[String(key)] ?? distribution[key]
-      return Math.max(0, Number(value) || 0)
-    })
-
-    const total = counts.reduce((sum, current) => sum + current, 0)
-    if (total > 0) {
-      return counts.map((count) => Math.round((count / total) * 100))
-    }
-  }
-
-  if (safeCount <= 0) {
-    return [0, 0, 0, 0, 0]
-  }
-
-  const rounded = Math.max(1, Math.min(5, Math.round(Number(fallbackRating) || 0)))
-  return [5, 4, 3, 2, 1].map((bucket) => (bucket === rounded ? 100 : 0))
-}
-
 function ToolDetailPage() {
   const { slug = '' } = useParams()
   const navigate = useNavigate()
 
   const [tool, setTool] = useState(null)
-  const [reviews, setReviews] = useState([])
   const [relatedTools, setRelatedTools] = useState([])
   const [relatedImgErrors, setRelatedImgErrors] = useState({})
   const [isFavorite, setIsFavorite] = useState(false)
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    try {
+      return Boolean(JSON.parse(localStorage.getItem('user') || 'null'))
+    } catch {
+      return false
+    }
+  })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [imgError, setImgError] = useState(false)
@@ -119,7 +105,6 @@ function ToolDetailPage() {
 
   useEffect(() => {
     const toolController = new AbortController()
-    const reviewsController = new AbortController()
 
     async function loadPageData() {
       setLoading(true)
@@ -135,14 +120,6 @@ function ToolDetailPage() {
         const toolPayload = await toolResponse.json()
         const normalizedTool = normalizeTool(toolPayload)
         setTool(normalizedTool)
-
-        const reviewResponse = await fetch(`/api/v1/tools/${slug}/reviews`, { signal: reviewsController.signal })
-        if (reviewResponse.ok) {
-          const reviewPayload = await reviewResponse.json()
-          setReviews(Array.isArray(reviewPayload) ? reviewPayload : [])
-        } else {
-          setReviews([])
-        }
 
         const categoryQuery = encodeURIComponent(normalizedTool.category || '')
         const relatedResponse = await fetch(`/api/v1/tools?category=${categoryQuery}`, { signal: toolController.signal })
@@ -163,7 +140,6 @@ function ToolDetailPage() {
         if (requestError.name !== 'AbortError') {
           setError(requestError.message || 'Unable to load tool details.')
           setTool(null)
-          setReviews([])
           setRelatedTools([])
         }
       } finally {
@@ -177,9 +153,26 @@ function ToolDetailPage() {
 
     return () => {
       toolController.abort()
-      reviewsController.abort()
     }
   }, [slug])
+
+  useEffect(() => {
+    const syncUserState = () => {
+      try {
+        setIsLoggedIn(Boolean(JSON.parse(localStorage.getItem('user') || 'null')))
+      } catch {
+        setIsLoggedIn(false)
+      }
+    }
+
+    window.addEventListener('storage', syncUserState)
+    window.addEventListener('userLoggedIn', syncUserState)
+
+    return () => {
+      window.removeEventListener('storage', syncUserState)
+      window.removeEventListener('userLoggedIn', syncUserState)
+    }
+  }, [])
 
   useEffect(() => {
     const normalizedSlug = String(slug || '').trim().toLowerCase()
@@ -209,14 +202,14 @@ function ToolDetailPage() {
       ? 'freemium'
       : 'free'
 
-  const ratingBars = useMemo(
-    () => getRatingPercentages(tool?.ratingDistribution, tool?.rating, tool?.ratingCount),
-    [tool?.ratingDistribution, tool?.rating, tool?.ratingCount],
-  )
-
   const logoUrl = tool ? `https://logo.clearbit.com/${getToolDomain(tool.name)}` : ''
 
   const handleFavoriteToggle = async () => {
+    if (!isLoggedIn) {
+      setShowLoginPrompt(true)
+      return
+    }
+
     const nextValue = !isFavorite
     setIsFavorite(nextValue)
 
@@ -306,6 +299,25 @@ function ToolDetailPage() {
                     Save to Favorites
                   </Button>
                 </div>
+
+                {showLoginPrompt ? (
+                  <div className="mt-4 rounded-xl border border-indigo-200 bg-indigo-50 p-3 text-sm dark:border-indigo-500/30 dark:bg-indigo-500/10">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                      <p className="font-medium text-indigo-800 dark:text-indigo-200">Log in to save favorites</p>
+                      <button
+                        type="button"
+                        className="self-start text-xs font-semibold text-indigo-700 hover:text-indigo-900 dark:text-indigo-200 dark:hover:text-white"
+                        onClick={() => setShowLoginPrompt(false)}
+                      >
+                        Close
+                      </button>
+                    </div>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <a href="/login" className="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-500">Log In</a>
+                      <a href="/register" className="rounded-lg border border-indigo-300 px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 dark:border-indigo-400/40 dark:text-indigo-200 dark:hover:bg-indigo-500/20">Register Free</a>
+                    </div>
+                  </div>
+                ) : null}
               </div>
             </div>
 
@@ -330,66 +342,8 @@ function ToolDetailPage() {
             <p className="mt-3 leading-relaxed text-gray-600 dark:text-gray-400">{tool.description}</p>
           </section>
 
-          <section className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Community Rating</h2>
-            <div className="mt-4 flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
-              <div>
-                <p className="text-5xl font-bold text-gray-900 dark:text-white">{(Number(tool.rating) || 0).toFixed(1)}</p>
-                <div className="mt-2 flex items-center gap-1">{buildStarNodes(tool.rating, 'h-5 w-5')}</div>
-                <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">Based on {tool.ratingCount || 0} ratings</p>
-              </div>
-
-              <div className="w-full max-w-md space-y-3">
-                {[5, 4, 3, 2, 1].map((label, index) => (
-                  <div key={`rating-bar-${label}`} className="flex items-center gap-3">
-                    <span className="w-10 text-sm text-gray-600 dark:text-gray-400">{label}★</span>
-                    <div className="h-2 flex-1 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-900">
-                      <div
-                        className="h-full rounded-full bg-indigo-500"
-                        style={{ width: `${ratingBars[index]}%` }}
-                      />
-                    </div>
-                    <span className="w-12 text-right text-xs text-gray-600 dark:text-gray-400">{ratingBars[index]}%</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          <section className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Reviews</h2>
-
-            {reviews.length === 0 ? (
-              <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">No reviews yet. Be the first!</p>
-            ) : (
-              <div className="mt-4 space-y-4">
-                {reviews.map((review, index) => {
-                  const username = review.username || review.user || 'Anonymous'
-                  const reviewRating = Number(review.rating || 0)
-                  const reviewDate = formatDate(review.date || review.created_at || review.createdAt)
-                  const reviewText = review.text || review.review || review.comment || ''
-
-                  return (
-                    <article key={`${username}-${index}`} className="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900">
-                      <div className="flex items-start gap-3">
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-600/30 text-sm font-bold text-indigo-600 dark:text-indigo-300">
-                          {username.charAt(0).toUpperCase()}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="flex flex-wrap items-center justify-between gap-2">
-                            <p className="font-semibold text-gray-900 dark:text-white">{username}</p>
-                            <p className="text-xs text-gray-500 dark:text-gray-500">{reviewDate}</p>
-                          </div>
-                          <div className="mt-1 flex items-center gap-1">{buildStarNodes(reviewRating)}</div>
-                          <p className="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-400">{reviewText}</p>
-                        </div>
-                      </div>
-                    </article>
-                  )
-                })}
-              </div>
-            )}
-          </section>
+          <RatingWidget slug={tool.slug} isLoggedIn={isLoggedIn} />
+          <ReviewsSection slug={tool.slug} isLoggedIn={isLoggedIn} />
         </div>
 
         <aside className="space-y-6 lg:sticky lg:top-24 lg:h-fit lg:w-80">

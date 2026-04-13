@@ -1,4 +1,4 @@
-import { Eye, Pencil } from 'lucide-react'
+import { Eye, EyeOff, Pencil, Trash2 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -136,6 +136,11 @@ function AdminPage() {
     total_tools: 0,
     total_users: 0,
     model_status: 'inactive',
+    new_users_today: 0,
+    category_counts: {},
+    free_tools: 0,
+    freemium_tools: 0,
+    index_size: 0,
   })
 
   const [tools, setTools] = useState([])
@@ -182,9 +187,19 @@ function AdminPage() {
         setStats({
           total_tools: Number(statsData.total_tools || 0),
           total_users: Number(statsData.total_users || 0),
+          new_users_today: Number(statsData.new_users_today || 0),
+          category_counts: statsData.category_counts || {},
+          free_tools: Number(statsData.free_tools || 0),
+          freemium_tools: Number(statsData.freemium_tools || 0),
           model_status: String(statsData.model_status || 'inactive').toLowerCase(),
+          index_size: Number(statsData.index_size || 0),
         })
-        setTools(Array.isArray(toolsData) ? toolsData : [])
+        const normalizedTools = Array.isArray(toolsData)
+          ? toolsData
+          : Array.isArray(toolsData?.results)
+            ? toolsData.results
+            : []
+        setTools(normalizedTools)
         setUsers(Array.isArray(usersData) ? usersData : [])
       } catch {
         if (mounted) {
@@ -207,18 +222,17 @@ function AdminPage() {
   const modelActive = stats.model_status === 'active'
 
   const freeToolsPercent = useMemo(() => {
-    if (!tools.length) {
+    if (!stats.total_tools) {
       return 0
     }
-    const freeCount = tools.filter(isFreeTool).length
-    return Math.round((freeCount / tools.length) * 100)
-  }, [tools])
+    return Math.round((stats.free_tools / stats.total_tools) * 100)
+  }, [stats.free_tools, stats.total_tools])
 
   const categoryBreakdown = useMemo(() => {
-    const counts = CATEGORY_ORDER.map((category) => {
-      const count = tools.filter((tool) => String(tool.category || '').trim() === category).length
-      return { category, count }
-    })
+    const counts = CATEGORY_ORDER.map((category) => ({
+      category,
+      count: Number(stats.category_counts?.[category] || 0),
+    }))
     const maxCount = Math.max(1, ...counts.map((item) => item.count))
 
     return counts.map((item) => ({
@@ -226,7 +240,7 @@ function AdminPage() {
       widthPercent: Math.max(2, Math.round((item.count / maxCount) * 100)),
       barClass: CATEGORY_STYLES[item.category] || 'bg-slate-500',
     }))
-  }, [tools])
+  }, [stats.category_counts])
 
   const filteredTools = useMemo(() => {
     const normalized = toolsQuery.trim().toLowerCase()
@@ -259,21 +273,81 @@ function AdminPage() {
     }
   }, [toolsPage, totalToolsPages])
 
-  const handleSaveEditedTool = (updatedTool) => {
-    setTools((prev) =>
-      prev.map((tool) => {
-        if (getToolSlug(tool) === getToolSlug(updatedTool)) {
-          return {
-            ...tool,
-            name: updatedTool.name,
-            description: updatedTool.description,
+  const handleSaveEditedTool = async (updatedTool) => {
+    try {
+      const response = await fetch(`/api/v1/admin/tools/${encodeURIComponent(getToolSlug(updatedTool))}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ name: updatedTool.name, description: updatedTool.description }),
+      })
+      const payload = await response.json().catch(() => ({}))
+
+      if (!response.ok || !payload.success) {
+        throw new Error(payload.error || 'Failed to update tool')
+      }
+
+      setTools((prev) =>
+        prev.map((tool) => {
+          if (getToolSlug(tool) === getToolSlug(updatedTool)) {
+            return {
+              ...tool,
+              name: updatedTool.name,
+              description: updatedTool.description,
+            }
           }
-        }
-        return tool
-      }),
-    )
-    setEditingTool(null)
-    toast.success('Tool updated in admin view')
+          return tool
+        }),
+      )
+      setEditingTool(null)
+      toast.success('Tool updated successfully')
+    } catch (error) {
+      toast.error(error.message || 'Failed to update tool')
+    }
+  }
+
+  const handleHideTool = async (slug) => {
+    try {
+      const response = await fetch(`/api/v1/admin/tools/${encodeURIComponent(slug)}/hide`, {
+        method: 'POST',
+        credentials: 'include',
+      })
+      const payload = await response.json().catch(() => ({}))
+
+      if (!response.ok || !payload.success) {
+        throw new Error(payload.error || 'Failed to hide tool')
+      }
+
+      setTools((prev) => prev.map((tool) => (getToolSlug(tool) === slug ? { ...tool, hidden: true } : tool)))
+      toast.success('Tool hidden from search')
+    } catch (error) {
+      toast.error(error.message || 'Failed to hide tool')
+    }
+  }
+
+  const handleDeleteTool = async (slug) => {
+    const confirmed = window.confirm('Delete this tool permanently? This cannot be undone.')
+    if (!confirmed) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/v1/admin/tools/${encodeURIComponent(slug)}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      })
+      const payload = await response.json().catch(() => ({}))
+
+      if (!response.ok || !payload.success) {
+        throw new Error(payload.error || 'Failed to delete tool')
+      }
+
+      setTools((prev) => prev.filter((tool) => getToolSlug(tool) !== slug))
+      setStats((prev) => ({ ...prev, total_tools: Math.max(0, prev.total_tools - 1) }))
+      toast.success('Tool deleted')
+    } catch (error) {
+      toast.error(error.message || 'Failed to delete tool')
+    }
   }
 
   const handleExportCsv = () => {
@@ -339,7 +413,7 @@ function AdminPage() {
         <div className="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
           <p className="text-xs uppercase tracking-wide text-gray-600 dark:text-gray-400">Total Users</p>
           <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">{loading ? '...' : stats.total_users}</p>
-          <p className="mt-1 text-sm text-emerald-400">↑ 2 new today</p>
+          <p className="mt-1 text-sm text-emerald-400">↑ {stats.new_users_today} new today</p>
         </div>
 
         <div className="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
@@ -446,6 +520,23 @@ function AdminPage() {
                       >
                         <Pencil className="h-4 w-4" />
                       </button>
+                      <button
+                        type="button"
+                        onClick={() => handleHideTool(slug)}
+                        disabled={Boolean(tool.hidden)}
+                        className="rounded-md border border-gray-300 p-1.5 text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+                        aria-label={`Hide ${tool.name}`}
+                      >
+                        <EyeOff className="h-4 w-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteTool(slug)}
+                        className="rounded-md border border-rose-300 p-1.5 text-rose-700 transition hover:bg-rose-50 dark:border-rose-500/40 dark:text-rose-300 dark:hover:bg-rose-500/10"
+                        aria-label={`Delete ${tool.name}`}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -545,6 +636,7 @@ function AdminPage() {
       <p className={`mt-3 text-lg font-semibold ${modelActive ? 'text-emerald-400' : 'text-rose-400'}`}>
         {modelActive ? 'ML Model: Active ✓' : 'ML Model: Inactive'}
       </p>
+      <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">Index size: {stats.index_size}</p>
       <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">Use quick actions to retrain and refresh cached tool data.</p>
     </section>
   )
