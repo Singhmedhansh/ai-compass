@@ -23,7 +23,7 @@
       "programming"
     ],
     "trending": true,
-    "featured": false,
+    "featured": true,
     "rating": 4.8,
     "weeklyUsers": "100M+",
     "link": "https://chat.openai.com",
@@ -94,7 +94,7 @@
       "debugging"
     ],
     "trending": true,
-    "featured": false,
+    "featured": true,
     "rating": 4.8,
     "weeklyUsers": "10M+",
     "link": "https://claude.ai",
@@ -406,7 +406,7 @@
     "student_perk": true,
     "company": "GitHub / Microsoft",
     "review_count": 0,
-    "featured": false,
+    "featured": true,
     "logo_emoji": "🤖",
     "strengths": [
       "Line-by-line code suggestions",
@@ -20274,7 +20274,7 @@
     "student_perk": true,
     "company": "Grant Sanderson",
     "review_count": 0,
-    "featured": false,
+    "featured": true,
     "logo_emoji": "🤖",
     "strengths": [
       "Free video library",
@@ -24350,7 +24350,7 @@
     "student_perk": true,
     "company": "GitHub",
     "review_count": 0,
-    "featured": false,
+    "featured": true,
     "logo_emoji": "🤖",
     "strengths": [
       "GitHub Copilot free",
@@ -25372,7 +25372,7 @@
     "student_perk": true,
     "company": "Harvard University",
     "review_count": 0,
-    "featured": false,
+    "featured": true,
     "logo_emoji": "🤖",
     "strengths": [
       "Problem sets",
