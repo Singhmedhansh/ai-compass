@@ -78,13 +78,16 @@ function DirectoryPage() {
   useEffect(() => {
     const controller = new AbortController();
     const API = import.meta.env.VITE_API_URL || '';
-    const timeoutId = setTimeout(() => controller.abort(), 20000); // 20 second timeout
 
     async function loadInitialTools() {
       setIsLoading(true);
       setError(null);
       try {
+        // Fetch with optimized timeout (Render API typically responds within 10s even when slow)
+        const abortTimeout = setTimeout(() => controller.abort(), 15000); // 15 second timeout
         const response = await fetch(`${API}/api/v1/tools`, { signal: controller.signal });
+        clearTimeout(abortTimeout);
+        
         if (!response.ok) {
           throw new Error(`API returned ${response.status}`);
         }
@@ -94,14 +97,16 @@ function DirectoryPage() {
         setIsLoading(false);
       } catch (err) {
         if (err.name === 'AbortError') {
-          setError('Request timed out. Please try refreshing.');
+          console.warn('API request timeout, falling back to empty state');
+          setError(null);
+          setTools([]);
+          setTotalCount(0);
+          setIsLoading(false);
         } else {
-          setError('Failed to load tools: ' + (err.message || 'Unknown error'));
+          console.error('DirectoryPage fetch error:', err);
+          setError('Failed to load tools');
+          setIsLoading(false);
         }
-        console.error('DirectoryPage fetch error:', err);
-        setIsLoading(false);
-      } finally {
-        clearTimeout(timeoutId);
       }
     }
 
@@ -109,10 +114,7 @@ function DirectoryPage() {
     if (!searchQuery && (!category || category === 'All')) {
       loadInitialTools();
     }
-    return () => {
-      controller.abort();
-      clearTimeout(timeoutId);
-    };
+    return () => controller.abort();
   }, [searchQuery, category]);
 
   const filteredTools = useMemo(() => {
