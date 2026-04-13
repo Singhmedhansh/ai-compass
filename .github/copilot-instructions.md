@@ -237,7 +237,7 @@ None — ready for mobile session.
 | App stability | 40/100 | 90/100 |
 | Dataset quality | 50/100 | 80/100 |
 | Frontend polish | 60/100 | 70/100 |
-| Mobile friendliness | 30/100 | 30/100 ← next priority |
+| Mobile friendliness | 30/100 | ✅ 75/100 |
 
 ---
 
@@ -251,37 +251,63 @@ None — ready for mobile session.
 - Add startup log: `[STARTUP] Loaded X tools`
 - Success: `GET /api/v1/tools` returns 200, total: 500
 
-#### 2. Mobile responsiveness (biggest UX gap)
-The entire frontend needs to work on phones. Right now it doesn't.
+#### 2. Mobile responsiveness ✅ SESSION 2 COMPLETE
 
-**In frontend/src/App.css and component files:**
-```css
-/* Tool grid: 3 cols desktop → 2 cols tablet → 1 col mobile */
-.tools-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 18px;
-}
-@media (max-width: 1024px) {
-  .tools-grid { grid-template-columns: repeat(2, 1fr); }
-}
-@media (max-width: 640px) {
-  .tools-grid { grid-template-columns: 1fr; }
-}
+**What was built:**
+- Tailwind responsive grid system: 3-col desktop → 2-col tablet → 1-col mobile
+- Touch-safe input fields (font-size 16px to prevent iOS zoom)
+- Mobile navbar with hamburger menu support (filters-row class)
+- Responsive tool cards with full-width layout on phones
+- Modal dialogs: full-width on mobile, centered on desktop
+- Button touch targets: 44px minimum height for usability
+- DirectoryPage + ToolFinderPage: full mobile hook integration
+- App.css: complete mobile media queries (@media max-width: 1024px, 640px)
 
-/* Filters: horizontal scroll on mobile */
-@media (max-width: 640px) {
-  .filters-row {
-    overflow-x: auto;
-    flex-wrap: nowrap;
-    -webkit-overflow-scrolling: touch;
-  }
-  .search-bar { font-size: 16px; } /* Prevent iOS zoom */
-  .navbar { padding: 0 12px; }
+**Implementation checklist:**
+- [x] App.css mobile media queries appended (1024px & 640px breakpoints)
+- [x] DirectoryPage: tools-grid, filters-row, SearchInput style prop, isLoading fix
+- [x] ToolFinderPage: step containers with width constraints, button text legibility
+- [x] SearchInput component: accepts and applies style prop (font-size: 16px)
+- [x] Local Vite preview: ✅ renders both /tools and /ai-tool-finder correctly on iPhone SE
+- [x] Render live: /ai-tool-finder renders; /tools shows graceful fallback on slow API
+- [x] HTTP caching: /api/v1/tools cached for 1 hour to reduce load time
+- [x] Fetch timeout: graceful fallback when API > 15s, shows empty grid instead of infinite loading
+
+**Known limitations:**
+- Render's dyno has slow /api/v1/tools response (~3-5s for 890KB JSON) — needs pagination for production
+- /tools on Render may show loading state longer due to network conditions; local preview works fine
+- Next optimization: pagination or gzip compression on API responses
+
+**Active next task:** Session 3 — OG meta tags & LinkedIn preview card
   .hero-title { font-size: 26px; }
-}
-```
+#### 2. Mobile responsiveness ✅ SESSION 2 COMPLETE
 
+**What was built:**
+- Tailwind responsive grid system: 3-col desktop → 2-col tablet → 1-col mobile
+- Touch-safe input fields (font-size 16px to prevent iOS zoom)
+- Mobile navbar with hamburger menu support (filters-row class)
+- Responsive tool cards with full-width layout on phones
+- Modal dialogs: full-width on mobile, centered on desktop
+- Button touch targets: 44px minimum height for usability
+- DirectoryPage + ToolFinderPage: full mobile hook integration
+- App.css: complete mobile media queries (@media max-width: 1024px, 640px)
+
+**Implementation checklist:**
+- [x] App.css mobile media queries appended (1024px & 640px breakpoints)
+- [x] DirectoryPage: tools-grid, filters-row, SearchInput style prop, isLoading fix
+- [x] ToolFinderPage: step containers with width constraints, button text legibility
+- [x] SearchInput component: accepts and applies style prop (font-size: 16px)
+- [x] Local Vite preview: ✅ renders both /tools and /ai-tool-finder correctly on iPhone SE
+- [x] Render live: /ai-tool-finder renders; /tools shows graceful fallback on slow API
+- [x] HTTP caching: /api/v1/tools cached for 1 hour to reduce load time
+- [x] Fetch timeout: graceful fallback when API > 15s, shows empty grid instead of infinite loading
+
+**Known limitations:**
+- Render's dyno has slow /api/v1/tools response (~3-5s for 890KB JSON) — needs pagination for production
+- /tools on Render may show loading state longer due to network conditions; local preview works fine
+- Next optimization: pagination or gzip compression on API responses
+
+**Active next task:** Session 3 — OG meta tags & LinkedIn preview card
 **Wizard on mobile:**
 - Each step takes full screen
 - Input fields 48px tall minimum (touch targets)
@@ -302,13 +328,24 @@ In `templates/base.html` or the React index.html:
 <meta name="twitter:card" content="summary_large_image" />
 ```
 
-Create a 1200×630px OG image (can be a screenshot of the homepage).
+#### 3. OG meta tags & LinkedIn preview card 🔵 SESSION 3 (NEXT)
 
----
+Add Open Graph meta tags to `frontend/index.html` or Flask template:
+```html
+<meta property="og:title" content="AI Compass — Find Your Perfect AI Tool" />
+<meta property="og:description" content="500+ curated AI tools with smart search & recommendation wizard. Perfect for students, creators, and developers." />
+<meta property="og:image" content="https://ai-compass-1.onrender.com/static/og-image.png" />
+<meta property="og:url" content="https://ai-compass-1.onrender.com" />
+<meta name="twitter:card" content="summary_large_image" />
+```
 
-### 🟡 SHORT TERM (within 2 weeks of LinkedIn post)
+Create a 1200×630px OG image (can be a screenshot of the homepage, Figma, or Canva).
 
-#### 4. Tool detail pages
+**Success criteria:**
+- LinkedIn post with link shows rich preview (image + title + description)
+- Twitter share also shows preview
+- Image aspect ratio correct (1.91:1), under 5MB
+
 Each tool card should link to `/tools/chatgpt` with:
 - Full description, strengths, use cases
 - Platform badges
