@@ -217,16 +217,14 @@ Added after Goal, before Budget:
 ### API endpoints (live)
 | Endpoint | Status | Description |
 |----------|--------|-------------|
-| GET /api/v1/tools | ⚠️ 500 (in progress) | All tools for directory |
+| GET /api/v1/tools | ✅ 200 | All tools for directory |
 | GET /api/v1/search?q= | ✅ 200 | Intent-aware search |
 | GET /api/v1/suggestions?q= | ✅ 200 | Autocomplete suggestions |
 | POST /api/v1/finder | ✅ 200 | Wizard recommendations |
 | GET /api/v1/tools/:slug | ✅ 200 | Tool detail page |
 
-### Known active issue
-`GET /api/v1/tools` returns 500 on Render (empty body).
-Suspected cause: `data/tools.json` path resolution fails on Render's Linux filesystem.
-Fix in progress: absolute path using `os.path.abspath(__file__)` + git tracking verification.
+### Active blocker
+None — ready for mobile session.
 
 ---
 
@@ -247,7 +245,7 @@ Fix in progress: absolute path using `os.path.abspath(__file__)` + git tracking 
 
 ### 🔴 IMMEDIATE (fix before LinkedIn post)
 
-#### 1. Fix /api/v1/tools 500 on Render
+#### 1. Fix /api/v1/tools 500 on Render ✅ COMPLETE
 - Verify `data/tools.json` is committed to git (`git ls-files data/tools.json`)
 - Fix path in `tool_cache.py` to use absolute path based on `__file__`
 - Add startup log: `[STARTUP] Loaded X tools`
