@@ -472,7 +472,7 @@
     "student_perk": false,
     "company": "Anysphere",
     "review_count": 0,
-    "featured": false,
+    "featured": true,
     "logo_emoji": "🤖",
     "strengths": [
       "Codebase-aware chat",
@@ -742,7 +742,7 @@
     "student_perk": false,
     "company": "Perplexity AI",
     "review_count": 0,
-    "featured": false,
+    "featured": true,
     "logo_emoji": "🤖",
     "strengths": [
       "Real-time web search",
@@ -1738,7 +1738,7 @@
     "student_perk": false,
     "company": "Midjourney Inc.",
     "review_count": 0,
-    "featured": false,
+    "featured": true,
     "logo_emoji": "🤖",
     "strengths": [
       "Photorealistic generation",
@@ -20274,7 +20274,7 @@
     "student_perk": true,
     "company": "Grant Sanderson",
     "review_count": 0,
-    "featured": true,
+    "featured": false,
     "logo_emoji": "🤖",
     "strengths": [
       "Free video library",
@@ -24350,7 +24350,7 @@
     "student_perk": true,
     "company": "GitHub",
     "review_count": 0,
-    "featured": true,
+    "featured": false,
     "logo_emoji": "🤖",
     "strengths": [
       "GitHub Copilot free",
@@ -25372,7 +25372,7 @@
     "student_perk": true,
     "company": "Harvard University",
     "review_count": 0,
-    "featured": true,
+    "featured": false,
     "logo_emoji": "🤖",
     "strengths": [
       "Problem sets",
