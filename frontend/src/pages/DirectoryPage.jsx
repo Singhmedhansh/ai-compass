@@ -78,19 +78,30 @@ function DirectoryPage() {
   useEffect(() => {
     const controller = new AbortController();
     const API = import.meta.env.VITE_API_URL || '';
+    const timeoutId = setTimeout(() => controller.abort(), 20000); // 20 second timeout
 
     async function loadInitialTools() {
       setIsLoading(true);
       setError(null);
       try {
         const response = await fetch(`${API}/api/v1/tools`, { signal: controller.signal });
+        if (!response.ok) {
+          throw new Error(`API returned ${response.status}`);
+        }
         const data = await response.json();
         setTools((data.results || data || []).map(mapTool));
         setTotalCount(data.total || 0);
         setIsLoading(false);
       } catch (err) {
-        setError('Failed to load tools');
+        if (err.name === 'AbortError') {
+          setError('Request timed out. Please try refreshing.');
+        } else {
+          setError('Failed to load tools: ' + (err.message || 'Unknown error'));
+        }
+        console.error('DirectoryPage fetch error:', err);
         setIsLoading(false);
+      } finally {
+        clearTimeout(timeoutId);
       }
     }
 
@@ -98,10 +109,10 @@ function DirectoryPage() {
     if (!searchQuery && (!category || category === 'All')) {
       loadInitialTools();
     }
-    // else: keep existing search/filter logic (not shown here)
-    // You may want to add logic to handle search/filter as before
-
-    return () => controller.abort();
+    return () => {
+      controller.abort();
+      clearTimeout(timeoutId);
+    };
   }, [searchQuery, category]);
 
   const filteredTools = useMemo(() => {
