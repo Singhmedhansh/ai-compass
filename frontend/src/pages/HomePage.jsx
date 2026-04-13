@@ -51,8 +51,17 @@ export default function HomePage() {
     fetch('/api/v1/tools')
       .then((r) => r.json())
       .then((data) => {
-        const list = Array.isArray(data) ? data : data.tools || []
-        setTools(list.slice(0, 6))
+        const allTools = Array.isArray(data) ? data : data.results || data.tools || []
+        const featuredTools = allTools.filter(
+          (t) => t.featured === true || t.featured === 1 || t.featured === 'true' || t.featured === '1'
+        )
+        const toNumber = (value) => Number(value || 0)
+        const prioritized = (featuredTools.length ? featuredTools : allTools)
+          .slice()
+          .sort((a, b) => toNumber(b.rating) - toNumber(a.rating))
+          .slice(0, 6)
+
+        setTools(prioritized)
         setLoading(false)
       })
       .catch(() => setLoading(false))
