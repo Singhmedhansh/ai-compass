@@ -53,8 +53,6 @@ function DirectoryPage() {
   const [searchQuery, setSearchQuery] = useState(initialQuery)
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(initialQuery)
   const [showMobileFilters, setShowMobileFilters] = useState(false)
-  const [isFallback, setIsFallback] = useState(false)
-  const [totalCount, setTotalCount] = useState(0)
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -93,14 +91,12 @@ function DirectoryPage() {
         }
         const data = await response.json();
         setTools((data.results || data || []).map(mapTool));
-        setTotalCount(data.total || 0);
         setIsLoading(false);
       } catch (err) {
         if (err.name === 'AbortError') {
           console.warn('API request timeout, falling back to empty state');
           setError(null);
           setTools([]);
-          setTotalCount(0);
           setIsLoading(false);
         } else {
           console.error('DirectoryPage fetch error:', err);
