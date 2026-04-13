@@ -233,11 +233,14 @@ def _pricing_value(tool: dict) -> str:
 @api_bp.get("/tools")
 def list_tools():
     from app.tool_cache import get_cached_tools
+    from flask import make_response
     try:
         tools = get_cached_tools()
     except Exception:
         tools = []
-    return jsonify({"results": tools, "total": len(tools), "fallback": not bool(tools)})
+    response = make_response(jsonify({"results": tools, "total": len(tools), "fallback": not bool(tools)}))
+    response.headers["Cache-Control"] = "public, max-age=3600"  # Cache for 1 hour
+    return response
 
 
 @api_bp.get("/tools/<slug>")
