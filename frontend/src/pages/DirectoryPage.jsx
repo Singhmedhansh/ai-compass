@@ -174,7 +174,7 @@ function DirectoryPage() {
       <section className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">AI Tools Directory</h1>
         <span className="inline-flex items-center rounded-full border border-gray-200 bg-white px-3 py-1 text-sm font-semibold text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
-          {loading ? 'Loading...' : `${filteredTools.length} tools`}
+          {isLoading ? 'Loading...' : `${filteredTools.length} tools`}
         </span>
         {/* Mobile Filters Button */}
         <button
