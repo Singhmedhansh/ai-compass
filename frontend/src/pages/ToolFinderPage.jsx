@@ -264,7 +264,7 @@ function ToolFinderPage() {
   const renderStep = () => {
     if (step === 1) {
       return (
-        <section>
+        <section style={{ width: '100%', maxWidth: 480, margin: '0 auto' }}>
           <h2 className="text-xl font-semibold text-white">What&apos;s your primary goal?</h2>
           <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {GOAL_OPTIONS.map((option) => (
@@ -283,7 +283,7 @@ function ToolFinderPage() {
     // Use Case Step (step 1.5)
     if (step === 1.5) {
       return (
-        <section>
+        <section style={{ width: '100%', maxWidth: 480, margin: '0 auto' }}>
           <h2 className="text-xl font-semibold text-white">What specifically do you want to do?</h2>
           <p className="text-slate-300 mb-2">
             Be specific — "write essays" gets better results than "writing"
@@ -295,11 +295,13 @@ function ToolFinderPage() {
             value={answers.use_case}
             onChange={e => setAnswers(prev => ({ ...prev, use_case: e.target.value }))}
             maxLength={120}
+            style={{ fontSize: 16 }}
             autoFocus
           />
           <div className="wizard-nav flex gap-2">
             <button
               className="btn-secondary border border-slate-600 bg-slate-800 px-4 py-2 rounded-lg text-white"
+              style={{ minHeight: 44, width: '100%' }}
               onClick={() => { setAnswers(prev => ({ ...prev, use_case: '' })); setStep(2); }}
               type="button"
             >
@@ -307,6 +309,7 @@ function ToolFinderPage() {
             </button>
             <button
               className="btn-primary bg-indigo-600 px-4 py-2 rounded-lg text-white"
+              style={{ minHeight: 44, width: '100%' }}
               onClick={() => setStep(2)}
               type="button"
             >
@@ -319,7 +322,7 @@ function ToolFinderPage() {
 
     if (step === 2) {
       return (
-        <section>
+        <section style={{ width: '100%', maxWidth: 480, margin: '0 auto' }}>
           <h2 className="text-xl font-semibold text-white">What&apos;s your budget?</h2>
           <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-3">
             {BUDGET_OPTIONS.map((option) => (
@@ -338,7 +341,7 @@ function ToolFinderPage() {
 
     if (step === 3) {
       return (
-        <section>
+        <section style={{ width: '100%', maxWidth: 480, margin: '0 auto' }}>
           <h2 className="text-xl font-semibold text-white">Where do you work?</h2>
           <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {PLATFORM_OPTIONS.map((option) => (
@@ -357,7 +360,7 @@ function ToolFinderPage() {
 
     if (step === 4) {
       return (
-        <section>
+        <section style={{ width: '100%', maxWidth: 480, margin: '0 auto' }}>
           <h2 className="text-xl font-semibold text-white">How would you describe your experience level?</h2>
           <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-3">
             {LEVEL_OPTIONS.map((option) => (
@@ -375,7 +378,7 @@ function ToolFinderPage() {
     }
 
     return (
-      <section>
+      <section style={{ width: '100%', maxWidth: 480, margin: '0 auto' }}>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 className="text-2xl font-semibold text-white">Your Recommended Tools</h2>
@@ -406,7 +409,7 @@ function ToolFinderPage() {
           </MotionButton>
         </div>
 
-        <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="tools-grid mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {results.map((tool, index) => (
             <MotionArticle
               key={`${tool.name}-${index}`}
@@ -523,6 +526,7 @@ function ToolFinderPage() {
                 onClick={handleContinue}
                 disabled={!canContinue || loadingResults}
                 className="rounded-xl bg-indigo-600 px-5 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-indigo-800"
+                style={{ minHeight: 44, width: '100%' }}
               >
                 {loadingResults ? 'Finding tools...' : step === 4 ? 'See results' : 'Continue'}
               </MotionButton>

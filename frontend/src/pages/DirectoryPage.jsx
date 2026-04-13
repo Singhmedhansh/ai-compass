@@ -167,7 +167,10 @@ function DirectoryPage() {
 
   return (
     <PageTransition>
-      <main className="mx-auto w-full max-w-7xl bg-gray-50 px-4 py-8 dark:bg-gray-950 sm:px-6 lg:px-8">
+      <main
+        className="container main-content mx-auto w-full max-w-7xl bg-gray-50 px-4 py-8 dark:bg-gray-950 sm:px-6 lg:px-8"
+        style={{ maxWidth: 1200, margin: '0 auto', padding: '0 12px' }}
+      >
       <section className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">AI Tools Directory</h1>
         <span className="inline-flex items-center rounded-full border border-gray-200 bg-white px-3 py-1 text-sm font-semibold text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
@@ -220,7 +223,7 @@ function DirectoryPage() {
       )}
 
       <section className="sticky top-16 z-20 mb-6 rounded-2xl border border-gray-200 bg-white/95 p-4 shadow-sm backdrop-blur dark:border-gray-700 dark:bg-gray-800/95 hidden md:block">
-        <div className="flex gap-2 overflow-x-auto pb-1">
+        <div className="filters-row flex gap-2 overflow-x-auto pb-1">
           {CATEGORY_OPTIONS.map((option) => {
             const active = option === category
 
@@ -260,6 +263,7 @@ function DirectoryPage() {
             onChange={setSearchQuery}
             onClear={() => setSearchQuery('')}
             placeholder="Search tools, categories, or use cases..."
+            style={{ fontSize: 16 }}
           />
         </div>
       </section>
@@ -268,7 +272,7 @@ function DirectoryPage() {
       {error && <p style={{color:'var(--text-muted)'}}>{error}</p>}
 
       {!isLoading && !error && tools.length > 0 ? (
-        <AnimatedGrid className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <AnimatedGrid className="tools-grid grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {tools.map((tool) => (
             <AnimatedItem key={tool.slug || tool.name}>
               <Card tool={tool} />
