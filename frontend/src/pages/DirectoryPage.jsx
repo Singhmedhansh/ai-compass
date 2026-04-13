@@ -64,20 +64,16 @@ function DirectoryPage() {
   }, [searchQuery])
 
   useEffect(() => {
-    const nextParams = new URLSearchParams(searchParams)
+    const nextParams = new URLSearchParams()
     if (category !== 'All') {
       nextParams.set('category', category)
-    } else {
-      nextParams.delete('category')
     }
     const query = searchQuery.trim()
     if (query) {
       nextParams.set('q', query)
-    } else {
-      nextParams.delete('q')
     }
     setSearchParams(nextParams, { replace: true })
-  }, [category, searchParams, searchQuery, setSearchParams])
+  }, [category, searchQuery, setSearchParams])
 
   useEffect(() => {
     const controller = new AbortController();
