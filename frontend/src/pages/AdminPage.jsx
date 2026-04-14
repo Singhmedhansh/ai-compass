@@ -135,7 +135,7 @@ function AdminPage() {
   const [stats, setStats] = useState({
     total_tools: 0,
     total_users: 0,
-    ml_status: 'inactive',
+    model_status: 'inactive',
     new_users_today: 0,
     category_counts: {},
     free_tools: 0,
@@ -180,12 +180,6 @@ function AdminPage() {
         const toolsData = toolsResponse.ok ? await toolsResponse.json() : []
         const usersData = usersResponse.ok ? await usersResponse.json() : []
 
-        console.log('[AdminPage] /api/v1/admin/stats raw response:', {
-          ok: statsResponse.ok,
-          status: statsResponse.status,
-          data: statsData,
-        })
-
         if (!mounted) {
           return
         }
@@ -197,7 +191,7 @@ function AdminPage() {
           category_counts: statsData.category_counts || {},
           free_tools: Number(statsData.free_tools || 0),
           freemium_tools: Number(statsData.freemium_tools || 0),
-          ml_status: String(statsData.ml_status || 'inactive').toLowerCase(),
+          model_status: String(statsData.model_status || 'inactive').toLowerCase(),
           index_size: Number(statsData.index_size || 0),
         })
         const normalizedTools = Array.isArray(toolsData)
@@ -225,7 +219,7 @@ function AdminPage() {
     }
   }, [isAuthorized])
 
-  const modelActive = stats.ml_status === 'active'
+  const modelActive = stats.model_status === 'active'
 
   const freeToolsPercent = useMemo(() => {
     if (!stats.total_tools) {

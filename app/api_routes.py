@@ -258,22 +258,14 @@ def list_tools():
 
 @api_bp.get("/tools/<slug>")
 def get_tool(slug: str):
-    slug_value = str(slug or "").strip()
-    slug_lower = slug_value.lower()
+    slug_value = str(slug or "").strip().lower()
     tools = _load_tools()
 
-    tool = next(
-        (t for t in tools if str(t.get("slug", "")).strip().lower() == slug_lower),
-        None,
-    )
-
-    if tool is None:
-        tool = next((t for t in tools if _tool_slug(t) == slug_lower), None)
-
-    if tool is not None:
-        tool_payload = dict(tool)
-        tool_payload["similar_tools"] = get_similar_tools(slug_lower, limit=4)
-        return jsonify(tool_payload)
+    for tool in tools:
+        if _tool_slug(tool) == slug_value:
+            tool_payload = dict(tool)
+            tool_payload["similar_tools"] = get_similar_tools(slug_value, limit=4)
+            return jsonify(tool_payload)
 
     return jsonify({"error": "Tool not found"}), 404
 

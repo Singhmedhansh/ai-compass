@@ -198,7 +198,19 @@ def create_app(config: dict | None = None) -> Flask:
 
     if not app.config.get("TESTING"):
         with app.app_context():
-            db.create_all()
+            try:
+                from flask_migrate import upgrade as db_upgrade
+                db_upgrade()
+                print("[STARTUP] DB migration applied successfully")
+            except Exception as e:
+                print(f"[STARTUP] DB migration skipped: {e}")
+
+            try:
+                db.create_all()
+                print("[STARTUP] db.create_all() completed")
+            except Exception as e:
+                print(f"[STARTUP] db.create_all() failed: {e}")
+
             from app.tool_cache import prime_tools_cache, DEFAULT_TOOLS_PATH, get_cached_tools
             print(f"[STARTUP] cwd: {os.getcwd()}")
             print(f"[STARTUP] Loading tools...")
