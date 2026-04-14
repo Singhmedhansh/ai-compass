@@ -1,92 +1,14 @@
-from flask import Blueprint
-
-api_bp = Blueprint("api", __name__)
-
-@api_bp.get("/suggestions")
-def search_suggestions():
-    from app.search_utils import tokenize_and_expand_query, ALIASES
-    q = (request.args.get("q") or "").strip()
-    if not q:
-        return jsonify([])
-
-    tools = _load_tools() or []
-    tokens = tokenize_and_expand_query(q)
-    suggestions = []
-    seen_tools = set()
-    seen_tags = set()
-    seen_usecases = set()
-
-    # Priority 1: Tool name matches
-    for tool in tools:
-        name = str(tool.get("name") or "")
-        name_lower = name.lower()
-        if any(token in name_lower for token in tokens):
-            key = name_lower
-            if key not in seen_tools:
-                suggestions.append({
-                    "type": "tool",
-                    "label": name,
-                    "sub": tool.get("category", ""),
-                    "icon": tool.get("logo_emoji", "")
-                })
-                seen_tools.add(key)
-            if len([s for s in suggestions if s["type"] == "tool"]) >= 2:
-                break
-
-    # Priority 2: Tag matches
-    tag_counts = {}
-    for tool in tools:
-        for tag in tool.get("tags", []):
-            tag_lower = str(tag).lower()
-            if any(token in tag_lower for token in tokens):
-                tag_counts[tag_lower] = tag_counts.get(tag_lower, 0) + 1
-    tag_items = sorted(tag_counts.items(), key=lambda x: -x[1])
-    for tag, count in tag_items:
-        if tag not in seen_tags:
-            suggestions.append({
-                "type": "tag",
-                "label": f"#{tag}",
-                "sub": f"{count} tools",
-                "icon": "#"
-            })
-            seen_tags.add(tag)
-        if len([s for s in suggestions if s["type"] == "tag"]) >= 2:
-            break
-
-    # Priority 3: Use case matches
-    for tool in tools:
-        for uc in tool.get("use_cases", []):
-            uc_lower = str(uc).lower()
-            if any(token in uc_lower for token in tokens):
-                key = uc_lower
-                if key not in seen_usecases:
-                    suggestions.append({
-                        "type": "usecase",
-                        "label": uc,
-                        "sub": tool.get("name", ""),
-                        "icon": "💡"
-                    })
-                    seen_usecases.add(key)
-                if len([s for s in suggestions if s["type"] == "usecase"]) >= 2:
-                    break
-        if len([s for s in suggestions if s["type"] == "usecase"]) >= 2:
-            break
-
-    # Cap at 6 suggestions
-    return jsonify(suggestions[:6])
 import json
 import os
 import re
 import subprocess
 import sys
-from datetime import datetime, timezone
-
 from collections import Counter
 from datetime import datetime, timezone
-from sqlalchemy import func
+
 from flask import Blueprint, current_app, jsonify, request
 from flask_login import current_user, login_required, login_user, logout_user
-from flask_login import current_user, login_required, login_user, logout_user
+from sqlalchemy import func
 
 from app import bcrypt, csrf, db
 from app.ml_recommender import get_recommendations, get_similar_tools
@@ -174,6 +96,59 @@ def _tool_slug(tool: dict) -> str:
 
 def _load_tools() -> list[dict]:
     return get_cached_tools(DATA_PATH)
+
+
+@api_bp.get("/suggestions")
+def search_suggestions():
+    from app.search_utils import tokenize_and_expand_query
+    q = (request.args.get("q") or "").strip()
+    if not q:
+        return jsonify([])
+
+    tools = _load_tools() or []
+    tokens = tokenize_and_expand_query(q)
+    suggestions = []
+    seen_tools: set = set()
+    seen_tags: set = set()
+    seen_usecases: set = set()
+
+    for tool in tools:
+        name = str(tool.get("name") or "")
+        name_lower = name.lower()
+        if any(token in name_lower for token in tokens):
+            if name_lower not in seen_tools:
+                suggestions.append({"type": "tool", "label": name, "sub": tool.get("category", ""), "icon": tool.get("logo_emoji", "")})
+                seen_tools.add(name_lower)
+            if len([s for s in suggestions if s["type"] == "tool"]) >= 2:
+                break
+
+    tag_counts: dict = {}
+    for tool in tools:
+        for tag in tool.get("tags", []):
+            tag_lower = str(tag).lower()
+            if any(token in tag_lower for token in tokens):
+                tag_counts[tag_lower] = tag_counts.get(tag_lower, 0) + 1
+    for tag, count in sorted(tag_counts.items(), key=lambda x: -x[1]):
+        if tag not in seen_tags:
+            suggestions.append({"type": "tag", "label": f"#{tag}", "sub": f"{count} tools", "icon": "#"})
+            seen_tags.add(tag)
+        if len([s for s in suggestions if s["type"] == "tag"]) >= 2:
+            break
+
+    for tool in tools:
+        for uc in tool.get("use_cases", []):
+            uc_lower = str(uc).lower()
+            if any(token in uc_lower for token in tokens):
+                if uc_lower not in seen_usecases:
+                    suggestions.append({"type": "usecase", "label": uc, "sub": tool.get("name", ""), "icon": "💡"})
+                    seen_usecases.add(uc_lower)
+                if len([s for s in suggestions if s["type"] == "usecase"]) >= 2:
+                    break
+        if len([s for s in suggestions if s["type"] == "usecase"]) >= 2:
+            break
+
+    return jsonify(suggestions[:6])
+
 
 
 def _user_stack_path(user_id: int) -> str:
