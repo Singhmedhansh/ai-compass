@@ -1,4 +1,15 @@
 /* --- AI Compass tool finder and search UI styles --- */
+.tools-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.tool-card {
+  min-width: 0;
+  padding: 20px;
+}
+
 .tool-reason {
   font-size: 0.82rem;
   color: var(--text-muted, #888);
@@ -216,7 +227,7 @@
 
 @media (max-width: 1024px) {
   .tools-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
   }
 }
 
@@ -224,7 +235,7 @@
   /* Grid */
   .tools-grid {
     grid-template-columns: 1fr !important;
-    gap: 12px !important;
+    gap: 16px !important;
   }
 
   /* Typography */
@@ -261,7 +272,7 @@
 
   /* Cards */
   .tool-card {
-    padding: 14px !important;
+    padding: 20px !important;
   }
 
   /* Buttons — minimum 44px touch target */
