@@ -1,5 +1,6 @@
 import json
 import os
+import sys
 from typing import List, Dict, Any
 from filelock import FileLock, Timeout
 
@@ -21,13 +22,26 @@ def _get_lock_path(path: str) -> str:
 
 
 def _load_tools_from_disk(data_path: str = DEFAULT_TOOLS_PATH) -> List[Dict[str, Any]]:
+    if not os.path.exists(data_path):
+        print(
+            f"[STARTUP] ERROR: tools.json not found at {data_path!r}. "
+            f"cwd={os.getcwd()!r}",
+            file=sys.stderr,
+        )
+        return []
+
     lock = FileLock(_get_lock_path(data_path), timeout=5)
     try:
         with lock:
-            with open(data_path, "r", encoding="utf-8") as file:
+            with open(data_path, "r", encoding="utf-8-sig") as file:
                 payload = json.load(file)
-    except (OSError, json.JSONDecodeError, TypeError, ValueError, Timeout):
+    except Timeout:
+        print(f"[STARTUP] ERROR: FileLock timed out for {data_path!r}", file=sys.stderr)
         return []
+    except (OSError, json.JSONDecodeError, TypeError, ValueError) as exc:
+        print(f"[STARTUP] ERROR: Failed to load {data_path!r}: {exc}", file=sys.stderr)
+        return []
+
     if isinstance(payload, dict):
         tools = payload.get("tools", [])
     else:
@@ -60,6 +74,12 @@ def prime_tools_cache(data_path: str = DEFAULT_TOOLS_PATH) -> List[Dict[str, Any
     global _TOOLS_CACHE, _TOOLS_CACHE_MTIME
     if _TOOLS_CACHE is None:
         _TOOLS_CACHE = _load_tools_from_disk(data_path)
+        if not _TOOLS_CACHE:
+            print(
+                f"[STARTUP] WARNING: Tool cache is empty after loading {data_path!r}. "
+                f"File exists: {os.path.exists(data_path)}",
+                file=sys.stderr,
+            )
         try:
             _TOOLS_CACHE_MTIME = os.path.getmtime(data_path)
         except OSError:
