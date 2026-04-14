@@ -171,9 +171,9 @@ function AdminPage() {
     async function loadAdminData() {
       try {
         const [statsResponse, toolsResponse, usersResponse] = await Promise.all([
-          fetch('/api/v1/admin/stats'),
-          fetch('/api/v1/tools'),
-          fetch('/api/v1/admin/users'),
+          fetch('/api/v1/admin/stats', { credentials: 'include' }),
+          fetch('/api/v1/tools', { credentials: 'include' }),
+          fetch('/api/v1/admin/users', { credentials: 'include' }),
         ])
 
         const statsData = statsResponse.ok ? await statsResponse.json() : {}
@@ -191,7 +191,7 @@ function AdminPage() {
           category_counts: statsData.category_counts || {},
           free_tools: Number(statsData.free_tools || 0),
           freemium_tools: Number(statsData.freemium_tools || 0),
-          model_status: String(statsData.model_status || 'inactive').toLowerCase(),
+          model_status: String(statsData.ml_status || statsData.model_status || 'inactive').toLowerCase(),
           index_size: Number(statsData.index_size || 0),
         })
         const normalizedTools = Array.isArray(toolsData)

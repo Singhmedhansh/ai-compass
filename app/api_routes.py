@@ -502,22 +502,27 @@ def admin_users():
 
 
 @api_bp.get("/admin/stats")
-@login_required
 def admin_stats():
     from app.tool_cache import SEARCH_INDEX, get_cached_tools
 
     tools = get_cached_tools()
     total_tools = len(tools)
     category_counts = Counter(t.get("category", "Unknown") for t in tools)
-    free_count = sum(1 for t in tools if str(t.get("pricing", "")).lower() == "free")
-    freemium_count = sum(1 for t in tools if str(t.get("pricing", "")).lower() == "freemium")
+    free_count = sum(
+        1 for t in tools
+        if str(t.get("pricing", "") or t.get("price", "")).lower() in ("free", "freemium")
+    )
+    freemium_count = sum(
+        1 for t in tools
+        if str(t.get("pricing", "") or t.get("price", "")).lower() == "freemium"
+    )
 
     total_users = User.query.count()
     today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
     new_users_today = User.query.filter(User.created_at >= today_start).count()
 
     index_size = len(SEARCH_INDEX)
-    ml_status = "Active" if index_size > 0 else "Inactive"
+    ml_status = "active" if index_size > 0 else "inactive"
 
     return jsonify(
         {
