@@ -507,20 +507,6 @@ function ProfilePage() {
                 <Button variant="secondary" size="md" onClick={handleClearRecentlyViewed}>
                   Clear recently viewed
                 </Button>
-
-                <Button
-                  variant="secondary"
-                  size="md"
-                  className="border-rose-200 text-rose-700 hover:bg-rose-50 dark:border-rose-500/30 dark:text-rose-300 dark:hover:bg-rose-500/10"
-                  onClick={() => {
-                    setShowDeleteModal(true)
-                    setDeleteStep(1)
-                    setDeletePassword('')
-                    setDeleteError('')
-                  }}
-                >
-                  Delete account
-                </Button>
               </div>
             </section>
 
@@ -538,6 +524,22 @@ function ProfilePage() {
               <p className="mt-4 text-sm text-rose-700 dark:text-rose-200">
                 This action is irreversible. Use the confirmation modal below to finish deletion.
               </p>
+
+              <div className="mt-6">
+                <Button
+                  variant="secondary"
+                  size="md"
+                  className="border-rose-200 text-rose-700 hover:bg-rose-50 dark:border-rose-500/30 dark:text-rose-300 dark:hover:bg-rose-500/10"
+                  onClick={() => {
+                    setShowDeleteModal(true)
+                    setDeleteStep(1)
+                    setDeletePassword('')
+                    setDeleteError('')
+                  }}
+                >
+                  Delete account
+                </Button>
+              </div>
             </section>
           </div>
         </section>
