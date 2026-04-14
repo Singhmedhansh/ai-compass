@@ -418,7 +418,7 @@ def get_collection(slug: str):
     if slug_value == "best-free-tools":
         collection_tools = [
             t for t in tools
-            if str(t.get("pricing", "")).lower() in ["free", "freemium"]
+            if str(t.get("pricing", "") or t.get("price", "")).strip().lower() == "free"
         ]
         collection_tools.sort(key=lambda t: float(t.get("rating", 0) or 0), reverse=True)
     elif slug_value == "best-for-students":
