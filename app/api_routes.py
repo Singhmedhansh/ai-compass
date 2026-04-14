@@ -258,14 +258,22 @@ def list_tools():
 
 @api_bp.get("/tools/<slug>")
 def get_tool(slug: str):
-    slug_value = str(slug or "").strip().lower()
+    slug_value = str(slug or "").strip()
+    slug_lower = slug_value.lower()
     tools = _load_tools()
 
-    for tool in tools:
-        if _tool_slug(tool) == slug_value:
-            tool_payload = dict(tool)
-            tool_payload["similar_tools"] = get_similar_tools(slug_value, limit=4)
-            return jsonify(tool_payload)
+    tool = next(
+        (t for t in tools if str(t.get("slug", "")).strip().lower() == slug_lower),
+        None,
+    )
+
+    if tool is None:
+        tool = next((t for t in tools if _tool_slug(t) == slug_lower), None)
+
+    if tool is not None:
+        tool_payload = dict(tool)
+        tool_payload["similar_tools"] = get_similar_tools(slug_lower, limit=4)
+        return jsonify(tool_payload)
 
     return jsonify({"error": "Tool not found"}), 404
 
@@ -504,9 +512,6 @@ def admin_users():
 @api_bp.get("/admin/stats")
 @login_required
 def admin_stats():
-    if not getattr(current_user, "is_admin", False):
-        return jsonify({"error": "Forbidden"}), 403
-
     from app.tool_cache import SEARCH_INDEX, get_cached_tools
 
     tools = get_cached_tools()
@@ -530,7 +535,7 @@ def admin_stats():
             "category_counts": dict(category_counts),
             "free_tools": free_count,
             "freemium_tools": freemium_count,
-            "model_status": ml_status,
+            "ml_status": ml_status,
             "index_size": index_size,
         }
     )
