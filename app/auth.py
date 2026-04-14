@@ -10,6 +10,17 @@ from app.rate_limit import is_rate_limited
 auth_bp = Blueprint("auth", __name__)
 
 
+def _verify_password_hash(password_hash, password):
+    """Return False instead of raising when stored hash/config hash is malformed."""
+    if not password_hash:
+        return False
+    try:
+        return bool(bcrypt.check_password_hash(password_hash, password))
+    except (TypeError, ValueError):
+        current_app.logger.warning("Password hash verification failed due to malformed hash value.")
+        return False
+
+
 def _clear_stale_login_flash_errors():
     flashes = list(session.get("_flashes") or [])
     if not flashes:
@@ -130,7 +141,7 @@ def login():
         admin_password_hash = current_app.config.get("ADMIN_PASSWORD_HASH", "")
 
         if admin_email and admin_password_hash and email == admin_email:
-            if not bcrypt.check_password_hash(admin_password_hash, password):
+            if not _verify_password_hash(admin_password_hash, password):
                 flash("Invalid email or password.", "error")
                 return redirect('/')
 
@@ -151,7 +162,7 @@ def login():
                 return redirect(url_for("main.onboarding"))
             return redirect(next_url or url_for("main.dashboard"))
 
-        if user and user.password_hash and bcrypt.check_password_hash(user.password_hash, password):
+        if user and _verify_password_hash(user.password_hash, password):
             _sync_admin_flag(user)
             _clear_stale_login_flash_errors()
             login_user(user)
