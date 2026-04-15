@@ -1,11 +1,10 @@
 import clsx from 'clsx'
 import { motion } from 'framer-motion'
 import { Star } from 'lucide-react'
-import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import Badge from './Badge'
-import { domainMap, getAvatarClass } from '../../utils/toolBranding'
+import { getAvatarClass } from '../../utils/toolBranding'
 
 const MotionButton = motion.div
 
@@ -25,15 +24,8 @@ function slugify(value = '') {
     .replace(/\s+/g, '-')
 }
 
-const getLogoUrl = (toolName) => {
-  const domain = domainMap[toolName]
-  if (!domain) return null
-  return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`
-}
-
-function Card({ tool = {} }) {
+function Card({ tool = {}, getLogoUrl }) {
   const navigate = useNavigate()
-  const [imgError, setImgError] = useState(false)
 
   const name = tool.name || 'Unknown Tool'
   const description = tool.shortDescription || tool.description || 'No description available.'
@@ -41,7 +33,7 @@ function Card({ tool = {} }) {
   const rating = Math.max(0, Math.min(5, Number(tool.rating) || 0))
   const pricing = (tool.pricing || 'free').toLowerCase()
   const slug = tool.slug || slugify(name)
-  const logoUrl = getLogoUrl(name)
+  const logoUrl = typeof getLogoUrl === 'function' ? getLogoUrl(tool) : null
 
   const ratingStars = Array.from({ length: 5 }, (_, index) => {
     const active = index < Math.round(rating)
@@ -64,24 +56,49 @@ function Card({ tool = {} }) {
     >
       <div className="flex items-start gap-3">
         <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden" aria-hidden="true">
-          {!imgError && logoUrl ? (
-            <img
-              key={name}
-              src={logoUrl}
-              alt={`${name} logo`}
-              className="w-10 h-10 rounded-lg object-contain"
-              onError={() => setImgError(true)}
-            />
-          ) : (
-            <div
-              className={clsx(
-                'flex h-12 w-12 items-center justify-center rounded-xl text-lg font-bold text-white',
-                getAvatarClass(name),
-              )}
-            >
-              {name.charAt(0).toUpperCase()}
-            </div>
-          )}
+          {(() => {
+            const resolvedLogoUrl = logoUrl
+            return resolvedLogoUrl ? (
+              <img
+                src={resolvedLogoUrl}
+                alt={name}
+                style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: 12,
+                  objectFit: 'contain',
+                  background: '#fff',
+                  padding: 4,
+                }}
+                onError={(e) => {
+                  e.target.style.display = 'none'
+                  if (e.target.nextSibling) {
+                    e.target.nextSibling.style.display = 'flex'
+                  }
+                }}
+              />
+            ) : null
+          })()}
+          <div
+            className={clsx(
+              'items-center justify-center rounded-xl text-lg font-bold text-white',
+              getAvatarClass(name),
+            )}
+            style={{
+              display: logoUrl ? 'none' : 'flex',
+              width: 48,
+              height: 48,
+              borderRadius: 12,
+              background: tool.accent_color || '#6366f1',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 22,
+              color: '#fff',
+              fontWeight: 700,
+            }}
+          >
+            {tool.logo_emoji || (name || '?')[0].toUpperCase()}
+          </div>
         </div>
 
         <div className="min-w-0 flex-1">

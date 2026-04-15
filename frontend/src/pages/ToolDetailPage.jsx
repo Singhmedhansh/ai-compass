@@ -62,6 +62,9 @@ function normalizeTool(rawTool) {
     name,
     category,
     pricing,
+    logo_url: rawTool?.logo_url || rawTool?.logoUrl || rawTool?.logo,
+    logo_emoji: rawTool?.logo_emoji || rawTool?.emoji,
+    accent_color: rawTool?.accent_color,
     shortDescription: rawTool?.shortDescription || rawTool?.tagline || rawTool?.summary || rawTool?.description || '',
     description: rawTool?.description || rawTool?.summary || rawTool?.shortDescription || 'No description available yet.',
     tags: Array.isArray(rawTool?.tags) ? rawTool.tags : [],
@@ -93,11 +96,6 @@ function ToolDetailPage() {
   })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [imgError, setImgError] = useState(false)
-
-  useEffect(() => {
-    setImgError(false)
-  }, [slug])
 
   useEffect(() => {
     setRelatedImgErrors({})
@@ -202,7 +200,76 @@ function ToolDetailPage() {
       ? 'freemium'
       : 'free'
 
-  const logoUrl = tool ? `https://logo.clearbit.com/${getToolDomain(tool.name)}` : ''
+  const getLogoUrl = (toolData) => {
+    if (!toolData) return null
+    if (toolData.logo_url) return toolData.logo_url
+    const domainMap = {
+      'chatgpt': 'openai.com',
+      'claude': 'anthropic.com',
+      'cursor': 'cursor.sh',
+      'github copilot': 'github.com',
+      'midjourney': 'midjourney.com',
+      'perplexity': 'perplexity.ai',
+      'perplexity ai': 'perplexity.ai',
+      'grammarly': 'grammarly.com',
+      'notion': 'notion.so',
+      'notion ai': 'notion.so',
+      'notion calendar': 'notion.so',
+      'elevenlabs': 'elevenlabs.io',
+      'runway': 'runwayml.com',
+      'canva': 'canva.com',
+      'figma': 'figma.com',
+      'vercel': 'vercel.com',
+      'supabase': 'supabase.com',
+      'hugging face': 'huggingface.co',
+      'github': 'github.com',
+      'google colab': 'colab.research.google.com',
+      'streamlit': 'streamlit.io',
+      'replit': 'replit.com',
+      'linear': 'linear.app',
+      'loom': 'loom.com',
+      'slack': 'slack.com',
+      'zoom': 'zoom.us',
+      'obsidian': 'obsidian.md',
+      'todoist': 'todoist.com',
+      'otter.ai': 'otter.ai',
+      'copy.ai': 'copy.ai',
+      'jasper': 'jasper.ai',
+      'writesonic': 'writesonic.com',
+      'synthesia': 'synthesia.io',
+      'descript': 'descript.com',
+      'murf': 'murf.ai',
+      'tome': 'tome.app',
+      'gamma': 'gamma.app',
+      'beautiful.ai': 'beautiful.ai',
+      'pika': 'pika.art',
+      'leonardo ai': 'leonardo.ai',
+      'stable diffusion': 'stability.ai',
+      'dall-e': 'openai.com',
+      'adobe firefly': 'adobe.com',
+      'microsoft copilot': 'microsoft.com',
+      'gemini': 'gemini.google.com',
+      'mistral': 'mistral.ai',
+      'groq': 'groq.com',
+      'ollama': 'ollama.ai',
+      'huggingchat': 'huggingface.co',
+      'bolt.new': 'bolt.new',
+      'v0': 'v0.dev',
+      'windsurf': 'codeium.com',
+      'codeium': 'codeium.com',
+      'tabnine': 'tabnine.com',
+      'sourcegraph': 'sourcegraph.com',
+      'leetcode': 'leetcode.com',
+      'neetcode': 'neetcode.io',
+      'codewars': 'codewars.com',
+    }
+    const key = (toolData.name || '').toLowerCase().trim()
+    const domain = domainMap[key] || getToolDomain(toolData.name)
+    if (domain) return `https://logo.clearbit.com/${domain}`
+    return null
+  }
+
+  const logoUrl = getLogoUrl(tool)
 
   const handleFavoriteToggle = async () => {
     if (!isLoggedIn) {
@@ -256,23 +323,45 @@ function ToolDetailPage() {
           <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-lg dark:border-gray-700 dark:bg-gray-800">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
               <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gray-100 dark:bg-gray-800">
-                {!imgError ? (
-                  <img
-                    src={logoUrl}
-                    alt={`${tool.name} logo`}
-                    className="h-14 w-14 rounded-xl bg-white p-2 object-contain"
-                    onError={() => setImgError(true)}
-                  />
-                ) : (
-                  <div
-                    className={clsx(
-                      'flex h-16 w-16 items-center justify-center rounded-2xl text-2xl font-bold',
-                      getAvatarClass(tool.name),
-                    )}
-                  >
-                    {tool.name.charAt(0).toUpperCase()}
-                  </div>
-                )}
+                {(() => {
+                  const resolvedLogoUrl = getLogoUrl(tool)
+                  return resolvedLogoUrl ? (
+                    <img
+                      src={resolvedLogoUrl}
+                      alt={tool.name}
+                      style={{
+                        width: 64,
+                        height: 64,
+                        borderRadius: 12,
+                        objectFit: 'contain',
+                        background: '#fff',
+                        padding: 4,
+                      }}
+                      onError={(e) => {
+                        e.target.style.display = 'none'
+                        if (e.target.nextSibling) {
+                          e.target.nextSibling.style.display = 'flex'
+                        }
+                      }}
+                    />
+                  ) : null
+                })()}
+                <div
+                  style={{
+                    display: logoUrl ? 'none' : 'flex',
+                    width: 64,
+                    height: 64,
+                    borderRadius: 12,
+                    background: tool.accent_color || '#6366f1',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: 28,
+                    color: '#fff',
+                    fontWeight: 700,
+                  }}
+                >
+                  {tool.logo_emoji || (tool.name || '?')[0].toUpperCase()}
+                </div>
               </div>
 
               <div className="min-w-0 flex-1">
