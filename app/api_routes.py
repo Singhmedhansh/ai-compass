@@ -12,7 +12,7 @@ from sqlalchemy import func
 
 from app import bcrypt, csrf, db
 from app.ml_recommender import get_recommendations, get_similar_tools
-from app.models import Favorite, Rating, ToolRating, User
+from app.models import Favorite, Rating, Review, ToolRating, User
 from app.search_utils import search_tools
 from app.tool_cache import get_cached_tools, prime_tools_cache
 
@@ -247,27 +247,29 @@ def get_tool(slug: str):
 
 @api_bp.get("/tools/<slug>/reviews")
 def get_tool_reviews(slug: str):
-    slug_value = str(slug or "").strip().lower()
     try:
-        reviews = (
-            Review.query.filter_by(tool_slug=slug_value, is_hidden=False)
-            .order_by(Review.created_at.desc())
-            .limit(50)
-            .all()
-        )
-    except Exception:
-        reviews = []
-
-    return jsonify({
-        "reviews": [{
-            "id": review.id,
-            "user": (review.user.display_name or "Anonymous") if review.user else "Anonymous",
-            "body": review.body,
-            "created_at": review.created_at.isoformat() if review.created_at else None,
-        } for review in reviews],
-        "count": len(reviews),
-        "message": "No reviews yet. Be the first!" if not reviews else None,
-    })
+        reviews = Review.query.filter_by(
+            tool_slug=slug, is_hidden=False
+        ).order_by(Review.created_at.desc()).limit(50).all()
+        return jsonify({
+            "reviews": [{
+                "id": r.id,
+                "user": (
+                    getattr(r.user, "full_name", None)
+                    or getattr(r.user, "username", None)
+                    or getattr(r.user, "display_name", None)
+                    or "Anonymous"
+                ) if r.user else "Anonymous",
+                "body": r.body,
+                "created_at": r.created_at.isoformat(),
+            } for r in reviews],
+            "count": len(reviews),
+            "message": "No reviews yet. Be the first!" if not reviews else None
+        })
+    except Exception as e:
+        print(f"[REVIEWS] Error: {e}")
+        return jsonify({"reviews": [], "count": 0,
+                      "message": "No reviews yet. Be the first!"}), 200
 
 
 @api_bp.get("/tools/<slug>/ratings")
@@ -325,29 +327,27 @@ def rate_tool(slug: str):
 @csrf.exempt
 @login_required
 def post_review(slug: str):
-    slug_value = str(slug or "").strip().lower()
-    payload = request.get_json(silent=True) or {}
-    body = str(payload.get("body") or "").strip()
-
-    if len(body) < 10:
-        return jsonify({"error": "Review must be at least 10 characters"}), 400
-    if len(body) > 1000:
-        return jsonify({"error": "Review must be under 1000 characters"}), 400
-
     try:
-        existing = Review.query.filter_by(user_id=current_user.id, tool_slug=slug_value).first()
+        body = (request.json.get("body") or "").strip()
+        if len(body) < 10:
+            return jsonify({"error": "Review must be at least 10 characters"}), 400
+        if len(body) > 1000:
+            return jsonify({"error": "Review too long"}), 400
+        existing = Review.query.filter_by(
+            user_id=current_user.id, tool_slug=slug
+        ).first()
         if existing:
             existing.body = body
             existing.created_at = datetime.now(timezone.utc)
-            existing.is_hidden = False
         else:
-            db.session.add(Review(user_id=current_user.id, tool_slug=slug_value, body=body))
-
+            rev = Review(user_id=current_user.id, tool_slug=slug, body=body)
+            db.session.add(rev)
         db.session.commit()
         return jsonify({"success": True})
-    except Exception:
+    except Exception as e:
         db.session.rollback()
-        return jsonify({"error": "Reviews are temporarily unavailable"}), 503
+        print(f"[REVIEWS POST] Error: {e}")
+        return jsonify({"error": "Could not save review"}), 500
 
 
 from app.search_utils import search_tools
@@ -783,22 +783,31 @@ def delete_account():
 @csrf.exempt
 @api_bp.route("/auth/login", methods=["POST"])
 def auth_login():
-    payload = request.get_json(silent=True) or {}
-    email = str(payload.get("email") or "").strip().lower()
-    password = str(payload.get("password") or "")
+    try:
+        payload = request.get_json(silent=True) or {}
+        email = str(payload.get("email") or "").strip().lower()
+        password = str(payload.get("password") or "")
 
-    if not email or not password:
-        return jsonify({"error": "Invalid credentials"}), 401
+        if not email or not password:
+            return jsonify({"error": "Invalid credentials"}), 401
 
-    user = User.query.filter_by(email=email).first()
-    if user is None or not user.password_hash:
-        return jsonify({"error": "Invalid credentials"}), 401
+        user = User.query.filter_by(email=email).first()
+        if user is None or not user.password_hash:
+            return jsonify({"error": "Invalid credentials"}), 401
 
-    if not bcrypt.check_password_hash(user.password_hash, password):
-        return jsonify({"error": "Invalid credentials"}), 401
+        try:
+            password_ok = bool(bcrypt.check_password_hash(user.password_hash, password))
+        except (TypeError, ValueError):
+            password_ok = False
 
-    login_user(user)
-    return jsonify(_serialize_user(user))
+        if not password_ok:
+            return jsonify({"error": "Invalid credentials"}), 401
+
+        login_user(user)
+        return jsonify(_serialize_user(user))
+    except Exception as e:
+        current_app.logger.exception("/auth/login failed: %s", e)
+        return jsonify({"error": "Login temporarily unavailable"}), 500
 
 
 @csrf.exempt
