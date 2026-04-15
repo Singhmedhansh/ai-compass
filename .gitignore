@@ -1,5 +1,6 @@
 # Python
 __pycache__/
+*.pyc
 *.py[cod]
 *.pyo
 *.pyd
@@ -27,6 +28,7 @@ instance/
 
 # Node
 node_modules/
+frontend/dist/
 package-lock.json
 
 # IDE
