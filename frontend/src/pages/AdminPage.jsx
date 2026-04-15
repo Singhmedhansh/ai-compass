@@ -13,21 +13,21 @@ const TABS = ['Overview', 'Tools', 'Users', 'ML Model']
 
 const CATEGORY_STYLES = {
   Coding: 'bg-blue-500',
-  'Writing & Docs': 'bg-purple-500',
+  'Writing & Chat': 'bg-purple-500',
   Research: 'bg-emerald-500',
   Productivity: 'bg-amber-500',
-  'Image Gen': 'bg-pink-500',
-  'Video Gen': 'bg-red-500',
+  'Image Generation': 'bg-pink-500',
+  'Video Generation': 'bg-red-500',
   Design: 'bg-cyan-500',
 }
 
 const CATEGORY_ORDER = [
-  'Writing & Docs',
+  'Writing & Chat',
   'Coding',
   'Research',
   'Productivity',
-  'Image Gen',
-  'Video Gen',
+  'Image Generation',
+  'Video Generation',
   'Design',
 ]
 

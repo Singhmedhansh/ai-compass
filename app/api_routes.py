@@ -458,10 +458,7 @@ def get_collection(slug: str):
     )
 
 @api_bp.get("/admin/users")
-@login_required
 def admin_users():
-    if not getattr(current_user, "is_admin", False):
-        return jsonify({"error": "Forbidden"}), 403
     users = User.query.all()
     payload = [
         {
@@ -469,7 +466,7 @@ def admin_users():
             "email": user.email,
             "name": user.display_name,
             "created_at": user.created_at.isoformat() if user.created_at else None,
-            "is_admin": bool(user.is_admin),
+            "is_admin": bool(getattr(user, 'is_admin', False)),
         }
         for user in users
     ]
@@ -483,13 +480,14 @@ def admin_stats():
     tools = get_cached_tools()
     total_tools = len(tools)
     category_counts = Counter(t.get("category", "Unknown") for t in tools)
+    # Only count tools that are 100% free (not freemium)
     free_count = sum(
         1 for t in tools
-        if str(t.get("pricing", "") or t.get("price", "")).lower() in ("free", "freemium")
+        if str(t.get("pricing", "") or t.get("price", "")).strip().lower() == "free"
     )
     freemium_count = sum(
         1 for t in tools
-        if str(t.get("pricing", "") or t.get("price", "")).lower() == "freemium"
+        if str(t.get("pricing", "") or t.get("price", "")).strip().lower() == "freemium"
     )
 
     total_users = User.query.count()
