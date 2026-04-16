@@ -6,8 +6,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import PageTransition from '../components/PageTransition'
 import RatingWidget from '../components/ui/RatingWidget'
 import ReviewsSection from '../components/ui/ReviewsSection'
-import { Badge, Button } from '../components/ui'
-import { getAvatarClass, getToolDomain } from '../utils/toolBranding'
+import { Badge, Button, ToolLogo } from '../components/ui'
 
 const pricingBadgeClasses = {
   free: 'bg-emerald-500/20 text-emerald-300 ring-emerald-500/30',
@@ -84,7 +83,6 @@ function ToolDetailPage() {
 
   const [tool, setTool] = useState(null)
   const [relatedTools, setRelatedTools] = useState([])
-  const [relatedImgErrors, setRelatedImgErrors] = useState({})
   const [isFavorite, setIsFavorite] = useState(false)
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
@@ -96,10 +94,6 @@ function ToolDetailPage() {
   })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-
-  useEffect(() => {
-    setRelatedImgErrors({})
-  }, [relatedTools])
 
   useEffect(() => {
     const toolController = new AbortController()
@@ -200,77 +194,6 @@ function ToolDetailPage() {
       ? 'freemium'
       : 'free'
 
-  const getLogoUrl = (toolData) => {
-    if (!toolData) return null
-    if (toolData.logo_url) return toolData.logo_url
-    const domainMap = {
-      'chatgpt': 'openai.com',
-      'claude': 'anthropic.com',
-      'cursor': 'cursor.sh',
-      'github copilot': 'github.com',
-      'midjourney': 'midjourney.com',
-      'perplexity': 'perplexity.ai',
-      'perplexity ai': 'perplexity.ai',
-      'grammarly': 'grammarly.com',
-      'notion': 'notion.so',
-      'notion ai': 'notion.so',
-      'notion calendar': 'notion.so',
-      'elevenlabs': 'elevenlabs.io',
-      'runway': 'runwayml.com',
-      'canva': 'canva.com',
-      'figma': 'figma.com',
-      'vercel': 'vercel.com',
-      'supabase': 'supabase.com',
-      'hugging face': 'huggingface.co',
-      'github': 'github.com',
-      'google colab': 'colab.research.google.com',
-      'streamlit': 'streamlit.io',
-      'replit': 'replit.com',
-      'linear': 'linear.app',
-      'loom': 'loom.com',
-      'slack': 'slack.com',
-      'zoom': 'zoom.us',
-      'obsidian': 'obsidian.md',
-      'todoist': 'todoist.com',
-      'otter.ai': 'otter.ai',
-      'copy.ai': 'copy.ai',
-      'jasper': 'jasper.ai',
-      'writesonic': 'writesonic.com',
-      'synthesia': 'synthesia.io',
-      'descript': 'descript.com',
-      'murf': 'murf.ai',
-      'tome': 'tome.app',
-      'gamma': 'gamma.app',
-      'beautiful.ai': 'beautiful.ai',
-      'pika': 'pika.art',
-      'leonardo ai': 'leonardo.ai',
-      'stable diffusion': 'stability.ai',
-      'dall-e': 'openai.com',
-      'adobe firefly': 'adobe.com',
-      'microsoft copilot': 'microsoft.com',
-      'gemini': 'gemini.google.com',
-      'mistral': 'mistral.ai',
-      'groq': 'groq.com',
-      'ollama': 'ollama.ai',
-      'huggingchat': 'huggingface.co',
-      'bolt.new': 'bolt.new',
-      'v0': 'v0.dev',
-      'windsurf': 'codeium.com',
-      'codeium': 'codeium.com',
-      'tabnine': 'tabnine.com',
-      'sourcegraph': 'sourcegraph.com',
-      'leetcode': 'leetcode.com',
-      'neetcode': 'neetcode.io',
-      'codewars': 'codewars.com',
-    }
-    const key = (toolData.name || '').toLowerCase().trim()
-    const domain = domainMap[key] || getToolDomain(toolData.name)
-    if (domain) return `https://logo.clearbit.com/${domain}`
-    return null
-  }
-
-  const logoUrl = getLogoUrl(tool)
-
   const handleFavoriteToggle = async () => {
     if (!isLoggedIn) {
       setShowLoginPrompt(true)
@@ -323,55 +246,7 @@ function ToolDetailPage() {
           <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-lg dark:border-gray-700 dark:bg-gray-800">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
               <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gray-100 dark:bg-gray-800">
-                {/* OLD LOGO BLOCK:
-                {(() => {
-                  const resolvedLogoUrl = getLogoUrl(tool)
-                  return resolvedLogoUrl ? (
-                    <img
-                      src={resolvedLogoUrl}
-                      alt={tool.name}
-                      style={{
-                        width: 64,
-                        height: 64,
-                        borderRadius: 12,
-                        objectFit: 'contain',
-                        background: '#fff',
-                        padding: 4,
-                      }}
-                      onError={(e) => {
-                        e.target.style.display = 'none'
-                        if (e.target.nextSibling) {
-                          e.target.nextSibling.style.display = 'flex'
-                        }
-                      }}
-                    />
-                  ) : null
-                })()}
-                */}
-                {getLogoUrl(tool) && (
-                  <img
-                    src={getLogoUrl(tool)}
-                    alt={tool.name}
-                    style={{ width: 64, height: 64, borderRadius: 12, objectFit: 'contain', background: '#fff', padding: 4 }}
-                    onError={(e) => { e.target.style.display = 'none'; }}
-                  />
-                )}
-                <div
-                  style={{
-                    display: logoUrl ? 'none' : 'flex',
-                    width: 64,
-                    height: 64,
-                    borderRadius: 12,
-                    background: tool.accent_color || '#6366f1',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 28,
-                    color: '#fff',
-                    fontWeight: 700,
-                  }}
-                >
-                  {tool.logo_emoji || (tool.name || '?')[0].toUpperCase()}
-                </div>
+                <ToolLogo tool={tool} size={64} />
               </div>
 
               <div className="min-w-0 flex-1">
@@ -491,9 +366,6 @@ function ToolDetailPage() {
             ) : (
               <div className="mt-4 space-y-3">
                 {relatedTools.map((relatedTool) => {
-                  const relatedLogo = `https://logo.clearbit.com/${getToolDomain(relatedTool.name)}`
-                  const relatedImgError = Boolean(relatedImgErrors[relatedTool.slug])
-
                   return (
                     <button
                       key={relatedTool.slug}
@@ -502,28 +374,7 @@ function ToolDetailPage() {
                       className="flex w-full items-center gap-3 rounded-xl border border-gray-200 bg-white p-3 text-left transition hover:border-indigo-300 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-900 dark:hover:border-indigo-500 dark:hover:bg-gray-800"
                     >
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
-                        {!relatedImgError ? (
-                          <img
-                            src={relatedLogo}
-                            alt={`${relatedTool.name} logo`}
-                            className="h-8 w-8 rounded-full bg-white object-contain"
-                            onError={() => {
-                              setRelatedImgErrors((previous) => ({
-                                ...previous,
-                                [relatedTool.slug]: true,
-                              }))
-                            }}
-                          />
-                        ) : (
-                          <div
-                            className={clsx(
-                              'flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold',
-                              getAvatarClass(relatedTool.name),
-                            )}
-                          >
-                            {relatedTool.name.charAt(0).toUpperCase()}
-                          </div>
-                        )}
+                        <ToolLogo tool={relatedTool} size={40} />
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-semibold text-gray-900 dark:text-white">{relatedTool.name}</p>

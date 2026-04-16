@@ -33,7 +33,7 @@ def _load_tools_from_disk(data_path: str = DEFAULT_TOOLS_PATH) -> List[Dict[str,
     lock = FileLock(_get_lock_path(data_path), timeout=5)
     try:
         with lock:
-            with open(data_path, "r", encoding="utf-8-sig") as file:
+            with open(data_path, "r", encoding="utf-8") as file:
                 payload = json.load(file)
     except Timeout:
         print(f"[STARTUP] ERROR: FileLock timed out for {data_path!r}", file=sys.stderr)

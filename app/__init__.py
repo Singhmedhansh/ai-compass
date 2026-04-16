@@ -95,6 +95,7 @@ def create_app(config: dict | None = None) -> Flask:
         static_folder=os.path.join(project_root, "static"),
         static_url_path="/static",
     )
+    app.config["JSON_AS_ASCII"] = False
 
     # Apply test config first
     if config:

@@ -40,74 +40,6 @@ function getTrendingScore(tool) {
   return ratingWeight + reviewWeight + freshnessBonus
 }
 
-const getLogoUrl = (tool) => {
-  if (tool.logo_url) return tool.logo_url
-  const domainMap = {
-    'chatgpt': 'openai.com',
-    'claude': 'anthropic.com',
-    'cursor': 'cursor.sh',
-    'github copilot': 'github.com',
-    'midjourney': 'midjourney.com',
-    'perplexity': 'perplexity.ai',
-    'perplexity ai': 'perplexity.ai',
-    'grammarly': 'grammarly.com',
-    'notion': 'notion.so',
-    'notion ai': 'notion.so',
-    'notion calendar': 'notion.so',
-    'elevenlabs': 'elevenlabs.io',
-    'runway': 'runwayml.com',
-    'canva': 'canva.com',
-    'figma': 'figma.com',
-    'vercel': 'vercel.com',
-    'supabase': 'supabase.com',
-    'hugging face': 'huggingface.co',
-    'github': 'github.com',
-    'google colab': 'colab.research.google.com',
-    'streamlit': 'streamlit.io',
-    'replit': 'replit.com',
-    'linear': 'linear.app',
-    'loom': 'loom.com',
-    'slack': 'slack.com',
-    'zoom': 'zoom.us',
-    'obsidian': 'obsidian.md',
-    'todoist': 'todoist.com',
-    'otter.ai': 'otter.ai',
-    'copy.ai': 'copy.ai',
-    'jasper': 'jasper.ai',
-    'writesonic': 'writesonic.com',
-    'synthesia': 'synthesia.io',
-    'descript': 'descript.com',
-    'murf': 'murf.ai',
-    'tome': 'tome.app',
-    'gamma': 'gamma.app',
-    'beautiful.ai': 'beautiful.ai',
-    'pika': 'pika.art',
-    'leonardo ai': 'leonardo.ai',
-    'stable diffusion': 'stability.ai',
-    'dall-e': 'openai.com',
-    'adobe firefly': 'adobe.com',
-    'microsoft copilot': 'microsoft.com',
-    'gemini': 'gemini.google.com',
-    'mistral': 'mistral.ai',
-    'groq': 'groq.com',
-    'ollama': 'ollama.ai',
-    'huggingchat': 'huggingface.co',
-    'bolt.new': 'bolt.new',
-    'v0': 'v0.dev',
-    'windsurf': 'codeium.com',
-    'codeium': 'codeium.com',
-    'tabnine': 'tabnine.com',
-    'sourcegraph': 'sourcegraph.com',
-    'leetcode': 'leetcode.com',
-    'neetcode': 'neetcode.io',
-    'codewars': 'codewars.com',
-  }
-  const key = (tool.name || '').toLowerCase().trim()
-  const domain = domainMap[key]
-  if (domain) return `https://logo.clearbit.com/${domain}`
-  return null
-}
-
 
 function DirectoryPage() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -362,7 +294,7 @@ function DirectoryPage() {
         <AnimatedGrid className="tools-grid grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {filteredTools.map((tool) => (
             <AnimatedItem key={tool.slug || tool.name}>
-              <Card tool={tool} getLogoUrl={getLogoUrl} />
+              <Card tool={tool} />
             </AnimatedItem>
           ))}
         </AnimatedGrid>

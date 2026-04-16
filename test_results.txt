@@ -1,0 +1,56 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.11.4, pytest-9.0.2, pluggy-1.6.0 -- C:\Users\singh\New folder (2)\ai-compass\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\singh\New folder (2)\ai-compass
+plugins: cov-7.1.0, flask-1.3.0
+collecting ... collected 37 items
+
+tests/test_auth.py::test_login_page_renders PASSED                       [  2%]
+tests/test_auth.py::test_register_page_renders PASSED                    [  5%]
+tests/test_auth_flow.py::test_login_flow[login_data0-expected_status0] PASSED [  8%]
+tests/test_auth_flow.py::test_login_flow[login_data1-expected_status1] PASSED [ 10%]
+tests/test_routes.py::test_route_exists[/] PASSED                        [ 13%]
+tests/test_routes.py::test_route_exists[/tools] PASSED                   [ 16%]
+tests/test_routes.py::test_route_exists[/login] PASSED                   [ 18%]
+tests/test_routes.py::test_route_exists[/register] PASSED                [ 21%]
+tests/test_routes.py::test_route_exists[/dashboard] PASSED               [ 24%]
+tests/test_routes.py::test_route_exists[/profile] PASSED                 [ 27%]
+tests/test_routes.py::test_route_exists[/settings] PASSED                [ 29%]
+tests/test_routes.py::test_route_exists[/saved-tools] PASSED             [ 32%]
+tests/test_routes.py::test_route_exists[/compare] PASSED                 [ 35%]
+tests/test_routes.py::test_route_exists[/compare-tools] PASSED           [ 37%]
+tests/test_routes.py::test_route_exists[/submit-tool] PASSED             [ 40%]
+tests/test_routes.py::test_route_exists[/updates] PASSED                 [ 43%]
+tests/test_routes.py::test_route_exists[/weekly-ai-tools] PASSED         [ 45%]
+tests/test_routes.py::test_route_exists[/report-bug] PASSED              [ 48%]
+tests/test_routes.py::test_route_exists[/health] PASSED                  [ 51%]
+tests/test_routes.py::test_tool_detail_route PASSED                      [ 54%]
+tests/test_smoke.py::test_route_exists[/] PASSED                         [ 56%]
+tests/test_smoke.py::test_route_exists[/login] PASSED                    [ 59%]
+tests/test_smoke.py::test_route_exists[/register] PASSED                 [ 62%]
+tests/test_smoke.py::test_route_exists[/tools] PASSED                    [ 64%]
+tests/test_smoke.py::test_route_exists[/dashboard] PASSED                [ 67%]
+tests/test_smoke.py::test_route_exists[/profile] PASSED                  [ 70%]
+tests/test_smoke.py::test_route_exists[/settings] PASSED                 [ 72%]
+tests/test_smoke.py::test_route_exists[/saved-tools] PASSED              [ 75%]
+tests/test_smoke.py::test_route_exists[/compare] PASSED                  [ 78%]
+tests/test_smoke.py::test_route_exists[/compare-tools] PASSED            [ 81%]
+tests/test_smoke.py::test_route_exists[/submit-tool] PASSED              [ 83%]
+tests/test_smoke.py::test_route_exists[/updates] PASSED                  [ 86%]
+tests/test_smoke.py::test_route_exists[/weekly-ai-tools] PASSED          [ 89%]
+tests/test_smoke.py::test_route_exists[/report-bug] PASSED               [ 91%]
+tests/test_smoke.py::test_route_exists[/health] PASSED                   [ 94%]
+tests/test_tool_routes.py::test_tools_listing PASSED                     [ 97%]
+tests/test_tool_routes.py::test_tool_detail PASSED                       [100%]
+
+============================== warnings summary ===============================
+tests/test_auth.py::test_login_page_renders
+  C:\Users\singh\New folder (2)\ai-compass\.venv\Lib\site-packages\flask_session\filesystem\filesystem.py:57: DeprecationWarning: 'SESSION_FILE_DIR' is deprecated and will be removed in a future release. Instead pass FileSystemCache(directory, threshold, mode) instance as SESSION_CACHELIB.
+    warnings.warn(
+
+tests/test_auth.py::test_login_page_renders
+  C:\Users\singh\New folder (2)\ai-compass\.venv\Lib\site-packages\flask_session\filesystem\filesystem.py:75: DeprecationWarning: FileSystemSessionInterface is deprecated and will be removed in a future release. Instead use the CacheLib backend directly.
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================= 37 passed, 2 warnings in 31.69s =======================
