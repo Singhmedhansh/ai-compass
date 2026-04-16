@@ -642,14 +642,41 @@ def delete_tool(slug):
 
 @api_bp.delete("/admin/reviews/<int:review_id>")
 @login_required
-def delete_review(review_id):
-    if not getattr(current_user, "is_admin", False):
+def admin_delete_review(review_id):
+    if not current_user.is_admin:
         return jsonify({"error": "Forbidden"}), 403
-
-    review = ToolRating.query.get_or_404(review_id)
-    db.session.delete(review)
+    r = Review.query.get_or_404(review_id)
+    db.session.delete(r)
     db.session.commit()
     return jsonify({"success": True})
+
+@api_bp.delete("/admin/ratings/<int:rating_id>")
+@login_required
+def admin_delete_rating(rating_id):
+    if not current_user.is_admin:
+        return jsonify({"error": "Forbidden"}), 403
+    r = Rating.query.get_or_404(rating_id)
+    db.session.delete(r)
+    db.session.commit()
+    return jsonify({"success": True})
+
+@api_bp.get("/admin/reviews")
+@login_required
+def admin_get_reviews():
+    if not current_user.is_admin:
+        return jsonify({"error": "Forbidden"}), 403
+    from app.models import Review
+    reviews = Review.query.order_by(Review.created_at.desc()).limit(100).all()
+    return jsonify({
+        "reviews": [{
+            "id": r.id,
+            "user": (r.user.full_name or r.user.username) if r.user else "Anonymous",
+            "tool_slug": r.tool_slug,
+            "body": r.body,
+            "created_at": r.created_at.isoformat() if r.created_at else None,
+            "is_hidden": r.is_hidden,
+        } for r in reviews]
+    })
 
 
 @api_bp.get("/admin/submissions")

@@ -9,7 +9,7 @@ import SearchInput from '../components/ui/SearchInput'
 const ADMIN_EMAILS = ['singhmedhansh07@gmail.com']
 const TOOLS_PAGE_SIZE = 15
 const COLLECTIONS_COUNT = 7
-const TABS = ['Overview', 'Tools', 'Users', 'ML Model']
+const TABS = ['Overview', 'Tools', 'Users', 'Reviews', 'ML Model']
 
 const CATEGORY_STYLES = {
   Coding: 'bg-blue-500',
@@ -139,6 +139,7 @@ function AdminPage() {
 
   const [tools, setTools] = useState([])
   const [users, setUsers] = useState([])
+  const [reviews, setReviews] = useState([])
 
   const [toolsQuery, setToolsQuery] = useState('')
   const [toolsPage, setToolsPage] = useState(1)
@@ -164,15 +165,17 @@ function AdminPage() {
 
     async function loadAdminData() {
       try {
-        const [statsResponse, toolsResponse, usersResponse] = await Promise.all([
+        const [statsResponse, toolsResponse, usersResponse, reviewsResponse] = await Promise.all([
           fetch('/api/v1/admin/stats'),
           fetch('/api/v1/tools'),
           fetch('/api/v1/admin/users'),
+          fetch('/api/v1/admin/reviews'),
         ])
 
         const statsData = statsResponse.ok ? await statsResponse.json() : {}
         const toolsData = toolsResponse.ok ? await toolsResponse.json() : []
         const usersData = usersResponse.ok ? await usersResponse.json() : []
+        const reviewsData = reviewsResponse.ok ? await reviewsResponse.json() : { reviews: [] }
 
         if (!mounted) {
           return
@@ -195,6 +198,7 @@ function AdminPage() {
             : []
         setTools(normalizedTools)
         setUsers(Array.isArray(usersData) ? usersData : [])
+        setReviews(Array.isArray(reviewsData.reviews) ? reviewsData.reviews : [])
       } catch {
         if (mounted) {
           toast.error('Failed to load admin data')
@@ -343,6 +347,23 @@ function AdminPage() {
       toast.error(error.message || 'Failed to delete tool')
     }
   }
+
+  const handleDeleteReview = async (id) => {
+    if (!confirm("Delete this review?")) return;
+    try {
+      const res = await fetch(`/api/v1/admin/reviews/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (data.success) {
+        setReviews(prev => prev.filter(r => r.id !== id));
+        toast.success("Review deleted");
+      }
+    } catch {
+      toast.error("Failed to delete review");
+    }
+  };
 
   const handleExportCsv = () => {
     const header = buildCsvRow(['Name', 'Category', 'Rating', 'Pricing', 'Student Friendly', 'Slug'])
@@ -624,6 +645,36 @@ function AdminPage() {
     </section>
   )
 
+  const renderReviewsTab = () => (
+    <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
+      <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Reviews</h2>
+      <div className="mt-4 space-y-4">
+        {reviews.map((r) => (
+          <div key={r.id} className="rounded-lg border border-gray-200 p-4 dark:border-gray-800">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="font-medium text-gray-900 dark:text-gray-100">{r.user}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Tool: {r.tool_slug}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => handleDeleteReview(r.id)}
+                className="rounded-md border border-rose-300 p-2 text-rose-700 transition hover:bg-rose-50 dark:border-rose-500/40 dark:text-rose-300 dark:hover:bg-rose-500/10"
+                aria-label={`Delete review`}
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
+            <p className="mt-2 text-gray-700 dark:text-gray-300">{r.body}</p>
+          </div>
+        ))}
+        {!loading && reviews.length === 0 ? (
+          <p className="text-gray-500 dark:text-gray-400">No reviews found.</p>
+        ) : null}
+      </div>
+    </section>
+  )
+
   const renderModelTab = () => (
     <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
       <h2 className="text-xl font-semibold text-gray-900 dark:text-white">ML Model</h2>
@@ -670,6 +721,7 @@ function AdminPage() {
           {activeTab === 'Overview' ? renderOverviewTab() : null}
           {activeTab === 'Tools' ? renderToolsTab() : null}
           {activeTab === 'Users' ? renderUsersTab() : null}
+          {activeTab === 'Reviews' ? renderReviewsTab() : null}
           {activeTab === 'ML Model' ? renderModelTab() : null}
         </div>
 

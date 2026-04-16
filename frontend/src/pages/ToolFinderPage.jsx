@@ -116,7 +116,7 @@ function getLogoContent(tool = {}) {
 }
 
 function getToolUrl(tool = {}) {
-  return tool.link || tool.url || '#'
+  return tool.website_url || tool.url || tool.link || '#'
 }
 
 function StepCard({ option, selected, onClick, compact = false }) {
@@ -514,7 +514,11 @@ function ToolFinderPage() {
                 className="tool-card group relative flex h-full min-w-0 flex-col rounded-2xl border border-gray-200 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:border-indigo-300 hover:shadow-md dark:border-gray-700 dark:bg-gray-800 dark:hover:border-indigo-500"
               >
                 <div className="flex flex-1 flex-col gap-4 p-5">
-                  <div className="flex items-start gap-3">
+                  <div
+                    className="flex items-start gap-3"
+                    onClick={() => navigate(`/tools/${tool.slug || ''}`)}
+                    style={{ cursor: "pointer" }}
+                  >
                     <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-slate-100 text-lg font-bold text-slate-700 dark:bg-slate-900 dark:text-slate-100" aria-hidden="true">
                       {logoContent ? (
                         /^https?:\/\//i.test(String(logoContent)) ? (
@@ -584,7 +588,7 @@ function ToolFinderPage() {
                       className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 transition hover:border-indigo-300 hover:text-indigo-600 dark:border-gray-600 dark:bg-gray-950 dark:text-gray-200 dark:hover:border-indigo-500 dark:hover:text-indigo-300"
                     >
                       <HelpCircle className="h-4 w-4" />
-                      {isExpanded ? 'Hide' : 'Why this?'}
+                      Why this?
                     </MotionButton>
 
                     <a
