@@ -323,6 +323,7 @@ function ToolDetailPage() {
           <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-lg dark:border-gray-700 dark:bg-gray-800">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
               <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gray-100 dark:bg-gray-800">
+                {/* OLD LOGO BLOCK:
                 {(() => {
                   const resolvedLogoUrl = getLogoUrl(tool)
                   return resolvedLogoUrl ? (
@@ -346,6 +347,15 @@ function ToolDetailPage() {
                     />
                   ) : null
                 })()}
+                */}
+                {getLogoUrl(tool) && (
+                  <img
+                    src={getLogoUrl(tool)}
+                    alt={tool.name}
+                    style={{ width: 64, height: 64, borderRadius: 12, objectFit: 'contain', background: '#fff', padding: 4 }}
+                    onError={(e) => { e.target.style.display = 'none'; }}
+                  />
+                )}
                 <div
                   style={{
                     display: logoUrl ? 'none' : 'flex',
