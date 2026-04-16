@@ -218,6 +218,15 @@ def _pricing_value(tool: dict) -> str:
         or tool.get("price")
         or tool.get("pricingType")
     )
+
+
+def _rating_value(tool: dict) -> float:
+    try:
+        return float(tool.get("rating", 0) or 0)
+    except (TypeError, ValueError):
+        return 0.0
+
+
 @api_bp.get("/tools")
 def list_tools():
     from app.tool_cache import get_cached_tools

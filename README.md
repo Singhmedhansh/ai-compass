@@ -27,6 +27,21 @@ Students do not need another generic list of AI tools. They need a fast way to a
 
 AI Compass solves that by pairing a curated directory with recommendation flows, student-friendly ranking logic, and editorial collection pages that feel closer to a startup product than a basic demo app.
 
+## How It Works (End to End)
+
+1. Request entry:
+Users access either server-rendered Flask pages or the React frontend bundle (served from `static/dist` in production).
+2. Tool data source:
+The catalog is loaded from `data/tools.json` and cached through `app/tool_cache.py` for faster reads.
+3. Search and recommendations:
+`app/search_utils.py` ranks query matches, while recommendation endpoints combine ratings, student-friendly metadata, pricing, and goal alignment.
+4. User state and persistence:
+Accounts, favorites, ratings, reviews, newsletter records, and analytics are stored in SQLAlchemy models (`app/models.py`).
+5. Discovery pipeline:
+Scripts in `scripts/` and queue files in `data/` support ingestion, enrichment, moderation, and publication of new tools.
+6. Delivery:
+The app runs via `wsgi.py` + gunicorn in production (Render/Railway/Fly), with optional Docker support.
+
 ## Core Experience
 
 AI Compass currently includes:
@@ -140,10 +155,12 @@ ai-compass/
 pip install -r requirements.txt
 ```
 
-2. Install frontend tooling.
+2. Install frontend dependencies.
 
 ```sh
-npm install -D tailwindcss
+cd frontend
+npm install
+cd ..
 ```
 
 3. Set environment variables.
@@ -165,6 +182,47 @@ npx tailwindcss -i ./static/css/input.css -o ./static/css/style.css --watch
 ```sh
 python app.py
 ```
+
+6. Optional: build the React frontend bundle into `static/dist`.
+
+```sh
+cd frontend
+npm run build
+cd ..
+```
+
+## Testing and Verification
+
+Backend tests:
+
+```sh
+pytest tests -vv
+```
+
+Backend lint:
+
+```sh
+ruff check .
+```
+
+Frontend lint and build:
+
+```sh
+cd frontend
+npm run lint
+npm run build
+cd ..
+```
+
+## Quality Snapshot (April 16, 2026)
+
+1. Backend tests: 37 passed.
+2. Frontend build: successful production build.
+3. Known code-quality debt: lint issues remain in backend, scripts, and frontend (tracked by Ruff and ESLint outputs).
+4. Deployment smoke checks:
+`/`, `/tools`, `/login`, `/register`, `/api/tools`, and `/api/search` return HTTP 200.
+5. Deployment note:
+`/health` currently returns HTML (SPA shell) rather than a JSON health payload.
 
 ## Environment Variables
 

@@ -297,12 +297,14 @@ def _reason(tool, goal, budget, level):
         parts.append("matches your preferences")
     return "This tool is " + ", ".join(parts)
 
+
+def get_top_rated_tools(limit=6):
     if TYPE_CHECKING:
         from app.tool_cache import get_cached_tools
     try:
         from app.tool_cache import get_cached_tools
         tools = get_cached_tools() or []
-        return sorted(tools, key=lambda t: float(t.get('rating', 0)), reverse=True)[:limit]
-    except Exception as e:
+        return sorted(tools, key=lambda t: float(t.get('rating', 0) or 0), reverse=True)[:limit]
+    except Exception:
         # This must be broad because tool cache can fail for many reasons (IO, import, etc.)
         return []
