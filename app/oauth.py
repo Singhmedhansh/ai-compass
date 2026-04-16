@@ -4,7 +4,7 @@ import os
 from urllib.parse import urlencode
 
 from authlib.integrations.flask_client import OAuth
-from flask import Blueprint, current_app, flash, jsonify, redirect, request, session, url_for
+from flask import Blueprint, current_app, flash, jsonify, redirect, session, url_for
 from flask_login import login_user
 
 from app import db
@@ -123,8 +123,7 @@ def login_google():
             redirect_uri,
             nonce=False,
         )
-    except Exception as exc:
-        err = str(exc or "").lower()
+    except Exception:
         return redirect(f"{frontend_url}/login?error=google_failed")
 
 

@@ -13,21 +13,21 @@ const TABS = ['Overview', 'Tools', 'Users', 'ML Model']
 
 const CATEGORY_STYLES = {
   Coding: 'bg-blue-500',
-  'Writing & Chat': 'bg-purple-500',
+  'Writing & Docs': 'bg-purple-500',
   Research: 'bg-emerald-500',
   Productivity: 'bg-amber-500',
-  'Image Generation': 'bg-pink-500',
-  'Video Generation': 'bg-red-500',
+  'Image Gen': 'bg-pink-500',
+  'Video Gen': 'bg-red-500',
   Design: 'bg-cyan-500',
 }
 
 const CATEGORY_ORDER = [
-  'Writing & Chat',
+  'Writing & Docs',
   'Coding',
   'Research',
   'Productivity',
-  'Image Generation',
-  'Video Generation',
+  'Image Gen',
+  'Video Gen',
   'Design',
 ]
 
@@ -44,12 +44,6 @@ function getToolSlug(tool = {}) {
 
 function getToolRating(tool = {}) {
   return Number(tool.rating || tool.average_rating || tool.averageRating || 0)
-}
-
-function isFreeTool(tool = {}) {
-  const pricingTier = String(tool.pricing_tier || '').toLowerCase()
-  const pricing = String(tool.pricing || '').toLowerCase()
-  return pricingTier === 'free' || pricing === 'free'
 }
 
 function downloadTextFile(filename, content, mimeType) {
@@ -171,9 +165,9 @@ function AdminPage() {
     async function loadAdminData() {
       try {
         const [statsResponse, toolsResponse, usersResponse] = await Promise.all([
-          fetch('/api/v1/admin/stats', { credentials: 'include' }),
-          fetch('/api/v1/tools', { credentials: 'include' }),
-          fetch('/api/v1/admin/users', { credentials: 'include' }),
+          fetch('/api/v1/admin/stats'),
+          fetch('/api/v1/tools'),
+          fetch('/api/v1/admin/users'),
         ])
 
         const statsData = statsResponse.ok ? await statsResponse.json() : {}
@@ -191,7 +185,7 @@ function AdminPage() {
           category_counts: statsData.category_counts || {},
           free_tools: Number(statsData.free_tools || 0),
           freemium_tools: Number(statsData.freemium_tools || 0),
-          model_status: String(statsData.ml_status || statsData.model_status || 'inactive').toLowerCase(),
+          model_status: String(statsData.model_status || 'inactive').toLowerCase(),
           index_size: Number(statsData.index_size || 0),
         })
         const normalizedTools = Array.isArray(toolsData)

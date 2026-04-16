@@ -8,22 +8,35 @@ export default function RatingWidget({ slug, isLoggedIn }) {
   const [message, setMessage] = useState('')
   const API = import.meta.env.VITE_API_URL || ''
 
-  const fetchRatings = async () => {
-    try {
-      const response = await fetch(`${API}/api/v1/tools/${slug}/ratings`, { credentials: 'include' })
-      const data = await response.json()
-      setAverage(Number(data.average || 0))
-      setCount(Number(data.count || 0))
-      setUserRating(data.user_rating ?? null)
-      setMessage(data.message || '')
-    } catch {
-      setMessage('Unable to load ratings right now.')
-    }
-  }
-
   useEffect(() => {
-    fetchRatings()
-  }, [slug])
+    let active = true
+
+    const loadRatings = async () => {
+      try {
+        const response = await fetch(`${API}/api/v1/tools/${slug}/ratings`, { credentials: 'include' })
+        const data = await response.json()
+
+        if (!active) {
+          return
+        }
+
+        setAverage(Number(data.average || 0))
+        setCount(Number(data.count || 0))
+        setUserRating(data.user_rating ?? null)
+        setMessage(data.message || '')
+      } catch {
+        if (active) {
+          setMessage('Unable to load ratings right now.')
+        }
+      }
+    }
+
+    void loadRatings()
+
+    return () => {
+      active = false
+    }
+  }, [API, slug])
 
   const handleRate = async (value) => {
     if (!isLoggedIn) {
@@ -40,7 +53,17 @@ export default function RatingWidget({ slug, isLoggedIn }) {
       })
       const data = await response.json()
       if (data.success) {
-        await fetchRatings()
+        setHovered(0)
+        try {
+          const refreshed = await fetch(`${API}/api/v1/tools/${slug}/ratings`, { credentials: 'include' })
+          const refreshedData = await refreshed.json()
+          setAverage(Number(refreshedData.average || 0))
+          setCount(Number(refreshedData.count || 0))
+          setUserRating(refreshedData.user_rating ?? null)
+          setMessage(refreshedData.message || '')
+        } catch {
+          setMessage('Unable to load ratings right now.')
+        }
       }
     } catch {
       setMessage('Unable to submit rating right now.')

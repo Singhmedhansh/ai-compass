@@ -1,8 +1,6 @@
 import json
 import os
 import re
-import subprocess
-import sys
 from collections import Counter
 from datetime import datetime, timezone
 
@@ -11,15 +9,13 @@ from flask_login import current_user, login_required, login_user, logout_user
 from sqlalchemy import func
 
 from app import bcrypt, csrf, db
-from app.ml_recommender import get_recommendations, get_similar_tools
+from app.ml_recommender import get_similar_tools
 from app.models import Favorite, Rating, Review, ToolRating, User
 from app.search_utils import search_tools
-from app.tool_cache import get_cached_tools, prime_tools_cache
+from app.tool_cache import DEFAULT_TOOLS_PATH, get_cached_tools, prime_tools_cache
 
 api_bp = Blueprint("api", __name__)
 compat_bp = Blueprint("compat", __name__)  # registered at /api for backward compat
-
-from app.tool_cache import DEFAULT_TOOLS_PATH
 
 DATA_PATH = DEFAULT_TOOLS_PATH
 STACKS_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "stacks")
@@ -188,8 +184,6 @@ def _tools_json_path() -> str:
 
 
 def _serialize_user(user: User) -> dict:
-    from datetime import datetime, timezone
-    
     # Format created_at as "Month Year" (e.g., "December 2024")
     member_since = "April 2026"
     if user.created_at:
@@ -357,10 +351,6 @@ def post_review(slug: str):
         db.session.rollback()
         print(f"[REVIEWS POST] Error: {e}")
         return jsonify({"error": "Could not save review"}), 500
-
-
-from app.search_utils import search_tools
-
 @api_bp.get("/search")
 def api_search():
     raw_query   = request.args.get('q', '').strip()[:150]
@@ -908,9 +898,6 @@ def list_favorites():
 @csrf.exempt
 @api_bp.route('/stack', methods=['POST'])
 def save_stack():
-    import json, os
-    from flask_login import current_user
-
     data = request.get_json() or {}
 
     # Get user id from request body (since React uses localStorage not Flask session)
@@ -941,8 +928,6 @@ def save_stack():
 
 @api_bp.route('/stack', methods=['GET'])
 def get_stack():
-    import json, os
-
     user_id = request.args.get('user_id')
     if not user_id:
         return jsonify({'stack': None}), 200

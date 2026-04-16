@@ -376,9 +376,11 @@ def _persist_tool_to_db(tool_dict):
     
     for t_str in raw_tags:
         tag_name = str(t_str).strip()
-        if not tag_name: continue
+        if not tag_name:
+            continue
         tag_slug = build_queue_tool_key(tag_name)
-        if not tag_slug: continue
+        if not tag_slug:
+            continue
         
         tag = Tag.query.filter_by(slug=tag_slug).first()
         if not tag:

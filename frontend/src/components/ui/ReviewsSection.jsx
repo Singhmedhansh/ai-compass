@@ -8,21 +8,34 @@ export default function ReviewsSection({ slug, isLoggedIn }) {
   const [submitting, setSubmitting] = useState(false)
   const API = import.meta.env.VITE_API_URL || ''
 
-  const fetchReviews = async () => {
-    try {
-      const response = await fetch(`${API}/api/v1/tools/${slug}/reviews`, { credentials: 'include' })
-      const data = await response.json()
-      setReviews(Array.isArray(data.reviews) ? data.reviews : [])
-      setMessage(data.message || '')
-    } catch {
-      setReviews([])
-      setMessage('Unable to load reviews right now.')
-    }
-  }
-
   useEffect(() => {
-    fetchReviews()
-  }, [slug])
+    let active = true
+
+    const loadReviews = async () => {
+      try {
+        const response = await fetch(`${API}/api/v1/tools/${slug}/reviews`, { credentials: 'include' })
+        const data = await response.json()
+
+        if (!active) {
+          return
+        }
+
+        setReviews(Array.isArray(data.reviews) ? data.reviews : [])
+        setMessage(data.message || '')
+      } catch {
+        if (active) {
+          setReviews([])
+          setMessage('Unable to load reviews right now.')
+        }
+      }
+    }
+
+    void loadReviews()
+
+    return () => {
+      active = false
+    }
+  }, [API, slug])
 
   const handleSubmit = async () => {
     if (!isLoggedIn) {
@@ -50,7 +63,15 @@ export default function ReviewsSection({ slug, isLoggedIn }) {
       if (data.success) {
         setBody('')
         setMessage('')
-        await fetchReviews()
+        try {
+          const refreshed = await fetch(`${API}/api/v1/tools/${slug}/reviews`, { credentials: 'include' })
+          const refreshedData = await refreshed.json()
+          setReviews(Array.isArray(refreshedData.reviews) ? refreshedData.reviews : [])
+          setMessage(refreshedData.message || '')
+        } catch {
+          setReviews([])
+          setMessage('Unable to load reviews right now.')
+        }
       } else if (data.error) {
         setError(data.error)
       }

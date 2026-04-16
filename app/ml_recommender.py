@@ -1,7 +1,6 @@
 import os
 import pickle
 from typing import TYPE_CHECKING
-from sklearn.metrics.pairwise import cosine_similarity
 
 
 # Use a module-level state dict instead of global
@@ -289,7 +288,7 @@ def _reason(tool, goal, budget, level):
         rating = float(tool.get('rating', 0))
         if rating >= 4.5:
             parts.append(f"highly rated {rating:.1f} stars")
-    except:
+    except (TypeError, ValueError):
         pass
     if goal:
         parts.append(f"matches your {goal} goal")

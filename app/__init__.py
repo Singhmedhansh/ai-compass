@@ -2,24 +2,25 @@ import os
 import sys
 from dotenv import load_dotenv
 
-load_dotenv()
-
-from collections import Counter
-from flask import Flask, session, request, jsonify, current_app
+from flask import Flask, request
 from flask_bcrypt import Bcrypt
-from flask_login import LoginManager, current_user
+from flask_login import LoginManager
+from flask_sqlalchemy import SQLAlchemy
+from flask_wtf import CSRFProtect
+
+from app.tool_cache import DEFAULT_TOOLS_PATH, get_cached_tools, prime_tools_cache
+
+load_dotenv()
 
 # --- Safe flask_session import (Fix 3a) ---
 try:
     from flask_session import Session
+    from cachelib.file import FileSystemCache
     USE_SERVER_SESSION = True
 except ImportError:
+    Session = None
+    FileSystemCache = None
     USE_SERVER_SESSION = False
-from flask_sqlalchemy import SQLAlchemy
-from flask_wtf import CSRFProtect
-from sqlalchemy import inspect, text
-
-from app.tool_cache import get_cached_tools, prime_tools_cache
 
 # --- Sentry initialization (safe import) ---
 try:
@@ -88,9 +89,6 @@ def create_app(config: dict | None = None) -> Flask:
     project_root = os.path.dirname(os.path.dirname(__file__))
     _load_local_dotenv(project_root)
 
-    from app.tool_cache import DEFAULT_TOOLS_PATH
-    data_path = DEFAULT_TOOLS_PATH
-
     app = Flask(
         __name__,
         instance_relative_config=True,
@@ -115,9 +113,16 @@ def create_app(config: dict | None = None) -> Flask:
     app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
     app.config['SESSION_COOKIE_HTTPONLY'] = True
     app.config['REMEMBER_COOKIE_SECURE'] = True
-    app.config['SESSION_TYPE'] = 'filesystem'
-    app.config['SESSION_FILE_DIR'] = os.path.join(project_root, 'instance', 'flask_session')
-    os.makedirs(app.config['SESSION_FILE_DIR'], exist_ok=True)
+
+    if USE_SERVER_SESSION and FileSystemCache is not None:
+        session_dir = os.path.join(project_root, 'instance', 'flask_session')
+        os.makedirs(session_dir, exist_ok=True)
+        app.config['SESSION_TYPE'] = 'cachelib'
+        app.config['SESSION_CACHELIB'] = FileSystemCache(
+            cache_dir=session_dir,
+            threshold=500,
+            mode=0o600,
+        )
 
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
@@ -137,7 +142,6 @@ def create_app(config: dict | None = None) -> Flask:
 
     if USE_SERVER_SESSION:
         Session(app)
-
 
     db.init_app(app)
     login_manager.init_app(app)
@@ -178,8 +182,6 @@ def create_app(config: dict | None = None) -> Flask:
 
     _register_blueprints(app)
 
-    from flask import request
-
     @app.after_request
     def add_cors(response):
         allowed_origins = [
@@ -206,15 +208,13 @@ def create_app(config: dict | None = None) -> Flask:
                 print(f"[STARTUP] migrate skipped: {e}")
 
             try:
-                from app.models import User, Favorite, Rating, Review
                 db.create_all()
                 print("[STARTUP] db.create_all() done")
             except Exception as e:
                 print(f"[STARTUP] db.create_all() error: {e}")
 
-            from app.tool_cache import prime_tools_cache, DEFAULT_TOOLS_PATH, get_cached_tools
             print(f"[STARTUP] cwd: {os.getcwd()}")
-            print(f"[STARTUP] Loading tools...")
+            print("[STARTUP] Loading tools...")
             prime_tools_cache(DEFAULT_TOOLS_PATH)
             print(f"[STARTUP] Loaded {len(get_cached_tools())} tools")
 

@@ -1,6 +1,4 @@
-import re
 import sys
-from typing import List
 
 STOPWORDS = {
     "for", "a", "an", "the", "to", "and", "or", "with", "that",
@@ -98,23 +96,31 @@ def score_token_against_tool(token, tool_index):
     score = 0.0
     name = tool_index["_name_lower"]
 
-    if name == token:             score += 100
-    elif name.startswith(token):  score += 65
-    elif token in name:           score += 45
+    if name == token:
+        score += 100
+    elif name.startswith(token):
+        score += 65
+    elif token in name:
+        score += 45
 
     if token in tool_index["_category_lower"]:
         score += 35
 
     for tag in tool_index["_tags_lower"]:
-        if token == tag:          score += 30
-        elif token in tag:        score += 18
-        elif tag in token:        score += 12
+        if token == tag:
+            score += 30
+        elif token in tag:
+            score += 18
+        elif tag in token:
+            score += 12
 
     for uc in tool_index["_uses_lower"]:
-        if token in uc:           score += 16
+        if token in uc:
+            score += 16
 
     for s in tool_index["_strengths_lower"]:
-        if token in s:            score += 16
+        if token in s:
+            score += 16
 
     if token in tool_index["_desc_lower"]:
         score += 10
@@ -183,9 +189,12 @@ def search_tools(raw_query, category_filter="All", pricing_filter_ui="All",
             if score > 0:
                 # Phrase bonus
                 phrase = " ".join(tokens)
-                if phrase in entry["_name_lower"]:           score += 40
-                if phrase in entry["_desc_lower"]:           score += 25
-                if phrase in " ".join(entry["_tags_lower"]): score += 20
+                if phrase in entry["_name_lower"]:
+                    score += 40
+                if phrase in entry["_desc_lower"]:
+                    score += 25
+                if phrase in " ".join(entry["_tags_lower"]):
+                    score += 20
 
                 # Category hint soft boost
                 if category_hint and tool.get("category") == category_hint:
@@ -207,8 +216,10 @@ def search_tools(raw_query, category_filter="All", pricing_filter_ui="All",
 
                 # Quality multiplier — better tools rank higher when scores are close
                 score += float(tool.get("rating", 0)) * 3
-                if tool.get("trending"): score += 6
-                if tool.get("featured"): score += 4
+                if tool.get("trending"):
+                    score += 6
+                if tool.get("featured"):
+                    score += 4
 
         if score > 0:
             results.append({**tool, "_score": score})

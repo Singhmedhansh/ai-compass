@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, TextAreaField
-from wtforms.validators import DataRequired, Email, Length, URL, Optional
+from wtforms import StringField, PasswordField, TextAreaField
+from wtforms.validators import DataRequired, Email, Length, URL
 from marshmallow import Schema, fields, validate, post_load
 
 # ----- WTForms for Template Integration -----

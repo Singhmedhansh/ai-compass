@@ -1,7 +1,10 @@
 import os
+from importlib import import_module
+
 import pytest
 from app import create_app, db
-from app.models import *  # ensure models are registered
+
+import_module("app.models")
 
 
 @pytest.fixture(scope="session")

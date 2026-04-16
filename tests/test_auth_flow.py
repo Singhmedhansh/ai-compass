@@ -1,5 +1,3 @@
-
-import pytest
 import pytest
 
 @pytest.mark.parametrize("login_data,expected_status", [
