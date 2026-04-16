@@ -84,7 +84,7 @@ function ToolLogo({ tool, size = 48 }) {
         fontSize: size * 0.4,
       }}
     >
-      {(tool?.name || '?')[0].toUpperCase()}
+      {tool?.emoji || tool?.logo_emoji || (tool?.name || '?')[0].toUpperCase()}
     </div>
   )
 }

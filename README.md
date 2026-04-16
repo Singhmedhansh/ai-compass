@@ -27,20 +27,24 @@ Students do not need another generic list of AI tools. They need a fast way to a
 
 AI Compass solves that by pairing a curated directory with recommendation flows, student-friendly ranking logic, and editorial collection pages that feel closer to a startup product than a basic demo app.
 
-## How It Works (End to End)
+## 🚀 How It Works (For Users & Developers)
 
-1. Request entry:
-Users access either server-rendered Flask pages or the React frontend bundle (served from `static/dist` in production).
-2. Tool data source:
-The catalog is loaded from `data/tools.json` and cached through `app/tool_cache.py` for faster reads.
-3. Search and recommendations:
-`app/search_utils.py` ranks query matches, while recommendation endpoints combine ratings, student-friendly metadata, pricing, and goal alignment.
-4. User state and persistence:
-Accounts, favorites, ratings, reviews, newsletter records, and analytics are stored in SQLAlchemy models (`app/models.py`).
-5. Discovery pipeline:
-Scripts in `scripts/` and queue files in `data/` support ingestion, enrichment, moderation, and publication of new tools.
-6. Delivery:
-The app runs via `wsgi.py` + gunicorn in production (Render/Railway/Fly), with optional Docker support.
+AI Compass is designed to be the ultimate discovery engine for students. Here is how it works under the hood and for the end-user:
+
+### 1. The User Experience
+When a student lands on AI Compass, they are greeted by a sleek, dynamic interface where they can:
+*   **Search & Filter:** Instantly search through a curated database of 400+ AI tools by category, intent, or pricing (e.g., "Free Coding Tools"). 
+*   **Discover via AI Tool Finder:** Not sure what to use? Users can click "Get My AI Stack" to enter a multi-step interactive wizard. By selecting their goal, budget, and skill level, the system dynamically generates a personalized "AI Stack" recommendation using our recommendation engine.
+*   **Explore Curated Collections:** Browse SEO-optimized, editorial collections like "Best Free AI Tools for Students" to quickly find high-quality resources without sifting through enterprise software.
+*   **Engage:** Authenticated users can rate tools, write real reviews, and build a library of favorites.
+
+### 2. Under the Hood (Technical Architecture)
+*   **The Brain (Machine Learning):** AI Compass utilizes an intelligent TF-IDF + Cosine Similarity recommendation matrix. When a user asks for tools related to a specific intent (like "academic research"), the NLP-powered backend parses the query, strips stop words, extracts intent, applies relevance boosting, and serves hyper-relevant results.
+*   **The Backend (Flask & Python):** The robust Flask server orchestrates API endpoints (`/api/v1/search`), handles secure user authentication via Flask-Login and Bcrypt, and manages session state.
+*   **The Frontend (Vite + React & Tailwind):** The highly responsive, dark-mode native user interface is served from an optimized static bundle. It features micro-animations, fast client-side routing, and real-time query debouncing.
+*   **The Data (PostgreSQL/SQLite & JSON):** The core catalog of tools is maintained in a rich JSON structure and pre-cached in memory for lightning-fast reads, while dynamic user data (accounts, ratings, analytics, and newsletters) is persistently stored in SQL.
+
+*End result: A seamless, product-grade web application optimized for absolute speed and discovery.*
 
 ## Core Experience
 

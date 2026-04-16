@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Helmet } from 'react-helmet-async'
 import { useSearchParams } from 'react-router-dom'
-
 import { AnimatedGrid, AnimatedItem } from '../components/AnimatedGrid'
 import PageTransition from '../components/PageTransition'
 import { Button, Card, SearchInput, SkeletonCard } from '../components/ui'
@@ -124,25 +124,22 @@ function DirectoryPage() {
   }, [debouncedSearchQuery, category])
 
   const filteredTools = useMemo(() => {
-    if (hasSearchQuery) {
-      return tools
-    }
-
     const normalizedSearch = debouncedSearchQuery.trim().toLowerCase()
 
+    // 1. Always filter by category (backend might have done it, but this is safe)
     const byCategory = tools.filter((tool) => {
       if (category === 'All') {
         return true
       }
-
       return getNormalizedCategory(tool.category) === getNormalizedCategory(category)
     })
 
-    const bySearch = byCategory.filter((tool) => {
+    // 2. If it's a remote search, skip substring filtering (which breaks semantic matches)
+    //    If it's NOT a remote search, do standard substring filtering.
+    const bySearch = hasSearchQuery ? byCategory : byCategory.filter((tool) => {
       if (!normalizedSearch) {
         return true
       }
-
       const normalizedName = (tool.name || '').toLowerCase()
       const normalizedDescription = (tool.description || '').toLowerCase()
       return normalizedName.includes(normalizedSearch) || normalizedDescription.includes(normalizedSearch)
@@ -172,6 +169,11 @@ function DirectoryPage() {
         return (b.rating || 0) - (a.rating || 0)
       }
 
+      // If we performed a semantic search, trust the backend's `_score` if it exists
+      if (hasSearchQuery && a._score !== undefined && b._score !== undefined) {
+        return b._score - a._score
+      }
+
       return getTrendingScore(b) - getTrendingScore(a)
     })
 
@@ -190,6 +192,10 @@ function DirectoryPage() {
         className="container main-content mx-auto w-full max-w-7xl bg-gray-50 px-4 py-8 dark:bg-gray-950 sm:px-6 lg:px-8"
         style={{ maxWidth: 1200, margin: '0 auto', padding: '0 12px' }}
       >
+      <Helmet>
+        <title>AI Tools Directory | AI Compass</title>
+        <meta name="description" content="Discover the best AI tools organized by category, rating, and logic." />
+      </Helmet>
       <section className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">AI Tools Directory</h1>
         <span className="inline-flex items-center rounded-full border border-gray-200 bg-white px-3 py-1 text-sm font-semibold text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">

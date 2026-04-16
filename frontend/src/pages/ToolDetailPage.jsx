@@ -113,18 +113,12 @@ function ToolDetailPage() {
         const normalizedTool = normalizeTool(toolPayload)
         setTool(normalizedTool)
 
-        const categoryQuery = encodeURIComponent(normalizedTool.category || '')
-        const relatedResponse = await fetch(`/api/v1/tools?category=${categoryQuery}`, { signal: toolController.signal })
-        if (relatedResponse.ok) {
-          const relatedPayload = await relatedResponse.json()
-          const toolsList = Array.isArray(relatedPayload) ? relatedPayload : []
-
-          const related = toolsList
-            .map(normalizeTool)
-            .filter((item) => item.slug !== normalizedTool.slug)
-            .slice(0, 4)
-
-          setRelatedTools(related)
+        if (Array.isArray(toolPayload.similar_tools) && toolPayload.similar_tools.length > 0) {
+          setRelatedTools(
+            toolPayload.similar_tools
+              .map(normalizeTool)
+              .filter((item) => item.slug !== normalizedTool.slug)
+          )
         } else {
           setRelatedTools([])
         }

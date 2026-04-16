@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Helmet } from 'react-helmet-async'
 import { Link } from 'react-router-dom'
 
 import PageTransition from '../components/PageTransition'
@@ -85,6 +86,11 @@ function CollectionsPage() {
   return (
     <PageTransition>
       <main className="mx-auto w-full max-w-7xl bg-gray-50 px-4 py-8 dark:bg-gray-950 sm:px-6 lg:px-8">
+      <Helmet>
+        <title>Browse AI Tool Collections | AI Compass</title>
+        <meta name="description" content="Explore curated categories tailored to goals like coding, writing, research, and more." />
+      </Helmet>
+
       <section className="mb-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
         <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Browse AI Tool Collections</h1>
         <p className="mt-2 text-gray-600 dark:text-gray-400">

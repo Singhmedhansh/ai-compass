@@ -15,7 +15,7 @@ DIST_DIR = os.path.join(
 )
 
 
-@main_bp.route('/health')
+@main_bp.route('/health', strict_slashes=False)
 def health_check():
     database_status = 'ok'
     tools_cache_status = 'ok'
