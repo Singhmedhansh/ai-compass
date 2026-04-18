@@ -70,17 +70,17 @@
 | Admin panel (stats, users, retrain) | ✅ Working | 70/100 |
 | Frontend polish | 🟡 In progress | 75/100 |
 | Mobile | 🟡 Partial | 75/100 |
-| **Logos (emoji rendering)** | 🔴 **BROKEN — top priority** | 10/100 |
+| **Logos (emoji rendering)** | 🟢 **RESOLVED** | 90/100 |
 
 ---
 
-## 🔴 BLOCKER: Broken Logos (Fix Before LinkedIn Post)
+## 🟢 RESOLVED: Broken Logos
 
-**Symptom:** All tool logos show as `ðŸ¤–` mojibake instead of correct emojis.
+**Symptom:** All tool logos previously showed as `ðŸ¤–` mojibake instead of correct emojis.
 
-**Root cause:** Flask serializing emoji as escaped ASCII in JSON responses.
+**Root cause:** Flask serializing emoji as escaped ASCII in JSON responses and source logo data carrying mojibake.
 
-**Three-part fix:**
+**Four-part fix:**
 
 ### Fix 1 — `app/__init__.py`
 After `app = Flask(...)` in `create_app()`, add:
@@ -98,9 +98,12 @@ open("data/tools.json", encoding="utf-8")
 Same as Fix 2 — add `encoding="utf-8"` to every `open()` reading `tools.json`.
 
 ### Fix 4 — Create `frontend/src/components/ui/ToolLogo.jsx`
-- Primary: Clearbit logo API (`https://logo.clearbit.com/<domain>`)
-- Fallback: First letter of tool name in a styled div
+- Primary: Google favicon service (`https://www.google.com/s2/favicons?domain=<domain>&sz=64`)
+- Secondary: DuckDuckGo icon service (`https://icons.duckduckgo.com/ip3/<domain>.ico`)
+- Tertiary: First letter of tool name in a styled div
 - Import and use `<ToolLogo>` in: `HomePage.jsx`, `DirectoryPage.jsx`, `ToolDetailPage.jsx`, `ToolFinderPage.jsx`
+
+**Implementation note:** Logos: Google favicon service via ToolLogo.jsx component
 
 **Commit message:** `fix: utf8 emoji logos and clearbit logo component`
 
