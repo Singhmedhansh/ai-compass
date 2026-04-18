@@ -31,6 +31,8 @@ function readRecentlyViewedSlugs() {
 }
 
 function normalizeTool(rawTool) {
+  const resolvedUrl = rawTool?.url || rawTool?.website || rawTool?.link || rawTool?.homepage || ''
+
   return {
     slug: rawTool?.slug,
     name: rawTool?.name || 'Unknown Tool',
@@ -39,6 +41,9 @@ function normalizeTool(rawTool) {
     category: rawTool?.category || 'General',
     rating: Number(rawTool?.rating || rawTool?.averageRating || rawTool?.average_rating || 0),
     pricing: rawTool?.pricing || rawTool?.price || rawTool?.pricingType || rawTool?.pricing_type || 'Free',
+    url: resolvedUrl,
+    website: rawTool?.website || resolvedUrl,
+    link: rawTool?.link || resolvedUrl,
   }
 }
 
