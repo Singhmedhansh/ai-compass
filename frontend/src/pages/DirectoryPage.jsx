@@ -57,6 +57,8 @@ function DirectoryPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const initialCategory = searchParams.get('category') || 'All'
   const initialQuery = searchParams.get('q') || ''
+  const queryFromParams = searchParams.get('q') || ''
+  const categoryFromParams = searchParams.get('category') || 'All'
 
   const [tools, setTools] = useState([])
   const [isLoading, setIsLoading] = useState(true)
@@ -68,25 +70,55 @@ function DirectoryPage() {
   const [searchQuery, setSearchQuery] = useState(initialQuery)
   const [showMobileFilters, setShowMobileFilters] = useState(false)
   const latestRequestIdRef = useRef(0)
-  const hasSearchQuery = searchQuery.trim().length > 0
+  const hasSearchQuery = queryFromParams.trim().length > 0
 
   useEffect(() => {
-    const nextParams = new URLSearchParams()
-    if (category !== 'All') {
-      nextParams.set('category', category)
+    if (searchQuery !== queryFromParams) {
+      setSearchQuery(queryFromParams)
     }
-    const query = searchQuery.trim()
+
+    const normalizedCategory = CATEGORY_OPTIONS.find(
+      (item) => item.toLowerCase() === categoryFromParams.toLowerCase(),
+    ) || 'All'
+    if (category !== normalizedCategory) {
+      setCategory(normalizedCategory)
+    }
+  }, [searchQuery, queryFromParams, categoryFromParams, category])
+
+  const updateUrlParams = (nextCategory, nextQuery) => {
+    const nextParams = new URLSearchParams(searchParams)
+    const query = (nextQuery || '').trim()
+
+    if (nextCategory && nextCategory !== 'All') {
+      nextParams.set('category', nextCategory)
+    } else {
+      nextParams.delete('category')
+    }
+
     if (query) {
       nextParams.set('q', query)
+    } else {
+      nextParams.delete('q')
     }
+
     setSearchParams(nextParams, { replace: true })
-  }, [category, searchQuery, setSearchParams])
+  }
+
+  const handleSearchChange = (value) => {
+    setSearchQuery(value)
+    updateUrlParams(category, value)
+  }
+
+  const handleCategoryChange = (value) => {
+    setCategory(value)
+    updateUrlParams(value, searchQuery)
+  }
 
   useEffect(() => {
     const controller = new AbortController()
     const requestId = ++latestRequestIdRef.current
     const API = import.meta.env.VITE_API_URL || ''
-    const normalizedQuery = searchQuery.trim()
+    const normalizedQuery = queryFromParams.trim()
     const normalizedCategory = category?.trim() || 'All'
     const canonicalCategory = toCanonicalCategory(normalizedCategory)
     const isRemoteSearch = Boolean(normalizedQuery)
@@ -137,10 +169,10 @@ function DirectoryPage() {
 
     loadTools()
     return () => controller.abort()
-  }, [searchQuery, category])
+  }, [queryFromParams, category])
 
   const filteredTools = useMemo(() => {
-    const normalizedSearch = searchQuery.trim().toLowerCase()
+    const normalizedSearch = queryFromParams.trim().toLowerCase()
 
     // 1. Always filter by category (backend might have done it, but this is safe)
     const byCategory = tools.filter((tool) => {
@@ -194,12 +226,13 @@ function DirectoryPage() {
     })
 
     return sorted
-  }, [category, searchQuery, hasSearchQuery, sortBy, tools])
+  }, [category, queryFromParams, hasSearchQuery, sortBy, tools])
 
   const handleReset = () => {
-    setCategory('All')
     setSortBy('Trending')
+    setCategory('All')
     setSearchQuery('')
+    updateUrlParams('All', '')
   }
 
   return (
@@ -240,7 +273,7 @@ function DirectoryPage() {
               <select
                 className="w-full rounded-lg border border-gray-300 p-2 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
                 value={category}
-                onChange={e => setCategory(e.target.value)}
+                onChange={e => handleCategoryChange(e.target.value)}
               >
                 {CATEGORY_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
               </select>
@@ -272,7 +305,7 @@ function DirectoryPage() {
               <button
                 key={option}
                 type="button"
-                onClick={() => setCategory(option)}
+                onClick={() => handleCategoryChange(option)}
                 className={`rounded-full px-3 py-1.5 text-sm font-semibold transition ${
                   active
                     ? 'bg-indigo-600 text-white'
@@ -301,8 +334,8 @@ function DirectoryPage() {
 
           <SearchInput
             value={searchQuery}
-            onChange={setSearchQuery}
-            onClear={() => setSearchQuery('')}
+            onChange={handleSearchChange}
+            onClear={() => handleSearchChange('')}
             placeholder="Search tools, categories, or use cases..."
             style={{ fontSize: 16 }}
           />
