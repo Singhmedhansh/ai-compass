@@ -130,49 +130,54 @@ def login():
         return redirect(url_for("main.dashboard"))
 
     if request.method == "POST":
-        if is_rate_limited(f"login:{_client_ip()}", limit=20, window_seconds=60):
-            flash("Too many attempts. Please wait a minute and try again.", "error")
-            return redirect('/')
-
-        email = request.form.get("email", "").strip().lower()
-        password = request.form.get("password", "")
-        user = User.query.filter_by(email=email).first()
-        admin_email = current_app.config.get("ADMIN_EMAIL", "")
-        admin_password_hash = current_app.config.get("ADMIN_PASSWORD_HASH", "")
-
-        if admin_email and admin_password_hash and email == admin_email:
-            if not _verify_password_hash(admin_password_hash, password):
-                flash("Invalid email or password.", "error")
+        try:
+            if is_rate_limited(f"login:{_client_ip()}", limit=20, window_seconds=60):
+                flash("Too many attempts. Please wait a minute and try again.", "error")
                 return redirect('/')
 
-            if user is None:
-                user = User(email=email, password_hash=admin_password_hash, is_admin=True)
-                db.session.add(user)
-            else:
-                user.is_admin = True
-                if not user.password_hash:
-                    user.password_hash = admin_password_hash
+            email = request.form.get("email", "").strip().lower()
+            password = request.form.get("password", "")
+            user = User.query.filter_by(email=email).first()
+            admin_email = current_app.config.get("ADMIN_EMAIL", "")
+            admin_password_hash = current_app.config.get("ADMIN_PASSWORD_HASH", "")
 
-            db.session.commit()
-            _clear_stale_login_flash_errors()
-            login_user(user)
-            flash("Admin login detected. Use the Admin Panel button from the dashboard.", "success")
-            next_url = request.args.get("next")
-            if _requires_onboarding(user):
-                return redirect(url_for("main.onboarding"))
-            return redirect(next_url or url_for("main.dashboard"))
+            if admin_email and admin_password_hash and email == admin_email:
+                if not _verify_password_hash(admin_password_hash, password):
+                    flash("Invalid email or password.", "error")
+                    return redirect('/')
 
-        if user and _verify_password_hash(user.password_hash, password):
-            _sync_admin_flag(user)
-            _clear_stale_login_flash_errors()
-            login_user(user)
-            flash("You are now logged in.", "success")
-            next_url = request.args.get("next")
-            if _requires_onboarding(user):
-                return redirect(url_for("main.onboarding"))
-            return redirect(next_url or url_for("main.dashboard"))
+                if user is None:
+                    user = User(email=email, password_hash=admin_password_hash, is_admin=True)
+                    db.session.add(user)
+                else:
+                    user.is_admin = True
+                    if not user.password_hash:
+                        user.password_hash = admin_password_hash
 
-        flash("Invalid email or password.", "error")
+                db.session.commit()
+                _clear_stale_login_flash_errors()
+                login_user(user)
+                flash("Admin login detected. Use the Admin Panel button from the dashboard.", "success")
+                next_url = request.args.get("next")
+                if _requires_onboarding(user):
+                    return redirect(url_for("main.onboarding"))
+                return redirect(next_url or url_for("main.dashboard"))
+
+            if user and _verify_password_hash(user.password_hash, password):
+                _sync_admin_flag(user)
+                _clear_stale_login_flash_errors()
+                login_user(user)
+                flash("You are now logged in.", "success")
+                next_url = request.args.get("next")
+                if _requires_onboarding(user):
+                    return redirect(url_for("main.onboarding"))
+                return redirect(next_url or url_for("main.dashboard"))
+
+            flash("Invalid email or password.", "error")
+        except Exception:
+            db.session.rollback()
+            current_app.logger.exception("Login error")
+            flash("An internal error occurred. Please try again.", "error")
 
     return redirect('/')
 
