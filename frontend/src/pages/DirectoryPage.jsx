@@ -66,17 +66,9 @@ function DirectoryPage() {
   )
   const [sortBy, setSortBy] = useState('Trending')
   const [searchQuery, setSearchQuery] = useState(initialQuery)
-  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(initialQuery)
   const [showMobileFilters, setShowMobileFilters] = useState(false)
   const latestRequestIdRef = useRef(0)
-  const hasSearchQuery = debouncedSearchQuery.trim().length > 0
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearchQuery(searchQuery)
-    }, 300)
-    return () => clearTimeout(timer)
-  }, [searchQuery])
+  const hasSearchQuery = searchQuery.trim().length > 0
 
   useEffect(() => {
     const nextParams = new URLSearchParams()
@@ -94,7 +86,7 @@ function DirectoryPage() {
     const controller = new AbortController()
     const requestId = ++latestRequestIdRef.current
     const API = import.meta.env.VITE_API_URL || ''
-    const normalizedQuery = debouncedSearchQuery.trim()
+    const normalizedQuery = searchQuery.trim()
     const normalizedCategory = category?.trim() || 'All'
     const canonicalCategory = toCanonicalCategory(normalizedCategory)
     const isRemoteSearch = Boolean(normalizedQuery)
@@ -145,10 +137,10 @@ function DirectoryPage() {
 
     loadTools()
     return () => controller.abort()
-  }, [debouncedSearchQuery, category])
+  }, [searchQuery, category])
 
   const filteredTools = useMemo(() => {
-    const normalizedSearch = debouncedSearchQuery.trim().toLowerCase()
+    const normalizedSearch = searchQuery.trim().toLowerCase()
 
     // 1. Always filter by category (backend might have done it, but this is safe)
     const byCategory = tools.filter((tool) => {
@@ -202,7 +194,7 @@ function DirectoryPage() {
     })
 
     return sorted
-  }, [category, debouncedSearchQuery, hasSearchQuery, sortBy, tools])
+  }, [category, searchQuery, hasSearchQuery, sortBy, tools])
 
   const handleReset = () => {
     setCategory('All')
