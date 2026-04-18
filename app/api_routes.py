@@ -229,6 +229,9 @@ def list_tools():
         tools = get_cached_tools()
     except Exception:
         tools = []
+    if tools:
+        tool = tools[0] if isinstance(tools[0], dict) else {}
+        current_app.logger.info(f"Logo value: {tool.get('logo')}")
     response = make_response(jsonify({"results": tools, "total": len(tools), "fallback": not bool(tools)}))
     response.headers["Cache-Control"] = "public, max-age=3600"  # Cache for 1 hour
     return response
