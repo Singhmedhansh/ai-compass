@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 
 import { AnimatedGrid, AnimatedItem } from '../components/AnimatedGrid'
 import { Card, SkeletonCard } from '../components/ui'
+import ParticleBackground from '../components/ui/ParticleBackground'
 
 const MotionSection = motion.section
 const MotionDiv = motion.div
@@ -72,6 +73,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       <div className="relative overflow-hidden bg-gradient-to-b from-indigo-950 via-gray-950 to-gray-950 text-center py-20 px-4">
+        <ParticleBackground />
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-20 left-1/4 w-80 h-80 rounded-full bg-indigo-600/20 blur-3xl" />
           <div className="absolute top-32 right-1/4 w-64 h-64 rounded-full bg-purple-600/20 blur-3xl" />
@@ -81,7 +83,7 @@ export default function HomePage() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: 'easeOut' }}
-          className="text-5xl font-bold text-white mb-4"
+          className="relative z-[1] text-5xl font-bold text-white mb-4"
         >
           Find the perfect AI tool for your workflow
         </motion.h1>
@@ -90,7 +92,7 @@ export default function HomePage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4, duration: 0.5 }}
-          className="text-gray-400 text-lg mb-8"
+          className="relative z-[1] text-gray-400 text-lg mb-8"
         >
           Discover, compare, and bookmark the best AI products for coding, writing, research, and daily execution.
         </motion.p>
@@ -99,7 +101,7 @@ export default function HomePage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6, duration: 0.4 }}
-          className="flex gap-4 justify-center"
+          className="relative z-[1] flex gap-4 justify-center"
         >
           <Link
             to="/tools"
