@@ -7,22 +7,6 @@ TOOLS_PATH = Path(__file__).resolve().parent.parent / "data" / "tools.json"
 
 RULES = [
     (
-        "Image Generation",
-        [
-            "text-to-image",
-            "stable diffusion",
-            "midjourney",
-            "dall-e",
-            "image",
-            "photo",
-            "picture",
-            "art",
-            "illustration",
-            "design",
-            "visual",
-        ],
-    ),
-    (
         "Video Generation",
         [
             "text-to-video",
@@ -106,9 +90,40 @@ RULES = [
     ),
 ]
 
+IMAGE_NAME_KEYWORDS = [
+    "midjourney",
+    "dall-e",
+    "stable diffusion",
+    "firefly",
+    "imagen",
+    "flux",
+    "playground",
+    "leonardo",
+    "ideogram",
+    "nightcafe",
+    "getimg",
+    "clipdrop",
+    "photosonic",
+    "bing image",
+]
+
+IMAGE_DESCRIPTION_PHRASES = [
+    "text-to-image",
+    "image generation",
+    "generate images",
+    "ai image",
+]
+
 
 def infer_category(tool: dict) -> str | None:
-    text = f"{tool.get('name', '')} {tool.get('description', '')}".lower()
+    name = str(tool.get("name", "") or "").lower()
+    description = str(tool.get("description", "") or "").lower()
+    text = f"{name} {description}".lower()
+
+    if any(keyword in name for keyword in IMAGE_NAME_KEYWORDS) or any(
+        phrase in description for phrase in IMAGE_DESCRIPTION_PHRASES
+    ):
+        return "Image Generation"
 
     for category, keywords in RULES:
         if any(matches_keyword(text, keyword) for keyword in keywords):
