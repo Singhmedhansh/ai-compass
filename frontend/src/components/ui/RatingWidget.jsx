@@ -1,12 +1,30 @@
 import { useEffect, useState } from 'react'
 
 export default function RatingWidget({ slug, isLoggedIn }) {
-  const [average, setAverage] = useState(0)
-  const [count, setCount] = useState(0)
-  const [userRating, setUserRating] = useState(null)
+  const [ratingData, setRatingData] = useState({
+    average: 0,
+    count: 0,
+    userRating: null,
+  })
   const [hovered, setHovered] = useState(0)
   const [message, setMessage] = useState('')
   const API = import.meta.env.VITE_API_URL || ''
+
+  const calculateNewAverage = (prevAverage, prevCount, oldRating, newRating, wasNewRating) => {
+    if (wasNewRating) {
+      const nextCount = prevCount + 1
+      if (nextCount <= 0) {
+        return newRating
+      }
+      return ((prevAverage * prevCount) + newRating) / nextCount
+    }
+
+    if (prevCount <= 0) {
+      return newRating
+    }
+
+    return ((prevAverage * prevCount) - oldRating + newRating) / prevCount
+  }
 
   useEffect(() => {
     let active = true
@@ -20,9 +38,11 @@ export default function RatingWidget({ slug, isLoggedIn }) {
           return
         }
 
-        setAverage(Number(data.average || 0))
-        setCount(Number(data.count || 0))
-        setUserRating(data.user_rating ?? null)
+        setRatingData({
+          average: Number(data.average || 0),
+          count: Number(data.count || 0),
+          userRating: data.user_rating ?? null,
+        })
         setMessage(data.message || '')
       } catch {
         if (active) {
@@ -54,23 +74,31 @@ export default function RatingWidget({ slug, isLoggedIn }) {
       const data = await response.json()
       if (data.success) {
         setHovered(0)
-        try {
-          const refreshed = await fetch(`${API}/api/v1/tools/${slug}/ratings`, { credentials: 'include' })
-          const refreshedData = await refreshed.json()
-          setAverage(Number(refreshedData.average || 0))
-          setCount(Number(refreshedData.count || 0))
-          setUserRating(refreshedData.user_rating ?? null)
-          setMessage(refreshedData.message || '')
-        } catch {
-          setMessage('Unable to load ratings right now.')
-        }
+        setRatingData((prev) => {
+          const wasNewRating = !prev.userRating || prev.userRating === 0
+          const nextAverage = calculateNewAverage(
+            Number(prev.average || 0),
+            Number(prev.count || 0),
+            Number(prev.userRating || 0),
+            value,
+            wasNewRating,
+          )
+
+          return {
+            ...prev,
+            average: nextAverage,
+            count: wasNewRating ? Number(prev.count || 0) + 1 : Number(prev.count || 0),
+            userRating: value,
+          }
+        })
+        setMessage(data.message || '')
       }
     } catch {
       setMessage('Unable to submit rating right now.')
     }
   }
 
-  const activeValue = hovered || userRating || Math.round(average)
+  const activeValue = hovered || ratingData.userRating || Math.round(ratingData.average)
 
   return (
     <div className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
@@ -90,9 +118,9 @@ export default function RatingWidget({ slug, isLoggedIn }) {
         ))}
       </div>
 
-      {count > 0 ? (
+      {ratingData.count > 0 ? (
         <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-          {average.toFixed(1)}★ out of 5 · {count} rating{count !== 1 ? 's' : ''}
+          {ratingData.average.toFixed(1)}★ out of 5 · {ratingData.count} rating{ratingData.count !== 1 ? 's' : ''}
         </p>
       ) : (
         <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">{message || 'Be the first to rate this tool!'}</p>
