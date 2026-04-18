@@ -8,6 +8,12 @@ import { Button, Card, SearchInput, SkeletonCard } from '../components/ui'
 const CATEGORY_OPTIONS = ['All', 'Coding', 'Writing', 'Research', 'Productivity', 'Image Gen', 'Video Gen']
 const SORT_OPTIONS = ['Trending', 'Newest', 'Top Rated', 'Free First']
 
+const CATEGORY_FILTER_MAP = {
+  Writing: 'Writing & Chat',
+  'Image Gen': 'Image Generation',
+  'Video Gen': 'Video Generation',
+}
+
 function mapTool(rawTool) {
   return {
     slug: rawTool.slug,
@@ -32,6 +38,10 @@ function mapTool(rawTool) {
 
 function getNormalizedCategory(value = '') {
   return value.toLowerCase().trim()
+}
+
+function toCanonicalCategory(value = '') {
+  return CATEGORY_FILTER_MAP[value] || value
 }
 
 function getTrendingScore(tool) {
@@ -84,6 +94,7 @@ function DirectoryPage() {
     const API = import.meta.env.VITE_API_URL || ''
     const normalizedQuery = debouncedSearchQuery.trim()
     const normalizedCategory = category?.trim() || 'All'
+    const canonicalCategory = toCanonicalCategory(normalizedCategory)
     const isRemoteSearch = Boolean(normalizedQuery)
 
     async function loadTools() {
@@ -94,7 +105,7 @@ function DirectoryPage() {
         const endpoint = isRemoteSearch
           ? `${API}/api/v1/search?${new URLSearchParams({
               q: normalizedQuery,
-              ...(normalizedCategory !== 'All' ? { category: normalizedCategory } : {}),
+              ...(canonicalCategory !== 'All' ? { category: canonicalCategory } : {}),
             }).toString()}`
           : `${API}/api/v1/tools`
 
@@ -133,7 +144,7 @@ function DirectoryPage() {
       if (category === 'All') {
         return true
       }
-      return getNormalizedCategory(tool.category) === getNormalizedCategory(category)
+      return getNormalizedCategory(tool.category) === getNormalizedCategory(toCanonicalCategory(category))
     })
 
     // 2. If it's a remote search, skip substring filtering (which breaks semantic matches)
