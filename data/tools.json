@@ -10138,14 +10138,11 @@
     "pricingDetail": "Free limited tokens; Pro $20/month",
     "bestFor": "Building and deploying full-stack web apps from a single prompt",
     "tags": [
-      "full-stack",
-      "AI",
-      "app builder",
-      "browser",
       "coding",
-      "programming",
-      "development",
-      "student-friendly"
+      "full-stack",
+      "browser-ide",
+      "prompt-to-app",
+      "rapid-prototyping"
     ],
     "trending": true,
     "rating": 4.6,
@@ -10166,7 +10163,7 @@
     ],
     "languages": "5+",
     "launchYear": 2024,
-    "description": "Bolt.new is an AI-powered full-stack application builder that runs entirely in the browser, generating complete web applications including front-end, back-end, and database from a text description. Students can prototype hackathon projects and course assignments at unprecedented speed. The integrated deployment to Netlify or Vercel requires zero configuration.",
+    "description": "Bolt.new is a browser-based AI development environment that scaffolds and runs full-stack projects from natural language prompts. It supports fast code generation, live previews, and iterative edits directly in the cloud.",
     "pricing_tier": "freemium",
     "difficulty": "advanced",
     "student_friendly": true,
@@ -10189,7 +10186,8 @@
       "One-click deploy",
       "Real-time preview"
     ],
-    "slug": "bolt.new"
+    "slug": "bolt.new",
+    "url": "https://bolt.new"
   },
   {
     "id": 155,
@@ -10197,20 +10195,17 @@
     "icon": "/static/icons/lovable.svg",
     "maker": "Lovable",
     "tagline": "AI software engineer that builds full web apps from a chat interface",
-    "category": "Image Generation",
+    "category": "Coding",
     "subCategory": "AI App Builder",
     "price": "Freemium",
     "pricingDetail": "Free 5 messages/day; Starter $20/month",
     "bestFor": "Non-technical students who need to build functional web apps for projects",
     "tags": [
-      "app builder",
-      "no-code",
-      "AI",
-      "web apps",
       "coding",
-      "programming",
-      "development",
-      "student-friendly"
+      "app-builder",
+      "full-stack",
+      "prompt-to-app",
+      "prototyping"
     ],
     "trending": true,
     "rating": 4.5,
@@ -10231,7 +10226,7 @@
     ],
     "languages": "5+",
     "launchYear": 2024,
-    "description": "Lovable acts as an AI software engineer that builds complete web applications from conversational chat, handling everything from UI design to database setup. Students in entrepreneurship and business programs use it to build working product prototypes without needing to code. Its GitHub sync means technically inclined students can extend the generated code.",
+    "description": "Lovable is an AI app builder that turns prompts into working full-stack web applications with editable frontend and backend code. It is popular for rapidly shipping MVPs, iterating with chat-based edits, and connecting data/services without heavy setup.",
     "pricing_tier": "freemium",
     "difficulty": "beginner",
     "student_friendly": true,
@@ -10254,7 +10249,8 @@
       "Supabase integration",
       "One-click deploy"
     ],
-    "slug": "lovable"
+    "slug": "lovable",
+    "url": "https://lovable.dev"
   },
   {
     "id": 156,
@@ -28673,16 +28669,16 @@
   {
     "name": "v0 by Vercel",
     "slug": "v0-by-vercel",
-    "description": "v0 by Vercel generates production-ready UI and full-stack code from prompts, helping students quickly prototype React and Next.js applications with modern component patterns.",
+    "description": "v0 by Vercel generates production-style React and Next.js interfaces from prompts and can evolve them through conversational edits. It is designed for quickly creating UI components, pages, and app scaffolds that developers can ship faster.",
     "category": "Coding",
-    "pricing": "Freemium",
+    "pricing": "freemium",
     "url": "https://v0.dev",
     "tags": [
-      "v0",
-      "vercel",
+      "coding",
       "ui-generation",
+      "react",
       "nextjs",
-      "react"
+      "vercel"
     ],
     "logo_emoji": "?",
     "student_friendly": true,
@@ -28692,16 +28688,16 @@
   {
     "name": "Rocket.new",
     "slug": "rocket-new",
-    "description": "Rocket.new is an AI-powered app builder that turns prompts into working product prototypes and frontend code, useful for students building hackathon and MVP projects quickly.",
+    "description": "Rocket.new is an AI product builder that helps generate app structures, pages, and code from high-level ideas. It is aimed at founders and students who want to prototype and iterate software products quickly.",
     "category": "Coding",
-    "pricing": "Freemium",
+    "pricing": "freemium",
     "url": "https://rocket.new",
     "tags": [
+      "coding",
       "app-builder",
-      "prototype",
-      "frontend",
-      "no-code",
-      "ai-development"
+      "prototyping",
+      "startup-tools",
+      "prompt-to-app"
     ],
     "logo_emoji": "??",
     "student_friendly": true,
@@ -28711,16 +28707,16 @@
   {
     "name": "Railway",
     "slug": "railway",
-    "description": "Railway is a developer cloud platform for deploying backend services, databases, and full-stack apps with simple environments, previews, and team workflows.",
+    "description": "Railway is a deployment platform for shipping backend services, databases, and full-stack applications with simple environment management. It streamlines CI/CD and infrastructure setup so developers can deploy projects faster.",
     "category": "Coding",
-    "pricing": "Freemium",
+    "pricing": "freemium",
     "url": "https://railway.app",
     "tags": [
+      "coding",
       "deployment",
       "backend",
       "devops",
-      "cloud",
-      "databases"
+      "cloud-hosting"
     ],
     "logo_emoji": "??",
     "student_friendly": true,
@@ -28730,16 +28726,16 @@
   {
     "name": "Vercel",
     "slug": "vercel",
-    "description": "Vercel is a frontend cloud platform for shipping web applications with fast CI/CD, preview deployments, edge functions, and great support for Next.js projects.",
+    "description": "Vercel is a cloud platform for deploying frontend and full-stack web apps with previews, serverless functions, and edge delivery. It is widely used for Next.js projects and fast production workflows.",
     "category": "Coding",
-    "pricing": "Freemium",
+    "pricing": "freemium",
     "url": "https://vercel.com",
     "tags": [
+      "coding",
       "deployment",
-      "frontend",
       "nextjs",
       "serverless",
-      "hosting"
+      "frontend-hosting"
     ],
     "logo_emoji": "?",
     "student_friendly": true,
@@ -28749,16 +28745,16 @@
   {
     "name": "Kiro",
     "slug": "kiro",
-    "description": "Kiro is an AI coding assistant focused on faster software delivery, helping developers generate code, fix issues, and work through complex tasks across repositories.",
+    "description": "Kiro is an AI coding assistant built to speed up software development with code generation, edits, and troubleshooting support. It focuses on helping developers move from idea to working product with fewer manual steps.",
     "category": "Coding",
-    "pricing": "Freemium",
+    "pricing": "freemium",
     "url": "https://kiro.dev",
     "tags": [
-      "coding-assistant",
+      "coding",
+      "code-assistant",
+      "ai-agent",
       "developer-tools",
-      "code-generation",
-      "debugging",
-      "ai-agent"
+      "productivity"
     ],
     "logo_emoji": "???",
     "student_friendly": true,
@@ -28787,16 +28783,16 @@
   {
     "name": "Antigravity",
     "slug": "antigravity",
-    "description": "Antigravity is an AI development platform for generating and iterating on software projects from natural language, designed to speed up prototyping and product experimentation.",
+    "description": "Antigravity is an AI-powered agentic coding platform that lets you build, run, and deploy full-stack applications through natural language. It runs agents in the cloud to write code, fix bugs, and ship products end-to-end without a local setup.",
     "category": "Coding",
-    "pricing": "Freemium",
+    "pricing": "freemium",
     "url": "https://antigravity.dev",
     "tags": [
-      "app-builder",
       "coding",
-      "prototype",
-      "developer-tools",
-      "ai-agent"
+      "ai-agent",
+      "app-builder",
+      "full-stack",
+      "deployment"
     ],
     "logo_emoji": "???",
     "student_friendly": true,
@@ -28825,16 +28821,16 @@
   {
     "name": "Claude Code",
     "slug": "claude-code",
-    "description": "Claude Code is Anthropic's coding-focused workflow for terminal and editor tasks, helping with implementation, refactors, debugging, and repository-aware code changes.",
+    "description": "Claude Code is Anthropic's coding-focused assistant experience for repository-aware implementation, debugging, and refactoring tasks. It helps developers plan changes, write safer code, and execute complex edits from natural language instructions.",
     "category": "Coding",
-    "pricing": "Paid",
+    "pricing": "paid",
     "url": "https://www.anthropic.com/claude-code",
     "tags": [
+      "coding",
       "anthropic",
-      "claude",
-      "coding-assistant",
-      "terminal",
-      "developer-tools"
+      "ai-agent",
+      "code-assistant",
+      "debugging"
     ],
     "logo_emoji": "??",
     "student_friendly": true,
