@@ -150,5 +150,11 @@ export default function ParticleBackground() {
     }
   }, [])
 
-  return <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" aria-hidden="true" />
+  return (
+    <canvas
+      ref={canvasRef}
+      className="pointer-events-none absolute left-0 top-0 z-0 h-full w-full"
+      aria-hidden="true"
+    />
+  )
 }

@@ -72,9 +72,12 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
-      <div className="relative overflow-hidden bg-gradient-to-b from-indigo-950 via-gray-950 to-gray-950 text-center py-20 px-4">
+      <div
+        className="relative overflow-hidden text-center py-20 px-4"
+        style={{ backgroundColor: '#0a0a1a', minHeight: '400px' }}
+      >
         <ParticleBackground />
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
           <div className="absolute top-20 left-1/4 w-80 h-80 rounded-full bg-indigo-600/20 blur-3xl" />
           <div className="absolute top-32 right-1/4 w-64 h-64 rounded-full bg-purple-600/20 blur-3xl" />
         </div>
