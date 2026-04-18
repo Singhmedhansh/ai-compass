@@ -307,23 +307,28 @@ def get_tool_ratings(slug: str):
 @csrf.exempt
 @login_required
 def rate_tool(slug: str):
-    slug_value = str(slug or "").strip().lower()
-    payload = request.get_json(silent=True) or {}
-    value = payload.get("value")
+    try:
+        slug_value = str(slug or "").strip().lower()
+        payload = request.get_json(silent=True) or {}
+        value = payload.get("value")
 
-    if not isinstance(value, int) or value < 1 or value > 5:
-        return jsonify({"error": "Rating must be 1-5"}), 400
+        if not isinstance(value, int) or value < 1 or value > 5:
+            return jsonify({"error": "Rating must be 1-5"}), 400
 
-    existing = Rating.query.filter_by(user_id=current_user.id, tool_slug=slug_value).first()
+        existing = Rating.query.filter_by(user_id=current_user.id, tool_slug=slug_value).first()
 
-    if existing:
-        existing.value = value
-        existing.updated_at = datetime.now(timezone.utc)
-    else:
-        db.session.add(Rating(user_id=current_user.id, tool_slug=slug_value, value=value))
+        if existing:
+            existing.value = value
+            existing.updated_at = datetime.now(timezone.utc)
+        else:
+            db.session.add(Rating(user_id=current_user.id, tool_slug=slug_value, value=value))
 
-    db.session.commit()
-    return jsonify({"success": True, "value": value})
+        db.session.commit()
+        return jsonify({"success": True, "value": value})
+    except Exception:
+        db.session.rollback()
+        current_app.logger.exception("Rating submit error")
+        return jsonify({"error": "Unable to submit right now"}), 500
 
 
 @api_bp.post("/tools/<slug>/reviews")
@@ -331,25 +336,27 @@ def rate_tool(slug: str):
 @login_required
 def post_review(slug: str):
     try:
-        body = (request.json.get("body") or "").strip()
+        slug_value = str(slug or "").strip().lower()
+        payload = request.get_json(silent=True) or {}
+        body = str(payload.get("body") or "").strip()
         if len(body) < 10:
             return jsonify({"error": "Review must be at least 10 characters"}), 400
         if len(body) > 1000:
             return jsonify({"error": "Review too long"}), 400
         existing = Review.query.filter_by(
-            user_id=current_user.id, tool_slug=slug
+            user_id=current_user.id, tool_slug=slug_value
         ).first()
         if existing:
             existing.body = body
             existing.created_at = datetime.now(timezone.utc)
         else:
-            rev = Review(user_id=current_user.id, tool_slug=slug, body=body)
+            rev = Review(user_id=current_user.id, tool_slug=slug_value, body=body)
             db.session.add(rev)
         db.session.commit()
         return jsonify({"success": True})
-    except Exception as e:
+    except Exception:
         db.session.rollback()
-        print(f"[REVIEWS POST] Error: {e}")
+        current_app.logger.exception("Review submit error")
         return jsonify({"error": "Could not save review"}), 500
 @api_bp.get("/search")
 def api_search():
