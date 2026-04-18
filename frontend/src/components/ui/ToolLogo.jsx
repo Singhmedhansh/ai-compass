@@ -1,42 +1,5 @@
 import { useState } from 'react'
 
-const DOMAIN_MAP = {
-  'chatgpt': 'openai.com',
-  'claude': 'anthropic.com',
-  'cursor': 'cursor.sh',
-  'github copilot': 'github.com',
-  'midjourney': 'midjourney.com',
-  'perplexity ai': 'perplexity.ai',
-  'perplexity': 'perplexity.ai',
-  'grammarly': 'grammarly.com',
-  'notion': 'notion.so',
-  'notion ai': 'notion.so',
-  'elevenlabs': 'elevenlabs.io',
-  'canva': 'canva.com',
-  'figma': 'figma.com',
-  'vercel': 'vercel.com',
-  'supabase': 'supabase.com',
-  'hugging face': 'huggingface.co',
-  'github': 'github.com',
-  'google colab': 'colab.research.google.com',
-  'streamlit': 'streamlit.io',
-  'replit': 'replit.com',
-  'groq': 'groq.com',
-  'windsurf': 'codeium.com',
-  'codeium': 'codeium.com',
-  'tabnine': 'tabnine.com',
-  'leetcode': 'leetcode.com',
-  'neetcode': 'neetcode.io',
-  'bolt.new': 'bolt.new',
-  v0: 'v0.dev',
-  gemini: 'google.com',
-  mistral: 'mistral.ai',
-  runway: 'runwayml.com',
-  loom: 'loom.com',
-  linear: 'linear.app',
-  obsidian: 'obsidian.md',
-}
-
 function getDomain(url) {
   if (!url) {
     return null
@@ -53,22 +16,35 @@ function getDomain(url) {
   }
 }
 
-function getLogoUrl(tool) {
-  if (tool?.logo_url) {
-    return tool.logo_url
+function getLogoUrl(tool, source) {
+  const domain = getDomain(tool?.url || tool?.website || tool?.link)
+
+  if (!domain) {
+    return null
   }
 
-  const domain = getDomain(tool?.url || tool?.website || tool?.link)
-    || DOMAIN_MAP[(tool?.name || '').toLowerCase().trim()]
+  if (source === 'duckduckgo') {
+    return `https://icons.duckduckgo.com/ip3/${domain}.ico`
+  }
 
-  return domain ? `https://logo.clearbit.com/${domain}` : null
+  return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`
+}
+
+function getFallbackLetter(tool) {
+  const name = String(tool?.name || '').trim()
+  if (!name) {
+    return '?'
+  }
+
+  return name[0].toUpperCase()
 }
 
 function ToolLogo({ tool, size = 48 }) {
-  const [imgError, setImgError] = useState(false)
-  const url = getLogoUrl(tool)
+  const [logoSource, setLogoSource] = useState('google')
+  const url = getLogoUrl(tool, logoSource)
+  const shouldShowImage = Boolean(url) && logoSource !== 'fallback'
 
-  if (url && !imgError) {
+  if (shouldShowImage) {
     return (
       <img
         src={url}
@@ -81,7 +57,15 @@ function ToolLogo({ tool, size = 48 }) {
           background: '#fff',
           padding: 3,
         }}
-        onError={() => setImgError(true)}
+        onError={() => {
+          setLogoSource((currentSource) => {
+            if (currentSource === 'google') {
+              return 'duckduckgo'
+            }
+
+            return 'fallback'
+          })
+        }}
       />
     )
   }
@@ -92,16 +76,16 @@ function ToolLogo({ tool, size = 48 }) {
         width: size,
         height: size,
         borderRadius: size * 0.2,
-        background: tool?.accent_color || '#6366f1',
+        background: '#6366f1',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         color: '#fff',
         fontWeight: 700,
-        fontSize: size * 0.4,
+        fontSize: 20,
       }}
     >
-      {tool?.emoji || tool?.logo_emoji || (tool?.name || '?')[0].toUpperCase()}
+      {getFallbackLetter(tool)}
     </div>
   )
 }
