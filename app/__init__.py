@@ -105,7 +105,7 @@ def create_app(config: dict | None = None) -> Flask:
     is_production = app_env == "production"
 
     # FIXED SECRET KEY (no setdefault)
-    app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev-secret-key")
+    app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "ai-compass-fixed-key-2024")
     app.config["FRONTEND_URL"] = os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip("/")
     app.config["GOOGLE_CLIENT_ID"] = os.getenv("GOOGLE_CLIENT_ID", "")
     app.config["GOOGLE_CLIENT_SECRET"] = os.getenv("GOOGLE_CLIENT_SECRET", "")
