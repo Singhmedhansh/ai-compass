@@ -28,6 +28,8 @@ function Navbar() {
   const [searchValue, setSearchValue] = useState('')
   const [isDark, setIsDark] = useState(getInitialTheme)
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [authRefreshKey, setAuthRefreshKey] = useState(0)
   const [user, setUser] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem('user') || 'null')
@@ -78,9 +80,13 @@ function Navbar() {
   useEffect(() => {
     const handleStorageChange = () => {
       try {
-        setUser(JSON.parse(localStorage.getItem('user') || 'null'))
+        const storedUser = JSON.parse(localStorage.getItem('user') || 'null')
+        setUser(storedUser)
+        setIsAuthenticated(Boolean(storedUser))
+        setAuthRefreshKey((value) => value + 1)
       } catch {
         setUser(null)
+        setIsAuthenticated(false)
       }
     }
 
@@ -92,6 +98,64 @@ function Navbar() {
       window.removeEventListener('userLoggedIn', handleStorageChange)
     }
   }, [])
+
+  useEffect(() => {
+    let active = true
+
+    const verifyAuthState = async () => {
+      let storedUser = null
+
+      try {
+        storedUser = JSON.parse(localStorage.getItem('user') || 'null')
+      } catch {
+        storedUser = null
+      }
+
+      if (!storedUser) {
+        if (active) {
+          setUser(null)
+          setIsAuthenticated(false)
+        }
+        return
+      }
+
+      try {
+        const response = await fetch('/api/v1/auth/me', { credentials: 'include' })
+
+        if (!response.ok) {
+          localStorage.removeItem('user')
+          if (active) {
+            setUser(null)
+            setIsAuthenticated(false)
+          }
+          return
+        }
+
+        const fullUser = await response.json()
+        const mergedUser = {
+          ...storedUser,
+          ...fullUser,
+        }
+        localStorage.setItem('user', JSON.stringify(mergedUser))
+
+        if (active) {
+          setUser(mergedUser)
+          setIsAuthenticated(true)
+        }
+      } catch {
+        if (active) {
+          setUser(storedUser)
+          setIsAuthenticated(Boolean(storedUser))
+        }
+      }
+    }
+
+    verifyAuthState()
+
+    return () => {
+      active = false
+    }
+  }, [authRefreshKey])
 
   const toggleDarkMode = () => {
     const nextMode = !isDark
@@ -115,6 +179,8 @@ function Navbar() {
 
   const handleLogout = () => {
     localStorage.removeItem('user')
+    setUser(null)
+    setIsAuthenticated(false)
     window.dispatchEvent(new Event('userLoggedIn'))
     setIsProfileMenuOpen(false)
     navigate('/')
@@ -168,7 +234,7 @@ function Navbar() {
             {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>
 
-          {user ? (
+          {user && isAuthenticated ? (
             <div className="relative" ref={menuRef}>
               <button
                 type="button"
