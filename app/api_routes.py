@@ -222,6 +222,134 @@ def _rating_value(tool: dict) -> float:
         return 0.0
 
 
+FINDER_GOAL_CATEGORY_MAP = {
+    "studying": ["research", "productivity"],
+    "coding": ["coding"],
+    "writing": ["writing & chat"],
+    "research": ["research"],
+    "creating": ["image generation", "video generation"],
+    "productivity": ["productivity"],
+}
+
+
+def _finder_tool_score(tool: dict, goal: str, budget: str, platform: str, level: str, use_case: str) -> float:
+    category = _normalize_text(tool.get("category"))
+    allowed_categories = FINDER_GOAL_CATEGORY_MAP.get(goal, [])
+    if allowed_categories and category not in allowed_categories:
+        return 0.0
+
+    score = 35.0
+
+    if category in allowed_categories:
+        score += 45.0
+
+    tool_text = " ".join(
+        [
+            str(tool.get("name") or ""),
+            str(tool.get("description") or ""),
+            " ".join(str(tag) for tag in (tool.get("tags") or [])),
+            " ".join(str(item) for item in (tool.get("use_cases") or [])),
+        ]
+    ).lower()
+
+    if use_case:
+        use_case_tokens = [token for token in re.split(r"[^a-z0-9]+", use_case.lower()) if token]
+        if use_case.lower() in tool_text:
+            score += 28.0
+        elif any(token in tool_text for token in use_case_tokens):
+            score += 14.0
+
+    pricing = _pricing_value(tool)
+    pricing_bonus = {
+        ("free", "free"): 24.0,
+        ("free", "freemium"): 12.0,
+        ("free", "paid"): -18.0,
+        ("freemium", "free"): 18.0,
+        ("freemium", "freemium"): 18.0,
+        ("freemium", "paid"): -8.0,
+        ("paid", "free"): 8.0,
+        ("paid", "freemium"): 10.0,
+        ("paid", "paid"): 14.0,
+    }
+    score += pricing_bonus.get((budget, pricing), 0.0)
+
+    tool_platforms = [str(platform_value).lower() for platform_value in (tool.get("platforms") or [])]
+    platform_hits = {
+        "web": ["web"],
+        "mobile": ["ios", "android", "mobile"],
+        "desktop": ["windows", "mac", "linux", "desktop"],
+        "api": ["api", "sdk", "cli"],
+    }
+    for platform_value in platform_hits.get(platform, [platform]):
+        if platform_value in tool_platforms:
+            score += 18.0
+            break
+
+    tool_tags = [str(tag).lower() for tag in (tool.get("tags") or [])]
+    if level in ("beginner", "novice"):
+        if any(tag in tool_tags for tag in ["beginner-friendly", "no-code", "easy"]):
+            score += 18.0
+    elif level in ("advanced", "expert"):
+        if any(tag in tool_tags for tag in ["api", "open-source", "advanced", "developer"]):
+            score += 18.0
+
+    score += _rating_value(tool) * 4.0
+
+    if tool.get("featured"):
+        score += 4.0
+    if tool.get("trending"):
+        score += 4.0
+
+    review_count = 0
+    try:
+        review_count = int(tool.get("review_count", 0) or 0)
+    except (TypeError, ValueError):
+        review_count = 0
+
+    if review_count >= 10000:
+        score += 5.0
+    elif review_count >= 1000:
+        score += 3.0
+
+    return score
+
+
+def _rank_finder_tools(tools: list[dict], goal: str, budget: str, platform: str, level: str, use_case: str, limit: int = 6) -> list[dict]:
+    scored = []
+
+    for tool in tools:
+        score = _finder_tool_score(tool, goal, budget, platform, level, use_case)
+        if score > 0:
+            scored.append((tool, score))
+
+    scored.sort(key=lambda item: item[1], reverse=True)
+
+    results = []
+    for tool, score in scored[:limit]:
+        reason_bits = []
+        category = str(tool.get("category") or "General")
+        if category:
+            reason_bits.append(category)
+        if budget == "free" and _pricing_value(tool) == "free":
+            reason_bits.append("free to use")
+        elif budget == "freemium" and _pricing_value(tool) == "freemium":
+            reason_bits.append("free tier")
+        if use_case:
+            reason_bits.append(f"matched to {use_case}")
+        if platform:
+            reason_bits.append(platform)
+
+        results.append(
+            {
+                **tool,
+                "match_score": round(score, 2),
+                "reason": "Great fit for your selected preferences" + (f" — {', '.join(reason_bits)}" if reason_bits else ""),
+            }
+        )
+
+    return results
+
+
 @api_bp.get("/tools")
 def list_tools():
     from app.tool_cache import get_cached_tools
@@ -737,10 +865,21 @@ def finder():
     # Always collect use_case from both form and JSON for compatibility
     use_case = request.form.get("use_case", "").strip() or _normalize_text(data.get("use_case"))
 
-    try:
-        from app.ml_recommender import get_recommendations
+    print(
+        "[finder] received selections:",
+        {
+            "goal": goal,
+            "budget": budget,
+            "platform": platform,
+            "level": level,
+            "use_case": use_case,
+        },
+    )
 
-        results = get_recommendations(
+    try:
+        tools = _load_tools() or []
+        results = _rank_finder_tools(
+            tools,
             goal=goal,
             budget=budget,
             platform=platform,
@@ -749,40 +888,42 @@ def finder():
             limit=6,
         )
         if results:
+            print("[finder] returning:", [tool.get("name") for tool in results])
             # Results already include _reason; return as-is
             return jsonify({"tools": results, "count": len(results)})
     except Exception as exc:
-        print(f"ML recommender failed: {exc}")
+        print(f"Finder ranking failed: {exc}")
 
     tools = get_cached_tools(DATA_PATH) or []
 
     category_map = {
-        "coding": "Coding",
-        "writing": "Writing & Docs",
-        "research": "Research",
-        "studying": "Study Tools",
-        "creating": "Image Gen",
-        "productivity": "Productivity",
+        "coding": ["coding"],
+        "writing": ["writing & chat"],
+        "research": ["research"],
+        "studying": ["research", "productivity"],
+        "creating": ["image generation", "video generation"],
+        "productivity": ["productivity"],
     }
 
     filtered = tools
     if goal and goal in category_map:
-        category = category_map[goal]
-        filtered = [tool for tool in tools if str(tool.get("category", "")).strip() == category] or tools
+        allowed = category_map[goal]
+        filtered = [tool for tool in tools if _normalize_text(tool.get("category")) in allowed] or tools
 
     if budget == "free":
         filtered = [
             tool for tool in filtered
-            if str(tool.get("pricing", "")).lower() == "free"
-            or str(tool.get("pricing_tier", "")).lower() == "free"
+            if _pricing_value(tool) == "free"
         ] or filtered
 
-    filtered.sort(key=lambda tool: float(tool.get("rating", 0) or 0), reverse=True)
-    results = filtered[:6]
+    filtered.sort(key=lambda tool: (_rating_value(tool), float(tool.get("review_count", 0) or 0)), reverse=True)
+    results = _rank_finder_tools(filtered, goal, budget, platform, level, use_case, limit=6)
 
     for result in results:
-        result["match_score"] = 0.5
-        result["reason"] = f"Great tool for {goal or 'your workflow'}"
+        result.setdefault("match_score", 0.0)
+        result.setdefault("reason", f"Great tool for {goal or 'your workflow'}")
+
+    print("[finder] fallback returning:", [tool.get("name") for tool in results])
 
     return jsonify({"tools": results, "count": len(results)})
 

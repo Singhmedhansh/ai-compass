@@ -253,18 +253,22 @@ function ToolFinderPage() {
 
     try {
       const API = import.meta.env.VITE_API_URL || '';
+      const requestPayload = { ...answers }
+
+      console.log('[Tool Finder] sending selections', requestPayload)
+
       const response = await fetch(`${API}/api/v1/finder`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(answers),
+        body: JSON.stringify(requestPayload),
       })
 
-      const payload = await response.json().catch(() => ({}))
+      const responsePayload = await response.json().catch(() => ({}))
       if (!response.ok) {
-        throw new Error(payload.error || 'Unable to generate recommendations right now.')
+        throw new Error(responsePayload.error || 'Unable to generate recommendations right now.')
       }
 
-      const tools = Array.isArray(payload?.tools) ? payload.tools.map(normalizeTool) : []
+      const tools = Array.isArray(responsePayload?.tools) ? responsePayload.tools.map(normalizeTool) : []
       setResults(tools)
       setStep(5)
     } catch (requestError) {
