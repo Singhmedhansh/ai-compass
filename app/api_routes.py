@@ -1,6 +1,7 @@
 import json
 import os
 import re
+import time
 from collections import Counter
 from datetime import datetime, timezone
 
@@ -12,7 +13,7 @@ from app import bcrypt, csrf, db
 from app.ml_recommender import get_similar_tools
 from app.models import Favorite, Rating, Review, ToolRating, User
 from app.search_utils import search_tools
-from app.tool_cache import DEFAULT_TOOLS_PATH, get_cached_tools, prime_tools_cache
+from app.tool_cache import DEFAULT_TOOLS_PATH, TOOL_CACHE, get_cached_tools, prime_tools_cache
 
 api_bp = Blueprint("api", __name__)
 compat_bp = Blueprint("compat", __name__)  # registered at /api for backward compat
@@ -237,13 +238,26 @@ def list_tools():
 @api_bp.get("/tools/<slug>")
 def get_tool(slug: str):
     slug_value = str(slug or "").strip().lower()
-    tools = _load_tools()
+    t0 = time.time()
+    current_app.logger.info(f"[PERF] tool detail start: {slug_value}")
 
-    for tool in tools:
-        if _tool_slug(tool) == slug_value:
-            tool_payload = dict(tool)
-            tool_payload["similar_tools"] = get_similar_tools(slug_value, limit=4)
-            return jsonify(tool_payload)
+    tool = TOOL_CACHE.get(slug_value)
+    current_app.logger.info(f"[PERF] after cache lookup: {time.time() - t0:.2f}s")
+
+    if tool is None:
+        tools = _load_tools() or []
+        for candidate in tools:
+            if _tool_slug(candidate) == slug_value:
+                tool = candidate
+                break
+        current_app.logger.info(f"[PERF] after fallback scan: {time.time() - t0:.2f}s")
+
+    if tool is not None:
+        tool_payload = dict(tool)
+        tool_payload["similar_tools"] = get_similar_tools(slug_value, limit=4)
+        current_app.logger.info(f"[PERF] after related tools: {time.time() - t0:.2f}s")
+        current_app.logger.info(f"[PERF] total: {time.time() - t0:.2f}s")
+        return jsonify(tool_payload)
 
     return jsonify({"error": "Tool not found"}), 404
 
@@ -251,10 +265,12 @@ def get_tool(slug: str):
 @api_bp.get("/tools/<slug>/reviews")
 def get_tool_reviews(slug: str):
     try:
+        t0 = time.time()
+        current_app.logger.info(f"[PERF] reviews start: {slug}")
         reviews = Review.query.filter_by(
             tool_slug=slug, is_hidden=False
         ).order_by(Review.created_at.desc()).limit(50).all()
-        return jsonify({
+        payload = {
             "reviews": [{
                 "id": r.id,
                 "user": (
@@ -268,7 +284,9 @@ def get_tool_reviews(slug: str):
             } for r in reviews],
             "count": len(reviews),
             "message": "No reviews yet. Be the first!" if not reviews else None
-        })
+        }
+        current_app.logger.info(f"[PERF] total reviews: {time.time() - t0:.2f}s")
+        return jsonify(payload)
     except Exception as e:
         print(f"[REVIEWS] Error: {e}")
         return jsonify({"reviews": [], "count": 0,
@@ -278,6 +296,8 @@ def get_tool_reviews(slug: str):
 @api_bp.get("/tools/<slug>/ratings")
 def get_tool_ratings(slug: str):
     slug_value = str(slug or "").strip().lower()
+    t0 = time.time()
+    current_app.logger.info(f"[PERF] ratings start: {slug_value}")
     result = (
         db.session.query(
             func.avg(Rating.value).label("avg"),
@@ -286,6 +306,7 @@ def get_tool_ratings(slug: str):
         .filter(Rating.tool_slug == slug_value)
         .first()
     )
+    current_app.logger.info(f"[PERF] after ratings query: {time.time() - t0:.2f}s")
 
     avg = round(float(result.avg), 1) if result and result.avg is not None else 0
     count = int(result.count or 0) if result else 0
@@ -294,6 +315,8 @@ def get_tool_ratings(slug: str):
     if current_user.is_authenticated:
         rating = Rating.query.filter_by(user_id=current_user.id, tool_slug=slug_value).first()
         user_rating = rating.value if rating else None
+
+    current_app.logger.info(f"[PERF] total ratings: {time.time() - t0:.2f}s")
 
     return jsonify({
         "average": avg,

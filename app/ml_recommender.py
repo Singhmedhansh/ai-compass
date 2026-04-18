@@ -1,5 +1,6 @@
 import os
 import pickle
+import heapq
 from typing import TYPE_CHECKING
 
 
@@ -272,8 +273,7 @@ def get_similar_tools(slug, limit=4):
         return []
 
     idx = tool_index[slug]
-    sim_scores = list(enumerate(similarity_matrix[idx]))
-    sim_scores.sort(key=lambda x: x[1], reverse=True)
+    sim_scores = heapq.nlargest(limit + 1, enumerate(similarity_matrix[idx]), key=lambda x: x[1])
 
     return [tools[i] for i, _ in sim_scores[1:limit+1]]
 

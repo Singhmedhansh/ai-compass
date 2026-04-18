@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import sys
 from typing import List, Dict, Any
 from filelock import FileLock, Timeout
@@ -15,10 +16,24 @@ if not os.path.exists(DEFAULT_TOOLS_PATH):
 
 _TOOLS_CACHE: List[Dict[str, Any]] | None = None
 _TOOLS_CACHE_MTIME: float | None = None
+TOOL_CACHE: Dict[str, Dict[str, Any]] = {}
 
 
 def _get_lock_path(path: str) -> str:
     return f"{path}.lock"
+
+
+def _tool_slug(tool: Dict[str, Any]) -> str:
+    explicit_slug = str(tool.get("slug") or "").strip().lower()
+    if explicit_slug:
+        return explicit_slug
+
+    tool_key = str(tool.get("tool_key") or "").strip().lower()
+    if tool_key:
+        return tool_key
+
+    name = str(tool.get("name") or "").strip().lower()
+    return re.sub(r"[^a-z0-9]+", "-", name).strip("-")
 
 
 def _load_tools_from_disk(data_path: str = DEFAULT_TOOLS_PATH) -> List[Dict[str, Any]]:
@@ -54,9 +69,13 @@ SEARCH_INDEX = []
 
 def build_search_index(tools):
     """Builds the global search index for search_utils.py."""
-    global SEARCH_INDEX
+    global SEARCH_INDEX, TOOL_CACHE
     SEARCH_INDEX = []
+    TOOL_CACHE.clear()
     for tool in tools:
+        slug = _tool_slug(tool)
+        if slug:
+            TOOL_CACHE[slug] = tool
         SEARCH_INDEX.append({
             "_raw":             tool,
             "_name_lower":      tool.get("name", "").lower(),
