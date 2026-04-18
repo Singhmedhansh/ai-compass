@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { useSearchParams } from 'react-router-dom'
 import { AnimatedGrid, AnimatedItem } from '../components/AnimatedGrid'
@@ -68,6 +68,7 @@ function DirectoryPage() {
   const [searchQuery, setSearchQuery] = useState(initialQuery)
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(initialQuery)
   const [showMobileFilters, setShowMobileFilters] = useState(false)
+  const latestRequestIdRef = useRef(0)
   const hasSearchQuery = debouncedSearchQuery.trim().length > 0
 
   useEffect(() => {
@@ -91,6 +92,7 @@ function DirectoryPage() {
 
   useEffect(() => {
     const controller = new AbortController()
+    const requestId = ++latestRequestIdRef.current
     const API = import.meta.env.VITE_API_URL || ''
     const normalizedQuery = debouncedSearchQuery.trim()
     const normalizedCategory = category?.trim() || 'All'
@@ -116,17 +118,26 @@ function DirectoryPage() {
           throw new Error(`API returned ${response.status}`)
         }
         const data = await response.json()
+        if (requestId !== latestRequestIdRef.current || controller.signal.aborted) {
+          return
+        }
+
         setTools((data.results || data || []).map(mapTool))
-        setIsLoading(false)
       } catch (err) {
+        if (requestId !== latestRequestIdRef.current || controller.signal.aborted) {
+          return
+        }
+
         if (err.name === 'AbortError') {
           console.warn('API request timeout, falling back to empty state')
           setError(null)
           setTools([])
-          setIsLoading(false)
         } else {
           console.error('DirectoryPage fetch error:', err)
           setError('Failed to load tools')
+        }
+      } finally {
+        if (requestId === latestRequestIdRef.current && !controller.signal.aborted) {
           setIsLoading(false)
         }
       }
