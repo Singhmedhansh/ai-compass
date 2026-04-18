@@ -106,6 +106,8 @@ def create_app(config: dict | None = None) -> Flask:
 
     # FIXED SECRET KEY (no setdefault)
     app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "ai-compass-fixed-key-2024")
+    app.config["PERMANENT_SESSION_LIFETIME"] = 86400  # 24 hours
+    app.config["SESSION_REFRESH_EACH_REQUEST"] = True
     app.config["FRONTEND_URL"] = os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip("/")
     app.config["GOOGLE_CLIENT_ID"] = os.getenv("GOOGLE_CLIENT_ID", "")
     app.config["GOOGLE_CLIENT_SECRET"] = os.getenv("GOOGLE_CLIENT_SECRET", "")

@@ -156,7 +156,7 @@ def login():
 
                 db.session.commit()
                 _clear_stale_login_flash_errors()
-                login_user(user)
+                login_user(user, remember=True)
                 flash("Admin login detected. Use the Admin Panel button from the dashboard.", "success")
                 next_url = request.args.get("next")
                 if _requires_onboarding(user):
@@ -166,7 +166,7 @@ def login():
             if user and _verify_password_hash(user.password_hash, password):
                 _sync_admin_flag(user)
                 _clear_stale_login_flash_errors()
-                login_user(user)
+                login_user(user, remember=True)
                 flash("You are now logged in.", "success")
                 next_url = request.args.get("next")
                 if _requires_onboarding(user):

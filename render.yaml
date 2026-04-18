@@ -3,7 +3,7 @@ services:
     name: ai-compass
     runtime: python
     buildCommand: "./build.sh"
-    startCommand: "python -m gunicorn wsgi:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120"
+    startCommand: "gunicorn app:app --workers 1 --timeout 120 --keep-alive 5 --log-level info"
     envVars:
       - key: APP_ENV
         value: production
