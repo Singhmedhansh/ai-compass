@@ -111,9 +111,11 @@ def create_app(config: dict | None = None) -> Flask:
     app.config["GOOGLE_CLIENT_SECRET"] = os.getenv("GOOGLE_CLIENT_SECRET", "")
     app.config["GOOGLE_REDIRECT_URI"] = os.getenv("GOOGLE_REDIRECT_URI", "http://localhost:5000/auth/google/callback")
     app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
-    app.config["SESSION_COOKIE_SECURE"] = False
+    app.config["SESSION_COOKIE_SECURE"] = True
     app.config["SESSION_COOKIE_HTTPONLY"] = True
-    app.config["REMEMBER_COOKIE_SECURE"] = False
+    app.config["REMEMBER_COOKIE_SECURE"] = True
+    app.config["SESSION_COOKIE_DOMAIN"] = None
+    app.config["SESSION_COOKIE_NAME"] = "ai_compass_session"
 
     if USE_SERVER_SESSION and FileSystemCache is not None:
         session_dir = os.path.join(project_root, 'instance', 'flask_session')
