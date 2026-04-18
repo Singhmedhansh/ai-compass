@@ -28631,5 +28631,214 @@
       "Publish to app stores"
     ],
     "slug": "glide"
+  },
+  {
+    "name": "Gemini CLI",
+    "slug": "gemini-cli",
+    "description": "Gemini CLI brings Google's Gemini models into the terminal for coding help, code generation, refactoring, and repository-level assistance directly from command line workflows.",
+    "category": "Coding",
+    "pricing": "Freemium",
+    "url": "https://ai.google.dev/gemini-api/docs/cli",
+    "tags": [
+      "gemini",
+      "cli",
+      "terminal",
+      "coding-assistant",
+      "developer-tools"
+    ],
+    "logo_emoji": "??",
+    "student_friendly": true,
+    "student_perk": true,
+    "featured": false
+  },
+  {
+    "name": "OpenAI Codex",
+    "slug": "openai-codex",
+    "description": "OpenAI Codex is an AI coding agent for writing, editing, and understanding codebases, helping students scaffold projects, explain code, and automate repetitive development tasks.",
+    "category": "Coding",
+    "pricing": "Paid",
+    "url": "https://openai.com/codex",
+    "tags": [
+      "openai",
+      "codex",
+      "coding-agent",
+      "code-generation",
+      "developer-tools"
+    ],
+    "logo_emoji": "??",
+    "student_friendly": true,
+    "student_perk": true,
+    "featured": false
+  },
+  {
+    "name": "v0 by Vercel",
+    "slug": "v0-by-vercel",
+    "description": "v0 by Vercel generates production-ready UI and full-stack code from prompts, helping students quickly prototype React and Next.js applications with modern component patterns.",
+    "category": "Coding",
+    "pricing": "Freemium",
+    "url": "https://v0.dev",
+    "tags": [
+      "v0",
+      "vercel",
+      "ui-generation",
+      "nextjs",
+      "react"
+    ],
+    "logo_emoji": "?",
+    "student_friendly": true,
+    "student_perk": true,
+    "featured": false
+  },
+  {
+    "name": "Rocket.new",
+    "slug": "rocket-new",
+    "description": "Rocket.new is an AI-powered app builder that turns prompts into working product prototypes and frontend code, useful for students building hackathon and MVP projects quickly.",
+    "category": "Coding",
+    "pricing": "Freemium",
+    "url": "https://rocket.new",
+    "tags": [
+      "app-builder",
+      "prototype",
+      "frontend",
+      "no-code",
+      "ai-development"
+    ],
+    "logo_emoji": "??",
+    "student_friendly": true,
+    "student_perk": true,
+    "featured": false
+  },
+  {
+    "name": "Railway",
+    "slug": "railway",
+    "description": "Railway is a developer cloud platform for deploying backend services, databases, and full-stack apps with simple environments, previews, and team workflows.",
+    "category": "Coding",
+    "pricing": "Freemium",
+    "url": "https://railway.app",
+    "tags": [
+      "deployment",
+      "backend",
+      "devops",
+      "cloud",
+      "databases"
+    ],
+    "logo_emoji": "??",
+    "student_friendly": true,
+    "student_perk": true,
+    "featured": false
+  },
+  {
+    "name": "Vercel",
+    "slug": "vercel",
+    "description": "Vercel is a frontend cloud platform for shipping web applications with fast CI/CD, preview deployments, edge functions, and great support for Next.js projects.",
+    "category": "Coding",
+    "pricing": "Freemium",
+    "url": "https://vercel.com",
+    "tags": [
+      "deployment",
+      "frontend",
+      "nextjs",
+      "serverless",
+      "hosting"
+    ],
+    "logo_emoji": "?",
+    "student_friendly": true,
+    "student_perk": true,
+    "featured": false
+  },
+  {
+    "name": "Kiro",
+    "slug": "kiro",
+    "description": "Kiro is an AI coding assistant focused on faster software delivery, helping developers generate code, fix issues, and work through complex tasks across repositories.",
+    "category": "Coding",
+    "pricing": "Freemium",
+    "url": "https://kiro.dev",
+    "tags": [
+      "coding-assistant",
+      "developer-tools",
+      "code-generation",
+      "debugging",
+      "ai-agent"
+    ],
+    "logo_emoji": "???",
+    "student_friendly": true,
+    "student_perk": true,
+    "featured": false
+  },
+  {
+    "name": "Emergent",
+    "slug": "emergent",
+    "description": "Emergent is an AI software builder that helps turn product ideas into working web applications, handling scaffolded code, UI generation, and iterative edits from prompts.",
+    "category": "Coding",
+    "pricing": "Freemium",
+    "url": "https://emergent.sh",
+    "tags": [
+      "app-builder",
+      "coding",
+      "prototype",
+      "full-stack",
+      "ai-development"
+    ],
+    "logo_emoji": "??",
+    "student_friendly": true,
+    "student_perk": true,
+    "featured": false
+  },
+  {
+    "name": "Antigravity",
+    "slug": "antigravity",
+    "description": "Antigravity is an AI development platform for generating and iterating on software projects from natural language, designed to speed up prototyping and product experimentation.",
+    "category": "Coding",
+    "pricing": "Freemium",
+    "url": "https://antigravity.dev",
+    "tags": [
+      "app-builder",
+      "coding",
+      "prototype",
+      "developer-tools",
+      "ai-agent"
+    ],
+    "logo_emoji": "???",
+    "student_friendly": true,
+    "student_perk": true,
+    "featured": false
+  },
+  {
+    "name": "Hostinger Horizons",
+    "slug": "hostinger-horizons",
+    "description": "Hostinger Horizons is an AI website and app builder that helps students launch projects quickly with generated pages, components, and deployment-ready output.",
+    "category": "Coding",
+    "pricing": "Freemium",
+    "url": "https://www.hostinger.com/horizons",
+    "tags": [
+      "website-builder",
+      "app-builder",
+      "coding",
+      "deployment",
+      "ai-development"
+    ],
+    "logo_emoji": "??",
+    "student_friendly": true,
+    "student_perk": true,
+    "featured": false
+  },
+  {
+    "name": "Claude Code",
+    "slug": "claude-code",
+    "description": "Claude Code is Anthropic's coding-focused workflow for terminal and editor tasks, helping with implementation, refactors, debugging, and repository-aware code changes.",
+    "category": "Coding",
+    "pricing": "Paid",
+    "url": "https://www.anthropic.com/claude-code",
+    "tags": [
+      "anthropic",
+      "claude",
+      "coding-assistant",
+      "terminal",
+      "developer-tools"
+    ],
+    "logo_emoji": "??",
+    "student_friendly": true,
+    "student_perk": true,
+    "featured": false
   }
 ]
