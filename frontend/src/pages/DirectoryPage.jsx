@@ -22,6 +22,8 @@ function mapTool(rawTool) {
     logo: rawTool.logo,
     emoji: rawTool.emoji,
     icon: rawTool.icon,
+    url: rawTool.url || rawTool.website || rawTool.link,
+    website: rawTool.website || rawTool.url || rawTool.link,
     logo_url: rawTool.logo_url || rawTool.logoUrl,
     logo_emoji: rawTool.logo_emoji || rawTool.emoji,
     accent_color: rawTool.accent_color,

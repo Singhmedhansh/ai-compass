@@ -37,13 +37,30 @@ const DOMAIN_MAP = {
   obsidian: 'obsidian.md',
 }
 
+function getDomain(url) {
+  if (!url) {
+    return null
+  }
+
+  try {
+    return new URL(url).hostname.replace(/^www\./, '')
+  } catch {
+    try {
+      return new URL(`https://${url}`).hostname.replace(/^www\./, '')
+    } catch {
+      return null
+    }
+  }
+}
+
 function getLogoUrl(tool) {
   if (tool?.logo_url) {
     return tool.logo_url
   }
 
-  const key = (tool?.name || '').toLowerCase().trim()
-  const domain = DOMAIN_MAP[key]
+  const domain = getDomain(tool?.url || tool?.website || tool?.link)
+    || DOMAIN_MAP[(tool?.name || '').toLowerCase().trim()]
+
   return domain ? `https://logo.clearbit.com/${domain}` : null
 }
 
