@@ -28902,5 +28902,191 @@
       "Single API key for multiple providers"
     ],
     "slug": "openrouter"
+  },
+  {
+    "id": 502,
+    "name": "Gamma",
+    "icon": "/static/icons/gamma.svg",
+    "maker": "Gamma",
+    "tagline": "AI-powered presentation and document builder",
+    "category": "Productivity",
+    "subCategory": "Presentation Builder",
+    "price": "Freemium",
+    "pricingDetail": "Free tier available; Pro at $10/month",
+    "bestFor": "Creating stunning presentations in seconds without design skills",
+    "tags": [
+      "presentation",
+      "slides",
+      "AI design",
+      "deck builder",
+      "productivity",
+      "document generator"
+    ],
+    "trending": true,
+    "rating": 4.6,
+    "weeklyUsers": "1M+",
+    "link": "https://gamma.app",
+    "apiAvailable": false,
+    "openSource": false,
+    "studentPerk": true,
+    "uniHack": "Describe your topic and Gamma generates a full deck in seconds - perfect for last-minute presentations",
+    "features": [
+      "AI-generated layouts",
+      "Smart image insertion",
+      "Brand consistency",
+      "Instant design"
+    ],
+    "platforms": [
+      "Web"
+    ],
+    "languages": "20+",
+    "launchYear": 2023,
+    "description": "AI-powered presentation and document builder. Describe your topic and Gamma generates a full deck in seconds with smart layouts, images, and branding. Perfect for students who need polished presentations fast without spending hours on design.",
+    "use_cases": [
+      "Creating class presentations",
+      "Building project decks",
+      "Generating pitch presentations",
+      "Making visual reports",
+      "Creating professional documents"
+    ],
+    "difficulty": "beginner",
+    "student_friendly": true,
+    "pricing_tier": "freemium",
+    "company": "Gamma",
+    "review_count": 0,
+    "featured": false,
+    "logo_emoji": "✨",
+    "student_perk": true,
+    "strengths": [
+      "AI-generated layouts",
+      "Smart image insertion",
+      "Brand consistency",
+      "Instant design"
+    ],
+    "slug": "gamma"
+  },
+  {
+    "id": 503,
+    "name": "Beautiful.ai",
+    "icon": "/static/icons/beautifulai.svg",
+    "maker": "Beautiful.ai",
+    "tagline": "Smart slide editor with intelligent auto-formatting",
+    "category": "Productivity",
+    "subCategory": "Presentation Builder",
+    "price": "Freemium",
+    "pricingDetail": "Free with watermark; Pro at $15/month",
+    "bestFor": "Creating polished presentations without needing design experience",
+    "tags": [
+      "presentation",
+      "slides",
+      "design",
+      "powerpoint alternative",
+      "productivity",
+      "smart formatting"
+    ],
+    "trending": true,
+    "rating": 4.5,
+    "weeklyUsers": "800K+",
+    "link": "https://beautiful.ai",
+    "apiAvailable": false,
+    "openSource": false,
+    "studentPerk": true,
+    "uniHack": "Type your content and let Beautiful.ai auto-format it - layouts adjust intelligently to keep slides polished",
+    "features": [
+      "Smart auto-formatting",
+      "Intelligent layouts",
+      "Template library",
+      "Collaboration tools"
+    ],
+    "platforms": [
+      "Web"
+    ],
+    "languages": "15+",
+    "launchYear": 2015,
+    "description": "Smart slide editor that auto-formats your content as you type. No design skills needed — layouts adjust intelligently to keep slides polished. Great for busy students who want professional-looking presentations without the learning curve of traditional design tools.",
+    "use_cases": [
+      "Creating class presentations",
+      "Building business pitches",
+      "Making visual reports",
+      "Designing proposal decks",
+      "Creating project showcases"
+    ],
+    "difficulty": "beginner",
+    "student_friendly": true,
+    "pricing_tier": "freemium",
+    "company": "Beautiful.ai",
+    "review_count": 0,
+    "featured": false,
+    "logo_emoji": "🎨",
+    "student_perk": true,
+    "strengths": [
+      "Smart auto-formatting",
+      "Intelligent layouts",
+      "Template library",
+      "Collaboration tools"
+    ],
+    "slug": "beautifulai"
+  },
+  {
+    "id": 504,
+    "name": "Tome",
+    "icon": "/static/icons/tome.svg",
+    "maker": "Tome",
+    "tagline": "AI storytelling and presentation tool",
+    "category": "Productivity",
+    "subCategory": "Presentation Builder",
+    "price": "Freemium",
+    "pricingDetail": "Free with limited features; Pro at $20/month",
+    "bestFor": "Building narrative-driven presentations with AI-generated content",
+    "tags": [
+      "presentation",
+      "storytelling",
+      "AI deck",
+      "slides",
+      "productivity",
+      "narrative design"
+    ],
+    "trending": true,
+    "rating": 4.6,
+    "weeklyUsers": "900K+",
+    "link": "https://tome.app",
+    "apiAvailable": false,
+    "openSource": false,
+    "studentPerk": true,
+    "uniHack": "Use Tome's AI to generate story-driven decks with images and embeds - great for capstone projects",
+    "features": [
+      "AI-generated text",
+      "AI image generation",
+      "Embed multimedia",
+      "Story-driven layouts"
+    ],
+    "platforms": [
+      "Web"
+    ],
+    "languages": "15+",
+    "launchYear": 2023,
+    "description": "AI storytelling and presentation tool. Build narrative-driven decks with AI-generated text, images, and embeds in minutes. Perfect for students creating compelling presentations that tell a coherent story rather than just listing facts.",
+    "use_cases": [
+      "Creating narrative presentations",
+      "Building project stories",
+      "Making case studies",
+      "Creating portfolio pieces",
+      "Designing pitch decks"
+    ],
+    "difficulty": "beginner",
+    "student_friendly": true,
+    "pricing_tier": "freemium",
+    "company": "Tome",
+    "review_count": 0,
+    "featured": false,
+    "logo_emoji": "📖",
+    "student_perk": true,
+    "strengths": [
+      "AI-generated text",
+      "AI image generation",
+      "Embed multimedia",
+      "Story-driven layouts"
+    ],
+    "slug": "tome"
   }
 ]
