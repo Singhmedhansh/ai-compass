@@ -18,6 +18,36 @@ _TOOLS_CACHE: List[Dict[str, Any]] | None = None
 _TOOLS_CACHE_MTIME: float | None = None
 TOOL_CACHE: Dict[str, Dict[str, Any]] = {}
 
+CANONICAL_CATEGORIES = {
+    "coding": "Coding",
+    "writing & chat": "Writing & Chat",
+    "research": "Research",
+    "productivity": "Productivity",
+    "image generation": "Image Generation",
+    "video generation": "Video Generation",
+    "audio & voice": "Audio & Voice",
+}
+
+CATEGORY_ALIASES = {
+    "writing": "Writing & Chat",
+    "writing & docs": "Writing & Chat",
+    "chat": "Writing & Chat",
+    "image gen": "Image Generation",
+    "video gen": "Video Generation",
+    "audio": "Audio & Voice",
+    "voice": "Audio & Voice",
+}
+
+CATEGORY_KEYWORDS = {
+    "Coding": ["code", "coding", "programming", "developer", "github", "api", "ide", "full-stack", "terminal"],
+    "Writing & Chat": ["writing", "essay", "grammar", "paraphrase", "summar", "chat", "copy", "blog"],
+    "Research": ["research", "citation", "paper", "academic", "scholar", "literature", "study"],
+    "Productivity": ["task", "calendar", "note", "workflow", "focus", "planner", "todo", "automation"],
+    "Image Generation": ["image", "photo", "art", "design", "render", "diffusion", "visual", "poster"],
+    "Video Generation": ["video", "subtitle", "screen", "record", "transcript", "editing", "film", "animation"],
+    "Audio & Voice": ["audio", "voice", "speech", "podcast", "music", "transcription", "tts"],
+}
+
 
 def _get_lock_path(path: str) -> str:
     return f"{path}.lock"
@@ -34,6 +64,125 @@ def _tool_slug(tool: Dict[str, Any]) -> str:
 
     name = str(tool.get("name") or "").strip().lower()
     return re.sub(r"[^a-z0-9]+", "-", name).strip("-")
+
+
+def _fix_mojibake_text(value: str) -> str:
+    if not isinstance(value, str):
+        return value
+
+    text = value
+    replacements = {
+        "â€™": "'",
+        "â€˜": "'",
+        "â€œ": '"',
+        "â€\x9d": '"',
+        "â€“": "-",
+        "â€”": "-",
+        "â€¦": "...",
+        "â€¢": "-",
+        "Ãƒ©": "é",
+        "Ã¢â‚¬\"": "-",
+        "Ã¢â‚¬â€œ": "-",
+        "Ã¢â‚¬â€\x9d": "-",
+        "Â": "",
+    }
+    for wrong, right in replacements.items():
+        if wrong in text:
+            text = text.replace(wrong, right)
+
+    marker_chars = ("Ã", "â", "Â")
+
+    def marker_score(candidate: str) -> int:
+        return sum(candidate.count(m) for m in marker_chars)
+
+    # Handle double-encoded sequences conservatively.
+    for _ in range(2):
+        if not any(marker in text for marker in marker_chars):
+            break
+        try:
+            repaired = text.encode("latin-1").decode("utf-8")
+        except (UnicodeEncodeError, UnicodeDecodeError):
+            break
+
+        if not repaired or "\ufffd" in repaired:
+            break
+
+        if marker_score(repaired) <= marker_score(text):
+            text = repaired
+        else:
+            break
+
+    for wrong, right in replacements.items():
+        if wrong in text:
+            text = text.replace(wrong, right)
+
+    return text
+
+
+def _normalize_string_list(value: Any) -> list[str]:
+    if not isinstance(value, list):
+        return []
+    return [_fix_mojibake_text(str(item)).strip() for item in value if str(item).strip()]
+
+
+def _infer_category(tool: Dict[str, Any], current_category: str) -> str:
+    haystack = " ".join(
+        [
+            str(tool.get("name") or ""),
+            str(tool.get("description") or ""),
+            " ".join(_normalize_string_list(tool.get("tags"))),
+            " ".join(_normalize_string_list(tool.get("use_cases"))),
+        ]
+    ).lower()
+
+    scores: Dict[str, int] = {category: 0 for category in CATEGORY_KEYWORDS}
+    for category, keywords in CATEGORY_KEYWORDS.items():
+        for keyword in keywords:
+            if keyword in haystack:
+                scores[category] += 1
+
+    winner, winner_score = max(scores.items(), key=lambda item: item[1])
+    current_score = scores.get(current_category, 0)
+
+    # Conservative override: only if the winning category clearly dominates.
+    if winner_score >= 2 and winner_score >= current_score + 2:
+        return winner
+    return current_category
+
+
+def _normalize_category(raw_category: Any, tool: Dict[str, Any]) -> str:
+    normalized = _fix_mojibake_text(str(raw_category or "")).strip()
+    key = normalized.lower()
+
+    canonical = CANONICAL_CATEGORIES.get(key)
+    if canonical:
+        return _infer_category(tool, canonical)
+
+    alias = CATEGORY_ALIASES.get(key)
+    if alias:
+        return _infer_category(tool, alias)
+
+    # Unknown category labels are mapped to a safe default from inferred content.
+    inferred = _infer_category(tool, "Productivity")
+    return inferred
+
+
+def _normalize_tool_record(tool: Dict[str, Any]) -> Dict[str, Any]:
+    if not isinstance(tool, dict):
+        return {}
+
+    normalized = dict(tool)
+    for key, value in list(normalized.items()):
+        if isinstance(value, str):
+            normalized[key] = _fix_mojibake_text(value)
+        elif isinstance(value, list):
+            normalized[key] = [
+                _fix_mojibake_text(item) if isinstance(item, str) else item
+                for item in value
+            ]
+
+    normalized["category"] = _normalize_category(normalized.get("category"), normalized)
+    return normalized
 
 
 def _load_tools_from_disk(data_path: str = DEFAULT_TOOLS_PATH) -> List[Dict[str, Any]]:
@@ -61,7 +210,11 @@ def _load_tools_from_disk(data_path: str = DEFAULT_TOOLS_PATH) -> List[Dict[str,
         tools = payload.get("tools", [])
     else:
         tools = payload
-    return tools if isinstance(tools, list) else []
+
+    if not isinstance(tools, list):
+        return []
+
+    return [_normalize_tool_record(tool) for tool in tools if isinstance(tool, dict)]
 
 
 
@@ -80,11 +233,11 @@ def build_search_index(tools):
             "_raw":             tool,
             "_name_lower":      tool.get("name", "").lower(),
             "_category_lower":  tool.get("category", "").lower(),
-            "_tags_lower":      [t.lower() for t in tool.get("tags", [])],
+            "_tags_lower":      [str(t).lower() for t in tool.get("tags", [])],
             "_desc_lower":      tool.get("description", "").lower(),
             "_longdesc_lower":  tool.get("long_description", "").lower(),
-            "_uses_lower":      [u.lower() for u in tool.get("use_cases", [])],
-            "_strengths_lower": [s.lower() for s in tool.get("strengths", [])],
+            "_uses_lower":      [str(u).lower() for u in tool.get("use_cases", [])],
+            "_strengths_lower": [str(s).lower() for s in tool.get("strengths", [])],
             "_company_lower":   tool.get("company", "").lower(),
         })
 
