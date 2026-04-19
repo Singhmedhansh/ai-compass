@@ -165,6 +165,46 @@ function ToolDetailPage() {
   }, [])
 
   useEffect(() => {
+    let cancelled = false
+
+    async function syncFavoriteStatus() {
+      if (!isLoggedIn || !tool?.slug) {
+        setIsFavorite(false)
+        return
+      }
+
+      try {
+        const response = await fetch('/api/v1/favorites')
+        if (!response.ok) {
+          return
+        }
+
+        const payload = await response.json()
+        const favorites = Array.isArray(payload) ? payload : []
+        const favoriteSlugs = new Set(
+          favorites
+            .map((item) => toSlug(item?.slug || item?.name || ''))
+            .filter(Boolean),
+        )
+
+        if (!cancelled) {
+          setIsFavorite(favoriteSlugs.has(toSlug(tool.slug)))
+        }
+      } catch {
+        if (!cancelled) {
+          setIsFavorite(false)
+        }
+      }
+    }
+
+    syncFavoriteStatus()
+
+    return () => {
+      cancelled = true
+    }
+  }, [isLoggedIn, tool?.slug])
+
+  useEffect(() => {
     const normalizedSlug = String(slug || '').trim().toLowerCase()
     if (!normalizedSlug) {
       return
@@ -198,19 +238,29 @@ function ToolDetailPage() {
       return
     }
 
-    const nextValue = !isFavorite
-    setIsFavorite(nextValue)
-
     try {
-      await fetch('/api/v1/favorites', {
+      const response = await fetch('/api/v1/favorites', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ slug: tool?.slug, favorite: nextValue }),
+        body: JSON.stringify({ slug: tool?.slug }),
       })
+
+      if (!response.ok) {
+        throw new Error('Failed to toggle favorite')
+      }
+
+      const payload = await response.json().catch(() => ({}))
+      if (typeof payload?.favorited === 'boolean') {
+        setIsFavorite(payload.favorited)
+      } else {
+        setIsFavorite((previous) => !previous)
+      }
+
+      window.dispatchEvent(new Event('favoritesUpdated'))
     } catch {
-      setIsFavorite(!nextValue)
+      // Keep previous UI state when request fails.
     }
   }
 
@@ -277,7 +327,7 @@ function ToolDetailPage() {
                   </a>
                   <Button variant="ghost" className="w-full gap-2" onClick={handleFavoriteToggle}>
                     <Heart className={clsx('h-4 w-4', isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-300 dark:text-gray-600')} />
-                    Save to Favorites
+                    {isFavorite ? 'Saved to Favorites' : 'Save to Favorites'}
                   </Button>
                 </div>
 

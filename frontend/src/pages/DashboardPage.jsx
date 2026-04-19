@@ -384,40 +384,53 @@ function DashboardPage() {
             </div>
           )}
 
-          <section>
-            <div className="mb-3 flex items-end justify-between gap-3">
+          <section className="rounded-2xl border border-gray-200 bg-white/80 p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800/70 sm:p-5">
+            <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
               <div>
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white">Recommended for You</h2>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Based on your interests</p>
               </div>
-              <Sparkles className="h-5 w-5 text-indigo-500" />
+              <div className="flex items-center gap-2">
+                <span className="rounded-full border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700 dark:border-indigo-500/40 dark:bg-indigo-500/10 dark:text-indigo-300">
+                  {recommendations.length} picks
+                </span>
+                <Sparkles className="h-5 w-5 text-indigo-500" />
+              </div>
             </div>
 
-            <div className="flex gap-4 overflow-x-auto pb-2">
-              {recommendations.length > 0 ? (
-                recommendations.map((tool) => (
-                  <div key={tool.slug || tool.name} className="min-w-[17rem] flex-1 sm:min-w-[18rem]">
-                    <Card tool={tool} />
-                  </div>
-                ))
-              ) : (
-                <p className="text-sm text-gray-500 dark:text-gray-400">No recommendations yet.</p>
-              )}
-            </div>
+            {recommendations.length > 0 ? (
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+                {recommendations.map((tool) => (
+                  <Card key={tool.slug || tool.name} tool={tool} />
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-5 text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400">
+                No recommendations yet.
+              </div>
+            )}
           </section>
 
-          <section>
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">My Favorites</h2>
+          <section className="rounded-2xl border border-gray-200 bg-white/80 p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800/70 sm:p-5">
+            <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">My Favorites</h2>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Tools you saved for quick access</p>
+              </div>
+              <span className="rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-700 dark:border-rose-500/40 dark:bg-rose-500/10 dark:text-rose-300">
+                {favorites.length} saved
+              </span>
+            </div>
 
             {favorites.length === 0 ? (
-              <div className="mt-3 rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-6 text-center dark:border-gray-700 dark:bg-gray-900">
+              <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-6 text-center dark:border-gray-700 dark:bg-gray-900">
                 <p className="text-sm text-gray-600 dark:text-gray-400">No favorites yet</p>
                 <Button className="mt-4" onClick={() => navigate('/tools')}>
                   Explore Tools
                 </Button>
               </div>
             ) : (
-              <div className="mt-3 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
                 {favorites.map((tool) => (
                   <Card key={tool.slug || tool.name} tool={tool} />
                 ))}
