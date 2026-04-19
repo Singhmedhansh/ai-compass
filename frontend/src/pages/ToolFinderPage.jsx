@@ -354,7 +354,7 @@ function ToolFinderPage() {
   const renderStep = () => {
     if (step === 1) {
       return (
-        <section style={{ width: '100%', maxWidth: 480, margin: '0 auto' }}>
+        <section className="mx-auto w-full max-w-5xl">
           <h2 className="text-xl font-semibold text-white">What&apos;s your primary goal?</h2>
           <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {GOAL_OPTIONS.map((option) => (
@@ -373,7 +373,7 @@ function ToolFinderPage() {
     // Use Case Step (step 1.5)
     if (step === 1.5) {
       return (
-        <section style={{ width: '100%', maxWidth: 480, margin: '0 auto' }}>
+        <section className="mx-auto w-full max-w-2xl">
           <h2 className="text-xl font-semibold text-white">What specifically do you want to do?</h2>
           <p className="text-slate-300 mb-2">
             Be specific — "write essays" gets better results than "writing"
@@ -412,7 +412,7 @@ function ToolFinderPage() {
 
     if (step === 2) {
       return (
-        <section style={{ width: '100%', maxWidth: 480, margin: '0 auto' }}>
+        <section className="mx-auto w-full max-w-4xl">
           <h2 className="text-xl font-semibold text-white">What&apos;s your budget?</h2>
           <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-3">
             {BUDGET_OPTIONS.map((option) => (
@@ -431,9 +431,9 @@ function ToolFinderPage() {
 
     if (step === 3) {
       return (
-        <section style={{ width: '100%', maxWidth: 480, margin: '0 auto' }}>
+        <section className="mx-auto w-full max-w-5xl">
           <h2 className="text-xl font-semibold text-white">Where do you work?</h2>
-          <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {PLATFORM_OPTIONS.map((option) => (
               <StepCard
                 key={option.id}
@@ -450,7 +450,7 @@ function ToolFinderPage() {
 
     if (step === 4) {
       return (
-        <section style={{ width: '100%', maxWidth: 480, margin: '0 auto' }}>
+        <section className="mx-auto w-full max-w-4xl">
           <h2 className="text-xl font-semibold text-white">How would you describe your experience level?</h2>
           <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-3">
             {LEVEL_OPTIONS.map((option) => (
@@ -639,7 +639,7 @@ function ToolFinderPage() {
           </AnimatePresence>
 
           {step <= 4 ? (
-            <div className="mt-8 flex items-center justify-between gap-3">
+            <div className="mx-auto mt-8 flex w-full max-w-5xl items-center justify-between gap-3">
               <MotionButton
                 type="button"
                 whileHover={{ scale: 1.03 }}

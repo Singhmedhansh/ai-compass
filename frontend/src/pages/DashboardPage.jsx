@@ -436,26 +436,48 @@ function DashboardPage() {
                 </Button>
               </div>
             ) : (
-              <div className="mt-3 rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-800">
-                <div className="flex flex-wrap gap-2">
-                  <span className="rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-200">
-                    Goal: {savedStack.goal || 'N/A'}
-                  </span>
-                  <span className="rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-200">
-                    Budget: {savedStack.budget || 'N/A'}
-                  </span>
-                  <span className="rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-200">
-                    Level: {savedStack.level || 'N/A'}
-                  </span>
+              <div className="mt-3 rounded-2xl border border-gray-200 bg-gradient-to-br from-white to-indigo-50/40 p-5 shadow-sm dark:border-gray-700 dark:bg-gradient-to-br dark:from-gray-800 dark:to-indigo-950/20">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white">Saved preferences</p>
+                    <p className="mt-1 text-xs text-gray-600 dark:text-gray-400">Your latest finder profile used to build this stack.</p>
+                  </div>
+                  <Button
+                    type="button"
+                    className="h-9 rounded-lg px-3 text-xs"
+                    onClick={() => navigate('/ai-tool-finder')}
+                  >
+                    Update Stack
+                  </Button>
                 </div>
-                <div className="mt-4">
+
+                <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
+                  <div className="rounded-xl border border-gray-200/80 bg-white/70 px-3 py-2 dark:border-gray-700 dark:bg-gray-900/40">
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Goal</p>
+                    <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">{toProperCase(savedStack.goal || 'N/A')}</p>
+                  </div>
+                  <div className="rounded-xl border border-gray-200/80 bg-white/70 px-3 py-2 dark:border-gray-700 dark:bg-gray-900/40">
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Budget</p>
+                    <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">{toProperCase(savedStack.budget || 'N/A')}</p>
+                  </div>
+                  <div className="rounded-xl border border-gray-200/80 bg-white/70 px-3 py-2 dark:border-gray-700 dark:bg-gray-900/40">
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Level</p>
+                    <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">{toProperCase(savedStack.level || 'N/A')}</p>
+                  </div>
+                  <div className="rounded-xl border border-indigo-200/80 bg-indigo-50 px-3 py-2 dark:border-indigo-500/40 dark:bg-indigo-500/10">
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-indigo-700 dark:text-indigo-300">Saved Tools</p>
+                    <p className="mt-1 text-sm font-semibold text-indigo-700 dark:text-indigo-200">{Array.isArray(savedStack.tools) ? savedStack.tools.length : 0}</p>
+                  </div>
+                </div>
+
+                <div className="mt-5">
                   <p className="text-sm font-semibold text-gray-900 dark:text-white">Saved tools</p>
                   <div className="mt-2 flex flex-wrap gap-2">
                     {Array.isArray(savedStack.tools) && savedStack.tools.length > 0 ? (
                       savedStack.tools.map((toolName, index) => (
                         <span
                           key={`saved-stack-tool-${index}`}
-                          className="rounded-lg border border-gray-300 px-2.5 py-1 text-xs text-gray-700 dark:border-gray-600 dark:text-gray-300"
+                          className="rounded-full border border-gray-300/80 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300"
                         >
                           {toolName}
                         </span>
