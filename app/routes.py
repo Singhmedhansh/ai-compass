@@ -1,22 +1,17 @@
 import os
-import json
 from datetime import datetime, timezone
 
 from flask import Blueprint, Response, jsonify, send_from_directory
 from sqlalchemy import text
 
 from app import db
-from app.tool_cache import get_cached_tools
+from app.tool_cache import TOOL_CACHE, get_cached_tools
 
 main_bp = Blueprint('main', __name__)
 
 DIST_DIR = os.path.join(
     os.path.dirname(os.path.dirname(__file__)),
     'static', 'dist'
-)
-TOOLS_PATH = os.path.join(
-    os.path.dirname(os.path.dirname(__file__)),
-    'data', 'tools.json'
 )
 
 
@@ -48,8 +43,8 @@ def health_check():
 
 @main_bp.route('/sitemap.xml')
 def sitemap():
-    with open(TOOLS_PATH, encoding='utf-8') as f:
-        tools = json.load(f)
+    # Ensure cache is primed in case this route is hit before startup priming.
+    get_cached_tools()
 
     base = 'https://ai-compass.in'
     urls = []
@@ -64,12 +59,10 @@ def sitemap():
             f'<url><loc>{base}{path}</loc><changefreq>{freq}</changefreq><priority>{priority}</priority></url>'
         )
 
-    for tool in tools:
-        slug = tool.get('slug', '')
-        if slug:
-            urls.append(
-                f'<url><loc>{base}/tool/{slug}</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>'
-            )
+    for slug, tool in TOOL_CACHE.items():
+        urls.append(
+            f'<url><loc>{base}/tool/{slug}</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>'
+        )
 
     xml = (
         '<?xml version="1.0" encoding="UTF-8"?>\n'
