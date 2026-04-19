@@ -69,6 +69,15 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 
+@login_manager.unauthorized_handler
+def handle_unauthorized():
+    """Return JSON for API calls and redirect browser routes to login."""
+    path = (request.path or "").lower()
+    if path.startswith("/api/"):
+        return {"error": "Authentication required"}, 401
+    return redirect("/login")
+
+
 def _build_database_uri(project_root: str) -> str:
     database_url = os.getenv("DATABASE_URL", "").strip()
     if database_url:

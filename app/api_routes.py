@@ -573,6 +573,7 @@ def api_search():
 
 
 @api_bp.get("/recommendations")
+@login_required
 def recommendations():
     tools = _load_tools()
 
@@ -1121,10 +1122,8 @@ def toggle_favorite():
 
 
 @api_bp.get("/favorites")
+@login_required
 def list_favorites():
-    if not current_user.is_authenticated:
-        return jsonify([])
-
     favorites = (
         Favorite.query.filter_by(user_id=current_user.id)
         .order_by(Favorite.id.desc())
