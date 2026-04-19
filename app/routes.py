@@ -1,5 +1,6 @@
 import os
 from datetime import datetime, timezone
+from xml.sax.saxutils import escape
 
 from flask import Blueprint, Response, jsonify, send_from_directory
 from sqlalchemy import text
@@ -55,13 +56,17 @@ def sitemap():
         ('/ai-tool-finder', '0.8', 'monthly'),
     ]
     for path, priority, freq in static:
+        safe_path = escape(str(path))
+        safe_priority = escape(str(priority))
+        safe_freq = escape(str(freq))
         urls.append(
-            f'<url><loc>{base}{path}</loc><changefreq>{freq}</changefreq><priority>{priority}</priority></url>'
+            f'<url><loc>{base}{safe_path}</loc><changefreq>{safe_freq}</changefreq><priority>{safe_priority}</priority></url>'
         )
 
-    for slug, tool in TOOL_CACHE.items():
+    for slug, _ in TOOL_CACHE.items():
+        safe_slug = escape(str(slug))
         urls.append(
-            f'<url><loc>{base}/tool/{slug}</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>'
+            f'<url><loc>{base}/tool/{safe_slug}</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>'
         )
 
     xml = (
