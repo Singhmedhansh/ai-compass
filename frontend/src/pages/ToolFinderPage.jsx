@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { Check, HelpCircle, RotateCcw, Save } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { useNavigate } from 'react-router-dom'
 
@@ -10,6 +10,21 @@ import { ToolLogo } from '../components/ui'
 const MotionButton = motion.button
 const MotionDiv = motion.div
 const MotionArticle = motion.article
+
+function getAspectBucket() {
+  if (typeof window === 'undefined') {
+    return 'landscape'
+  }
+
+  const ratio = window.innerWidth / Math.max(window.innerHeight, 1)
+  if (ratio < 0.95) {
+    return 'portrait'
+  }
+  if (ratio > 1.9) {
+    return 'ultrawide'
+  }
+  return 'landscape'
+}
 
 const TOTAL_STEPS = 5
 
@@ -201,6 +216,17 @@ function ToolFinderPage() {
   const [savingStack, setSavingStack] = useState(false)
   const [error, setError] = useState('')
   const [expandedReasons, setExpandedReasons] = useState({})
+  const [aspectBucket, setAspectBucket] = useState(getAspectBucket)
+
+  useEffect(() => {
+    const onResize = () => {
+      setAspectBucket(getAspectBucket())
+    }
+
+    onResize()
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
 
   let user = null
   try {
@@ -468,8 +494,8 @@ function ToolFinderPage() {
     }
 
     return (
-      <section style={{ width: '100%', maxWidth: 1120, margin: '0 auto' }}>
-        <div className="flex flex-wrap items-center justify-between gap-3">
+      <section className={`mx-auto w-full ${aspectBucket === 'ultrawide' ? 'max-w-7xl' : aspectBucket === 'portrait' ? 'max-w-4xl' : 'max-w-6xl'}`}>
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-700/70 bg-slate-900/40 p-4 sm:p-5">
           <div>
             <h2 className="text-2xl font-semibold text-white">Your Recommended Tools</h2>
             <p className="mt-1 text-sm text-slate-300">{results.length} matched tools based on your preferences.</p>
@@ -537,30 +563,39 @@ function ToolFinderPage() {
                     </div>
                   </div>
 
-                  <section className="rounded-2xl border border-gray-200 bg-gray-50/80 p-3 dark:border-gray-700 dark:bg-gray-900/50">
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="inline-flex items-center rounded-full bg-indigo-100 px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-indigo-700 ring-1 ring-inset ring-indigo-200 dark:bg-indigo-500/20 dark:text-indigo-300 dark:ring-indigo-500/30">
-                        Why recommended
-                      </span>
-                    </div>
+                  <AnimatePresence initial={false}>
+                    {isExpanded ? (
+                      <MotionDiv
+                        key={`${toolKey}-reason`}
+                        initial={{ opacity: 0, y: -6, height: 0 }}
+                        animate={{ opacity: 1, y: 0, height: 'auto' }}
+                        exit={{ opacity: 0, y: -6, height: 0 }}
+                        transition={{ duration: 0.18, ease: 'easeOut' }}
+                        className="overflow-hidden rounded-2xl border border-gray-200 bg-gray-50/80 p-3 dark:border-gray-700 dark:bg-gray-900/50"
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="inline-flex items-center rounded-full bg-indigo-100 px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-indigo-700 ring-1 ring-inset ring-indigo-200 dark:bg-indigo-500/20 dark:text-indigo-300 dark:ring-indigo-500/30">
+                            Why recommended
+                          </span>
+                        </div>
 
-                    {reasonBullets.length > 0 ? (
-                      <ul className="mt-3 space-y-2 text-sm text-gray-600 dark:text-gray-300">
-                        {reasonBullets
-                          .slice(0, isExpanded ? 4 : 2)
-                          .map((bullet, bulletIndex) => (
-                            <li key={`${toolKey}-reason-${bulletIndex}`} className="flex gap-2">
-                              <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-500" aria-hidden="true" />
-                              <span className={isExpanded ? '' : 'line-clamp-1'}>{bullet}</span>
-                            </li>
-                          ))}
-                      </ul>
-                    ) : (
-                      <p className="mt-3 line-clamp-2 text-sm text-gray-600 dark:text-gray-300">
-                        {tool._reason || tool.reason || 'Strong overall match for your preferences.'}
-                      </p>
-                    )}
-                  </section>
+                        {reasonBullets.length > 0 ? (
+                          <ul className="mt-3 space-y-2 text-sm text-gray-600 dark:text-gray-300">
+                            {reasonBullets.slice(0, 4).map((bullet, bulletIndex) => (
+                              <li key={`${toolKey}-reason-${bulletIndex}`} className="flex gap-2">
+                                <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-500" aria-hidden="true" />
+                                <span>{bullet}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="mt-3 text-sm text-gray-600 dark:text-gray-300">
+                            {tool._reason || tool.reason || 'Strong overall match for your preferences.'}
+                          </p>
+                        )}
+                      </MotionDiv>
+                    ) : null}
+                  </AnimatePresence>
 
                   <div className="flex flex-wrap gap-2">
                     <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold uppercase tracking-wide ring-1 ring-inset ${getPriceBadgeClass(tool.pricing)}`}>
@@ -571,7 +606,7 @@ function ToolFinderPage() {
                     </span>
                   </div>
 
-                  <div className="mt-auto grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  <div className={`mt-auto grid grid-cols-1 gap-2 ${aspectBucket === 'portrait' ? '' : 'sm:grid-cols-2'}`}>
                     <MotionButton
                       type="button"
                       whileHover={{ scale: 1.02 }}
@@ -580,7 +615,7 @@ function ToolFinderPage() {
                       className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 transition hover:border-indigo-300 hover:text-indigo-600 dark:border-gray-600 dark:bg-gray-950 dark:text-gray-200 dark:hover:border-indigo-500 dark:hover:text-indigo-300"
                     >
                       <HelpCircle className="h-4 w-4" />
-                      Why this?
+                      {isExpanded ? 'Hide reason' : 'Why recommended'}
                     </MotionButton>
 
                     <a

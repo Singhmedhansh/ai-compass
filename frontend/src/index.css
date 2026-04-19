@@ -12,3 +12,38 @@ html { scroll-behavior: smooth; }
 ::-webkit-scrollbar-thumb { background: #4f46e5; border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: #6366f1; }
 * { scrollbar-width: thin; scrollbar-color: #4f46e5 transparent; }
+
+/* Global adaptive layout tokens driven by html[data-aspect] from main.jsx */
+:root {
+	--adaptive-max-7xl: 80rem;
+	--adaptive-max-6xl: 72rem;
+	--adaptive-max-5xl: 64rem;
+	--adaptive-max-4xl: 56rem;
+	--adaptive-max-3xl: 48rem;
+	--adaptive-max-2xl: 42rem;
+}
+
+html[data-aspect='ultrawide'] {
+	--adaptive-max-7xl: 92rem;
+	--adaptive-max-6xl: 84rem;
+	--adaptive-max-5xl: 72rem;
+	--adaptive-max-4xl: 60rem;
+	--adaptive-max-3xl: 52rem;
+	--adaptive-max-2xl: 44rem;
+}
+
+html[data-aspect='portrait'] {
+	--adaptive-max-7xl: 76rem;
+	--adaptive-max-6xl: 68rem;
+	--adaptive-max-5xl: 60rem;
+	--adaptive-max-4xl: 54rem;
+	--adaptive-max-3xl: 46rem;
+	--adaptive-max-2xl: 40rem;
+}
+
+.max-w-7xl { max-width: var(--adaptive-max-7xl); }
+.max-w-6xl { max-width: var(--adaptive-max-6xl); }
+.max-w-5xl { max-width: var(--adaptive-max-5xl); }
+.max-w-4xl { max-width: var(--adaptive-max-4xl); }
+.max-w-3xl { max-width: var(--adaptive-max-3xl); }
+.max-w-2xl { max-width: var(--adaptive-max-2xl); }

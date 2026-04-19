@@ -20,6 +20,23 @@ window.fetch = (input, init) => {
   return originalFetch(input, init)
 }
 
+const applyAspectRatioFlag = () => {
+  const root = document.documentElement
+  const ratio = window.innerWidth / Math.max(window.innerHeight, 1)
+  if (ratio < 0.95) {
+    root.dataset.aspect = 'portrait'
+    return
+  }
+  if (ratio > 1.9) {
+    root.dataset.aspect = 'ultrawide'
+    return
+  }
+  root.dataset.aspect = 'landscape'
+}
+
+applyAspectRatioFlag()
+window.addEventListener('resize', applyAspectRatioFlag)
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <HelmetProvider>
