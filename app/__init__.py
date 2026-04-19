@@ -253,6 +253,13 @@ def create_app(config: dict | None = None) -> Flask:
             prime_tools_cache(DEFAULT_TOOLS_PATH)
             print(f"[STARTUP] Loaded {len(get_cached_tools())} tools")
 
+            try:
+                from app.ml_recommender import load_model as _load_recommender_model
+                _load_recommender_model()
+                print("[STARTUP] Recommender model loaded")
+            except Exception as e:
+                print(f"[STARTUP] Recommender preload skipped: {e}")
+
     try:
         model_path = os.path.join(project_root, 'data', 'recommendation_model.pkl')
         if not os.path.exists(model_path):

@@ -1,6 +1,7 @@
 import os
 import pickle
 import heapq
+from functools import lru_cache
 from typing import TYPE_CHECKING
 
 
@@ -253,7 +254,16 @@ def get_recommendations(goal=None, budget=None, platform=None, level=None, use_c
 
     return results
 
+@lru_cache(maxsize=2048)
 def get_similar_tools(slug, limit=4):
+    slug = str(slug or "").strip().lower()
+    try:
+        limit = int(limit)
+    except (TypeError, ValueError):
+        limit = 4
+    if limit <= 0:
+        return []
+
     model = load_model()
     if not model:
         return []
@@ -273,9 +283,27 @@ def get_similar_tools(slug, limit=4):
         return []
 
     idx = tool_index[slug]
-    sim_scores = heapq.nlargest(limit + 1, enumerate(similarity_matrix[idx]), key=lambda x: x[1])
+    row = similarity_matrix[idx]
 
-    return [tools[i] for i, _ in sim_scores[1:limit+1]]
+    # Fast path for numpy arrays (common for sklearn cosine matrices).
+    try:
+        import numpy as np  # local import avoids hard dependency during startup
+        arr = np.asarray(row)
+        if arr.ndim == 1 and arr.size > 0:
+            if idx < arr.size:
+                arr[idx] = -1.0
+            top_k = min(limit, arr.size)
+            if top_k <= 0:
+                return []
+            candidate_idx = np.argpartition(arr, -top_k)[-top_k:]
+            ranked_idx = candidate_idx[np.argsort(arr[candidate_idx])[::-1]]
+            return [tools[int(i)] for i in ranked_idx if 0 <= int(i) < len(tools)]
+    except Exception:
+        pass
+
+    # Fallback for non-numpy sequence types.
+    sim_scores = heapq.nlargest(limit + 1, enumerate(row), key=lambda x: x[1])
+    return [tools[i] for i, _ in sim_scores[1:limit + 1]]
 
 def _reason(tool, goal, budget, level):
     parts = []
