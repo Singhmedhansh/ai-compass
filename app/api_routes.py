@@ -1,6 +1,8 @@
 import json
 import os
 import re
+import subprocess
+import sys
 import time
 from collections import Counter
 from datetime import datetime, timezone
@@ -10,7 +12,7 @@ from flask_login import current_user, login_required, login_user, logout_user
 from sqlalchemy import func
 
 from app import bcrypt, csrf, db
-from app.ml_recommender import get_similar_tools
+from app.ml_recommender import clear_model_cache, get_similar_tools, load_model
 from app.models import Favorite, Rating, Review, ToolRating, User
 from app.search_utils import search_tools
 from app.tool_cache import DEFAULT_TOOLS_PATH, TOOL_CACHE, get_cached_tools, prime_tools_cache
@@ -222,6 +224,37 @@ def _rating_value(tool: dict) -> float:
         return 0.0
 
 
+def _normalize_budget_choice(budget: str) -> str:
+    value = _normalize_text(budget)
+    if value == "any":
+        return "paid"
+    if value in {"free", "freemium", "paid"}:
+        return value
+    return "freemium"
+
+
+def _tool_supports_platform(tool: dict, platform: str) -> bool:
+    platform_key = _normalize_text(platform)
+    if not platform_key:
+        return True
+
+    aliases = {
+        "web": {"web", "browser"},
+        "mobile": {"mobile", "ios", "android"},
+        "desktop": {"desktop", "windows", "mac", "linux"},
+        "api": {"api", "sdk", "cli"},
+    }
+    wanted = aliases.get(platform_key, {platform_key})
+    supported = {_normalize_text(item) for item in (tool.get("platforms") or [])}
+    if not supported:
+        return False
+
+    for item in supported:
+        if any(alias in item for alias in wanted):
+            return True
+    return False
+
+
 FINDER_GOAL_CATEGORY_MAP = {
     "studying": ["research", "productivity"],
     "coding": ["coding"],
@@ -259,6 +292,7 @@ def _finder_tool_score(tool: dict, goal: str, budget: str, platform: str, level:
         elif any(token in tool_text for token in use_case_tokens):
             score += 14.0
 
+    normalized_budget = _normalize_budget_choice(budget)
     pricing = _pricing_value(tool)
     pricing_bonus = {
         ("free", "free"): 24.0,
@@ -271,7 +305,7 @@ def _finder_tool_score(tool: dict, goal: str, budget: str, platform: str, level:
         ("paid", "freemium"): 10.0,
         ("paid", "paid"): 14.0,
     }
-    score += pricing_bonus.get((budget, pricing), 0.0)
+    score += pricing_bonus.get((normalized_budget, pricing), 0.0)
 
     tool_platforms = [str(platform_value).lower() for platform_value in (tool.get("platforms") or [])]
     platform_hits = {
@@ -284,6 +318,9 @@ def _finder_tool_score(tool: dict, goal: str, budget: str, platform: str, level:
         if platform_value in tool_platforms:
             score += 18.0
             break
+    else:
+        # Penalize explicit platform mismatch so recommendations change per selection.
+        score -= 14.0
 
     tool_tags = [str(tag).lower() for tag in (tool.get("tags") or [])]
     if level in ("beginner", "novice"):
@@ -315,6 +352,7 @@ def _finder_tool_score(tool: dict, goal: str, budget: str, platform: str, level:
 
 
 def _rank_finder_tools(tools: list[dict], goal: str, budget: str, platform: str, level: str, use_case: str, limit: int = 6) -> list[dict]:
+    normalized_budget = _normalize_budget_choice(budget)
     scored = []
 
     for tool in tools:
@@ -324,15 +362,20 @@ def _rank_finder_tools(tools: list[dict], goal: str, budget: str, platform: str,
 
     scored.sort(key=lambda item: item[1], reverse=True)
 
+    platform_matched = [item for item in scored if _tool_supports_platform(item[0], platform)]
+    if platform and len(platform_matched) >= 3:
+        leftovers = [item for item in scored if not _tool_supports_platform(item[0], platform)]
+        scored = platform_matched + leftovers
+
     results = []
     for tool, score in scored[:limit]:
         reason_bits = []
         category = str(tool.get("category") or "General")
         if category:
             reason_bits.append(category)
-        if budget == "free" and _pricing_value(tool) == "free":
+        if normalized_budget == "free" and _pricing_value(tool) == "free":
             reason_bits.append("free to use")
-        elif budget == "freemium" and _pricing_value(tool) == "freemium":
+        elif normalized_budget == "freemium" and _pricing_value(tool) == "freemium":
             reason_bits.append("free tier")
         if use_case:
             reason_bits.append(f"matched to {use_case}")
@@ -652,7 +695,7 @@ def admin_stats():
     new_users_today = User.query.filter(User.created_at >= today_start).count()
 
     index_size = len(SEARCH_INDEX)
-    ml_status = "active" if index_size > 0 else "inactive"
+    ml_status = "active" if load_model() is not None else "inactive"
 
     return jsonify(
         {
@@ -663,6 +706,7 @@ def admin_stats():
             "free_tools": free_count,
             "freemium_tools": freemium_count,
             "ml_status": ml_status,
+            "model_status": ml_status,
             "index_size": index_size,
         }
     )
@@ -681,12 +725,28 @@ def retrain_model():
             "data",
             "tools.json",
         )
+        project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+        train_result = subprocess.run(
+            [sys.executable, os.path.join(project_root, "scripts", "train_model.py")],
+            cwd=project_root,
+            capture_output=True,
+            text=True,
+            timeout=180,
+        )
+        if train_result.returncode != 0:
+            return jsonify({"error": "Model retraining failed", "details": (train_result.stderr or train_result.stdout or "")[:500]}), 500
+
+        clear_model_cache()
+
         prime_tools_cache(data_path)
+        model_status = "active" if load_model() is not None else "inactive"
         return jsonify(
             {
                 "success": True,
                 "message": f"Index rebuilt with {len(SEARCH_INDEX)} tools",
                 "tool_count": len(SEARCH_INDEX),
+                "model_status": model_status,
             }
         )
     except Exception as e:

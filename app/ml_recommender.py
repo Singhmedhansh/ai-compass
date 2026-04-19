@@ -8,6 +8,11 @@ from typing import TYPE_CHECKING
 # Use a module-level state dict instead of global
 _state = {"model": None}
 
+
+def clear_model_cache():
+    _state["model"] = None
+    get_similar_tools.cache_clear()
+
 GOAL_CATEGORY_MAP = {
     "writing":     ["Writing & Chat"],
     "coding":      ["Coding"],

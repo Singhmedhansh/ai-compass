@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { useNavigate } from 'react-router-dom'
 
 import PageTransition from '../components/PageTransition'
+import { ToolLogo } from '../components/ui'
 
 const MotionButton = motion.button
 const MotionDiv = motion.div
@@ -109,10 +110,6 @@ function getCategoryBadgeClass(category = '') {
 
 function getPriceBadgeClass(pricing = '') {
   return PRICING_BADGE_CLASSES[normalizeKey(pricing)] || PRICING_BADGE_CLASSES.free
-}
-
-function getLogoContent(tool = {}) {
-  return tool.logo_emoji || tool.logoEmoji || tool.emoji || tool.icon || tool.logo || ''
 }
 
 function getToolUrl(tool = {}) {
@@ -507,7 +504,6 @@ function ToolFinderPage() {
             const toolKey = tool.slug || tool.name || `${tool.name}-${index}`
             const reasonBullets = splitReasonIntoBullets(tool._reason || tool.reason)
             const isExpanded = Boolean(expandedReasons[toolKey])
-            const logoContent = getLogoContent(tool)
 
             return (
               <MotionArticle
@@ -524,15 +520,7 @@ function ToolFinderPage() {
                     style={{ cursor: "pointer" }}
                   >
                     <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-slate-100 text-lg font-bold text-slate-700 dark:bg-slate-900 dark:text-slate-100" aria-hidden="true">
-                      {logoContent ? (
-                        /^https?:\/\//i.test(String(logoContent)) ? (
-                          <img src={logoContent} alt="" className="h-10 w-10 rounded-xl object-contain" />
-                        ) : (
-                          <span>{String(logoContent).slice(0, 2)}</span>
-                        )
-                      ) : (
-                        <span>{String(tool.name || 'T').charAt(0).toUpperCase()}</span>
-                      )}
+                      <ToolLogo tool={tool} size={40} />
                     </div>
 
                     <div className="min-w-0 flex-1">
