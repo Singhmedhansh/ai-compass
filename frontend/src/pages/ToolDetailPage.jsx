@@ -1,4 +1,5 @@
 import clsx from 'clsx'
+import { AnimatePresence, motion } from 'framer-motion'
 import { Heart, Star } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
@@ -7,6 +8,8 @@ import PageTransition from '../components/PageTransition'
 import RatingWidget from '../components/ui/RatingWidget'
 import ReviewsSection from '../components/ui/ReviewsSection'
 import { Badge, Button, ToolLogo } from '../components/ui'
+
+const MotionDiv = motion.div
 
 const pricingBadgeClasses = {
   free: 'bg-emerald-500/20 text-emerald-300 ring-emerald-500/30',
@@ -211,32 +214,41 @@ function ToolDetailPage() {
     }
   }
 
-  if (loading) {
-    return (
-      <PageTransition>
-        <main className="mx-auto w-full max-w-7xl bg-gray-50 px-4 py-8 dark:bg-gray-950 sm:px-6 lg:px-8">
-          <div className="rounded-2xl border border-gray-200 bg-white p-6 text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">Loading tool details...</div>
-        </main>
-      </PageTransition>
-    )
-  }
-
-  if (error || !tool) {
-    return (
-      <PageTransition>
-        <main className="mx-auto w-full max-w-7xl bg-gray-50 px-4 py-8 dark:bg-gray-950 sm:px-6 lg:px-8">
-          <div className="rounded-2xl border border-red-500/40 bg-red-500/10 p-6 text-red-700 dark:text-red-200">
-            {error || 'Tool not found.'}
-          </div>
-        </main>
-      </PageTransition>
-    )
-  }
-
   return (
     <PageTransition>
       <main className="mx-auto w-full max-w-7xl bg-gray-50 px-4 py-8 dark:bg-gray-950 sm:px-6 lg:px-8">
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
+      <AnimatePresence mode="wait">
+        {loading ? (
+          <MotionDiv
+            key="tool-loading"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.22, ease: 'easeOut' }}
+            className="rounded-2xl border border-gray-200 bg-white p-6 text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
+          >
+            Loading tool details...
+          </MotionDiv>
+        ) : error || !tool ? (
+          <MotionDiv
+            key="tool-error"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.22, ease: 'easeOut' }}
+            className="rounded-2xl border border-red-500/40 bg-red-500/10 p-6 text-red-700 dark:text-red-200"
+          >
+            {error || 'Tool not found.'}
+          </MotionDiv>
+        ) : (
+          <MotionDiv
+            key={`tool-content-${tool.slug}`}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.24, ease: 'easeOut' }}
+            className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]"
+          >
         <div className="flex-1 space-y-6">
           <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-lg dark:border-gray-700 dark:bg-gray-800">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
@@ -382,7 +394,9 @@ function ToolDetailPage() {
             )}
           </section>
         </aside>
-      </div>
+          </MotionDiv>
+        )}
+      </AnimatePresence>
       </main>
     </PageTransition>
   )
