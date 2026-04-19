@@ -1,4 +1,6 @@
-const DEFAULT_API_URL = 'https://ai-compass-1.onrender.com'
+const DEFAULT_API_URL =
+  (typeof window !== 'undefined' && window.location?.origin) ||
+  'https://ai-compass.in'
 
 export const API_BASE_URL = (import.meta.env.VITE_API_URL || DEFAULT_API_URL).replace(/\/+$/, '')
 

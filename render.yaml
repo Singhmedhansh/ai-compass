@@ -7,6 +7,10 @@ services:
     envVars:
       - key: APP_ENV
         value: production
+      - key: FRONTEND_URL
+        value: https://ai-compass.in
+      - key: CANONICAL_HOST
+        value: ai-compass.in
       - key: SECRET_KEY
         generateValue: true
       - key: DATABASE_URL

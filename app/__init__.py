@@ -1,8 +1,9 @@
 import os
 import sys
+from urllib.parse import urlparse
 from dotenv import load_dotenv
 
-from flask import Flask, request
+from flask import Flask, redirect, request
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
@@ -108,7 +109,10 @@ def create_app(config: dict | None = None) -> Flask:
     app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "ai-compass-fixed-key-2024")
     app.config["PERMANENT_SESSION_LIFETIME"] = 86400  # 24 hours
     app.config["SESSION_REFRESH_EACH_REQUEST"] = True
-    app.config["FRONTEND_URL"] = os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip("/")
+    configured_frontend_url = os.getenv("FRONTEND_URL", "").strip()
+    default_frontend_url = "https://ai-compass.in" if is_production else "http://localhost:5173"
+    frontend_url = (configured_frontend_url or default_frontend_url).rstrip("/")
+    app.config["FRONTEND_URL"] = frontend_url
     app.config["GOOGLE_CLIENT_ID"] = os.getenv("GOOGLE_CLIENT_ID", "")
     app.config["GOOGLE_CLIENT_SECRET"] = os.getenv("GOOGLE_CLIENT_SECRET", "")
     app.config["GOOGLE_REDIRECT_URI"] = os.getenv("GOOGLE_REDIRECT_URI", "http://localhost:5000/auth/google/callback")
@@ -187,11 +191,37 @@ def create_app(config: dict | None = None) -> Flask:
 
     _register_blueprints(app)
 
+    canonical_host = os.getenv("CANONICAL_HOST", "").strip().lower()
+    if not canonical_host and frontend_url:
+        parsed_frontend_url = urlparse(frontend_url if "://" in frontend_url else f"https://{frontend_url}")
+        canonical_host = (parsed_frontend_url.hostname or "").strip().lower()
+
+    @app.before_request
+    def enforce_canonical_host():
+        if app.config.get("TESTING") or not is_production or not canonical_host:
+            return None
+
+        request_host = request.host.split(":", 1)[0].strip().lower()
+        if not request_host or request_host == canonical_host:
+            return None
+
+        if request_host in {"localhost", "127.0.0.1"}:
+            return None
+
+        if not (request_host.endswith(".onrender.com") or request_host == f"www.{canonical_host}"):
+            return None
+
+        query = f"?{request.query_string.decode('utf-8')}" if request.query_string else ""
+        return redirect(f"https://{canonical_host}{request.path}{query}", code=308)
+
     @app.after_request
     def add_cors(response):
         allowed_origins = [
             'http://localhost:5173',
             'http://localhost:5174',
+            'https://ai-compass.in',
+            'https://www.ai-compass.in',
+            'https://ai-compass.onrender.com',
             'https://ai-compass-1.onrender.com',
             os.getenv('FRONTEND_URL', ''),
         ]

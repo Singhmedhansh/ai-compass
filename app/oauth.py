@@ -1,10 +1,10 @@
 """OAuth login via Google and GitHub using Authlib."""
 import json
 import os
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlparse
 
 from authlib.integrations.flask_client import OAuth
-from flask import Blueprint, current_app, flash, jsonify, redirect, session, url_for
+from flask import Blueprint, current_app, flash, jsonify, redirect, request, session, url_for
 from flask_login import login_user
 
 from app import db
@@ -12,6 +12,42 @@ from app.models import User
 
 oauth_bp = Blueprint("oauth", __name__)
 oauth = OAuth()
+
+
+def _is_production_env() -> bool:
+    return str(os.getenv("APP_ENV", "development")).strip().lower() == "production"
+
+
+def _canonical_host() -> str:
+    configured_host = str(os.getenv("CANONICAL_HOST", "")).strip().lower()
+    if configured_host:
+        return configured_host
+
+    frontend_url = str(
+        current_app.config.get("FRONTEND_URL")
+        or os.getenv("FRONTEND_URL")
+        or ""
+    ).strip()
+    if frontend_url:
+        parsed = urlparse(frontend_url if "://" in frontend_url else f"https://{frontend_url}")
+        if parsed.hostname:
+            return parsed.hostname.strip().lower()
+
+    return request.host.split(":", 1)[0].strip().lower()
+
+
+def _frontend_base_url() -> str:
+    if _is_production_env():
+        host = _canonical_host()
+        if host and host not in {"localhost", "127.0.0.1"}:
+            return f"https://{host}"
+
+    configured = str(
+        current_app.config.get("FRONTEND_URL")
+        or os.getenv("FRONTEND_URL")
+        or ""
+    ).strip().rstrip("/")
+    return configured or "http://localhost:5173"
 
 
 def _clear_stale_login_flash_errors():
@@ -29,8 +65,16 @@ def _clear_stale_login_flash_errors():
 
 
 def _google_redirect_uri():
-    redirect_uri = os.getenv("GOOGLE_REDIRECT_URI_LOCAL") if os.getenv("APP_ENV") != "production" else os.getenv("GOOGLE_REDIRECT_URI_PROD")
-    return str(redirect_uri or "http://localhost:5000/auth/google/callback").strip()
+    if _is_production_env():
+        host = _canonical_host()
+        if host and host not in {"localhost", "127.0.0.1"}:
+            return f"https://{host}/auth/google/callback"
+        return url_for("oauth.google_callback", _external=True, _scheme="https")
+
+    redirect_uri = str(os.getenv("GOOGLE_REDIRECT_URI_LOCAL", "")).strip()
+    if redirect_uri:
+        return redirect_uri
+    return url_for("oauth.google_callback", _external=True, _scheme="http")
 
 
 def init_oauth(app):
@@ -108,7 +152,7 @@ def login_google():
     print("CLIENT_ID:", os.getenv("GOOGLE_CLIENT_ID", "MISSING")[:15])
     print("CLIENT_SECRET:", os.getenv("GOOGLE_CLIENT_SECRET", "MISSING")[:5])
     print("REDIRECT_URI:", _google_redirect_uri())
-    frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:5173')
+    frontend_url = _frontend_base_url()
 
     if not os.getenv("GOOGLE_CLIENT_ID"):
         return jsonify({"error": "GOOGLE_CLIENT_ID not set"}), 500
@@ -142,7 +186,7 @@ def google_callback():
         email = str(userinfo.get("email") or "").strip().lower()
         picture = str(userinfo.get("picture") or "").strip()
 
-        frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:5173')
+        frontend_url = _frontend_base_url()
 
         if not email:
             return redirect(f"{frontend_url}/login?error=google_failed")
@@ -172,7 +216,7 @@ def google_callback():
 
         print("GOOGLE CALLBACK ERROR:", str(exc))
         print(traceback.format_exc())
-        frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:5173')
+        frontend_url = _frontend_base_url()
         return redirect(f"{frontend_url}/login?error=google_failed")
 
 
@@ -183,7 +227,14 @@ def login_github():
     if not (current_app.config.get("GITHUB_CLIENT_ID") and current_app.config.get("GITHUB_CLIENT_SECRET")):
         flash("GitHub login is not configured.", "error")
         return redirect(url_for("auth.login"))
-    redirect_uri = url_for("oauth.github_callback", _external=True)
+    if _is_production_env():
+        host = _canonical_host()
+        if host and host not in {"localhost", "127.0.0.1"}:
+            redirect_uri = f"https://{host}/login/github/callback"
+        else:
+            redirect_uri = url_for("oauth.github_callback", _external=True, _scheme="https")
+    else:
+        redirect_uri = url_for("oauth.github_callback", _external=True)
     return oauth.github.authorize_redirect(redirect_uri)
 
 
