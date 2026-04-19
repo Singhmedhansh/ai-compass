@@ -1,7 +1,8 @@
 import os
+import json
 from datetime import datetime, timezone
 
-from flask import Blueprint, jsonify, send_from_directory
+from flask import Blueprint, Response, jsonify, send_from_directory
 from sqlalchemy import text
 
 from app import db
@@ -12,6 +13,10 @@ main_bp = Blueprint('main', __name__)
 DIST_DIR = os.path.join(
     os.path.dirname(os.path.dirname(__file__)),
     'static', 'dist'
+)
+TOOLS_PATH = os.path.join(
+    os.path.dirname(os.path.dirname(__file__)),
+    'data', 'tools.json'
 )
 
 
@@ -39,6 +44,46 @@ def health_check():
             'tools_cache': tools_cache_status,
         },
     })
+
+
+@main_bp.route('/sitemap.xml')
+def sitemap():
+    with open(TOOLS_PATH, encoding='utf-8') as f:
+        tools = json.load(f)
+
+    base = 'https://ai-compass.in'
+    urls = []
+
+    static = [
+        ('/', '1.0', 'weekly'),
+        ('/tools', '0.9', 'weekly'),
+        ('/ai-tool-finder', '0.8', 'monthly'),
+    ]
+    for path, priority, freq in static:
+        urls.append(
+            f'<url><loc>{base}{path}</loc><changefreq>{freq}</changefreq><priority>{priority}</priority></url>'
+        )
+
+    for tool in tools:
+        slug = tool.get('slug', '')
+        if slug:
+            urls.append(
+                f'<url><loc>{base}/tool/{slug}</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>'
+            )
+
+    xml = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        + '\n'.join(urls)
+        + '\n</urlset>'
+    )
+    return Response(xml, mimetype='application/xml')
+
+
+@main_bp.route('/robots.txt')
+def robots():
+    content = 'User-agent: *\nAllow: /\nSitemap: https://ai-compass.in/sitemap.xml'
+    return Response(content, mimetype='text/plain')
 
 @main_bp.route('/', defaults={'path': ''})
 @main_bp.route('/<path:path>')
