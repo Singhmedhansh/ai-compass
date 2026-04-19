@@ -28836,5 +28836,71 @@
     "student_friendly": true,
     "student_perk": true,
     "featured": false
+  },
+  {
+    "id": 501,
+    "name": "OpenRouter",
+    "icon": "/static/icons/openrouter.svg",
+    "maker": "OpenRouter",
+    "tagline": "Unified API routing to 200+ LLMs with cost comparison and provider switching",
+    "category": "Coding",
+    "subCategory": "LLM API",
+    "price": "Freemium",
+    "pricingDetail": "Free tier available; usage-based pricing varies by model",
+    "bestFor": "Comparing LLM models, optimizing costs, and switching providers without code changes",
+    "tags": [
+      "api",
+      "llm",
+      "models",
+      "developer tools",
+      "ai routing",
+      "cost optimization",
+      "gpt-4",
+      "claude",
+      "gemini"
+    ],
+    "trending": true,
+    "rating": 4.7,
+    "weeklyUsers": "500K+",
+    "link": "https://openrouter.ai",
+    "apiAvailable": true,
+    "openSource": false,
+    "studentPerk": true,
+    "uniHack": "Use OpenRouter to access Claude, GPT-4, and Gemini with a single API key - perfect for comparing model outputs without switching between services",
+    "features": [
+      "Access 200+ LLM models",
+      "Cost comparison tools",
+      "Provider fallback support",
+      "Single API key for multiple providers"
+    ],
+    "platforms": [
+      "Web",
+      "API"
+    ],
+    "languages": "200+",
+    "launchYear": 2023,
+    "description": "OpenRouter is a unified API that routes requests to 200+ LLMs including GPT-4, Claude, Gemini, and open-source models. Compare models, manage costs, and switch providers without changing your code. Developers use it to test different models, optimize costs, and avoid vendor lock-in.",
+    "use_cases": [
+      "Comparing outputs across different LLM providers",
+      "Cost-optimizing AI application development",
+      "Building multi-model AI solutions",
+      "Testing and benchmarking LLMs",
+      "Avoiding vendor lock-in with flexible provider selection"
+    ],
+    "difficulty": "intermediate",
+    "student_friendly": true,
+    "pricing_tier": "freemium",
+    "company": "OpenRouter",
+    "review_count": 0,
+    "featured": false,
+    "logo_emoji": "🔀",
+    "student_perk": true,
+    "strengths": [
+      "Access 200+ LLM models",
+      "Cost comparison tools",
+      "Provider fallback support",
+      "Single API key for multiple providers"
+    ],
+    "slug": "openrouter"
   }
 ]
