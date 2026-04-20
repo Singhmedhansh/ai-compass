@@ -17,6 +17,7 @@ import AdminPage from './pages/AdminPage'
 import AuthCallbackPage from './pages/AuthCallbackPage'
 import SubmitPage from './pages/SubmitPage'
 import BestAIToolsForStudents from './pages/BestAIToolsForStudents'
+import BestFreeAITools from './pages/BestFreeAITools'
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -43,6 +44,7 @@ function AnimatedRoutes() {
         <Route path="/admin" element={<AdminPage />} />
         <Route path="/submit" element={<SubmitPage />} />
         <Route path="/best-ai-tools-for-students" element={<BestAIToolsForStudents />} />
+        <Route path="/best-free-ai-tools" element={<BestFreeAITools />} />
       </Routes>
     </AnimatePresence>
   )

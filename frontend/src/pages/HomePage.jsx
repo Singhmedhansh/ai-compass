@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 
 import { AnimatedGrid, AnimatedItem } from '../components/AnimatedGrid'
+import GuidesSection from '../components/GuidesSection'
 import { Card, SkeletonCard } from '../components/ui'
 import ParticleBackground from '../components/ui/ParticleBackground'
 
@@ -120,6 +121,8 @@ export default function HomePage() {
           </Link>
         </motion.div>
       </div>
+
+      <GuidesSection />
 
       <MotionSection
         initial="hidden"

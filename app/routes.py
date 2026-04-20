@@ -55,6 +55,7 @@ def sitemap():
         ('/tools', '0.9', 'weekly'),
         ('/ai-tool-finder', '0.8', 'monthly'),
         ('/best-ai-tools-for-students', '0.9', 'weekly'),
+        ('/best-free-ai-tools', '0.9', 'weekly'),
     ]
     for path, priority, freq in static:
         safe_path = escape(str(path))
