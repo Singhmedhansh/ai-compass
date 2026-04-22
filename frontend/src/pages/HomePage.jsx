@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
+import { Helmet } from 'react-helmet-async'
 
 import { AnimatedGrid, AnimatedItem } from '../components/AnimatedGrid'
 import GuidesSection from '../components/GuidesSection'
@@ -72,7 +73,15 @@ export default function HomePage() {
 
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+    <>
+      <Helmet>
+        <title>AI Compass — Find & Compare AI Tools | ChatGPT, Claude & 450+ More</title>
+        <meta name="description" content="AI Compass helps students discover and compare 450+ AI tools including ChatGPT, Claude, Grammarly and more. Free tool finder, ratings, and personalized recommendations." />
+        <meta property="og:title" content="AI Compass — Find & Compare AI Tools | ChatGPT, Claude & 450+ More" />
+        <meta property="og:description" content="Discover and compare 450+ AI tools. Free personalized recommendations for students." />
+        <link rel="canonical" href="https://ai-compass.in/" />
+      </Helmet>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       <div
         className="relative overflow-hidden text-center py-20 px-4"
         style={{ backgroundColor: '#0a0a1a', minHeight: '400px' }}
@@ -211,5 +220,6 @@ export default function HomePage() {
         </div>
       </MotionSection>
     </div>
+    </>
   )
 }
