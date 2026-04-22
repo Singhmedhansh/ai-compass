@@ -28,6 +28,7 @@ function Navbar() {
   const [searchValue, setSearchValue] = useState('')
   const [isDark, setIsDark] = useState(getInitialTheme)
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
+  const [isGuidesMenuOpen, setIsGuidesMenuOpen] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [authRefreshKey, setAuthRefreshKey] = useState(0)
   const [user, setUser] = useState(() => {
@@ -39,6 +40,7 @@ function Navbar() {
   })
   const [scrolled, setScrolled] = useState(false)
   const menuRef = useClickOutside(() => setIsProfileMenuOpen(false))
+  const guidesMenuRef = useClickOutside(() => setIsGuidesMenuOpen(false))
   const isAdmin = Boolean(user && (user.is_admin || ADMIN_EMAILS.includes(user.email)))
   const avatarLetter = useMemo(
     () => String(user?.name || user?.email || 'U').charAt(0).toUpperCase(),
@@ -218,6 +220,43 @@ function Navbar() {
               Collections
             </Button>
           </Link>
+
+          <div
+            className="relative"
+            ref={guidesMenuRef}
+            onMouseEnter={() => setIsGuidesMenuOpen(true)}
+            onMouseLeave={() => setIsGuidesMenuOpen(false)}
+          >
+            <Button variant="ghost" size="sm" className="text-gray-700 dark:text-gray-300">
+              Guides
+              <ChevronDown className="h-4 w-4 ml-1 transition-transform" style={{ transform: isGuidesMenuOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+            </Button>
+
+            {isGuidesMenuOpen ? (
+              <div
+                role="menu"
+                aria-label="Guides menu"
+                className="absolute left-0 mt-1 w-56 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg shadow-black/10 dark:border-gray-700 dark:bg-gray-800"
+              >
+                <Link
+                  to="/best-ai-tools-for-students"
+                  onClick={() => setIsGuidesMenuOpen(false)}
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700"
+                  role="menuitem"
+                >
+                  Best AI Tools for Students
+                </Link>
+                <Link
+                  to="/best-free-ai-tools"
+                  onClick={() => setIsGuidesMenuOpen(false)}
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700"
+                  role="menuitem"
+                >
+                  Best Free AI Tools
+                </Link>
+              </div>
+            ) : null}
+          </div>
 
           {isAdmin ? (
             <Link to="/admin" className="px-1 text-xs font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
