@@ -98,7 +98,7 @@ export default function HomePage() {
           transition={{ duration: 0.6, ease: 'easeOut' }}
           className="relative z-[1] text-5xl font-bold text-white mb-4"
         >
-          Find the perfect AI tool for your workflow
+          The AI toolkit built for students
         </motion.h1>
 
         <motion.p
@@ -107,7 +107,7 @@ export default function HomePage() {
           transition={{ delay: 0.4, duration: 0.5 }}
           className="relative z-[1] text-gray-400 text-lg mb-8"
         >
-          Discover, compare, and bookmark the best AI products for coding, writing, research, and daily execution.
+          Discover, compare and get a personalised stack from 450+ AI tools — free. No overwhelm, just the right tools for your workflow.
         </motion.p>
 
         <motion.div
