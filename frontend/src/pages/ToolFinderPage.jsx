@@ -537,7 +537,7 @@ function ToolFinderPage() {
                         ✨ {tool.reason}
                       </p>
 
-                      <p className="mt-2 line-clamp-2 text-sm leading-6 text-gray-600 dark:text-gray-300">
+                      <p className="mt-2 line-clamp-2 overflow-hidden text-sm leading-snug text-gray-600 dark:text-gray-300">
                         {tool.description}
                       </p>
                     </div>

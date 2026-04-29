@@ -296,6 +296,7 @@ def _build_finder_reason(tool: dict, use_case: str, normalized_budget: str) -> s
 
     category = str(tool.get("category") or "").strip() or "AI"
 
+    user_supplied_use_case = bool((use_case or "").strip())
     use_case_text = (use_case or "").strip()
     if not use_case_text:
         use_case_text = CATEGORY_USE_CASE_DEFAULTS.get(category.lower(), f"{category.lower()} tasks")
@@ -303,7 +304,19 @@ def _build_finder_reason(tool: dict, use_case: str, normalized_budget: str) -> s
     parts = ["Best"]
     if pricing_word:
         parts.append(pricing_word)
-    parts.extend([category, "tool", "for", use_case_text])
+    parts.extend([category, "tool"])
+
+    # Skip the redundant "for <use_case>" clause when the fallback string
+    # restates the category (e.g. Research → "research", Productivity →
+    # "productivity"). Keep it whenever the user typed a use_case.
+    category_lower = category.lower()
+    fallback_is_redundant = (
+        not user_supplied_use_case
+        and (use_case_text == category_lower or use_case_text in category_lower or category_lower in use_case_text)
+    )
+    if not fallback_is_redundant:
+        parts.extend(["for", use_case_text])
+
     base = " ".join(parts)
 
     try:
