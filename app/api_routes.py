@@ -265,6 +265,143 @@ FINDER_GOAL_CATEGORY_MAP = {
 }
 
 
+# Defense-in-depth tag veto. The category hard-gate above filters by
+# tools.json's `category` field, but that field has ~60 mis-labels
+# (Suno tagged Coding, Power BI tagged Coding, courses tagged Video
+# Generation, etc.). A tool only passes if its tags or use_cases also
+# contain a keyword relevant to the chosen goal. Until the catalog
+# audit lands, this stops mis-tagged tools from surfacing as top
+# recommendations.
+FINDER_GOAL_KEYWORDS = {
+    "coding": [
+        "code", "coding", "programming", "program", "developer", "develop",
+        "github", "gitlab", "git ", "vcs", "version control", "pull request",
+        "vscode", "neovim", "intellij", "pycharm", "webstorm", "sublime text",
+        "ide ",
+        "debug", "debugging", "autocomplete", "autocompletion",
+        "sdk", "framework", "compiler", "interpreter",
+        "terminal", "cli", "shell", "bash", "zsh",
+        "npm", "yarn", "pnpm", "package manager", "pip install",
+        "repository", "devops", "devtools",
+        "backend", "frontend", "fullstack", "full-stack", "full stack",
+        "script", "scripting",
+        "python", "javascript", "typescript", "kotlin", "swift",
+        "golang", "rust", "c++", "c#", "ruby", "php",
+        "react", "vue", "angular", "node.js", "nodejs",
+        "next.js", "nextjs", "django", "flask", "rails", "spring",
+        "express", "deno",
+        "runtime", "kubernetes", "docker", "container",
+        "deploy", "deployment", "ci/cd", "cicd",
+        "lint", "linter", "unit test", "integration test", "pytest", "jest",
+        "open source", "opensource",
+        "llm framework", "ml framework", "ai framework", "agent framework",
+        "rag", "vector database", "embeddings",
+        "fastapi", "oauth", "jwt",
+        "no-code", "no code", "low-code", "low code",
+        "browser extension", "chrome extension",
+        "machine learning", "data engineering",
+        "scraping", "web scraping", "ai agent", "agentic",
+    ],
+    "writing": [
+        "writ", "chat", "chatbot", "essay", "draft", "grammar", "spell",
+        "paraphras", "summariz", "summary", "rewrit", "rephras",
+        "language", "languag", "text", "prose", "copywrit",
+        "blog", "article", "story", "storytelling", "narrative",
+        "creative writ", "email", "newsletter", "letter", "memo",
+        "report", "doc", "documentation", "note", "notebook", "journal",
+        "edit", "editor", "llm", "assistant", "conversation",
+        "translation", "translat", "transcrib", "voice to text",
+        "outline", "structure", "thesis", "academic writing",
+        "tone of voice", "seo content", "marketing copy", "ad copy",
+        "social media post", "caption", "headline", "title",
+        "completion", "ai writer", "fiction", "non-fiction",
+    ],
+    "research": [
+        "research", "literature", "literatur", "paper", "papers", "scholar",
+        "academic", "citation", "cite", "reference", "bibliograph",
+        "scientific", "science", "study", "studie", "thesis",
+        "dissertation", "abstract", "journal", "synthesis",
+        "systematic review", "meta-analysis", "knowledge",
+        "fact-check", "factchecking", "factual", "verify", "evidence",
+        "data analysis", "statistics", "summariz", "extraction",
+        "find papers", "literature review", "qualitative", "quantitative",
+        "survey", "dataset", "data set", "wiki", "answer engine",
+        "information retrieval", "rag", "perplexity", "explainer",
+        "deep dive", "search engine",
+    ],
+    "creating": [
+        "image", "photo", "picture", "art", "illustration", "draw",
+        "render", "rendering", "diffusion", "stable diffusion", "midjourney",
+        "video", "film", "animation", "animate", "edit video",
+        "video editing", "vfx", "motion", "scene", "clip", "subtitle",
+        "transcript", "design", "designer", "graphic", "logo",
+        "brand", "branding", "visual", "thumbnail", "poster", "wallpaper",
+        "icon", "ui design", "ux design", "mockup", "wireframe",
+        "prototype", "figma", "canva", "adobe", "photoshop",
+        "ai art", "generative", "creative", "create",
+        "3d", "modeling", "avatar", "character", "music", "song",
+        "songwrit", "audio", "voice", "voiceover", "tts", "speech",
+        "podcast", "sound", "compose", "instrument", "vocal", "vocals",
+        "track", "remix", "beat", "youtube", "tiktok", "social media",
+        "content creation", "presentation", "slide", "deck", "pitch deck",
+    ],
+    "productivity": [
+        "productivity", "task", "todo", "to-do", "to do", "kanban",
+        "project management", "calendar", "schedule", "scheduling",
+        "meeting", "meetings", "agenda", "minutes", "transcrib",
+        "note", "notes", "notebook", "journal", "second brain",
+        "knowledge management", "memo", "doc", "documentation",
+        "workflow", "workflows", "automation", "automate", "zapier",
+        "integration", "trigger", "workspace", "team", "collaboration",
+        "collaborat", "communication", "communicat", "messaging",
+        "channel", "thread", "async", "focus", "pomodoro", "timer",
+        "habit", "tracker", "tracking", "planner", "planning",
+        "email", "inbox", "reminder", "spreadsheet", "sheet", "table",
+        "database", "crm", "form builder", "online form", "survey",
+        "poll", "screen recording", "screen record", "loom",
+        "video message", "presentation", "slide", "deck", "pitch", "wiki",
+        "data visualization", "data viz", "dashboard", "analytics",
+        "business intelligence", "bi tool", "report", "reporting",
+    ],
+    "studying": [
+        "study", "studie", "studying", "student", "school", "college",
+        "university", "campus", "course", "courses", "online course",
+        "class", "classes", "classroom", "lecture", "lectures",
+        "learn", "learning", "education", "educational", "edtech",
+        "homework", "assignment", "exam", "exam prep", "test prep",
+        "quiz", "flashcard", "flashcards", "spaced repetition",
+        "anki", "memoriz", "retention",
+        "tutor", "tutoring", "teach", "teaching", "instructor",
+        "explain", "explainer", "concept", "subject", "topic",
+        "math", "physics", "chemistry", "biology", "history",
+        "language learning", "vocabulary",
+        "research", "paper", "essay", "thesis", "academic", "scholar",
+        "reading", "summariz", "note-taking", "note taking", "notes",
+        "knowledge", "skill", "stem", "task", "todo", "planner",
+        "calendar", "focus", "pomodoro", "habit", "tracker",
+        "workflow", "organization",
+    ],
+}
+
+
+def _tool_passes_category_keyword_veto(tool: dict, goal: str) -> bool:
+    keywords = FINDER_GOAL_KEYWORDS.get(goal)
+    if not keywords:
+        return True
+
+    tags = tool.get("tags") or []
+    use_cases = tool.get("use_cases") or []
+
+    # Neutral-tools policy: thin metadata gets benefit of the doubt as long
+    # as a description exists. Stub entries with no description still get
+    # vetoed.
+    if (len(tags) + len(use_cases)) < 3 and str(tool.get("description") or "").strip():
+        return True
+
+    blob = " ".join(str(item).lower() for item in (*tags, *use_cases))
+    return any(keyword in blob for keyword in keywords)
+
+
 CATEGORY_USE_CASE_DEFAULTS = {
     "coding": "coding tasks",
     "writing & chat": "writing tasks",
@@ -339,6 +476,9 @@ def _finder_tool_score(tool: dict, goal: str, budget: str, platform: str, level:
     category = _normalize_text(tool.get("category"))
     allowed_categories = FINDER_GOAL_CATEGORY_MAP.get(goal, [])
     if allowed_categories and category not in allowed_categories:
+        return 0.0
+
+    if not _tool_passes_category_keyword_veto(tool, goal):
         return 0.0
 
     score = 35.0
@@ -1026,7 +1166,7 @@ def finder():
     filtered = tools
     if goal and goal in category_map:
         allowed = category_map[goal]
-        filtered = [tool for tool in tools if _normalize_text(tool.get("category")) in allowed] or tools
+        filtered = [tool for tool in tools if _normalize_text(tool.get("category")) in allowed]
 
     if budget == "free":
         filtered = [
