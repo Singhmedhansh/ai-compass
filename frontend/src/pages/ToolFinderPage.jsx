@@ -29,7 +29,7 @@ function getAspectBucket() {
 const TOTAL_STEPS = 5
 
 const GOAL_OPTIONS = [
-  { id: 'studying', emoji: '🎓', label: 'Studying', description: 'Homework, essays, exam prep' },
+  { id: 'learning', emoji: '🎓', label: 'Learning', description: 'Courses, tutorials, exam prep' },
   { id: 'coding', emoji: '💻', label: 'Coding', description: 'Build apps, debug, learn to code' },
   { id: 'writing', emoji: '✍️', label: 'Writing', description: 'Essays, emails, creative writing' },
   { id: 'research', emoji: '🔬', label: 'Research', description: 'Find papers, summarize, analyze' },

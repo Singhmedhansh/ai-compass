@@ -26,11 +26,11 @@ SUBMISSIONS_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "dat
 MODEL_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "recommendation_model.pkl")
 
 GOAL_CATEGORY_MAP = {
-    "studying": ["study tools"],
+    "learning": ["courses & tutorials", "research", "productivity"],
     "coding": ["coding"],
-    "writing": ["writing & docs"],
+    "writing": ["writing & chat"],
     "research": ["research"],
-    "creating": ["image generation", "video generation"],
+    "creating": ["image generation", "video generation", "audio & voice", "design & graphics"],
     "productivity": ["productivity"],
 }
 
@@ -256,11 +256,11 @@ def _tool_supports_platform(tool: dict, platform: str) -> bool:
 
 
 FINDER_GOAL_CATEGORY_MAP = {
-    "studying": ["research", "productivity"],
+    "learning": ["courses & tutorials", "research", "productivity"],
     "coding": ["coding"],
     "writing": ["writing & chat"],
     "research": ["research"],
-    "creating": ["image generation", "video generation"],
+    "creating": ["image generation", "video generation", "audio & voice", "design & graphics"],
     "productivity": ["productivity"],
 }
 
@@ -330,20 +330,34 @@ FINDER_GOAL_KEYWORDS = {
         "deep dive", "search engine",
     ],
     "creating": [
+        # Image generation
         "image", "photo", "picture", "art", "illustration", "draw",
         "render", "rendering", "diffusion", "stable diffusion", "midjourney",
+        "ai art", "ai-generated", "text-to-image", "text to image",
+        # Video generation
         "video", "film", "animation", "animate", "edit video",
         "video editing", "vfx", "motion", "scene", "clip", "subtitle",
-        "transcript", "design", "designer", "graphic", "logo",
+        "transcript",
+        # Design & graphics
+        "design", "designer", "graphic", "logo",
         "brand", "branding", "visual", "thumbnail", "poster", "wallpaper",
-        "icon", "ui design", "ux design", "mockup", "wireframe",
-        "prototype", "figma", "canva", "adobe", "photoshop",
-        "ai art", "generative", "creative", "create",
-        "3d", "modeling", "avatar", "character", "music", "song",
-        "songwrit", "audio", "voice", "voiceover", "tts", "speech",
-        "podcast", "sound", "compose", "instrument", "vocal", "vocals",
-        "track", "remix", "beat", "youtube", "tiktok", "social media",
-        "content creation", "presentation", "slide", "deck", "pitch deck",
+        "icon", "ui design", "ux design", "ui ", " ui", "ux ", " ux",
+        "mockup", "wireframe", "prototype", "layout",
+        "vector", "vector graphics", "vector design",
+        "figma", "canva", "adobe", "photoshop", "sketch",
+        "presentation", "slide", "slides", "deck", "pitch deck",
+        "infographic", "diagram", "diagrams",
+        # Audio & voice
+        "music", "song", "songs", "songwrit",
+        "audio", "voice", "voices", "voiceover", "tts", "speech",
+        "podcast", "podcasts", "sound", "compose", "composition",
+        "instrument", "instruments", "vocal", "vocals",
+        "track", "remix", "beat", "audio editing",
+        "voice cloning", "voice clone", "ai voice",
+        # Creator/social umbrella
+        "youtube", "tiktok", "shorts", "reels", "social media",
+        "content creation", "creative", "create", "generative",
+        "3d", "modeling", "avatar", "character",
     ],
     "productivity": [
         "productivity", "task", "todo", "to-do", "to do", "kanban",
@@ -363,20 +377,32 @@ FINDER_GOAL_KEYWORDS = {
         "data visualization", "data viz", "dashboard", "analytics",
         "business intelligence", "bi tool", "report", "reporting",
     ],
-    "studying": [
+    "learning": [
+        # Courses & Tutorials primary signal
+        "course", "courses", "online course", "online courses",
+        "tutorial", "tutorials", "lesson", "lessons", "lecture", "lectures",
+        "curriculum", "syllabus", "mooc", "moocs",
+        "learning platform", "elearning", "e-learning",
+        "courseware", "instructor", "instructors",
+        "udemy", "coursera", "edx", "khan academy", "freecodecamp",
+        "mit ocw", "opencourseware", "cs50",
+        "exam prep", "test prep",
+        # Study/general learning
         "study", "studie", "studying", "student", "school", "college",
-        "university", "campus", "course", "courses", "online course",
-        "class", "classes", "classroom", "lecture", "lectures",
+        "university", "campus", "class", "classes", "classroom",
         "learn", "learning", "education", "educational", "edtech",
-        "homework", "assignment", "exam", "exam prep", "test prep",
+        "homework", "assignment", "exam",
         "quiz", "flashcard", "flashcards", "spaced repetition",
         "anki", "memoriz", "retention",
-        "tutor", "tutoring", "teach", "teaching", "instructor",
+        "tutor", "tutoring", "teach", "teaching",
         "explain", "explainer", "concept", "subject", "topic",
         "math", "physics", "chemistry", "biology", "history",
         "language learning", "vocabulary",
+        # Research overlap (allowed cat)
         "research", "paper", "essay", "thesis", "academic", "scholar",
-        "reading", "summariz", "note-taking", "note taking", "notes",
+        "reading", "summariz",
+        # Productivity overlap (allowed cat)
+        "note-taking", "note taking", "notes",
         "knowledge", "skill", "stem", "task", "todo", "planner",
         "calendar", "focus", "pomodoro", "habit", "tracker",
         "workflow", "organization",
@@ -410,7 +436,8 @@ CATEGORY_USE_CASE_DEFAULTS = {
     "productivity": "productivity",
     "video generation": "video creation",
     "audio & voice": "audio creation",
-    "study tools": "studying",
+    "courses & tutorials": "learning",
+    "design & graphics": "design work",
 }
 
 
@@ -1158,8 +1185,8 @@ def finder():
         "coding": ["coding"],
         "writing": ["writing & chat"],
         "research": ["research"],
-        "studying": ["research", "productivity"],
-        "creating": ["image generation", "video generation"],
+        "learning": ["courses & tutorials", "research", "productivity"],
+        "creating": ["image generation", "video generation", "audio & voice", "design & graphics"],
         "productivity": ["productivity"],
     }
 
