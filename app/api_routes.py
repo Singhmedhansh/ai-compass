@@ -265,6 +265,63 @@ FINDER_GOAL_CATEGORY_MAP = {
 }
 
 
+CATEGORY_USE_CASE_DEFAULTS = {
+    "coding": "coding tasks",
+    "writing & chat": "writing tasks",
+    "research": "research",
+    "image generation": "image generation",
+    "productivity": "productivity",
+    "video generation": "video creation",
+    "audio & voice": "audio creation",
+    "study tools": "studying",
+}
+
+
+def _format_review_count(count: int) -> str:
+    if count >= 10000:
+        return f"{count // 1000}K"
+    if count >= 1000:
+        return f"{count / 1000:.1f}K"
+    return str(count)
+
+
+def _build_finder_reason(tool: dict, use_case: str, normalized_budget: str) -> str:
+    pricing = _pricing_value(tool)
+    if pricing in {"free", "freemium"}:
+        pricing_word = "free"
+    elif pricing == "paid":
+        pricing_word = "paid"
+    else:
+        pricing_word = ""
+
+    category = str(tool.get("category") or "").strip() or "AI"
+
+    use_case_text = (use_case or "").strip()
+    if not use_case_text:
+        use_case_text = CATEGORY_USE_CASE_DEFAULTS.get(category.lower(), f"{category.lower()} tasks")
+
+    parts = ["Best"]
+    if pricing_word:
+        parts.append(pricing_word)
+    parts.extend([category, "tool", "for", use_case_text])
+    base = " ".join(parts)
+
+    try:
+        rating_value = float(tool.get("rating") or 0)
+    except (TypeError, ValueError):
+        rating_value = 0.0
+
+    try:
+        review_count = int(tool.get("review_count") or 0)
+    except (TypeError, ValueError):
+        review_count = 0
+
+    if rating_value > 0 and review_count > 0:
+        return f"{base} — {rating_value:.1f}★ from {_format_review_count(review_count)} users"
+
+    return base
+
+
 def _finder_tool_score(tool: dict, goal: str, budget: str, platform: str, level: str, use_case: str) -> float:
     category = _normalize_text(tool.get("category"))
     allowed_categories = FINDER_GOAL_CATEGORY_MAP.get(goal, [])
@@ -369,24 +426,11 @@ def _rank_finder_tools(tools: list[dict], goal: str, budget: str, platform: str,
 
     results = []
     for tool, score in scored[:limit]:
-        reason_bits = []
-        category = str(tool.get("category") or "General")
-        if category:
-            reason_bits.append(category)
-        if normalized_budget == "free" and _pricing_value(tool) == "free":
-            reason_bits.append("free to use")
-        elif normalized_budget == "freemium" and _pricing_value(tool) == "freemium":
-            reason_bits.append("free tier")
-        if use_case:
-            reason_bits.append(f"matched to {use_case}")
-        if platform:
-            reason_bits.append(platform)
-
         results.append(
             {
                 **tool,
                 "match_score": round(score, 2),
-                "reason": "Great fit for your selected preferences" + (f" — {', '.join(reason_bits)}" if reason_bits else ""),
+                "reason": _build_finder_reason(tool, use_case, normalized_budget),
             }
         )
 
