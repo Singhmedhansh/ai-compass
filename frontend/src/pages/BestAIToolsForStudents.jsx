@@ -561,20 +561,15 @@ export default function BestAIToolsForStudents() {
           textAlign: "center",
           fontFamily: "system-ui, sans-serif",
         }}>
-          <p style={{ color: "#475569", fontSize: "14px", marginBottom: "8px" }}>
-            Explore all 450+ AI tools on AI Compass
-          </p>
-          <Link
-            to="/tools"
-            style={{
-              color: "#6366f1",
-              fontSize: "14px",
-              textDecoration: "none",
-              fontWeight: "600",
-            }}
-          >
-            Browse the full directory →
-          </Link>
+          <p style={{ color: "#475569", fontSize: "14px", marginBottom: "8px" }}>Also read</p>
+          <div style={{ display: "flex", gap: "24px", justifyContent: "center", flexWrap: "wrap" }}>
+            <Link to="/best-free-ai-tools" style={{ color: "#6366f1", fontSize: "14px", textDecoration: "none", fontWeight: "600" }}>
+              Best free AI tools →
+            </Link>
+            <Link to="/tools" style={{ color: "#6366f1", fontSize: "14px", textDecoration: "none", fontWeight: "600" }}>
+              Browse all 450+ tools →
+            </Link>
+          </div>
         </div>
 
       </div>

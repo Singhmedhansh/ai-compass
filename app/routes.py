@@ -49,26 +49,29 @@ def sitemap():
 
     base = 'https://ai-compass.in'
     urls = []
+    today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
 
     static = [
-        ('/', '1.0', 'weekly'),
-        ('/tools', '0.9', 'weekly'),
-        ('/ai-tool-finder', '0.8', 'monthly'),
-        ('/best-ai-tools-for-students', '0.9', 'weekly'),
-        ('/best-free-ai-tools', '0.9', 'weekly'),
+        ('/', '1.0', 'weekly', '2026-04-23'),
+        ('/tools', '0.9', 'weekly', '2026-04-18'),
+        ('/ai-tool-finder', '0.8', 'monthly', '2026-04-29'),
+        ('/best-ai-tools-for-students', '0.9', 'weekly', '2026-04-19'),
+        ('/best-free-ai-tools', '0.9', 'weekly', '2026-04-20'),
+        ('/collections', '0.7', 'weekly', '2026-04-16'),
     ]
-    for path, priority, freq in static:
+    for path, priority, freq, lastmod in static:
         safe_path = escape(str(path))
         safe_priority = escape(str(priority))
         safe_freq = escape(str(freq))
+        safe_lastmod = escape(str(lastmod))
         urls.append(
-            f'<url><loc>{base}{safe_path}</loc><changefreq>{safe_freq}</changefreq><priority>{safe_priority}</priority></url>'
+            f'<url><loc>{base}{safe_path}</loc><lastmod>{safe_lastmod}</lastmod><changefreq>{safe_freq}</changefreq><priority>{safe_priority}</priority></url>'
         )
 
     for slug, _ in TOOL_CACHE.items():
         safe_slug = escape(str(slug))
         urls.append(
-            f'<url><loc>{base}/tool/{safe_slug}</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>'
+            f'<url><loc>{base}/tool/{safe_slug}</loc><lastmod>{today}</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>'
         )
 
     xml = (
