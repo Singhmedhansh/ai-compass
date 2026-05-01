@@ -420,7 +420,7 @@ export default function BestAIToolsForStudents() {
 
               {/* CTA */}
               <Link
-                to={`/tool/${tool.slug}`}
+                to={`/tools/${tool.slug}`}
                 style={{
                   display: "inline-flex",
                   alignItems: "center",

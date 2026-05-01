@@ -337,7 +337,7 @@ export default function BestFreeAITools() {
               </p>
 
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "12px" }}>
-                <Link to={`/tool/${tool.slug}`} style={{
+                <Link to={`/tools/${tool.slug}`} style={{
                   display: "inline-flex", alignItems: "center", gap: "6px",
                   fontFamily: "system-ui, sans-serif", fontSize: "13px",
                   color: tool.color, textDecoration: "none", fontWeight: "600",

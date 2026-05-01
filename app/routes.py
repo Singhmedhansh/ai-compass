@@ -2,7 +2,7 @@ import os
 from datetime import datetime, timezone
 from xml.sax.saxutils import escape
 
-from flask import Blueprint, Response, jsonify, send_from_directory
+from flask import Blueprint, Response, jsonify, redirect, send_from_directory
 from sqlalchemy import text
 
 from app import db
@@ -71,7 +71,7 @@ def sitemap():
     for slug, _ in TOOL_CACHE.items():
         safe_slug = escape(str(slug))
         urls.append(
-            f'<url><loc>{base}/tool/{safe_slug}</loc><lastmod>{today}</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>'
+            f'<url><loc>{base}/tools/{safe_slug}</loc><lastmod>{today}</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>'
         )
 
     xml = (
@@ -87,6 +87,12 @@ def sitemap():
 def robots():
     content = 'User-agent: *\nAllow: /\nSitemap: https://ai-compass.in/sitemap.xml'
     return Response(content, mimetype='text/plain')
+
+
+@main_bp.route('/tool/<slug>')
+def redirect_tool_singular(slug):
+    return redirect(f'/tools/{slug}', code=301)
+
 
 @main_bp.route('/', defaults={'path': ''})
 @main_bp.route('/<path:path>')
