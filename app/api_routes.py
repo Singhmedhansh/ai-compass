@@ -1296,7 +1296,6 @@ def auth_login():
 @api_bp.route("/auth/register", methods=["POST"])
 def auth_register():
     try:
-        print(current_app.url_map)
         payload = request.get_json(silent=True) or {}
         name = str(payload.get("name") or "").strip()
         email = str(payload.get("email") or "").strip().lower()
