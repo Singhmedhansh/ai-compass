@@ -149,15 +149,10 @@ def _requires_onboarding(user):
 @oauth_bp.route("/login/google")
 @oauth_bp.route("/auth/google")
 def login_google():
-    print("CLIENT_ID:", os.getenv("GOOGLE_CLIENT_ID", "MISSING")[:15])
-    print("CLIENT_SECRET:", os.getenv("GOOGLE_CLIENT_SECRET", "MISSING")[:5])
-    print("REDIRECT_URI:", _google_redirect_uri())
     frontend_url = _frontend_base_url()
 
     if not os.getenv("GOOGLE_CLIENT_ID"):
         return jsonify({"error": "GOOGLE_CLIENT_ID not set"}), 500
-
-    print("Google Client ID:", os.getenv("GOOGLE_CLIENT_ID")[:10])
 
     if not os.getenv("GOOGLE_CLIENT_SECRET"):
         return redirect(f"{frontend_url}/login?error=google_not_configured")
@@ -214,8 +209,6 @@ def google_callback():
     except Exception as exc:
         import traceback
 
-        print("GOOGLE CALLBACK ERROR:", str(exc))
-        print(traceback.format_exc())
         frontend_url = _frontend_base_url()
         return redirect(f"{frontend_url}/login?error=google_failed")
 
