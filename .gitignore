@@ -42,3 +42,6 @@ Thumbs.db
 
 # Tailwind
 static/css/style.css
+
+# Secrets / recovery codes
+hostinger-recovery-codes.txt
