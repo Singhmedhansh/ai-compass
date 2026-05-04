@@ -23,39 +23,16 @@ const guides = [
 
 export function GuidesDropdown() {
   return (
-    <div style={{
-      display: "flex",
-      flexDirection: "column",
-      gap: "4px",
-      padding: "8px",
-      minWidth: "260px",
-    }}>
-      <p style={{
-        fontFamily: "system-ui, sans-serif",
-        fontSize: "11px",
-        color: "#475569",
-        textTransform: "uppercase",
-        letterSpacing: "0.08em",
-        padding: "4px 8px",
-        margin: 0,
-      }}>Guides</p>
+    <div className="flex min-w-[260px] flex-col gap-1 p-2">
+      <p className="px-2 py-1 text-[11px] uppercase tracking-wider text-slate-500 font-sans m-0">
+        Guides
+      </p>
       {guides.map(g => (
-        <Link key={g.slug} to={g.slug} style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "10px",
-          padding: "8px 10px",
-          borderRadius: "8px",
-          textDecoration: "none",
-          transition: "background 0.15s",
-        }}
-          onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.05)"}
-          onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-        >
-          <span style={{ fontSize: "1.1rem" }}>{g.emoji}</span>
+        <Link key={g.slug} to={g.slug} className="group flex items-center gap-2.5 rounded-lg p-2 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 no-underline">
+          <span className="text-[1.1rem]">{g.emoji}</span>
           <div>
-            <p style={{ fontFamily: "system-ui, sans-serif", fontSize: "13px", fontWeight: "600", color: "#e2e8f0", margin: 0 }}>{g.title}</p>
-            <p style={{ fontFamily: "system-ui, sans-serif", fontSize: "11px", color: "#64748b", margin: 0 }}>{g.description}</p>
+            <p className="m-0 font-sans text-[13px] font-semibold text-slate-900 dark:text-slate-200">{g.title}</p>
+            <p className="m-0 font-sans text-[11px] text-slate-500 dark:text-slate-400">{g.description}</p>
           </div>
         </Link>
       ))}
@@ -65,104 +42,38 @@ export function GuidesDropdown() {
 
 export default function GuidesSection() {
   return (
-    <section style={{
-      maxWidth: "1200px",
-      margin: "0 auto",
-      padding: "64px 24px",
-    }}>
-      <div style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        marginBottom: "32px",
-        flexWrap: "wrap",
-        gap: "12px",
-      }}>
+    <section className="mx-auto max-w-[1200px] px-6 py-16">
+      <div className="mb-8 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 style={{
-            fontFamily: "'Georgia', serif",
-            fontSize: "1.8rem",
-            fontWeight: "700",
-            color: "#f1f5f9",
-            margin: "0 0 6px",
-            letterSpacing: "-0.02em",
-          }}>Student Guides</h2>
-          <p style={{
-            fontFamily: "system-ui, sans-serif",
-            fontSize: "14px",
-            color: "#64748b",
-            margin: 0,
-          }}>Curated picks for specific workflows</p>
+          <h2 className="mb-1 font-serif text-[1.8rem] font-bold tracking-tight text-slate-900 dark:text-slate-100">
+            Student Guides
+          </h2>
+          <p className="m-0 font-sans text-sm text-slate-600 dark:text-slate-400">
+            Curated picks for specific workflows
+          </p>
         </div>
-        <Link to="/tools" style={{
-          fontFamily: "system-ui, sans-serif",
-          fontSize: "13px",
-          color: "#6366f1",
-          textDecoration: "none",
-          fontWeight: "600",
-        }}>
+        <Link to="/tools" className="font-sans text-[13px] font-semibold text-indigo-500 no-underline hover:text-indigo-600 dark:hover:text-indigo-400">
           Browse all tools →
         </Link>
       </div>
 
-      <div style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-        gap: "16px",
-      }}>
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-4">
         {guides.map(g => (
-          <Link key={g.slug} to={g.slug} style={{
-            display: "block",
-            background: "rgba(255,255,255,0.02)",
-            border: "1px solid rgba(255,255,255,0.07)",
-            borderLeft: `3px solid ${g.color}`,
-            borderRadius: "12px",
-            padding: "24px",
-            textDecoration: "none",
-            transition: "background 0.2s, transform 0.2s",
-          }}
-            onMouseEnter={e => {
-              e.currentTarget.style.background = "rgba(255,255,255,0.05)";
-              e.currentTarget.style.transform = "translateY(-2px)";
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.background = "rgba(255,255,255,0.02)";
-              e.currentTarget.style.transform = "translateY(0)";
-            }}
+          <Link key={g.slug} to={g.slug} className="block rounded-xl border border-slate-200 bg-white p-6 no-underline transition-all hover:-translate-y-0.5 hover:shadow-md hover:bg-slate-50 dark:border-slate-700/50 dark:bg-slate-800/50 dark:hover:bg-slate-800"
+            style={{ borderLeft: `3px solid ${g.color}` }}
           >
-            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "12px" }}>
-              <span style={{ fontSize: "1.8rem" }}>{g.emoji}</span>
-              <span style={{
-                fontFamily: "system-ui, sans-serif",
-                fontSize: "11px",
-                fontWeight: "600",
-                background: `${g.badgeColor}20`,
-                border: `1px solid ${g.badgeColor}40`,
-                color: g.badgeColor,
-                padding: "2px 10px",
-                borderRadius: "999px",
-              }}>{g.badge}</span>
+            <div className="mb-3 flex items-start justify-between">
+              <span className="text-[1.8rem]">{g.emoji}</span>
+              <span className="rounded-full px-2.5 py-0.5 font-sans text-[11px] font-semibold"
+                style={{
+                  background: `${g.badgeColor}20`,
+                  border: `1px solid ${g.badgeColor}40`,
+                  color: g.badgeColor,
+                }}>{g.badge}</span>
             </div>
-            <h3 style={{
-              fontFamily: "'Georgia', serif",
-              fontSize: "1.1rem",
-              fontWeight: "700",
-              color: "#f1f5f9",
-              margin: "0 0 8px",
-            }}>{g.title}</h3>
-            <p style={{
-              fontFamily: "system-ui, sans-serif",
-              fontSize: "13px",
-              color: "#64748b",
-              margin: "0 0 16px",
-              lineHeight: "1.6",
-            }}>{g.description}</p>
-            <span style={{
-              fontFamily: "system-ui, sans-serif",
-              fontSize: "13px",
-              color: g.color,
-              fontWeight: "600",
-            }}>Read guide →</span>
+            <h3 className="mb-2 font-serif text-[1.1rem] font-bold text-slate-900 dark:text-slate-100">{g.title}</h3>
+            <p className="mb-4 font-sans text-[13px] leading-[1.6] text-slate-600 dark:text-slate-400">{g.description}</p>
+            <span className="font-sans text-[13px] font-semibold" style={{ color: g.color }}>Read guide →</span>
           </Link>
         ))}
       </div>

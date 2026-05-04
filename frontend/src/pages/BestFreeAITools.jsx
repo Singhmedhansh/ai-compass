@@ -215,70 +215,36 @@ export default function BestFreeAITools() {
         })}</script>
       </Helmet>
 
-      <div style={{ minHeight: "100vh", backgroundColor: "#0a0f1e", color: "#e2e8f0", fontFamily: "'Georgia', serif" }}>
-        <div style={{ maxWidth: "860px", margin: "0 auto", padding: "80px 24px 48px", textAlign: "center" }}>
-          <div style={{
-            display: "inline-block",
-            background: "rgba(16,163,127,0.15)",
-            border: "1px solid rgba(16,163,127,0.3)",
-            borderRadius: "999px",
-            padding: "6px 16px",
-            fontSize: "13px",
-            color: "#6ee7b7",
-            marginBottom: "24px",
-            letterSpacing: "0.05em",
-            textTransform: "uppercase",
-            fontFamily: "system-ui, sans-serif",
-          }}>
+      <div className="min-h-screen bg-white text-slate-900 dark:bg-[#0a0f1e] dark:text-slate-200 font-serif">
+
+        {/* Hero */}
+        <div className="mx-auto max-w-[860px] px-6 pt-20 pb-12 text-center">
+          <div className="inline-block rounded-full border border-emerald-300 bg-emerald-50 px-4 py-1.5 text-[13px] uppercase tracking-widest text-emerald-700 mb-6 font-sans dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300">
             ₹0 · No credit card · Updated April 2026
           </div>
-
-          <h1 style={{
-            fontSize: "clamp(2rem, 5vw, 3.2rem)",
-            fontWeight: "700",
-            lineHeight: "1.15",
-            marginBottom: "20px",
-            color: "#f1f5f9",
-            letterSpacing: "-0.02em",
-          }}>
+          <h1 className="text-[clamp(2rem,5vw,3.2rem)] font-bold leading-[1.15] tracking-tight text-slate-900 dark:text-slate-100 mb-5">
             The 10 Best Free AI Tools in 2026
           </h1>
-
-          <p style={{
-            fontSize: "1.15rem",
-            lineHeight: "1.75",
-            color: "#94a3b8",
-            maxWidth: "640px",
-            margin: "0 auto 32px",
-            fontFamily: "system-ui, sans-serif",
-          }}>
+          <p className="text-[1.15rem] leading-[1.75] text-slate-600 dark:text-slate-400 max-w-[640px] mx-auto mb-8 font-sans">
             You don't need to spend money to use powerful AI. These 10 tools have free tiers that are genuinely useful — not crippled demos. Ranked by how good the free plan actually is.
           </p>
-
-          <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap", fontFamily: "system-ui, sans-serif", fontSize: "13px", color: "#64748b" }}>
+          <div className="flex flex-wrap justify-center gap-3 font-sans text-[13px] text-slate-500">
             {["✅ All free to start", "✅ No credit card required", "✅ Works in India"].map(t => (
               <span key={t}>{t}</span>
             ))}
           </div>
         </div>
 
-        <div style={{ maxWidth: "860px", margin: "0 auto 48px", padding: "0 24px" }}>
-          <div style={{
-            background: "rgba(255,255,255,0.03)",
-            border: "1px solid rgba(255,255,255,0.08)",
-            borderRadius: "12px",
-            padding: "20px 24px",
-            fontFamily: "system-ui, sans-serif",
-          }}>
-            <p style={{ fontSize: "12px", color: "#64748b", marginBottom: "12px", textTransform: "uppercase", letterSpacing: "0.08em" }}>Quick jump</p>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+        {/* Quick nav */}
+        <div className="mx-auto max-w-[860px] px-6 mb-12">
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-5 font-sans dark:border-white/10 dark:bg-white/[0.03]">
+            <p className="text-[12px] text-slate-400 mb-3 uppercase tracking-widest">Quick jump</p>
+            <div className="flex flex-wrap gap-2">
               {tools.map(t => (
-                <a key={t.slug} href={`#${t.slug}`} style={{
-                  fontSize: "13px", color: "#94a3b8", textDecoration: "none",
-                  background: "rgba(255,255,255,0.05)", padding: "4px 12px", borderRadius: "6px",
-                }}
-                  onMouseEnter={e => e.target.style.color = "#e2e8f0"}
-                  onMouseLeave={e => e.target.style.color = "#94a3b8"}
+                <a
+                  key={t.slug}
+                  href={`#${t.slug}`}
+                  className="text-[13px] text-slate-600 no-underline rounded-md bg-slate-100 px-3 py-1 transition-colors hover:bg-slate-200 hover:text-slate-900 dark:text-slate-400 dark:bg-white/5 dark:hover:text-slate-100"
                 >
                   {t.rank}. {t.name}
                 </a>
@@ -287,140 +253,130 @@ export default function BestFreeAITools() {
           </div>
         </div>
 
-        <div style={{ maxWidth: "860px", margin: "0 auto", padding: "0 24px" }}>
+        {/* Tool cards */}
+        <div className="mx-auto max-w-[860px] px-6">
           {tools.map((tool) => (
-            <div key={tool.slug} id={tool.slug} style={{
-              marginBottom: "40px",
-              background: "rgba(255,255,255,0.02)",
-              border: "1px solid rgba(255,255,255,0.07)",
-              borderLeft: `3px solid ${tool.color}`,
-              borderRadius: "12px",
-              padding: "28px 32px",
-              scrollMarginTop: "80px",
-            }}>
-              <div style={{ display: "flex", alignItems: "flex-start", gap: "16px", marginBottom: "16px" }}>
-                <div style={{
-                  fontSize: "2rem", width: "52px", height: "52px",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  background: "rgba(255,255,255,0.05)", borderRadius: "10px", flexShrink: 0,
-                }}>{tool.emoji}</div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "4px", flexWrap: "wrap" }}>
-                    <span style={{ fontFamily: "system-ui, sans-serif", fontSize: "11px", fontWeight: "700", color: tool.color, textTransform: "uppercase", letterSpacing: "0.1em" }}>#{tool.rank}</span>
-                    <h2 style={{ fontSize: "1.3rem", fontWeight: "700", color: "#f1f5f9", margin: 0, letterSpacing: "-0.01em" }}>{tool.name}</h2>
-                    <span style={{
-                      fontFamily: "system-ui, sans-serif", fontSize: "11px",
-                      background: "rgba(16,163,127,0.15)", border: "1px solid rgba(16,163,127,0.3)",
-                      padding: "2px 10px", borderRadius: "999px", color: "#6ee7b7", fontWeight: "600",
-                    }}>{tool.badge}</span>
+            <div
+              key={tool.slug}
+              id={tool.slug}
+              className="mb-10 rounded-xl border border-slate-200 bg-white p-7 scroll-mt-20 dark:border-white/[0.07] dark:bg-white/[0.02]"
+              style={{ borderLeft: `3px solid ${tool.color}` }}
+            >
+              {/* Header */}
+              <div className="flex items-start gap-4 mb-4">
+                <div className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-xl bg-slate-100 text-[2rem] dark:bg-white/5">
+                  {tool.emoji}
+                </div>
+                <div className="flex-1">
+                  <div className="flex flex-wrap items-center gap-2.5 mb-1">
+                    <span className="font-sans text-[11px] font-bold uppercase tracking-widest" style={{ color: tool.color }}>#{tool.rank}</span>
+                    <h2 className="text-[1.3rem] font-bold tracking-tight text-slate-900 dark:text-slate-100 m-0">{tool.name}</h2>
+                    <span className="font-sans text-[11px] rounded-full px-3 py-0.5 font-semibold border"
+                      style={{
+                        background: `${tool.color}15`,
+                        borderColor: `${tool.color}40`,
+                        color: tool.color,
+                      }}
+                    >{tool.badge}</span>
                   </div>
-                  <p style={{ fontFamily: "system-ui, sans-serif", fontSize: "14px", color: "#64748b", margin: 0, fontStyle: "italic" }}>{tool.tagline}</p>
+                  <p className="font-sans text-[14px] italic text-slate-500 dark:text-slate-400 m-0">{tool.tagline}</p>
                 </div>
               </div>
 
-              <div style={{
-                display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px",
-                marginBottom: "16px", fontFamily: "system-ui, sans-serif", fontSize: "13px",
-              }}>
-                <div style={{ background: "rgba(16,163,127,0.06)", border: "1px solid rgba(16,163,127,0.15)", borderRadius: "8px", padding: "12px 14px" }}>
-                  <p style={{ color: "#10a37f", marginBottom: "4px", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: "600" }}>Free tier includes</p>
-                  <p style={{ color: "#94a3b8", margin: 0, lineHeight: "1.5" }}>{tool.freeLimit}</p>
+              {/* Details grid */}
+              <div className="grid grid-cols-2 gap-3 mb-4 font-sans text-[13px]">
+                <div className="rounded-lg bg-emerald-50 border border-emerald-100 p-3 dark:bg-emerald-500/5 dark:border-emerald-500/15">
+                  <p className="text-emerald-700 dark:text-emerald-400 text-[11px] uppercase tracking-widest font-semibold mb-1">Free tier includes</p>
+                  <p className="text-slate-600 dark:text-slate-400 m-0 leading-[1.5]">{tool.freeLimit}</p>
                 </div>
-                <div style={{ background: "rgba(255,255,255,0.03)", borderRadius: "8px", padding: "12px 14px" }}>
-                  <p style={{ color: "#475569", marginBottom: "4px", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.08em" }}>Best for</p>
-                  <p style={{ color: "#94a3b8", margin: 0, lineHeight: "1.5" }}>{tool.bestFor}</p>
+                <div className="rounded-lg bg-slate-50 p-3 dark:bg-white/[0.03]">
+                  <p className="text-[11px] uppercase tracking-widest text-slate-400 mb-1">Best for</p>
+                  <p className="text-slate-600 dark:text-slate-400 m-0 leading-[1.5]">{tool.bestFor}</p>
                 </div>
               </div>
 
-              <p style={{ fontFamily: "system-ui, sans-serif", fontSize: "14px", lineHeight: "1.7", color: "#cbd5e1", margin: "0 0 20px" }}>
-                <strong style={{ color: "#e2e8f0" }}>Free tier verdict: </strong>{tool.freeVerdict}
+              {/* Verdict */}
+              <p className="font-sans text-[14px] leading-[1.7] text-slate-700 dark:text-slate-300 mb-5">
+                <strong className="text-slate-900 dark:text-slate-100">Free tier verdict: </strong>{tool.freeVerdict}
               </p>
 
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "12px" }}>
-                <Link to={`/tools/${tool.slug}`} style={{
-                  display: "inline-flex", alignItems: "center", gap: "6px",
-                  fontFamily: "system-ui, sans-serif", fontSize: "13px",
-                  color: tool.color, textDecoration: "none", fontWeight: "600",
-                }}>
+              {/* CTA row */}
+              <div className="flex items-center justify-between flex-wrap gap-3">
+                <Link
+                  to={`/tools/${tool.slug}`}
+                  className="inline-flex items-center gap-1.5 font-sans text-[13px] font-semibold no-underline"
+                  style={{ color: tool.color }}
+                >
                   View full details →
                 </Link>
-                <span style={{ fontFamily: "system-ui, sans-serif", fontSize: "12px", color: "#475569" }}>
-                  Paid from {tool.paidPlan}
-                </span>
+                <span className="font-sans text-[12px] text-slate-400">Paid from {tool.paidPlan}</span>
               </div>
             </div>
           ))}
         </div>
 
-        <div style={{ maxWidth: "860px", margin: "64px auto 0", padding: "0 24px" }}>
-          <h2 style={{ fontSize: "1.6rem", fontWeight: "700", color: "#f1f5f9", marginBottom: "24px", letterSpacing: "-0.02em" }}>
+        {/* Tips */}
+        <div className="mx-auto max-w-[860px] px-6 mt-16">
+          <h2 className="text-[1.6rem] font-bold tracking-tight text-slate-900 dark:text-slate-100 mb-6">
             4 tips to get the most out of free AI tools
           </h2>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px" }}>
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4">
             {tips.map(tip => (
-              <div key={tip.title} style={{
-                background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)",
-                borderRadius: "10px", padding: "20px",
-              }}>
-                <div style={{ fontSize: "1.5rem", marginBottom: "10px" }}>{tip.icon}</div>
-                <h3 style={{ fontFamily: "system-ui, sans-serif", fontSize: "14px", fontWeight: "600", color: "#e2e8f0", marginBottom: "8px" }}>{tip.title}</h3>
-                <p style={{ fontFamily: "system-ui, sans-serif", fontSize: "13px", color: "#64748b", margin: 0, lineHeight: "1.6" }}>{tip.body}</p>
+              <div key={tip.title} className="rounded-xl border border-slate-200 bg-white p-5 dark:border-white/[0.07] dark:bg-white/[0.02]">
+                <div className="text-[1.5rem] mb-2.5">{tip.icon}</div>
+                <h3 className="font-sans text-[14px] font-semibold text-slate-900 dark:text-slate-100 mb-2">{tip.title}</h3>
+                <p className="font-sans text-[13px] text-slate-600 dark:text-slate-400 m-0 leading-[1.6]">{tip.body}</p>
               </div>
             ))}
           </div>
         </div>
 
-        <div style={{ maxWidth: "860px", margin: "64px auto 0", padding: "0 24px" }}>
-          <div style={{
-            background: "linear-gradient(135deg, rgba(16,163,127,0.1), rgba(99,102,241,0.05))",
-            border: "1px solid rgba(16,163,127,0.2)",
-            borderRadius: "16px", padding: "40px", textAlign: "center",
-          }}>
-            <h2 style={{ fontSize: "1.4rem", fontWeight: "700", color: "#f1f5f9", marginBottom: "12px", letterSpacing: "-0.02em" }}>
+        {/* Stack CTA */}
+        <div className="mx-auto max-w-[860px] px-6 mt-16">
+          <div className="rounded-2xl border border-emerald-200 bg-emerald-50/50 p-10 text-center dark:border-emerald-500/20 dark:bg-gradient-to-br dark:from-emerald-500/10 dark:to-indigo-500/5">
+            <h2 className="text-[1.4rem] font-bold tracking-tight text-slate-900 dark:text-slate-100 mb-3">
               Not sure which free tools to start with?
             </h2>
-            <p style={{ fontFamily: "system-ui, sans-serif", fontSize: "15px", color: "#94a3b8", marginBottom: "24px" }}>
+            <p className="font-sans text-[15px] text-slate-600 dark:text-slate-400 mb-6">
               Answer 3 quick questions and get a personalised free AI stack built for your exact workflow.
             </p>
-            <Link to="/ai-tool-finder" style={{
-              display: "inline-flex", alignItems: "center", gap: "8px",
-              background: "#10a37f", color: "#fff", padding: "12px 28px",
-              borderRadius: "8px", textDecoration: "none",
-              fontFamily: "system-ui, sans-serif", fontSize: "14px", fontWeight: "600",
-            }}>
+            <Link
+              to="/ai-tool-finder"
+              className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-7 py-3 font-sans text-[14px] font-semibold text-white no-underline transition hover:bg-emerald-500"
+            >
               Find my free AI stack →
             </Link>
           </div>
         </div>
 
-        <div style={{ maxWidth: "860px", margin: "64px auto 0", padding: "0 24px" }}>
-          <h2 style={{ fontSize: "1.6rem", fontWeight: "700", color: "#f1f5f9", marginBottom: "32px", letterSpacing: "-0.02em" }}>
+        {/* FAQ */}
+        <div className="mx-auto max-w-[860px] px-6 mt-16">
+          <h2 className="text-[1.6rem] font-bold tracking-tight text-slate-900 dark:text-slate-100 mb-8">
             Frequently asked questions
           </h2>
-          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+          <div className="flex flex-col gap-4">
             {faqs.map((faq, i) => (
-              <div key={i} style={{
-                background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)",
-                borderRadius: "10px", padding: "20px 24px",
-              }}>
-                <h3 style={{ fontFamily: "system-ui, sans-serif", fontSize: "15px", fontWeight: "600", color: "#e2e8f0", marginBottom: "10px" }}>{faq.q}</h3>
-                <p style={{ fontFamily: "system-ui, sans-serif", fontSize: "14px", lineHeight: "1.7", color: "#94a3b8", margin: 0 }}>{faq.a}</p>
+              <div key={i} className="rounded-xl border border-slate-200 bg-white p-6 dark:border-white/[0.07] dark:bg-white/[0.02]">
+                <h3 className="font-sans text-[15px] font-semibold text-slate-900 dark:text-slate-100 mb-2.5">{faq.q}</h3>
+                <p className="font-sans text-[14px] leading-[1.7] text-slate-600 dark:text-slate-400 m-0">{faq.a}</p>
               </div>
             ))}
           </div>
         </div>
 
-        <div style={{ maxWidth: "860px", margin: "64px auto 80px", padding: "0 24px", textAlign: "center", fontFamily: "system-ui, sans-serif" }}>
-          <p style={{ color: "#475569", fontSize: "14px", marginBottom: "8px" }}>Also read</p>
-          <div style={{ display: "flex", gap: "24px", justifyContent: "center", flexWrap: "wrap" }}>
-            <Link to="/best-ai-tools-for-students" style={{ color: "#6366f1", fontSize: "14px", textDecoration: "none", fontWeight: "600" }}>
+        {/* Footer CTA */}
+        <div className="mx-auto max-w-[860px] px-6 mt-16 mb-20 text-center font-sans">
+          <p className="text-[14px] text-slate-400 mb-2">Also read</p>
+          <div className="flex flex-wrap justify-center gap-6">
+            <Link to="/best-ai-tools-for-students" className="text-[14px] font-semibold text-indigo-600 no-underline hover:text-indigo-500 dark:text-indigo-400">
               Best AI tools for students →
             </Link>
-            <Link to="/tools" style={{ color: "#6366f1", fontSize: "14px", textDecoration: "none", fontWeight: "600" }}>
+            <Link to="/tools" className="text-[14px] font-semibold text-indigo-600 no-underline hover:text-indigo-500 dark:text-indigo-400">
               Browse all 450+ tools →
             </Link>
           </div>
         </div>
+
       </div>
     </>
   );

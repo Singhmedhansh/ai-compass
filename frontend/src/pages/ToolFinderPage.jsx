@@ -128,8 +128,8 @@ function StepCard({ option, selected, onClick, compact = false }) {
       } ${compact ? 'min-h-[120px]' : 'min-h-[156px]'}`}
     >
       <div className="text-3xl" aria-hidden="true">{option.emoji}</div>
-      <h3 className="mt-3 text-lg font-semibold text-gray-900 dark:text-white">{option.label}</h3>
-      <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">{option.description}</p>
+      <h3 className={`mt-3 text-lg font-semibold ${selected ? 'text-white' : 'text-gray-900 dark:text-white'}`}>{option.label}</h3>
+      <p className={`mt-2 text-sm ${selected ? 'text-indigo-200' : 'text-gray-600 dark:text-gray-300'}`}>{option.description}</p>
       {selected ? (
         <div className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full bg-indigo-500 text-white">
           <Check className="h-4 w-4" />
