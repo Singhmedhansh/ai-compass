@@ -1,0 +1,85 @@
+export default function Hero() {
+  return (
+    <header className="relative pt-9 pb-8 md:pt-24 md:pb-20">
+      <div className="mx-auto max-w-6xl px-5">
+        <div className="inline-flex items-center gap-2 rounded-full border border-line bg-bg-elev px-2.5 py-1 text-xs font-medium text-muted">
+          <span
+            aria-hidden="true"
+            className="h-1.5 w-1.5 rounded-full bg-accent"
+            style={{ boxShadow: '0 0 0 3px color-mix(in oklab, var(--accent) 25%, transparent)' }}
+          />
+          For undergraduates · 443 tools curated
+        </div>
+
+        <h1 className="mt-4 mb-3.5 text-balance text-3xl font-semibold leading-[1.1] tracking-tight text-ink md:max-w-[16ch] md:text-[56px] lg:text-[64px]">
+          A hand-picked AI finder. Made for students, not SEO.
+        </h1>
+
+        <p className="mb-5 max-w-[36ch] text-pretty text-[15px] text-muted md:max-w-[48ch] md:text-lg">
+          Answer 4 questions about your situation — use case, level, budget, platform —
+          and get <strong className="font-medium text-ink-2">5–6 AI tools chosen for you</strong>,
+          each with a one-line reason. Free. No login. No directory spam.
+        </p>
+
+        <div className="flex flex-wrap items-center gap-2.5">
+          <a
+            href="#wizard"
+            className="group inline-flex items-center gap-2 rounded-full bg-ink px-[18px] py-3 text-sm font-medium text-bg transition-all hover:-translate-y-px hover:shadow-md"
+          >
+            Start the wizard
+            <svg
+              viewBox="0 0 16 16"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
+            >
+              <path d="M3 8h10M9 4l4 4-4 4" />
+            </svg>
+          </a>
+          <a
+            href="#catalog"
+            className="inline-flex items-center gap-2 rounded-full border border-line-strong px-[18px] py-3 text-sm font-medium text-ink transition-all hover:border-ink hover:bg-bg-elev"
+          >
+            Browse the catalog
+          </a>
+        </div>
+
+        <div
+          className="mt-6 flex flex-wrap gap-[18px] text-[13px] text-muted"
+          aria-label="Quick facts"
+        >
+          <span className="inline-flex items-center gap-1.5">
+            <b className="font-semibold text-ink">~40 sec</b> · average time to result
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <b className="font-semibold text-ink">0</b> · accounts required
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <b className="font-semibold text-ink">0</b> · paid placements
+          </span>
+        </div>
+
+        <div
+          aria-hidden="true"
+          className="mt-7 flex items-center gap-2 text-xs uppercase tracking-wider text-muted-2 md:hidden"
+        >
+          <span>Scroll</span>
+          <svg
+            viewBox="0 0 12 12"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="h-3 w-3"
+          >
+            <path d="M3 5l3 3 3-3" />
+          </svg>
+        </div>
+      </div>
+    </header>
+  )
+}
