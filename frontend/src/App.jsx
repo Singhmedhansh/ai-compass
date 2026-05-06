@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
 
+import Footer from './components/Footer'
 import Navbar from './components/ui/Navbar'
 import HomePage from './pages/HomePage'
 import DirectoryPage from './pages/DirectoryPage'
@@ -54,9 +55,12 @@ export default function App() {
   return (
     <BrowserRouter>
       <ScrollToTop />
-      <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-white">
+      <div className="min-h-screen flex flex-col bg-bg text-ink">
         <Navbar />
-        <AnimatedRoutes />
+        <main className="flex-1">
+          <AnimatedRoutes />
+        </main>
+        <Footer />
       </div>
     </BrowserRouter>
   )
