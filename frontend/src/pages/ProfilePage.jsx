@@ -171,7 +171,11 @@ function ProfilePage() {
   }, [navigate])
 
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', preferences.theme === 'dark')
+    if (preferences.theme === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark')
+    } else {
+      document.documentElement.removeAttribute('data-theme')
+    }
     localStorage.setItem(THEME_STORAGE_KEY, preferences.theme)
     window.dispatchEvent(new Event('themeChanged'))
   }, [preferences.theme])

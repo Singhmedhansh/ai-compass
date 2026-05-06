@@ -5,6 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name='impact-site-verification' value='04a8c3be-b344-4fff-8e56-6a6b192b9ac2'>
 
+    <!-- Apply persisted theme before paint to avoid flash-of-wrong-theme -->
+    <script>
+      try {
+        var stored = localStorage.getItem('ai-compass-theme');
+        if (stored === 'dark') {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        } else if (stored !== 'light' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      } catch (e) {}
+    </script>
+
     <!-- Primary -->
     <title>AI Compass — Find the Right AI Tool</title>
     <meta name="description"

@@ -57,7 +57,11 @@ function Navbar() {
   }
 
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', isDark)
+    if (isDark) {
+      document.documentElement.setAttribute('data-theme', 'dark')
+    } else {
+      document.documentElement.removeAttribute('data-theme')
+    }
     window.localStorage.setItem(STORAGE_KEY, isDark ? 'dark' : 'light')
   }, [isDark])
 
