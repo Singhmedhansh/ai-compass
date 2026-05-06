@@ -4,6 +4,41 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Design system tokens — light mode (default) */
+:root {
+	--bg: #FAFAF7;
+	--bg-elev: #FFFFFF;
+	--bg-sunk: #F2F1EB;
+	--ink: #0F1411;
+	--ink-2: #2A2F2C;
+	--muted: #6B716D;
+	--muted-2: #9AA09C;
+	--line: #E6E5DE;
+	--line-strong: #D5D3CA;
+	--accent: #1D9E75;
+	--accent-ink: #0F5F47;
+	--accent-soft: #E4F2EC;
+	--warn: #B45309;
+	--radius: 10px;
+	--radius-lg: 16px;
+}
+
+/* Design system tokens — dark mode (data-theme attribute) */
+html[data-theme='dark'] {
+	--bg: #0E1311;
+	--bg-elev: #161B19;
+	--bg-sunk: #0A0E0C;
+	--ink: #F1F2EE;
+	--ink-2: #C9CBC4;
+	--muted: #8B918C;
+	--muted-2: #5E635F;
+	--line: #232927;
+	--line-strong: #2E3431;
+	--accent: #2FB389;
+	--accent-ink: #6FD2B0;
+	--accent-soft: #122A22;
+}
+
 html { scroll-behavior: smooth; }
 
 /* Custom scrollbar */
