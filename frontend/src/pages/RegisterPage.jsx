@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
-import PageTransition from '../components/PageTransition'
+import Button from '../components/ui/Button'
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -92,15 +92,14 @@ function RegisterPage() {
   }
 
   return (
-    <PageTransition>
-      <main className="mx-auto flex min-h-[calc(100vh-4rem)] w-full items-center justify-center px-4 py-8 bg-gray-50 dark:bg-gray-950">
-      <section className="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-6 shadow-xl sm:p-8 dark:border-gray-700 dark:bg-gray-800">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Create your account</h1>
-        <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">Join AI Compass and save your favorite tools.</p>
+    <main className="mx-auto flex min-h-[calc(100vh-4rem)] w-full items-center justify-center px-4 py-8">
+      <section className="w-full max-w-md rounded-2xl border border-line bg-bg-elev p-6 shadow-xl sm:p-8">
+        <h1 className="text-2xl font-bold text-ink">Create your account</h1>
+        <p className="mt-2 text-sm text-muted">Join AI Compass and save your favorite tools.</p>
 
         <form className="mt-6 space-y-4" onSubmit={handleSubmit} noValidate>
           <div>
-            <label htmlFor="register-name" className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="register-name" className="mb-1.5 block text-sm font-medium text-ink-2">
               Full name
             </label>
             <input
@@ -110,14 +109,14 @@ function RegisterPage() {
               onChange={(event) => setFullName(event.target.value)}
               required
               autoComplete="name"
-              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 dark:border-gray-600 dark:bg-gray-900 dark:text-white dark:placeholder:text-gray-400"
+              className="w-full rounded-lg border border-line bg-bg-elev px-3 py-2 text-sm text-ink placeholder:text-muted-2 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent"
               placeholder="Jane Doe"
             />
-            {fieldErrors.fullName ? <p className="mt-1 text-xs text-red-600 dark:text-red-400">{fieldErrors.fullName}</p> : null}
+            {fieldErrors.fullName ? <p className="mt-1 text-xs text-danger">{fieldErrors.fullName}</p> : null}
           </div>
 
           <div>
-            <label htmlFor="register-email" className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="register-email" className="mb-1.5 block text-sm font-medium text-ink-2">
               Email
             </label>
             <input
@@ -127,14 +126,14 @@ function RegisterPage() {
               onChange={(event) => setEmail(event.target.value)}
               required
               autoComplete="email"
-              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 dark:border-gray-600 dark:bg-gray-900 dark:text-white dark:placeholder:text-gray-400"
+              className="w-full rounded-lg border border-line bg-bg-elev px-3 py-2 text-sm text-ink placeholder:text-muted-2 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent"
               placeholder="you@example.com"
             />
-            {fieldErrors.email ? <p className="mt-1 text-xs text-red-600 dark:text-red-400">{fieldErrors.email}</p> : null}
+            {fieldErrors.email ? <p className="mt-1 text-xs text-danger">{fieldErrors.email}</p> : null}
           </div>
 
           <div>
-            <label htmlFor="register-password" className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="register-password" className="mb-1.5 block text-sm font-medium text-ink-2">
               Password
             </label>
             <input
@@ -145,14 +144,14 @@ function RegisterPage() {
               required
               minLength={8}
               autoComplete="new-password"
-              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 dark:border-gray-600 dark:bg-gray-900 dark:text-white dark:placeholder:text-gray-400"
+              className="w-full rounded-lg border border-line bg-bg-elev px-3 py-2 text-sm text-ink placeholder:text-muted-2 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent"
               placeholder="At least 8 characters"
             />
-            {fieldErrors.password ? <p className="mt-1 text-xs text-red-600 dark:text-red-400">{fieldErrors.password}</p> : null}
+            {fieldErrors.password ? <p className="mt-1 text-xs text-danger">{fieldErrors.password}</p> : null}
           </div>
 
           <div>
-            <label htmlFor="register-confirm-password" className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="register-confirm-password" className="mb-1.5 block text-sm font-medium text-ink-2">
               Confirm password
             </label>
             <input
@@ -162,32 +161,27 @@ function RegisterPage() {
               onChange={(event) => setConfirmPassword(event.target.value)}
               required
               autoComplete="new-password"
-              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 dark:border-gray-600 dark:bg-gray-900 dark:text-white dark:placeholder:text-gray-400"
+              className="w-full rounded-lg border border-line bg-bg-elev px-3 py-2 text-sm text-ink placeholder:text-muted-2 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent"
               placeholder="Re-enter your password"
             />
-            {fieldErrors.confirmPassword ? <p className="mt-1 text-xs text-red-600 dark:text-red-400">{fieldErrors.confirmPassword}</p> : null}
+            {fieldErrors.confirmPassword ? <p className="mt-1 text-xs text-danger">{fieldErrors.confirmPassword}</p> : null}
           </div>
 
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:bg-indigo-700"
-          >
+          <Button variant="primary" type="submit" disabled={submitting} className="w-full font-semibold">
             {submitting ? 'Creating account...' : 'Create Account'}
-          </button>
+          </Button>
 
-          {serverError ? <p className="text-sm text-red-700 dark:text-red-300">{serverError}</p> : null}
+          {serverError ? <p className="text-sm text-danger">{serverError}</p> : null}
         </form>
 
-        <p className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
+        <p className="mt-6 text-center text-sm text-muted">
           Already have an account?{' '}
-          <Link to="/login" className="font-semibold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300">
+          <Link to="/login" className="font-semibold text-accent hover:underline">
             Login
           </Link>
         </p>
       </section>
-      </main>
-    </PageTransition>
+    </main>
   )
 }
 
