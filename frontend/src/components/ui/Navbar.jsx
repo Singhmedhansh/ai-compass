@@ -425,7 +425,7 @@ function Navbar() {
         <button
           type="button"
           onClick={() => setIsMobileMenuOpen((prev) => !prev)}
-          className="ml-auto inline-flex h-10 w-10 items-center justify-center rounded-lg border border-line-strong bg-bg-elev text-ink-2 transition-colors hover:bg-bg-sunk focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent lg:hidden"
+          className="order-2 ml-auto inline-flex h-10 w-10 items-center justify-center rounded-lg border border-line-strong bg-bg-elev text-ink-2 transition-colors hover:bg-bg-sunk focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent sm:order-3 lg:hidden"
           aria-expanded={isMobileMenuOpen}
           aria-controls="mobile-menu"
           aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
