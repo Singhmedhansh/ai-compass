@@ -1,20 +1,16 @@
 import clsx from 'clsx'
-import { AnimatePresence, motion } from 'framer-motion'
 import { Heart, Star } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
-import PageTransition from '../components/PageTransition'
 import RatingWidget from '../components/ui/RatingWidget'
 import ReviewsSection from '../components/ui/ReviewsSection'
 import { Badge, Button, ToolLogo } from '../components/ui'
 
-const MotionDiv = motion.div
-
 const pricingBadgeClasses = {
-  free: 'bg-emerald-500/20 text-emerald-300 ring-emerald-500/30',
-  freemium: 'bg-amber-500/20 text-amber-300 ring-amber-500/30',
-  paid: 'bg-rose-500/20 text-rose-300 ring-rose-500/30',
+  free: 'bg-accent-soft text-accent-ink',
+  freemium: 'bg-bg-sunk text-ink-2',
+  paid: 'bg-bg-sunk text-ink-2',
 }
 
 function toSlug(value = '') {
@@ -48,7 +44,7 @@ function buildStarNodes(rating, className = 'h-4 w-4') {
     return (
       <Star
         key={`star-${index}`}
-        className={clsx(className, active ? 'fill-amber-400 text-amber-400' : 'text-gray-500 dark:text-gray-500')}
+        className={clsx(className, active ? 'fill-amber-400 text-amber-400' : 'text-line-strong')}
       />
     )
   })
@@ -265,87 +261,64 @@ function ToolDetailPage() {
   }
 
   return (
-    <PageTransition>
-      <main className="mx-auto w-full max-w-7xl bg-gray-50 px-4 py-8 dark:bg-gray-950 sm:px-6 lg:px-8">
-      <AnimatePresence mode="wait">
-        {loading ? (
-          <MotionDiv
-            key="tool-loading"
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.22, ease: 'easeOut' }}
-            className="rounded-2xl border border-gray-200 bg-white p-6 text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
-          >
-            Loading tool details...
-          </MotionDiv>
-        ) : error || !tool ? (
-          <MotionDiv
-            key="tool-error"
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.22, ease: 'easeOut' }}
-            className="rounded-2xl border border-red-500/40 bg-red-500/10 p-6 text-red-700 dark:text-red-200"
-          >
-            {error || 'Tool not found.'}
-          </MotionDiv>
-        ) : (
-          <MotionDiv
-            key={`tool-content-${tool.slug}`}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.24, ease: 'easeOut' }}
-            className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]"
-          >
+    <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      {loading ? (
+        <div className="rounded-2xl border border-line bg-bg-elev p-6 text-muted">
+          Loading tool details...
+        </div>
+      ) : error || !tool ? (
+        <div className="rounded-2xl border border-danger bg-danger-soft p-6 text-danger">
+          {error || 'Tool not found.'}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div className="flex-1 space-y-6">
-          <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+          <section className="rounded-2xl border border-line bg-bg-elev p-6 shadow-lg">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-              <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gray-100 dark:bg-gray-800">
+              <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-bg-sunk">
                 <ToolLogo tool={tool} size={64} />
               </div>
 
               <div className="min-w-0 flex-1">
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{tool.name}</h1>
+                <h1 className="text-2xl font-bold text-ink">{tool.name}</h1>
                 <div className="mt-3 flex flex-wrap items-center gap-2">
                   <Badge label={tool.category} variant={tool.category} />
                   <span
                     className={clsx(
-                      'inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold uppercase tracking-wide ring-1 ring-inset',
+                      'inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold uppercase tracking-wide',
                       pricingBadgeClasses[priceKey],
                     )}
                   >
                     {tool.pricing}
                   </span>
                 </div>
-                <p className="mt-3 text-sm text-gray-600 dark:text-gray-400">{tool.shortDescription}</p>
+                <p className="mt-3 text-sm text-muted">{tool.shortDescription}</p>
 
                 <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <a href={tool.url} target="_blank" rel="noreferrer" className="w-full">
                     <Button className="w-full">Visit Tool</Button>
                   </a>
                   <Button variant="ghost" className="w-full gap-2" onClick={handleFavoriteToggle}>
-                    <Heart className={clsx('h-4 w-4', isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-300 dark:text-gray-600')} />
+                    <Heart className={clsx('h-4 w-4', isFavorite ? 'fill-danger text-danger' : 'text-line-strong')} />
                     {isFavorite ? 'Saved to Favorites' : 'Save to Favorites'}
                   </Button>
                 </div>
 
                 {showLoginPrompt ? (
-                  <div className="mt-4 rounded-xl border border-indigo-200 bg-indigo-50 p-3 text-sm dark:border-indigo-500/30 dark:bg-indigo-500/10">
+                  <div className="mt-4 rounded-xl border border-accent bg-accent-soft p-3 text-sm">
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                      <p className="font-medium text-indigo-800 dark:text-indigo-200">Log in to save favorites</p>
+                      <p className="font-medium text-accent-ink">Log in to save favorites</p>
                       <button
                         type="button"
-                        className="self-start text-xs font-semibold text-indigo-700 hover:text-indigo-900 dark:text-indigo-200 dark:hover:text-white"
+                        className="self-start text-xs font-semibold text-accent-ink hover:underline"
                         onClick={() => setShowLoginPrompt(false)}
                       >
                         Close
                       </button>
                     </div>
                     <div className="mt-3 flex flex-wrap gap-2">
-                      <a href="/login" className="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-500">Log In</a>
-                      <a href="/register" className="rounded-lg border border-indigo-300 px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 dark:border-indigo-400/40 dark:text-indigo-200 dark:hover:bg-indigo-500/20">Register Free</a>
+                      <a href="/login" className="rounded-lg bg-accent px-3 py-1.5 text-xs font-semibold text-bg hover:opacity-90">Log In</a>
+                      <a href="/register" className="rounded-lg border border-accent px-3 py-1.5 text-xs font-semibold text-accent-ink hover:bg-bg-elev">Register Free</a>
                     </div>
                   </div>
                 ) : null}
@@ -357,20 +330,20 @@ function ToolDetailPage() {
                 tool.tags.map((tag) => (
                   <span
                     key={`${tool.slug}-tag-${tag}`}
-                    className="rounded-full border border-gray-300 bg-white px-2.5 py-1 text-xs font-medium text-gray-700 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300"
+                    className="rounded-full border border-line bg-bg-sunk px-2.5 py-1 text-xs font-medium text-muted"
                   >
                     {tag}
                   </span>
                 ))
               ) : (
-                <span className="text-xs text-gray-500 dark:text-gray-500">No tags yet</span>
+                <span className="text-xs text-muted-2">No tags yet</span>
               )}
             </div>
           </section>
 
-          <section className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">About this tool</h2>
-            <p className="mt-3 leading-relaxed text-gray-600 dark:text-gray-400">{tool.description}</p>
+          <section className="rounded-2xl border border-line bg-bg-elev p-6">
+            <h2 className="text-lg font-semibold text-ink">About this tool</h2>
+            <p className="mt-3 leading-relaxed text-ink-2">{tool.description}</p>
           </section>
 
           <RatingWidget slug={tool.slug} isLoggedIn={isLoggedIn} />
@@ -378,34 +351,34 @@ function ToolDetailPage() {
         </div>
 
         <aside className="space-y-6 lg:sticky lg:top-24 lg:h-fit lg:w-80">
-          <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-800">
-            <h3 className="text-base font-semibold text-gray-900 dark:text-white">Quick info</h3>
+          <section className="rounded-2xl border border-line bg-bg-elev p-5">
+            <h3 className="text-base font-semibold text-ink">Quick info</h3>
             <dl className="mt-4 space-y-3 text-sm">
               <div className="flex items-center justify-between gap-4">
-                <dt className="text-gray-600 dark:text-gray-400">Pricing</dt>
-                <dd className="text-gray-900 dark:text-gray-100">{tool.pricing}</dd>
+                <dt className="text-muted">Pricing</dt>
+                <dd className="text-ink">{tool.pricing}</dd>
               </div>
               <div className="flex items-center justify-between gap-4">
-                <dt className="text-gray-600 dark:text-gray-400">Platform</dt>
-                <dd className="text-gray-900 dark:text-gray-100">{tool.platform || 'Web'}</dd>
+                <dt className="text-muted">Platform</dt>
+                <dd className="text-ink">{tool.platform || 'Web'}</dd>
               </div>
               <div className="flex items-center justify-between gap-4">
-                <dt className="text-gray-600 dark:text-gray-400">Category</dt>
-                <dd className="text-gray-900 dark:text-gray-100">{tool.category}</dd>
+                <dt className="text-muted">Category</dt>
+                <dd className="text-ink">{tool.category}</dd>
               </div>
               <div className="flex items-center justify-between gap-4">
-                <dt className="text-gray-600 dark:text-gray-400">Last updated</dt>
-                <dd className="text-gray-900 dark:text-gray-100">{formatDate(tool.lastUpdated)}</dd>
+                <dt className="text-muted">Last updated</dt>
+                <dd className="text-ink">{formatDate(tool.lastUpdated)}</dd>
               </div>
               <div className="flex items-center justify-between gap-4">
-                <dt className="text-gray-600 dark:text-gray-400">Student friendly</dt>
+                <dt className="text-muted">Student friendly</dt>
                 <dd>
                   <span
                     className={clsx(
-                      'inline-flex rounded-full px-2 py-1 text-xs font-semibold ring-1 ring-inset',
+                      'inline-flex rounded-full px-2 py-1 text-xs font-semibold',
                       tool.studentFriendly
-                        ? 'bg-emerald-500/20 text-emerald-600 ring-emerald-500/30 dark:text-emerald-300'
-                        : 'bg-gray-200 text-gray-700 ring-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:ring-gray-600',
+                        ? 'bg-accent-soft text-accent-ink'
+                        : 'bg-bg-sunk text-ink-2',
                     )}
                   >
                     {tool.studentFriendly ? 'Yes' : 'No'}
@@ -415,11 +388,11 @@ function ToolDetailPage() {
             </dl>
           </section>
 
-          <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-800">
-            <h3 className="text-base font-semibold text-gray-900 dark:text-white">Related Tools</h3>
+          <section className="rounded-2xl border border-line bg-bg-elev p-5">
+            <h3 className="text-base font-semibold text-ink">Related Tools</h3>
 
             {relatedTools.length === 0 ? (
-              <p className="mt-3 text-sm text-gray-600 dark:text-gray-400">No related tools found.</p>
+              <p className="mt-3 text-sm text-muted">No related tools found.</p>
             ) : (
               <div className="mt-4 space-y-3">
                 {relatedTools.map((relatedTool) => {
@@ -428,13 +401,13 @@ function ToolDetailPage() {
                       key={relatedTool.slug}
                       type="button"
                       onClick={() => navigate(`/tools/${relatedTool.slug}`)}
-                      className="flex w-full items-center gap-3 rounded-xl border border-gray-200 bg-white p-3 text-left transition hover:border-indigo-300 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-900 dark:hover:border-indigo-500 dark:hover:bg-gray-800"
+                      className="flex w-full items-center gap-3 rounded-xl border border-line bg-bg-elev p-3 text-left transition hover:border-accent hover:bg-bg-sunk"
                     >
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-bg-sunk">
                         <ToolLogo tool={relatedTool} size={40} />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-semibold text-gray-900 dark:text-white">{relatedTool.name}</p>
+                        <p className="truncate text-sm font-semibold text-ink">{relatedTool.name}</p>
                         <div className="mt-1 flex items-center gap-0.5">{buildStarNodes(relatedTool.rating, 'h-3.5 w-3.5')}</div>
                       </div>
                     </button>
@@ -444,11 +417,9 @@ function ToolDetailPage() {
             )}
           </section>
         </aside>
-          </MotionDiv>
-        )}
-      </AnimatePresence>
-      </main>
-    </PageTransition>
+        </div>
+      )}
+    </main>
   )
 }
 
