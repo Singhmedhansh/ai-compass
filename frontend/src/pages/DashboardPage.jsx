@@ -1,13 +1,8 @@
 import { Calendar, Eye, Grid3X3, Heart, Home, Sparkles, Wand2 } from 'lucide-react'
-import { motion } from 'framer-motion'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import PageTransition from '../components/PageTransition'
 import { Button, Card } from '../components/ui'
-
-const MotionSection = motion.section
-const MotionDiv = motion.div
 
 function readRecentlyViewedSlugs() {
   try {
@@ -208,8 +203,8 @@ function DashboardPage() {
 
   if (loading) {
     return (
-      <main className="mx-auto w-full max-w-7xl bg-gray-50 px-4 py-8 dark:bg-gray-950 sm:px-6 lg:px-8">
-        <div className="rounded-2xl border border-gray-200 bg-white p-6 text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
+      <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="rounded-2xl border border-line bg-bg-elev p-6 text-ink-2">
           Loading your dashboard...
         </div>
       </main>
@@ -217,15 +212,14 @@ function DashboardPage() {
   }
 
   return (
-    <PageTransition>
-      <main className="mx-auto w-full max-w-7xl bg-gray-50 px-4 py-8 dark:bg-gray-950 sm:px-6 lg:px-8">
+    <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[16rem_minmax(0,1fr)]">
-        <aside className="rounded-2xl border border-gray-200 bg-white p-4 text-gray-900 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white lg:sticky lg:top-24 lg:h-fit">
-          <p className="px-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Dashboard</p>
+        <aside className="rounded-2xl border border-line bg-bg-elev p-4 text-ink shadow-sm lg:sticky lg:top-24 lg:h-fit">
+          <p className="px-2 text-xs font-semibold uppercase tracking-wide text-muted">Dashboard</p>
           <nav className="mt-3 space-y-1">
             <button
               type="button"
-              className="flex w-full items-center gap-2 rounded-xl bg-indigo-100 px-3 py-2 text-left text-sm font-semibold text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-200"
+              className="flex w-full items-center gap-2 rounded-xl bg-accent-soft px-3 py-2 text-left text-sm font-semibold text-accent-ink"
             >
               <Home className="h-4 w-4" />
               Overview
@@ -233,7 +227,7 @@ function DashboardPage() {
             <button
               type="button"
               onClick={() => navigate('/tools')}
-              className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-medium text-gray-700 transition hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+              className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-medium text-ink-2 transition hover:bg-bg-sunk"
             >
               <Grid3X3 className="h-4 w-4" />
               Browse Tools
@@ -241,7 +235,7 @@ function DashboardPage() {
             <button
               type="button"
               onClick={() => navigate('/ai-tool-finder')}
-              className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-medium text-gray-700 transition hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+              className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-medium text-ink-2 transition hover:bg-bg-sunk"
             >
               <Wand2 className="h-4 w-4" />
               Tool Finder
@@ -249,7 +243,7 @@ function DashboardPage() {
             <button
               type="button"
               onClick={() => navigate('/tools')}
-              className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-medium text-gray-700 transition hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+              className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-medium text-ink-2 transition hover:bg-bg-sunk"
             >
               <Heart className="h-4 w-4" />
               Favorites
@@ -258,17 +252,13 @@ function DashboardPage() {
         </aside>
 
         <div className="space-y-6">
-          <MotionSection
-            className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800"
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
+          <section className="rounded-2xl border border-line bg-bg-elev p-6 shadow-sm">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                <h1 className="text-2xl font-bold text-ink">
                   {greeting}, {displayName}!
                 </h1>
-                <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                <p className="mt-2 text-sm text-muted">
                   Here are your personalized AI tool recommendations
                 </p>
               </div>
@@ -279,7 +269,7 @@ function DashboardPage() {
                     src={user.picture}
                     alt={user.name}
                     referrerPolicy="no-referrer"
-                    className="w-12 h-12 rounded-full object-cover ring-2 ring-indigo-400"
+                    className="w-12 h-12 rounded-full object-cover ring-2 ring-accent"
                     onError={(e) => {
                       e.target.style.display = 'none'
                       e.target.nextSibling.style.display = 'flex'
@@ -288,58 +278,51 @@ function DashboardPage() {
                 ) : null}
                 <div
                   style={{ display: user?.picture ? 'none' : 'flex' }}
-                  className="w-12 h-12 rounded-full bg-indigo-600 items-center justify-center text-white text-lg font-bold"
+                  className="w-12 h-12 rounded-full bg-accent items-center justify-center text-bg text-lg font-bold"
                 >
                   {avatarLetter}
                 </div>
               </div>
             </div>
-          </MotionSection>
+          </section>
 
           <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {[
               {
                 key: 'saved',
                 icon: <Heart className="h-4 w-4" />,
-                iconClass: 'bg-red-500/10 text-red-500',
                 label: 'Tools Saved',
                 value: favorites.length,
               },
               {
                 key: 'categories',
                 icon: <Grid3X3 className="h-4 w-4" />,
-                iconClass: 'bg-blue-500/10 text-blue-500',
                 label: 'Categories Explored',
                 value: categoriesExplored,
               },
               {
                 key: 'visited',
                 icon: <Eye className="h-4 w-4" />,
-                iconClass: 'bg-emerald-500/10 text-emerald-500',
                 label: 'Tools Visited',
                 value: recentlyViewedSlugs.length,
               },
               {
                 key: 'member',
                 icon: <Calendar className="h-4 w-4" />,
-                iconClass: 'bg-purple-500/10 text-purple-500',
                 label: 'Member Since',
                 value: user?.member_since || formatMemberSince(user?.created_at) || 'Unknown',
               },
-            ].map((item, index) => (
-              <MotionDiv
+            ].map((item) => (
+              <div
                 key={item.key}
-                className="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: index * 0.1, type: 'spring' }}
+                className="rounded-2xl border border-line bg-bg-elev p-4"
               >
-                <div className={`mb-2 flex h-9 w-9 items-center justify-center rounded-lg ${item.iconClass}`}>
+                <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-lg bg-accent-soft text-accent">
                   {item.icon}
                 </div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{item.label}</p>
-                <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">{item.value}</p>
-              </MotionDiv>
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted">{item.label}</p>
+                <p className="mt-2 text-2xl font-bold text-ink">{item.value}</p>
+              </div>
             ))}
           </section>
 
@@ -347,9 +330,9 @@ function DashboardPage() {
             <button
               type="button"
               onClick={() => navigate('/tools')}
-              className="flex items-center justify-between rounded-xl border border-indigo-500/40 bg-indigo-500/5 px-4 py-3 text-left transition hover:bg-indigo-500/10"
+              className="flex items-center justify-between rounded-xl border border-accent bg-accent-soft px-4 py-3 text-left transition hover:bg-accent-soft/80"
             >
-              <span className="flex items-center gap-2 text-sm font-semibold text-indigo-600 dark:text-indigo-400">
+              <span className="flex items-center gap-2 text-sm font-semibold text-accent-ink">
                 <Grid3X3 className="h-4 w-4" />
                 Browse Tools
               </span>
@@ -358,9 +341,9 @@ function DashboardPage() {
             <button
               type="button"
               onClick={() => navigate('/ai-tool-finder')}
-              className="flex items-center justify-between rounded-xl border border-indigo-500/40 bg-indigo-500/5 px-4 py-3 text-left transition hover:bg-indigo-500/10"
+              className="flex items-center justify-between rounded-xl border border-accent bg-accent-soft px-4 py-3 text-left transition hover:bg-accent-soft/80"
             >
-              <span className="flex items-center gap-2 text-sm font-semibold text-indigo-600 dark:text-indigo-400">
+              <span className="flex items-center gap-2 text-sm font-semibold text-accent-ink">
                 <Sparkles className="h-4 w-4" />
                 Find My AI Stack
               </span>
@@ -369,9 +352,9 @@ function DashboardPage() {
             <button
               type="button"
               onClick={() => navigate('/submit')}
-              className="flex items-center justify-between rounded-xl border border-indigo-500/40 bg-indigo-500/5 px-4 py-3 text-left transition hover:bg-indigo-500/10"
+              className="flex items-center justify-between rounded-xl border border-accent bg-accent-soft px-4 py-3 text-left transition hover:bg-accent-soft/80"
             >
-              <span className="flex items-center gap-2 text-sm font-semibold text-indigo-600 dark:text-indigo-400">
+              <span className="flex items-center gap-2 text-sm font-semibold text-accent-ink">
                 <Wand2 className="h-4 w-4" />
                 Submit a Tool
               </span>
@@ -379,22 +362,22 @@ function DashboardPage() {
           </section>
 
           {error && (
-            <div className="rounded-xl border border-red-300 bg-red-50 p-4 text-sm text-red-700 dark:border-red-700 dark:bg-red-950/30 dark:text-red-200">
+            <div className="rounded-xl border border-danger bg-danger-soft p-4 text-sm text-danger">
               {error}
             </div>
           )}
 
-          <section className="rounded-2xl border border-gray-200 bg-white/80 p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800/70 sm:p-5">
+          <section className="rounded-2xl border border-line bg-bg-elev/80 p-4 shadow-sm sm:p-5">
             <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
               <div>
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Recommended for You</h2>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Based on your interests</p>
+                <h2 className="text-xl font-bold text-ink">Recommended for You</h2>
+                <p className="text-sm text-muted">Based on your interests</p>
               </div>
               <div className="flex items-center gap-2">
-                <span className="rounded-full border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700 dark:border-indigo-500/40 dark:bg-indigo-500/10 dark:text-indigo-300">
+                <span className="rounded-full border border-accent bg-accent-soft px-2.5 py-1 text-xs font-semibold text-accent-ink">
                   {recommendations.length} picks
                 </span>
-                <Sparkles className="h-5 w-5 text-indigo-500" />
+                <Sparkles className="h-5 w-5 text-accent" />
               </div>
             </div>
 
@@ -405,26 +388,26 @@ function DashboardPage() {
                 ))}
               </div>
             ) : (
-              <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-5 text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400">
+              <div className="rounded-xl border border-dashed border-line-strong bg-bg-sunk p-5 text-sm text-muted">
                 No recommendations yet.
               </div>
             )}
           </section>
 
-          <section className="rounded-2xl border border-gray-200 bg-white/80 p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800/70 sm:p-5">
+          <section className="rounded-2xl border border-line bg-bg-elev/80 p-4 shadow-sm sm:p-5">
             <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
               <div>
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white">My Favorites</h2>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Tools you saved for quick access</p>
+                <h2 className="text-xl font-bold text-ink">My Favorites</h2>
+                <p className="text-sm text-muted">Tools you saved for quick access</p>
               </div>
-              <span className="rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-700 dark:border-rose-500/40 dark:bg-rose-500/10 dark:text-rose-300">
+              <span className="rounded-full border border-accent bg-accent-soft px-2.5 py-1 text-xs font-semibold text-accent-ink">
                 {favorites.length} saved
               </span>
             </div>
 
             {favorites.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-6 text-center dark:border-gray-700 dark:bg-gray-900">
-                <p className="text-sm text-gray-600 dark:text-gray-400">No favorites yet</p>
+              <div className="rounded-2xl border border-dashed border-line-strong bg-bg-sunk p-6 text-center">
+                <p className="text-sm text-muted">No favorites yet</p>
                 <Button className="mt-4" onClick={() => navigate('/tools')}>
                   Explore Tools
                 </Button>
@@ -439,21 +422,21 @@ function DashboardPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">My AI Stack</h2>
+            <h2 className="text-xl font-bold text-ink">My AI Stack</h2>
 
             {!savedStack ? (
-              <div className="mt-3 rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-6 text-center dark:border-gray-700 dark:bg-gray-900">
-                <p className="text-sm text-gray-600 dark:text-gray-400">No stack saved yet</p>
+              <div className="mt-3 rounded-2xl border border-dashed border-line-strong bg-bg-sunk p-6 text-center">
+                <p className="text-sm text-muted">No stack saved yet</p>
                 <Button className="mt-4" onClick={() => navigate('/ai-tool-finder')}>
                   Build My Stack
                 </Button>
               </div>
             ) : (
-              <div className="mt-3 rounded-2xl border border-gray-200 bg-gradient-to-br from-white to-indigo-50/40 p-5 shadow-sm dark:border-gray-700 dark:bg-gradient-to-br dark:from-gray-800 dark:to-indigo-950/20">
+              <div className="mt-3 rounded-2xl border border-line bg-gradient-to-br from-bg-elev to-accent-soft p-5 shadow-sm">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <p className="text-sm font-semibold text-gray-900 dark:text-white">Saved preferences</p>
-                    <p className="mt-1 text-xs text-gray-600 dark:text-gray-400">Your latest finder profile used to build this stack.</p>
+                    <p className="text-sm font-semibold text-ink">Saved preferences</p>
+                    <p className="mt-1 text-xs text-muted">Your latest finder profile used to build this stack.</p>
                   </div>
                   <Button
                     type="button"
@@ -465,38 +448,38 @@ function DashboardPage() {
                 </div>
 
                 <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
-                  <div className="rounded-xl border border-gray-200/80 bg-white/70 px-3 py-2 dark:border-gray-700 dark:bg-gray-900/40">
-                    <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Goal</p>
-                    <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">{toProperCase(savedStack.goal || 'N/A')}</p>
+                  <div className="rounded-xl border border-line/80 bg-bg-elev/70 px-3 py-2">
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-muted">Goal</p>
+                    <p className="mt-1 text-sm font-semibold text-ink">{toProperCase(savedStack.goal || 'N/A')}</p>
                   </div>
-                  <div className="rounded-xl border border-gray-200/80 bg-white/70 px-3 py-2 dark:border-gray-700 dark:bg-gray-900/40">
-                    <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Budget</p>
-                    <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">{toProperCase(savedStack.budget || 'N/A')}</p>
+                  <div className="rounded-xl border border-line/80 bg-bg-elev/70 px-3 py-2">
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-muted">Budget</p>
+                    <p className="mt-1 text-sm font-semibold text-ink">{toProperCase(savedStack.budget || 'N/A')}</p>
                   </div>
-                  <div className="rounded-xl border border-gray-200/80 bg-white/70 px-3 py-2 dark:border-gray-700 dark:bg-gray-900/40">
-                    <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Level</p>
-                    <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">{toProperCase(savedStack.level || 'N/A')}</p>
+                  <div className="rounded-xl border border-line/80 bg-bg-elev/70 px-3 py-2">
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-muted">Level</p>
+                    <p className="mt-1 text-sm font-semibold text-ink">{toProperCase(savedStack.level || 'N/A')}</p>
                   </div>
-                  <div className="rounded-xl border border-indigo-200/80 bg-indigo-50 px-3 py-2 dark:border-indigo-500/40 dark:bg-indigo-500/10">
-                    <p className="text-[11px] font-semibold uppercase tracking-wide text-indigo-700 dark:text-indigo-300">Saved Tools</p>
-                    <p className="mt-1 text-sm font-semibold text-indigo-700 dark:text-indigo-200">{Array.isArray(savedStack.tools) ? savedStack.tools.length : 0}</p>
+                  <div className="rounded-xl border border-accent/80 bg-accent-soft px-3 py-2">
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-accent-ink">Saved Tools</p>
+                    <p className="mt-1 text-sm font-semibold text-accent-ink">{Array.isArray(savedStack.tools) ? savedStack.tools.length : 0}</p>
                   </div>
                 </div>
 
                 <div className="mt-5">
-                  <p className="text-sm font-semibold text-gray-900 dark:text-white">Saved tools</p>
+                  <p className="text-sm font-semibold text-ink">Saved tools</p>
                   <div className="mt-2 flex flex-wrap gap-2">
                     {Array.isArray(savedStack.tools) && savedStack.tools.length > 0 ? (
                       savedStack.tools.map((toolName, index) => (
                         <span
                           key={`saved-stack-tool-${index}`}
-                          className="rounded-full border border-gray-300/80 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300"
+                          className="rounded-full border border-line/80 bg-bg-elev px-3 py-1.5 text-xs font-medium text-ink-2 shadow-sm"
                         >
                           {toolName}
                         </span>
                       ))
                     ) : (
-                      <p className="text-sm text-gray-600 dark:text-gray-400">No tools in saved stack</p>
+                      <p className="text-sm text-muted">No tools in saved stack</p>
                     )}
                   </div>
                 </div>
@@ -505,10 +488,10 @@ function DashboardPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Recently Viewed</h2>
+            <h2 className="text-xl font-bold text-ink">Recently Viewed</h2>
 
             {recentlyViewedTools.length === 0 ? (
-              <p className="mt-3 text-sm text-gray-600 dark:text-gray-400">Start browsing tools to see your history</p>
+              <p className="mt-3 text-sm text-muted">Start browsing tools to see your history</p>
             ) : (
               <div className="mt-3 flex gap-4 overflow-x-auto pb-2">
                 {recentlyViewedTools.map((tool) => (
@@ -521,8 +504,7 @@ function DashboardPage() {
           </section>
         </div>
       </div>
-      </main>
-    </PageTransition>
+    </main>
   )
 }
 
