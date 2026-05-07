@@ -208,20 +208,20 @@ export default function BestAIToolsForStudents() {
         })}</script>
       </Helmet>
 
-      <div className="min-h-screen bg-white text-slate-900 dark:bg-[#0a0f1e] dark:text-slate-200 font-serif">
+      <div className="font-serif">
 
         {/* Hero */}
         <div className="mx-auto max-w-[860px] px-6 pt-20 pb-12 text-center">
-          <div className="inline-block rounded-full border border-indigo-300 bg-indigo-50 px-4 py-1.5 text-[13px] uppercase tracking-widest text-indigo-600 mb-6 font-sans dark:border-indigo-500/30 dark:bg-indigo-500/10 dark:text-indigo-300">
+          <div className="inline-block rounded-full border border-accent bg-accent-soft px-4 py-1.5 text-[13px] uppercase tracking-widest text-accent-ink mb-6 font-sans">
             Updated April 2026 · 10 tools reviewed
           </div>
-          <h1 className="text-[clamp(2rem,5vw,3.2rem)] font-bold leading-[1.15] tracking-tight text-slate-900 dark:text-slate-100 mb-5">
+          <h1 className="text-[clamp(2rem,5vw,3.2rem)] font-bold leading-[1.15] tracking-tight text-ink mb-5">
             The 10 Best AI Tools for Students in 2026
           </h1>
-          <p className="text-[1.15rem] leading-[1.75] text-slate-600 dark:text-slate-400 max-w-[640px] mx-auto mb-8 font-sans">
+          <p className="text-[1.15rem] leading-[1.75] text-muted max-w-[640px] mx-auto mb-8 font-sans">
             There are thousands of AI tools. Most aren't worth your time. These 10 are — ranked by how much they actually help students with essays, research, coding, and staying organised.
           </p>
-          <div className="flex flex-wrap justify-center gap-3 font-sans text-[13px] text-slate-500 dark:text-slate-500">
+          <div className="flex flex-wrap justify-center gap-3 font-sans text-[13px] text-muted">
             {["✅ All have free tiers", "✅ Tested by students", "✅ No sponsored rankings"].map(t => (
               <span key={t}>{t}</span>
             ))}
@@ -230,14 +230,14 @@ export default function BestAIToolsForStudents() {
 
         {/* Quick nav */}
         <div className="mx-auto max-w-[860px] px-6 mb-12">
-          <div className="rounded-xl border border-slate-200 bg-slate-50 p-5 font-sans dark:border-white/10 dark:bg-white/[0.03]">
-            <p className="text-[12px] text-slate-400 mb-3 uppercase tracking-widest">Quick jump</p>
+          <div className="rounded-xl border border-line bg-bg-elev p-5 font-sans">
+            <p className="text-[12px] text-muted-2 mb-3 uppercase tracking-widest">Quick jump</p>
             <div className="flex flex-wrap gap-2">
               {tools.map(t => (
                 <a
                   key={t.slug}
                   href={`#${t.slug}`}
-                  className="text-[13px] text-slate-600 no-underline rounded-md bg-slate-100 px-3 py-1 transition-colors hover:bg-slate-200 hover:text-slate-900 dark:text-slate-400 dark:bg-white/5 dark:hover:text-slate-100"
+                  className="text-[13px] text-muted no-underline rounded-md bg-bg-sunk px-3 py-1 transition-colors hover:bg-bg hover:text-ink"
                 >
                   {t.rank}. {t.name}
                 </a>
@@ -252,39 +252,39 @@ export default function BestAIToolsForStudents() {
             <div
               key={tool.slug}
               id={tool.slug}
-              className="mb-10 rounded-xl border border-slate-200 bg-white p-7 scroll-mt-20 dark:border-white/[0.07] dark:bg-white/[0.02]"
+              className="mb-10 rounded-xl border border-line bg-bg-elev p-7 scroll-mt-20"
               style={{ borderLeft: `3px solid ${tool.color}` }}
             >
               {/* Header */}
               <div className="flex items-start gap-4 mb-4">
-                <div className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-xl bg-slate-100 text-[2rem] dark:bg-white/5">
+                <div className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-xl bg-bg-sunk text-[2rem]">
                   {tool.emoji}
                 </div>
                 <div className="flex-1">
                   <div className="flex flex-wrap items-center gap-2.5 mb-1">
                     <span className="font-sans text-[11px] font-bold uppercase tracking-widest" style={{ color: tool.color }}>#{tool.rank}</span>
-                    <h2 className="text-[1.3rem] font-bold tracking-tight text-slate-900 dark:text-slate-100 m-0">{tool.name}</h2>
-                    <span className="font-sans text-[12px] rounded-full bg-slate-100 px-3 py-0.5 text-slate-500 dark:bg-white/5 dark:text-slate-400">{tool.pricing}</span>
+                    <h2 className="text-[1.3rem] font-bold tracking-tight text-ink m-0">{tool.name}</h2>
+                    <span className="font-sans text-[12px] rounded-full bg-bg-sunk px-3 py-0.5 text-muted">{tool.pricing}</span>
                   </div>
-                  <p className="font-sans text-[14px] italic text-slate-500 dark:text-slate-400 m-0">{tool.tagline}</p>
+                  <p className="font-sans text-[14px] italic text-muted m-0">{tool.tagline}</p>
                 </div>
               </div>
 
               {/* Details grid */}
               <div className="grid grid-cols-2 gap-3 mb-4 font-sans text-[13px]">
-                <div className="rounded-lg bg-slate-50 p-3 dark:bg-white/[0.03]">
-                  <p className="text-[11px] uppercase tracking-widest text-slate-400 mb-1">Best for</p>
-                  <p className="text-slate-600 dark:text-slate-400 m-0 leading-[1.5]">{tool.bestFor}</p>
+                <div className="rounded-lg bg-bg-sunk p-3">
+                  <p className="text-[11px] uppercase tracking-widest text-muted-2 mb-1">Best for</p>
+                  <p className="text-muted m-0 leading-[1.5]">{tool.bestFor}</p>
                 </div>
-                <div className="rounded-lg bg-slate-50 p-3 dark:bg-white/[0.03]">
-                  <p className="text-[11px] uppercase tracking-widest text-slate-400 mb-1">Student win</p>
-                  <p className="text-slate-600 dark:text-slate-400 m-0 leading-[1.5]">{tool.studentWin}</p>
+                <div className="rounded-lg bg-bg-sunk p-3">
+                  <p className="text-[11px] uppercase tracking-widest text-muted-2 mb-1">Student win</p>
+                  <p className="text-muted m-0 leading-[1.5]">{tool.studentWin}</p>
                 </div>
               </div>
 
               {/* Verdict */}
-              <p className="font-sans text-[14px] leading-[1.7] text-slate-700 dark:text-slate-300 mb-5">
-                <strong className="text-slate-900 dark:text-slate-100">Our take: </strong>{tool.verdict}
+              <p className="font-sans text-[14px] leading-[1.7] text-ink-2 mb-5">
+                <strong className="text-ink">Our take: </strong>{tool.verdict}
               </p>
 
               {/* CTA */}
@@ -301,24 +301,24 @@ export default function BestAIToolsForStudents() {
 
         {/* Stack builder CTA */}
         <div className="mx-auto max-w-[860px] px-6 mt-16">
-          <div className="rounded-2xl border border-indigo-200 bg-indigo-50/50 p-10 dark:border-indigo-500/20 dark:bg-gradient-to-br dark:from-indigo-500/10 dark:to-purple-500/5">
-            <h2 className="text-[1.6rem] font-bold tracking-tight text-slate-900 dark:text-slate-100 mb-4">
+          <div className="rounded-2xl border border-accent bg-accent-soft p-10">
+            <h2 className="text-[1.6rem] font-bold tracking-tight text-ink mb-4">
               How to build your student AI stack
             </h2>
-            <p className="font-sans text-[15px] leading-[1.75] text-slate-600 dark:text-slate-400 mb-5">
+            <p className="font-sans text-[15px] leading-[1.75] text-muted mb-5">
               Don't try to use all 10 at once. Start with 3 tools that cover your most common tasks, then expand from there.
             </p>
             <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-4 font-sans mb-6">
               {stacks.map(s => (
-                <div key={s.label} className="rounded-lg bg-white p-4 shadow-sm dark:bg-white/5">
-                  <p className="text-[11px] text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-2 font-semibold">{s.label}</p>
-                  <p className="text-[13px] text-slate-700 dark:text-slate-300 m-0 leading-[1.6]">{s.tools}</p>
+                <div key={s.label} className="rounded-lg bg-bg-elev p-4 shadow-sm">
+                  <p className="text-[11px] text-accent-ink uppercase tracking-widest mb-2 font-semibold">{s.label}</p>
+                  <p className="text-[13px] text-ink-2 m-0 leading-[1.6]">{s.tools}</p>
                 </div>
               ))}
             </div>
             <Link
               to="/ai-tool-finder"
-              className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-6 py-3 font-sans text-[14px] font-semibold text-white no-underline transition hover:bg-indigo-500"
+              className="inline-flex items-center gap-2 rounded-lg bg-accent px-6 py-3 font-sans text-[14px] font-semibold text-bg no-underline transition hover:opacity-90"
             >
               Get your personalised stack →
             </Link>
@@ -327,14 +327,14 @@ export default function BestAIToolsForStudents() {
 
         {/* FAQ */}
         <div className="mx-auto max-w-[860px] px-6 mt-16">
-          <h2 className="text-[1.6rem] font-bold tracking-tight text-slate-900 dark:text-slate-100 mb-8">
+          <h2 className="text-[1.6rem] font-bold tracking-tight text-ink mb-8">
             Frequently asked questions
           </h2>
           <div className="flex flex-col gap-4">
             {faqs.map((faq, i) => (
-              <div key={i} className="rounded-xl border border-slate-200 bg-white p-6 dark:border-white/[0.07] dark:bg-white/[0.02]">
-                <h3 className="font-sans text-[15px] font-semibold text-slate-900 dark:text-slate-100 mb-2.5">{faq.q}</h3>
-                <p className="font-sans text-[14px] leading-[1.7] text-slate-600 dark:text-slate-400 m-0">{faq.a}</p>
+              <div key={i} className="rounded-xl border border-line bg-bg-elev p-6">
+                <h3 className="font-sans text-[15px] font-semibold text-ink mb-2.5">{faq.q}</h3>
+                <p className="font-sans text-[14px] leading-[1.7] text-muted m-0">{faq.a}</p>
               </div>
             ))}
           </div>
@@ -342,12 +342,12 @@ export default function BestAIToolsForStudents() {
 
         {/* Footer CTA */}
         <div className="mx-auto max-w-[860px] px-6 mt-16 mb-20 text-center font-sans">
-          <p className="text-[14px] text-slate-400 mb-2">Also read</p>
+          <p className="text-[14px] text-muted-2 mb-2">Also read</p>
           <div className="flex flex-wrap justify-center gap-6">
-            <Link to="/best-free-ai-tools" className="text-[14px] font-semibold text-indigo-600 no-underline hover:text-indigo-500 dark:text-indigo-400">
+            <Link to="/best-free-ai-tools" className="text-[14px] font-semibold text-accent no-underline hover:underline">
               Best free AI tools →
             </Link>
-            <Link to="/tools" className="text-[14px] font-semibold text-indigo-600 no-underline hover:text-indigo-500 dark:text-indigo-400">
+            <Link to="/tools" className="text-[14px] font-semibold text-accent no-underline hover:underline">
               Browse all 450+ tools →
             </Link>
           </div>
