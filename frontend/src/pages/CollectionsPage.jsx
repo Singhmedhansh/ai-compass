@@ -2,8 +2,6 @@ import { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { Link } from 'react-router-dom'
 
-import PageTransition from '../components/PageTransition'
-
 const COLLECTIONS = [
   {
     slug: 'best-free-tools',
@@ -84,16 +82,15 @@ function CollectionsPage() {
   }, [])
 
   return (
-    <PageTransition>
-      <main className="mx-auto w-full max-w-7xl bg-gray-50 px-4 py-8 dark:bg-gray-950 sm:px-6 lg:px-8">
+    <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <Helmet>
         <title>Browse AI Tool Collections | AI Compass</title>
         <meta name="description" content="Explore curated categories tailored to goals like coding, writing, research, and more." />
       </Helmet>
 
-      <section className="mb-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Browse AI Tool Collections</h1>
-        <p className="mt-2 text-gray-600 dark:text-gray-400">
+      <section className="mb-8 rounded-2xl border border-line bg-bg-elev p-6 shadow-sm">
+        <h1 className="text-3xl font-bold tracking-tight text-ink">Browse AI Tool Collections</h1>
+        <p className="mt-2 text-muted">
           Explore curated categories tailored to goals like coding, writing, research, and more.
         </p>
       </section>
@@ -103,29 +100,28 @@ function CollectionsPage() {
           <Link
             key={collection.slug}
             to={`/collections/${collection.slug}`}
-            className="group rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-indigo-300 hover:shadow-md dark:border-gray-700 dark:bg-gray-800 dark:hover:border-indigo-500"
+            className="group rounded-2xl border border-line bg-bg-elev p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-accent hover:shadow-md"
           >
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-3xl" aria-hidden="true">
                   {collection.emoji}
                 </p>
-                <h2 className="mt-3 text-xl font-semibold text-gray-900 dark:text-gray-100">{collection.title}</h2>
-                <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">{collection.description}</p>
+                <h2 className="mt-3 text-xl font-semibold text-ink">{collection.title}</h2>
+                <p className="mt-2 text-sm text-muted">{collection.description}</p>
               </div>
-              <span className="shrink-0 rounded-full bg-indigo-100 px-3 py-1 text-sm font-semibold text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300">
+              <span className="shrink-0 rounded-full bg-accent-soft px-3 py-1 text-sm font-semibold text-accent-ink">
                 {counts[collection.slug] ?? 0}
               </span>
             </div>
 
-            <p className="mt-5 text-sm font-semibold text-indigo-600 group-hover:text-indigo-500 dark:text-indigo-400">
+            <p className="mt-5 text-sm font-semibold text-accent-ink group-hover:text-accent">
               View Collection →
             </p>
           </Link>
         ))}
       </section>
-      </main>
-    </PageTransition>
+    </main>
   )
 }
 
