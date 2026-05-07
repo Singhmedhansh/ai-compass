@@ -25,6 +25,8 @@ export default {
         'accent-ink': 'var(--accent-ink)',
         'accent-soft': 'var(--accent-soft)',
         warn: 'var(--warn)',
+        danger: 'var(--danger)',
+        'danger-soft': 'var(--danger-soft)',
       },
       fontFamily: {
         sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
@@ -33,6 +35,12 @@ export default {
       borderRadius: {
         'token': 'var(--radius)',
         'token-lg': 'var(--radius-lg)',
+      },
+      boxShadow: {
+        'sm': 'var(--shadow-sm)',
+        'md': 'var(--shadow-md)',
+        'lg': 'var(--shadow-lg)',
+        '2xl': 'var(--shadow-2xl)',
       },
       animation: {
         'pulse-1.5': 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
