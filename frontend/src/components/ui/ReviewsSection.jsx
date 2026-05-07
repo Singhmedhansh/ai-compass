@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 
+import Button from './Button'
+
 export default function ReviewsSection({ slug, isLoggedIn }) {
   const [reviews, setReviews] = useState([])
   const [body, setBody] = useState('')
@@ -83,8 +85,8 @@ export default function ReviewsSection({ slug, isLoggedIn }) {
   }
 
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
-      <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Reviews</h2>
+    <div className="rounded-2xl border border-line bg-bg-elev p-6">
+      <h2 className="text-lg font-semibold text-ink">Reviews</h2>
 
       {isLoggedIn ? (
         <div className="mt-4 space-y-2">
@@ -94,40 +96,35 @@ export default function ReviewsSection({ slug, isLoggedIn }) {
             placeholder="Share your experience with this tool... (min 10 characters)"
             maxLength={1000}
             rows={4}
-            className="w-full rounded-lg border border-gray-300 bg-white p-3 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100"
+            className="w-full rounded-lg border border-line bg-bg-elev p-3 text-sm text-ink placeholder:text-muted-2 focus:border-accent focus:outline-none"
           />
           <div className="flex items-center justify-between">
-            <span className="text-xs text-gray-500 dark:text-gray-400">{body.length}/1000</span>
-            <button
-              type="button"
-              onClick={handleSubmit}
-              disabled={submitting}
-              className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
-            >
+            <span className="text-xs text-muted">{body.length}/1000</span>
+            <Button variant="primary" onClick={handleSubmit} disabled={submitting}>
               {submitting ? 'Posting...' : 'Post Review'}
-            </button>
+            </Button>
           </div>
-          {error ? <p className="text-xs text-red-600 dark:text-red-400">{error}</p> : null}
+          {error ? <p className="text-xs text-danger">{error}</p> : null}
         </div>
       ) : (
-        <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">
-          <a href="/login" className="text-indigo-600 hover:underline dark:text-indigo-300">Log in</a> to write a review
+        <p className="mt-4 text-sm text-muted">
+          <a href="/login" className="text-accent hover:underline">Log in</a> to write a review
         </p>
       )}
 
       {reviews.length === 0 ? (
-        <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">{message || 'No reviews yet. Be the first!'}</p>
+        <p className="mt-4 text-sm text-muted">{message || 'No reviews yet. Be the first!'}</p>
       ) : (
         <div className="mt-4 space-y-3">
           {reviews.map((review) => (
-            <article key={review.id} className="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900">
+            <article key={review.id} className="rounded-xl border border-line bg-bg-sunk p-4">
               <div className="flex items-center justify-between gap-2">
-                <strong className="text-sm text-gray-900 dark:text-white">{review.user || 'Anonymous'}</strong>
-                <span className="text-xs text-gray-500 dark:text-gray-400">
+                <strong className="text-sm text-ink">{review.user || 'Anonymous'}</strong>
+                <span className="text-xs text-muted">
                   {review.created_at ? new Date(review.created_at).toLocaleDateString() : ''}
                 </span>
               </div>
-              <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">{review.body}</p>
+              <p className="mt-2 text-sm text-ink-2">{review.body}</p>
             </article>
           ))}
         </div>
