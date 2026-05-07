@@ -1,4 +1,4 @@
-import { ChevronDown, LayoutDashboard, LogOut, Moon, Shield, Sparkles, Sun, UserCircle2 } from 'lucide-react'
+import { ChevronDown, LayoutDashboard, LogOut, Menu, Moon, Shield, Sparkles, Sun, UserCircle2, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
@@ -39,6 +39,7 @@ function Navbar() {
     }
   })
   const [scrolled, setScrolled] = useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const menuRef = useClickOutside(() => setIsProfileMenuOpen(false))
   const guidesMenuRef = useClickOutside(() => setIsGuidesMenuOpen(false))
   const isAdmin = Boolean(user && (user.is_admin || ADMIN_EMAILS.includes(user.email)))
@@ -82,6 +83,15 @@ function Navbar() {
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
+
+  useEffect(() => {
+    if (!isMobileMenuOpen) return
+    const handleEsc = (e) => {
+      if (e.key === 'Escape') setIsMobileMenuOpen(false)
+    }
+    window.addEventListener('keydown', handleEsc)
+    return () => window.removeEventListener('keydown', handleEsc)
+  }, [isMobileMenuOpen])
 
   useEffect(() => {
     const handleStorageChange = () => {
@@ -218,7 +228,7 @@ function Navbar() {
           />
         </div>
 
-        <div className="order-2 ml-auto flex items-center gap-2 sm:order-3">
+        <div className="order-2 ml-auto hidden items-center gap-2 sm:order-3 md:flex">
           <Link to="/collections">
             <Button variant="ghost" size="sm" className="text-ink-2">
               Collections
@@ -411,6 +421,138 @@ function Navbar() {
             </>
           )}
         </div>
+
+        <button
+          type="button"
+          onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+          className="ml-auto inline-flex h-10 w-10 items-center justify-center rounded-lg border border-line-strong bg-bg-elev text-ink-2 transition-colors hover:bg-bg-sunk focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent md:hidden"
+          aria-expanded={isMobileMenuOpen}
+          aria-controls="mobile-menu"
+          aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
+        >
+          {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        </button>
+      </div>
+
+      <div id="mobile-menu" className="border-t border-line bg-bg-elev md:hidden">
+        {isMobileMenuOpen && (
+          <nav className="flex flex-col px-4 py-3">
+            <Link
+              to="/collections"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
+            >
+              Collections
+            </Link>
+            <Link
+              to="/best-ai-tools-for-students"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
+            >
+              Best AI Tools for Students
+            </Link>
+            <Link
+              to="/best-free-ai-tools"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
+            >
+              Best Free AI Tools
+            </Link>
+            {isAdmin ? (
+              <Link
+                to="/admin"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="block rounded-lg px-3 py-2.5 text-sm font-medium text-muted hover:bg-bg-sunk"
+              >
+                Admin
+              </Link>
+            ) : null}
+
+            <div className="my-2 border-t border-line" />
+
+            <button
+              type="button"
+              onClick={toggleDarkMode}
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
+            >
+              {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              {isDark ? 'Light mode' : 'Dark mode'}
+            </button>
+
+            <div className="my-2 border-t border-line" />
+
+            {user && isAuthenticated ? (
+              <>
+                <div className="px-3 py-2">
+                  <p className="truncate text-sm font-semibold text-ink">{user?.name || 'User'}</p>
+                  <p className="truncate text-xs text-muted">{user?.email}</p>
+                </div>
+                <Link
+                  to="/dashboard"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
+                >
+                  <LayoutDashboard className="h-4 w-4" />
+                  My Dashboard
+                </Link>
+                <Link
+                  to="/profile"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
+                >
+                  <UserCircle2 className="h-4 w-4" />
+                  Profile &amp; Settings
+                </Link>
+                <Link
+                  to="/ai-tool-finder"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
+                >
+                  <Sparkles className="h-4 w-4" />
+                  My AI Stack
+                </Link>
+                {isAdmin ? (
+                  <Link
+                    to="/admin"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
+                  >
+                    <Shield className="h-4 w-4" />
+                    Admin Panel
+                  </Link>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleLogout()
+                    setIsMobileMenuOpen(false)
+                  }}
+                  className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold text-danger hover:bg-danger-soft"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/register"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink hover:bg-bg-sunk"
+                >
+                  Register
+                </Link>
+              </>
+            )}
+          </nav>
+        )}
       </div>
     </header>
   )
