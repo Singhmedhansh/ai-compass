@@ -9,9 +9,9 @@ import ToolLogo from './ToolLogo'
 const MotionButton = motion.div
 
 const pricingClasses = {
-  free: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300',
-  freemium: 'bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-300',
-  paid: 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300',
+  free: 'bg-accent-soft text-accent-ink',
+  freemium: 'bg-bg-sunk text-ink-2',
+  paid: 'bg-bg-sunk text-ink-2',
 }
 
 
@@ -40,7 +40,7 @@ function Card({ tool = {} }) {
     return (
       <Star
         key={`${name}-star-${index}`}
-        className={clsx('h-4 w-4', active ? 'fill-amber-400 text-amber-400' : 'text-gray-300 dark:text-gray-600')}
+        className={clsx('h-4 w-4', active ? 'fill-amber-400 text-amber-400' : 'text-line-strong')}
       />
     )
   })
@@ -48,10 +48,10 @@ function Card({ tool = {} }) {
   return (
     <MotionButton
       onClick={() => navigate(`/tools/${slug}`)}
-      whileHover={{ y: -4, boxShadow: '0 20px 40px rgba(99,102,241,0.15)' }}
+      whileHover={{ y: -4, boxShadow: 'var(--shadow-lg)' }}
       whileTap={{ scale: 0.98 }}
       transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-      className="group flex w-full flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-4 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-indigo-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 dark:border-gray-700 dark:bg-gray-800 dark:hover:border-indigo-500 dark:focus-visible:ring-offset-gray-950"
+      className="group flex w-full flex-col gap-4 rounded-2xl border border-line bg-bg-elev p-4 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-accent hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
     >
       <div className="flex items-start gap-3">
         <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden" aria-hidden="true">
@@ -59,9 +59,9 @@ function Card({ tool = {} }) {
         </div>
 
         <div className="min-w-0 flex-1">
-          <h3 className="truncate text-base font-semibold text-gray-900 dark:text-white">{name}</h3>
+          <h3 className="truncate text-base font-semibold text-ink">{name}</h3>
           <p
-            className="mt-1 overflow-hidden text-sm text-gray-600 dark:text-gray-400"
+            className="mt-1 overflow-hidden text-sm text-muted"
             style={{
               display: '-webkit-box',
               WebkitLineClamp: 2,
