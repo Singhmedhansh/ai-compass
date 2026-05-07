@@ -1,9 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { useSearchParams } from 'react-router-dom'
-import { AnimatedGrid, AnimatedItem } from '../components/AnimatedGrid'
-import PageTransition from '../components/PageTransition'
-import { Button, Card, SearchInput, SkeletonCard } from '../components/ui'
+import { Button, Card, SearchInput } from '../components/ui'
 
 const CATEGORY_OPTIONS = ['All', 'Coding', 'Writing', 'Research', 'Productivity', 'Image Gen', 'Video Gen']
 const SORT_OPTIONS = ['Trending', 'Newest', 'Top Rated', 'Free First']
@@ -236,23 +234,22 @@ function DirectoryPage() {
   }
 
   return (
-    <PageTransition>
-      <main
-        className="container main-content mx-auto w-full max-w-7xl bg-gray-50 px-4 py-8 dark:bg-gray-950 sm:px-6 lg:px-8"
-        style={{ maxWidth: 1200, margin: '0 auto', padding: '0 12px' }}
-      >
+    <main
+      className="container main-content mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8"
+      style={{ maxWidth: 1200, margin: '0 auto', padding: '0 12px' }}
+    >
       <Helmet>
         <title>AI Tools Directory | AI Compass</title>
         <meta name="description" content="Discover the best AI tools organized by category, rating, and logic." />
       </Helmet>
       <section className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">AI Tools Directory</h1>
-        <span className="inline-flex items-center rounded-full border border-gray-200 bg-white px-3 py-1 text-sm font-semibold text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
+        <h1 className="text-3xl font-bold tracking-tight text-ink">AI Tools Directory</h1>
+        <span className="inline-flex items-center rounded-full border border-line bg-bg-elev px-3 py-1 text-sm font-semibold text-ink-2">
           {isLoading ? 'Loading...' : `${filteredTools.length} tools`}
         </span>
         {/* Mobile Filters Button */}
         <button
-          className="md:hidden ml-auto rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+          className="md:hidden ml-auto rounded-lg border border-line bg-bg-elev px-4 py-2 text-sm font-semibold text-ink-2 shadow-sm"
           onClick={() => setShowMobileFilters(true)}
         >
           Filters
@@ -263,15 +260,15 @@ function DirectoryPage() {
       {showMobileFilters && (
         <div className="fixed inset-0 z-50 flex items-end md:hidden">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowMobileFilters(false)} />
-          <div className="relative w-full rounded-t-2xl bg-white dark:bg-gray-900 p-6 shadow-2xl animate-slide-up">
+          <div className="relative w-full rounded-t-2xl bg-bg-elev p-6 shadow-2xl animate-slide-up">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold">Filters</h2>
-              <button className="text-2xl" onClick={() => setShowMobileFilters(false)}>&times;</button>
+              <h2 className="text-lg font-bold text-ink">Filters</h2>
+              <button className="text-2xl text-muted hover:text-ink" onClick={() => setShowMobileFilters(false)}>&times;</button>
             </div>
             <div className="mb-4">
-              <label className="block text-xs font-semibold mb-1">Category</label>
+              <label className="block text-xs font-semibold mb-1 text-ink-2">Category</label>
               <select
-                className="w-full rounded-lg border border-gray-300 p-2 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
+                className="w-full rounded-lg border border-line bg-bg-elev p-2 text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent"
                 value={category}
                 onChange={e => handleCategoryChange(e.target.value)}
               >
@@ -279,9 +276,9 @@ function DirectoryPage() {
               </select>
             </div>
             <div className="mb-4">
-              <label className="block text-xs font-semibold mb-1">Sort By</label>
+              <label className="block text-xs font-semibold mb-1 text-ink-2">Sort By</label>
               <select
-                className="w-full rounded-lg border border-gray-300 p-2 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
+                className="w-full rounded-lg border border-line bg-bg-elev p-2 text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent"
                 value={sortBy}
                 onChange={e => setSortBy(e.target.value)}
               >
@@ -289,14 +286,14 @@ function DirectoryPage() {
               </select>
             </div>
             <div className="flex gap-2">
-              <button className="flex-1 rounded-lg bg-indigo-600 text-white py-2 font-semibold" onClick={() => setShowMobileFilters(false)}>Apply</button>
-              <button className="flex-1 rounded-lg bg-gray-200 text-gray-700 py-2 font-semibold dark:bg-gray-700 dark:text-gray-200" onClick={handleReset}>Reset</button>
+              <Button variant="primary" className="flex-1 font-semibold" onClick={() => setShowMobileFilters(false)}>Apply</Button>
+              <Button variant="secondary" className="flex-1 font-semibold" onClick={handleReset}>Reset</Button>
             </div>
           </div>
         </div>
       )}
 
-      <section className="sticky top-16 z-20 mb-6 rounded-2xl border border-gray-200 bg-white/95 p-4 shadow-sm backdrop-blur dark:border-gray-700 dark:bg-gray-800/95 hidden md:block">
+      <section className="sticky top-16 z-20 mb-6 rounded-2xl border border-line bg-bg-elev/95 p-4 shadow-sm backdrop-blur hidden md:block">
         <div className="filters-row flex gap-2 overflow-x-auto pb-1">
           {CATEGORY_OPTIONS.map((option) => {
             const active = option === category
@@ -306,10 +303,10 @@ function DirectoryPage() {
                 key={option}
                 type="button"
                 onClick={() => handleCategoryChange(option)}
-                className={`rounded-full px-3 py-1.5 text-sm font-semibold transition ${
+                className={`rounded-full border px-3 py-1.5 text-sm font-semibold transition ${
                   active
-                    ? 'bg-indigo-600 text-white'
-                    : 'bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800'
+                    ? 'border-accent bg-accent-soft text-accent-ink'
+                    : 'border-transparent bg-bg-sunk text-ink-2 hover:bg-bg-elev'
                 }`}
               >
                 {option}
@@ -322,7 +319,7 @@ function DirectoryPage() {
           <select
             value={sortBy}
             onChange={(event) => setSortBy(event.target.value)}
-            className="h-10 rounded-xl border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100"
+            className="h-10 rounded-xl border border-line bg-bg-elev px-3 text-sm text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent"
             aria-label="Sort tools"
           >
             {SORT_OPTIONS.map((option) => (
@@ -342,26 +339,24 @@ function DirectoryPage() {
         </div>
       </section>
 
-      {isLoading && <p>Loading tools...</p>}
-      {error && <p style={{color:'var(--text-muted)'}}>{error}</p>}
+      {isLoading && <p className="text-muted">Loading tools...</p>}
+      {error && <p className="text-danger">{error}</p>}
 
       {!isLoading && !error && filteredTools.length > 0 ? (
-        <AnimatedGrid className="tools-grid grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="tools-grid grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {filteredTools.map((tool) => (
-            <AnimatedItem key={tool.slug || tool.name}>
-              <Card tool={tool} />
-            </AnimatedItem>
+            <Card key={tool.slug || tool.name} tool={tool} />
           ))}
-        </AnimatedGrid>
+        </div>
       ) : null}
 
       {!isLoading && !error && filteredTools.length === 0 && (
-        <section className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-6 py-14 text-center dark:border-gray-700 dark:bg-gray-900">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-gray-200 bg-white text-3xl shadow-sm dark:border-gray-700 dark:bg-gray-800" aria-hidden="true">
+        <section className="rounded-2xl border border-dashed border-line-strong bg-bg-sunk px-6 py-14 text-center">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-line bg-bg-elev text-3xl shadow-sm" aria-hidden="true">
             🔎
           </div>
-          <h2 className="mt-5 text-xl font-semibold text-gray-900 dark:text-gray-100">No tools found for this filter</h2>
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
+          <h2 className="mt-5 text-xl font-semibold text-ink">No tools found for this filter</h2>
+          <p className="mt-2 text-sm text-muted">
             Try a broader category, clear the search term, or reset all filters.
           </p>
           <div className="mt-6">
@@ -371,8 +366,7 @@ function DirectoryPage() {
           </div>
         </section>
       )}
-      </main>
-    </PageTransition>
+    </main>
   )
 }
 
