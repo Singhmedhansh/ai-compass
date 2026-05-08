@@ -126,7 +126,7 @@ def create_app(config: dict | None = None) -> Flask:
     app.config["GOOGLE_CLIENT_SECRET"] = os.getenv("GOOGLE_CLIENT_SECRET", "")
     app.config["GOOGLE_REDIRECT_URI"] = os.getenv("GOOGLE_REDIRECT_URI", "http://localhost:5000/auth/google/callback")
     app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
-    app.config["SESSION_COOKIE_SECURE"] = True
+    app.config["SESSION_COOKIE_SECURE"] = is_production
     app.config["SESSION_COOKIE_HTTPONLY"] = True
     app.config["REMEMBER_COOKIE_SECURE"] = True
     app.config["SESSION_COOKIE_DOMAIN"] = None
@@ -225,17 +225,22 @@ def create_app(config: dict | None = None) -> Flask:
 
     @app.after_request
     def add_cors(response):
-        allowed_origins = [
-            'http://localhost:5173',
-            'http://localhost:5174',
+        origin = request.headers.get('Origin', '')
+
+        allowed_production_origins = [
             'https://ai-compass.in',
             'https://www.ai-compass.in',
             'https://ai-compass.onrender.com',
             'https://ai-compass-1.onrender.com',
             os.getenv('FRONTEND_URL', ''),
         ]
-        origin = request.headers.get('Origin', '')
-        if any(origin == o for o in allowed_origins if o):
+
+        is_allowed = (
+            any(origin == o for o in allowed_production_origins if o)
+            or (not is_production and origin.startswith('http://localhost:'))
+        )
+
+        if is_allowed:
             response.headers['Access-Control-Allow-Origin'] = origin
             response.headers['Access-Control-Allow-Credentials'] = 'true'
             response.headers['Access-Control-Allow-Methods'] = 'GET,POST,PUT,DELETE,OPTIONS'

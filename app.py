@@ -6,8 +6,8 @@ app = create_app()
 
 if __name__ == '__main__':
     try:
-        port = int(os.environ.get("PORT", 8080))
+        port = int(os.environ.get("PORT", 5000))
     except (TypeError, ValueError):
-        port = 8080
+        port = 5000
     debug = os.getenv("FLASK_DEBUG", "false").lower() == "true"
     app.run(host="0.0.0.0", port=port, debug=debug)
