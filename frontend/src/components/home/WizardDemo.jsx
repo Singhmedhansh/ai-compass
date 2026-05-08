@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom'
+
 export default function WizardDemo() {
   return (
     <section id="wizard" className="py-12 md:py-20">
@@ -202,10 +204,12 @@ export default function WizardDemo() {
 
               <div className="mt-2.5 flex flex-wrap gap-3 text-[13px] text-muted">
                 <span>+ 2 more in the full result</span>
-                {/* TODO Saturday: wire to /wizard once final answer is selected */}
-                <a href="#" className="text-accent-ink no-underline hover:underline">
+                <Link
+                  to="/ai-tool-finder"
+                  className="inline-flex h-10 items-center gap-2 rounded-lg bg-accent px-4 text-sm font-semibold text-bg transition-opacity hover:opacity-90"
+                >
                   Run with my own answers →
-                </a>
+                </Link>
               </div>
             </div>
           </div>
