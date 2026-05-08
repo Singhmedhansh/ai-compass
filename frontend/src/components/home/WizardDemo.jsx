@@ -8,7 +8,7 @@ export default function WizardDemo() {
         </div>
 
         <h2 className="mb-4 max-w-[28ch] text-balance text-[28px] font-semibold leading-[1.15] tracking-tight text-ink md:max-w-[20ch] md:text-[40px]">
-          Four questions. Five tools. One reason for each.
+          Five questions. Five tools. One reason for each.
         </h2>
 
         <p className="mb-8 max-w-[52ch] text-pretty text-base text-muted md:text-[17px]">
@@ -35,7 +35,7 @@ export default function WizardDemo() {
             </div>
             {/* TODO Saturday: progress driven by wizard step state */}
             <div className="text-xs text-muted">
-              step <b className="text-accent">3</b> / 4
+              step <b className="text-accent">3</b> / 5
             </div>
           </div>
 
@@ -54,7 +54,7 @@ export default function WizardDemo() {
                           <path d="M3.5 7.2 6 9.5l4.5-5" />
                         </svg>
                       </span>
-                      Learning to code
+                      Coding
                     </span>
                   </div>
                 </div>
@@ -65,14 +65,14 @@ export default function WizardDemo() {
                 <div className="flex items-center justify-between gap-3">
                   <span className="w-[22px] flex-shrink-0 text-xs font-medium text-muted-2">02</span>
                   <div className="flex flex-1 flex-col">
-                    <span className="mb-1 text-[13px] text-muted">Level</span>
+                    <span className="mb-1 text-[13px] text-muted">Specifics</span>
                     <span className="inline-flex items-center gap-1.5 text-[15px] font-medium text-ink">
                       <span aria-hidden="true" className="grid h-3.5 w-3.5 flex-shrink-0 place-items-center rounded-full bg-accent">
                         <svg viewBox="0 0 14 14" className="h-2.5 w-2.5" fill="none" stroke="white" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M3.5 7.2 6 9.5l4.5-5" />
                         </svg>
                       </span>
-                      CS undergraduate, year 2
+                      Build a web app
                     </span>
                   </div>
                 </div>
@@ -83,32 +83,42 @@ export default function WizardDemo() {
                 <div className="flex items-center justify-between gap-3">
                   <span className="w-[22px] flex-shrink-0 text-xs font-medium text-muted-2">03</span>
                   <div className="flex flex-1 flex-col">
-                    <span className="mb-1 text-[13px] text-muted">Budget per month</span>
+                    <span className="mb-1 text-[13px] text-muted">Budget</span>
                     <span className="inline-flex items-center gap-1.5 text-[15px] font-medium text-accent-ink">
                       <span
                         aria-hidden="true"
                         className="h-3.5 w-3.5 flex-shrink-0 rounded-full border-2 border-accent"
                         style={{ boxShadow: '0 0 0 3px color-mix(in oklab, var(--accent) 20%, transparent)' }}
                       />
-                      Free tier only
+                      Free only
                     </span>
                   </div>
                 </div>
                 {/* TODO Saturday: option chips become real buttons; current step renders sel state on first chip */}
                 <div className="mt-3 ml-[22px] flex flex-wrap gap-1.5">
                   <span className="rounded-full border border-accent bg-accent px-2.5 py-1.5 text-xs text-white">Free only</span>
-                  <span className="rounded-full border border-line bg-bg px-2.5 py-1.5 text-xs text-muted">Up to ₹500</span>
-                  <span className="rounded-full border border-line bg-bg px-2.5 py-1.5 text-xs text-muted">Up to ₹1,500</span>
-                  <span className="rounded-full border border-line bg-bg px-2.5 py-1.5 text-xs text-muted">No limit</span>
+                  <span className="rounded-full border border-line bg-bg px-2.5 py-1.5 text-xs text-muted">Freemium</span>
+                  <span className="rounded-full border border-line bg-bg px-2.5 py-1.5 text-xs text-muted">Any budget</span>
                 </div>
               </div>
 
               {/* Q4 — pending */}
-              <div className="py-3.5">
+              <div className="border-b border-dashed border-line py-3.5">
                 <div className="flex items-center justify-between gap-3">
                   <span className="w-[22px] flex-shrink-0 text-xs font-medium text-muted-2">04</span>
                   <div className="flex flex-1 flex-col">
                     <span className="mb-1 text-[13px] text-muted">Platform</span>
+                    <span className="text-[15px] font-medium text-muted-2">— pending —</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Q5 — pending */}
+              <div className="py-3.5">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="w-[22px] flex-shrink-0 text-xs font-medium text-muted-2">05</span>
+                  <div className="flex flex-1 flex-col">
+                    <span className="mb-1 text-[13px] text-muted">Level</span>
                     <span className="text-[15px] font-medium text-muted-2">— pending —</span>
                   </div>
                 </div>
@@ -124,9 +134,9 @@ export default function WizardDemo() {
               </div>
 
               <p className="mb-[18px] rounded-lg border border-dashed border-line-strong bg-bg-elev px-3 py-2.5 text-[13px] text-ink-2">
-                For <b className="font-medium text-ink">a CS undergraduate, year 2</b> who wants to{' '}
-                <b className="font-medium text-ink">learn to code</b>, on{' '}
-                <b className="font-medium text-ink">a free tier</b>:
+                For a <b className="font-medium text-ink">coder</b> who wants to{' '}
+                <b className="font-medium text-ink">build a web app</b>,{' '}
+                <b className="font-medium text-ink">on free tier</b>:
               </p>
 
               {/* Tool 1 — ChatGPT */}
@@ -164,7 +174,7 @@ export default function WizardDemo() {
                   </div>
                   <div className="mt-1 text-[13px] leading-[1.45] text-muted">
                     <span className="mr-1.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-accent-ink">why</span>
-                    Reads longer code files than ChatGPT free. Better at refactoring assignments without rewriting your style.
+                    Reads longer code files than ChatGPT free. Better at refactoring without rewriting your style.
                   </div>
                 </div>
                 <span className="text-xs font-medium text-muted-2">#2</span>

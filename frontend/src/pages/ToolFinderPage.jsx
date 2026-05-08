@@ -22,40 +22,102 @@ function getAspectBucket() {
   return 'landscape'
 }
 
-const TOTAL_STEPS = 5
-
 const GOAL_OPTIONS = [
-  { id: 'learning', emoji: '🎓', label: 'Learning', description: 'Courses, tutorials, exam prep' },
-  { id: 'coding', emoji: '💻', label: 'Coding', description: 'Build apps, debug, learn to code' },
-  { id: 'writing', emoji: '✍️', label: 'Writing', description: 'Essays, emails, creative writing' },
-  { id: 'research', emoji: '🔬', label: 'Research', description: 'Find papers, summarize, analyze' },
-  { id: 'creating', emoji: '🎨', label: 'Creating', description: 'Images, videos, design' },
-  { id: 'productivity', emoji: '⚡', label: 'Productivity', description: 'Organize, automate, focus' },
+  { id: 'learning', label: 'Learning' },
+  { id: 'coding', label: 'Coding' },
+  { id: 'writing', label: 'Writing' },
+  { id: 'research', label: 'Research' },
+  { id: 'creating', label: 'Creating' },
+  { id: 'productivity', label: 'Productivity' },
 ]
 
 const BUDGET_OPTIONS = [
-  { id: 'free', emoji: '🆓', label: 'Free only', description: 'Student-friendly, zero cost' },
-  { id: 'freemium', emoji: '🔓', label: 'Freemium', description: 'Free tier + paid upgrades' },
-  { id: 'any', emoji: '💳', label: 'Any budget', description: 'Best tool regardless of price' },
+  { id: 'free', label: 'Free only' },
+  { id: 'freemium', label: 'Freemium' },
+  { id: 'any', label: 'Any budget' },
 ]
 
 const PLATFORM_OPTIONS = [
-  { id: 'web', emoji: '🌐', label: 'Web browser', description: 'Use directly in the browser' },
-  { id: 'desktop', emoji: '💻', label: 'Desktop app', description: 'Install and run on your computer' },
-  { id: 'mobile', emoji: '📱', label: 'Mobile', description: 'Work from iOS or Android' },
-  { id: 'api', emoji: '🔌', label: 'API / Code', description: 'Automate in scripts and apps' },
+  { id: 'web', label: 'Web browser' },
+  { id: 'desktop', label: 'Desktop app' },
+  { id: 'mobile', label: 'Mobile' },
+  { id: 'api', label: 'API / Code' },
 ]
 
 const LEVEL_OPTIONS = [
-  { id: 'beginner', emoji: '🌱', label: 'Beginner', description: 'Just getting started' },
-  { id: 'intermediate', emoji: '🚀', label: 'Intermediate', description: 'Comfortable with tech' },
-  { id: 'advanced', emoji: '⚡', label: 'Advanced', description: 'Power user, developer' },
+  { id: 'beginner', label: 'Beginner' },
+  { id: 'intermediate', label: 'Intermediate' },
+  { id: 'advanced', label: 'Advanced' },
+]
+
+const QUESTIONS = [
+  {
+    id: 'goal',
+    label: 'Use case',
+    activeHeading: "What's your primary goal?",
+    activeHelper: 'Pick the closest match — you can change this anytime.',
+    options: GOAL_OPTIONS,
+    type: 'chips',
+  },
+  {
+    id: 'use_case',
+    label: 'Specifics',
+    activeHeading: 'What specifically do you want to do?',
+    activeHelper: 'Be specific — "write essays" beats "writing".',
+    type: 'text',
+  },
+  {
+    id: 'budget',
+    label: 'Budget',
+    activeHeading: "What's your budget?",
+    activeHelper: 'Free is fine — we rank by fit, not price.',
+    options: BUDGET_OPTIONS,
+    type: 'chips',
+  },
+  {
+    id: 'platform',
+    label: 'Platform',
+    activeHeading: 'Where do you work?',
+    activeHelper: 'Pick the surface you spend most time on.',
+    options: PLATFORM_OPTIONS,
+    type: 'chips',
+  },
+  {
+    id: 'level',
+    label: 'Level',
+    activeHeading: 'How comfortable are you with tech?',
+    activeHelper: 'No wrong answer — this just calibrates the rec list.',
+    options: LEVEL_OPTIONS,
+    type: 'chips',
+  },
 ]
 
 const PRICING_PILL_CLASS = {
   free: 'bg-accent-soft text-accent-ink',
   freemium: 'bg-bg-sunk text-ink-2 ring-1 ring-inset ring-line',
   paid: 'bg-bg-sunk text-ink-2 ring-1 ring-inset ring-line',
+}
+
+const GOAL_NOUN = {
+  coding: 'coder',
+  writing: 'writer',
+  research: 'researcher',
+  learning: 'learner',
+  creating: 'creator',
+  productivity: 'productivity-focused user',
+}
+
+const BUDGET_CLAUSE = {
+  free: 'on free tier',
+  freemium: 'on freemium pricing',
+  any: 'with any budget',
+}
+
+const PLATFORM_CLAUSE = {
+  web: 'working from a web browser',
+  desktop: 'working from a desktop app',
+  mobile: 'working from mobile',
+  api: 'working through API or code',
 }
 
 function normalizeTool(rawTool) {
@@ -88,75 +150,259 @@ function getToolUrl(tool = {}) {
   return tool.website_url || tool.url || tool.link || '#'
 }
 
-function StepCard({ option, selected, onClick, compact = false }) {
+function buildPersona(answers) {
+  const { goal, use_case, budget, platform, level } = answers
+  if (!goal && !use_case && !budget && !platform && !level) {
+    return null
+  }
+
+  const goalNoun = GOAL_NOUN[goal]
+  const budgetClause = BUDGET_CLAUSE[budget]
+  const platformClause = PLATFORM_CLAUSE[platform]
+
+  let lead
+  if (level && goalNoun) {
+    lead = `For a ${level} ${goalNoun}`
+  } else if (goalNoun) {
+    lead = `For a ${goalNoun}`
+  } else if (level) {
+    lead = `For a ${level} user`
+  } else {
+    lead = 'Looking for tools'
+  }
+
+  const clauses = []
+  if (use_case && use_case.trim()) clauses.push(`who wants to ${use_case.trim()}`)
+  if (budgetClause) clauses.push(budgetClause)
+  if (platformClause) clauses.push(platformClause)
+
+  return clauses.length > 0 ? `${lead} ${clauses.join(', ')}:` : `${lead}:`
+}
+
+function QuestionRow({ index, question, answer, isActive, onActivate, onSelect, onTextChange, onCollapse }) {
+  const indexLabel = String(index).padStart(2, '0')
+  const isAnswered = Boolean(answer)
+
+  const answerLabel = (() => {
+    if (!isAnswered) return '— pending —'
+    if (question.type === 'text') return answer
+    const opt = question.options?.find((o) => o.id === answer)
+    return opt?.label || answer
+  })()
+
+  const wrapperClasses = isActive
+    ? 'rounded-2xl border border-accent bg-bg-elev shadow-sm ring-2 ring-accent/20 transition-shadow'
+    : 'rounded-2xl border border-line bg-bg-elev transition-colors hover:border-line-strong'
+
+  const header = (
+    <div className="flex items-start gap-3 p-4">
+      <span
+        className={`mt-1 w-7 flex-shrink-0 font-mono text-xs tracking-wider ${
+          isActive ? 'text-accent' : 'text-muted-2'
+        }`}
+      >
+        {indexLabel}
+      </span>
+
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <span className="text-xs font-medium uppercase tracking-wide text-muted">{question.label}</span>
+        {isActive ? (
+          <span className="text-base font-semibold text-ink">{question.activeHeading}</span>
+        ) : isAnswered ? (
+          <span className="text-base font-medium text-ink">{answerLabel}</span>
+        ) : (
+          <span className="text-sm text-muted-2">— pending —</span>
+        )}
+      </div>
+
+      <div className="mt-1 flex-shrink-0">
+        {isActive ? (
+          <span aria-hidden="true" className="inline-block h-4 w-4 rounded-full border-2 border-accent" />
+        ) : isAnswered ? (
+          <span aria-hidden="true" className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-accent text-bg">
+            <Check className="h-3 w-3" />
+          </span>
+        ) : (
+          <span aria-hidden="true" className="inline-block h-4 w-4 rounded-full border border-line-strong" />
+        )}
+      </div>
+    </div>
+  )
+
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`relative rounded-2xl border p-5 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
-        selected
-          ? 'border-accent bg-accent-soft text-accent-ink shadow-sm'
-          : 'border-line bg-bg-elev text-ink hover:border-accent hover:bg-bg-sunk'
-      } ${compact ? 'min-h-[120px]' : 'min-h-[156px]'}`}
-    >
-      <div className="text-3xl" aria-hidden="true">{option.emoji}</div>
-      <h3 className={`mt-3 text-lg font-semibold ${selected ? 'text-accent-ink' : 'text-ink'}`}>{option.label}</h3>
-      <p className={`mt-2 text-sm ${selected ? 'text-accent-ink' : 'text-muted'}`}>{option.description}</p>
-      {selected ? (
-        <div className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full bg-accent text-bg">
-          <Check className="h-4 w-4" />
-        </div>
-      ) : null}
-    </button>
+    <div className={wrapperClasses}>
+      {isActive ? (
+        <>
+          {header}
+          <div className="px-4 pb-4 pl-12">
+            {question.type === 'text' ? (
+              <div className="flex flex-col gap-3">
+                <p className="text-sm text-muted">{question.activeHelper}</p>
+                <input
+                  type="text"
+                  className="w-full rounded-lg border border-line bg-bg-elev px-3 py-2 text-ink placeholder:text-muted-2 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+                  placeholder='e.g. write essays, build a web app, edit YouTube videos…'
+                  value={answer || ''}
+                  onChange={(e) => onTextChange(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      onCollapse()
+                    }
+                  }}
+                  maxLength={120}
+                  style={{ fontSize: 16 }}
+                  autoFocus
+                />
+                <div className="flex justify-end">
+                  <Button variant="primary" size="sm" onClick={onCollapse}>
+                    Use this
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-3">
+                <p className="text-sm text-muted">{question.activeHelper}</p>
+                <div className="flex flex-wrap gap-2">
+                  {question.options.map((opt) => {
+                    const selected = answer === opt.id
+                    return (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => onSelect(opt.id)}
+                        className={`rounded-full border px-3 py-1.5 text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+                          selected
+                            ? 'border-accent bg-accent-soft text-accent-ink'
+                            : 'border-line bg-bg-elev text-ink hover:border-accent'
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        </>
+      ) : (
+        <button
+          type="button"
+          onClick={onActivate}
+          className="block w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg rounded-2xl"
+        >
+          {header}
+        </button>
+      )}
+    </div>
   )
 }
 
-function ProgressDots({ step }) {
-  const fillPercent = `${Math.max(0, Math.min(100, ((step - 1) / (TOTAL_STEPS - 1)) * 100))}%`
+function PreviewCard({ tool, rank }) {
+  const tierBits = [tool.pricing, tool.platformLabel].filter(Boolean).join(' · ')
 
   return (
-    <div className="mb-8">
-      <div className="relative mx-auto flex w-full max-w-xl items-center justify-between">
-        <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 px-5">
-          <div className="h-1 rounded-full bg-line">
-            <div
-              className="h-1 rounded-full bg-accent transition-[width] duration-300 ease-out"
-              style={{ width: fillPercent }}
-            />
+    <div className="relative grid grid-cols-[36px_1fr_auto] items-start gap-3 rounded-xl border border-line bg-bg-elev p-3">
+      <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg bg-bg-sunk" aria-hidden="true">
+        <ToolLogo tool={tool} size={32} />
+      </div>
+      <div className="min-w-0">
+        <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 text-sm">
+          <span className="truncate font-semibold text-ink">{tool.name}</span>
+          {tierBits ? <span className="truncate text-xs font-normal text-muted">{tierBits}</span> : null}
+        </div>
+        <p className="mt-1 text-sm italic leading-snug text-muted">
+          <span className="mr-1.5 not-italic text-[11px] font-semibold uppercase tracking-wide text-accent-ink">why</span>
+          {tool.reason}
+        </p>
+      </div>
+      <span className="font-mono text-xs text-muted-2">#{rank}</span>
+    </div>
+  )
+}
+
+function SkeletonRows() {
+  return (
+    <div className="flex flex-col gap-3" aria-hidden="true">
+      {[1, 2, 3].map((i) => (
+        <div key={i} className="flex animate-pulse items-start gap-3 rounded-xl border border-line bg-bg-elev p-3">
+          <div className="h-9 w-9 flex-shrink-0 rounded-lg bg-bg-sunk" />
+          <div className="flex flex-1 flex-col gap-2">
+            <div className="h-3 w-2/3 rounded bg-bg-sunk" />
+            <div className="h-2 w-full rounded bg-bg-sunk" />
+            <div className="h-2 w-4/5 rounded bg-bg-sunk" />
           </div>
         </div>
-
-        {Array.from({ length: TOTAL_STEPS }, (_, index) => {
-          const dot = index + 1
-          const isCompleted = dot < step
-          const isCurrent = dot === step
-
-          return (
-            <div key={`step-dot-${dot}`} className="z-10 flex flex-col items-center gap-2">
-              {isCompleted ? (
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent text-bg">
-                  <Check className="h-5 w-5" />
-                </div>
-              ) : isCurrent ? (
-                <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-accent bg-bg text-accent-ink">
-                  <span className="text-sm font-semibold">{dot}</span>
-                </div>
-              ) : (
-                <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-line-strong bg-bg-elev text-muted">
-                  <span className="text-sm font-semibold">{dot}</span>
-                </div>
-              )}
-            </div>
-          )
-        })}
-      </div>
+      ))}
     </div>
+  )
+}
+
+function LivePreview({ answers, results, loading, error, canSeeResults, onSeeResults }) {
+  const persona = buildPersona(answers)
+  const top3 = results.slice(0, 3)
+  const remaining = Math.max(0, results.length - 3)
+  const hasResults = top3.length > 0
+
+  return (
+    <aside className="self-start rounded-2xl border border-line bg-bg-elev p-5 sm:p-6 lg:sticky lg:top-24">
+      <div className="mb-4 flex items-baseline justify-between gap-2">
+        <span className="text-xs font-semibold uppercase tracking-wide text-muted">Live preview</span>
+        {hasResults ? (
+          <span className="text-xs text-muted">{top3.length} of {results.length} shown</span>
+        ) : null}
+      </div>
+
+      {persona ? (
+        <p className="mb-5 rounded-lg border border-dashed border-line-strong bg-bg-sunk px-3 py-2.5 text-sm leading-relaxed text-ink-2">
+          {persona}
+        </p>
+      ) : (
+        <p className="mb-5 text-sm text-muted">Pick a few answers and we&apos;ll show your top picks here.</p>
+      )}
+
+      {error ? (
+        <p className="rounded-lg border border-danger bg-danger-soft px-3 py-2 text-sm text-danger">
+          Couldn&apos;t fetch preview. Try again in a moment.
+        </p>
+      ) : loading && !hasResults ? (
+        <SkeletonRows />
+      ) : hasResults ? (
+        <div className="flex flex-col gap-3">
+          {top3.map((tool, index) => (
+            <PreviewCard key={tool.slug || tool.name || index} tool={tool} rank={index + 1} />
+          ))}
+        </div>
+      ) : persona ? (
+        <p className="text-sm text-muted">No matches yet — try widening your answers.</p>
+      ) : null}
+
+      {hasResults ? (
+        <div className="mt-4 flex flex-col gap-2">
+          {remaining > 0 ? (
+            <span className="text-xs text-muted">+ {remaining} more in the full result</span>
+          ) : null}
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={onSeeResults}
+            disabled={!canSeeResults}
+            className="w-full"
+            title={canSeeResults ? undefined : 'Pick a goal and your level first'}
+          >
+            See full results →
+          </Button>
+        </div>
+      ) : null}
+    </aside>
   )
 }
 
 function ToolFinderPage() {
   const navigate = useNavigate()
-  const [step, setStep] = useState(1)
+  const [activeQuestion, setActiveQuestion] = useState('goal')
+  const [viewMode, setViewMode] = useState('wizard')
   const [answers, setAnswers] = useState({ goal: '', use_case: '', budget: '', platform: '', level: '' })
   const [results, setResults] = useState([])
   const [loadingResults, setLoadingResults] = useState(false)
@@ -182,76 +428,64 @@ function ToolFinderPage() {
   }
   const isLoggedIn = Boolean(user)
 
-  const canContinue =
-    (step === 1 && Boolean(answers.goal)) ||
-    step === 1.5 || // use_case can be skipped
-    (step === 2 && Boolean(answers.budget)) ||
-    (step === 3 && Boolean(answers.platform)) ||
-    (step === 4 && Boolean(answers.level))
+  // Debounced live-preview fetch — fires whenever answers change.
+  useEffect(() => {
+    const hasGatingAnswer = Boolean(answers.goal || answers.budget || answers.platform || answers.level)
+    if (!hasGatingAnswer) {
+      setResults([])
+      setError('')
+      return
+    }
 
-  const selectOption = (key, value) => {
-    setAnswers((previous) => ({ ...previous, [key]: value }))
-  }
-
-  const fetchResults = async () => {
-    setLoadingResults(true)
-    setError('')
-
-    try {
-      const API = import.meta.env.VITE_API_URL || '';
-      const requestPayload = { ...answers }
-
-      console.log('[Tool Finder] sending selections', requestPayload)
-
-      const response = await fetch(`${API}/api/v1/finder`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestPayload),
-      })
-
-      const responsePayload = await response.json().catch(() => ({}))
-      if (!response.ok) {
-        throw new Error(responsePayload.error || 'Unable to generate recommendations right now.')
+    const controller = new AbortController()
+    const timer = setTimeout(async () => {
+      setLoadingResults(true)
+      setError('')
+      try {
+        const API = import.meta.env.VITE_API_URL || ''
+        const response = await fetch(`${API}/api/v1/finder`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(answers),
+          signal: controller.signal,
+        })
+        const responsePayload = await response.json().catch(() => ({}))
+        if (!response.ok) {
+          throw new Error(responsePayload.error || 'Unable to generate preview right now.')
+        }
+        const tools = Array.isArray(responsePayload?.tools) ? responsePayload.tools.map(normalizeTool) : []
+        if (!controller.signal.aborted) {
+          setResults(tools)
+        }
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          setError(err.message || 'Unable to generate preview right now.')
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setLoadingResults(false)
+        }
       }
+    }, 250)
 
-      const tools = Array.isArray(responsePayload?.tools) ? responsePayload.tools.map(normalizeTool) : []
-      setResults(tools)
-      setStep(5)
-    } catch (requestError) {
-      setError(requestError.message || 'Unable to generate recommendations right now.')
-    } finally {
-      setLoadingResults(false)
+    return () => {
+      controller.abort()
+      clearTimeout(timer)
     }
-  }
+  }, [answers])
 
-  const handleContinue = async () => {
-    if (step === 1) {
-      setStep(1.5)
-      return
-    }
-    if (step === 1.5) {
-      setStep(2)
-      return
-    }
-    if (step < 4) {
-      setStep((previous) => previous + 1)
-      return
-    }
-    await fetchResults()
-  }
+  const canSeeResults = Boolean(answers.goal && answers.level)
 
-  const handleBack = () => {
-    setError('')
-    if (step === 2) { setStep(1.5); return }
-    if (step === 1.5) { setStep(1); return }
-    setStep((previous) => Math.max(1, previous - 1))
+  const writeAnswer = (key, value) => {
+    setAnswers((previous) => ({ ...previous, [key]: value }))
   }
 
   const handleRestart = () => {
     setAnswers({ goal: '', use_case: '', budget: '', platform: '', level: '' })
     setResults([])
     setError('')
-    setStep(1)
+    setActiveQuestion('goal')
+    setViewMode('wizard')
   }
 
   const handleSaveStack = async () => {
@@ -266,7 +500,7 @@ function ToolFinderPage() {
     setSavingStack(true)
 
     try {
-      const API = import.meta.env.VITE_API_URL || '';
+      const API = import.meta.env.VITE_API_URL || ''
       const response = await fetch(`${API}/api/v1/stack`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -292,212 +526,101 @@ function ToolFinderPage() {
     }
   }
 
-  const renderStep = () => {
-    if (step === 1) {
-      return (
-        <section className="mx-auto w-full max-w-5xl">
-          <h2 className="text-xl font-semibold text-ink">What&apos;s your primary goal?</h2>
-          <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {GOAL_OPTIONS.map((option) => (
-              <StepCard
-                key={option.id}
-                option={option}
-                selected={answers.goal === option.id}
-                onClick={() => selectOption('goal', option.id)}
-              />
-            ))}
-          </div>
-        </section>
-      )
-    }
-
-    // Use Case Step (step 1.5)
-    if (step === 1.5) {
-      return (
-        <section className="mx-auto w-full max-w-2xl">
-          <h2 className="text-xl font-semibold text-ink">What specifically do you want to do?</h2>
-          <p className="mb-2 text-muted">
-            Be specific — "write essays" gets better results than "writing"
-          </p>
-          <input
-            type="text"
-            className="mb-4 w-full rounded-lg border border-line bg-bg-elev px-4 py-2 text-ink placeholder:text-muted-2 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
-            placeholder="e.g. write essays, build a web app, edit YouTube videos..."
-            value={answers.use_case}
-            onChange={e => setAnswers(prev => ({ ...prev, use_case: e.target.value }))}
-            maxLength={120}
-            style={{ fontSize: 16 }}
-            autoFocus
-          />
-          <div className="flex gap-2">
-            <button
-              className="rounded-lg border border-line-strong bg-transparent px-4 py-2 text-ink transition-colors hover:bg-bg-sunk"
-              style={{ minHeight: 44, width: '100%' }}
-              onClick={() => { setAnswers(prev => ({ ...prev, use_case: '' })); setStep(2); }}
-              type="button"
-            >
-              Skip
-            </button>
-            <button
-              className="rounded-lg bg-accent px-4 py-2 text-bg transition-opacity hover:opacity-90"
-              style={{ minHeight: 44, width: '100%' }}
-              onClick={() => setStep(2)}
-              type="button"
-            >
-              Next →
-            </button>
-          </div>
-        </section>
-      )
-    }
-
-    if (step === 2) {
-      return (
-        <section className="mx-auto w-full max-w-4xl">
-          <h2 className="text-xl font-semibold text-ink">What&apos;s your budget?</h2>
-          <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-3">
-            {BUDGET_OPTIONS.map((option) => (
-              <StepCard
-                key={option.id}
-                option={option}
-                selected={answers.budget === option.id}
-                onClick={() => selectOption('budget', option.id)}
-                compact
-              />
-            ))}
-          </div>
-        </section>
-      )
-    }
-
-    if (step === 3) {
-      return (
-        <section className="mx-auto w-full max-w-5xl">
-          <h2 className="text-xl font-semibold text-ink">Where do you work?</h2>
-          <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            {PLATFORM_OPTIONS.map((option) => (
-              <StepCard
-                key={option.id}
-                option={option}
-                selected={answers.platform === option.id}
-                onClick={() => selectOption('platform', option.id)}
-                compact
-              />
-            ))}
-          </div>
-        </section>
-      )
-    }
-
-    if (step === 4) {
-      return (
-        <section className="mx-auto w-full max-w-4xl">
-          <h2 className="text-xl font-semibold text-ink">How would you describe your experience level?</h2>
-          <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-3">
-            {LEVEL_OPTIONS.map((option) => (
-              <StepCard
-                key={option.id}
-                option={option}
-                selected={answers.level === option.id}
-                onClick={() => selectOption('level', option.id)}
-                compact
-              />
-            ))}
-          </div>
-        </section>
-      )
-    }
+  if (viewMode === 'results') {
+    const resultsMaxW = aspectBucket === 'ultrawide' ? 'max-w-7xl' : aspectBucket === 'portrait' ? 'max-w-4xl' : 'max-w-6xl'
 
     return (
-      <section className={`mx-auto w-full ${aspectBucket === 'ultrawide' ? 'max-w-7xl' : aspectBucket === 'portrait' ? 'max-w-4xl' : 'max-w-6xl'}`}>
-        <div className="rounded-2xl border border-line bg-bg-elev px-4 py-3 sm:px-5">
-          <h2 className="text-xl font-semibold text-ink sm:text-2xl">{results.length} tools picked for you</h2>
-          <div className="mt-2 flex flex-wrap items-center gap-2">
-            <Button variant="secondary" size="sm" onClick={handleRestart}>
-              <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
-              Start over
-            </Button>
+      <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+        <section className={`mx-auto w-full ${resultsMaxW}`}>
+          <div className="rounded-2xl border border-line bg-bg-elev px-4 py-3 sm:px-5">
+            <h2 className="text-xl font-semibold text-ink sm:text-2xl">{results.length} tools picked for you</h2>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <Button variant="secondary" size="sm" onClick={handleRestart}>
+                <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
+                Start over
+              </Button>
 
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={handleSaveStack}
-              disabled={savingStack || results.length === 0}
-              title={isLoggedIn ? undefined : 'Log in to save'}
-            >
-              <Save className="mr-1.5 h-3.5 w-3.5" />
-              {savingStack ? 'Saving...' : isLoggedIn ? 'Save stack' : 'Log in to save'}
-            </Button>
-          </div>
-        </div>
-
-        <div className="tools-grid mt-6 grid">
-          {results.map((tool, index) => {
-            const toolKey = tool.slug || tool.name || `${tool.name}-${index}`
-            const isTopMatch = index === 0
-
-            return (
-              <article
-                key={toolKey}
-                className="group relative flex h-full min-w-0 flex-col rounded-2xl border border-line bg-bg-elev shadow-sm transition-all hover:-translate-y-0.5 hover:border-accent hover:shadow-md"
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={handleSaveStack}
+                disabled={savingStack || results.length === 0}
+                title={isLoggedIn ? undefined : 'Log in to save'}
               >
-                {isTopMatch ? (
-                  <span className="absolute right-3 top-3 z-10 inline-flex items-center gap-1 rounded-full bg-accent-soft px-2.5 py-1 text-xs font-semibold text-accent-ink shadow-sm ring-1 ring-inset ring-accent/30">
-                    ★ Best Match
-                  </span>
-                ) : null}
+                <Save className="mr-1.5 h-3.5 w-3.5" />
+                {savingStack ? 'Saving...' : isLoggedIn ? 'Save stack' : 'Log in to save'}
+              </Button>
+            </div>
+          </div>
 
-                <div className="flex flex-1 flex-col gap-3 p-5">
-                  <div
-                    className="flex items-start gap-3"
-                    onClick={() => navigate(`/tools/${tool.slug || ''}`)}
-                    style={{ cursor: "pointer" }}
-                  >
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-bg-sunk text-lg font-bold text-ink-2" aria-hidden="true">
-                      <ToolLogo tool={tool} size={40} />
-                    </div>
+          <div className="tools-grid mt-6 grid">
+            {results.map((tool, index) => {
+              const toolKey = tool.slug || tool.name || `${tool.name}-${index}`
+              const isTopMatch = index === 0
 
-                    <div className="min-w-0 flex-1">
-                      <div className={`flex items-start justify-between gap-2 ${isTopMatch ? 'pr-24' : ''}`}>
-                        <h3 className="truncate text-base font-semibold text-ink">{tool.name}</h3>
-                        <Badge label={tool.category || 'General'} variant={tool.category} />
+              return (
+                <article
+                  key={toolKey}
+                  className="group relative flex h-full min-w-0 flex-col rounded-2xl border border-line bg-bg-elev shadow-sm transition-all hover:-translate-y-0.5 hover:border-accent hover:shadow-md"
+                >
+                  {isTopMatch ? (
+                    <span className="absolute right-3 top-3 z-10 inline-flex items-center gap-1 rounded-full bg-accent-soft px-2.5 py-1 text-xs font-semibold text-accent-ink shadow-sm ring-1 ring-inset ring-accent/30">
+                      ★ Best Match
+                    </span>
+                  ) : null}
+
+                  <div className="flex flex-1 flex-col gap-3 p-5">
+                    <div
+                      className="flex items-start gap-3"
+                      onClick={() => navigate(`/tools/${tool.slug || ''}`)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-bg-sunk text-lg font-bold text-ink-2" aria-hidden="true">
+                        <ToolLogo tool={tool} size={40} />
                       </div>
 
-                      <p className="mt-1.5 text-sm italic leading-5 text-muted">
-                        ✨ {tool.reason}
-                      </p>
+                      <div className="min-w-0 flex-1">
+                        <div className={`flex items-start justify-between gap-2 ${isTopMatch ? 'pr-24' : ''}`}>
+                          <h3 className="truncate text-base font-semibold text-ink">{tool.name}</h3>
+                          <Badge label={tool.category || 'General'} variant={tool.category} />
+                        </div>
 
-                      <p className="mt-2 line-clamp-2 overflow-hidden text-sm leading-snug text-ink-2">
-                        {tool.description}
-                      </p>
+                        <p className="mt-1.5 text-sm italic leading-5 text-muted">
+                          ✨ {tool.reason}
+                        </p>
+
+                        <p className="mt-2 line-clamp-2 overflow-hidden text-sm leading-snug text-ink-2">
+                          {tool.description}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold uppercase tracking-wide ${getPricingPillClass(tool.pricing)}`}>
+                        {String(tool.pricing || 'Free').toUpperCase()}
+                      </span>
+                      <span className="inline-flex items-center rounded-full bg-bg-sunk px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-ink-2 ring-1 ring-inset ring-line">
+                        {String(tool.platformLabel || 'Web').toUpperCase()}
+                      </span>
+                    </div>
+
+                    <div className="mt-auto">
+                      <a
+                        href={getToolUrl(tool)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-accent px-4 text-sm font-semibold text-bg transition-opacity hover:opacity-90"
+                      >
+                        Visit Tool
+                      </a>
                     </div>
                   </div>
-
-                  <div className="flex flex-wrap gap-2">
-                    <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold uppercase tracking-wide ${getPricingPillClass(tool.pricing)}`}>
-                      {String(tool.pricing || 'Free').toUpperCase()}
-                    </span>
-                    <span className="inline-flex items-center rounded-full bg-bg-sunk px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-ink-2 ring-1 ring-inset ring-line">
-                      {String(tool.platformLabel || 'Web').toUpperCase()}
-                    </span>
-                  </div>
-
-                  <div className="mt-auto">
-                    <a
-                      href={getToolUrl(tool)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-accent px-4 text-sm font-semibold text-bg transition-opacity hover:opacity-90"
-                    >
-                      Visit Tool
-                    </a>
-                  </div>
-                </div>
-              </article>
-            )
-          })}
-        </div>
-      </section>
+                </article>
+              )
+            })}
+          </div>
+        </section>
+      </main>
     )
   }
 
@@ -507,43 +630,36 @@ function ToolFinderPage() {
         <div className="mb-6">
           <h1 className="text-3xl font-bold tracking-tight text-ink sm:text-4xl">AI Tool Finder Wizard</h1>
           <p className="mt-2 text-sm text-muted sm:text-base">
-            Answer 4 quick questions and get your best-fit AI tools.
+            Tap any question to refine your fit. Preview updates in real time.
           </p>
         </div>
 
-        {step <= 4 ? <ProgressDots step={step} /> : null}
-
-        {error ? (
-          <div
-            role="alert"
-            className="mb-5 rounded-xl border border-danger bg-danger-soft px-4 py-3 text-sm text-danger"
-          >
-            {error}
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-[1fr_1.2fr] md:gap-8">
+          <div className="flex flex-col gap-3">
+            {QUESTIONS.map((question, idx) => (
+              <QuestionRow
+                key={question.id}
+                index={idx + 1}
+                question={question}
+                answer={answers[question.id]}
+                isActive={activeQuestion === question.id}
+                onActivate={() => setActiveQuestion(question.id)}
+                onSelect={(value) => writeAnswer(question.id, value)}
+                onTextChange={(value) => writeAnswer(question.id, value)}
+                onCollapse={() => setActiveQuestion(null)}
+              />
+            ))}
           </div>
-        ) : null}
 
-        {renderStep()}
-
-        {step <= 4 ? (
-          <div className="mx-auto mt-8 flex w-full max-w-5xl items-center justify-between gap-3">
-            <Button
-              variant="secondary"
-              onClick={handleBack}
-              disabled={step === 1 || loadingResults}
-            >
-              Back
-            </Button>
-
-            <Button
-              variant="primary"
-              onClick={handleContinue}
-              disabled={!canContinue || loadingResults}
-              className="w-full min-h-[44px]"
-            >
-              {loadingResults ? 'Finding tools...' : step === 4 ? 'See results' : 'Continue'}
-            </Button>
-          </div>
-        ) : null}
+          <LivePreview
+            answers={answers}
+            results={results}
+            loading={loadingResults}
+            error={error}
+            canSeeResults={canSeeResults}
+            onSeeResults={() => setViewMode('results')}
+          />
+        </div>
       </section>
     </main>
   )
