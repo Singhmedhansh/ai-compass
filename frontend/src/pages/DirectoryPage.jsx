@@ -234,7 +234,7 @@ function DirectoryPage() {
   }
 
   return (
-    <main
+    <div
       className="container main-content mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8"
       style={{ maxWidth: 1200, margin: '0 auto', padding: '0 12px' }}
     >
@@ -366,7 +366,7 @@ function DirectoryPage() {
           </div>
         </section>
       )}
-    </main>
+    </div>
   )
 }
 

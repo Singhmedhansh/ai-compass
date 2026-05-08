@@ -40,7 +40,7 @@ export default function SubmitPage() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
+    <div className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
       <section className="rounded-2xl border border-line bg-bg-elev p-6 shadow-sm">
         <h1 className="text-2xl font-bold text-ink">Submit a Tool</h1>
         <p className="mt-2 text-sm text-muted">
@@ -126,6 +126,6 @@ export default function SubmitPage() {
           </div>
         )}
       </section>
-    </main>
+    </div>
   )
 }

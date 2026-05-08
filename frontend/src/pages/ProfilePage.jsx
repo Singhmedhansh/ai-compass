@@ -311,16 +311,16 @@ function ProfilePage() {
 
   if (loading) {
     return (
-      <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="rounded-3xl border border-line bg-bg-elev p-6 text-ink-2 shadow-sm">
           Loading your profile...
         </div>
-      </main>
+      </div>
     )
   }
 
   return (
-    <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-6 rounded-3xl border border-line bg-gradient-to-r from-bg-elev to-accent-soft p-6 shadow-sm">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent-ink">Profile &amp; Settings</p>
         <h1 className="mt-2 text-3xl font-bold tracking-tight text-ink">Manage your AI Compass account</h1>
@@ -331,7 +331,7 @@ function ProfilePage() {
 
       <section className="grid gap-6 lg:grid-cols-[20rem_minmax(0,1fr)]">
         <aside className="rounded-3xl border border-line bg-bg-elev p-6 shadow-sm">
-          <div className={`mx-auto flex h-24 w-24 items-center justify-center overflow-hidden rounded-full ${profile?.picture ? 'bg-bg-sunk' : 'bg-accent'}`}>
+          <div className={`mx-auto flex h-24 w-24 items-center justify-center overflow-hidden rounded-full ${profile?.picture && profile.picture.length > 10 ? 'bg-bg-sunk' : 'bg-accent'}`}>
             {profile?.picture && profile.picture.length > 10 ? (
               <img
                 src={profile.picture}
@@ -661,7 +661,7 @@ function ProfilePage() {
           <p className="text-sm font-medium">{toast.message}</p>
         </div>
       ) : null}
-    </main>
+    </div>
   )
 }
 

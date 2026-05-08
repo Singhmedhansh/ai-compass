@@ -203,16 +203,16 @@ function DashboardPage() {
 
   if (loading) {
     return (
-      <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="rounded-2xl border border-line bg-bg-elev p-6 text-ink-2">
           Loading your dashboard...
         </div>
-      </main>
+      </div>
     )
   }
 
   return (
-    <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[16rem_minmax(0,1fr)]">
         <aside className="rounded-2xl border border-line bg-bg-elev p-4 text-ink shadow-sm lg:sticky lg:top-24 lg:h-fit">
           <p className="px-2 text-xs font-semibold uppercase tracking-wide text-muted">Dashboard</p>
@@ -504,7 +504,7 @@ function DashboardPage() {
           </section>
         </div>
       </div>
-    </main>
+    </div>
   )
 }
 

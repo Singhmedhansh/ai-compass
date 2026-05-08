@@ -150,6 +150,10 @@ function getToolUrl(tool = {}) {
   return tool.website_url || tool.url || tool.link || '#'
 }
 
+function articleFor(nextWord = '') {
+  return /^[aeiouAEIOU]/.test(nextWord.trim()) ? 'an' : 'a'
+}
+
 function buildPersona(answers) {
   const { goal, use_case, budget, platform, level } = answers
   if (!goal && !use_case && !budget && !platform && !level) {
@@ -162,11 +166,11 @@ function buildPersona(answers) {
 
   let lead
   if (level && goalNoun) {
-    lead = `For a ${level} ${goalNoun}`
+    lead = `For ${articleFor(level)} ${level} ${goalNoun}`
   } else if (goalNoun) {
-    lead = `For a ${goalNoun}`
+    lead = `For ${articleFor(goalNoun)} ${goalNoun}`
   } else if (level) {
-    lead = `For a ${level} user`
+    lead = `For ${articleFor(level)} ${level} user`
   } else {
     lead = 'Looking for tools'
   }
@@ -530,7 +534,7 @@ function ToolFinderPage() {
     const resultsMaxW = aspectBucket === 'ultrawide' ? 'max-w-7xl' : aspectBucket === 'portrait' ? 'max-w-4xl' : 'max-w-6xl'
 
     return (
-      <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
         <section className={`mx-auto w-full ${resultsMaxW}`}>
           <div className="rounded-2xl border border-line bg-bg-elev px-4 py-3 sm:px-5">
             <h2 className="text-xl font-semibold text-ink sm:text-2xl">{results.length} tools picked for you</h2>
@@ -620,12 +624,12 @@ function ToolFinderPage() {
             })}
           </div>
         </section>
-      </main>
+      </div>
     )
   }
 
   return (
-    <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
       <section className="rounded-3xl border border-line bg-bg-elev p-6 shadow-sm sm:p-8">
         <div className="mb-6">
           <h1 className="text-3xl font-bold tracking-tight text-ink sm:text-4xl">AI Tool Finder Wizard</h1>
@@ -661,7 +665,7 @@ function ToolFinderPage() {
           />
         </div>
       </section>
-    </main>
+    </div>
   )
 }
 

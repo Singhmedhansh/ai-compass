@@ -82,7 +82,7 @@ function CollectionsPage() {
   }, [])
 
   return (
-    <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <Helmet>
         <title>Browse AI Tool Collections | AI Compass</title>
         <meta name="description" content="Explore curated categories tailored to goals like coding, writing, research, and more." />
@@ -121,7 +121,7 @@ function CollectionsPage() {
           </Link>
         ))}
       </section>
-    </main>
+    </div>
   )
 }
 

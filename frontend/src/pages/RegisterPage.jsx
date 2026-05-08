@@ -92,7 +92,7 @@ function RegisterPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-[calc(100vh-4rem)] w-full items-center justify-center px-4 py-8">
+    <div className="mx-auto flex min-h-[calc(100vh-4rem)] w-full items-center justify-center px-4 py-8">
       <section className="w-full max-w-md rounded-2xl border border-line bg-bg-elev p-6 shadow-xl sm:p-8">
         <h1 className="text-2xl font-bold text-ink">Create your account</h1>
         <p className="mt-2 text-sm text-muted">Join AI Compass and save your favorite tools.</p>
@@ -181,7 +181,7 @@ function RegisterPage() {
           </Link>
         </p>
       </section>
-    </main>
+    </div>
   )
 }
 

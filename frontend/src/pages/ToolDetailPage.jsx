@@ -261,7 +261,7 @@ function ToolDetailPage() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       {loading ? (
         <div className="rounded-2xl border border-line bg-bg-elev p-6 text-muted">
           Loading tool details...
@@ -419,7 +419,7 @@ function ToolDetailPage() {
         </aside>
         </div>
       )}
-    </main>
+    </div>
   )
 }
 

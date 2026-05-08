@@ -41,7 +41,7 @@ export default function ReviewsSection({ slug, isLoggedIn }) {
 
   const handleSubmit = async () => {
     if (!isLoggedIn) {
-      alert('Please log in to write a review')
+      setError('Please log in to write a review')
       return
     }
 

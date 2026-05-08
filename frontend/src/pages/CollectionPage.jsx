@@ -45,7 +45,7 @@ function CollectionPage() {
   }, [slug])
 
   return (
-    <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <Helmet>
         <title>{collection?.meta_title || 'AI Collections | AI Compass'}</title>
         <meta
@@ -108,7 +108,7 @@ function CollectionPage() {
           </div>
         </section>
       ) : null}
-    </main>
+    </div>
   )
 }
 
