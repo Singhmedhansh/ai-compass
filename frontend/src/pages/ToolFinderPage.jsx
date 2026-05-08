@@ -1,15 +1,11 @@
-import { AnimatePresence, motion } from 'framer-motion'
 import { Check, RotateCcw, Save } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { useNavigate } from 'react-router-dom'
 
-import PageTransition from '../components/PageTransition'
+import Badge from '../components/ui/Badge'
+import Button from '../components/ui/Button'
 import { ToolLogo } from '../components/ui'
-
-const MotionButton = motion.button
-const MotionDiv = motion.div
-const MotionArticle = motion.article
 
 function getAspectBucket() {
   if (typeof window === 'undefined') {
@@ -56,6 +52,12 @@ const LEVEL_OPTIONS = [
   { id: 'advanced', emoji: '⚡', label: 'Advanced', description: 'Power user, developer' },
 ]
 
+const PRICING_PILL_CLASS = {
+  free: 'bg-accent-soft text-accent-ink',
+  freemium: 'bg-bg-sunk text-ink-2 ring-1 ring-inset ring-line',
+  paid: 'bg-bg-sunk text-ink-2 ring-1 ring-inset ring-line',
+}
+
 function normalizeTool(rawTool) {
   const name = rawTool?.name || 'Unknown Tool'
   const description = rawTool?.description || rawTool?.shortDescription || rawTool?.tagline || ''
@@ -78,35 +80,8 @@ function normalizeTool(rawTool) {
   }
 }
 
-const CATEGORY_BADGE_CLASSES = {
-  coding: 'bg-blue-100 text-blue-700 ring-blue-200 dark:bg-blue-500/20 dark:text-blue-300 dark:ring-blue-500/30',
-  writing: 'bg-purple-100 text-purple-700 ring-purple-200 dark:bg-purple-500/20 dark:text-purple-300 dark:ring-purple-500/30',
-  research: 'bg-green-100 text-green-700 ring-green-200 dark:bg-green-500/20 dark:text-green-300 dark:ring-green-500/30',
-  productivity: 'bg-amber-100 text-amber-700 ring-amber-200 dark:bg-amber-500/20 dark:text-amber-300 dark:ring-amber-500/30',
-  'image generation': 'bg-pink-100 text-pink-700 ring-pink-200 dark:bg-pink-500/20 dark:text-pink-300 dark:ring-pink-500/30',
-  'image gen': 'bg-pink-100 text-pink-700 ring-pink-200 dark:bg-pink-500/20 dark:text-pink-300 dark:ring-pink-500/30',
-  'video generation': 'bg-red-100 text-red-700 ring-red-200 dark:bg-red-500/20 dark:text-red-300 dark:ring-red-500/30',
-  'video gen': 'bg-red-100 text-red-700 ring-red-200 dark:bg-red-500/20 dark:text-red-300 dark:ring-red-500/30',
-}
-
-const PRICING_BADGE_CLASSES = {
-  free: 'bg-emerald-100 text-emerald-700 ring-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300 dark:ring-emerald-500/30',
-  freemium: 'bg-sky-100 text-sky-700 ring-sky-200 dark:bg-sky-500/20 dark:text-sky-300 dark:ring-sky-500/30',
-  paid: 'bg-gray-200 text-gray-700 ring-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:ring-gray-600/40',
-}
-
-const PLATFORM_BADGE_CLASS = 'bg-slate-100 text-slate-700 ring-slate-200 dark:bg-slate-700/80 dark:text-slate-200 dark:ring-slate-600/40'
-
-function normalizeKey(value = '') {
-  return String(value || '').toLowerCase().trim()
-}
-
-function getCategoryBadgeClass(category = '') {
-  return CATEGORY_BADGE_CLASSES[normalizeKey(category)] || 'bg-indigo-100 text-indigo-700 ring-indigo-200 dark:bg-indigo-500/20 dark:text-indigo-300 dark:ring-indigo-500/30'
-}
-
-function getPriceBadgeClass(pricing = '') {
-  return PRICING_BADGE_CLASSES[normalizeKey(pricing)] || PRICING_BADGE_CLASSES.free
+function getPricingPillClass(pricing = '') {
+  return PRICING_PILL_CLASS[String(pricing || '').toLowerCase().trim()] || PRICING_PILL_CLASS.free
 }
 
 function getToolUrl(tool = {}) {
@@ -115,40 +90,38 @@ function getToolUrl(tool = {}) {
 
 function StepCard({ option, selected, onClick, compact = false }) {
   return (
-    <MotionButton
+    <button
       type="button"
       onClick={onClick}
-      whileHover={{ scale: 1.03, borderColor: '#6366f1' }}
-      whileTap={{ scale: 0.97 }}
-      animate={{ scale: selected ? 1.02 : 1 }}
-      className={`relative rounded-2xl border p-5 text-left transition focus:outline-none focus:ring-2 focus:ring-indigo-500/60 ${
+      className={`relative rounded-2xl border p-5 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
         selected
-          ? 'border-indigo-500 bg-indigo-500/10 shadow-lg shadow-indigo-500/20'
-          : 'border-gray-300 bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900/80 dark:hover:bg-gray-900'
+          ? 'border-accent bg-accent-soft text-accent-ink shadow-sm'
+          : 'border-line bg-bg-elev text-ink hover:border-accent hover:bg-bg-sunk'
       } ${compact ? 'min-h-[120px]' : 'min-h-[156px]'}`}
     >
       <div className="text-3xl" aria-hidden="true">{option.emoji}</div>
-      <h3 className={`mt-3 text-lg font-semibold ${selected ? 'text-white' : 'text-gray-900 dark:text-white'}`}>{option.label}</h3>
-      <p className={`mt-2 text-sm ${selected ? 'text-indigo-200' : 'text-gray-600 dark:text-gray-300'}`}>{option.description}</p>
+      <h3 className={`mt-3 text-lg font-semibold ${selected ? 'text-accent-ink' : 'text-ink'}`}>{option.label}</h3>
+      <p className={`mt-2 text-sm ${selected ? 'text-accent-ink' : 'text-muted'}`}>{option.description}</p>
       {selected ? (
-        <div className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full bg-indigo-500 text-white">
+        <div className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full bg-accent text-bg">
           <Check className="h-4 w-4" />
         </div>
       ) : null}
-    </MotionButton>
+    </button>
   )
 }
 
 function ProgressDots({ step }) {
+  const fillPercent = `${Math.max(0, Math.min(100, ((step - 1) / (TOTAL_STEPS - 1)) * 100))}%`
+
   return (
     <div className="mb-8">
       <div className="relative mx-auto flex w-full max-w-xl items-center justify-between">
         <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 px-5">
-          <div className="h-1 rounded-full bg-gray-300 dark:bg-gray-700">
-            <MotionDiv
-              className="h-1 rounded-full bg-indigo-500"
-              animate={{ width: `${((step - 1) / (TOTAL_STEPS - 1)) * 100}%` }}
-              transition={{ type: 'spring', stiffness: 140, damping: 20 }}
+          <div className="h-1 rounded-full bg-line">
+            <div
+              className="h-1 rounded-full bg-accent transition-[width] duration-300 ease-out"
+              style={{ width: fillPercent }}
             />
           </div>
         </div>
@@ -161,23 +134,15 @@ function ProgressDots({ step }) {
           return (
             <div key={`step-dot-${dot}`} className="z-10 flex flex-col items-center gap-2">
               {isCompleted ? (
-                <MotionDiv
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-500 text-white"
-                >
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent text-bg">
                   <Check className="h-5 w-5" />
-                </MotionDiv>
+                </div>
               ) : isCurrent ? (
-                <MotionDiv
-                  animate={{ scale: [1, 1.08, 1] }}
-                  transition={{ duration: 1.3, repeat: Number.POSITIVE_INFINITY }}
-                  className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-indigo-500 bg-white text-indigo-600 dark:bg-gray-950 dark:text-indigo-300"
-                >
+                <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-accent bg-bg text-accent-ink">
                   <span className="text-sm font-semibold">{dot}</span>
-                </MotionDiv>
+                </div>
               ) : (
-                <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-gray-300 bg-white text-gray-600 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-400">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-line-strong bg-bg-elev text-muted">
                   <span className="text-sm font-semibold">{dot}</span>
                 </div>
               )}
@@ -331,7 +296,7 @@ function ToolFinderPage() {
     if (step === 1) {
       return (
         <section className="mx-auto w-full max-w-5xl">
-          <h2 className="text-xl font-semibold text-white">What&apos;s your primary goal?</h2>
+          <h2 className="text-xl font-semibold text-ink">What&apos;s your primary goal?</h2>
           <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {GOAL_OPTIONS.map((option) => (
               <StepCard
@@ -350,13 +315,13 @@ function ToolFinderPage() {
     if (step === 1.5) {
       return (
         <section className="mx-auto w-full max-w-2xl">
-          <h2 className="text-xl font-semibold text-white">What specifically do you want to do?</h2>
-          <p className="text-slate-300 mb-2">
+          <h2 className="text-xl font-semibold text-ink">What specifically do you want to do?</h2>
+          <p className="mb-2 text-muted">
             Be specific — "write essays" gets better results than "writing"
           </p>
           <input
             type="text"
-            className="wizard-input w-full rounded-lg border border-slate-600 bg-slate-900 px-4 py-2 text-white mb-4"
+            className="mb-4 w-full rounded-lg border border-line bg-bg-elev px-4 py-2 text-ink placeholder:text-muted-2 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
             placeholder="e.g. write essays, build a web app, edit YouTube videos..."
             value={answers.use_case}
             onChange={e => setAnswers(prev => ({ ...prev, use_case: e.target.value }))}
@@ -364,9 +329,9 @@ function ToolFinderPage() {
             style={{ fontSize: 16 }}
             autoFocus
           />
-          <div className="wizard-nav flex gap-2">
+          <div className="flex gap-2">
             <button
-              className="btn-secondary border border-slate-600 bg-slate-800 px-4 py-2 rounded-lg text-white"
+              className="rounded-lg border border-line-strong bg-transparent px-4 py-2 text-ink transition-colors hover:bg-bg-sunk"
               style={{ minHeight: 44, width: '100%' }}
               onClick={() => { setAnswers(prev => ({ ...prev, use_case: '' })); setStep(2); }}
               type="button"
@@ -374,7 +339,7 @@ function ToolFinderPage() {
               Skip
             </button>
             <button
-              className="btn-primary bg-indigo-600 px-4 py-2 rounded-lg text-white"
+              className="rounded-lg bg-accent px-4 py-2 text-bg transition-opacity hover:opacity-90"
               style={{ minHeight: 44, width: '100%' }}
               onClick={() => setStep(2)}
               type="button"
@@ -389,7 +354,7 @@ function ToolFinderPage() {
     if (step === 2) {
       return (
         <section className="mx-auto w-full max-w-4xl">
-          <h2 className="text-xl font-semibold text-white">What&apos;s your budget?</h2>
+          <h2 className="text-xl font-semibold text-ink">What&apos;s your budget?</h2>
           <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-3">
             {BUDGET_OPTIONS.map((option) => (
               <StepCard
@@ -408,7 +373,7 @@ function ToolFinderPage() {
     if (step === 3) {
       return (
         <section className="mx-auto w-full max-w-5xl">
-          <h2 className="text-xl font-semibold text-white">Where do you work?</h2>
+          <h2 className="text-xl font-semibold text-ink">Where do you work?</h2>
           <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {PLATFORM_OPTIONS.map((option) => (
               <StepCard
@@ -427,7 +392,7 @@ function ToolFinderPage() {
     if (step === 4) {
       return (
         <section className="mx-auto w-full max-w-4xl">
-          <h2 className="text-xl font-semibold text-white">How would you describe your experience level?</h2>
+          <h2 className="text-xl font-semibold text-ink">How would you describe your experience level?</h2>
           <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-3">
             {LEVEL_OPTIONS.map((option) => (
               <StepCard
@@ -445,32 +410,24 @@ function ToolFinderPage() {
 
     return (
       <section className={`mx-auto w-full ${aspectBucket === 'ultrawide' ? 'max-w-7xl' : aspectBucket === 'portrait' ? 'max-w-4xl' : 'max-w-6xl'}`}>
-        <div className="rounded-2xl border border-slate-700/70 bg-slate-900/40 px-4 py-3 sm:px-5">
-          <h2 className="text-xl font-semibold text-white sm:text-2xl">{results.length} tools picked for you</h2>
+        <div className="rounded-2xl border border-line bg-bg-elev px-4 py-3 sm:px-5">
+          <h2 className="text-xl font-semibold text-ink sm:text-2xl">{results.length} tools picked for you</h2>
           <div className="mt-2 flex flex-wrap items-center gap-2">
-            <MotionButton
-              type="button"
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              onClick={handleRestart}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-600 bg-slate-900 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:border-indigo-400"
-            >
-              <RotateCcw className="h-3.5 w-3.5" />
+            <Button variant="secondary" size="sm" onClick={handleRestart}>
+              <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
               Start over
-            </MotionButton>
+            </Button>
 
-            <MotionButton
-              type="button"
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
+            <Button
+              variant="primary"
+              size="sm"
               onClick={handleSaveStack}
               disabled={savingStack || results.length === 0}
               title={isLoggedIn ? undefined : 'Log in to save'}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-500 disabled:cursor-not-allowed disabled:bg-indigo-800"
             >
-              <Save className="h-3.5 w-3.5" />
+              <Save className="mr-1.5 h-3.5 w-3.5" />
               {savingStack ? 'Saving...' : isLoggedIn ? 'Save stack' : 'Log in to save'}
-            </MotionButton>
+            </Button>
           </div>
         </div>
 
@@ -480,15 +437,12 @@ function ToolFinderPage() {
             const isTopMatch = index === 0
 
             return (
-              <MotionArticle
+              <article
                 key={toolKey}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="tool-card group relative flex h-full min-w-0 flex-col rounded-2xl border border-gray-200 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:border-indigo-300 hover:shadow-md dark:border-gray-700 dark:bg-gray-800 dark:hover:border-indigo-500"
+                className="group relative flex h-full min-w-0 flex-col rounded-2xl border border-line bg-bg-elev shadow-sm transition-all hover:-translate-y-0.5 hover:border-accent hover:shadow-md"
               >
                 {isTopMatch ? (
-                  <span className="absolute right-3 top-3 z-10 inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-800 shadow-sm ring-1 ring-inset ring-amber-300 dark:bg-amber-500/20 dark:text-amber-300 dark:ring-amber-500/40">
+                  <span className="absolute right-3 top-3 z-10 inline-flex items-center gap-1 rounded-full bg-accent-soft px-2.5 py-1 text-xs font-semibold text-accent-ink shadow-sm ring-1 ring-inset ring-accent/30">
                     ★ Best Match
                   </span>
                 ) : null}
@@ -499,33 +453,31 @@ function ToolFinderPage() {
                     onClick={() => navigate(`/tools/${tool.slug || ''}`)}
                     style={{ cursor: "pointer" }}
                   >
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-slate-100 text-lg font-bold text-slate-700 dark:bg-slate-900 dark:text-slate-100" aria-hidden="true">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-bg-sunk text-lg font-bold text-ink-2" aria-hidden="true">
                       <ToolLogo tool={tool} size={40} />
                     </div>
 
                     <div className="min-w-0 flex-1">
                       <div className={`flex items-start justify-between gap-2 ${isTopMatch ? 'pr-24' : ''}`}>
-                        <h3 className="truncate text-base font-semibold text-gray-900 dark:text-white">{tool.name}</h3>
-                        <span className={`inline-flex shrink-0 items-center rounded-full px-2.5 py-1 text-xs font-semibold uppercase tracking-wide ring-1 ring-inset ${getCategoryBadgeClass(tool.category)}`}>
-                          {String(tool.category || 'General').toUpperCase()}
-                        </span>
+                        <h3 className="truncate text-base font-semibold text-ink">{tool.name}</h3>
+                        <Badge label={tool.category || 'General'} variant={tool.category} />
                       </div>
 
-                      <p className="mt-1.5 text-sm italic leading-5 text-gray-500 dark:text-gray-400">
+                      <p className="mt-1.5 text-sm italic leading-5 text-muted">
                         ✨ {tool.reason}
                       </p>
 
-                      <p className="mt-2 line-clamp-2 overflow-hidden text-sm leading-snug text-gray-600 dark:text-gray-300">
+                      <p className="mt-2 line-clamp-2 overflow-hidden text-sm leading-snug text-ink-2">
                         {tool.description}
                       </p>
                     </div>
                   </div>
 
                   <div className="flex flex-wrap gap-2">
-                    <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold uppercase tracking-wide ring-1 ring-inset ${getPriceBadgeClass(tool.pricing)}`}>
+                    <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold uppercase tracking-wide ${getPricingPillClass(tool.pricing)}`}>
                       {String(tool.pricing || 'Free').toUpperCase()}
                     </span>
-                    <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold uppercase tracking-wide ring-1 ring-inset ${PLATFORM_BADGE_CLASS}`}>
+                    <span className="inline-flex items-center rounded-full bg-bg-sunk px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-ink-2 ring-1 ring-inset ring-line">
                       {String(tool.platformLabel || 'Web').toUpperCase()}
                     </span>
                   </div>
@@ -535,13 +487,13 @@ function ToolFinderPage() {
                       href={getToolUrl(tool)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 text-sm font-semibold text-white transition hover:bg-indigo-500"
+                      className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-accent px-4 text-sm font-semibold text-bg transition-opacity hover:opacity-90"
                     >
                       Visit Tool
                     </a>
                   </div>
                 </div>
-              </MotionArticle>
+              </article>
             )
           })}
         </div>
@@ -549,72 +501,51 @@ function ToolFinderPage() {
     )
   }
 
-  const currentStep = step
-
   return (
-    <PageTransition>
-      <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
-        <section className="rounded-3xl border border-slate-800 bg-gradient-to-b from-slate-950 to-slate-900 p-6 shadow-2xl sm:p-8">
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">AI Tool Finder Wizard</h1>
-            <p className="mt-2 text-sm text-slate-300 sm:text-base">
-              Answer 4 quick questions and get your best-fit AI tools.
-            </p>
+    <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+      <section className="rounded-3xl border border-line bg-bg-elev p-6 shadow-sm sm:p-8">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold tracking-tight text-ink sm:text-4xl">AI Tool Finder Wizard</h1>
+          <p className="mt-2 text-sm text-muted sm:text-base">
+            Answer 4 quick questions and get your best-fit AI tools.
+          </p>
+        </div>
+
+        {step <= 4 ? <ProgressDots step={step} /> : null}
+
+        {error ? (
+          <div
+            role="alert"
+            className="mb-5 rounded-xl border border-danger bg-danger-soft px-4 py-3 text-sm text-danger"
+          >
+            {error}
           </div>
+        ) : null}
 
-          {step <= 4 ? <ProgressDots step={step} /> : null}
+        {renderStep()}
 
-          {error ? (
-            <motion.div
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mb-5 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-200"
+        {step <= 4 ? (
+          <div className="mx-auto mt-8 flex w-full max-w-5xl items-center justify-between gap-3">
+            <Button
+              variant="secondary"
+              onClick={handleBack}
+              disabled={step === 1 || loadingResults}
             >
-              {error}
-            </motion.div>
-          ) : null}
+              Back
+            </Button>
 
-          <AnimatePresence mode="wait">
-            <MotionDiv
-              key={currentStep}
-              initial={{ x: 60, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: -60, opacity: 0 }}
-              transition={{ type: 'spring', stiffness: 200, damping: 25 }}
+            <Button
+              variant="primary"
+              onClick={handleContinue}
+              disabled={!canContinue || loadingResults}
+              className="w-full min-h-[44px]"
             >
-              {renderStep()}
-            </MotionDiv>
-          </AnimatePresence>
-
-          {step <= 4 ? (
-            <div className="mx-auto mt-8 flex w-full max-w-5xl items-center justify-between gap-3">
-              <MotionButton
-                type="button"
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={handleBack}
-                disabled={step === 1 || loadingResults}
-                className="rounded-xl border border-slate-600 bg-slate-900 px-4 py-2 text-sm font-semibold text-slate-200 disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                Back
-              </MotionButton>
-
-              <MotionButton
-                type="button"
-                whileHover={{ scale: canContinue && !loadingResults ? 1.03 : 1 }}
-                whileTap={{ scale: canContinue && !loadingResults ? 0.97 : 1 }}
-                onClick={handleContinue}
-                disabled={!canContinue || loadingResults}
-                className="rounded-xl bg-indigo-600 px-5 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-indigo-800"
-                style={{ minHeight: 44, width: '100%' }}
-              >
-                {loadingResults ? 'Finding tools...' : step === 4 ? 'See results' : 'Continue'}
-              </MotionButton>
-            </div>
-          ) : null}
-        </section>
-      </main>
-    </PageTransition>
+              {loadingResults ? 'Finding tools...' : step === 4 ? 'See results' : 'Continue'}
+            </Button>
+          </div>
+        ) : null}
+      </section>
+    </main>
   )
 }
 
