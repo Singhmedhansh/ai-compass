@@ -11,4 +11,8 @@ export {
   heroScaleOnReveal,
   frostedDropdown,
 } from './variants'
-// hooks.js exports added in K-2-3
+export {
+  useScrollReveal,
+  useScrollProgress,
+  useCountUp,
+} from './hooks'
