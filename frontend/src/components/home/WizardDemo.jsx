@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 
+import MockupChrome from '../ui/MockupChrome'
 import chatgptIcon from '../../assets/brand/chatgpt.svg'
 import claudeIcon from '../../assets/brand/claude.svg'
 import githubCopilotIcon from '../../assets/brand/github-copilot.svg'
@@ -22,29 +23,12 @@ export default function WizardDemo() {
           Tap any question to change it; the right side updates in real time.
         </p>
 
-        {/* TODO Saturday: wire box-shadow to a `--shadow-lg` token once added to :root */}
-        <div
-          role="region"
-          aria-label="Wizard demonstration"
-          className="overflow-hidden rounded-token-lg border border-line bg-bg-elev"
+        {/* TODO Saturday: progress driven by wizard step state */}
+        <MockupChrome
+          url="wizard.ai-compass.in"
+          ariaLabel="Wizard demonstration"
+          stepLabel={<>step <b className="text-accent">3</b> / 5</>}
         >
-          {/* Head: fake browser chrome */}
-          <div className="flex items-center justify-between border-b border-line bg-bg-sunk px-4 py-3">
-            <div className="flex items-center gap-2">
-              <span className="h-[9px] w-[9px] rounded-full bg-line-strong" />
-              <span
-                className="h-[9px] w-[9px] rounded-full"
-                style={{ background: 'color-mix(in oklab, var(--line-strong) 70%, var(--accent))' }}
-              />
-              <span className="h-[9px] w-[9px] rounded-full bg-line-strong" />
-              <span className="ml-1 text-xs text-muted">wizard.ai-compass.in</span>
-            </div>
-            {/* TODO Saturday: progress driven by wizard step state */}
-            <div className="text-xs text-muted">
-              step <b className="text-accent">3</b> / 5
-            </div>
-          </div>
-
           <div className="grid grid-cols-1 md:grid-cols-[1fr_1.2fr]">
             {/* Questions column */}
             <div className="border-b border-line p-5 md:border-b-0 md:border-r md:p-8">
@@ -232,7 +216,7 @@ export default function WizardDemo() {
               </div>
             </div>
           </div>
-        </div>
+        </MockupChrome>
       </div>
     </section>
   )
