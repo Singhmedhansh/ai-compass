@@ -53,3 +53,6 @@ data/tools_audit_proposal.json
 
 # Local dev runtime state
 data/stacks/
+
+# Local PR draft files
+PR_DESCRIPTION*.md
