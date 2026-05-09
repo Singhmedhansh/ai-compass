@@ -27,6 +27,14 @@
 	--shadow-md: 0 4px 14px rgba(15, 20, 17, 0.06), 0 1px 2px rgba(15, 20, 17, 0.04);
 	--shadow-lg: 0 24px 48px -16px rgba(15, 20, 17, 0.12), 0 2px 4px rgba(15, 20, 17, 0.04);
 	--shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+
+	/* Motion tokens (Phase K-2-1) */
+	--ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+	--ease-enter:    cubic-bezier(0, 0, 0.2, 1);
+	--ease-exit:     cubic-bezier(0.4, 0, 1, 1);
+	--motion-fast:   150ms;
+	--motion-base:   250ms;
+	--motion-slow:   400ms;
 }
 
 /* Design system tokens — dark mode (data-theme attribute) */
