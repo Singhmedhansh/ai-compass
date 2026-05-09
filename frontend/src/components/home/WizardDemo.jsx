@@ -1,5 +1,9 @@
 import { Link } from 'react-router-dom'
 
+import chatgptIcon from '../../assets/brand/chatgpt.svg'
+import claudeIcon from '../../assets/brand/claude.svg'
+import githubCopilotIcon from '../../assets/brand/github-copilot.svg'
+
 export default function WizardDemo() {
   return (
     <section id="wizard" className="py-12 md:py-20">
@@ -148,7 +152,12 @@ export default function WizardDemo() {
                   className="grid h-9 w-9 place-items-center rounded-lg text-sm font-bold text-white"
                   style={{ background: '#10A37F' }}
                 >
-                  G
+                  <img
+                    src={chatgptIcon}
+                    alt="ChatGPT"
+                    className="h-5 w-5"
+                    style={{ filter: 'brightness(0) invert(1)' }}
+                  />
                 </div>
                 <div>
                   <div className="flex items-baseline gap-2 text-sm font-semibold text-ink">
@@ -168,7 +177,12 @@ export default function WizardDemo() {
                   className="grid h-9 w-9 place-items-center rounded-lg text-sm font-bold text-white"
                   style={{ background: '#C96442' }}
                 >
-                  C
+                  <img
+                    src={claudeIcon}
+                    alt="Claude"
+                    className="h-5 w-5"
+                    style={{ filter: 'brightness(0) invert(1)' }}
+                  />
                 </div>
                 <div>
                   <div className="flex items-baseline gap-2 text-sm font-semibold text-ink">
@@ -188,7 +202,12 @@ export default function WizardDemo() {
                   className="grid h-9 w-9 place-items-center rounded-lg text-sm font-bold text-white"
                   style={{ background: '#1F2328' }}
                 >
-                  ⌘
+                  <img
+                    src={githubCopilotIcon}
+                    alt="GitHub Copilot"
+                    className="h-5 w-5"
+                    style={{ filter: 'brightness(0) invert(1)' }}
+                  />
                 </div>
                 <div>
                   <div className="flex items-baseline gap-2 text-sm font-semibold text-ink">
