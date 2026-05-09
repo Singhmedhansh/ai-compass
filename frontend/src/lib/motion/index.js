@@ -1,2 +1,14 @@
 export { easings, durations } from './easings'
-// variants.js + hooks.js exports added in K-2-2 and K-2-3
+export {
+  pageEnter,
+  sectionReveal,
+  staggerParent,
+  staggerChild,
+  cardHover,
+  modalBackdrop,
+  modalPanel,
+  wordmarkCollapse,
+  heroScaleOnReveal,
+  frostedDropdown,
+} from './variants'
+// hooks.js exports added in K-2-3
