@@ -8,8 +8,6 @@ __pycache__/
 *.egg
 *.egg-info/
 dist/
-!static/dist/
-!static/dist/**
 build/
 
 # Virtual environments
@@ -52,3 +50,6 @@ data/tools_audit_proposal.json
 
 # Backup files
 *.bak
+
+# Local dev runtime state
+data/stacks/

@@ -198,7 +198,7 @@ npm run dev
 
 Vite picks the first available port starting at 5173 (so subsequent dev servers fall back to 5174, 5175, etc.).
 
-7. Optional: build the React frontend bundle into `static/dist`.
+7. Build the React frontend bundle into `static/dist/` so Flask can serve it. Required after a fresh checkout; on Render this runs automatically via `build.sh` during deploy.
 
 ```sh
 cd frontend
