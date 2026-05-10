@@ -1,12 +1,15 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { useSearchParams } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import { SearchX } from 'lucide-react'
 import { Button, Card, Dropdown, SearchInput, SkeletonCard } from '../components/ui'
-import { sectionReveal, staggerParent, staggerChild } from '../lib/motion'
+import { drawerSlideUp, frostedDropdown, sectionReveal, staggerChild, staggerParent } from '../lib/motion'
 
 const MotionDiv = motion.div
+
+const FOCUSABLE_SELECTOR =
+  'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
 
 const CATEGORY_OPTIONS = ['All', 'Coding', 'Writing', 'Research', 'Productivity', 'Image Gen', 'Video Gen']
 const SORT_OPTIONS = [
@@ -78,6 +81,8 @@ function DirectoryPage() {
   const [searchQuery, setSearchQuery] = useState(initialQuery)
   const [showMobileFilters, setShowMobileFilters] = useState(false)
   const latestRequestIdRef = useRef(0)
+  const triggerRef = useRef(null)
+  const panelRef = useRef(null)
   const hasSearchQuery = queryFromParams.trim().length > 0
 
   useEffect(() => {
@@ -243,6 +248,44 @@ function DirectoryPage() {
     updateUrlParams('All', '')
   }
 
+  const closeDrawer = () => {
+    setShowMobileFilters(false)
+    triggerRef.current?.focus()
+  }
+
+  useEffect(() => {
+    if (!showMobileFilters) return undefined
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        closeDrawer()
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [showMobileFilters])
+
+  useEffect(() => {
+    if (!showMobileFilters || !panelRef.current) return
+    const focusable = panelRef.current.querySelectorAll(FOCUSABLE_SELECTOR)
+    focusable[0]?.focus()
+  }, [showMobileFilters])
+
+  const handlePanelKeyDown = (e) => {
+    if (e.key !== 'Tab') return
+    const focusable = panelRef.current?.querySelectorAll(FOCUSABLE_SELECTOR)
+    if (!focusable || focusable.length === 0) return
+    const first = focusable[0]
+    const last = focusable[focusable.length - 1]
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault()
+      last.focus()
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault()
+      first.focus()
+    }
+  }
+
   const trimmedSearchTerm = queryFromParams.trim()
   const hasFilter = category !== 'All'
   const displaySearchTerm = trimmedSearchTerm.length > 40
@@ -281,49 +324,82 @@ function DirectoryPage() {
         </span>
         {/* Mobile Filters Button */}
         <button
-          className="md:hidden ml-auto rounded-lg border border-line bg-bg-elev px-4 py-2 text-sm font-semibold text-ink-2 shadow-sm"
+          ref={triggerRef}
+          type="button"
+          aria-haspopup="dialog"
+          aria-expanded={showMobileFilters}
+          aria-controls="mobile-filters-drawer"
           onClick={() => setShowMobileFilters(true)}
+          className="md:hidden ml-auto rounded-xl border border-line bg-bg-elev px-4 py-2 text-sm font-semibold text-ink-2 shadow-sm"
         >
           Filters
         </button>
       </section>
 
       {/* Mobile Filter Drawer */}
-      {showMobileFilters && (
-        <div className="fixed inset-0 z-50 flex items-end md:hidden">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowMobileFilters(false)} />
-          <div className="relative w-full rounded-t-2xl bg-bg-elev p-6 shadow-2xl animate-slide-up">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-ink">Filters</h2>
-              <button className="text-2xl text-muted hover:text-ink" onClick={() => setShowMobileFilters(false)}>&times;</button>
-            </div>
-            <div className="mb-4">
-              <label className="block text-xs font-semibold mb-1 text-ink-2">Category</label>
-              <select
-                className="w-full rounded-lg border border-line bg-bg-elev p-2 text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent"
-                value={category}
-                onChange={e => handleCategoryChange(e.target.value)}
-              >
-                {CATEGORY_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-              </select>
-            </div>
-            <div className="mb-4">
-              <label className="block text-xs font-semibold mb-1 text-ink-2">Sort By</label>
-              <select
-                className="w-full rounded-lg border border-line bg-bg-elev p-2 text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent"
-                value={sortBy}
-                onChange={e => setSortBy(e.target.value)}
-              >
-                {SORT_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-              </select>
-            </div>
-            <div className="flex gap-2">
-              <Button variant="primary" className="flex-1 font-semibold" onClick={() => setShowMobileFilters(false)}>Apply</Button>
-              <Button variant="secondary" className="flex-1 font-semibold" onClick={handleReset}>Reset</Button>
-            </div>
-          </div>
-        </div>
-      )}
+      <AnimatePresence>
+        {showMobileFilters && (
+          <Fragment key="mobile-drawer">
+            <MotionDiv
+              key="mobile-drawer-backdrop"
+              variants={frostedDropdown}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              onClick={closeDrawer}
+              className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm md:hidden"
+            />
+            <MotionDiv
+              key="mobile-drawer-panel"
+              ref={panelRef}
+              variants={drawerSlideUp}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="mobile-filters-title"
+              id="mobile-filters-drawer"
+              onKeyDown={handlePanelKeyDown}
+              className="fixed bottom-0 left-0 right-0 z-50 rounded-t-2xl bg-bg-elev p-6 shadow-2xl md:hidden"
+            >
+              <div className="mb-4 flex items-center justify-between">
+                <h2 id="mobile-filters-title" className="text-lg font-bold text-ink">Filters</h2>
+                <button
+                  type="button"
+                  onClick={closeDrawer}
+                  aria-label="Close filters"
+                  className="text-2xl text-muted hover:text-ink"
+                >
+                  &times;
+                </button>
+              </div>
+              <div className="mb-4">
+                <label className="mb-1 block text-xs font-semibold text-ink-2">Category</label>
+                <Dropdown
+                  value={category}
+                  onChange={handleCategoryChange}
+                  options={CATEGORY_OPTIONS.map((c) => ({ value: c, label: c }))}
+                  label="Filter category"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="mb-1 block text-xs font-semibold text-ink-2">Sort By</label>
+                <Dropdown
+                  value={sortBy}
+                  onChange={setSortBy}
+                  options={SORT_OPTIONS}
+                  label="Sort tools"
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button variant="primary" className="flex-1 font-semibold" onClick={closeDrawer}>Apply</Button>
+                <Button variant="secondary" className="flex-1 font-semibold" onClick={() => { handleReset(); closeDrawer() }}>Reset</Button>
+              </div>
+            </MotionDiv>
+          </Fragment>
+        )}
+      </AnimatePresence>
 
       <section className="sticky top-16 z-20 mb-6 rounded-2xl border border-line bg-bg-elev/95 p-4 shadow-sm backdrop-blur hidden md:block">
         <div className="filters-row flex gap-2 overflow-x-auto pb-1">

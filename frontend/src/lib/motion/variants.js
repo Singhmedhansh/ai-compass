@@ -119,3 +119,16 @@ export const selectMenu = {
   animate: { opacity: 1, scale: 1, y: 0, transition: fastT },
   exit:    { opacity: 0, scale: 0.96, y: -4, transition: fastT },
 }
+
+// Bottom-anchored drawer/sheet panel — slides up from off-screen.
+// Distinct from modalPanel (which is small scale+slide for centered
+// modals). For mobile filter drawer + future bottom sheets. Consumer
+// positions the panel at its final resting place (e.g. fixed bottom-0)
+// and the y:'100%' transform pushes it off-screen below for entry/exit.
+//   <motion.div variants={drawerSlideUp} initial="initial"
+//               animate="animate" exit="exit" />
+export const drawerSlideUp = {
+  initial: { y: '100%' },
+  animate: { y: 0, transition: enterT },
+  exit:    { y: '100%', transition: exitT },
+}

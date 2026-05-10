@@ -10,6 +10,7 @@ export {
   wordmarkCollapse,
   heroScaleOnReveal,
   frostedDropdown,
+  drawerSlideUp,
 } from './variants'
 export {
   useScrollReveal,
