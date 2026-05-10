@@ -368,7 +368,9 @@ function ToolDetailPage() {
           <MotionDiv variants={sectionReveal} initial="initial" animate="animate">
             <RatingWidget slug={tool.slug} isLoggedIn={isLoggedIn} />
           </MotionDiv>
-          <ReviewsSection slug={tool.slug} isLoggedIn={isLoggedIn} />
+          <MotionDiv variants={sectionReveal} initial="initial" animate="animate">
+            <ReviewsSection slug={tool.slug} isLoggedIn={isLoggedIn} />
+          </MotionDiv>
         </div>
 
         <aside className="space-y-6 lg:sticky lg:top-24 lg:h-fit lg:w-80">
