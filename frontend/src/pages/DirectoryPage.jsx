@@ -1,8 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { useSearchParams } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import { SearchX } from 'lucide-react'
 import { Button, Card, Dropdown, SearchInput, SkeletonCard } from '../components/ui'
+import { sectionReveal, staggerParent, staggerChild } from '../lib/motion'
+
+const MotionDiv = motion.div
 
 const CATEGORY_OPTIONS = ['All', 'Coding', 'Writing', 'Research', 'Productivity', 'Image Gen', 'Video Gen']
 const SORT_OPTIONS = [
@@ -269,6 +273,7 @@ function DirectoryPage() {
         <title>AI Tools Directory | AI Compass</title>
         <meta name="description" content="Discover the best AI tools organized by category, rating, and logic." />
       </Helmet>
+      <MotionDiv variants={sectionReveal} initial="initial" animate="animate">
       <section className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-3xl font-bold tracking-tight text-ink sm:text-4xl">AI Tools Directory</h1>
         <span className="text-sm font-medium tabular-nums text-muted">
@@ -359,6 +364,7 @@ function DirectoryPage() {
           />
         </div>
       </section>
+      </MotionDiv>
 
       {error && <p className="text-danger">{error}</p>}
 
@@ -371,11 +377,23 @@ function DirectoryPage() {
       )}
 
       {!isLoading && !error && filteredTools.length > 0 && (
-        <div className="tools-grid grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredTools.map((tool) => (
-            <Card key={tool.slug || tool.name} tool={tool} />
+        <MotionDiv
+          key={`${category}-${sortBy}-${queryFromParams}`}
+          variants={staggerParent}
+          initial="initial"
+          animate="animate"
+          className="tools-grid grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
+        >
+          {filteredTools.map((tool, i) => (
+            <MotionDiv
+              key={tool.slug || tool.name}
+              variants={staggerChild}
+              custom={Math.min(i, 11) * 0.04}
+            >
+              <Card tool={tool} />
+            </MotionDiv>
           ))}
-        </div>
+        </MotionDiv>
       )}
 
       {!isLoading && !error && filteredTools.length === 0 && (

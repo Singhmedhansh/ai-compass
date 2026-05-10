@@ -32,22 +32,28 @@ export const sectionReveal = {
   animate: { opacity: 1, y: 0, transition: slowEnterT },
 }
 
-// List cascades — parent orchestrator + child item.
-// <motion.ul variants={staggerParent} initial="initial" animate="animate">
-//   {items.map(i => <motion.li key={i.id} variants={staggerChild}>...</motion.li>)}
-// </motion.ul>
+// List cascades — semantic state propagator + per-child custom delay.
+// Parent only propagates initial→animate to children; consumers compute
+// delay (seconds) and pass via `custom` on each child. Lets consumers
+// cap or shape the cascade however they need (e.g., DirectoryPage caps
+// at index 11 so a 443-card list doesn't waterfall for 17s).
+//   <motion.div variants={staggerParent} initial="initial" animate="animate">
+//     {items.map((item, i) => (
+//       <motion.div key={item.id} variants={staggerChild}
+//                   custom={Math.min(i, 11) * 0.04}>...</motion.div>
+//     ))}
+//   </motion.div>
 export const staggerParent = {
   initial: {},
-  animate: {
-    transition: {
-      staggerChildren: 0.08,
-      delayChildren: 0.05,
-    },
-  },
+  animate: {},
 }
 export const staggerChild = {
   initial: { opacity: 0, y: 16 },
-  animate: { opacity: 1, y: 0, transition: enterT },
+  animate: (delay = 0) => ({
+    opacity: 1,
+    y: 0,
+    transition: { ...enterT, delay },
+  }),
 }
 
 // Card hover-lift. Alternative to inline CSS transition-all
