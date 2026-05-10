@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { Star } from 'lucide-react'
 
 export default function RatingWidget({ slug, isLoggedIn }) {
   const [ratingData, setRatingData] = useState({
@@ -8,6 +9,10 @@ export default function RatingWidget({ slug, isLoggedIn }) {
   })
   const [hovered, setHovered] = useState(0)
   const [message, setMessage] = useState('')
+  const [isLoading, setIsLoading] = useState(true)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false)
+  const loginCtaRef = useRef(null)
   const API = import.meta.env.VITE_API_URL || ''
 
   const calculateNewAverage = (prevAverage, prevCount, oldRating, newRating, wasNewRating) => {
@@ -48,6 +53,10 @@ export default function RatingWidget({ slug, isLoggedIn }) {
         if (active) {
           setMessage('Unable to load ratings right now.')
         }
+      } finally {
+        if (active) {
+          setIsLoading(false)
+        }
       }
     }
 
@@ -58,12 +67,19 @@ export default function RatingWidget({ slug, isLoggedIn }) {
     }
   }, [API, slug])
 
+  useEffect(() => {
+    if (!showLoginPrompt) return undefined
+    const id = setTimeout(() => loginCtaRef.current?.focus(), 0)
+    return () => clearTimeout(id)
+  }, [showLoginPrompt])
+
   const handleRate = async (value) => {
     if (!isLoggedIn) {
-      alert('Please log in to rate this tool')
+      setShowLoginPrompt(true)
       return
     }
 
+    setIsSubmitting(true)
     try {
       const response = await fetch(`${API}/api/v1/tools/${slug}/ratings`, {
         method: 'POST',
@@ -95,6 +111,8 @@ export default function RatingWidget({ slug, isLoggedIn }) {
       }
     } catch {
       setMessage('Unable to submit rating right now.')
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -103,33 +121,83 @@ export default function RatingWidget({ slug, isLoggedIn }) {
   return (
     <div className="rounded-2xl border border-line bg-bg-elev p-6">
       <h2 className="text-lg font-semibold text-ink">Community Rating</h2>
-      <div className="mt-4 flex items-center gap-1">
-        {[1, 2, 3, 4, 5].map((star) => (
-          <span
-            key={star}
-            className={star <= activeValue ? 'text-amber-400' : 'text-line-strong'}
-            style={{ cursor: isLoggedIn ? 'pointer' : 'default', fontSize: 24 }}
-            onMouseEnter={() => isLoggedIn && setHovered(star)}
-            onMouseLeave={() => setHovered(0)}
-            onClick={() => handleRate(star)}
-          >
-            ★
-          </span>
-        ))}
-      </div>
 
-      {ratingData.count > 0 ? (
-        <p className="mt-2 text-sm text-muted">
-          {ratingData.average.toFixed(1)}★ out of 5 · {ratingData.count} rating{ratingData.count !== 1 ? 's' : ''}
-        </p>
+      {isLoading ? (
+        <>
+          <div className="mt-4 flex animate-pulse items-center gap-1">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <Star key={`skeleton-star-${star}`} className="h-6 w-6 text-line" fill="none" />
+            ))}
+          </div>
+          <div className="mt-2 h-4 w-32 animate-pulse rounded bg-line" />
+        </>
       ) : (
-        <p className="mt-2 text-sm text-muted">{message || 'Be the first to rate this tool!'}</p>
-      )}
+        <>
+          <div className="mt-4 flex items-center gap-1">
+            {[1, 2, 3, 4, 5].map((star) => {
+              const isFilled = star <= activeValue
+              return (
+                <button
+                  key={star}
+                  type="button"
+                  aria-label={`Rate ${star} ${star === 1 ? 'star' : 'stars'}`}
+                  disabled={isSubmitting}
+                  onMouseEnter={() => isLoggedIn && !isSubmitting && setHovered(star)}
+                  onMouseLeave={() => setHovered(0)}
+                  onClick={() => handleRate(star)}
+                  className="cursor-pointer rounded-md p-1 outline-none transition focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  <Star
+                    className={`h-6 w-6 ${isFilled ? 'text-amber-400' : 'text-line-strong'}`}
+                    fill={isFilled ? 'currentColor' : 'none'}
+                  />
+                </button>
+              )
+            })}
+          </div>
 
-      {!isLoggedIn && (
-        <p className="mt-2 text-sm text-muted">
-          <a href="/login" className="text-accent hover:underline">Log in</a> to rate this tool
-        </p>
+          {ratingData.count > 0 ? (
+            <p className="mt-2 text-sm text-muted">
+              <span className="inline-flex items-center gap-1">
+                {ratingData.average.toFixed(1)}
+                <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+              </span>
+              {' '}out of 5 · {ratingData.count} rating{ratingData.count !== 1 ? 's' : ''}
+            </p>
+          ) : (
+            <p className="mt-2 text-sm text-muted">{message || 'Be the first to rate this tool!'}</p>
+          )}
+
+          {showLoginPrompt ? (
+            <div className="mt-4 rounded-xl border border-accent bg-accent-soft p-3 text-sm">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <p className="font-medium text-accent-ink">Log in to rate this tool</p>
+                <button
+                  type="button"
+                  className="self-start rounded text-xs font-semibold text-accent-ink outline-none transition hover:underline focus-visible:ring-2 focus-visible:ring-accent"
+                  onClick={() => setShowLoginPrompt(false)}
+                >
+                  Close
+                </button>
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <a
+                  ref={loginCtaRef}
+                  href="/login"
+                  className="rounded-lg bg-accent px-3 py-1.5 text-xs font-semibold text-bg outline-none transition hover:opacity-90 focus-visible:ring-2 focus-visible:ring-accent"
+                >
+                  Log In
+                </a>
+                <a
+                  href="/register"
+                  className="rounded-lg border border-accent px-3 py-1.5 text-xs font-semibold text-accent-ink outline-none transition hover:bg-bg-elev focus-visible:ring-2 focus-visible:ring-accent"
+                >
+                  Register Free
+                </a>
+              </div>
+            </div>
+          ) : null}
+        </>
       )}
     </div>
   )

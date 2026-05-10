@@ -365,7 +365,9 @@ function ToolDetailPage() {
           </section>
           </MotionDiv>
 
-          <RatingWidget slug={tool.slug} isLoggedIn={isLoggedIn} />
+          <MotionDiv variants={sectionReveal} initial="initial" animate="animate">
+            <RatingWidget slug={tool.slug} isLoggedIn={isLoggedIn} />
+          </MotionDiv>
           <ReviewsSection slug={tool.slug} isLoggedIn={isLoggedIn} />
         </div>
 
