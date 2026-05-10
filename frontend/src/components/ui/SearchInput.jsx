@@ -34,7 +34,7 @@ function SearchInput({
         onKeyDown={onKeyDown}
         placeholder={placeholder}
         style={style}
-        className="h-10 w-full rounded-xl border border-line-strong bg-bg-elev pl-10 pr-10 text-sm text-ink placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent"
+        className="h-10 w-full rounded-xl border border-line bg-bg-elev pl-10 pr-10 text-sm text-ink outline-none transition placeholder:text-muted hover:border-line-strong focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent"
       />
 
       {hasValue && (

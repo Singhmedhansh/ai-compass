@@ -247,8 +247,8 @@ function DirectoryPage() {
         <meta name="description" content="Discover the best AI tools organized by category, rating, and logic." />
       </Helmet>
       <section className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-3xl font-bold tracking-tight text-ink">AI Tools Directory</h1>
-        <span className="inline-flex items-center rounded-full border border-line bg-bg-elev px-3 py-1 text-sm font-semibold text-ink-2">
+        <h1 className="text-3xl font-bold tracking-tight text-ink sm:text-4xl">AI Tools Directory</h1>
+        <span className="text-sm font-medium tabular-nums text-muted">
           {isLoading ? 'Loading...' : `${filteredTools.length} tools`}
         </span>
         {/* Mobile Filters Button */}
@@ -307,7 +307,7 @@ function DirectoryPage() {
                 key={option}
                 type="button"
                 onClick={() => handleCategoryChange(option)}
-                className={`rounded-full border px-3 py-1.5 text-sm font-semibold transition ${
+                className={`rounded-full border px-3 py-1.5 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
                   active
                     ? 'border-accent bg-accent-soft text-accent-ink'
                     : 'border-transparent bg-bg-sunk text-ink-2 hover:bg-bg-elev'
