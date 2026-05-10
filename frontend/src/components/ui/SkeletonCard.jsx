@@ -4,7 +4,7 @@ function SkeletonCard() {
       <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/5 to-transparent dark:via-white/10" />
       <div className="relative flex w-full flex-col gap-4">
         <div className="flex items-start gap-3">
-          <div className="h-12 w-12 shrink-0 rounded-full bg-bg-sunk" />
+          <div className="h-12 w-12 shrink-0 rounded-xl bg-bg-sunk" />
 
           <div className="min-w-0 flex-1">
             <div className="h-5 w-2/3 rounded bg-bg-sunk" />

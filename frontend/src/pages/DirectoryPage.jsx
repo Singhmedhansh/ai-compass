@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { useSearchParams } from 'react-router-dom'
-import { Button, Card, Dropdown, SearchInput } from '../components/ui'
+import { SearchX } from 'lucide-react'
+import { Button, Card, Dropdown, SearchInput, SkeletonCard } from '../components/ui'
 
 const CATEGORY_OPTIONS = ['All', 'Coding', 'Writing', 'Research', 'Productivity', 'Image Gen', 'Video Gen']
 const SORT_OPTIONS = [
@@ -238,6 +239,28 @@ function DirectoryPage() {
     updateUrlParams('All', '')
   }
 
+  const trimmedSearchTerm = queryFromParams.trim()
+  const hasFilter = category !== 'All'
+  const displaySearchTerm = trimmedSearchTerm.length > 40
+    ? `${trimmedSearchTerm.slice(0, 40)}…`
+    : trimmedSearchTerm
+
+  let emptyHeading
+  let emptyBody
+  if (hasSearchQuery && hasFilter) {
+    emptyHeading = `No ${category} tools match "${displaySearchTerm}"`
+    emptyBody = 'Try a different category or rephrase your search.'
+  } else if (hasSearchQuery) {
+    emptyHeading = `No tools match "${displaySearchTerm}"`
+    emptyBody = 'Try a different search term, or browse by category.'
+  } else if (hasFilter) {
+    emptyHeading = `No tools in ${category} yet`
+    emptyBody = 'Try a different category, or reset to see all tools.'
+  } else {
+    emptyHeading = 'No tools found'
+    emptyBody = 'Try resetting the filters.'
+  }
+
   return (
     <div
       className="container main-content mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8"
@@ -337,26 +360,35 @@ function DirectoryPage() {
         </div>
       </section>
 
-      {isLoading && <p className="text-muted">Loading tools...</p>}
       {error && <p className="text-danger">{error}</p>}
 
-      {!isLoading && !error && filteredTools.length > 0 ? (
+      {!error && isLoading && (
+        <div className="tools-grid grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <SkeletonCard key={`directory-skeleton-${i}`} />
+          ))}
+        </div>
+      )}
+
+      {!isLoading && !error && filteredTools.length > 0 && (
         <div className="tools-grid grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {filteredTools.map((tool) => (
             <Card key={tool.slug || tool.name} tool={tool} />
           ))}
         </div>
-      ) : null}
+      )}
 
       {!isLoading && !error && filteredTools.length === 0 && (
-        <section className="rounded-2xl border border-dashed border-line-strong bg-bg-sunk px-6 py-14 text-center">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-line bg-bg-elev text-3xl shadow-sm" aria-hidden="true">
-            🔎
+        <section
+          role="status"
+          aria-live="polite"
+          className="rounded-2xl border border-line bg-bg-sunk px-6 py-16 text-center"
+        >
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-line bg-bg-elev shadow-sm" aria-hidden="true">
+            <SearchX className="h-7 w-7 text-muted" />
           </div>
-          <h2 className="mt-5 text-xl font-semibold text-ink">No tools found for this filter</h2>
-          <p className="mt-2 text-sm text-muted">
-            Try a broader category, clear the search term, or reset all filters.
-          </p>
+          <h2 className="mt-5 text-xl font-semibold text-ink">{emptyHeading}</h2>
+          <p className="mt-2 text-sm text-muted">{emptyBody}</p>
           <div className="mt-6">
             <Button variant="secondary" onClick={handleReset}>
               Reset filters
