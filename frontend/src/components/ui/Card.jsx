@@ -51,7 +51,7 @@ function Card({ tool = {} }) {
       whileHover={{ y: -4, boxShadow: 'var(--shadow-lg)' }}
       whileTap={{ scale: 0.98 }}
       transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-      className="group flex w-full flex-col gap-4 rounded-2xl border border-line bg-bg-elev p-4 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-accent hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+      className="group flex w-full flex-col gap-4 rounded-2xl border border-line bg-bg-elev p-4 text-left shadow-sm transition-all hover:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
     >
       <div className="flex items-start gap-3">
         <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden" aria-hidden="true">
