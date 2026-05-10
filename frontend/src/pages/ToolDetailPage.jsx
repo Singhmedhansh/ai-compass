@@ -1,11 +1,15 @@
 import clsx from 'clsx'
-import { Heart, Star } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { AlertTriangle, Heart, Star } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import RatingWidget from '../components/ui/RatingWidget'
 import ReviewsSection from '../components/ui/ReviewsSection'
-import { Badge, Button, ToolLogo } from '../components/ui'
+import { Badge, Button, SkeletonToolDetail, ToolLogo } from '../components/ui'
+import { sectionReveal, staggerChild, staggerParent } from '../lib/motion'
+
+const MotionDiv = motion.div
 
 const pricingBadgeClasses = {
   free: 'bg-accent-soft text-accent-ink',
@@ -263,16 +267,28 @@ function ToolDetailPage() {
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       {loading ? (
-        <div className="rounded-2xl border border-line bg-bg-elev p-6 text-muted">
-          Loading tool details...
-        </div>
+        <SkeletonToolDetail />
       ) : error || !tool ? (
-        <div className="rounded-2xl border border-danger bg-danger-soft p-6 text-danger">
-          {error || 'Tool not found.'}
-        </div>
+        <section
+          role="alert"
+          className="rounded-2xl border border-line bg-bg-sunk px-6 py-16 text-center"
+        >
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-line bg-bg-elev shadow-sm" aria-hidden="true">
+            <AlertTriangle className="h-7 w-7 text-danger" />
+          </div>
+          <h2 className="mt-5 text-xl font-semibold text-ink">Couldn't load this tool</h2>
+          <p className="mt-2 text-sm text-muted">
+            The tool data couldn't be retrieved. Try refreshing, or browse the directory.
+          </p>
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
+            <Button variant="primary" onClick={() => window.location.reload()}>Retry</Button>
+            <Button variant="secondary" onClick={() => navigate('/tools')}>Browse all tools</Button>
+          </div>
+        </section>
       ) : (
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div className="flex-1 space-y-6">
+          <MotionDiv variants={sectionReveal} initial="initial" animate="animate">
           <section className="rounded-2xl border border-line bg-bg-elev p-6 shadow-lg">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
               <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-bg-sunk">
@@ -280,7 +296,7 @@ function ToolDetailPage() {
               </div>
 
               <div className="min-w-0 flex-1">
-                <h1 className="text-2xl font-bold text-ink">{tool.name}</h1>
+                <h1 className="text-2xl font-bold tracking-tight text-ink sm:text-3xl lg:text-4xl">{tool.name}</h1>
                 <div className="mt-3 flex flex-wrap items-center gap-2">
                   <Badge label={tool.category} variant={tool.category} />
                   <span
@@ -340,17 +356,21 @@ function ToolDetailPage() {
               )}
             </div>
           </section>
+          </MotionDiv>
 
+          <MotionDiv variants={sectionReveal} initial="initial" animate="animate">
           <section className="rounded-2xl border border-line bg-bg-elev p-6">
             <h2 className="text-lg font-semibold text-ink">About this tool</h2>
             <p className="mt-3 leading-relaxed text-ink-2">{tool.description}</p>
           </section>
+          </MotionDiv>
 
           <RatingWidget slug={tool.slug} isLoggedIn={isLoggedIn} />
           <ReviewsSection slug={tool.slug} isLoggedIn={isLoggedIn} />
         </div>
 
         <aside className="space-y-6 lg:sticky lg:top-24 lg:h-fit lg:w-80">
+          <MotionDiv variants={sectionReveal} initial="initial" animate="animate">
           <section className="rounded-2xl border border-line bg-bg-elev p-5">
             <h3 className="text-base font-semibold text-ink">Quick info</h3>
             <dl className="mt-4 space-y-3 text-sm">
@@ -387,23 +407,33 @@ function ToolDetailPage() {
               </div>
             </dl>
           </section>
+          </MotionDiv>
 
+          <MotionDiv variants={sectionReveal} initial="initial" animate="animate">
           <section className="rounded-2xl border border-line bg-bg-elev p-5">
             <h3 className="text-base font-semibold text-ink">Related Tools</h3>
 
             {relatedTools.length === 0 ? (
               <p className="mt-3 text-sm text-muted">No related tools found.</p>
             ) : (
-              <div className="mt-4 space-y-3">
-                {relatedTools.map((relatedTool) => {
-                  return (
+              <MotionDiv
+                variants={staggerParent}
+                initial="initial"
+                animate="animate"
+                className="mt-4 space-y-3"
+              >
+                {relatedTools.map((relatedTool, i) => (
+                  <MotionDiv
+                    key={relatedTool.slug}
+                    variants={staggerChild}
+                    custom={Math.min(i, 5) * 0.04}
+                  >
                     <button
-                      key={relatedTool.slug}
                       type="button"
                       onClick={() => navigate(`/tools/${relatedTool.slug}`)}
-                      className="flex w-full items-center gap-3 rounded-xl border border-line bg-bg-elev p-3 text-left transition hover:border-accent hover:bg-bg-sunk"
+                      className="flex w-full items-center gap-3 rounded-xl border border-line bg-bg-elev p-3 text-left transition hover:border-accent hover:bg-bg-sunk focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                     >
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-bg-sunk">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-bg-sunk">
                         <ToolLogo tool={relatedTool} size={40} />
                       </div>
                       <div className="min-w-0 flex-1">
@@ -411,11 +441,12 @@ function ToolDetailPage() {
                         <div className="mt-1 flex items-center gap-0.5">{buildStarNodes(relatedTool.rating, 'h-3.5 w-3.5')}</div>
                       </div>
                     </button>
-                  )
-                })}
-              </div>
+                  </MotionDiv>
+                ))}
+              </MotionDiv>
             )}
           </section>
+          </MotionDiv>
         </aside>
         </div>
       )}
