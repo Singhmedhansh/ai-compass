@@ -101,3 +101,15 @@ export const frostedDropdown = {
   animate: { opacity: 1, transition: standardT },
   exit:    { opacity: 0, transition: standardT },
 }
+
+// Select-style dropdown menu — small scale + y-offset enter from top.
+// Distinct from frostedDropdown (which is the backdrop layer for
+// modals/drawers). Consumer applies transformOrigin via inline style
+// so the menu scales from the corner anchored to its trigger.
+//   <motion.div variants={selectMenu} initial="initial" animate="animate"
+//               exit="exit" style={{ transformOrigin: 'top center' }} />
+export const selectMenu = {
+  initial: { opacity: 0, scale: 0.96, y: -4 },
+  animate: { opacity: 1, scale: 1, y: 0, transition: fastT },
+  exit:    { opacity: 0, scale: 0.96, y: -4, transition: fastT },
+}

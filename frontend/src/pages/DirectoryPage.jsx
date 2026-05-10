@@ -1,10 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { useSearchParams } from 'react-router-dom'
-import { Button, Card, SearchInput } from '../components/ui'
+import { Button, Card, Dropdown, SearchInput } from '../components/ui'
 
 const CATEGORY_OPTIONS = ['All', 'Coding', 'Writing', 'Research', 'Productivity', 'Image Gen', 'Video Gen']
-const SORT_OPTIONS = ['Trending', 'Newest', 'Top Rated', 'Free First']
+const SORT_OPTIONS = [
+  { value: 'Trending',   label: 'Trending' },
+  { value: 'Newest',     label: 'Newest' },
+  { value: 'Top Rated',  label: 'Top Rated' },
+  { value: 'Free First', label: 'Free First' },
+]
 
 const CATEGORY_FILTER_MAP = {
   Writing: 'Writing & Chat',
@@ -281,7 +286,7 @@ function DirectoryPage() {
                 value={sortBy}
                 onChange={e => setSortBy(e.target.value)}
               >
-                {SORT_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                {SORT_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
               </select>
             </div>
             <div className="flex gap-2">
@@ -315,18 +320,12 @@ function DirectoryPage() {
         </div>
 
         <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-[180px_1fr]">
-          <select
+          <Dropdown
             value={sortBy}
-            onChange={(event) => setSortBy(event.target.value)}
-            className="h-10 rounded-xl border border-line bg-bg-elev px-3 text-sm text-ink outline-none transition focus:border-accent focus:ring-2 focus:ring-accent"
-            aria-label="Sort tools"
-          >
-            {SORT_OPTIONS.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
+            onChange={setSortBy}
+            options={SORT_OPTIONS}
+            label="Sort tools"
+          />
 
           <SearchInput
             value={searchQuery}
