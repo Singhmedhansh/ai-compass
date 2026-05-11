@@ -240,7 +240,101 @@
       "Artifact creation",
       "Deep reasoning"
     ],
-    "slug": "claude"
+    "slug": "claude",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-11",
+      "source_url": "https://claude.com/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/month",
+          "features": [
+            "Web, iOS, Android, and desktop access",
+            "Text, image, and code generation",
+            "Web search and desktop extensions",
+            "Rolling 5-hour usage window"
+          ],
+          "cta_label": "Try Free",
+          "cta_url": "https://claude.com"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 20,
+          "price_display": "$20/month",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "Claude Opus 4.7 and Sonnet 4.6 access",
+            "Claude Code in the terminal",
+            "File creation and code execution",
+            "Unlimited Projects",
+            "Google Workspace integration",
+            "Remote MCP connectors",
+            "~5x more usage than Free"
+          ],
+          "cta_label": "Get Pro",
+          "cta_url": "https://claude.com/pricing"
+        },
+        {
+          "name": "Max 5x",
+          "price_amount": 100,
+          "price_display": "$100/month",
+          "features": [
+            "Everything in Pro",
+            "5x more usage than Pro",
+            "Priority access to new features",
+            "1M token context in Claude Code"
+          ],
+          "cta_label": "Get Max 5x",
+          "cta_url": "https://claude.com/pricing"
+        },
+        {
+          "name": "Max 20x",
+          "price_amount": 200,
+          "price_display": "$200/month",
+          "features": [
+            "Everything in Pro",
+            "20x more usage than Pro",
+            "Priority access to new models",
+            "Maximum agentic capacity for full-day workflows"
+          ],
+          "cta_label": "Get Max 20x",
+          "cta_url": "https://claude.com/pricing"
+        },
+        {
+          "name": "Team",
+          "price_amount": 25,
+          "price_display": "$25/user/month",
+          "features": [
+            "Annual billing (or $30/user/month monthly)",
+            "Central billing and SSO",
+            "Slack and Microsoft 365 integrations",
+            "1.25x more usage per session than Pro",
+            "Minimum 5 seats",
+            "Premium dev seats with Claude Code at $100/user/month"
+          ],
+          "cta_label": "Try Team",
+          "cta_url": "https://claude.com/pricing"
+        },
+        {
+          "name": "Enterprise",
+          "price_amount": null,
+          "price_display": "Contact Sales",
+          "features": [
+            "Custom pricing and SLA",
+            "500K context window",
+            "HIPAA readiness",
+            "SAML SSO and domain capture",
+            "Spend controls and dedicated support",
+            "Training disabled by default"
+          ],
+          "cta_label": "Contact Sales",
+          "cta_url": "https://claude.com/enterprise"
+        }
+      ]
+    }
   },
   {
     "id": 3,
@@ -383,7 +477,78 @@
       "Smart autofill",
       "Template gallery"
     ],
-    "slug": "notion-ai"
+    "slug": "notion-ai",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-11",
+      "source_url": "https://www.notion.com/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/month",
+          "features": [
+            "Unlimited pages and blocks",
+            "Up to 10 guests",
+            "7-day page history",
+            "5 MB file upload limit",
+            "No Notion AI (trial only)"
+          ],
+          "cta_label": "Try Free",
+          "cta_url": "https://www.notion.com/signup"
+        },
+        {
+          "name": "Plus",
+          "price_amount": 10,
+          "price_display": "$10/user/month",
+          "features": [
+            "Unlimited file uploads (5 GB per file)",
+            "Up to 100 guests",
+            "30-day page history",
+            "Notion Sites",
+            "Annual billing ($12/user/month monthly)",
+            "No Notion AI for new subscribers"
+          ],
+          "cta_label": "Get Plus",
+          "cta_url": "https://www.notion.com/pricing"
+        },
+        {
+          "name": "Business",
+          "price_amount": 20,
+          "price_display": "$20/user/month",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "Full Notion AI suite (Agent, Ask Notion)",
+            "AI Meeting Notes",
+            "Enterprise Search across connected apps",
+            "Private teamspaces",
+            "90-day page history",
+            "SAML SSO",
+            "Up to 250 guests",
+            "Annual billing ($24/user/month monthly)"
+          ],
+          "cta_label": "Try Business",
+          "cta_url": "https://www.notion.com/pricing"
+        },
+        {
+          "name": "Enterprise",
+          "price_amount": null,
+          "price_display": "Contact Sales",
+          "features": [
+            "Everything in Business",
+            "SCIM user provisioning",
+            "Unlimited page history",
+            "Audit logs",
+            "Advanced security and DLP",
+            "Dedicated Customer Success Manager",
+            "Zero data retention with LLM providers"
+          ],
+          "cta_label": "Contact Sales",
+          "cta_url": "https://www.notion.com/contact-sales"
+        }
+      ]
+    }
   },
   {
     "id": 5,
@@ -518,7 +683,87 @@
       "Multi-language support",
       "VS Code integration"
     ],
-    "slug": "github-copilot"
+    "slug": "github-copilot",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-11",
+      "source_url": "https://github.com/features/copilot/plans",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/month",
+          "features": [
+            "Limited code completions and chat",
+            "50 premium requests per month",
+            "2,000 completions per month",
+            "VS Code, JetBrains, Neovim support"
+          ],
+          "cta_label": "Try Free",
+          "cta_url": "https://github.com/features/copilot/plans"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 10,
+          "price_display": "$10/month",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "Unlimited code completions",
+            "300 premium requests per month",
+            "Multi-model access (GPT-5, Claude, Gemini)",
+            "Agent mode and code review",
+            "$10/month AI Credits from June 2026",
+            "Annual billing at $100/year"
+          ],
+          "cta_label": "Get Pro",
+          "cta_url": "https://github.com/features/copilot/plans"
+        },
+        {
+          "name": "Pro+",
+          "price_amount": 39,
+          "price_display": "$39/month",
+          "features": [
+            "Everything in Pro",
+            "1,500 premium requests per month",
+            "Claude Opus 4.6 and o3 access",
+            "GPT-5.4 nano in Codex (VS Code)",
+            "$39/month AI Credits from June 2026"
+          ],
+          "cta_label": "Get Pro+",
+          "cta_url": "https://github.com/features/copilot/plans"
+        },
+        {
+          "name": "Business",
+          "price_amount": 19,
+          "price_display": "$19/user/month",
+          "features": [
+            "Organization license management",
+            "SAML SSO and audit logs",
+            "Policy controls (public code matching, proxy)",
+            "IP indemnity",
+            "Pooled AI Credits across the org",
+            "Premium request overflow at $0.04/request"
+          ],
+          "cta_label": "Try Business",
+          "cta_url": "https://github.com/features/copilot/plans"
+        },
+        {
+          "name": "Enterprise",
+          "price_amount": 39,
+          "price_display": "$39/user/month",
+          "features": [
+            "Everything in Business",
+            "Codebase indexing for tailored suggestions",
+            "GitHub.com Chat integration",
+            "Custom fine-tuned models",
+            "Requires GitHub Enterprise Cloud"
+          ],
+          "cta_label": "Contact Sales",
+          "cta_url": "https://github.com/features/copilot/plans"
+        }
+      ]
+    }
   },
   {
     "id": 7,
@@ -585,7 +830,96 @@
       "Multi-file edits",
       "Terminal integration"
     ],
-    "slug": "cursor"
+    "slug": "cursor",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-11",
+      "source_url": "https://cursor.com/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Hobby",
+          "price_amount": 0,
+          "price_display": "$0/month",
+          "features": [
+            "Limited Agent requests",
+            "Limited Tab completions",
+            "Full VS Code-based editor",
+            "All extensions and themes",
+            "No credit card required"
+          ],
+          "cta_label": "Try Hobby",
+          "cta_url": "https://cursor.com/pricing"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 20,
+          "price_display": "$20/month",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "Unlimited Tab completions",
+            "Extended Agent request limits",
+            "$20/month credit pool for premium models",
+            "Frontier model access (GPT-5, Claude, Gemini)",
+            "MCPs, skills, and hooks",
+            "Cloud agents"
+          ],
+          "cta_label": "Get Pro",
+          "cta_url": "https://cursor.com/pricing"
+        },
+        {
+          "name": "Pro+",
+          "price_amount": 60,
+          "price_display": "$60/month",
+          "features": [
+            "Everything in Pro",
+            "3x usage on OpenAI, Claude, Gemini models",
+            "Recommended for heavy daily users"
+          ],
+          "cta_label": "Get Pro+",
+          "cta_url": "https://cursor.com/pricing"
+        },
+        {
+          "name": "Ultra",
+          "price_amount": 200,
+          "price_display": "$200/month",
+          "features": [
+            "Everything in Pro",
+            "20x usage on OpenAI, Claude, Gemini models",
+            "Priority access to new features",
+            "Heaviest agentic workflow support"
+          ],
+          "cta_label": "Get Ultra",
+          "cta_url": "https://cursor.com/pricing"
+        },
+        {
+          "name": "Teams",
+          "price_amount": 40,
+          "price_display": "$40/user/month",
+          "features": [
+            "Pro-equivalent AI access",
+            "Admin console and centralized billing",
+            "Shared team rules",
+            "Organization-level features"
+          ],
+          "cta_label": "Try Teams",
+          "cta_url": "https://cursor.com/pricing"
+        },
+        {
+          "name": "Enterprise",
+          "price_amount": null,
+          "price_display": "Contact Sales",
+          "features": [
+            "Custom pricing",
+            "Enterprise-grade security",
+            "Dedicated support",
+            "Advanced compliance"
+          ],
+          "cta_label": "Contact Sales",
+          "cta_url": "https://cursor.com/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 8,
@@ -859,7 +1193,92 @@
       "Academic mode",
       "Follow-up questions"
     ],
-    "slug": "perplexity-ai"
+    "slug": "perplexity-ai",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-11",
+      "source_url": "https://www.perplexity.ai/pro",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/month",
+          "features": [
+            "~5 Pro searches per day",
+            "Basic models with citations",
+            "File uploads (small daily cap)",
+            "Web, iOS, Android, Mac, Windows access"
+          ],
+          "cta_label": "Try Free",
+          "cta_url": "https://perplexity.ai"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 20,
+          "price_display": "$20/month",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "Unlimited Pro searches",
+            "Multi-model access (GPT-5, Claude 4.5 Sonnet, Gemini)",
+            "20 research queries per day",
+            "50 Labs queries per month",
+            "3 video generations per month",
+            "Up to 50 file uploads",
+            "$5/month API credits included"
+          ],
+          "cta_label": "Get Pro",
+          "cta_url": "https://www.perplexity.ai/pro"
+        },
+        {
+          "name": "Max",
+          "price_amount": 200,
+          "price_display": "$200/month",
+          "features": [
+            "Everything in Pro",
+            "Unlimited research and Labs queries",
+            "Perplexity Computer (cloud AI agent)",
+            "10,000 monthly credits",
+            "Advanced models (Opus 4.6, GPT-5.2)",
+            "Sora 2 Pro video generation",
+            "Comet AI browser"
+          ],
+          "cta_label": "Get Max",
+          "cta_url": "https://www.perplexity.ai/pro"
+        },
+        {
+          "name": "Enterprise Pro",
+          "price_amount": 40,
+          "price_display": "$40/seat/month",
+          "features": [
+            "Everything in Pro for teams",
+            "500 research queries per day",
+            "Unlimited teammates",
+            "Shared Spaces collaboration",
+            "SSO and SCIM",
+            "SOC 2 compliance",
+            "$400/seat/year annual"
+          ],
+          "cta_label": "Try Enterprise",
+          "cta_url": "https://www.perplexity.ai/enterprise"
+        },
+        {
+          "name": "Enterprise Max",
+          "price_amount": 325,
+          "price_display": "$325/seat/month",
+          "features": [
+            "Everything in Enterprise Pro",
+            "Unlimited research and Labs queries",
+            "o3-pro and Opus 4.1 Thinking access",
+            "15 high-quality videos per month with audio",
+            "Audit logs and data retention controls",
+            "$3,250/seat/year annual"
+          ],
+          "cta_label": "Contact Sales",
+          "cta_url": "https://www.perplexity.ai/enterprise"
+        }
+      ]
+    }
   },
   {
     "id": 12,
@@ -1870,7 +2289,73 @@
       "Upscaling",
       "Variation generation"
     ],
-    "slug": "midjourney"
+    "slug": "midjourney",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-11",
+      "source_url": "https://docs.midjourney.com/hc/en-us/articles/30518734988877-Plans",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Basic",
+          "price_amount": 10,
+          "price_display": "$10/month",
+          "features": [
+            "200 minutes Fast GPU time",
+            "3 concurrent fast jobs",
+            "General commercial usage rights",
+            "Discord and web interface access",
+            "$8/month with annual billing (20% off)"
+          ],
+          "cta_label": "Get Basic",
+          "cta_url": "https://midjourney.com/account"
+        },
+        {
+          "name": "Standard",
+          "price_amount": 30,
+          "price_display": "$30/month",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "15 hours Fast GPU time",
+            "Unlimited Relax Mode generations",
+            "3 concurrent fast jobs",
+            "Niji anime mode access",
+            "$24/month with annual billing (20% off)"
+          ],
+          "cta_label": "Get Standard",
+          "cta_url": "https://midjourney.com/account"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 60,
+          "price_display": "$60/month",
+          "features": [
+            "30 hours Fast GPU time",
+            "Unlimited Relax Mode generations",
+            "Stealth Mode (private generations)",
+            "12 concurrent fast jobs",
+            "$48/month with annual billing (20% off)"
+          ],
+          "cta_label": "Get Pro",
+          "cta_url": "https://midjourney.com/account"
+        },
+        {
+          "name": "Mega",
+          "price_amount": 120,
+          "price_display": "$120/month",
+          "features": [
+            "60 hours Fast GPU time",
+            "Unlimited Relax Mode generations",
+            "Stealth Mode (private generations)",
+            "12 concurrent fast jobs",
+            "Maximum concurrency for studios",
+            "$96/month with annual billing (20% off)"
+          ],
+          "cta_label": "Get Mega",
+          "cta_url": "https://midjourney.com/account"
+        }
+      ]
+    }
   },
   {
     "id": 27,
@@ -3063,7 +3548,78 @@
       "Image understanding",
       "Code generation"
     ],
-    "slug": "gemini"
+    "slug": "gemini",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-11",
+      "source_url": "https://gemini.google/subscriptions/",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/month",
+          "features": [
+            "Gemini 2.5 Flash access",
+            "Limited Gemini 3 Pro access",
+            "Deep Research, Gemini Live, Canvas",
+            "100 monthly AI credits",
+            "15 GB Google storage",
+            "NotebookLM access"
+          ],
+          "cta_label": "Try Free",
+          "cta_url": "https://gemini.google.com"
+        },
+        {
+          "name": "Google AI Plus",
+          "price_amount": 7.99,
+          "price_display": "$7.99/month",
+          "features": [
+            "More access to Gemini 3.1 Pro",
+            "200 monthly AI credits",
+            "200 GB cloud storage",
+            "Expanded NotebookLM access",
+            "Limited Veo 3.1 Lite access"
+          ],
+          "cta_label": "Get Plus",
+          "cta_url": "https://gemini.google/subscriptions/"
+        },
+        {
+          "name": "Google AI Pro",
+          "price_amount": 19.99,
+          "price_display": "$19.99/month",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "Gemini 3.1 Pro at 1M context",
+            "1,000 monthly AI credits",
+            "Veo 3.1 video generation",
+            "Deep Research and Deep Search",
+            "Gemini in Gmail and Docs",
+            "Higher Code Assist and CLI limits",
+            "Jules async coding agent",
+            "5 TB cloud storage"
+          ],
+          "cta_label": "Get Pro",
+          "cta_url": "https://gemini.google/subscriptions/"
+        },
+        {
+          "name": "Google AI Ultra",
+          "price_amount": 249.99,
+          "price_display": "$249.99/month",
+          "features": [
+            "Gemini 3.1 Pro Deep Think",
+            "25,000 monthly AI credits",
+            "Maximum Veo 3.1 video generation",
+            "Highest Code Assist and CLI limits",
+            "Project Mariner agentic browser",
+            "30 TB cloud storage",
+            "YouTube Premium included"
+          ],
+          "cta_label": "Get Ultra",
+          "cta_url": "https://gemini.google/subscriptions/"
+        }
+      ]
+    }
   },
   {
     "id": 45,
