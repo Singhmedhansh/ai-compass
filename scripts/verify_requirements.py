@@ -1,5 +1,4 @@
 import importlib
-import sys
 from pathlib import Path
 
 REQ_PATH = Path(__file__).resolve().parents[1] / "requirements.txt"

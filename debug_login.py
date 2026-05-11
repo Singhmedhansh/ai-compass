@@ -1,5 +1,3 @@
-import sys
-import os
 
 from app import create_app, db
 from app.models import User
@@ -38,11 +36,11 @@ with app.app_context():
                 print("All functions passed")
                 db.session.delete(u)
                 db.session.commit()
-            except Exception as e:
+            except Exception:
                 import traceback
                 traceback.print_exc()
 
-    except Exception as e:
+    except Exception:
         import traceback
         traceback.print_exc()
 

@@ -12,7 +12,6 @@ Rules (from user spec):
 Only the `category` field is modified. Removed tools drop entirely.
 """
 import json
-import re
 from collections import Counter
 
 with open("data/tools.json", encoding="utf-8") as f:

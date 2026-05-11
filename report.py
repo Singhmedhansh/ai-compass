@@ -1,10 +1,13 @@
-import sys, subprocess, json
+import subprocess
+import json
 
 def run(cmd):
     print("COMMAND:", cmd)
     res = subprocess.run(cmd, shell=True, capture_output=True, text=True)
-    if res.stdout: print(res.stdout.strip())
-    if res.stderr: print(res.stderr.strip())
+    if res.stdout:
+        print(res.stdout.strip())
+    if res.stderr:
+        print(res.stderr.strip())
     print("---")
 
 run("python -m py_compile app/api_routes.py")

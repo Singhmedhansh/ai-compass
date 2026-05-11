@@ -6,7 +6,7 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(__file__))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from scripts.tool_discovery import run_discovery_pipeline
+from scripts.tool_discovery import run_discovery_pipeline  # noqa: E402
 
 RUN_INTERVAL_SECONDS = 24 * 60 * 60
 

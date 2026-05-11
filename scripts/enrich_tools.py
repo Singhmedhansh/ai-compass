@@ -4,7 +4,6 @@ that lack: use_cases, difficulty, student_friendly, pricing_tier.
 Also normalizes category names to the approved list.
 """
 import json
-import re
 
 VALID_CATEGORIES = {
     "Coding", "Writing & Docs", "Research", "Productivity",
@@ -256,7 +255,6 @@ def infer_difficulty(tool, norm_cat):
     # Check tags/description for hints
     tags = [t.lower() for t in (tool.get('tags') or [])]
     desc = str(tool.get('description', '') or '').lower()
-    name = str(tool.get('name', '') or '').lower()
 
     if any(k in tags for k in ['beginner', 'no-code', 'easy', 'simple', 'intuitive']):
         return 'beginner'
@@ -318,7 +316,6 @@ def enrich_use_cases(tool, norm_cat):
     # Enrich based on specific tags/features
     tags = [t.lower() for t in (tool.get('tags') or [])]
     features = [str(f).lower() for f in (tool.get('features') or [])]
-    name_lower = str(tool.get('name', '') or '').lower()
     desc = str(tool.get('description', '') or '').lower()
 
     extra = []
@@ -362,7 +359,6 @@ def enrich_tags(tool):
     tags = list(existing) if existing else []
     cat = str(tool.get('category', '') or '').lower()
     desc = str(tool.get('description', '') or '').lower()
-    name = str(tool.get('name', '') or '').lower()
     features = [str(f).lower() for f in (tool.get('features') or [])]
     feature_text = ' '.join(features)
 
@@ -471,7 +467,7 @@ for tool in tools:
 print(f"Enriched {enriched} tools")
 
 # Validate stats
-from collections import Counter
+from collections import Counter  # noqa: E402
 cats = Counter(t.get('category', '') for t in tools)
 pricing = Counter(t.get('pricing_tier', '') for t in tools)
 diff_c = Counter(t.get('difficulty', '') for t in tools)
