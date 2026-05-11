@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom'
 
 import useCompare, { MAX_COMPARE } from '../../hooks/useCompare'
 import { drawerSlideUp } from '../../lib/motion'
+import ToolLogo from './ToolLogo'
 
 const MotionDiv = motion.div
 
@@ -15,52 +16,53 @@ const trayDesktopVariants = {
 }
 
 function ChipRow({ slugs, onRemove }) {
-  const [names, setNames] = useState({})
+  const [toolMeta, setToolMeta] = useState({})
 
   useEffect(() => {
     let active = true
-    const missing = slugs.filter((slug) => !names[slug])
+    const missing = slugs.filter((slug) => !toolMeta[slug])
     if (missing.length === 0) return
 
     Promise.allSettled(
       missing.map((slug) =>
         fetch(`/api/v1/tools/${slug}`, { credentials: 'include' })
           .then((response) => (response.ok ? response.json() : null))
-          .then((data) => ({ slug, name: data?.name || slug })),
+          .then((data) => ({
+            slug,
+            name: data?.name || slug,
+            url: data?.url || data?.website || data?.link || null,
+          })),
       ),
     ).then((results) => {
       if (!active) return
       const updates = {}
       for (const result of results) {
         if (result.status === 'fulfilled' && result.value) {
-          updates[result.value.slug] = result.value.name
+          updates[result.value.slug] = { name: result.value.name, url: result.value.url }
         }
       }
       if (Object.keys(updates).length > 0) {
-        setNames((prev) => ({ ...prev, ...updates }))
+        setToolMeta((prev) => ({ ...prev, ...updates }))
       }
     })
 
     return () => {
       active = false
     }
-  }, [slugs, names])
+  }, [slugs, toolMeta])
 
   return (
     <div className="mt-3 flex flex-wrap gap-2">
       {slugs.map((slug) => {
-        const displayName = names[slug] || slug
-        const initial = displayName.charAt(0).toUpperCase()
+        const meta = toolMeta[slug] || {}
+        const displayName = meta.name || slug
         return (
           <span
             key={slug}
             className="inline-flex items-center gap-2 rounded-full border border-line bg-bg-sunk py-1 pl-1 pr-2 text-xs text-ink"
           >
-            <span
-              aria-hidden="true"
-              className="flex h-5 w-5 items-center justify-center rounded-full bg-accent text-[10px] font-semibold text-white"
-            >
-              {initial}
+            <span aria-hidden="true" className="flex h-5 w-5 shrink-0 items-center justify-center overflow-hidden">
+              <ToolLogo tool={{ name: displayName, url: meta.url }} size={20} />
             </span>
             <span className="max-w-[8rem] truncate">{displayName}</span>
             <button

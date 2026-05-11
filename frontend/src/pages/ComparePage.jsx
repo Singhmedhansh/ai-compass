@@ -4,7 +4,7 @@ import { AlertTriangle, ArrowLeft, Check, ExternalLink, LayoutGrid, Star, X } fr
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 
-import { Button, SkeletonCompareColumn } from '../components/ui'
+import { Button, SkeletonCompareColumn, ToolLogo } from '../components/ui'
 import { sectionReveal, staggerChild, staggerParent } from '../lib/motion'
 import { MAX_COMPARE } from '../hooks/useCompare'
 
@@ -135,7 +135,6 @@ function ToolColumn({ slug, status, tool, error, onRemove }) {
   }
 
   const name = tool.name || slug
-  const initial = name.charAt(0).toUpperCase()
   const tagline = tool.tagline || tool.shortDescription || tool.description || ''
   const category = tool.category || tool.subCategory || 'General'
   const url = tool.url || tool.website || tool.link || '#'
@@ -153,20 +152,9 @@ function ToolColumn({ slug, status, tool, error, onRemove }) {
     <div className="flex flex-col rounded-2xl border border-line bg-bg-elev p-6">
       <div className="flex items-start justify-between gap-2">
         <div className="flex min-w-0 items-start gap-3">
-          {tool.icon || tool.logo_url || tool.logo ? (
-            <img
-              src={tool.icon || tool.logo_url || tool.logo}
-              alt=""
-              className="h-12 w-12 shrink-0 rounded-2xl border border-line bg-bg-sunk object-contain p-1"
-            />
-          ) : (
-            <div
-              aria-hidden="true"
-              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-accent text-base font-semibold text-white"
-            >
-              {initial}
-            </div>
-          )}
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden" aria-hidden="true">
+            <ToolLogo tool={tool} size={48} />
+          </div>
           <div className="min-w-0">
             <h2 className="truncate text-lg font-semibold text-ink">{name}</h2>
             <span className="mt-1 inline-flex rounded-full bg-accent-soft px-2 py-0.5 text-xs font-medium text-accent-ink">
