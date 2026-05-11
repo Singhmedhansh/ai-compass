@@ -4,6 +4,7 @@ import { AnimatePresence } from 'framer-motion'
 
 import Footer from './components/Footer'
 import RouteTransition from './components/RouteTransition'
+import CompareTray from './components/ui/CompareTray'
 import Navbar from './components/ui/Navbar'
 import HomePage from './pages/HomePage'
 import DirectoryPage from './pages/DirectoryPage'
@@ -11,6 +12,7 @@ import ToolDetailPage from './pages/ToolDetailPage'
 import ToolFinderPage from './pages/ToolFinderPage'
 import CollectionsPage from './pages/CollectionsPage'
 import CollectionPage from './pages/CollectionPage'
+import ComparePage from './pages/ComparePage'
 import DashboardPage from './pages/DashboardPage'
 import ProfilePage from './pages/ProfilePage'
 import LoginPage from './pages/LoginPage'
@@ -40,6 +42,7 @@ function AnimatedRoutes() {
           <Route path="/ai-tool-finder" element={<ToolFinderPage />} />
           <Route path="/collections" element={<CollectionsPage />} />
           <Route path="/collections/:slug" element={<CollectionPage />} />
+          <Route path="/compare" element={<ComparePage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/login" element={<LoginPage />} />
@@ -64,6 +67,7 @@ export default function App() {
           <AnimatedRoutes />
         </main>
         <Footer />
+        <CompareTray />
       </div>
     </BrowserRouter>
   )
