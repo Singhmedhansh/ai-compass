@@ -636,6 +636,9 @@ def get_tool(slug: str):
     t0 = time.time()
     current_app.logger.info(f"[PERF] tool detail start: {slug_value}")
 
+    # Trigger mtime check so TOOL_CACHE picks up tools.json edits without a Flask restart.
+    # Direct dict access below would otherwise serve stale records on cache hits.
+    get_cached_tools(DATA_PATH)
     tool = TOOL_CACHE.get(slug_value)
     current_app.logger.info(f"[PERF] after cache lookup: {time.time() - t0:.2f}s")
 
