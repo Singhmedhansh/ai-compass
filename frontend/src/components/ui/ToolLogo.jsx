@@ -76,11 +76,11 @@ function ToolLogo({ tool, size = 48 }) {
         width: size,
         height: size,
         borderRadius: size * 0.2,
-        background: '#6366f1',
+        background: 'var(--accent)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        color: '#fff',
+        color: 'var(--bg)',
         fontWeight: 700,
         fontSize: 20,
       }}

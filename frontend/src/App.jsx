@@ -2,6 +2,9 @@ import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
 
+import Footer from './components/Footer'
+import RouteTransition from './components/RouteTransition'
+import CompareTray from './components/ui/CompareTray'
 import Navbar from './components/ui/Navbar'
 import HomePage from './pages/HomePage'
 import DirectoryPage from './pages/DirectoryPage'
@@ -9,6 +12,7 @@ import ToolDetailPage from './pages/ToolDetailPage'
 import ToolFinderPage from './pages/ToolFinderPage'
 import CollectionsPage from './pages/CollectionsPage'
 import CollectionPage from './pages/CollectionPage'
+import ComparePage from './pages/ComparePage'
 import DashboardPage from './pages/DashboardPage'
 import ProfilePage from './pages/ProfilePage'
 import LoginPage from './pages/LoginPage'
@@ -29,23 +33,26 @@ function AnimatedRoutes() {
   const location = useLocation()
   return (
     <AnimatePresence mode="wait" initial={false}>
-      <Routes location={location} key={location.pathname}>
-        <Route path="/auth/callback" element={<AuthCallbackPage />} />
-        <Route path="/" element={<HomePage />} />
-        <Route path="/tools" element={<DirectoryPage />} />
-        <Route path="/tools/:slug" element={<ToolDetailPage />} />
-        <Route path="/ai-tool-finder" element={<ToolFinderPage />} />
-        <Route path="/collections" element={<CollectionsPage />} />
-        <Route path="/collections/:slug" element={<CollectionPage />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/admin" element={<AdminPage />} />
-        <Route path="/submit" element={<SubmitPage />} />
-        <Route path="/best-ai-tools-for-students" element={<BestAIToolsForStudents />} />
-        <Route path="/best-free-ai-tools" element={<BestFreeAITools />} />
-      </Routes>
+      <RouteTransition key={location.pathname}>
+        <Routes location={location}>
+          <Route path="/auth/callback" element={<AuthCallbackPage />} />
+          <Route path="/" element={<HomePage />} />
+          <Route path="/tools" element={<DirectoryPage />} />
+          <Route path="/tools/:slug" element={<ToolDetailPage />} />
+          <Route path="/ai-tool-finder" element={<ToolFinderPage />} />
+          <Route path="/collections" element={<CollectionsPage />} />
+          <Route path="/collections/:slug" element={<CollectionPage />} />
+          <Route path="/compare" element={<ComparePage />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/admin" element={<AdminPage />} />
+          <Route path="/submit" element={<SubmitPage />} />
+          <Route path="/best-ai-tools-for-students" element={<BestAIToolsForStudents />} />
+          <Route path="/best-free-ai-tools" element={<BestFreeAITools />} />
+        </Routes>
+      </RouteTransition>
     </AnimatePresence>
   )
 }
@@ -54,9 +61,13 @@ export default function App() {
   return (
     <BrowserRouter>
       <ScrollToTop />
-      <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-white">
+      <div className="min-h-screen flex flex-col bg-bg text-ink">
         <Navbar />
-        <AnimatedRoutes />
+        <main className="flex-1">
+          <AnimatedRoutes />
+        </main>
+        <Footer />
+        <CompareTray />
       </div>
     </BrowserRouter>
   )

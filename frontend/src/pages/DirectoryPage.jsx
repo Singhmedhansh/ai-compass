@@ -1,12 +1,23 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { useSearchParams } from 'react-router-dom'
-import { AnimatedGrid, AnimatedItem } from '../components/AnimatedGrid'
-import PageTransition from '../components/PageTransition'
-import { Button, Card, SearchInput, SkeletonCard } from '../components/ui'
+import { AnimatePresence, motion } from 'framer-motion'
+import { SearchX } from 'lucide-react'
+import { Button, Card, Dropdown, SearchInput, SkeletonCard } from '../components/ui'
+import { drawerSlideUp, frostedDropdown, sectionReveal, staggerChild, staggerParent } from '../lib/motion'
+
+const MotionDiv = motion.div
+
+const FOCUSABLE_SELECTOR =
+  'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
 
 const CATEGORY_OPTIONS = ['All', 'Coding', 'Writing', 'Research', 'Productivity', 'Image Gen', 'Video Gen']
-const SORT_OPTIONS = ['Trending', 'Newest', 'Top Rated', 'Free First']
+const SORT_OPTIONS = [
+  { value: 'Trending',   label: 'Trending' },
+  { value: 'Newest',     label: 'Newest' },
+  { value: 'Top Rated',  label: 'Top Rated' },
+  { value: 'Free First', label: 'Free First' },
+]
 
 const CATEGORY_FILTER_MAP = {
   Writing: 'Writing & Chat',
@@ -70,6 +81,8 @@ function DirectoryPage() {
   const [searchQuery, setSearchQuery] = useState(initialQuery)
   const [showMobileFilters, setShowMobileFilters] = useState(false)
   const latestRequestIdRef = useRef(0)
+  const triggerRef = useRef(null)
+  const panelRef = useRef(null)
   const hasSearchQuery = queryFromParams.trim().length > 0
 
   useEffect(() => {
@@ -235,68 +248,160 @@ function DirectoryPage() {
     updateUrlParams('All', '')
   }
 
+  const closeDrawer = () => {
+    setShowMobileFilters(false)
+    triggerRef.current?.focus()
+  }
+
+  useEffect(() => {
+    if (!showMobileFilters) return undefined
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        closeDrawer()
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [showMobileFilters])
+
+  useEffect(() => {
+    if (!showMobileFilters || !panelRef.current) return
+    const focusable = panelRef.current.querySelectorAll(FOCUSABLE_SELECTOR)
+    focusable[0]?.focus()
+  }, [showMobileFilters])
+
+  const handlePanelKeyDown = (e) => {
+    if (e.key !== 'Tab') return
+    const focusable = panelRef.current?.querySelectorAll(FOCUSABLE_SELECTOR)
+    if (!focusable || focusable.length === 0) return
+    const first = focusable[0]
+    const last = focusable[focusable.length - 1]
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault()
+      last.focus()
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault()
+      first.focus()
+    }
+  }
+
+  const trimmedSearchTerm = queryFromParams.trim()
+  const hasFilter = category !== 'All'
+  const displaySearchTerm = trimmedSearchTerm.length > 40
+    ? `${trimmedSearchTerm.slice(0, 40)}…`
+    : trimmedSearchTerm
+
+  let emptyHeading
+  let emptyBody
+  if (hasSearchQuery && hasFilter) {
+    emptyHeading = `No ${category} tools match "${displaySearchTerm}"`
+    emptyBody = 'Try a different category or rephrase your search.'
+  } else if (hasSearchQuery) {
+    emptyHeading = `No tools match "${displaySearchTerm}"`
+    emptyBody = 'Try a different search term, or browse by category.'
+  } else if (hasFilter) {
+    emptyHeading = `No tools in ${category} yet`
+    emptyBody = 'Try a different category, or reset to see all tools.'
+  } else {
+    emptyHeading = 'No tools found'
+    emptyBody = 'Try resetting the filters.'
+  }
+
   return (
-    <PageTransition>
-      <main
-        className="container main-content mx-auto w-full max-w-7xl bg-gray-50 px-4 py-8 dark:bg-gray-950 sm:px-6 lg:px-8"
-        style={{ maxWidth: 1200, margin: '0 auto', padding: '0 12px' }}
-      >
+    <div
+      className="container main-content mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8"
+    >
       <Helmet>
         <title>AI Tools Directory | AI Compass</title>
         <meta name="description" content="Discover the best AI tools organized by category, rating, and logic." />
       </Helmet>
+      <MotionDiv variants={sectionReveal} initial="initial" animate="animate">
       <section className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">AI Tools Directory</h1>
-        <span className="inline-flex items-center rounded-full border border-gray-200 bg-white px-3 py-1 text-sm font-semibold text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
+        <h1 className="text-3xl font-bold tracking-tight text-ink sm:text-4xl">AI Tools Directory</h1>
+        <span className="text-sm font-medium tabular-nums text-muted">
           {isLoading ? 'Loading...' : `${filteredTools.length} tools`}
         </span>
         {/* Mobile Filters Button */}
         <button
-          className="md:hidden ml-auto rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+          ref={triggerRef}
+          type="button"
+          aria-haspopup="dialog"
+          aria-expanded={showMobileFilters}
+          aria-controls="mobile-filters-drawer"
           onClick={() => setShowMobileFilters(true)}
+          className="md:hidden ml-auto rounded-xl border border-line bg-bg-elev px-4 py-2 text-sm font-semibold text-ink-2 shadow-sm"
         >
           Filters
         </button>
       </section>
 
       {/* Mobile Filter Drawer */}
-      {showMobileFilters && (
-        <div className="fixed inset-0 z-50 flex items-end md:hidden">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowMobileFilters(false)} />
-          <div className="relative w-full rounded-t-2xl bg-white dark:bg-gray-900 p-6 shadow-2xl animate-slide-up">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold">Filters</h2>
-              <button className="text-2xl" onClick={() => setShowMobileFilters(false)}>&times;</button>
-            </div>
-            <div className="mb-4">
-              <label className="block text-xs font-semibold mb-1">Category</label>
-              <select
-                className="w-full rounded-lg border border-gray-300 p-2 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
-                value={category}
-                onChange={e => handleCategoryChange(e.target.value)}
-              >
-                {CATEGORY_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-              </select>
-            </div>
-            <div className="mb-4">
-              <label className="block text-xs font-semibold mb-1">Sort By</label>
-              <select
-                className="w-full rounded-lg border border-gray-300 p-2 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
-                value={sortBy}
-                onChange={e => setSortBy(e.target.value)}
-              >
-                {SORT_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-              </select>
-            </div>
-            <div className="flex gap-2">
-              <button className="flex-1 rounded-lg bg-indigo-600 text-white py-2 font-semibold" onClick={() => setShowMobileFilters(false)}>Apply</button>
-              <button className="flex-1 rounded-lg bg-gray-200 text-gray-700 py-2 font-semibold dark:bg-gray-700 dark:text-gray-200" onClick={handleReset}>Reset</button>
-            </div>
-          </div>
-        </div>
-      )}
+      <AnimatePresence>
+        {showMobileFilters && (
+          <Fragment key="mobile-drawer">
+            <MotionDiv
+              key="mobile-drawer-backdrop"
+              variants={frostedDropdown}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              onClick={closeDrawer}
+              className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm md:hidden"
+            />
+            <MotionDiv
+              key="mobile-drawer-panel"
+              ref={panelRef}
+              variants={drawerSlideUp}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="mobile-filters-title"
+              id="mobile-filters-drawer"
+              onKeyDown={handlePanelKeyDown}
+              className="fixed bottom-0 left-0 right-0 z-50 rounded-t-2xl bg-bg-elev p-6 shadow-2xl md:hidden"
+            >
+              <div className="mb-4 flex items-center justify-between">
+                <h2 id="mobile-filters-title" className="text-lg font-bold text-ink">Filters</h2>
+                <button
+                  type="button"
+                  onClick={closeDrawer}
+                  aria-label="Close filters"
+                  className="text-2xl text-muted hover:text-ink"
+                >
+                  &times;
+                </button>
+              </div>
+              <div className="mb-4">
+                <label className="mb-1 block text-xs font-semibold text-ink-2">Category</label>
+                <Dropdown
+                  value={category}
+                  onChange={handleCategoryChange}
+                  options={CATEGORY_OPTIONS.map((c) => ({ value: c, label: c }))}
+                  label="Filter category"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="mb-1 block text-xs font-semibold text-ink-2">Sort By</label>
+                <Dropdown
+                  value={sortBy}
+                  onChange={setSortBy}
+                  options={SORT_OPTIONS}
+                  label="Sort tools"
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button variant="primary" className="flex-1 font-semibold" onClick={closeDrawer}>Apply</Button>
+                <Button variant="secondary" className="flex-1 font-semibold" onClick={() => { handleReset(); closeDrawer() }}>Reset</Button>
+              </div>
+            </MotionDiv>
+          </Fragment>
+        )}
+      </AnimatePresence>
 
-      <section className="sticky top-16 z-20 mb-6 rounded-2xl border border-gray-200 bg-white/95 p-4 shadow-sm backdrop-blur dark:border-gray-700 dark:bg-gray-800/95 hidden md:block">
+      <section className="sticky top-16 z-20 mb-6 rounded-2xl border border-line bg-bg-elev/95 p-4 shadow-sm backdrop-blur hidden md:block">
         <div className="filters-row flex gap-2 overflow-x-auto pb-1">
           {CATEGORY_OPTIONS.map((option) => {
             const active = option === category
@@ -306,10 +411,10 @@ function DirectoryPage() {
                 key={option}
                 type="button"
                 onClick={() => handleCategoryChange(option)}
-                className={`rounded-full px-3 py-1.5 text-sm font-semibold transition ${
+                className={`rounded-full border px-3 py-1.5 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
                   active
-                    ? 'bg-indigo-600 text-white'
-                    : 'bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800'
+                    ? 'border-accent bg-accent-soft text-accent-ink'
+                    : 'border-transparent bg-bg-sunk text-ink-2 hover:bg-bg-elev'
                 }`}
               >
                 {option}
@@ -319,18 +424,12 @@ function DirectoryPage() {
         </div>
 
         <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-[180px_1fr]">
-          <select
+          <Dropdown
             value={sortBy}
-            onChange={(event) => setSortBy(event.target.value)}
-            className="h-10 rounded-xl border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100"
-            aria-label="Sort tools"
-          >
-            {SORT_OPTIONS.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
+            onChange={setSortBy}
+            options={SORT_OPTIONS}
+            label="Sort tools"
+          />
 
           <SearchInput
             value={searchQuery}
@@ -341,29 +440,49 @@ function DirectoryPage() {
           />
         </div>
       </section>
+      </MotionDiv>
 
-      {isLoading && <p>Loading tools...</p>}
-      {error && <p style={{color:'var(--text-muted)'}}>{error}</p>}
+      {error && <p className="text-danger">{error}</p>}
 
-      {!isLoading && !error && filteredTools.length > 0 ? (
-        <AnimatedGrid className="tools-grid grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {filteredTools.map((tool) => (
-            <AnimatedItem key={tool.slug || tool.name}>
-              <Card tool={tool} />
-            </AnimatedItem>
+      {!error && isLoading && (
+        <div className="tools-grid grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <SkeletonCard key={`directory-skeleton-${i}`} />
           ))}
-        </AnimatedGrid>
-      ) : null}
+        </div>
+      )}
+
+      {!isLoading && !error && filteredTools.length > 0 && (
+        <MotionDiv
+          key={`${category}-${sortBy}-${queryFromParams}`}
+          variants={staggerParent}
+          initial="initial"
+          animate="animate"
+          className="tools-grid grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
+        >
+          {filteredTools.map((tool, i) => (
+            <MotionDiv
+              key={tool.slug || tool.name}
+              variants={staggerChild}
+              custom={Math.min(i, 11) * 0.04}
+            >
+              <Card tool={tool} />
+            </MotionDiv>
+          ))}
+        </MotionDiv>
+      )}
 
       {!isLoading && !error && filteredTools.length === 0 && (
-        <section className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-6 py-14 text-center dark:border-gray-700 dark:bg-gray-900">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-gray-200 bg-white text-3xl shadow-sm dark:border-gray-700 dark:bg-gray-800" aria-hidden="true">
-            🔎
+        <section
+          role="status"
+          aria-live="polite"
+          className="rounded-2xl border border-line bg-bg-sunk px-6 py-16 text-center"
+        >
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-line bg-bg-elev shadow-sm" aria-hidden="true">
+            <SearchX className="h-7 w-7 text-muted" />
           </div>
-          <h2 className="mt-5 text-xl font-semibold text-gray-900 dark:text-gray-100">No tools found for this filter</h2>
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
-            Try a broader category, clear the search term, or reset all filters.
-          </p>
+          <h2 className="mt-5 text-xl font-semibold text-ink">{emptyHeading}</h2>
+          <p className="mt-2 text-sm text-muted">{emptyBody}</p>
           <div className="mt-6">
             <Button variant="secondary" onClick={handleReset}>
               Reset filters
@@ -371,8 +490,7 @@ function DirectoryPage() {
           </div>
         </section>
       )}
-      </main>
-    </PageTransition>
+    </div>
   )
 }
 

@@ -1,4 +1,4 @@
-import json, re
+import json
 
 with open("data/tools.json", "r", encoding="utf-8") as f:
     tools = json.load(f)

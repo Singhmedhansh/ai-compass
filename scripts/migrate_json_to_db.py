@@ -7,15 +7,16 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from app import create_app, db
-from app.models import Tool, Category, Tag
+from app import create_app, db  # noqa: E402
+from app.models import Tool, Category, Tag  # noqa: E402
 
 def build_slug(name):
     return re.sub(r"[^a-z0-9]+", "-", str(name).strip().lower()).strip("-")
 
 def parse_weekly_users(value):
     text = str(value or "").strip().upper().replace("+", "")
-    if not text: return 0
+    if not text:
+        return 0
     multiplier = 1
     if text.endswith("M"):
         multiplier = 1_000_000
@@ -90,9 +91,11 @@ def main():
             
             for t_str in raw_tags:
                 tag_name = str(t_str).strip()
-                if not tag_name: continue
+                if not tag_name:
+                    continue
                 tag_slug = build_slug(tag_name)
-                if not tag_slug: continue
+                if not tag_slug:
+                    continue
                 
                 if tag_slug not in tag_map:
                     tag = Tag.query.filter_by(slug=tag_slug).first()

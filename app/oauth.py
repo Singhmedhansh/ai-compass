@@ -206,8 +206,7 @@ def google_callback():
         })
         callback_url = f"{frontend_url}/auth/callback?{params}"
         return redirect(callback_url)
-    except Exception as exc:
-        import traceback
+    except Exception:
 
         frontend_url = _frontend_base_url()
         return redirect(f"{frontend_url}/login?error=google_failed")

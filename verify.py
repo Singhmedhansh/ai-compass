@@ -1,4 +1,5 @@
-import subprocess, sys
+import subprocess
+import sys
 
 commands = [
     [r".venv\Scripts\python", "-m", "py_compile", "app/api_routes.py"],

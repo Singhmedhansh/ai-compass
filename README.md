@@ -187,7 +187,18 @@ npx tailwindcss -i ./static/css/input.css -o ./static/css/style.css --watch
 python app.py
 ```
 
-6. Optional: build the React frontend bundle into `static/dist`.
+The Flask backend listens on the `PORT` env var (see `app.py` for the local default). For local dev, set `DATABASE_URL` to a reachable Postgres URL or use SQLite via `sqlite:///local.db`.
+
+6. Optional: run the Vite dev server for hot-reload frontend work.
+
+```sh
+cd frontend
+npm run dev
+```
+
+Vite picks the first available port starting at 5173 (so subsequent dev servers fall back to 5174, 5175, etc.).
+
+7. Build the React frontend bundle into `static/dist/` so Flask can serve it. Required after a fresh checkout; on Render this runs automatically via `build.sh` during deploy.
 
 ```sh
 cd frontend
@@ -215,6 +226,14 @@ Frontend lint and build:
 cd frontend
 npm run lint
 npm run build
+cd ..
+```
+
+Frontend visual verification suite (Playwright, runs offline against mocked backend — covers all migrated pages × 4 viewport-theme combos plus wizard interaction states):
+
+```sh
+cd frontend
+npx playwright test tests-d4/phase-ae-suite.spec.js
 cd ..
 ```
 

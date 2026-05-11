@@ -1,10 +1,10 @@
-import json
 from pathlib import Path
 
 try:
     from PIL import Image, ImageDraw, ImageFont
 except ImportError:
-    import subprocess, sys
+    import subprocess
+    import sys
     subprocess.run([sys.executable, "-m", "pip", "install", "pillow", "--break-system-packages"])
     from PIL import Image, ImageDraw, ImageFont
 
@@ -24,7 +24,7 @@ try:
     title_font = ImageFont.truetype("arial.ttf", 72)
     sub_font   = ImageFont.truetype("arial.ttf", 36)
     tag_font   = ImageFont.truetype("arial.ttf", 28)
-except:
+except Exception:
     title_font = ImageFont.load_default()
     sub_font   = title_font
     tag_font   = title_font

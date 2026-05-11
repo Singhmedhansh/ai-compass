@@ -8,8 +8,6 @@ __pycache__/
 *.egg
 *.egg-info/
 dist/
-!static/dist/
-!static/dist/**
 build/
 
 # Virtual environments
@@ -45,3 +43,16 @@ static/css/style.css
 
 # Secrets / recovery codes
 hostinger-recovery-codes.txt
+
+# Audit artifacts (regeneratable by scripts/_audit_apply.py)
+_audit_apply_log.json
+data/tools_audit_proposal.json
+
+# Backup files
+*.bak
+
+# Local dev runtime state
+data/stacks/
+
+# Local PR draft files
+PR_DESCRIPTION*.md

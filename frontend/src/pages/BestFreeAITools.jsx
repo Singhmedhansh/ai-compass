@@ -215,20 +215,20 @@ export default function BestFreeAITools() {
         })}</script>
       </Helmet>
 
-      <div className="min-h-screen bg-white text-slate-900 dark:bg-[#0a0f1e] dark:text-slate-200 font-serif">
+      <div className="font-serif">
 
         {/* Hero */}
         <div className="mx-auto max-w-[860px] px-6 pt-20 pb-12 text-center">
-          <div className="inline-block rounded-full border border-emerald-300 bg-emerald-50 px-4 py-1.5 text-[13px] uppercase tracking-widest text-emerald-700 mb-6 font-sans dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300">
+          <div className="inline-block rounded-full border border-accent bg-accent-soft px-4 py-1.5 text-[13px] uppercase tracking-widest text-accent-ink mb-6 font-sans">
             ₹0 · No credit card · Updated April 2026
           </div>
-          <h1 className="text-[clamp(2rem,5vw,3.2rem)] font-bold leading-[1.15] tracking-tight text-slate-900 dark:text-slate-100 mb-5">
+          <h1 className="text-[clamp(2rem,5vw,3.2rem)] font-bold leading-[1.15] tracking-tight text-ink mb-5">
             The 10 Best Free AI Tools in 2026
           </h1>
-          <p className="text-[1.15rem] leading-[1.75] text-slate-600 dark:text-slate-400 max-w-[640px] mx-auto mb-8 font-sans">
+          <p className="text-[1.15rem] leading-[1.75] text-muted max-w-[640px] mx-auto mb-8 font-sans">
             You don't need to spend money to use powerful AI. These 10 tools have free tiers that are genuinely useful — not crippled demos. Ranked by how good the free plan actually is.
           </p>
-          <div className="flex flex-wrap justify-center gap-3 font-sans text-[13px] text-slate-500">
+          <div className="flex flex-wrap justify-center gap-3 font-sans text-[13px] text-muted">
             {["✅ All free to start", "✅ No credit card required", "✅ Works in India"].map(t => (
               <span key={t}>{t}</span>
             ))}
@@ -237,14 +237,14 @@ export default function BestFreeAITools() {
 
         {/* Quick nav */}
         <div className="mx-auto max-w-[860px] px-6 mb-12">
-          <div className="rounded-xl border border-slate-200 bg-slate-50 p-5 font-sans dark:border-white/10 dark:bg-white/[0.03]">
-            <p className="text-[12px] text-slate-400 mb-3 uppercase tracking-widest">Quick jump</p>
+          <div className="rounded-xl border border-line bg-bg-elev p-5 font-sans">
+            <p className="text-[12px] text-muted-2 mb-3 uppercase tracking-widest">Quick jump</p>
             <div className="flex flex-wrap gap-2">
               {tools.map(t => (
                 <a
                   key={t.slug}
                   href={`#${t.slug}`}
-                  className="text-[13px] text-slate-600 no-underline rounded-md bg-slate-100 px-3 py-1 transition-colors hover:bg-slate-200 hover:text-slate-900 dark:text-slate-400 dark:bg-white/5 dark:hover:text-slate-100"
+                  className="text-[13px] text-muted no-underline rounded-md bg-bg-sunk px-3 py-1 transition-colors hover:bg-bg hover:text-ink"
                 >
                   {t.rank}. {t.name}
                 </a>
@@ -259,18 +259,18 @@ export default function BestFreeAITools() {
             <div
               key={tool.slug}
               id={tool.slug}
-              className="mb-10 rounded-xl border border-slate-200 bg-white p-7 scroll-mt-20 dark:border-white/[0.07] dark:bg-white/[0.02]"
+              className="mb-10 rounded-xl border border-line bg-bg-elev p-7 scroll-mt-20"
               style={{ borderLeft: `3px solid ${tool.color}` }}
             >
               {/* Header */}
               <div className="flex items-start gap-4 mb-4">
-                <div className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-xl bg-slate-100 text-[2rem] dark:bg-white/5">
+                <div className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-xl bg-bg-sunk text-[2rem]">
                   {tool.emoji}
                 </div>
                 <div className="flex-1">
                   <div className="flex flex-wrap items-center gap-2.5 mb-1">
                     <span className="font-sans text-[11px] font-bold uppercase tracking-widest" style={{ color: tool.color }}>#{tool.rank}</span>
-                    <h2 className="text-[1.3rem] font-bold tracking-tight text-slate-900 dark:text-slate-100 m-0">{tool.name}</h2>
+                    <h2 className="text-[1.3rem] font-bold tracking-tight text-ink m-0">{tool.name}</h2>
                     <span className="font-sans text-[11px] rounded-full px-3 py-0.5 font-semibold border"
                       style={{
                         background: `${tool.color}15`,
@@ -279,25 +279,25 @@ export default function BestFreeAITools() {
                       }}
                     >{tool.badge}</span>
                   </div>
-                  <p className="font-sans text-[14px] italic text-slate-500 dark:text-slate-400 m-0">{tool.tagline}</p>
+                  <p className="font-sans text-[14px] italic text-muted m-0">{tool.tagline}</p>
                 </div>
               </div>
 
               {/* Details grid */}
               <div className="grid grid-cols-2 gap-3 mb-4 font-sans text-[13px]">
-                <div className="rounded-lg bg-emerald-50 border border-emerald-100 p-3 dark:bg-emerald-500/5 dark:border-emerald-500/15">
-                  <p className="text-emerald-700 dark:text-emerald-400 text-[11px] uppercase tracking-widest font-semibold mb-1">Free tier includes</p>
-                  <p className="text-slate-600 dark:text-slate-400 m-0 leading-[1.5]">{tool.freeLimit}</p>
+                <div className="rounded-lg bg-accent-soft border border-accent p-3">
+                  <p className="text-accent-ink text-[11px] uppercase tracking-widest font-semibold mb-1">Free tier includes</p>
+                  <p className="text-ink-2 m-0 leading-[1.5]">{tool.freeLimit}</p>
                 </div>
-                <div className="rounded-lg bg-slate-50 p-3 dark:bg-white/[0.03]">
-                  <p className="text-[11px] uppercase tracking-widest text-slate-400 mb-1">Best for</p>
-                  <p className="text-slate-600 dark:text-slate-400 m-0 leading-[1.5]">{tool.bestFor}</p>
+                <div className="rounded-lg bg-bg-sunk p-3">
+                  <p className="text-[11px] uppercase tracking-widest text-muted-2 mb-1">Best for</p>
+                  <p className="text-muted m-0 leading-[1.5]">{tool.bestFor}</p>
                 </div>
               </div>
 
               {/* Verdict */}
-              <p className="font-sans text-[14px] leading-[1.7] text-slate-700 dark:text-slate-300 mb-5">
-                <strong className="text-slate-900 dark:text-slate-100">Free tier verdict: </strong>{tool.freeVerdict}
+              <p className="font-sans text-[14px] leading-[1.7] text-ink-2 mb-5">
+                <strong className="text-ink">Free tier verdict: </strong>{tool.freeVerdict}
               </p>
 
               {/* CTA row */}
@@ -309,7 +309,7 @@ export default function BestFreeAITools() {
                 >
                   View full details →
                 </Link>
-                <span className="font-sans text-[12px] text-slate-400">Paid from {tool.paidPlan}</span>
+                <span className="font-sans text-[12px] text-muted-2">Paid from {tool.paidPlan}</span>
               </div>
             </div>
           ))}
@@ -317,15 +317,15 @@ export default function BestFreeAITools() {
 
         {/* Tips */}
         <div className="mx-auto max-w-[860px] px-6 mt-16">
-          <h2 className="text-[1.6rem] font-bold tracking-tight text-slate-900 dark:text-slate-100 mb-6">
+          <h2 className="text-[1.6rem] font-bold tracking-tight text-ink mb-6">
             4 tips to get the most out of free AI tools
           </h2>
           <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4">
             {tips.map(tip => (
-              <div key={tip.title} className="rounded-xl border border-slate-200 bg-white p-5 dark:border-white/[0.07] dark:bg-white/[0.02]">
+              <div key={tip.title} className="rounded-xl border border-line bg-bg-elev p-5">
                 <div className="text-[1.5rem] mb-2.5">{tip.icon}</div>
-                <h3 className="font-sans text-[14px] font-semibold text-slate-900 dark:text-slate-100 mb-2">{tip.title}</h3>
-                <p className="font-sans text-[13px] text-slate-600 dark:text-slate-400 m-0 leading-[1.6]">{tip.body}</p>
+                <h3 className="font-sans text-[14px] font-semibold text-ink mb-2">{tip.title}</h3>
+                <p className="font-sans text-[13px] text-muted m-0 leading-[1.6]">{tip.body}</p>
               </div>
             ))}
           </div>
@@ -333,16 +333,16 @@ export default function BestFreeAITools() {
 
         {/* Stack CTA */}
         <div className="mx-auto max-w-[860px] px-6 mt-16">
-          <div className="rounded-2xl border border-emerald-200 bg-emerald-50/50 p-10 text-center dark:border-emerald-500/20 dark:bg-gradient-to-br dark:from-emerald-500/10 dark:to-indigo-500/5">
-            <h2 className="text-[1.4rem] font-bold tracking-tight text-slate-900 dark:text-slate-100 mb-3">
+          <div className="rounded-2xl border border-accent bg-accent-soft p-10 text-center">
+            <h2 className="text-[1.4rem] font-bold tracking-tight text-ink mb-3">
               Not sure which free tools to start with?
             </h2>
-            <p className="font-sans text-[15px] text-slate-600 dark:text-slate-400 mb-6">
+            <p className="font-sans text-[15px] text-muted mb-6">
               Answer 3 quick questions and get a personalised free AI stack built for your exact workflow.
             </p>
             <Link
               to="/ai-tool-finder"
-              className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-7 py-3 font-sans text-[14px] font-semibold text-white no-underline transition hover:bg-emerald-500"
+              className="inline-flex items-center gap-2 rounded-lg bg-accent px-7 py-3 font-sans text-[14px] font-semibold text-bg no-underline transition hover:opacity-90"
             >
               Find my free AI stack →
             </Link>
@@ -351,14 +351,14 @@ export default function BestFreeAITools() {
 
         {/* FAQ */}
         <div className="mx-auto max-w-[860px] px-6 mt-16">
-          <h2 className="text-[1.6rem] font-bold tracking-tight text-slate-900 dark:text-slate-100 mb-8">
+          <h2 className="text-[1.6rem] font-bold tracking-tight text-ink mb-8">
             Frequently asked questions
           </h2>
           <div className="flex flex-col gap-4">
             {faqs.map((faq, i) => (
-              <div key={i} className="rounded-xl border border-slate-200 bg-white p-6 dark:border-white/[0.07] dark:bg-white/[0.02]">
-                <h3 className="font-sans text-[15px] font-semibold text-slate-900 dark:text-slate-100 mb-2.5">{faq.q}</h3>
-                <p className="font-sans text-[14px] leading-[1.7] text-slate-600 dark:text-slate-400 m-0">{faq.a}</p>
+              <div key={i} className="rounded-xl border border-line bg-bg-elev p-6">
+                <h3 className="font-sans text-[15px] font-semibold text-ink mb-2.5">{faq.q}</h3>
+                <p className="font-sans text-[14px] leading-[1.7] text-muted m-0">{faq.a}</p>
               </div>
             ))}
           </div>
@@ -366,12 +366,12 @@ export default function BestFreeAITools() {
 
         {/* Footer CTA */}
         <div className="mx-auto max-w-[860px] px-6 mt-16 mb-20 text-center font-sans">
-          <p className="text-[14px] text-slate-400 mb-2">Also read</p>
+          <p className="text-[14px] text-muted-2 mb-2">Also read</p>
           <div className="flex flex-wrap justify-center gap-6">
-            <Link to="/best-ai-tools-for-students" className="text-[14px] font-semibold text-indigo-600 no-underline hover:text-indigo-500 dark:text-indigo-400">
+            <Link to="/best-ai-tools-for-students" className="text-[14px] font-semibold text-accent no-underline hover:underline">
               Best AI tools for students →
             </Link>
-            <Link to="/tools" className="text-[14px] font-semibold text-indigo-600 no-underline hover:text-indigo-500 dark:text-indigo-400">
+            <Link to="/tools" className="text-[14px] font-semibold text-accent no-underline hover:underline">
               Browse all 450+ tools →
             </Link>
           </div>

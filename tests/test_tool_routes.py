@@ -32,4 +32,5 @@ def test_tools_listing(client, tool_setup):
 def test_tool_detail(client, tool_setup):
     tool_id = tool_setup
     response = client.get(f'/tool/{tool_id}')
-    assert response.status_code == 200
+    assert response.status_code == 301
+    assert response.headers['Location'].endswith(f'/tools/{tool_id}')

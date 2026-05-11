@@ -1,4 +1,5 @@
-import sys, subprocess, json
+import subprocess
+import json
 
 with open("report.txt", "w", encoding="utf-8") as f:
     def run(cmd):

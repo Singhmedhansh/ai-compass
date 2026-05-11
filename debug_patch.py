@@ -42,5 +42,5 @@ if old in content:
 else:
     print("OLD TEXT NOT FOUND - printing last 40 lines for inspection:")
     lines = content.splitlines()
-    for i, l in enumerate(lines[-40:]):
-        print(f"{len(lines)-40+i+1}: {l}")
+    for i, line in enumerate(lines[-40:]):
+        print(f"{len(lines)-40+i+1}: {line}")

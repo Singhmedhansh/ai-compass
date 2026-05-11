@@ -1,4 +1,4 @@
-import { ChevronDown, LayoutDashboard, LogOut, Moon, Shield, Sparkles, Sun, UserCircle2 } from 'lucide-react'
+import { ChevronDown, LayoutDashboard, LogOut, Menu, Moon, Shield, Sparkles, Sun, UserCircle2, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
@@ -39,6 +39,7 @@ function Navbar() {
     }
   })
   const [scrolled, setScrolled] = useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const menuRef = useClickOutside(() => setIsProfileMenuOpen(false))
   const guidesMenuRef = useClickOutside(() => setIsGuidesMenuOpen(false))
   const isAdmin = Boolean(user && (user.is_admin || ADMIN_EMAILS.includes(user.email)))
@@ -57,7 +58,11 @@ function Navbar() {
   }
 
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', isDark)
+    if (isDark) {
+      document.documentElement.setAttribute('data-theme', 'dark')
+    } else {
+      document.documentElement.removeAttribute('data-theme')
+    }
     window.localStorage.setItem(STORAGE_KEY, isDark ? 'dark' : 'light')
   }, [isDark])
 
@@ -78,6 +83,15 @@ function Navbar() {
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
+
+  useEffect(() => {
+    if (!isMobileMenuOpen) return
+    const handleEsc = (e) => {
+      if (e.key === 'Escape') setIsMobileMenuOpen(false)
+    }
+    window.addEventListener('keydown', handleEsc)
+    return () => window.removeEventListener('keydown', handleEsc)
+  }, [isMobileMenuOpen])
 
   useEffect(() => {
     const handleStorageChange = () => {
@@ -192,14 +206,14 @@ function Navbar() {
     <header
       className={`sticky top-0 z-50 transition-all duration-300 ${
         scrolled
-          ? 'border-b border-gray-100 bg-white/95 shadow-lg shadow-black/5 backdrop-blur-md dark:border-gray-800 dark:bg-gray-950/95 dark:shadow-black/20'
-          : 'border-b border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-950'
+          ? 'border-b border-line bg-bg-elev/95 shadow-lg backdrop-blur-md'
+          : 'border-b border-line bg-bg-elev'
       }`}
     >
       <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center gap-3 px-4 py-3 sm:px-6 lg:px-8">
         <Link
           to="/"
-          className="shrink-0 text-lg font-bold tracking-tight text-gray-900 transition-colors hover:text-indigo-700 dark:text-white dark:hover:text-indigo-300"
+          className="shrink-0 text-lg font-bold tracking-tight text-ink transition-colors hover:text-accent-ink"
         >
           AI Compass
         </Link>
@@ -214,9 +228,9 @@ function Navbar() {
           />
         </div>
 
-        <div className="order-2 ml-auto flex items-center gap-2 sm:order-3">
+        <div className="order-2 ml-auto hidden items-center gap-2 sm:order-3 lg:flex">
           <Link to="/collections">
-            <Button variant="ghost" size="sm" className="text-gray-700 dark:text-gray-300">
+            <Button variant="ghost" size="sm" className="text-ink-2">
               Collections
             </Button>
           </Link>
@@ -227,7 +241,7 @@ function Navbar() {
             onMouseEnter={() => setIsGuidesMenuOpen(true)}
             onMouseLeave={() => setIsGuidesMenuOpen(false)}
           >
-            <Button variant="ghost" size="sm" className="text-gray-700 dark:text-gray-300">
+            <Button variant="ghost" size="sm" className="text-ink-2">
               Guides
               <ChevronDown className="h-4 w-4 ml-1 transition-transform" style={{ transform: isGuidesMenuOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
             </Button>
@@ -236,12 +250,12 @@ function Navbar() {
               <div
                 role="menu"
                 aria-label="Guides menu"
-                className="absolute left-0 mt-1 w-56 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg shadow-black/10 dark:border-gray-700 dark:bg-gray-800"
+                className="absolute left-0 mt-1 w-56 overflow-hidden rounded-xl border border-line bg-bg-elev shadow-lg"
               >
                 <Link
                   to="/best-ai-tools-for-students"
                   onClick={() => setIsGuidesMenuOpen(false)}
-                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700"
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-ink-2 transition hover:bg-bg-sunk"
                   role="menuitem"
                 >
                   Best AI Tools for Students
@@ -249,7 +263,7 @@ function Navbar() {
                 <Link
                   to="/best-free-ai-tools"
                   onClick={() => setIsGuidesMenuOpen(false)}
-                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700"
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-ink-2 transition hover:bg-bg-sunk"
                   role="menuitem"
                 >
                   Best Free AI Tools
@@ -259,7 +273,7 @@ function Navbar() {
           </div>
 
           {isAdmin ? (
-            <Link to="/admin" className="px-1 text-xs font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
+            <Link to="/admin" className="px-1 text-xs font-medium text-muted hover:text-ink-2">
               Admin
             </Link>
           ) : null}
@@ -267,7 +281,7 @@ function Navbar() {
           <button
             type="button"
             onClick={toggleDarkMode}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-line-strong bg-bg-elev text-ink-2 transition-colors hover:bg-bg-sunk focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
           >
             {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
@@ -278,11 +292,11 @@ function Navbar() {
               <button
                 type="button"
                 onClick={() => setIsProfileMenuOpen((value) => !value)}
-                className="flex items-center gap-2 rounded-full border border-gray-300 bg-white px-1.5 py-1 text-left shadow-sm transition hover:border-indigo-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:border-gray-600 dark:bg-gray-900"
+                className="flex items-center gap-2 rounded-full border border-line-strong bg-bg-elev px-1.5 py-1 text-left shadow-sm transition hover:border-accent hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                 aria-haspopup="menu"
                 aria-expanded={isProfileMenuOpen}
               >
-                <div className="relative h-8 w-8 overflow-hidden rounded-full ring-2 ring-indigo-500">
+                <div className="relative h-8 w-8 overflow-hidden rounded-full ring-2 ring-accent">
                   {user?.picture && user.picture.length > 10 ? (
                     <img
                       src={user.picture}
@@ -302,26 +316,26 @@ function Navbar() {
                   <div
                     id="nav-avatar-fallback"
                     style={{ display: user?.picture && user.picture.length > 10 ? 'none' : 'flex' }}
-                    className="avatar-fallback h-8 w-8 items-center justify-center rounded-full bg-indigo-600 text-sm font-bold text-white"
+                    className="avatar-fallback h-8 w-8 items-center justify-center rounded-full bg-accent text-sm font-bold text-white"
                   >
                     {avatarLetter}
                   </div>
                 </div>
-                <ChevronDown className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                <ChevronDown className="h-4 w-4 text-muted" />
               </button>
 
               {isProfileMenuOpen ? (
                 <div
                   role="menu"
                   aria-label="Profile menu"
-                  className="absolute right-0 mt-2 w-64 overflow-hidden rounded-2xl border border-gray-200 bg-white p-2 shadow-2xl shadow-black/10 dark:border-gray-700 dark:bg-gray-800"
+                  className="absolute right-0 mt-2 w-64 overflow-hidden rounded-2xl border border-line bg-bg-elev p-2 shadow-2xl"
                 >
                   <div className="px-3 py-2">
-                    <p className="truncate text-sm font-semibold text-gray-900 dark:text-white">{user?.name || 'My account'}</p>
-                    <p className="truncate text-xs text-gray-500 dark:text-gray-400">{user?.email || ''}</p>
+                    <p className="truncate text-sm font-semibold text-ink">{user?.name || 'My account'}</p>
+                    <p className="truncate text-xs text-muted">{user?.email || ''}</p>
                   </div>
 
-                  <div className="my-2 border-t border-gray-100 dark:border-gray-800" />
+                  <div className="my-2 border-t border-line" />
 
                   <button
                     type="button"
@@ -329,7 +343,7 @@ function Navbar() {
                       setIsProfileMenuOpen(false)
                       navigate('/dashboard')
                     }}
-                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-900"
+                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-ink-2 transition hover:bg-bg-sunk"
                     role="menuitem"
                   >
                     <LayoutDashboard className="h-4 w-4" />
@@ -342,7 +356,7 @@ function Navbar() {
                       setIsProfileMenuOpen(false)
                       navigate('/profile')
                     }}
-                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-900"
+                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-ink-2 transition hover:bg-bg-sunk"
                     role="menuitem"
                   >
                     <UserCircle2 className="h-4 w-4" />
@@ -355,7 +369,7 @@ function Navbar() {
                       setIsProfileMenuOpen(false)
                       navigate('/ai-tool-finder')
                     }}
-                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-900"
+                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-ink-2 transition hover:bg-bg-sunk"
                     role="menuitem"
                   >
                     <Sparkles className="h-4 w-4" />
@@ -369,7 +383,7 @@ function Navbar() {
                         setIsProfileMenuOpen(false)
                         navigate('/admin')
                       }}
-                      className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-900"
+                      className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-ink-2 transition hover:bg-bg-sunk"
                       role="menuitem"
                     >
                       <Shield className="h-4 w-4" />
@@ -377,12 +391,12 @@ function Navbar() {
                     </button>
                   ) : null}
 
-                  <div className="my-2 border-t border-gray-100 dark:border-gray-800" />
+                  <div className="my-2 border-t border-line" />
 
                   <button
                     type="button"
                     onClick={handleLogout}
-                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold text-rose-600 transition hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-500/10"
+                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold text-danger transition hover:bg-danger-soft"
                     role="menuitem"
                   >
                     <LogOut className="h-4 w-4" />
@@ -394,7 +408,7 @@ function Navbar() {
           ) : (
             <>
               <Link to="/login">
-                <Button variant="ghost" size="sm" className="text-gray-700 dark:text-gray-300">
+                <Button variant="ghost" size="sm" className="text-ink-2">
                   Login
                 </Button>
               </Link>
@@ -407,6 +421,138 @@ function Navbar() {
             </>
           )}
         </div>
+
+        <button
+          type="button"
+          onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+          className="order-2 ml-auto inline-flex h-10 w-10 items-center justify-center rounded-lg border border-line-strong bg-bg-elev text-ink-2 transition-colors hover:bg-bg-sunk focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent sm:order-3 lg:hidden"
+          aria-expanded={isMobileMenuOpen}
+          aria-controls="mobile-menu"
+          aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
+        >
+          {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        </button>
+      </div>
+
+      <div id="mobile-menu" className="border-t border-line bg-bg-elev lg:hidden">
+        {isMobileMenuOpen && (
+          <nav className="flex flex-col px-4 py-3">
+            <Link
+              to="/collections"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
+            >
+              Collections
+            </Link>
+            <Link
+              to="/best-ai-tools-for-students"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
+            >
+              Best AI Tools for Students
+            </Link>
+            <Link
+              to="/best-free-ai-tools"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
+            >
+              Best Free AI Tools
+            </Link>
+            {isAdmin ? (
+              <Link
+                to="/admin"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="block rounded-lg px-3 py-2.5 text-sm font-medium text-muted hover:bg-bg-sunk"
+              >
+                Admin
+              </Link>
+            ) : null}
+
+            <div className="my-2 border-t border-line" />
+
+            <button
+              type="button"
+              onClick={toggleDarkMode}
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
+            >
+              {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              {isDark ? 'Light mode' : 'Dark mode'}
+            </button>
+
+            <div className="my-2 border-t border-line" />
+
+            {user && isAuthenticated ? (
+              <>
+                <div className="px-3 py-2">
+                  <p className="truncate text-sm font-semibold text-ink">{user?.name || 'User'}</p>
+                  <p className="truncate text-xs text-muted">{user?.email}</p>
+                </div>
+                <Link
+                  to="/dashboard"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
+                >
+                  <LayoutDashboard className="h-4 w-4" />
+                  My Dashboard
+                </Link>
+                <Link
+                  to="/profile"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
+                >
+                  <UserCircle2 className="h-4 w-4" />
+                  Profile &amp; Settings
+                </Link>
+                <Link
+                  to="/ai-tool-finder"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
+                >
+                  <Sparkles className="h-4 w-4" />
+                  My AI Stack
+                </Link>
+                {isAdmin ? (
+                  <Link
+                    to="/admin"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
+                  >
+                    <Shield className="h-4 w-4" />
+                    Admin Panel
+                  </Link>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleLogout()
+                    setIsMobileMenuOpen(false)
+                  }}
+                  className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold text-danger hover:bg-danger-soft"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/register"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink hover:bg-bg-sunk"
+                >
+                  Register
+                </Link>
+              </>
+            )}
+          </nav>
+        )}
       </div>
     </header>
   )

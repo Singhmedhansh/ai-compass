@@ -67,5 +67,5 @@ with open(out_path, 'wb') as f:
 
 print(f"Vocabulary size: {len(vectorizer.vocabulary_)}")
 print(f"Matrix shape: {tfidf_matrix.shape}")
-print(f"Saved to data/recommendation_model.pkl")
+print("Saved to data/recommendation_model.pkl")
 print("Done!")

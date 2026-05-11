@@ -10,11 +10,22 @@ const originalFetch = window.fetch.bind(window)
 
 window.fetch = (input, init) => {
   if (typeof input === 'string') {
-    return originalFetch(toApiUrl(input), init)
+    const rewritten = toApiUrl(input)
+    const wasRewritten = rewritten !== input
+    return originalFetch(
+      rewritten,
+      wasRewritten ? { credentials: 'include', ...init } : init,
+    )
   }
 
   if (input instanceof URL) {
-    return originalFetch(toApiUrl(input.toString()), init)
+    const original = input.toString()
+    const rewritten = toApiUrl(original)
+    const wasRewritten = rewritten !== original
+    return originalFetch(
+      rewritten,
+      wasRewritten ? { credentials: 'include', ...init } : init,
+    )
   }
 
   return originalFetch(input, init)

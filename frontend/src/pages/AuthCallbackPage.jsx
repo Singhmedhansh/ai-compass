@@ -44,10 +44,10 @@ export default function AuthCallbackPage() {
   }, [])
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-950">
-      <div className="animate-spin w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full mb-4"/>
-      <p className="text-white text-lg font-medium">Signing you in...</p>
-      <p className="text-gray-500 text-sm mt-2">Please wait</p>
+    <div className="flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center">
+      <div className="mb-4 h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+      <p className="text-lg font-medium text-ink">Signing you in...</p>
+      <p className="mt-2 text-sm text-muted">Please wait</p>
     </div>
   )
 }
