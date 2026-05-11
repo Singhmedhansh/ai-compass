@@ -205,8 +205,15 @@ def _serialize_user(user: User) -> dict:
     }
 
 
-def _normalize_text(value: str | None) -> str:
+def _normalize_text(value) -> str:
     return str(value or "").strip().lower()
+
+
+def _as_choice_list(value) -> list[str]:
+    """Accepts a single str, a list of str, or falsy; returns a normalized list."""
+    if isinstance(value, list):
+        return [_normalize_text(item) for item in value if item]
+    return [_normalize_text(value)] if value else []
 
 
 def _pricing_value(tool: dict) -> str:
@@ -233,9 +240,9 @@ def _normalize_budget_choice(budget: str) -> str:
     return "freemium"
 
 
-def _tool_supports_platform(tool: dict, platform: str) -> bool:
-    platform_key = _normalize_text(platform)
-    if not platform_key:
+def _tool_supports_platform(tool: dict, platform) -> bool:
+    platform_keys = _as_choice_list(platform)
+    if not platform_keys:
         return True
 
     aliases = {
@@ -244,7 +251,9 @@ def _tool_supports_platform(tool: dict, platform: str) -> bool:
         "desktop": {"desktop", "windows", "mac", "linux"},
         "api": {"api", "sdk", "cli"},
     }
-    wanted = aliases.get(platform_key, {platform_key})
+    wanted = set()
+    for key in platform_keys:
+        wanted.update(aliases.get(key, {key}))
     supported = {_normalize_text(item) for item in (tool.get("platforms") or [])}
     if not supported:
         return False
@@ -499,13 +508,18 @@ def _build_finder_reason(tool: dict, use_case: str, normalized_budget: str) -> s
     return base
 
 
-def _finder_tool_score(tool: dict, goal: str, budget: str, platform: str, level: str, use_case: str) -> float:
+def _finder_tool_score(tool: dict, goal, budget: str, platform, level: str, use_case: str) -> float:
+    goals = _as_choice_list(goal)
+    platforms = _as_choice_list(platform)
+
     category = _normalize_text(tool.get("category"))
-    allowed_categories = FINDER_GOAL_CATEGORY_MAP.get(goal, [])
+    allowed_categories = set()
+    for g in goals:
+        allowed_categories.update(FINDER_GOAL_CATEGORY_MAP.get(g, []))
     if allowed_categories and category not in allowed_categories:
         return 0.0
 
-    if not _tool_passes_category_keyword_veto(tool, goal):
+    if goals and not any(_tool_passes_category_keyword_veto(tool, g) for g in goals):
         return 0.0
 
     score = 35.0
@@ -551,13 +565,18 @@ def _finder_tool_score(tool: dict, goal: str, budget: str, platform: str, level:
         "desktop": ["windows", "mac", "linux", "desktop"],
         "api": ["api", "sdk", "cli"],
     }
-    for platform_value in platform_hits.get(platform, [platform]):
-        if platform_value in tool_platforms:
+    if platforms:
+        matched_platform = False
+        for plat in platforms:
+            candidates = platform_hits.get(plat, [plat])
+            if any(c in tool_platforms for c in candidates):
+                matched_platform = True
+                break
+        if matched_platform:
             score += 18.0
-            break
-    else:
-        # Penalize explicit platform mismatch so recommendations change per selection.
-        score -= 14.0
+        else:
+            # Penalize explicit platform mismatch so recommendations change per selection.
+            score -= 14.0
 
     tool_tags = [str(tag).lower() for tag in (tool.get("tags") or [])]
     if level in ("beginner", "novice"):
@@ -588,8 +607,9 @@ def _finder_tool_score(tool: dict, goal: str, budget: str, platform: str, level:
     return score
 
 
-def _rank_finder_tools(tools: list[dict], goal: str, budget: str, platform: str, level: str, use_case: str, limit: int = 6) -> list[dict]:
+def _rank_finder_tools(tools: list[dict], goal, budget: str, platform, level: str, use_case: str, limit: int = 6) -> list[dict]:
     normalized_budget = _normalize_budget_choice(budget)
+    platforms = _as_choice_list(platform)
     scored = []
 
     for tool in tools:
@@ -599,9 +619,9 @@ def _rank_finder_tools(tools: list[dict], goal: str, budget: str, platform: str,
 
     scored.sort(key=lambda item: item[1], reverse=True)
 
-    platform_matched = [item for item in scored if _tool_supports_platform(item[0], platform)]
-    if platform and len(platform_matched) >= 3:
-        leftovers = [item for item in scored if not _tool_supports_platform(item[0], platform)]
+    platform_matched = [item for item in scored if _tool_supports_platform(item[0], platforms)]
+    if platforms and len(platform_matched) >= 3:
+        leftovers = [item for item in scored if not _tool_supports_platform(item[0], platforms)]
         scored = platform_matched + leftovers
 
     results = []
@@ -1146,9 +1166,9 @@ def admin_submissions():
 @api_bp.post("/finder")
 def finder():
     data = request.get_json(silent=True) or {}
-    goal = _normalize_text(data.get("goal"))
+    goals = _as_choice_list(data.get("goal"))
     budget = _normalize_text(data.get("budget"))
-    platform = _normalize_text(data.get("platform"))
+    platforms = _as_choice_list(data.get("platform"))
     level = _normalize_text(data.get("level"))
     # Always collect use_case from both form and JSON for compatibility
     use_case = request.form.get("use_case", "").strip() or _normalize_text(data.get("use_case"))
@@ -1156,9 +1176,9 @@ def finder():
     print(
         "[finder] received selections:",
         {
-            "goal": goal,
+            "goals": goals,
             "budget": budget,
-            "platform": platform,
+            "platforms": platforms,
             "level": level,
             "use_case": use_case,
         },
@@ -1168,9 +1188,9 @@ def finder():
         tools = _load_tools() or []
         results = _rank_finder_tools(
             tools,
-            goal=goal,
+            goal=goals,
             budget=budget,
-            platform=platform,
+            platform=platforms,
             level=level,
             use_case=use_case,
             limit=6,
@@ -1194,9 +1214,13 @@ def finder():
     }
 
     filtered = tools
-    if goal and goal in category_map:
-        allowed = category_map[goal]
-        filtered = [tool for tool in tools if _normalize_text(tool.get("category")) in allowed]
+    if goals:
+        allowed = []
+        for g in goals:
+            allowed.extend(category_map.get(g, []))
+        if allowed:
+            allowed_set = set(allowed)
+            filtered = [tool for tool in tools if _normalize_text(tool.get("category")) in allowed_set]
 
     if budget == "free":
         filtered = [
@@ -1205,11 +1229,12 @@ def finder():
         ] or filtered
 
     filtered.sort(key=lambda tool: (_rating_value(tool), float(tool.get("review_count", 0) or 0)), reverse=True)
-    results = _rank_finder_tools(filtered, goal, budget, platform, level, use_case, limit=6)
+    results = _rank_finder_tools(filtered, goals, budget, platforms, level, use_case, limit=6)
 
+    primary_goal = goals[0] if goals else "your workflow"
     for result in results:
         result.setdefault("match_score", 0.0)
-        result.setdefault("reason", f"Great tool for {goal or 'your workflow'}")
+        result.setdefault("reason", f"Great tool for {primary_goal}")
 
     print("[finder] fallback returning:", [tool.get("name") for tool in results])
 
