@@ -36,7 +36,7 @@ export default function CompareToggleButton({ slug, toolName }) {
       aria-pressed={selected}
       disabled={disabled}
       className={clsx(
-        'inline-flex items-center justify-center rounded-full p-1.5 outline-none transition focus-visible:ring-2 focus-visible:ring-accent',
+        'inline-flex h-10 w-10 items-center justify-center rounded-full outline-none transition focus-visible:ring-2 focus-visible:ring-accent md:h-8 md:w-8',
         selected
           ? 'border border-accent bg-accent text-bg'
           : 'border border-line bg-bg-elev text-muted hover:border-line-strong hover:text-ink',

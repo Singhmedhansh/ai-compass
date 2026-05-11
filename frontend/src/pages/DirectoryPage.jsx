@@ -361,7 +361,8 @@ function DirectoryPage() {
               aria-labelledby="mobile-filters-title"
               id="mobile-filters-drawer"
               onKeyDown={handlePanelKeyDown}
-              className="fixed bottom-0 left-0 right-0 z-50 rounded-t-2xl bg-bg-elev p-6 shadow-2xl md:hidden"
+              className="fixed bottom-0 left-0 right-0 z-50 rounded-t-2xl bg-bg-elev px-6 pt-6 shadow-2xl md:hidden"
+              style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}
             >
               <div className="mb-4 flex items-center justify-between">
                 <h2 id="mobile-filters-title" className="text-lg font-bold text-ink">Filters</h2>

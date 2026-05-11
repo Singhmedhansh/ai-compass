@@ -153,7 +153,8 @@ export default function CompareTray() {
               initial="initial"
               animate="animate"
               exit="exit"
-              className="fixed bottom-0 left-0 right-0 z-40 flex flex-col border-t border-line bg-bg-elev p-4 shadow-lg md:hidden"
+              className="fixed bottom-0 left-0 right-0 z-40 flex flex-col border-t border-line bg-bg-elev px-4 pt-3 shadow-lg md:hidden"
+              style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
             >
               <TrayContents
                 count={count}
