@@ -55,9 +55,10 @@ const QUESTIONS = [
     id: 'goal',
     label: 'Use case',
     activeHeading: "What's your primary goal?",
-    activeHelper: 'Pick the closest match — you can change this anytime.',
+    activeHelper: 'Pick all that apply — you can refine these anytime.',
     options: GOAL_OPTIONS,
     type: 'chips',
+    multiSelect: true,
   },
   {
     id: 'use_case',
@@ -78,9 +79,10 @@ const QUESTIONS = [
     id: 'platform',
     label: 'Platform',
     activeHeading: 'Where do you work?',
-    activeHelper: 'Pick the surface you spend most time on.',
+    activeHelper: 'Pick every surface you use — we match tools that fit.',
     options: PLATFORM_OPTIONS,
     type: 'chips',
+    multiSelect: true,
   },
   {
     id: 'level',
@@ -154,15 +156,29 @@ function articleFor(nextWord = '') {
   return /^[aeiouAEIOU]/.test(nextWord.trim()) ? 'an' : 'a'
 }
 
+function asList(value) {
+  if (Array.isArray(value)) return value.filter(Boolean)
+  return value ? [value] : []
+}
+
+function joinPretty(items) {
+  if (items.length === 0) return ''
+  if (items.length === 1) return items[0]
+  if (items.length === 2) return `${items[0]} and ${items[1]}`
+  return `${items.slice(0, -1).join(', ')}, and ${items[items.length - 1]}`
+}
+
 function buildPersona(answers) {
   const { goal, use_case, budget, platform, level } = answers
-  if (!goal && !use_case && !budget && !platform && !level) {
+  const goals = asList(goal)
+  const platforms = asList(platform)
+  if (goals.length === 0 && !use_case && !budget && platforms.length === 0 && !level) {
     return null
   }
 
-  const goalNoun = GOAL_NOUN[goal]
+  const goalNoun = joinPretty(goals.map((g) => GOAL_NOUN[g]).filter(Boolean))
   const budgetClause = BUDGET_CLAUSE[budget]
-  const platformClause = PLATFORM_CLAUSE[platform]
+  const platformClause = joinPretty(platforms.map((p) => PLATFORM_CLAUSE[p]).filter(Boolean))
 
   let lead
   if (level && goalNoun) {
@@ -185,11 +201,19 @@ function buildPersona(answers) {
 
 function QuestionRow({ index, question, answer, isActive, onActivate, onSelect, onTextChange, onCollapse }) {
   const indexLabel = String(index).padStart(2, '0')
-  const isAnswered = Boolean(answer)
+  const isMulti = Boolean(question.multiSelect)
+  const isAnswered = isMulti
+    ? Array.isArray(answer) && answer.length > 0
+    : Boolean(answer)
 
   const answerLabel = (() => {
     if (!isAnswered) return '— pending —'
     if (question.type === 'text') return answer
+    if (isMulti) {
+      return answer
+        .map((id) => question.options?.find((o) => o.id === id)?.label || id)
+        .join(', ')
+    }
     const opt = question.options?.find((o) => o.id === answer)
     return opt?.label || answer
   })()
@@ -269,7 +293,9 @@ function QuestionRow({ index, question, answer, isActive, onActivate, onSelect, 
                 <p className="text-sm text-muted">{question.activeHelper}</p>
                 <div className="flex flex-wrap gap-2">
                   {question.options.map((opt) => {
-                    const selected = answer === opt.id
+                    const selected = isMulti
+                      ? Array.isArray(answer) && answer.includes(opt.id)
+                      : answer === opt.id
                     return (
                       <button
                         key={opt.id}
@@ -407,7 +433,7 @@ function ToolFinderPage() {
   const navigate = useNavigate()
   const [activeQuestion, setActiveQuestion] = useState('goal')
   const [viewMode, setViewMode] = useState('wizard')
-  const [answers, setAnswers] = useState({ goal: '', use_case: '', budget: '', platform: '', level: '' })
+  const [answers, setAnswers] = useState({ goal: [], use_case: '', budget: '', platform: [], level: '' })
   const [results, setResults] = useState([])
   const [loadingResults, setLoadingResults] = useState(false)
   const [savingStack, setSavingStack] = useState(false)
@@ -434,7 +460,12 @@ function ToolFinderPage() {
 
   // Debounced live-preview fetch — fires whenever answers change.
   useEffect(() => {
-    const hasGatingAnswer = Boolean(answers.goal || answers.budget || answers.platform || answers.level)
+    const hasGatingAnswer = (
+      (Array.isArray(answers.goal) ? answers.goal.length > 0 : Boolean(answers.goal))
+      || Boolean(answers.budget)
+      || (Array.isArray(answers.platform) ? answers.platform.length > 0 : Boolean(answers.platform))
+      || Boolean(answers.level)
+    )
     if (!hasGatingAnswer) {
       setResults([])
       setError('')
@@ -478,14 +509,31 @@ function ToolFinderPage() {
     }
   }, [answers])
 
-  const canSeeResults = Boolean(answers.goal && answers.level)
+  const canSeeResults = (
+    (Array.isArray(answers.goal) ? answers.goal.length > 0 : Boolean(answers.goal))
+    && Boolean(answers.level)
+  )
 
   const writeAnswer = (key, value) => {
     setAnswers((previous) => ({ ...previous, [key]: value }))
   }
 
+  const handleQuestionSelect = (question, value) => {
+    if (question.multiSelect) {
+      setAnswers((previous) => {
+        const current = Array.isArray(previous[question.id]) ? previous[question.id] : []
+        const next = current.includes(value)
+          ? current.filter((v) => v !== value)
+          : [...current, value]
+        return { ...previous, [question.id]: next }
+      })
+    } else {
+      writeAnswer(question.id, value)
+    }
+  }
+
   const handleRestart = () => {
-    setAnswers({ goal: '', use_case: '', budget: '', platform: '', level: '' })
+    setAnswers({ goal: [], use_case: '', budget: '', platform: [], level: '' })
     setResults([])
     setError('')
     setActiveQuestion('goal')
@@ -510,9 +558,10 @@ function ToolFinderPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           user_id: user.id,
-          goal: answers.goal,
+          // dashboard renders these as strings; flatten arrays for backward compat
+          goal: Array.isArray(answers.goal) ? answers.goal.join(', ') : answers.goal,
           budget: answers.budget,
-          platform: answers.platform,
+          platform: Array.isArray(answers.platform) ? answers.platform.join(', ') : answers.platform,
           level: answers.level,
           tools: results.map((tool) => tool.slug || tool.name),
         }),
@@ -648,7 +697,7 @@ function ToolFinderPage() {
                 answer={answers[question.id]}
                 isActive={activeQuestion === question.id}
                 onActivate={() => setActiveQuestion(question.id)}
-                onSelect={(value) => writeAnswer(question.id, value)}
+                onSelect={(value) => handleQuestionSelect(question, value)}
                 onTextChange={(value) => writeAnswer(question.id, value)}
                 onCollapse={() => setActiveQuestion(null)}
               />
