@@ -97,7 +97,7 @@ function ToolColumn({ slug, status, tool, error, onRemove }) {
 
   if (status === 'error' || !tool) {
     return (
-      <div className="flex flex-col rounded-2xl border border-line bg-bg-elev p-6">
+      <div className="flex flex-col rounded-2xl border border-line bg-bg-elev p-4 md:p-6">
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-3">
             <div
@@ -149,7 +149,7 @@ function ToolColumn({ slug, status, tool, error, onRemove }) {
   const rating = Number(tool.rating || tool.averageRating || 0)
 
   return (
-    <div className="flex flex-col rounded-2xl border border-line bg-bg-elev p-6">
+    <div className="flex flex-col rounded-2xl border border-line bg-bg-elev p-4 md:p-6">
       <div className="flex items-start justify-between gap-2">
         <div className="flex min-w-0 items-start gap-3">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden" aria-hidden="true">

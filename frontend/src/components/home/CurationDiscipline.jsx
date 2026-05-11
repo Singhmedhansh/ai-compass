@@ -1,4 +1,13 @@
+import { motion } from 'framer-motion'
+
+import { useCountUp, useScrollReveal } from '../../lib/motion'
+
 export default function CurationDiscipline() {
+  const [statsRef, statsInView] = useScrollReveal({ threshold: 0.3 })
+  const toolCount = useCountUp(443, { enabled: statsInView, duration: 1.8 })
+  const removedCount = useCountUp(38, { enabled: statsInView, duration: 1.5 })
+  const cadenceCount = useCountUp(7, { enabled: statsInView, duration: 1.0 })
+
   return (
     <section id="curation" className="py-12 md:py-20">
       <div className="mx-auto max-w-6xl px-5">
@@ -39,12 +48,13 @@ export default function CurationDiscipline() {
 
           {/* Stats column — 2x2 grid with 1px hairline separators (gap-px on bg-line) */}
           <div
+            ref={statsRef}
             aria-label="Catalog facts"
             className="grid grid-cols-2 gap-px self-start overflow-hidden rounded-xl border border-line bg-line"
           >
             <div className="bg-bg p-5 md:p-7">
               <div className="text-[32px] font-semibold leading-none tracking-tight tabular-nums text-ink md:text-[40px]">
-                443
+                <motion.span aria-label="443">{toolCount}</motion.span>
               </div>
               <div className="mt-2 text-[13px] leading-[1.45] text-muted">
                 tools, hand-tested<br />last touched · this week
@@ -62,7 +72,7 @@ export default function CurationDiscipline() {
 
             <div className="bg-bg p-5 md:p-7">
               <div className="text-[32px] font-semibold leading-none tracking-tight tabular-nums text-ink md:text-[40px]">
-                38
+                <motion.span aria-label="38">{removedCount}</motion.span>
               </div>
               <div className="mt-2 text-[13px] leading-[1.45] text-muted">
                 tools removed in 2026<br />for breakage or shutdown
@@ -71,7 +81,7 @@ export default function CurationDiscipline() {
 
             <div className="bg-bg p-5 md:p-7">
               <div className="text-[32px] font-semibold leading-none tracking-tight tabular-nums text-ink md:text-[40px]">
-                7d
+                <motion.span aria-label="7">{cadenceCount}</motion.span>d
               </div>
               <div className="mt-2 text-[13px] leading-[1.45] text-muted">
                 re-score cadence<br />on pricing changes
