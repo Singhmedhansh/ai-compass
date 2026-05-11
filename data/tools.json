@@ -69,7 +69,106 @@
       "Code interpreter",
       "Custom GPTs"
     ],
-    "slug": "chatgpt"
+    "slug": "chatgpt",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-11",
+      "source_url": "https://chatgpt.com/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/month",
+          "features": [
+            "GPT-5.3 Instant access",
+            "Limited messages (10 per 5-hour window)",
+            "Limited image generation",
+            "Custom GPT store access",
+            "Ads on free tier (US)"
+          ],
+          "cta_label": "Try Free",
+          "cta_url": "https://chatgpt.com"
+        },
+        {
+          "name": "Go",
+          "price_amount": 8,
+          "price_display": "$8/month",
+          "features": [
+            "10x more messages than Free",
+            "Unlimited GPT-5.3 Instant",
+            "File uploads",
+            "Image creation",
+            "Enhanced memory",
+            "Custom GPTs access"
+          ],
+          "cta_label": "Get Go",
+          "cta_url": "https://chatgpt.com/pricing"
+        },
+        {
+          "name": "Plus",
+          "price_amount": 20,
+          "price_display": "$20/month",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "GPT-5.5 access",
+            "Deep Research (10 runs/month)",
+            "Sora video generation",
+            "Codex coding agent",
+            "Agent Mode and Tasks",
+            "Advanced Voice Mode",
+            "ChatGPT Images 2.0",
+            "Ad-free experience"
+          ],
+          "cta_label": "Get Plus",
+          "cta_url": "https://chatgpt.com/pricing"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 200,
+          "price_display": "$200/month",
+          "features": [
+            "GPT-5.5 Pro reasoning",
+            "Unlimited GPT-5.3 and file uploads",
+            "Deep Research (250 runs/month)",
+            "20x usage limits vs Plus",
+            "Maximum context window",
+            "Priority access to new features"
+          ],
+          "cta_label": "Get Pro",
+          "cta_url": "https://chatgpt.com/pricing"
+        },
+        {
+          "name": "Business",
+          "price_amount": 25,
+          "price_display": "$25/user/month",
+          "features": [
+            "GPT-5.5 access for teams",
+            "60+ app integrations (Slack, Drive, GitHub, more)",
+            "Admin console and team controls",
+            "SOC 2 Type 2 compliance",
+            "Data not used for training",
+            "$20/user/month billed annually (2+ users)"
+          ],
+          "cta_label": "Try Business",
+          "cta_url": "https://openai.com/business/chatgpt-pricing/"
+        },
+        {
+          "name": "Enterprise",
+          "price_amount": null,
+          "price_display": "Contact Sales",
+          "features": [
+            "Custom pricing and SLA",
+            "Enterprise-grade security",
+            "SCIM, SAML SSO",
+            "Custom data retention controls",
+            "Dedicated support"
+          ],
+          "cta_label": "Contact Sales",
+          "cta_url": "https://openai.com/enterprise"
+        }
+      ]
+    }
   },
   {
     "id": 2,

@@ -6,7 +6,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 
 import RatingWidget from '../components/ui/RatingWidget'
 import ReviewsSection from '../components/ui/ReviewsSection'
-import { Badge, Button, SkeletonToolDetail, ToolLogo } from '../components/ui'
+import { Badge, Button, PricingSection, SkeletonToolDetail, ToolLogo } from '../components/ui'
 import { sectionReveal, staggerChild, staggerParent } from '../lib/motion'
 
 const MotionDiv = motion.div
@@ -78,6 +78,7 @@ function normalizeTool(rawTool) {
     platform: rawTool?.platform || (Array.isArray(rawTool?.platforms) ? rawTool.platforms.join(', ') : null),
     lastUpdated: rawTool?.last_updated || rawTool?.updatedAt || rawTool?.updated_at || rawTool?.lastUpdated,
     studentFriendly: Boolean(rawTool?.student_friendly ?? rawTool?.studentPerk ?? rawTool?.student_perk),
+    pricing_tiers: rawTool?.pricing_tiers || null,
   }
 }
 
@@ -363,6 +364,10 @@ function ToolDetailPage() {
             <h2 className="text-lg font-semibold text-ink">About this tool</h2>
             <p className="mt-3 leading-relaxed text-ink-2">{tool.description}</p>
           </section>
+          </MotionDiv>
+
+          <MotionDiv variants={sectionReveal} initial="initial" animate="animate">
+            <PricingSection tool={tool} />
           </MotionDiv>
 
           <MotionDiv variants={sectionReveal} initial="initial" animate="animate">
