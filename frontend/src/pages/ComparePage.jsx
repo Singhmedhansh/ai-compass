@@ -354,14 +354,13 @@ export default function ComparePage() {
         variants={staggerParent}
         initial="initial"
         animate="animate"
-        className="mt-8 flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory md:grid md:grid-cols-2 md:gap-6 md:overflow-x-visible md:pb-0 lg:grid-cols-3"
+        className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-3"
       >
         {columns.map((column, index) => (
           <MotionDiv
             key={column.slug}
             variants={staggerChild}
             custom={Math.min(index, 2) * 0.06}
-            className="min-w-[85vw] shrink-0 snap-start md:min-w-0 md:shrink"
           >
             <MotionDiv variants={sectionReveal} initial="initial" animate="animate">
               <ToolColumn

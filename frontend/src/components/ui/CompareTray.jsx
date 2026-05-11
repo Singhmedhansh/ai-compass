@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { X } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 import useCompare, { MAX_COMPARE } from '../../hooks/useCompare'
 import { drawerSlideUp } from '../../lib/motion'
@@ -119,13 +119,15 @@ function TrayContents({ count, selected, onClear, onCompare, onRemove }) {
 export default function CompareTray() {
   const { selected, count, clear, toggle } = useCompare()
   const navigate = useNavigate()
+  const location = useLocation()
 
   const handleCompare = () => {
     if (selected.length < 2) return
     navigate(`/compare?tools=${selected.join(',')}`)
   }
 
-  const visible = count > 0
+  // Redundant on /compare — the page already shows the selection
+  const visible = count > 0 && location.pathname !== '/compare'
 
   return (
     <AnimatePresence>
