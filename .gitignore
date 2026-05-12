@@ -27,7 +27,6 @@ instance/
 # Node
 node_modules/
 frontend/dist/
-package-lock.json
 
 # IDE
 .vscode/
