@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom'
+
 export default function Hero() {
   return (
     <header className="relative pt-9 pb-8 md:pt-24 md:pb-20">
@@ -22,8 +24,8 @@ export default function Hero() {
         </p>
 
         <div className="flex flex-wrap items-center gap-2.5">
-          <a
-            href="#wizard"
+          <Link
+            to="/ai-tool-finder"
             className="group inline-flex items-center gap-2 rounded-full bg-ink px-[18px] py-3 text-sm font-medium text-bg transition-all hover:-translate-y-px hover:shadow-md"
           >
             Start the wizard
@@ -38,13 +40,13 @@ export default function Hero() {
             >
               <path d="M3 8h10M9 4l4 4-4 4" />
             </svg>
-          </a>
-          <a
-            href="#catalog"
+          </Link>
+          <Link
+            to="/tools"
             className="inline-flex items-center gap-2 rounded-full border border-line-strong px-[18px] py-3 text-sm font-medium text-ink transition-all hover:border-ink hover:bg-bg-elev"
           >
             Browse the catalog
-          </a>
+          </Link>
         </div>
 
         <div

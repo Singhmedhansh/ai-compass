@@ -56,7 +56,7 @@ export default function PricingSection({ tool }) {
             }`}
           >
             {tier.is_popular && tier.highlight_label ? (
-              <span className="absolute -top-2.5 left-5 inline-flex rounded-full bg-accent px-2 py-0.5 text-xs font-semibold text-bg">
+              <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 inline-flex rounded-full bg-accent px-2 py-0.5 text-xs font-semibold text-bg">
                 {tier.highlight_label}
               </span>
             ) : null}

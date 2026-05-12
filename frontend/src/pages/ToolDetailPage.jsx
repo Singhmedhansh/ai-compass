@@ -316,7 +316,7 @@ function ToolDetailPage() {
                     <Button className="w-full">Visit Tool</Button>
                   </a>
                   <Button variant="ghost" className="w-full gap-2" onClick={handleFavoriteToggle}>
-                    <Heart className={clsx('h-4 w-4', isFavorite ? 'fill-danger text-danger' : 'text-line-strong')} />
+                    <Heart className={clsx('h-4 w-4', isFavorite ? 'fill-danger text-danger' : 'text-muted')} />
                     {isFavorite ? 'Saved to Favorites' : 'Save to Favorites'}
                   </Button>
                 </div>

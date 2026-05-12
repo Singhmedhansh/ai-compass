@@ -1,6 +1,6 @@
 import { ChevronDown, LayoutDashboard, LogOut, Menu, Moon, Shield, Sparkles, Sun, UserCircle2, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 import Button from './Button'
 import SearchInput from './SearchInput'
@@ -25,6 +25,9 @@ function getInitialTheme() {
 
 function Navbar() {
   const navigate = useNavigate()
+  const location = useLocation()
+  // /tools has its own page-level search; suppress the navbar one to avoid duplication
+  const hideSearchOnRoute = location.pathname === '/tools'
   const [searchValue, setSearchValue] = useState('')
   const [isDark, setIsDark] = useState(getInitialTheme)
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
@@ -218,15 +221,17 @@ function Navbar() {
           AI Compass
         </Link>
 
-        <div className="order-3 w-full sm:order-2 sm:flex-1">
-          <SearchInput
-            value={searchValue}
-            onChange={setSearchValue}
-            onClear={() => setSearchValue('')}
-            onKeyDown={handleSearchKeyDown}
-            placeholder="Search tools, categories, and tags"
-          />
-        </div>
+        {hideSearchOnRoute ? null : (
+          <div className="order-3 w-full sm:order-2 sm:flex-1">
+            <SearchInput
+              value={searchValue}
+              onChange={setSearchValue}
+              onClear={() => setSearchValue('')}
+              onKeyDown={handleSearchKeyDown}
+              placeholder="Search tools, categories, and tags"
+            />
+          </div>
+        )}
 
         <div className="order-2 ml-auto hidden items-center gap-2 sm:order-3 lg:flex">
           <Link to="/collections">
