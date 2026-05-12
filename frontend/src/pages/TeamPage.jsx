@@ -3,13 +3,14 @@ import { ArrowRight, Calendar, GraduationCap, MapPin } from 'lucide-react'
 import { Helmet } from 'react-helmet-async'
 import { Link } from 'react-router-dom'
 
+import medhanshPhoto from '../assets/medhansh.jpeg'
 import { WordReveal } from '../components/ui'
 import { sectionReveal } from '../lib/motion'
 
 const MotionDiv = motion.div
 
-// Set to imported asset (e.g. import medhansh from '../assets/medhansh.jpg') or external URL to replace the initial-circle avatar.
-const PHOTO_URL = null
+// Imported asset bundled by Vite with content-hash filename. Falls back to initial-circle "M" if set back to null.
+const PHOTO_URL = medhanshPhoto
 
 const REVEAL_VIEWPORT = { once: true, margin: '-10% 0px' }
 

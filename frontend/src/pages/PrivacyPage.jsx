@@ -1,0 +1,195 @@
+import { motion } from 'framer-motion'
+import { Helmet } from 'react-helmet-async'
+
+import { WordReveal } from '../components/ui'
+import { sectionReveal } from '../lib/motion'
+
+const MotionDiv = motion.div
+
+const REVEAL_VIEWPORT = { once: true, margin: '-10% 0px' }
+
+export default function PrivacyPage() {
+  return (
+    <>
+      <Helmet>
+        <title>Privacy Policy · AI Compass</title>
+        <meta
+          name="description"
+          content="How AI Compass collects, uses, and protects your information."
+        />
+      </Helmet>
+
+      <div className="min-h-screen bg-bg">
+        <div className="mx-auto max-w-3xl px-4 py-12 md:py-20">
+          <section>
+            <h1 className="text-3xl font-bold text-ink sm:text-4xl md:text-5xl">
+              <WordReveal>Privacy Policy</WordReveal>
+            </h1>
+            <p className="mt-3 text-sm text-muted">Last updated: May 12, 2026</p>
+            <p className="mt-6 text-base leading-relaxed text-ink-2">
+              This Privacy Policy explains how AI Compass (&quot;we&quot;, &quot;our&quot;, &quot;us&quot;) collects, uses, and protects your information when you use ai-compass.in (the &quot;Service&quot;). By using the Service, you agree to this policy.
+            </p>
+          </section>
+
+          {/* Single sectionReveal wrap so the content block reveals as one cohesive unit — per-section reveals would feel choppy on a text-heavy page. */}
+          <MotionDiv
+            variants={sectionReveal}
+            initial="initial"
+            whileInView="animate"
+            viewport={REVEAL_VIEWPORT}
+          >
+            <section className="mt-12">
+              <h2 id="information-we-collect" className="text-xl font-semibold text-ink sm:text-2xl">
+                1. Information we collect
+              </h2>
+              <p className="mt-3 leading-relaxed text-ink-2">
+                Account information: When you create an account, we collect your email address and a hashed version of your password. We use bcrypt — we never store passwords in plain text.
+              </p>
+              <p className="mt-3 leading-relaxed text-ink-2">
+                User-generated content: Reviews, ratings, favorites, and collections you create are stored in our database. Reviews and ratings are publicly visible to other users along with your username.
+              </p>
+              <p className="mt-3 leading-relaxed text-ink-2">
+                Session data: We use session cookies to keep you logged in. These are essential for the Service to function.
+              </p>
+              <p className="mt-3 leading-relaxed text-ink-2">
+                Usage data: Our hosting provider may collect standard server logs (IP address, user agent, request paths) for security and operational purposes.
+              </p>
+              <p className="mt-3 leading-relaxed text-ink-2">
+                We do not collect payment information (we don&apos;t process payments), location data beyond standard server logs, or contacts/social media data.
+              </p>
+            </section>
+
+            <section className="mt-12">
+              <h2 id="how-we-use" className="text-xl font-semibold text-ink sm:text-2xl">
+                2. How we use information
+              </h2>
+              <p className="mt-3 leading-relaxed text-ink-2">We use the information we collect to:</p>
+              <ul className="mt-3 list-disc space-y-2 pl-6 text-ink-2">
+                <li className="leading-relaxed">Provide account services and authentication</li>
+                <li className="leading-relaxed">Display your reviews, ratings, and contributions to other users</li>
+                <li className="leading-relaxed">Maintain your favorites and collections</li>
+                <li className="leading-relaxed">Improve the Service based on usage patterns</li>
+                <li className="leading-relaxed">Respond to your requests and inquiries</li>
+              </ul>
+              <p className="mt-3 leading-relaxed text-ink-2">
+                We do not sell your personal information. We do not share your information with third parties for marketing purposes.
+              </p>
+            </section>
+
+            <section className="mt-12">
+              <h2 id="service-providers" className="text-xl font-semibold text-ink sm:text-2xl">
+                3. Service providers
+              </h2>
+              <p className="mt-3 leading-relaxed text-ink-2">
+                We rely on the following service providers to operate AI Compass:
+              </p>
+              <ul className="mt-3 list-disc space-y-2 pl-6 text-ink-2">
+                <li className="leading-relaxed">Render — hosting and database (PostgreSQL)</li>
+              </ul>
+              <p className="mt-3 leading-relaxed text-ink-2">
+                These providers process data on our behalf and are bound by their own privacy commitments.
+              </p>
+            </section>
+
+            <section className="mt-12">
+              <h2 id="cookies" className="text-xl font-semibold text-ink sm:text-2xl">
+                4. Cookies
+              </h2>
+              <p className="mt-3 leading-relaxed text-ink-2">
+                We use a single session cookie to maintain your login session. We do not use tracking cookies or third-party advertising cookies.
+              </p>
+            </section>
+
+            <section className="mt-12">
+              <h2 id="data-retention" className="text-xl font-semibold text-ink sm:text-2xl">
+                5. Data retention
+              </h2>
+              <ul className="mt-3 list-disc space-y-2 pl-6 text-ink-2">
+                <li className="leading-relaxed">Account data: retained while your account is active. Deleted within 30 days of account deletion.</li>
+                <li className="leading-relaxed">User content (reviews, ratings, favorites, collections): retained while associated with your account. You can delete individual items at any time. When you delete your account, your content is removed.</li>
+                <li className="leading-relaxed">Server logs: typically retained for 30-90 days by our hosting provider for security purposes.</li>
+              </ul>
+            </section>
+
+            <section className="mt-12">
+              <h2 id="your-rights" className="text-xl font-semibold text-ink sm:text-2xl">
+                6. Your rights
+              </h2>
+              <p className="mt-3 leading-relaxed text-ink-2">You have the right to:</p>
+              <ul className="mt-3 list-disc space-y-2 pl-6 text-ink-2">
+                <li className="leading-relaxed">Access your account data — request a copy by emailing us</li>
+                <li className="leading-relaxed">Correct inaccurate information — most fields are editable from your profile</li>
+                <li className="leading-relaxed">Delete your account — available from account settings, or by emailing us</li>
+                <li className="leading-relaxed">Export your data in a portable format — request via email</li>
+              </ul>
+              <p className="mt-3 leading-relaxed text-ink-2">
+                For EU users (GDPR): you have additional rights including data portability, restriction of processing, and the right to lodge a complaint with your local data protection authority.
+              </p>
+            </section>
+
+            <section className="mt-12">
+              <h2 id="security" className="text-xl font-semibold text-ink sm:text-2xl">
+                7. Security
+              </h2>
+              <p className="mt-3 leading-relaxed text-ink-2">We use industry-standard security practices:</p>
+              <ul className="mt-3 list-disc space-y-2 pl-6 text-ink-2">
+                <li className="leading-relaxed">Bcrypt password hashing</li>
+                <li className="leading-relaxed">HTTPS encryption for all traffic</li>
+                <li className="leading-relaxed">Secure session cookies</li>
+              </ul>
+              <p className="mt-3 leading-relaxed text-ink-2">
+                No system is perfectly secure. If you become aware of a security issue, please contact us at{' '}
+                <a
+                  href="mailto:medhansh.builds@gmail.com"
+                  className="text-accent hover:underline focus-visible:underline focus-visible:outline-none"
+                >
+                  medhansh.builds@gmail.com
+                </a>
+                .
+              </p>
+            </section>
+
+            <section className="mt-12">
+              <h2 id="childrens-privacy" className="text-xl font-semibold text-ink sm:text-2xl">
+                8. Children&apos;s privacy
+              </h2>
+              <p className="mt-3 leading-relaxed text-ink-2">
+                AI Compass is intended for use by people aged 13 and over. We do not knowingly collect personal information from children under 13. If you believe a child under 13 has provided personal information, contact us and we will delete it.
+              </p>
+            </section>
+
+            <section className="mt-12">
+              <h2 id="changes" className="text-xl font-semibold text-ink sm:text-2xl">
+                9. Changes to this policy
+              </h2>
+              <p className="mt-3 leading-relaxed text-ink-2">
+                We may update this Privacy Policy from time to time. When we do, we&apos;ll update the &quot;Last updated&quot; date at the top. For significant changes, we&apos;ll notify active users by email.
+              </p>
+            </section>
+
+            <section className="mt-12">
+              <h2 id="contact" className="text-xl font-semibold text-ink sm:text-2xl">
+                10. Contact
+              </h2>
+              <p className="mt-3 leading-relaxed text-ink-2">
+                For privacy questions, data requests, or to report a concern:
+              </p>
+              <p className="mt-3 leading-relaxed text-ink-2">
+                <strong className="text-ink">Email:</strong>{' '}
+                <a
+                  href="mailto:medhansh.builds@gmail.com"
+                  className="text-accent hover:underline focus-visible:underline focus-visible:outline-none"
+                >
+                  medhansh.builds@gmail.com
+                </a>
+              </p>
+              <p className="mt-3 leading-relaxed text-ink-2">
+                This Service is operated from India. By using the Service, you consent to your information being transferred to and stored in India.
+              </p>
+            </section>
+          </MotionDiv>
+        </div>
+      </div>
+    </>
+  )
+}
