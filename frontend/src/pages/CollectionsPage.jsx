@@ -1,6 +1,15 @@
 import { useEffect, useState } from 'react'
+import { motion } from 'framer-motion'
+import { ArrowRight } from 'lucide-react'
 import { Helmet } from 'react-helmet-async'
 import { Link } from 'react-router-dom'
+
+import { WordReveal } from '../components/ui'
+import { sectionReveal, staggerChild } from '../lib/motion'
+
+// motion(component) calls aliased at module scope — ESLint quirk in the local config flags inline JSX with motion.X otherwise.
+const MotionDiv = motion.div
+const MotionLink = motion(Link)
 
 const COLLECTIONS = [
   {
@@ -88,39 +97,53 @@ function CollectionsPage() {
         <meta name="description" content="Explore curated categories tailored to goals like coding, writing, research, and more." />
       </Helmet>
 
-      <section className="mb-8 rounded-2xl border border-line bg-bg-elev p-6 shadow-sm">
-        <h1 className="text-3xl font-bold tracking-tight text-ink">Browse AI Tool Collections</h1>
-        <p className="mt-2 text-muted">
+      <header className="mb-12 text-center md:mb-16">
+        <h1 className="text-3xl font-bold text-ink sm:text-4xl md:text-5xl">
+          <WordReveal>Browse AI tool collections</WordReveal>
+        </h1>
+        <p className="mx-auto mt-4 max-w-2xl text-base text-muted sm:text-lg">
           Explore curated categories tailored to goals like coding, writing, research, and more.
         </p>
-      </section>
+      </header>
 
-      <section className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        {COLLECTIONS.map((collection) => (
-          <Link
+      <MotionDiv
+        variants={sectionReveal}
+        initial="initial"
+        whileInView="animate"
+        viewport={{ once: true, margin: '-10% 0px' }}
+        className="grid grid-cols-1 gap-6 md:grid-cols-2"
+      >
+        {COLLECTIONS.map((collection, i) => (
+          <MotionLink
             key={collection.slug}
             to={`/collections/${collection.slug}`}
-            className="group rounded-2xl border border-line bg-bg-elev p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-accent hover:shadow-md"
+            variants={staggerChild}
+            custom={i * 0.05}
+            className="group flex flex-col rounded-2xl border border-line bg-bg-elev p-6 outline-none transition hover:border-line-strong focus-visible:ring-2 focus-visible:ring-accent"
           >
             <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-3xl" aria-hidden="true">
-                  {collection.emoji}
-                </p>
-                <h2 className="mt-3 text-xl font-semibold text-ink">{collection.title}</h2>
-                <p className="mt-2 text-sm text-muted">{collection.description}</p>
+              <div
+                className="flex h-12 w-12 items-center justify-center rounded-xl bg-accent-soft text-2xl"
+                aria-hidden="true"
+              >
+                {collection.emoji}
               </div>
-              <span className="shrink-0 rounded-full bg-accent-soft px-3 py-1 text-sm font-semibold text-accent-ink">
+              <span className="shrink-0 rounded-full bg-bg-sunk px-3 py-1 text-xs font-semibold text-ink-2">
                 {counts[collection.slug] ?? 0}
               </span>
             </div>
-
-            <p className="mt-5 text-sm font-semibold text-accent-ink group-hover:text-accent">
-              View Collection →
-            </p>
-          </Link>
+            <h2 className="mt-5 text-xl font-semibold text-ink">{collection.title}</h2>
+            <p className="mt-2 text-sm leading-relaxed text-muted">{collection.description}</p>
+            {/* mt-auto pins CTA to card bottom so cards line up regardless of description length. */}
+            <div className="mt-auto pt-5">
+              <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-accent">
+                View collection
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+              </span>
+            </div>
+          </MotionLink>
         ))}
-      </section>
+      </MotionDiv>
     </div>
   )
 }
