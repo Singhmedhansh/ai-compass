@@ -44,6 +44,9 @@ jobs:
       - name: Lint Codebase (Ruff)
         run: ruff check .
 
+      - name: Validate tools.json
+        run: python scripts/validate_tools.py
+
       - name: Run Tests
         run: pytest tests/ --cov=app --cov-report=xml
         env:
