@@ -1692,7 +1692,44 @@
       "Related paper discovery",
       "Citation extraction"
     ],
-    "slug": "scispace"
+    "slug": "scispace",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://scispace.com/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Limited paper chat sessions",
+            "Search across 280M+ papers",
+            "Basic AI explanations",
+            "Public paper access"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://scispace.com"
+        },
+        {
+          "name": "Premium",
+          "price_amount": 12,
+          "price_display": "$12/mo annual",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "Unlimited paper chat",
+            "Figure and table extraction",
+            "Citation graph exploration",
+            "Higher-quality AI explanations"
+          ],
+          "cta_label": "Choose Premium",
+          "cta_url": "https://scispace.com/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 16,
@@ -3048,7 +3085,74 @@
       "Lip sync",
       "Camera controls"
     ],
-    "slug": "pika"
+    "slug": "pika",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://pika.art/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Basic",
+          "price_amount": 0,
+          "price_display": "$0",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "250 one-time credits",
+            "Watermarked outputs",
+            "Standard generation",
+            "All base features"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://pika.art"
+        },
+        {
+          "name": "Standard",
+          "price_amount": 10,
+          "price_display": "$10/mo",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "700 credits per month",
+            "No watermark",
+            "Priority generation",
+            "All effects and modes"
+          ],
+          "cta_label": "Choose Standard",
+          "cta_url": "https://pika.art/pricing"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 35,
+          "price_display": "$35/mo",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "2,300 credits per month",
+            "Higher resolution exports",
+            "Faster priority queue",
+            "Best for regular use"
+          ],
+          "cta_label": "Choose Pro",
+          "cta_url": "https://pika.art/pricing"
+        },
+        {
+          "name": "Unlimited",
+          "price_amount": 95,
+          "price_display": "$95/mo",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Unlimited slow generations",
+            "2,300 fast credits per month",
+            "All advanced features",
+            "For heavy creator workflows"
+          ],
+          "cta_label": "Choose Unlimited",
+          "cta_url": "https://pika.art/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 34,
@@ -4783,7 +4887,74 @@
       "Glossary",
       "Word plug-in"
     ],
-    "slug": "deepl"
+    "slug": "deepl",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://www.deepl.com/pro",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "500,000 characters per month",
+            "3 file translations per month",
+            "Up to 30+ languages",
+            "Browser extension"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://deepl.com"
+        },
+        {
+          "name": "Starter",
+          "price_amount": 8.74,
+          "price_display": "$8.74/mo annual",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Unlimited text translation",
+            "5 document translations per month",
+            "Glossary (1 glossary, 5,000 entries)",
+            "End-to-end encryption"
+          ],
+          "cta_label": "Choose Starter",
+          "cta_url": "https://deepl.com/pro"
+        },
+        {
+          "name": "Advanced",
+          "price_amount": 28.74,
+          "price_display": "$28.74/mo annual",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "20 document translations per month",
+            "5 glossaries with 5,000 entries each",
+            "Formal and informal tone toggle",
+            "Office (Word/PowerPoint) integrations"
+          ],
+          "cta_label": "Choose Advanced",
+          "cta_url": "https://deepl.com/pro"
+        },
+        {
+          "name": "Ultimate",
+          "price_amount": 57.49,
+          "price_display": "$57.49/mo annual",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "100 document translations per month",
+            "Unlimited glossary entries",
+            "Highest priority processing",
+            "Best for professional translators"
+          ],
+          "cta_label": "Choose Ultimate",
+          "cta_url": "https://deepl.com/pro"
+        }
+      ]
+    }
   },
   {
     "id": 57,
@@ -11251,7 +11422,74 @@
       "Terminal integration",
       "Multi-file edits"
     ],
-    "slug": "windsurf"
+    "slug": "windsurf",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://windsurf.com/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "25 user prompts per month",
+            "Unlimited autocomplete",
+            "Basic Cascade access",
+            "All editor features"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://windsurf.com"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 15,
+          "price_display": "$15/mo annual",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "500 user prompts per month",
+            "1,500 Cascade flow actions",
+            "Premium models access",
+            "Higher rate limits"
+          ],
+          "cta_label": "Choose Pro",
+          "cta_url": "https://windsurf.com/pricing"
+        },
+        {
+          "name": "Pro Ultimate",
+          "price_amount": 60,
+          "price_display": "$60/mo annual",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "3,000 user prompts per month",
+            "Unlimited Cascade flow actions",
+            "Top-tier model access",
+            "For heavy daily use"
+          ],
+          "cta_label": "Choose Pro Ultimate",
+          "cta_url": "https://windsurf.com/pricing"
+        },
+        {
+          "name": "Teams",
+          "price_amount": 30,
+          "price_display": "$30/user/mo annual",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Everything in Pro",
+            "Centralized billing",
+            "Admin controls",
+            "Shared workspace"
+          ],
+          "cta_label": "Choose Teams",
+          "cta_url": "https://windsurf.com/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 157,
@@ -14640,7 +14878,74 @@
       "Motion control",
       "Lip sync"
     ],
-    "slug": "kling-ai"
+    "slug": "kling-ai",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://klingai.com/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "66 credits per day",
+            "Watermarked outputs",
+            "Standard generation queue",
+            "All base features"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://klingai.com"
+        },
+        {
+          "name": "Standard",
+          "price_amount": 8.8,
+          "price_display": "$8.80/mo annual",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "660 credits per month",
+            "No watermark",
+            "Faster generation",
+            "Image-to-video included"
+          ],
+          "cta_label": "Choose Standard",
+          "cta_url": "https://klingai.com/pricing"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 35.2,
+          "price_display": "$35.20/mo annual",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "3,000 credits per month",
+            "Motion brush controls",
+            "Higher resolution exports",
+            "Priority queue"
+          ],
+          "cta_label": "Choose Pro",
+          "cta_url": "https://klingai.com/pricing"
+        },
+        {
+          "name": "Premier",
+          "price_amount": 61.6,
+          "price_display": "$61.60/mo annual",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "8,000 credits per month",
+            "All advanced features",
+            "Best for professional creators",
+            "Highest priority"
+          ],
+          "cta_label": "Choose Premier",
+          "cta_url": "https://klingai.com/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 213,
@@ -24489,7 +24794,59 @@
       "PDF to LaTeX",
       "Snip API"
     ],
-    "slug": "mathpix"
+    "slug": "mathpix",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://mathpix.com/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "20 snips per month",
+            "OCR for math equations and tables",
+            "LaTeX export",
+            "Mobile and desktop apps"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://mathpix.com"
+        },
+        {
+          "name": "Plus",
+          "price_amount": 4.99,
+          "price_display": "$4.99/mo",
+          "is_popular": true,
+          "highlight_label": "Best for Students",
+          "features": [
+            "5,000 snips per month",
+            "All OCR features",
+            "Markdown and DOCX export",
+            "Best for regular student use"
+          ],
+          "cta_label": "Choose Plus",
+          "cta_url": "https://mathpix.com/pricing"
+        },
+        {
+          "name": "Power",
+          "price_amount": 19.99,
+          "price_display": "$19.99/mo",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "50,000 snips per month",
+            "API access included",
+            "Priority processing",
+            "For heavy research workflows"
+          ],
+          "cta_label": "Choose Power",
+          "cta_url": "https://mathpix.com/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 447,
@@ -25278,7 +25635,59 @@
       "Rewrite",
       "Brainstorm"
     ],
-    "slug": "sudowrite"
+    "slug": "sudowrite",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://www.sudowrite.com/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Hobby & Student",
+          "price_amount": 10,
+          "price_display": "$10/mo annual",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "225,000 AI credits per month",
+            "All writing tools (Describe, Brainstorm, etc.)",
+            "Story Bible features",
+            "For student and casual writers"
+          ],
+          "cta_label": "Choose Hobby & Student",
+          "cta_url": "https://sudowrite.com/pricing"
+        },
+        {
+          "name": "Professional",
+          "price_amount": 22,
+          "price_display": "$22/mo annual",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "1,000,000 AI credits per month",
+            "All advanced AI features",
+            "Highest model tier access",
+            "Best for serious creative writing"
+          ],
+          "cta_label": "Choose Professional",
+          "cta_url": "https://sudowrite.com/pricing"
+        },
+        {
+          "name": "Max",
+          "price_amount": 44,
+          "price_display": "$44/mo annual",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "2,000,000 AI credits per month",
+            "Priority generation",
+            "Best for prolific writers",
+            "Highest credit per dollar value"
+          ],
+          "cta_label": "Choose Max",
+          "cta_url": "https://sudowrite.com/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 467,
@@ -27290,7 +27699,74 @@
       "Generous free credits",
       "Smooth motion handling"
     ],
-    "is_ai_native": true
+    "is_ai_native": true,
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://hailuoai.video/subscribe",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "100 credits per day",
+            "Standard generation queue",
+            "Watermarked outputs",
+            "Public generations"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://hailuoai.video"
+        },
+        {
+          "name": "Standard",
+          "price_amount": 9.99,
+          "price_display": "$9.99/mo",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "1,000 credits per month",
+            "Faster generation queue",
+            "No watermark",
+            "Private generations"
+          ],
+          "cta_label": "Choose Standard",
+          "cta_url": "https://hailuoai.video/subscribe"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 29.99,
+          "price_display": "$29.99/mo",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "3,000 credits per month",
+            "Priority generation",
+            "Higher resolution exports",
+            "Best for regular use"
+          ],
+          "cta_label": "Choose Pro",
+          "cta_url": "https://hailuoai.video/subscribe"
+        },
+        {
+          "name": "Unlimited",
+          "price_amount": 94.99,
+          "price_display": "$94.99/mo",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Unlimited generations",
+            "All advanced features",
+            "Best for heavy creators",
+            "No queue priority limits"
+          ],
+          "cta_label": "Choose Unlimited",
+          "cta_url": "https://hailuoai.video/subscribe"
+        }
+      ]
+    }
   },
   {
     "id": 506,
@@ -27772,7 +28248,59 @@
       "Multilingual quality",
       "Clip-sharing for highlights"
     ],
-    "is_ai_native": true
+    "is_ai_native": true,
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://tldv.io/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Unlimited recordings",
+            "5 AI moments per meeting",
+            "30+ language transcription",
+            "Basic summaries"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://tldv.io"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 18,
+          "price_display": "$18/user/mo annual",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "Unlimited AI summaries",
+            "AI-generated meeting notes",
+            "Shareable clips",
+            "CRM integrations"
+          ],
+          "cta_label": "Choose Pro",
+          "cta_url": "https://tldv.io/pricing"
+        },
+        {
+          "name": "Business",
+          "price_amount": 59,
+          "price_display": "$59/user/mo annual",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Advanced AI insights",
+            "Custom AI prompts",
+            "Speaker analytics",
+            "Priority support"
+          ],
+          "cta_label": "Choose Business",
+          "cta_url": "https://tldv.io/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 511,
@@ -27834,7 +28362,74 @@
       "AskFred natural-language search across past meetings",
       "Long established product"
     ],
-    "is_ai_native": true
+    "is_ai_native": true,
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://fireflies.ai/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "800 minutes of storage per seat",
+            "Limited AI summaries per month",
+            "Basic search and playback",
+            "Integrations with major meeting platforms"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://fireflies.ai"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 10,
+          "price_display": "$10/user/mo annual",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "8,000 minutes of storage per seat",
+            "Unlimited AI summaries",
+            "Smart search across all meetings",
+            "AskFred conversational search"
+          ],
+          "cta_label": "Choose Pro",
+          "cta_url": "https://fireflies.ai/pricing"
+        },
+        {
+          "name": "Business",
+          "price_amount": 19,
+          "price_display": "$19/user/mo annual",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Unlimited storage",
+            "Conversation intelligence",
+            "Topic tracking across meetings",
+            "Custom integrations"
+          ],
+          "cta_label": "Choose Business",
+          "cta_url": "https://fireflies.ai/pricing"
+        },
+        {
+          "name": "Enterprise",
+          "price_amount": 39,
+          "price_display": "$39/user/mo annual",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Everything in Business",
+            "SSO and SCIM",
+            "Advanced security controls",
+            "Dedicated customer success"
+          ],
+          "cta_label": "Choose Enterprise",
+          "cta_url": "https://fireflies.ai/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 512,
@@ -28443,7 +29038,59 @@
       "Sandbox handles environment setup",
       "Continuously evolving capability"
     ],
-    "is_ai_native": true
+    "is_ai_native": true,
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://devin.ai/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Core",
+          "price_amount": 500,
+          "price_display": "$500/mo",
+          "is_popular": true,
+          "highlight_label": "Individual",
+          "features": [
+            "Autonomous task execution",
+            "Sandboxed dev environment",
+            "Browser and IDE integrations",
+            "For individual engineers"
+          ],
+          "cta_label": "Choose Core",
+          "cta_url": "https://devin.ai/pricing"
+        },
+        {
+          "name": "Teams",
+          "price_amount": 0,
+          "price_display": "Contact sales",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Multi-engineer workspace",
+            "Centralized billing",
+            "Slack and CI integrations",
+            "For engineering teams"
+          ],
+          "cta_label": "Contact Sales",
+          "cta_url": "https://cognition.ai/pricing"
+        },
+        {
+          "name": "Enterprise",
+          "price_amount": 0,
+          "price_display": "Contact sales",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Custom deployment",
+            "SSO and security controls",
+            "Dedicated infrastructure",
+            "For large organizations"
+          ],
+          "cta_label": "Contact Sales",
+          "cta_url": "https://cognition.ai/enterprise"
+        }
+      ]
+    }
   },
   {
     "id": 519,
