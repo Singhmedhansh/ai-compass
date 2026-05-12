@@ -404,7 +404,59 @@
       "Plagiarism detector",
       "Browser extension"
     ],
-    "slug": "grammarly"
+    "slug": "grammarly",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://www.grammarly.com/plans",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Spelling, grammar, punctuation checks",
+            "Tone detection",
+            "Browser extension",
+            "Up to 100 AI prompts per month"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://grammarly.com"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 12,
+          "price_display": "$12/mo annual",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "Full clarity and conciseness rewrites",
+            "Tone and style suggestions",
+            "Plagiarism detection",
+            "2,000 AI prompts per month"
+          ],
+          "cta_label": "Choose Pro",
+          "cta_url": "https://grammarly.com/plans"
+        },
+        {
+          "name": "Business",
+          "price_amount": 25,
+          "price_display": "$25/user/mo",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Everything in Pro",
+            "Style guide enforcement",
+            "Brand tone settings",
+            "Admin and analytics dashboard"
+          ],
+          "cta_label": "Choose Business",
+          "cta_url": "https://grammarly.com/business"
+        }
+      ]
+    }
   },
   {
     "id": 4,
@@ -615,7 +667,59 @@
       "Grammar checker",
       "Summarizer"
     ],
-    "slug": "quillbot"
+    "slug": "quillbot",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://quillbot.com/premium",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "125-word paraphrase limit",
+            "3 synonym options",
+            "2 writing modes",
+            "Basic grammar checks"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://quillbot.com"
+        },
+        {
+          "name": "Premium Annual",
+          "price_amount": 4,
+          "price_display": "$4.17/mo (annual)",
+          "is_popular": true,
+          "highlight_label": "Best Value",
+          "features": [
+            "Unlimited paraphrasing",
+            "Faster processing",
+            "7+ writing modes (Formal, Creative, etc.)",
+            "Plagiarism checker (20 pages/mo)"
+          ],
+          "cta_label": "Choose Premium Annual",
+          "cta_url": "https://quillbot.com/premium"
+        },
+        {
+          "name": "Premium Monthly",
+          "price_amount": 10,
+          "price_display": "$9.95/mo",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "All Premium features",
+            "Month-to-month flexibility",
+            "Useful for short-term projects",
+            "Cancel anytime"
+          ],
+          "cta_label": "Choose Premium Monthly",
+          "cta_url": "https://quillbot.com/premium"
+        }
+      ]
+    }
   },
   {
     "id": 6,
@@ -2627,7 +2731,74 @@
       "Character reference",
       "Motion generation"
     ],
-    "slug": "leonardo-ai"
+    "slug": "leonardo-ai",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://leonardo.ai/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "150 fast tokens per day",
+            "All available models",
+            "Standard generation queue",
+            "Public generations only"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://leonardo.ai"
+        },
+        {
+          "name": "Apprentice",
+          "price_amount": 12,
+          "price_display": "$12/mo annual",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "8,500 fast tokens per month",
+            "Private generations",
+            "Priority queue",
+            "Canvas editor access"
+          ],
+          "cta_label": "Choose Apprentice",
+          "cta_url": "https://leonardo.ai/pricing"
+        },
+        {
+          "name": "Artisan",
+          "price_amount": 30,
+          "price_display": "$30/mo annual",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "25,000 fast tokens per month",
+            "Unlimited slow tokens",
+            "All advanced features",
+            "Best for regular use"
+          ],
+          "cta_label": "Choose Artisan",
+          "cta_url": "https://leonardo.ai/pricing"
+        },
+        {
+          "name": "Maestro",
+          "price_amount": 60,
+          "price_display": "$60/mo annual",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "60,000 fast tokens per month",
+            "Concurrent generations",
+            "Priority customer support",
+            "For professional creators"
+          ],
+          "cta_label": "Choose Maestro",
+          "cta_url": "https://leonardo.ai/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 31,
@@ -2890,7 +3061,59 @@
       "Video translation",
       "Teleprompter"
     ],
-    "slug": "heygen"
+    "slug": "heygen",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://www.heygen.com/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "3 videos per month",
+            "Up to 3 minutes per video",
+            "100+ stock avatars",
+            "Watermarked exports"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://heygen.com"
+        },
+        {
+          "name": "Creator",
+          "price_amount": 29,
+          "price_display": "$29/mo",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "Unlimited videos",
+            "Up to 5 minutes per video",
+            "No watermark",
+            "1 custom avatar"
+          ],
+          "cta_label": "Choose Creator",
+          "cta_url": "https://heygen.com/pricing"
+        },
+        {
+          "name": "Team",
+          "price_amount": 69,
+          "price_display": "$69/seat/mo",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Up to 30 minutes per video",
+            "3 custom avatars per user",
+            "Team collaboration",
+            "Higher resolution exports"
+          ],
+          "cta_label": "Choose Team",
+          "cta_url": "https://heygen.com/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 35,
@@ -4285,7 +4508,74 @@
       "Screen recorder",
       "AI voiceover"
     ],
-    "slug": "descript"
+    "slug": "descript",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://www.descript.com/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "1 hour transcription per month",
+            "Watermarked exports",
+            "Basic editing features",
+            "1 GB cloud storage"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://descript.com"
+        },
+        {
+          "name": "Hobbyist",
+          "price_amount": 16,
+          "price_display": "$16/mo",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "10 hours transcription per month",
+            "Watermark-free exports",
+            "AI voice cloning (1 voice)",
+            "Studio Sound enhancement"
+          ],
+          "cta_label": "Choose Hobbyist",
+          "cta_url": "https://descript.com/pricing"
+        },
+        {
+          "name": "Creator",
+          "price_amount": 30,
+          "price_display": "$30/mo",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "30 hours transcription per month",
+            "Unlimited AI voice cloning",
+            "Eye contact correction",
+            "Green screen and effects"
+          ],
+          "cta_label": "Choose Creator",
+          "cta_url": "https://descript.com/pricing"
+        },
+        {
+          "name": "Business",
+          "price_amount": 50,
+          "price_display": "$50/mo",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "40 hours transcription per month",
+            "Team collaboration features",
+            "Brand templates",
+            "Priority support"
+          ],
+          "cta_label": "Choose Business",
+          "cta_url": "https://descript.com/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 55,
@@ -5917,7 +6207,89 @@
       "29 languages",
       "Audio narration API"
     ],
-    "slug": "elevenlabs"
+    "slug": "elevenlabs",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://elevenlabs.io/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "10,000 characters per month (~10 mins)",
+            "3 custom voices",
+            "Non-commercial use",
+            "API access included"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://elevenlabs.io"
+        },
+        {
+          "name": "Starter",
+          "price_amount": 5,
+          "price_display": "$5/mo",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "30,000 characters per month",
+            "10 custom voices",
+            "Commercial license",
+            "Instant voice cloning"
+          ],
+          "cta_label": "Choose Starter",
+          "cta_url": "https://elevenlabs.io/pricing"
+        },
+        {
+          "name": "Creator",
+          "price_amount": 22,
+          "price_display": "$22/mo",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "100,000 characters per month (~100 mins)",
+            "30 custom voices",
+            "Professional voice cloning",
+            "192 kbps audio quality"
+          ],
+          "cta_label": "Choose Creator",
+          "cta_url": "https://elevenlabs.io/pricing"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 99,
+          "price_display": "$99/mo",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "500,000 characters per month",
+            "160 custom voices",
+            "PCM audio output (44.1 kHz)",
+            "Usage analytics"
+          ],
+          "cta_label": "Choose Pro",
+          "cta_url": "https://elevenlabs.io/pricing"
+        },
+        {
+          "name": "Scale",
+          "price_amount": 330,
+          "price_display": "$330/mo",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "2M characters per month",
+            "660 custom voices",
+            "Priority support",
+            "For agencies and studios"
+          ],
+          "cta_label": "Choose Scale",
+          "cta_url": "https://elevenlabs.io/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 82,
@@ -8681,7 +9053,59 @@
       "Extend tracks",
       "Commercial use option"
     ],
-    "slug": "udio"
+    "slug": "udio",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://www.udio.com/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "10 song generations per day",
+            "Non-commercial use",
+            "Standard quality output",
+            "Public songs in feed"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://udio.com"
+        },
+        {
+          "name": "Standard",
+          "price_amount": 10,
+          "price_display": "$10/mo",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "1,200 song generations per month",
+            "Commercial use rights",
+            "Priority generation",
+            "Private songs"
+          ],
+          "cta_label": "Choose Standard",
+          "cta_url": "https://udio.com/pricing"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 30,
+          "price_display": "$30/mo",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "4,800 song generations per month",
+            "Commercial use rights",
+            "Highest priority",
+            "Best for power users"
+          ],
+          "cta_label": "Choose Pro",
+          "cta_url": "https://udio.com/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 129,
@@ -8748,7 +9172,59 @@
       "Genre mixing",
       "Extend songs"
     ],
-    "slug": "suno"
+    "slug": "suno",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://suno.com/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "50 credits per day (10 songs)",
+            "Non-commercial use only",
+            "Shared generation queue",
+            "Public songs visible to community"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://suno.com"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 10,
+          "price_display": "$10/mo",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "2,500 credits per month (500 songs)",
+            "Commercial use rights",
+            "Priority generation queue",
+            "Private songs"
+          ],
+          "cta_label": "Choose Pro",
+          "cta_url": "https://suno.com/pricing"
+        },
+        {
+          "name": "Premier",
+          "price_amount": 30,
+          "price_display": "$30/mo",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "10,000 credits per month (2,000 songs)",
+            "Commercial use rights",
+            "Highest priority generation",
+            "Best for active creators"
+          ],
+          "cta_label": "Choose Premier",
+          "cta_url": "https://suno.com/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 130,
@@ -10450,7 +10926,59 @@
       "One-click deploy"
     ],
     "slug": "lovable",
-    "url": "https://lovable.dev"
+    "url": "https://lovable.dev",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://lovable.dev/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "5 messages per day",
+            "30 messages per month",
+            "Public projects",
+            "Built-in Supabase backend"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://lovable.dev"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 25,
+          "price_display": "$25/mo",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "100 messages per month",
+            "Private projects",
+            "GitHub sync for code ownership",
+            "Custom domains"
+          ],
+          "cta_label": "Choose Pro",
+          "cta_url": "https://lovable.dev/pricing"
+        },
+        {
+          "name": "Teams",
+          "price_amount": 30,
+          "price_display": "$30/user/mo",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Everything in Pro",
+            "Centralized billing",
+            "Shared workspace",
+            "Pooled message limits"
+          ],
+          "cta_label": "Choose Teams",
+          "cta_url": "https://lovable.dev/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 156,
@@ -26508,7 +27036,59 @@
       "Strong free tier for student use",
       "Search across all past transcripts"
     ],
-    "is_ai_native": true
+    "is_ai_native": true,
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://otter.ai/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Basic",
+          "price_amount": 0,
+          "price_display": "$0",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "300 transcription minutes per month",
+            "30 mins per conversation",
+            "3 imports per month",
+            "AI meeting summaries"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://otter.ai"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 10,
+          "price_display": "$10/mo annual",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "1,200 transcription minutes per month",
+            "90 mins per conversation",
+            "10 imports per month",
+            "Advanced search and snippets"
+          ],
+          "cta_label": "Choose Pro",
+          "cta_url": "https://otter.ai/pricing"
+        },
+        {
+          "name": "Business",
+          "price_amount": 20,
+          "price_display": "$20/user/mo",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "6,000 transcription minutes per user",
+            "4 hours per conversation",
+            "Unlimited imports",
+            "Team admin and shared vocabulary"
+          ],
+          "cta_label": "Choose Business",
+          "cta_url": "https://otter.ai/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 508,
@@ -27069,7 +27649,74 @@
       "Real preview not just static output",
       "Deploys to Netlify in one click"
     ],
-    "is_ai_native": true
+    "is_ai_native": true,
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://bolt.new/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "1M tokens per day (capped)",
+            "Public projects only",
+            "Built-in deployment",
+            "Sufficient for small experiments"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://bolt.new"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 20,
+          "price_display": "$20/mo",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "10M tokens per month",
+            "Private projects",
+            "GitHub integration",
+            "Rollover unused tokens (limited)"
+          ],
+          "cta_label": "Choose Pro",
+          "cta_url": "https://bolt.new/pricing"
+        },
+        {
+          "name": "Pro 50",
+          "price_amount": 50,
+          "price_display": "$50/mo",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "26M tokens per month",
+            "All Pro features",
+            "For active solo developers",
+            "Higher daily quotas"
+          ],
+          "cta_label": "Choose Pro 50",
+          "cta_url": "https://bolt.new/pricing"
+        },
+        {
+          "name": "Pro 200",
+          "price_amount": 200,
+          "price_display": "$200/mo",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "120M tokens per month",
+            "All Pro features",
+            "For heavy professional use",
+            "Best per-token value"
+          ],
+          "cta_label": "Choose Pro 200",
+          "cta_url": "https://bolt.new/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 517,
