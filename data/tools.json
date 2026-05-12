@@ -1159,7 +1159,59 @@
       "All major IDEs",
       "Team sharing"
     ],
-    "slug": "tabnine"
+    "slug": "tabnine",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://www.tabnine.com/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Dev",
+          "price_amount": 0,
+          "price_display": "$0",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Basic AI code completions",
+            "Inline suggestions",
+            "Limited chat features",
+            "All popular IDE support"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://tabnine.com"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 9,
+          "price_display": "$9/mo annual",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "Advanced AI completions",
+            "Multi-line and full-function suggestions",
+            "AI chat in IDE",
+            "Switch between models"
+          ],
+          "cta_label": "Choose Pro",
+          "cta_url": "https://tabnine.com/pricing"
+        },
+        {
+          "name": "Enterprise",
+          "price_amount": 39,
+          "price_display": "$39/user/mo",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Private model training on your code",
+            "On-premise deployment option",
+            "SSO and admin controls",
+            "Dedicated support"
+          ],
+          "cta_label": "Choose Enterprise",
+          "cta_url": "https://tabnine.com/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 10,
@@ -1446,7 +1498,59 @@
       "Literature mapping",
       "Citation export"
     ],
-    "slug": "elicit"
+    "slug": "elicit",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://elicit.com/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "5,000 monthly credits",
+            "Up to 8 results per search",
+            "Basic paper finder",
+            "Summarization features"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://elicit.com"
+        },
+        {
+          "name": "Plus",
+          "price_amount": 12,
+          "price_display": "$12/mo",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "12,000 monthly credits",
+            "Up to 200 results per search",
+            "Systematic review features",
+            "Export to CSV/RIS"
+          ],
+          "cta_label": "Choose Plus",
+          "cta_url": "https://elicit.com/pricing"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 42,
+          "price_display": "$42/mo annual",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "30,000 monthly credits",
+            "Unlimited search results",
+            "GPT-4 powered features",
+            "Priority processing"
+          ],
+          "cta_label": "Choose Pro",
+          "cta_url": "https://elicit.com/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 13,
@@ -1511,7 +1615,59 @@
       "Study highlights",
       "Export to citation managers"
     ],
-    "slug": "consensus"
+    "slug": "consensus",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://consensus.app/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Unlimited search across research papers",
+            "20 AI credits per month",
+            "Basic GPT-powered summaries",
+            "Citation export"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://consensus.app"
+        },
+        {
+          "name": "Premium",
+          "price_amount": 8.99,
+          "price_display": "$8.99/mo annual",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "Unlimited GPT-powered AI features",
+            "Synthesize paper findings",
+            "Save searches",
+            "Best for students and researchers"
+          ],
+          "cta_label": "Choose Premium",
+          "cta_url": "https://consensus.app/pricing"
+        },
+        {
+          "name": "Teams",
+          "price_amount": 9.99,
+          "price_display": "$9.99/user/mo",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Everything in Premium",
+            "Team workspace and collaboration",
+            "Centralized billing",
+            "Admin controls"
+          ],
+          "cta_label": "Choose Teams",
+          "cta_url": "https://consensus.app/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 14,
@@ -1640,7 +1796,44 @@
       "Related paper discovery",
       "Citation extraction"
     ],
-    "slug": "scispace"
+    "slug": "scispace",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://scispace.com/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Limited paper chat sessions",
+            "Search across 280M+ papers",
+            "Basic AI explanations",
+            "Public paper access"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://scispace.com"
+        },
+        {
+          "name": "Premium",
+          "price_amount": 12,
+          "price_display": "$12/mo annual",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "Unlimited paper chat",
+            "Figure and table extraction",
+            "Citation graph exploration",
+            "Higher-quality AI explanations"
+          ],
+          "cta_label": "Choose Premium",
+          "cta_url": "https://scispace.com/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 16,
@@ -1845,7 +2038,44 @@
       "Test mode",
       "Shared study sets"
     ],
-    "slug": "quizlet"
+    "slug": "quizlet",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://quizlet.com/upgrade",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Unlimited flashcard set creation",
+            "Basic study modes (Learn, Match, Flashcards)",
+            "Mobile and web access",
+            "Ad-supported experience"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://quizlet.com"
+        },
+        {
+          "name": "Plus",
+          "price_amount": 3,
+          "price_display": "$3/mo annual",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "AI-powered Q-Chat tutor",
+            "Smart grading and study paths",
+            "Offline access on mobile",
+            "Ad-free experience"
+          ],
+          "cta_label": "Choose Plus",
+          "cta_url": "https://quizlet.com/upgrade"
+        }
+      ]
+    }
   },
   {
     "id": 19,
@@ -2597,7 +2827,59 @@
       "Vector recolor",
       "Reference image upload"
     ],
-    "slug": "adobe-firefly"
+    "slug": "adobe-firefly",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://www.adobe.com/products/firefly/plans.html",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "25 generative credits per month",
+            "Commercially-safe model (licensed training data)",
+            "Standard text-to-image features",
+            "Web access via Firefly site"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://firefly.adobe.com"
+        },
+        {
+          "name": "Standard",
+          "price_amount": 4.99,
+          "price_display": "$4.99/mo annual",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "2,000 generative credits per month",
+            "All Firefly web features",
+            "Commercial use license",
+            "Higher resolution exports"
+          ],
+          "cta_label": "Choose Standard",
+          "cta_url": "https://www.adobe.com/products/firefly/plans.html"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 9.99,
+          "price_display": "$9.99/mo annual",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "7,000 generative credits per month",
+            "Priority generation queue",
+            "All Pro features",
+            "Best for active creators"
+          ],
+          "cta_label": "Choose Pro",
+          "cta_url": "https://www.adobe.com/products/firefly/plans.html"
+        }
+      ]
+    }
   },
   {
     "id": 29,
@@ -2996,7 +3278,74 @@
       "Lip sync",
       "Camera controls"
     ],
-    "slug": "pika"
+    "slug": "pika",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://pika.art/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Basic",
+          "price_amount": 0,
+          "price_display": "$0",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "250 one-time credits",
+            "Watermarked outputs",
+            "Standard generation",
+            "All base features"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://pika.art"
+        },
+        {
+          "name": "Standard",
+          "price_amount": 10,
+          "price_display": "$10/mo",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "700 credits per month",
+            "No watermark",
+            "Priority generation",
+            "All effects and modes"
+          ],
+          "cta_label": "Choose Standard",
+          "cta_url": "https://pika.art/pricing"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 35,
+          "price_display": "$35/mo",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "2,300 credits per month",
+            "Higher resolution exports",
+            "Faster priority queue",
+            "Best for regular use"
+          ],
+          "cta_label": "Choose Pro",
+          "cta_url": "https://pika.art/pricing"
+        },
+        {
+          "name": "Unlimited",
+          "price_amount": 95,
+          "price_display": "$95/mo",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Unlimited slow generations",
+            "2,300 fast credits per month",
+            "All advanced features",
+            "For heavy creator workflows"
+          ],
+          "cta_label": "Choose Unlimited",
+          "cta_url": "https://pika.art/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 34,
@@ -3178,7 +3527,59 @@
       "Multi-language",
       "Screen recorder integration"
     ],
-    "slug": "synthesia"
+    "slug": "synthesia",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://www.synthesia.io/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Starter",
+          "price_amount": 18,
+          "price_display": "$18/mo annual",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "10 minutes of video per month",
+            "9 stock AI avatars",
+            "140+ languages",
+            "PowerPoint to video conversion"
+          ],
+          "cta_label": "Choose Starter",
+          "cta_url": "https://synthesia.io/pricing"
+        },
+        {
+          "name": "Creator",
+          "price_amount": 64,
+          "price_display": "$64/mo annual",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "30 minutes of video per month",
+            "Premium AI avatars",
+            "Custom branding",
+            "Full editing suite"
+          ],
+          "cta_label": "Choose Creator",
+          "cta_url": "https://synthesia.io/pricing"
+        },
+        {
+          "name": "Enterprise",
+          "price_amount": 0,
+          "price_display": "Contact sales",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Custom video minutes",
+            "Custom avatars from your team",
+            "SSO and admin controls",
+            "Dedicated success manager"
+          ],
+          "cta_label": "Contact Sales",
+          "cta_url": "https://synthesia.io/enterprise"
+        }
+      ]
+    }
   },
   {
     "id": 36,
@@ -3372,7 +3773,44 @@
       "Video embeds",
       "Responsive layout"
     ],
-    "slug": "tome"
+    "slug": "tome",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://tome.app/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "500 AI credits per month",
+            "Unlimited tomes",
+            "Sharing and collaboration",
+            "Basic AI generation"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://tome.app"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 16,
+          "price_display": "$16/mo annual",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "Unlimited AI credits",
+            "Custom branding and themes",
+            "Advanced analytics",
+            "Priority support"
+          ],
+          "cta_label": "Choose Pro",
+          "cta_url": "https://tome.app/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 39,
@@ -4049,7 +4487,59 @@
       "PDF and web import",
       "Chrome extension"
     ],
-    "slug": "speechify"
+    "slug": "speechify",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://speechify.com/premium",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "10 standard voices",
+            "Standard reading speed",
+            "Basic listen-to-text features",
+            "Limited monthly usage"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://speechify.com"
+        },
+        {
+          "name": "Premium",
+          "price_amount": 11.58,
+          "price_display": "$11.58/mo annual",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "200+ HD AI voices",
+            "30+ languages and accents",
+            "AI voice cloning",
+            "Faster reading speeds and offline mode"
+          ],
+          "cta_label": "Choose Premium",
+          "cta_url": "https://speechify.com/premium"
+        },
+        {
+          "name": "Studio",
+          "price_amount": 24,
+          "price_display": "$24/mo annual",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Voiceover studio for content creators",
+            "Commercial use license",
+            "Long-form audio generation",
+            "Higher quality exports"
+          ],
+          "cta_label": "Choose Studio",
+          "cta_url": "https://speechify.com/premium"
+        }
+      ]
+    }
   },
   {
     "id": 48,
@@ -4642,7 +5132,74 @@
       "Glossary",
       "Word plug-in"
     ],
-    "slug": "deepl"
+    "slug": "deepl",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://www.deepl.com/pro",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "500,000 characters per month",
+            "3 file translations per month",
+            "Up to 30+ languages",
+            "Browser extension"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://deepl.com"
+        },
+        {
+          "name": "Starter",
+          "price_amount": 8.74,
+          "price_display": "$8.74/mo annual",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Unlimited text translation",
+            "5 document translations per month",
+            "Glossary (1 glossary, 5,000 entries)",
+            "End-to-end encryption"
+          ],
+          "cta_label": "Choose Starter",
+          "cta_url": "https://deepl.com/pro"
+        },
+        {
+          "name": "Advanced",
+          "price_amount": 28.74,
+          "price_display": "$28.74/mo annual",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "20 document translations per month",
+            "5 glossaries with 5,000 entries each",
+            "Formal and informal tone toggle",
+            "Office (Word/PowerPoint) integrations"
+          ],
+          "cta_label": "Choose Advanced",
+          "cta_url": "https://deepl.com/pro"
+        },
+        {
+          "name": "Ultimate",
+          "price_amount": 57.49,
+          "price_display": "$57.49/mo annual",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "100 document translations per month",
+            "Unlimited glossary entries",
+            "Highest priority processing",
+            "Best for professional translators"
+          ],
+          "cta_label": "Choose Ultimate",
+          "cta_url": "https://deepl.com/pro"
+        }
+      ]
+    }
   },
   {
     "id": 57,
@@ -4707,7 +5264,44 @@
       "Feedback requests",
       "Web publishing"
     ],
-    "slug": "lex"
+    "slug": "lex",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://lex.page/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Limited AI usage per month",
+            "Distraction-free writing interface",
+            "Basic AI features",
+            "Document sharing"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://lex.page"
+        },
+        {
+          "name": "Plus",
+          "price_amount": 9,
+          "price_display": "$9/mo annual",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "Unlimited AI usage",
+            "Advanced AI tools",
+            "Priority access to new features",
+            "Best for active writers"
+          ],
+          "cta_label": "Choose Plus",
+          "cta_url": "https://lex.page/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 58,
@@ -4902,7 +5496,59 @@
       "Spaces deployment",
       "Inference API"
     ],
-    "slug": "hugging-face"
+    "slug": "hugging-face",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://huggingface.co/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Unlimited public models, datasets, and spaces",
+            "Rate-limited Inference API access",
+            "Community discussion features",
+            "Basic compute on Spaces"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://huggingface.co"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 9,
+          "price_display": "$9/mo",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "Private repositories",
+            "ZeroGPU access for fast inference",
+            "Higher Inference API limits",
+            "Pro badge on profile"
+          ],
+          "cta_label": "Choose Pro",
+          "cta_url": "https://huggingface.co/pricing"
+        },
+        {
+          "name": "Teams",
+          "price_amount": 20,
+          "price_display": "$20/user/mo annual",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Centralized billing",
+            "SSO and audit logs",
+            "Team-level private repos",
+            "Priority support"
+          ],
+          "cta_label": "Choose Teams",
+          "cta_url": "https://huggingface.co/enterprise"
+        }
+      ]
+    }
   },
   {
     "id": 61,
@@ -5228,7 +5874,59 @@
       "Reference extraction",
       "Highlight export"
     ],
-    "slug": "scholarcy"
+    "slug": "scholarcy",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://www.scholarcy.com/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "3 flashcard summaries per month",
+            "Browser extension access",
+            "Basic citation extraction",
+            "Standard summary length"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://scholarcy.com"
+        },
+        {
+          "name": "Personal",
+          "price_amount": 4.99,
+          "price_display": "$4.99/mo",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "Unlimited flashcard summaries",
+            "Library and folder organization",
+            "Full citation extraction",
+            "Export to reference managers"
+          ],
+          "cta_label": "Choose Personal",
+          "cta_url": "https://scholarcy.com/pricing"
+        },
+        {
+          "name": "Plus",
+          "price_amount": 9.99,
+          "price_display": "$9.99/mo",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Everything in Personal",
+            "Bulk import and batch processing",
+            "Advanced figure extraction",
+            "Higher API usage limits"
+          ],
+          "cta_label": "Choose Plus",
+          "cta_url": "https://scholarcy.com/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 66,
@@ -5357,7 +6055,74 @@
       "Magic fill",
       "Upscaling"
     ],
-    "slug": "ideogram"
+    "slug": "ideogram",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://ideogram.ai/manage-subscription",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "100 slow generations per day",
+            "Public generations only",
+            "Standard quality",
+            "All base features"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://ideogram.ai"
+        },
+        {
+          "name": "Plus",
+          "price_amount": 7,
+          "price_display": "$7/mo annual",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "400 priority generations per month",
+            "Unlimited slow generations",
+            "Private generations",
+            "Magic prompt enhancement"
+          ],
+          "cta_label": "Choose Plus",
+          "cta_url": "https://ideogram.ai/manage-subscription"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 16,
+          "price_display": "$16/mo annual",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "1,000 priority generations per month",
+            "Unlimited slow generations",
+            "Higher resolution outputs",
+            "Best for regular use"
+          ],
+          "cta_label": "Choose Pro",
+          "cta_url": "https://ideogram.ai/manage-subscription"
+        },
+        {
+          "name": "Pro+",
+          "price_amount": 48,
+          "price_display": "$48/mo annual",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "3,000 priority generations per month",
+            "Unlimited slow generations",
+            "Commercial license clarity",
+            "For professional creators"
+          ],
+          "cta_label": "Choose Pro+",
+          "cta_url": "https://ideogram.ai/manage-subscription"
+        }
+      ]
+    }
   },
   {
     "id": 68,
@@ -7012,7 +7777,74 @@
       "Landing pages",
       "Brand voice"
     ],
-    "slug": "writesonic"
+    "slug": "writesonic",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://writesonic.com/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free Trial",
+          "price_amount": 0,
+          "price_display": "$0",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Limited word credit on signup",
+            "Access to base AI writer",
+            "10+ language support",
+            "ChatSonic preview access"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://writesonic.com"
+        },
+        {
+          "name": "Individual",
+          "price_amount": 20,
+          "price_display": "$20/mo annual",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "200,000 words per month",
+            "Access to GPT-class models",
+            "100+ AI templates",
+            "Browser extension"
+          ],
+          "cta_label": "Choose Individual",
+          "cta_url": "https://writesonic.com/pricing"
+        },
+        {
+          "name": "Standard",
+          "price_amount": 79,
+          "price_display": "$79/mo annual",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "4 user seats included",
+            "Brand voice training",
+            "Bulk content generation",
+            "Priority support"
+          ],
+          "cta_label": "Choose Standard",
+          "cta_url": "https://writesonic.com/pricing"
+        },
+        {
+          "name": "Enterprise",
+          "price_amount": 0,
+          "price_display": "Contact sales",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Unlimited everything",
+            "Dedicated account manager",
+            "SSO and audit logs",
+            "Custom integrations"
+          ],
+          "cta_label": "Contact Sales",
+          "cta_url": "https://writesonic.com/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 93,
@@ -8002,7 +8834,59 @@
       "Meeting transcription",
       "HD voice"
     ],
-    "slug": "krisp"
+    "slug": "krisp",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://krisp.ai/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "60 minutes per day of noise cancellation",
+            "AI noise removal both ways",
+            "Basic transcription",
+            "Works with any meeting app"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://krisp.ai"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 8,
+          "price_display": "$8/mo annual",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "Unlimited noise cancellation",
+            "Unlimited AI meeting notes",
+            "Unlimited transcriptions",
+            "AI summaries and action items"
+          ],
+          "cta_label": "Choose Pro",
+          "cta_url": "https://krisp.ai/pricing"
+        },
+        {
+          "name": "Business",
+          "price_amount": 15,
+          "price_display": "$15/user/mo",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Everything in Pro",
+            "Centralized team admin",
+            "Advanced reporting",
+            "Priority support"
+          ],
+          "cta_label": "Choose Business",
+          "cta_url": "https://krisp.ai/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 112,
@@ -11043,7 +11927,74 @@
       "Terminal integration",
       "Multi-file edits"
     ],
-    "slug": "windsurf"
+    "slug": "windsurf",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://windsurf.com/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "25 user prompts per month",
+            "Unlimited autocomplete",
+            "Basic Cascade access",
+            "All editor features"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://windsurf.com"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 15,
+          "price_display": "$15/mo annual",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "500 user prompts per month",
+            "1,500 Cascade flow actions",
+            "Premium models access",
+            "Higher rate limits"
+          ],
+          "cta_label": "Choose Pro",
+          "cta_url": "https://windsurf.com/pricing"
+        },
+        {
+          "name": "Pro Ultimate",
+          "price_amount": 60,
+          "price_display": "$60/mo annual",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "3,000 user prompts per month",
+            "Unlimited Cascade flow actions",
+            "Top-tier model access",
+            "For heavy daily use"
+          ],
+          "cta_label": "Choose Pro Ultimate",
+          "cta_url": "https://windsurf.com/pricing"
+        },
+        {
+          "name": "Teams",
+          "price_amount": 30,
+          "price_display": "$30/user/mo annual",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Everything in Pro",
+            "Centralized billing",
+            "Admin controls",
+            "Shared workspace"
+          ],
+          "cta_label": "Choose Teams",
+          "cta_url": "https://windsurf.com/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 157,
@@ -11758,7 +12709,59 @@
       "Shortening mode",
       "Expansion mode"
     ],
-    "slug": "wordtune"
+    "slug": "wordtune",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://www.wordtune.com/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "10 rewrites per day",
+            "3 AI prompts per day",
+            "Standard tones",
+            "Browser extension"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://wordtune.com"
+        },
+        {
+          "name": "Advanced",
+          "price_amount": 6.99,
+          "price_display": "$6.99/mo annual",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "30 rewrites per day",
+            "30 AI prompts per day",
+            "Full tone library",
+            "Premium models"
+          ],
+          "cta_label": "Choose Advanced",
+          "cta_url": "https://wordtune.com/pricing"
+        },
+        {
+          "name": "Unlimited",
+          "price_amount": 9.99,
+          "price_display": "$9.99/mo annual",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Unlimited rewrites and prompts",
+            "Statistics and translation",
+            "Priority response time",
+            "For heavy daily use"
+          ],
+          "cta_label": "Choose Unlimited",
+          "cta_url": "https://wordtune.com/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 169,
@@ -14380,7 +15383,74 @@
       "Motion control",
       "Lip sync"
     ],
-    "slug": "kling-ai"
+    "slug": "kling-ai",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://klingai.com/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "66 credits per day",
+            "Watermarked outputs",
+            "Standard generation queue",
+            "All base features"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://klingai.com"
+        },
+        {
+          "name": "Standard",
+          "price_amount": 8.8,
+          "price_display": "$8.80/mo annual",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "660 credits per month",
+            "No watermark",
+            "Faster generation",
+            "Image-to-video included"
+          ],
+          "cta_label": "Choose Standard",
+          "cta_url": "https://klingai.com/pricing"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 35.2,
+          "price_display": "$35.20/mo annual",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "3,000 credits per month",
+            "Motion brush controls",
+            "Higher resolution exports",
+            "Priority queue"
+          ],
+          "cta_label": "Choose Pro",
+          "cta_url": "https://klingai.com/pricing"
+        },
+        {
+          "name": "Premier",
+          "price_amount": 61.6,
+          "price_display": "$61.60/mo annual",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "8,000 credits per month",
+            "All advanced features",
+            "Best for professional creators",
+            "Highest priority"
+          ],
+          "cta_label": "Choose Premier",
+          "cta_url": "https://klingai.com/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 213,
@@ -22048,7 +23118,59 @@
       "Multiplayer editing",
       "Deploy button"
     ],
-    "slug": "replit"
+    "slug": "replit",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://replit.com/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Starter",
+          "price_amount": 0,
+          "price_display": "$0",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Unlimited public repls",
+            "Limited compute and storage",
+            "Basic AI suggestions",
+            "Community access"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://replit.com"
+        },
+        {
+          "name": "Replit Core",
+          "price_amount": 15,
+          "price_display": "$15/mo annual",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "Unlimited private repls",
+            "Faster compute and more storage",
+            "Replit Agent access",
+            "50 AI credits per month"
+          ],
+          "cta_label": "Choose Replit Core",
+          "cta_url": "https://replit.com/pricing"
+        },
+        {
+          "name": "Teams",
+          "price_amount": 33,
+          "price_display": "$33/user/mo annual",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Everything in Core",
+            "Team workspace",
+            "Centralized billing",
+            "Shared compute pool"
+          ],
+          "cta_label": "Choose Teams",
+          "cta_url": "https://replit.com/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 380,
@@ -24177,7 +25299,59 @@
       "PDF to LaTeX",
       "Snip API"
     ],
-    "slug": "mathpix"
+    "slug": "mathpix",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://mathpix.com/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "20 snips per month",
+            "OCR for math equations and tables",
+            "LaTeX export",
+            "Mobile and desktop apps"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://mathpix.com"
+        },
+        {
+          "name": "Plus",
+          "price_amount": 4.99,
+          "price_display": "$4.99/mo",
+          "is_popular": true,
+          "highlight_label": "Best for Students",
+          "features": [
+            "5,000 snips per month",
+            "All OCR features",
+            "Markdown and DOCX export",
+            "Best for regular student use"
+          ],
+          "cta_label": "Choose Plus",
+          "cta_url": "https://mathpix.com/pricing"
+        },
+        {
+          "name": "Power",
+          "price_amount": 19.99,
+          "price_display": "$19.99/mo",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "50,000 snips per month",
+            "API access included",
+            "Priority processing",
+            "For heavy research workflows"
+          ],
+          "cta_label": "Choose Power",
+          "cta_url": "https://mathpix.com/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 447,
@@ -24966,7 +26140,59 @@
       "Rewrite",
       "Brainstorm"
     ],
-    "slug": "sudowrite"
+    "slug": "sudowrite",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://www.sudowrite.com/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Hobby & Student",
+          "price_amount": 10,
+          "price_display": "$10/mo annual",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "225,000 AI credits per month",
+            "All writing tools (Describe, Brainstorm, etc.)",
+            "Story Bible features",
+            "For student and casual writers"
+          ],
+          "cta_label": "Choose Hobby & Student",
+          "cta_url": "https://sudowrite.com/pricing"
+        },
+        {
+          "name": "Professional",
+          "price_amount": 22,
+          "price_display": "$22/mo annual",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "1,000,000 AI credits per month",
+            "All advanced AI features",
+            "Highest model tier access",
+            "Best for serious creative writing"
+          ],
+          "cta_label": "Choose Professional",
+          "cta_url": "https://sudowrite.com/pricing"
+        },
+        {
+          "name": "Max",
+          "price_amount": 44,
+          "price_display": "$44/mo annual",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "2,000,000 AI credits per month",
+            "Priority generation",
+            "Best for prolific writers",
+            "Highest credit per dollar value"
+          ],
+          "cta_label": "Choose Max",
+          "cta_url": "https://sudowrite.com/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 467,
@@ -26334,7 +27560,74 @@
       "Image to video",
       "High frame rate"
     ],
-    "slug": "luma-dream-machine"
+    "slug": "luma-dream-machine",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://lumalabs.ai/dream-machine/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Limited monthly credits",
+            "720p resolution",
+            "Watermarked outputs",
+            "Standard generation queue"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://lumalabs.ai/dream-machine"
+        },
+        {
+          "name": "Lite",
+          "price_amount": 9.99,
+          "price_display": "$9.99/mo",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "More monthly credits",
+            "720p resolution",
+            "No watermark",
+            "Faster queue priority"
+          ],
+          "cta_label": "Choose Lite",
+          "cta_url": "https://lumalabs.ai/dream-machine/pricing"
+        },
+        {
+          "name": "Standard",
+          "price_amount": 29.99,
+          "price_display": "$29.99/mo",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "Significantly more credits",
+            "1080p resolution",
+            "Camera motion controls",
+            "Keyframe extension"
+          ],
+          "cta_label": "Choose Standard",
+          "cta_url": "https://lumalabs.ai/dream-machine/pricing"
+        },
+        {
+          "name": "Premier",
+          "price_amount": 94.99,
+          "price_display": "$94.99/mo",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Unlimited slower generations",
+            "1080p resolution",
+            "All advanced features",
+            "Best for heavy creator use"
+          ],
+          "cta_label": "Choose Premier",
+          "cta_url": "https://lumalabs.ai/dream-machine/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 496,
@@ -26525,7 +27818,59 @@
     "student_friendly": true,
     "student_perk": true,
     "featured": false,
-    "is_ai_native": true
+    "is_ai_native": true,
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://v0.dev/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Limited monthly credits",
+            "Public projects only",
+            "Basic UI generation",
+            "Vercel deployment included"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://v0.dev"
+        },
+        {
+          "name": "Premium",
+          "price_amount": 20,
+          "price_display": "$20/mo",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "5,000 messages per month",
+            "Private projects",
+            "Higher-quality model access",
+            "Faster generation"
+          ],
+          "cta_label": "Choose Premium",
+          "cta_url": "https://v0.dev/pricing"
+        },
+        {
+          "name": "Team",
+          "price_amount": 30,
+          "price_display": "$30/user/mo",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Everything in Premium",
+            "Team workspace",
+            "Centralized billing",
+            "Shared design system"
+          ],
+          "cta_label": "Choose Team",
+          "cta_url": "https://v0.dev/pricing"
+        }
+      ]
+    }
   },
   {
     "name": "Rocket.new",
@@ -26911,7 +28256,74 @@
       "Generous free credits",
       "Smooth motion handling"
     ],
-    "is_ai_native": true
+    "is_ai_native": true,
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://hailuoai.video/subscribe",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "100 credits per day",
+            "Standard generation queue",
+            "Watermarked outputs",
+            "Public generations"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://hailuoai.video"
+        },
+        {
+          "name": "Standard",
+          "price_amount": 9.99,
+          "price_display": "$9.99/mo",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "1,000 credits per month",
+            "Faster generation queue",
+            "No watermark",
+            "Private generations"
+          ],
+          "cta_label": "Choose Standard",
+          "cta_url": "https://hailuoai.video/subscribe"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 29.99,
+          "price_display": "$29.99/mo",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "3,000 credits per month",
+            "Priority generation",
+            "Higher resolution exports",
+            "Best for regular use"
+          ],
+          "cta_label": "Choose Pro",
+          "cta_url": "https://hailuoai.video/subscribe"
+        },
+        {
+          "name": "Unlimited",
+          "price_amount": 94.99,
+          "price_display": "$94.99/mo",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Unlimited generations",
+            "All advanced features",
+            "Best for heavy creators",
+            "No queue priority limits"
+          ],
+          "cta_label": "Choose Unlimited",
+          "cta_url": "https://hailuoai.video/subscribe"
+        }
+      ]
+    }
   },
   {
     "id": 506,
@@ -26973,7 +28385,59 @@
       "Mobile-first experience",
       "Strong action/dynamic scene quality"
     ],
-    "is_ai_native": true
+    "is_ai_native": true,
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://higgsfield.ai/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Limited monthly credits",
+            "Watermarked outputs",
+            "Standard generation queue",
+            "All camera motion templates"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://higgsfield.ai"
+        },
+        {
+          "name": "Basic",
+          "price_amount": 9,
+          "price_display": "$9/mo",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Higher monthly credit pool",
+            "No watermark",
+            "Faster generation queue",
+            "Private generations"
+          ],
+          "cta_label": "Choose Basic",
+          "cta_url": "https://higgsfield.ai/pricing"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 29,
+          "price_display": "$29/mo",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "Significantly more credits",
+            "Premium camera motion library",
+            "Higher resolution exports",
+            "Best for active video creators"
+          ],
+          "cta_label": "Choose Pro",
+          "cta_url": "https://higgsfield.ai/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 507,
@@ -27150,7 +28614,59 @@
       "Enhances your notes rather than replacing them",
       "Strong design and UX"
     ],
-    "is_ai_native": true
+    "is_ai_native": true,
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://granola.ai/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "~25 meetings per month",
+            "AI note enhancement",
+            "Folder organization",
+            "Background audio capture"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://granola.ai"
+        },
+        {
+          "name": "Business",
+          "price_amount": 14,
+          "price_display": "$14/mo annual",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "Unlimited meetings",
+            "All AI features",
+            "Custom templates",
+            "For individual professionals"
+          ],
+          "cta_label": "Choose Business",
+          "cta_url": "https://granola.ai/pricing"
+        },
+        {
+          "name": "Teams",
+          "price_amount": 19,
+          "price_display": "$19/user/mo annual",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Everything in Business",
+            "Shared workspace",
+            "Team folders and templates",
+            "Admin controls"
+          ],
+          "cta_label": "Choose Teams",
+          "cta_url": "https://granola.ai/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 509,
@@ -27212,7 +28728,74 @@
       "No meeting quota anxiety",
       "Highlight-while-recording workflow"
     ],
-    "is_ai_native": true
+    "is_ai_native": true,
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://fathom.video/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free Forever",
+          "price_amount": 0,
+          "price_display": "$0",
+          "is_popular": true,
+          "highlight_label": "Best for Individuals",
+          "features": [
+            "Unlimited meeting recordings",
+            "AI summaries and action items",
+            "Unlimited transcript history",
+            "For individual use"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://fathom.video"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 19,
+          "price_display": "$19/user/mo",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Everything in Free",
+            "Advanced AI features",
+            "CRM integrations",
+            "Custom AI templates"
+          ],
+          "cta_label": "Choose Pro",
+          "cta_url": "https://fathom.video/pricing"
+        },
+        {
+          "name": "Premium",
+          "price_amount": 29,
+          "price_display": "$29/user/mo",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Everything in Pro",
+            "Workflow automation",
+            "Advanced analytics",
+            "Priority support"
+          ],
+          "cta_label": "Choose Premium",
+          "cta_url": "https://fathom.video/pricing"
+        },
+        {
+          "name": "Team Edition",
+          "price_amount": 32,
+          "price_display": "$32/user/mo",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Shared team library",
+            "Centralized admin controls",
+            "SSO and SCIM",
+            "For organizations"
+          ],
+          "cta_label": "Choose Team Edition",
+          "cta_url": "https://fathom.video/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 510,
@@ -27274,7 +28857,59 @@
       "Multilingual quality",
       "Clip-sharing for highlights"
     ],
-    "is_ai_native": true
+    "is_ai_native": true,
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://tldv.io/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Unlimited recordings",
+            "5 AI moments per meeting",
+            "30+ language transcription",
+            "Basic summaries"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://tldv.io"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 18,
+          "price_display": "$18/user/mo annual",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "Unlimited AI summaries",
+            "AI-generated meeting notes",
+            "Shareable clips",
+            "CRM integrations"
+          ],
+          "cta_label": "Choose Pro",
+          "cta_url": "https://tldv.io/pricing"
+        },
+        {
+          "name": "Business",
+          "price_amount": 59,
+          "price_display": "$59/user/mo annual",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Advanced AI insights",
+            "Custom AI prompts",
+            "Speaker analytics",
+            "Priority support"
+          ],
+          "cta_label": "Choose Business",
+          "cta_url": "https://tldv.io/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 511,
@@ -27336,7 +28971,74 @@
       "AskFred natural-language search across past meetings",
       "Long established product"
     ],
-    "is_ai_native": true
+    "is_ai_native": true,
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://fireflies.ai/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "800 minutes of storage per seat",
+            "Limited AI summaries per month",
+            "Basic search and playback",
+            "Integrations with major meeting platforms"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://fireflies.ai"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 10,
+          "price_display": "$10/user/mo annual",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "8,000 minutes of storage per seat",
+            "Unlimited AI summaries",
+            "Smart search across all meetings",
+            "AskFred conversational search"
+          ],
+          "cta_label": "Choose Pro",
+          "cta_url": "https://fireflies.ai/pricing"
+        },
+        {
+          "name": "Business",
+          "price_amount": 19,
+          "price_display": "$19/user/mo annual",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Unlimited storage",
+            "Conversation intelligence",
+            "Topic tracking across meetings",
+            "Custom integrations"
+          ],
+          "cta_label": "Choose Business",
+          "cta_url": "https://fireflies.ai/pricing"
+        },
+        {
+          "name": "Enterprise",
+          "price_amount": 39,
+          "price_display": "$39/user/mo annual",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Everything in Business",
+            "SSO and SCIM",
+            "Advanced security controls",
+            "Dedicated customer success"
+          ],
+          "cta_label": "Choose Enterprise",
+          "cta_url": "https://fireflies.ai/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 512,
@@ -27398,7 +29100,59 @@
       "Studio editor for precise control",
       "Established and reliable"
     ],
-    "is_ai_native": true
+    "is_ai_native": true,
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://murf.ai/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "10 minutes voice generation",
+            "120+ voices preview",
+            "No commercial use",
+            "No downloads"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://murf.ai"
+        },
+        {
+          "name": "Creator",
+          "price_amount": 19,
+          "price_display": "$19/mo annual",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "24 hours voice generation per year",
+            "120+ voices, full access",
+            "Commercial license",
+            "Studio editor"
+          ],
+          "cta_label": "Choose Creator",
+          "cta_url": "https://murf.ai/pricing"
+        },
+        {
+          "name": "Business",
+          "price_amount": 79,
+          "price_display": "$79/mo annual",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "96 hours voice generation per year",
+            "Voice cloning",
+            "Team collaboration",
+            "Priority support"
+          ],
+          "cta_label": "Choose Business",
+          "cta_url": "https://murf.ai/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 513,
@@ -27523,7 +29277,59 @@
       "Brand consistency mode for series of images",
       "Genuinely useful free tier"
     ],
-    "is_ai_native": true
+    "is_ai_native": true,
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://www.recraft.ai/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "50 daily credits",
+            "Public generations",
+            "Standard models",
+            "Raster and vector output"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://recraft.ai"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 10,
+          "price_display": "$10/mo annual",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "1,000 credits per month",
+            "Private generations",
+            "Commercial use license",
+            "Brand style locks"
+          ],
+          "cta_label": "Choose Pro",
+          "cta_url": "https://recraft.ai/pricing"
+        },
+        {
+          "name": "Pro+",
+          "price_amount": 30,
+          "price_display": "$30/mo annual",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Unlimited generations",
+            "All Pro features",
+            "Vector and mockup priorities",
+            "For professional designers"
+          ],
+          "cta_label": "Choose Pro+",
+          "cta_url": "https://recraft.ai/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 515,
@@ -27841,7 +29647,59 @@
       "Sandbox handles environment setup",
       "Continuously evolving capability"
     ],
-    "is_ai_native": true
+    "is_ai_native": true,
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://devin.ai/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Core",
+          "price_amount": 500,
+          "price_display": "$500/mo",
+          "is_popular": true,
+          "highlight_label": "Individual",
+          "features": [
+            "Autonomous task execution",
+            "Sandboxed dev environment",
+            "Browser and IDE integrations",
+            "For individual engineers"
+          ],
+          "cta_label": "Choose Core",
+          "cta_url": "https://devin.ai/pricing"
+        },
+        {
+          "name": "Teams",
+          "price_amount": 0,
+          "price_display": "Contact sales",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Multi-engineer workspace",
+            "Centralized billing",
+            "Slack and CI integrations",
+            "For engineering teams"
+          ],
+          "cta_label": "Contact Sales",
+          "cta_url": "https://cognition.ai/pricing"
+        },
+        {
+          "name": "Enterprise",
+          "price_amount": 0,
+          "price_display": "Contact sales",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Custom deployment",
+            "SSO and security controls",
+            "Dedicated infrastructure",
+            "For large organizations"
+          ],
+          "cta_label": "Contact Sales",
+          "cta_url": "https://cognition.ai/enterprise"
+        }
+      ]
+    }
   },
   {
     "id": 519,
