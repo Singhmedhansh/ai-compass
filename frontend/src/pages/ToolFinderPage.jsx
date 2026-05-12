@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom'
 
 import Badge from '../components/ui/Badge'
 import Button from '../components/ui/Button'
-import { ToolLogo } from '../components/ui'
+import { ToolLogo, WordReveal } from '../components/ui'
 
 function getAspectBucket() {
   if (typeof window === 'undefined') {
@@ -681,7 +681,7 @@ function ToolFinderPage() {
     <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
       <section className="rounded-3xl border border-line bg-bg-elev p-6 shadow-sm sm:p-8">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold tracking-tight text-ink sm:text-4xl">AI Tool Finder Wizard</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-ink sm:text-4xl"><WordReveal>AI Tool Finder Wizard</WordReveal></h1>
           <p className="mt-2 text-sm text-muted sm:text-base">
             Tap any question to refine your fit. Preview updates in real time.
           </p>
