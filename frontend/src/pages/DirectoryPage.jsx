@@ -3,7 +3,7 @@ import { Helmet } from 'react-helmet-async'
 import { useSearchParams } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { SearchX } from 'lucide-react'
-import { Button, Card, Dropdown, SearchInput, SkeletonCard } from '../components/ui'
+import { Button, Card, Dropdown, SearchInput, SkeletonCard, WordReveal } from '../components/ui'
 import { drawerSlideUp, frostedDropdown, sectionReveal, staggerChild, staggerParent } from '../lib/motion'
 
 const MotionDiv = motion.div
@@ -318,7 +318,7 @@ function DirectoryPage() {
       </Helmet>
       <MotionDiv variants={sectionReveal} initial="initial" animate="animate">
       <section className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-3xl font-bold tracking-tight text-ink sm:text-4xl">AI Tools Directory</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-ink sm:text-4xl"><WordReveal>AI Tools Directory</WordReveal></h1>
         <span className="text-sm font-medium tabular-nums text-muted">
           {isLoading ? 'Loading...' : `${filteredTools.length} tools`}
         </span>
