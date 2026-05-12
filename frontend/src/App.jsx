@@ -23,6 +23,8 @@ const RegisterPage = lazy(() => import('./pages/RegisterPage'))
 const AdminPage = lazy(() => import('./pages/AdminPage'))
 const AuthCallbackPage = lazy(() => import('./pages/AuthCallbackPage'))
 const SubmitPage = lazy(() => import('./pages/SubmitPage'))
+const TeamPage = lazy(() => import('./pages/TeamPage'))
+const ContactPage = lazy(() => import('./pages/ContactPage'))
 const BestAIToolsForStudents = lazy(() => import('./pages/BestAIToolsForStudents'))
 const BestFreeAITools = lazy(() => import('./pages/BestFreeAITools'))
 
@@ -61,6 +63,8 @@ function AnimatedRoutes() {
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/admin" element={<AdminPage />} />
             <Route path="/submit" element={<SubmitPage />} />
+            <Route path="/team" element={<TeamPage />} />
+            <Route path="/contact" element={<ContactPage />} />
             <Route path="/best-ai-tools-for-students" element={<BestAIToolsForStudents />} />
             <Route path="/best-free-ai-tools" element={<BestFreeAITools />} />
           </Routes>
