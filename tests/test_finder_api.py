@@ -70,3 +70,14 @@ def test_admin_stats_has_model_status_keys(client):
     assert "model_status" in payload
     assert "ml_status" in payload
     assert payload["model_status"] == payload["ml_status"]
+
+
+def test_public_stats_returns_total_tools(client):
+    """GET /api/v1/stats returns total tool count for the public homepage."""
+    resp = client.get("/api/v1/stats")
+    assert resp.status_code == 200
+
+    payload = resp.get_json()
+    assert "total_tools" in payload
+    assert isinstance(payload["total_tools"], int)
+    assert payload["total_tools"] > 0

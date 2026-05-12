@@ -1,4 +1,10 @@
+import { useCatalogStats } from '../../hooks/useCatalogStats'
+
+const FALLBACK_TOOL_COUNT = 396
+
 export default function SunoStory() {
+  const { totalTools } = useCatalogStats()
+  const displayCount = totalTools ?? FALLBACK_TOOL_COUNT
   return (
     <section id="audit-story" className="py-12 md:py-20">
       <div className="mx-auto max-w-6xl px-5">
@@ -23,7 +29,7 @@ export default function SunoStory() {
               Suno
             </code>{' '}
             — a music generation AI — for a coding query. One mismatch, but it broke
-            our promise. We froze recommendations, audited the entire 443-tool catalog
+            our promise. We froze recommendations, audited the entire {displayCount}-tool catalog
             end to end, and applied <strong className="font-semibold">209 corrections</strong>
             {' '}— nearly half the catalog — in two days.
           </p>
