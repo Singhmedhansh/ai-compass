@@ -82,8 +82,9 @@ function Navbar() {
   }, [])
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20)
-    window.addEventListener('scroll', handleScroll)
+    const handleScroll = () => setScrolled(window.scrollY > 50)
+    handleScroll() // initialize on mount in case page loads scrolled
+    window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
@@ -213,7 +214,11 @@ function Navbar() {
           : 'border-b border-line bg-bg-elev'
       }`}
     >
-      <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center gap-3 px-4 py-3 sm:px-6 lg:px-8">
+      <div
+        className={`mx-auto flex w-full max-w-7xl flex-wrap items-center gap-3 px-4 transition-all duration-200 sm:px-6 lg:px-8 ${
+          scrolled ? 'py-2' : 'py-3'
+        }`}
+      >
         <Link
           to="/"
           className="shrink-0 text-lg font-bold tracking-tight text-ink transition-colors hover:text-accent-ink"

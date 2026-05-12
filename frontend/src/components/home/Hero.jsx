@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 
 import { useCatalogStats } from '../../hooks/useCatalogStats'
-import { WordReveal } from '../ui'
+import { MagneticWrapper, WordReveal } from '../ui'
 
 // Static fallback covers the ~100ms before /api/v1/stats responds — kept close to the live count so the page never reads as broken.
 const FALLBACK_TOOL_COUNT = 396
@@ -32,23 +32,25 @@ export default function Hero() {
         </p>
 
         <div className="flex flex-wrap items-center gap-2.5">
-          <Link
-            to="/ai-tool-finder"
-            className="group inline-flex items-center gap-2 rounded-full bg-ink px-[18px] py-3 text-sm font-medium text-bg transition-all hover:-translate-y-px hover:shadow-md"
-          >
-            Start the wizard
-            <svg
-              viewBox="0 0 16 16"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.6"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
+          <MagneticWrapper strength={0.25}>
+            <Link
+              to="/ai-tool-finder"
+              className="group inline-flex items-center gap-2 rounded-full bg-ink px-[18px] py-3 text-sm font-medium text-bg transition-all hover:-translate-y-px hover:shadow-md"
             >
-              <path d="M3 8h10M9 4l4 4-4 4" />
-            </svg>
-          </Link>
+              Start the wizard
+              <svg
+                viewBox="0 0 16 16"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
+              >
+                <path d="M3 8h10M9 4l4 4-4 4" />
+              </svg>
+            </Link>
+          </MagneticWrapper>
           <Link
             to="/tools"
             className="inline-flex items-center gap-2 rounded-full border border-line-strong px-[18px] py-3 text-sm font-medium text-ink transition-all hover:border-ink hover:bg-bg-elev"

@@ -4,7 +4,7 @@ import { Helmet } from 'react-helmet-async'
 import { Link } from 'react-router-dom'
 
 import medhanshPhoto from '../assets/medhansh.jpeg'
-import { WordReveal } from '../components/ui'
+import { MagneticWrapper, WordReveal } from '../components/ui'
 import { sectionReveal } from '../lib/motion'
 
 const MotionDiv = motion.div
@@ -103,13 +103,15 @@ export default function TeamPage() {
         >
           <h2 className="text-xl font-semibold text-ink sm:text-2xl">Get in touch</h2>
           <p className="mt-2 text-sm text-muted">Tool suggestions, feedback, or collaboration — all welcome.</p>
-          <Link
-            to="/contact"
-            className="mt-4 inline-flex items-center gap-2 rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-bg outline-none transition hover:opacity-90 focus-visible:ring-2 focus-visible:ring-accent"
-          >
-            Contact me
-            <ArrowRight className="h-4 w-4" aria-hidden="true" />
-          </Link>
+          <MagneticWrapper strength={0.25} className="mt-4">
+            <Link
+              to="/contact"
+              className="inline-flex items-center gap-2 rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-bg outline-none transition hover:opacity-90 focus-visible:ring-2 focus-visible:ring-accent"
+            >
+              Contact me
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
+          </MagneticWrapper>
         </MotionDiv>
       </div>
     </>

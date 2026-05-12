@@ -6,6 +6,7 @@ import Footer from './components/Footer'
 import RouteTransition from './components/RouteTransition'
 import CompareTray from './components/ui/CompareTray'
 import Navbar from './components/ui/Navbar'
+import ScrollProgress from './components/ui/ScrollProgress'
 // HomePage stays eager — it's the most common first paint
 import HomePage from './pages/HomePage'
 
@@ -83,6 +84,7 @@ export default function App() {
     <MotionConfig reducedMotion="user">
       <BrowserRouter>
         <ScrollToTop />
+        <ScrollProgress />
         <div className="min-h-screen flex flex-col bg-bg text-ink">
           <Navbar />
           <main className="flex-1">

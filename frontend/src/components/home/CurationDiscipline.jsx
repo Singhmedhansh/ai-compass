@@ -1,5 +1,3 @@
-import { motion } from 'framer-motion'
-
 import { useCatalogStats } from '../../hooks/useCatalogStats'
 import { useCountUp, useScrollReveal } from '../../lib/motion'
 
