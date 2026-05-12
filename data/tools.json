@@ -2038,7 +2038,44 @@
       "Test mode",
       "Shared study sets"
     ],
-    "slug": "quizlet"
+    "slug": "quizlet",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://quizlet.com/upgrade",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Unlimited flashcard set creation",
+            "Basic study modes (Learn, Match, Flashcards)",
+            "Mobile and web access",
+            "Ad-supported experience"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://quizlet.com"
+        },
+        {
+          "name": "Plus",
+          "price_amount": 3,
+          "price_display": "$3/mo annual",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "AI-powered Q-Chat tutor",
+            "Smart grading and study paths",
+            "Offline access on mobile",
+            "Ad-free experience"
+          ],
+          "cta_label": "Choose Plus",
+          "cta_url": "https://quizlet.com/upgrade"
+        }
+      ]
+    }
   },
   {
     "id": 19,
@@ -5227,7 +5264,44 @@
       "Feedback requests",
       "Web publishing"
     ],
-    "slug": "lex"
+    "slug": "lex",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://lex.page/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Limited AI usage per month",
+            "Distraction-free writing interface",
+            "Basic AI features",
+            "Document sharing"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://lex.page"
+        },
+        {
+          "name": "Plus",
+          "price_amount": 9,
+          "price_display": "$9/mo annual",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "Unlimited AI usage",
+            "Advanced AI tools",
+            "Priority access to new features",
+            "Best for active writers"
+          ],
+          "cta_label": "Choose Plus",
+          "cta_url": "https://lex.page/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 58,
@@ -5800,7 +5874,59 @@
       "Reference extraction",
       "Highlight export"
     ],
-    "slug": "scholarcy"
+    "slug": "scholarcy",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://www.scholarcy.com/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "3 flashcard summaries per month",
+            "Browser extension access",
+            "Basic citation extraction",
+            "Standard summary length"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://scholarcy.com"
+        },
+        {
+          "name": "Personal",
+          "price_amount": 4.99,
+          "price_display": "$4.99/mo",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "Unlimited flashcard summaries",
+            "Library and folder organization",
+            "Full citation extraction",
+            "Export to reference managers"
+          ],
+          "cta_label": "Choose Personal",
+          "cta_url": "https://scholarcy.com/pricing"
+        },
+        {
+          "name": "Plus",
+          "price_amount": 9.99,
+          "price_display": "$9.99/mo",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Everything in Personal",
+            "Bulk import and batch processing",
+            "Advanced figure extraction",
+            "Higher API usage limits"
+          ],
+          "cta_label": "Choose Plus",
+          "cta_url": "https://scholarcy.com/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 66,
@@ -7651,7 +7777,74 @@
       "Landing pages",
       "Brand voice"
     ],
-    "slug": "writesonic"
+    "slug": "writesonic",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://writesonic.com/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free Trial",
+          "price_amount": 0,
+          "price_display": "$0",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Limited word credit on signup",
+            "Access to base AI writer",
+            "10+ language support",
+            "ChatSonic preview access"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://writesonic.com"
+        },
+        {
+          "name": "Individual",
+          "price_amount": 20,
+          "price_display": "$20/mo annual",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "200,000 words per month",
+            "Access to GPT-class models",
+            "100+ AI templates",
+            "Browser extension"
+          ],
+          "cta_label": "Choose Individual",
+          "cta_url": "https://writesonic.com/pricing"
+        },
+        {
+          "name": "Standard",
+          "price_amount": 79,
+          "price_display": "$79/mo annual",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "4 user seats included",
+            "Brand voice training",
+            "Bulk content generation",
+            "Priority support"
+          ],
+          "cta_label": "Choose Standard",
+          "cta_url": "https://writesonic.com/pricing"
+        },
+        {
+          "name": "Enterprise",
+          "price_amount": 0,
+          "price_display": "Contact sales",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Unlimited everything",
+            "Dedicated account manager",
+            "SSO and audit logs",
+            "Custom integrations"
+          ],
+          "cta_label": "Contact Sales",
+          "cta_url": "https://writesonic.com/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 93,
@@ -28192,7 +28385,59 @@
       "Mobile-first experience",
       "Strong action/dynamic scene quality"
     ],
-    "is_ai_native": true
+    "is_ai_native": true,
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-12",
+      "source_url": "https://higgsfield.ai/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Limited monthly credits",
+            "Watermarked outputs",
+            "Standard generation queue",
+            "All camera motion templates"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://higgsfield.ai"
+        },
+        {
+          "name": "Basic",
+          "price_amount": 9,
+          "price_display": "$9/mo",
+          "is_popular": false,
+          "highlight_label": null,
+          "features": [
+            "Higher monthly credit pool",
+            "No watermark",
+            "Faster generation queue",
+            "Private generations"
+          ],
+          "cta_label": "Choose Basic",
+          "cta_url": "https://higgsfield.ai/pricing"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 29,
+          "price_display": "$29/mo",
+          "is_popular": true,
+          "highlight_label": "Most Popular",
+          "features": [
+            "Significantly more credits",
+            "Premium camera motion library",
+            "Higher resolution exports",
+            "Best for active video creators"
+          ],
+          "cta_label": "Choose Pro",
+          "cta_url": "https://higgsfield.ai/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 507,
