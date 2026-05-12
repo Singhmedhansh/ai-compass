@@ -1,11 +1,16 @@
 import { motion } from 'framer-motion'
 
+import { useCatalogStats } from '../../hooks/useCatalogStats'
 import { useCountUp, useScrollReveal } from '../../lib/motion'
+
+const FALLBACK_TOOL_COUNT = 396
 
 export default function CurationDiscipline() {
   const [statsRef, statsInView] = useScrollReveal({ threshold: 0.3 })
-  const toolCount = useCountUp(443, { enabled: statsInView, duration: 1.8 })
-  const removedCount = useCountUp(38, { enabled: statsInView, duration: 1.5 })
+  const { totalTools } = useCatalogStats()
+  const displayCount = totalTools ?? FALLBACK_TOOL_COUNT
+  // useCountUp re-animates if target changes — graceful when fetched value differs from fallback.
+  const toolCount = useCountUp(displayCount, { enabled: statsInView, duration: 1.8 })
   const cadenceCount = useCountUp(7, { enabled: statsInView, duration: 1.0 })
 
   return (
@@ -46,15 +51,15 @@ export default function CurationDiscipline() {
             </p>
           </div>
 
-          {/* Stats column — 2x2 grid with 1px hairline separators (gap-px on bg-line) */}
+          {/* Stats column — 3 stats in a single column on mobile, side-by-side at md+. Removed the unbacked "tools removed in 2026" stat. */}
           <div
             ref={statsRef}
             aria-label="Catalog facts"
-            className="grid grid-cols-2 gap-px self-start overflow-hidden rounded-xl border border-line bg-line"
+            className="grid grid-cols-1 gap-px self-start overflow-hidden rounded-xl border border-line bg-line sm:grid-cols-3"
           >
             <div className="bg-bg p-5 md:p-7">
               <div className="text-[32px] font-semibold leading-none tracking-tight tabular-nums text-ink md:text-[40px]">
-                <motion.span aria-label="443">{toolCount}</motion.span>
+                <motion.span aria-label={String(displayCount)}>{toolCount}</motion.span>
               </div>
               <div className="mt-2 text-[13px] leading-[1.45] text-muted">
                 tools, hand-tested<br />last touched · this week
@@ -67,15 +72,6 @@ export default function CurationDiscipline() {
               </div>
               <div className="mt-2 text-[13px] leading-[1.45] text-muted">
                 sponsored placements<br />ever
-              </div>
-            </div>
-
-            <div className="bg-bg p-5 md:p-7">
-              <div className="text-[32px] font-semibold leading-none tracking-tight tabular-nums text-ink md:text-[40px]">
-                <motion.span aria-label="38">{removedCount}</motion.span>
-              </div>
-              <div className="mt-2 text-[13px] leading-[1.45] text-muted">
-                tools removed in 2026<br />for breakage or shutdown
               </div>
             </div>
 

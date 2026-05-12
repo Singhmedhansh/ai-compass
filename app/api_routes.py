@@ -650,6 +650,14 @@ def list_tools():
     return response
 
 
+@api_bp.get("/stats")
+def get_public_stats():
+    # Public counterpart to /admin/stats — used by the homepage to display a live tool count
+    # instead of a hardcoded number that drifts every time the catalog changes.
+    tools = get_cached_tools(DATA_PATH)
+    return jsonify({"total_tools": len(tools)})
+
+
 @api_bp.get("/tools/<slug>")
 def get_tool(slug: str):
     slug_value = str(slug or "").strip().lower()

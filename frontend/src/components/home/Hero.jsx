@@ -1,8 +1,14 @@
 import { Link } from 'react-router-dom'
 
+import { useCatalogStats } from '../../hooks/useCatalogStats'
 import { WordReveal } from '../ui'
 
+// Static fallback covers the ~100ms before /api/v1/stats responds — kept close to the live count so the page never reads as broken.
+const FALLBACK_TOOL_COUNT = 396
+
 export default function Hero() {
+  const { totalTools } = useCatalogStats()
+  const displayCount = totalTools ?? FALLBACK_TOOL_COUNT
   return (
     <header className="relative pt-9 pb-8 md:pt-24 md:pb-20">
       <div className="mx-auto max-w-6xl px-5">
@@ -12,7 +18,7 @@ export default function Hero() {
             className="h-1.5 w-1.5 rounded-full bg-accent"
             style={{ boxShadow: '0 0 0 3px color-mix(in oklab, var(--accent) 25%, transparent)' }}
           />
-          For undergraduates · 443 tools curated
+          For undergraduates · {displayCount} tools curated
         </div>
 
         <h1 className="mt-4 mb-3.5 text-balance text-3xl font-semibold leading-[1.1] tracking-tight text-ink md:max-w-[16ch] md:text-[56px] lg:text-[64px]">
