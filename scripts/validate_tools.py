@@ -42,8 +42,9 @@ def passes_ai_check(tool: dict) -> bool:
     return any(kw in haystack_for(tool) for kw in AI_KEYWORDS)
 
 
-def validate(tools: list[dict]) -> list[str]:
+def validate(tools: list[dict]) -> tuple[list[str], list[str]]:
     errors: list[str] = []
+    warnings: list[str] = []
 
     slugs = [t.get("slug") for t in tools]
     slug_counts = Counter(s for s in slugs if s)
@@ -67,7 +68,21 @@ def validate(tools: list[dict]) -> list[str]:
             f"Offenders: {non_ai}"
         )
 
-    return errors
+    # Missing icon is non-fatal — ToolLogo falls back to favicon services + initial-letter circle —
+    # but dedicated brand icons render sharper, so this surfaces tools worth manually sourcing logos for.
+    missing_icons = [
+        f"{t.get('name', '?')} ({t.get('slug', '?')})"
+        for t in tools
+        if not (t.get("icon") or "").strip()
+    ]
+    if missing_icons:
+        warnings.append(
+            f"{len(missing_icons)} tool(s) have no icon set. They will render via "
+            f"favicon services with an initial-letter circle as final fallback, but "
+            f"a dedicated brand icon would look sharper. Tools: {missing_icons}"
+        )
+
+    return errors, warnings
 
 
 def main() -> int:
@@ -82,7 +97,11 @@ def main() -> int:
         print("ERROR: tools.json must be a JSON array", file=sys.stderr)
         return 1
 
-    errors = validate(tools)
+    errors, warnings = validate(tools)
+
+    for w in warnings:
+        print(f"WARN — {w}\n")
+
     if errors:
         print(f"FAIL — tools.json has {len(errors)} validation issue(s):\n")
         for e in errors:
@@ -90,6 +109,8 @@ def main() -> int:
         return 1
 
     print(f"OK — {len(tools)} tools pass all validation rules.")
+    if warnings:
+        print(f"({len(warnings)} warning(s) shown above — not blocking.)")
     return 0
 
 

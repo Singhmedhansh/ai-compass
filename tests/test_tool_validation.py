@@ -30,26 +30,45 @@ def test_fails_without_keywords_or_override():
 
 def test_validate_detects_duplicate_slugs():
     tools = [
-        {"slug": "x", "name": "X", "description": "AI tool"},
-        {"slug": "x", "name": "X2", "description": "AI tool"},
+        {"slug": "x", "name": "X", "description": "AI tool", "icon": "/x.svg"},
+        {"slug": "x", "name": "X2", "description": "AI tool", "icon": "/x.svg"},
     ]
-    errors = validate_tools.validate(tools)
+    errors, _warnings = validate_tools.validate(tools)
     assert any("Duplicate slugs" in e for e in errors)
 
 
 def test_validate_detects_non_ai_tool():
-    tools = [{"slug": "x", "name": "Calc", "description": "Adds numbers"}]
-    errors = validate_tools.validate(tools)
+    tools = [{"slug": "x", "name": "Calc", "description": "Adds numbers", "icon": "/x.svg"}]
+    errors, _warnings = validate_tools.validate(tools)
     assert any("AI relevance" in e for e in errors)
 
 
 def test_validate_passes_clean_catalog():
     tools = [
-        {"slug": "a", "name": "ChatGPT", "description": "AI chatbot"},
-        {"slug": "b", "name": "Detexify", "description": "Symbol lookup", "is_ai_native": True},
+        {"slug": "a", "name": "ChatGPT", "description": "AI chatbot", "icon": "/a.svg"},
+        {"slug": "b", "name": "Detexify", "description": "Symbol lookup", "is_ai_native": True, "icon": "/b.svg"},
     ]
-    errors = validate_tools.validate(tools)
+    errors, _warnings = validate_tools.validate(tools)
     assert errors == []
+
+
+def test_validate_warns_on_missing_icon():
+    tools = [
+        {"slug": "x", "name": "X", "description": "AI tool", "icon": ""},
+        {"slug": "y", "name": "Y", "description": "AI tool"},  # no icon field at all
+    ]
+    errors, warnings = validate_tools.validate(tools)
+    assert errors == []
+    assert any("icon" in w.lower() for w in warnings)
+
+
+def test_validate_no_warnings_when_icons_present():
+    tools = [
+        {"slug": "x", "name": "X", "description": "AI tool", "icon": "/static/icons/x.svg"},
+    ]
+    errors, warnings = validate_tools.validate(tools)
+    assert errors == []
+    assert warnings == []
 
 
 def test_real_tools_json_passes():
@@ -57,5 +76,5 @@ def test_real_tools_json_passes():
     import json
     with (REPO_ROOT / "data" / "tools.json").open(encoding="utf-8") as f:
         tools = json.load(f)
-    errors = validate_tools.validate(tools)
+    errors, _warnings = validate_tools.validate(tools)
     assert errors == [], "tools.json fails validation:\n" + "\n".join(errors)
