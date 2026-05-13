@@ -17,12 +17,13 @@ const tools = [
     rank: 1,
     name: "ChatGPT",
     slug: "chatgpt",
-    emoji: "🤖",
+    iconUrl: "/static/icons/chatgpt.svg",
     tagline: "Best free all-purpose AI",
-    freeLimit: "Unlimited GPT-4o on free plan",
+    freeLimit: "Unlimited GPT-5 mini on free plan",
     paidPlan: "$20/month for Plus",
     bestFor: "Writing, coding, brainstorming, Q&A",
-    freeVerdict: "The free tier is genuinely excellent now. GPT-4o is included at no cost — you don't need to pay unless you hit usage limits.",
+    freeVerdict:
+      "The free tier is genuinely excellent now. Most students will never hit Plus territory.",
     color: "#10a37f",
     badge: "100% Free to start",
   },
@@ -30,118 +31,130 @@ const tools = [
     rank: 2,
     name: "Claude",
     slug: "claude",
-    emoji: "⚡",
-    tagline: "Best free AI for long documents",
-    freeLimit: "Daily message limit on free plan",
+    iconUrl: "/static/icons/claude.svg",
+    tagline: "Best free model for long writing",
+    freeLimit: "Generous daily message cap with Claude Sonnet",
     paidPlan: "$20/month for Pro",
-    bestFor: "Reading PDFs, research, nuanced writing",
-    freeVerdict: "Free tier lets you paste entire documents and ask questions. Hit the daily limit? Just come back tomorrow — it resets.",
+    bestFor: "Essays, code review, document analysis, careful reasoning",
+    freeVerdict:
+      "Free tier handles documents up to ~75K words. Outperforms most paid tools for writing.",
     color: "#cc785c",
-    badge: "100% Free to start",
+    badge: "Free 200K context",
   },
   {
     rank: 3,
-    name: "Grammarly",
-    slug: "grammarly",
-    emoji: "✍️",
-    tagline: "Best free writing assistant",
-    freeLimit: "Grammar, spelling, tone — all free",
-    paidPlan: "$12/month for Premium",
-    bestFor: "Essays, emails, assignments",
-    freeVerdict: "The free plan catches grammar and spelling mistakes and works in every browser and app. Most students never need the paid plan.",
-    color: "#15c39a",
-    badge: "Free forever",
+    name: "Gemini",
+    slug: "gemini",
+    iconUrl: "/static/icons/gemini.svg",
+    tagline: "Google's free multimodal AI",
+    freeLimit: "Unlimited free access to Gemini 2.5 Flash",
+    paidPlan: "$20/month for Advanced",
+    bestFor: "Image analysis, web-aware research, Google ecosystem",
+    freeVerdict:
+      "The free model is competitive with paid tools, and it ties into Drive/Docs natively.",
+    color: "#4285f4",
+    badge: "No credit card",
   },
   {
     rank: 4,
-    name: "Perplexity AI",
-    slug: "perplexity-ai",
-    emoji: "🔍",
-    tagline: "Best free AI search engine",
-    freeLimit: "Unlimited searches, citations included",
-    paidPlan: "$20/month for Pro",
-    bestFor: "Research, fact-checking, finding sources",
-    freeVerdict: "Completely free with no login required. Every answer comes with real citations. Use it instead of Google for research.",
-    color: "#20b8cd",
-    badge: "No login needed",
+    name: "DeepL",
+    slug: "deepl",
+    iconUrl: "/static/icons/deepl.svg",
+    tagline: "Translation that beats Google Translate",
+    freeLimit: "500K characters/month free",
+    paidPlan: "$8.74/month for Pro",
+    bestFor: "Translating sources, language learning, multilingual writing",
+    freeVerdict:
+      "500K characters is plenty for a semester of foreign-language coursework.",
+    color: "#0f2b46",
+    badge: "No signup needed",
   },
   {
     rank: 5,
-    name: "Quillbot",
-    slug: "quillbot",
-    emoji: "🔄",
-    tagline: "Best free paraphrasing tool",
-    freeLimit: "125 words per paraphrase, summariser free",
-    paidPlan: "$9.95/month for Premium",
-    bestFor: "Paraphrasing, summarising, citations",
-    freeVerdict: "Free summariser has no word limit — paste an entire article and get a summary instantly. The citation generator is also completely free.",
-    color: "#4caf50",
-    badge: "Free summariser",
+    name: "Hugging Face Chat",
+    slug: "hugging-face",
+    iconUrl: "/static/icons/huggingface.svg",
+    tagline: "Open-source models, free, no signup",
+    freeLimit: "Unlimited free access to Llama, Mistral, and other open models",
+    paidPlan: "N/A — fully free",
+    bestFor: "Trying alternative models, technical experimentation, privacy-conscious use",
+    freeVerdict:
+      "The most open AI access on the internet. No account required, no rate limits worth mentioning.",
+    color: "#ffd21e",
+    badge: "Open source",
   },
   {
     rank: 6,
-    name: "GitHub Copilot",
-    slug: "github-copilot",
-    emoji: "💻",
-    tagline: "Best free AI for coding",
-    freeLimit: "Free with GitHub Student Developer Pack",
-    paidPlan: "$10/month without student pack",
-    bestFor: "Code completion, debugging, learning",
-    freeVerdict: "Apply for the GitHub Student Developer Pack with your college email — you get Copilot completely free. Takes 5 minutes to apply.",
-    color: "#6e40c9",
+    name: "Perplexity",
+    slug: "perplexity-ai",
+    iconUrl: "/static/icons/perplexity.svg",
+    tagline: "Free AI search with citations",
+    freeLimit: "Unlimited free searches with the base model",
+    paidPlan: "Free for students + $20/month for Pro",
+    bestFor: "Research, fact-checking, finding sources",
+    freeVerdict:
+      "Free tier alone replaces Google for most research queries. Pro adds smarter models but isn't required.",
+    color: "#20b8cd",
     badge: "Free for students",
   },
   {
     rank: 7,
-    name: "Gamma",
-    slug: "gamma-app",
-    emoji: "🎨",
-    tagline: "Best free presentation maker",
-    freeLimit: "400 AI credits free (roughly 10 decks)",
-    paidPlan: "$10/month for Plus",
-    bestFor: "Presentations, pitch decks, visual reports",
-    freeVerdict: "400 free credits is enough for a full semester of presentations. Generate a complete slide deck from a prompt in under 2 minutes.",
-    color: "#f5a623",
-    badge: "400 free credits",
+    name: "Phind",
+    slug: "phind",
+    iconUrl: "/static/icons/phind.svg",
+    tagline: "AI search built for developers",
+    freeLimit: "Generous free tier with current models",
+    paidPlan: "$15/month for Pro",
+    bestFor: "Debugging, framework lookups, technical reference",
+    freeVerdict:
+      "For technical questions, Phind's free tier often outperforms ChatGPT free because it pulls live docs.",
+    color: "#00b3a4",
+    badge: "Free unlimited",
   },
   {
+    // Spec asked for Pi (Inflection); not in tools.json. Substituted with Microsoft Copilot — closest free conversational AI in the catalog.
     rank: 8,
-    name: "Google Gemini",
-    slug: "gemini",
-    emoji: "💎",
-    tagline: "Best free AI with Google integration",
-    freeLimit: "Unlimited on free plan",
-    paidPlan: "$20/month for Advanced",
-    bestFor: "Research, writing, Google Docs integration",
-    freeVerdict: "Free and unlimited. Especially useful if you use Google Docs, Gmail, or Google Drive — Gemini integrates directly into all of them.",
-    color: "#4285f4",
-    badge: "Unlimited free",
+    name: "Microsoft Copilot",
+    slug: "microsoft-copilot",
+    iconUrl: "/static/icons/mscopilot.svg",
+    tagline: "Conversational AI with no signup wall",
+    freeLimit: "Unlimited free conversations",
+    paidPlan: "N/A — fully free",
+    bestFor: "Brainstorming out loud, casual problem-solving, voice mode",
+    freeVerdict:
+      "A different vibe than ChatGPT — designed for conversation, not tasks. Useful when you're thinking through something.",
+    color: "#0078d4",
+    badge: "No signup needed",
   },
   {
+    // Spec asked for PhotoRoom; not in tools.json. Substituted with Remove.bg — closest free background-removal tool in the catalog.
     rank: 9,
-    name: "Otter.ai",
-    slug: "otter-ai",
-    emoji: "🎙️",
-    tagline: "Best free lecture transcription",
-    freeLimit: "300 minutes free per month",
-    paidPlan: "$16.99/month for Pro",
-    bestFor: "Recording lectures, meeting notes",
-    freeVerdict: "300 free minutes per month is enough for most students. Record your lectures, get a full transcript and summary automatically.",
-    color: "#ff6b6b",
-    badge: "300 mins free",
+    name: "Remove.bg",
+    slug: "remove.bg",
+    iconUrl: "/static/icons/removebg.svg",
+    tagline: "Free AI image editing and background removal",
+    freeLimit: "Free for basic editing; unlimited background removals",
+    paidPlan: "$12.99/month for Pro",
+    bestFor: "Cleaning up photos, removing backgrounds, prepping images for assignments",
+    freeVerdict:
+      "The free tier covers everything most students need. Pro is for designers, not coursework.",
+    color: "#52525b",
+    badge: "No watermark",
   },
   {
+    // Spec asked for Mistral Le Chat; not in tools.json. Substituted with Mistral AI — closest Mistral entry in the catalog.
     rank: 10,
-    name: "Elicit",
-    slug: "elicit",
-    emoji: "🧪",
-    tagline: "Best free academic research tool",
-    freeLimit: "5 free credits per week",
-    paidPlan: "$12/month for Plus",
-    bestFor: "Literature reviews, finding papers",
-    freeVerdict: "5 credits per week is limiting but enough for occasional deep research. Each credit searches and summarises multiple academic papers at once.",
-    color: "#7c6af5",
-    badge: "Free weekly credits",
+    name: "Mistral AI",
+    slug: "mistral-ai",
+    iconUrl: "/static/icons/mistralai.svg",
+    tagline: "Fast free AI from a top open-source lab",
+    freeLimit: "Unlimited free access to Mistral's best model",
+    paidPlan: "N/A for now — fully free in beta",
+    bestFor: "Quick lookups, coding, fast iteration",
+    freeVerdict:
+      "Noticeably faster than ChatGPT for short prompts. Underrated for everyday use.",
+    color: "#fa520f",
+    badge: "Free beta",
   },
 ];
 
@@ -344,12 +357,24 @@ export default function BestFreeAITools() {
                       {String(tool.rank).padStart(2, '0')}
                     </span>
                     <div
-                      className={`flex shrink-0 items-center justify-center rounded-2xl ${isHero ? 'h-16 w-16 text-4xl md:h-20 md:w-20 md:text-5xl' : 'h-14 w-14 text-3xl md:h-16 md:w-16 md:text-4xl'}`}
-                      // tool.color at ~10% opacity (1A hex suffix ≈ 26/255) — brand-tinted icon backdrop is the per-tool color accent for this card.
-                      style={{ backgroundColor: `${tool.color}1A` }}
+                      className={`flex shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-line bg-white ${isHero ? 'h-16 w-16 md:h-20 md:w-20' : 'h-14 w-14 md:h-16 md:w-16'}`}
                       aria-hidden="true"
                     >
-                      {tool.emoji}
+                      {tool.iconUrl ? (
+                        <img
+                          src={tool.iconUrl}
+                          alt=""
+                          loading="lazy"
+                          className={isHero ? 'h-12 w-12 object-contain md:h-14 md:w-14' : 'h-10 w-10 object-contain md:h-12 md:w-12'}
+                        />
+                      ) : (
+                        <span
+                          className={`font-bold ${isHero ? 'text-2xl md:text-3xl' : 'text-xl md:text-2xl'}`}
+                          style={{ color: tool.color || '#666666' }}
+                        >
+                          {tool.name.charAt(0)}
+                        </span>
+                      )}
                     </div>
                   </div>
 
