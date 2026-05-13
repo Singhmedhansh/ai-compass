@@ -192,18 +192,18 @@ export default function BestAIToolsForStudents() {
   return (
     <>
       <Helmet>
-        <title>10 Best AI Tools for Students in 2026 (Free & Paid) | AI Compass</title>
+        <title>10 Best AI Tools for Students in 2026 (Hand-Tested) | AI Compass</title>
         <meta
           name="description"
-          content="The 10 best AI tools for students in 2026 — tested and ranked. Free tools for essays, research, coding, presentations and more. Find your perfect student AI stack."
+          content="The 10 best AI tools for students in 2026, hand-tested and ranked. Free tiers, student plans, real workflows. Last reviewed April 2026."
         />
         <meta
           name="keywords"
           content="best AI tools for students, free AI tools students, AI for college students, AI tools for studying, ChatGPT for students, AI essay tools"
         />
         <link rel="canonical" href="https://ai-compass.in/best-ai-tools-for-students" />
-        <meta property="og:title" content="10 Best AI Tools for Students in 2026 | AI Compass" />
-        <meta property="og:description" content="Free and paid AI tools for essays, research, coding, and more — ranked for students." />
+        <meta property="og:title" content="10 Best AI Tools for Students in 2026 (Hand-Tested) | AI Compass" />
+        <meta property="og:description" content="The 10 best AI tools for students in 2026, hand-tested and ranked. Free tiers, student plans, real workflows. Last reviewed April 2026." />
         <meta property="og:url" content="https://ai-compass.in/best-ai-tools-for-students" />
         <meta property="og:type" content="article" />
         <script type="application/ld+json">{JSON.stringify({

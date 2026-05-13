@@ -12,10 +12,10 @@ export default function PrivacyPage() {
   return (
     <>
       <Helmet>
-        <title>Privacy Policy · AI Compass</title>
+        <title>Privacy Policy | AI Compass</title>
         <meta
           name="description"
-          content="How AI Compass collects, uses, and protects your information."
+          content="How AI Compass handles your data: account info, cookies, server logs, third-party services. Hosted on Render, data stored in India."
         />
       </Helmet>
 

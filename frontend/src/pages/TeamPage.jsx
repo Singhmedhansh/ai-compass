@@ -18,10 +18,10 @@ export default function TeamPage() {
   return (
     <>
       <Helmet>
-        <title>About the builder · AI Compass</title>
+        <title>About — Built by Medhansh | AI Compass</title>
         <meta
           name="description"
-          content="AI Compass is built by Medhansh Pratap Singh, a first-year CS student at RVCE Bengaluru. Hand-curated AI tools for students, not SEO."
+          content="AI Compass is built by Medhansh, a CS AI/ML student at RVCE Bengaluru. Curated AI tools directory for students, no paid placements."
         />
       </Helmet>
 
