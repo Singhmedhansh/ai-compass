@@ -1,6 +1,15 @@
 import { useEffect } from "react";
+import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
+
+import { MagneticWrapper, WordReveal } from "../components/ui";
+import { sectionReveal, staggerParent, staggerChild } from "../lib/motion";
+
+const MotionDiv = motion.div;
+
+// Surface review recency as a trust signal — matches the catalog's "no scraping, hand-tested" claim on the homepage Curation Discipline section.
+const LAST_REVIEWED = "April 2026";
 
 const tools = [
   {
@@ -223,7 +232,7 @@ export default function BestFreeAITools() {
             ₹0 · No credit card · Updated April 2026
           </div>
           <h1 className="text-[clamp(2rem,5vw,3.2rem)] font-bold leading-[1.15] tracking-tight text-ink mb-5">
-            The 10 Best Free AI Tools in 2026
+            <WordReveal>The 10 Best Free AI Tools in 2026</WordReveal>
           </h1>
           <p className="text-[1.15rem] leading-[1.75] text-muted max-w-[640px] mx-auto mb-8 font-sans">
             You don't need to spend money to use powerful AI. These 10 tools have free tiers that are genuinely useful — not crippled demos. Ranked by how good the free plan actually is.
@@ -233,10 +242,53 @@ export default function BestFreeAITools() {
               <span key={t}>{t}</span>
             ))}
           </div>
+          <p className="mt-4 text-sm text-muted">
+            <span className="inline-flex items-center gap-2 rounded-full border border-line bg-bg-elev px-3 py-1 text-xs font-medium text-ink-2">
+              <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden="true" />
+              Last reviewed: {LAST_REVIEWED}
+            </span>
+          </p>
+        </div>
+
+        {/* What "free" actually means — criteria block inserted between hero and Quick nav */}
+        <div className="mx-auto max-w-[860px] px-6 mb-12">
+          <MotionDiv
+            variants={sectionReveal}
+            initial="initial"
+            whileInView="animate"
+            viewport={{ once: true, margin: '-10% 0px' }}
+            className="rounded-2xl border border-line bg-bg-elev p-6 md:p-8"
+          >
+            <h2 className="text-lg font-semibold text-ink sm:text-xl">What "free" actually means here</h2>
+            <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+              <li className="flex items-start gap-3 text-sm text-ink-2 leading-relaxed">
+                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" aria-hidden="true" />
+                <span>Free means free — no credit card required to start, no auto-conversion to paid.</span>
+              </li>
+              <li className="flex items-start gap-3 text-sm text-ink-2 leading-relaxed">
+                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" aria-hidden="true" />
+                <span>Free tier covers actual student workflows, not just demo-grade limits.</span>
+              </li>
+              <li className="flex items-start gap-3 text-sm text-ink-2 leading-relaxed">
+                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" aria-hidden="true" />
+                <span>Free-tier quotas re-checked monthly — they shrink without notice on most platforms.</span>
+              </li>
+              <li className="flex items-start gap-3 text-sm text-ink-2 leading-relaxed">
+                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" aria-hidden="true" />
+                <span>If a tool starts gating essential features behind paid plans, it drops off this list.</span>
+              </li>
+            </ul>
+          </MotionDiv>
         </div>
 
         {/* Quick nav */}
-        <div className="mx-auto max-w-[860px] px-6 mb-12">
+        <MotionDiv
+          variants={sectionReveal}
+          initial="initial"
+          whileInView="animate"
+          viewport={{ once: true, margin: '-10% 0px' }}
+          className="mx-auto max-w-[860px] px-6 mb-12"
+        >
           <div className="rounded-xl border border-line bg-bg-elev p-5 font-sans">
             <p className="text-[12px] text-muted-2 mb-3 uppercase tracking-widest">Quick jump</p>
             <div className="flex flex-wrap gap-2">
@@ -251,15 +303,24 @@ export default function BestFreeAITools() {
               ))}
             </div>
           </div>
-        </div>
+        </MotionDiv>
 
         {/* Tool cards */}
-        <div className="mx-auto max-w-[860px] px-6">
-          {tools.map((tool) => (
-            <div
+        <MotionDiv
+          variants={staggerParent}
+          initial="initial"
+          whileInView="animate"
+          viewport={{ once: true, margin: '-5% 0px' }}
+          className="mx-auto max-w-[860px] px-6"
+        >
+          {tools.map((tool, i) => (
+            <MotionDiv
               key={tool.slug}
+              variants={staggerChild}
+              // Capped stagger via custom={i * 0.04}; for a 10-card list the last card enters ~0.4s after the first — cascading but not slow.
+              custom={i * 0.04}
               id={tool.slug}
-              className="mb-10 rounded-xl border border-line bg-bg-elev p-7 scroll-mt-20"
+              className="mb-10 rounded-xl border border-line bg-bg-elev p-7 scroll-mt-20 hover:-translate-y-0.5 transition-transform duration-200"
               style={{ borderLeft: `3px solid ${tool.color}` }}
             >
               {/* Header */}
@@ -311,12 +372,18 @@ export default function BestFreeAITools() {
                 </Link>
                 <span className="font-sans text-[12px] text-muted-2">Paid from {tool.paidPlan}</span>
               </div>
-            </div>
+            </MotionDiv>
           ))}
-        </div>
+        </MotionDiv>
 
         {/* Tips */}
-        <div className="mx-auto max-w-[860px] px-6 mt-16">
+        <MotionDiv
+          variants={sectionReveal}
+          initial="initial"
+          whileInView="animate"
+          viewport={{ once: true, margin: '-10% 0px' }}
+          className="mx-auto max-w-[860px] px-6 mt-16"
+        >
           <h2 className="text-[1.6rem] font-bold tracking-tight text-ink mb-6">
             4 tips to get the most out of free AI tools
           </h2>
@@ -329,10 +396,16 @@ export default function BestFreeAITools() {
               </div>
             ))}
           </div>
-        </div>
+        </MotionDiv>
 
         {/* Stack CTA */}
-        <div className="mx-auto max-w-[860px] px-6 mt-16">
+        <MotionDiv
+          variants={sectionReveal}
+          initial="initial"
+          whileInView="animate"
+          viewport={{ once: true, margin: '-10% 0px' }}
+          className="mx-auto max-w-[860px] px-6 mt-16"
+        >
           <div className="rounded-2xl border border-accent bg-accent-soft p-10 text-center">
             <h2 className="text-[1.4rem] font-bold tracking-tight text-ink mb-3">
               Not sure which free tools to start with?
@@ -347,10 +420,16 @@ export default function BestFreeAITools() {
               Find my free AI stack →
             </Link>
           </div>
-        </div>
+        </MotionDiv>
 
         {/* FAQ */}
-        <div className="mx-auto max-w-[860px] px-6 mt-16">
+        <MotionDiv
+          variants={sectionReveal}
+          initial="initial"
+          whileInView="animate"
+          viewport={{ once: true, margin: '-10% 0px' }}
+          className="mx-auto max-w-[860px] px-6 mt-16"
+        >
           <h2 className="text-[1.6rem] font-bold tracking-tight text-ink mb-8">
             Frequently asked questions
           </h2>
@@ -362,20 +441,28 @@ export default function BestFreeAITools() {
               </div>
             ))}
           </div>
-        </div>
+        </MotionDiv>
 
         {/* Footer CTA */}
-        <div className="mx-auto max-w-[860px] px-6 mt-16 mb-20 text-center font-sans">
+        <MotionDiv
+          variants={sectionReveal}
+          initial="initial"
+          whileInView="animate"
+          viewport={{ once: true, margin: '-10% 0px' }}
+          className="mx-auto max-w-[860px] px-6 mt-16 mb-20 text-center font-sans"
+        >
           <p className="text-[14px] text-muted-2 mb-2">Also read</p>
           <div className="flex flex-wrap justify-center gap-6">
-            <Link to="/best-ai-tools-for-students" className="text-[14px] font-semibold text-accent no-underline hover:underline">
-              Best AI tools for students →
-            </Link>
+            <MagneticWrapper strength={0.2}>
+              <Link to="/best-ai-tools-for-students" className="text-[14px] font-semibold text-accent no-underline hover:underline">
+                Best AI tools for students →
+              </Link>
+            </MagneticWrapper>
             <Link to="/tools" className="text-[14px] font-semibold text-accent no-underline hover:underline">
               Browse all 450+ tools →
             </Link>
           </div>
-        </div>
+        </MotionDiv>
 
       </div>
     </>
