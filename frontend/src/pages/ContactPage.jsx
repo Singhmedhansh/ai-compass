@@ -30,10 +30,10 @@ export default function ContactPage() {
   return (
     <>
       <Helmet>
-        <title>Contact · AI Compass</title>
+        <title>Contact — Get in Touch | AI Compass</title>
         <meta
           name="description"
-          content="Reach Medhansh — email, phone, or social. Tool feedback and collaboration welcome."
+          content="Get in touch with AI Compass. Submit a tool, report an issue, or just say hi. Email, GitHub, and LinkedIn — all in one place."
         />
       </Helmet>
 

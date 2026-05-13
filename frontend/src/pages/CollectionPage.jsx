@@ -47,12 +47,12 @@ function CollectionPage() {
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <Helmet>
-        <title>{collection?.meta_title || 'AI Collections | AI Compass'}</title>
+        <title>{`${collection?.title || 'AI Tools'} — AI Tools Collection | AI Compass`}</title>
         <meta
           name="description"
-          content={collection?.meta_description || 'Explore curated AI tool collections by category and use case.'}
+          content={`Hand-picked AI tools for ${collection?.title || 'this category'}. Curated stack, verified pricing, no affiliate ranking. Browse alternatives at AI Compass.`}
         />
-        <meta property="og:title" content={collection?.meta_title || 'AI Collections | AI Compass'} />
+        <meta property="og:title" content={`${collection?.title || 'AI Tools'} — AI Tools Collection | AI Compass`} />
       </Helmet>
 
       <section className="mb-6 rounded-2xl border border-line bg-bg-elev p-6 shadow-sm">

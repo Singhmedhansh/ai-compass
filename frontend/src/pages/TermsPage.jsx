@@ -12,10 +12,10 @@ export default function TermsPage() {
   return (
     <>
       <Helmet>
-        <title>Terms of Service · AI Compass</title>
+        <title>Terms of Service | AI Compass</title>
         <meta
           name="description"
-          content="Terms of Service for AI Compass — what you can expect and what we expect."
+          content="Terms of using AI Compass. Acceptable use, content ownership, no-affiliate-ranking commitment, and governing law. Last updated 2026."
         />
       </Helmet>
 

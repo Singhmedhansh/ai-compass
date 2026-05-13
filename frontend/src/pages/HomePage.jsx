@@ -10,10 +10,10 @@ export default function HomePage() {
   return (
     <>
       <Helmet>
-        <title>AI Compass — Find & Compare AI Tools | ChatGPT, Claude & 450+ More</title>
-        <meta name="description" content="AI Compass helps students discover and compare 450+ AI tools including ChatGPT, Claude, Grammarly and more. Free tool finder, ratings, and personalized recommendations." />
-        <meta property="og:title" content="AI Compass — Find & Compare AI Tools | ChatGPT, Claude & 450+ More" />
-        <meta property="og:description" content="Discover and compare 450+ AI tools. Free personalized recommendations for students." />
+        <title>AI Compass — 429 Hand-Tested AI Tools for Students</title>
+        <meta name="description" content="Curated AI tools directory for students. 429 tools hand-tested, no paid placements, no affiliate ranking. Free to browse, updated weekly." />
+        <meta property="og:title" content="AI Compass — 429 Hand-Tested AI Tools for Students" />
+        <meta property="og:description" content="Curated AI tools directory for students. 429 tools hand-tested, no paid placements, no affiliate ranking. Free to browse, updated weekly." />
         <link rel="canonical" href="https://ai-compass.in/" />
       </Helmet>
 
