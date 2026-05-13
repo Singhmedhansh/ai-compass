@@ -207,6 +207,13 @@ def create_app(config: dict | None = None) -> Flask:
 
     @app.before_request
     def enforce_canonical_host():
+        # WHY: health endpoints must return 200 directly, never a 308 redirect.
+        # Render's internal port-scan probe hits the service via its .onrender.com
+        # hostname; the canonical-host redirect below would otherwise mark every
+        # probe response as 3XX and cause Render to SIGTERM the worker within
+        # seconds of startup.
+        if request.path in ('/healthz', '/health'):
+            return None
         if app.config.get("TESTING") or not is_production or not canonical_host:
             return None
 
@@ -297,5 +304,12 @@ def create_app(config: dict | None = None) -> Flask:
         return {
             "category_counts": {}
         }
+
+    # WHY: minimal health endpoint for Render port-scan probes. Returns
+    # immediately with no DB, no auth, no template render. Exempt from
+    # canonical-host redirect via the before_request guard above.
+    @app.route('/healthz')
+    def healthz():
+        return 'ok', 200, {'Content-Type': 'text/plain'}
 
     return app
