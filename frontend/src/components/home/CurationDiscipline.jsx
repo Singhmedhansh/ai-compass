@@ -1,3 +1,7 @@
+// WHY: motion is used as <motion.span> in JSX below; do NOT remove this import even if lint flags it as unused (eslint-plugin-react is missing from the config — false positive). Removing it crashes the homepage at render time with "motion is not defined".
+// eslint-disable-next-line no-unused-vars
+import { motion } from 'framer-motion'
+
 import { useCatalogStats } from '../../hooks/useCatalogStats'
 import { useCountUp, useScrollReveal } from '../../lib/motion'
 
