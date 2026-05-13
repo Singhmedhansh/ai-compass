@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { motion } from "framer-motion";
+import { ArrowUpRight, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 
@@ -313,67 +314,104 @@ export default function BestFreeAITools() {
           viewport={{ once: true, margin: '-5% 0px' }}
           className="mx-auto max-w-[860px] px-6"
         >
-          {tools.map((tool, i) => (
-            <MotionDiv
-              key={tool.slug}
-              variants={staggerChild}
-              // Capped stagger via custom={i * 0.04}; for a 10-card list the last card enters ~0.4s after the first — cascading but not slow.
-              custom={i * 0.04}
-              id={tool.slug}
-              className="mb-10 rounded-xl border border-line bg-bg-elev p-7 scroll-mt-20 hover:-translate-y-0.5 transition-transform duration-200"
-              style={{ borderLeft: `3px solid ${tool.color}` }}
-            >
-              {/* Header */}
-              <div className="flex items-start gap-4 mb-4">
-                <div className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-xl bg-bg-sunk text-[2rem]">
-                  {tool.emoji}
-                </div>
-                <div className="flex-1">
-                  <div className="flex flex-wrap items-center gap-2.5 mb-1">
-                    <span className="font-sans text-[11px] font-bold uppercase tracking-widest" style={{ color: tool.color }}>#{tool.rank}</span>
-                    <h2 className="text-[1.3rem] font-bold tracking-tight text-ink m-0">{tool.name}</h2>
-                    <span className="font-sans text-[11px] rounded-full px-3 py-0.5 font-semibold border"
-                      style={{
-                        background: `${tool.color}15`,
-                        borderColor: `${tool.color}40`,
-                        color: tool.color,
-                      }}
-                    >{tool.badge}</span>
+          {tools.map((tool, i) => {
+            const isHero = tool.rank === 1
+            return (
+              <MotionDiv
+                key={tool.slug}
+                variants={staggerChild}
+                // Capped stagger via custom={i * 0.04}; for a 10-card list the last card enters ~0.4s after the first — cascading but not slow.
+                custom={i * 0.04}
+                id={tool.slug}
+                className={`group relative mb-10 overflow-hidden rounded-3xl border border-line scroll-mt-20 transition-all duration-300 hover:-translate-y-1 hover:border-line-strong hover:shadow-lg ${isHero ? 'bg-gradient-to-br from-bg-elev to-accent-soft/40 ring-1 ring-accent/30' : 'bg-bg-elev'}`}
+              >
+                {isHero ? (
+                  <div className="px-6 pt-6 sm:px-8 sm:pt-8">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-accent px-3 py-1 text-xs font-semibold text-accent-ink">
+                      <Sparkles className="h-3 w-3" aria-hidden="true" />
+                      Editor&apos;s pick
+                    </span>
                   </div>
-                  <p className="font-sans text-[14px] italic text-muted m-0">{tool.tagline}</p>
-                </div>
-              </div>
+                ) : null}
 
-              {/* Details grid */}
-              <div className="grid grid-cols-2 gap-3 mb-4 font-sans text-[13px]">
-                <div className="rounded-lg bg-accent-soft border border-accent p-3">
-                  <p className="text-accent-ink text-[11px] uppercase tracking-widest font-semibold mb-1">Free tier includes</p>
-                  <p className="text-ink-2 m-0 leading-[1.5]">{tool.freeLimit}</p>
-                </div>
-                <div className="rounded-lg bg-bg-sunk p-3">
-                  <p className="text-[11px] uppercase tracking-widest text-muted-2 mb-1">Best for</p>
-                  <p className="text-muted m-0 leading-[1.5]">{tool.bestFor}</p>
-                </div>
-              </div>
+                <div className={`grid gap-6 md:grid-cols-[auto_1fr] md:gap-8 ${isHero ? 'px-6 pt-4 pb-6 sm:px-8 sm:pb-8' : 'p-6 sm:p-8'}`}>
+                  {/* Left rail — rank + icon */}
+                  <div className="flex items-center gap-5 md:flex-col md:items-start md:gap-6 md:pr-2">
+                    <span
+                      className={`font-serif font-bold leading-none tracking-tighter text-muted-2 ${isHero ? 'text-7xl md:text-8xl' : 'text-6xl md:text-7xl'}`}
+                      aria-hidden="true"
+                    >
+                      {String(tool.rank).padStart(2, '0')}
+                    </span>
+                    <div
+                      className={`flex shrink-0 items-center justify-center rounded-2xl ${isHero ? 'h-16 w-16 text-4xl md:h-20 md:w-20 md:text-5xl' : 'h-14 w-14 text-3xl md:h-16 md:w-16 md:text-4xl'}`}
+                      // tool.color at ~10% opacity (1A hex suffix ≈ 26/255) — brand-tinted icon backdrop is the per-tool color accent for this card.
+                      style={{ backgroundColor: `${tool.color}1A` }}
+                      aria-hidden="true"
+                    >
+                      {tool.emoji}
+                    </div>
+                  </div>
 
-              {/* Verdict */}
-              <p className="font-sans text-[14px] leading-[1.7] text-ink-2 mb-5">
-                <strong className="text-ink">Free tier verdict: </strong>{tool.freeVerdict}
-              </p>
+                  {/* Right content */}
+                  <div className="min-w-0">
+                    <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
+                      <h3 className={`font-semibold tracking-tight text-ink ${isHero ? 'text-3xl md:text-4xl' : 'text-2xl md:text-3xl'}`}>
+                        {tool.name}
+                      </h3>
+                      {tool.badge ? (
+                        <span className="shrink-0 rounded-full bg-accent-soft px-3 py-1 text-xs font-semibold text-accent-ink">
+                          {tool.badge}
+                        </span>
+                      ) : null}
+                    </div>
 
-              {/* CTA row */}
-              <div className="flex items-center justify-between flex-wrap gap-3">
-                <Link
-                  to={`/tools/${tool.slug}`}
-                  className="inline-flex items-center gap-1.5 font-sans text-[13px] font-semibold no-underline"
-                  style={{ color: tool.color }}
-                >
-                  View full details →
-                </Link>
-                <span className="font-sans text-[12px] text-muted-2">Paid from {tool.paidPlan}</span>
-              </div>
-            </MotionDiv>
-          ))}
+                    <p className="mb-6 text-base leading-relaxed text-muted">
+                      {tool.tagline}
+                    </p>
+
+                    {/* Structured details */}
+                    <dl className="mb-6 space-y-3 border-y border-line py-5">
+                      <div className="flex flex-col gap-1 sm:flex-row sm:gap-4">
+                        <dt className="shrink-0 text-xs font-semibold uppercase tracking-wider text-ink-2 sm:w-32">
+                          Best for
+                        </dt>
+                        <dd className="text-sm leading-relaxed text-muted">{tool.bestFor}</dd>
+                      </div>
+                      <div className="flex flex-col gap-1 sm:flex-row sm:gap-4">
+                        <dt className="shrink-0 text-xs font-semibold uppercase tracking-wider text-ink-2 sm:w-32">
+                          Free tier
+                        </dt>
+                        <dd className="text-sm leading-relaxed text-muted">{tool.freeLimit}</dd>
+                      </div>
+                      <div className="flex flex-col gap-1 sm:flex-row sm:gap-4">
+                        <dt className="shrink-0 text-xs font-semibold uppercase tracking-wider text-ink-2 sm:w-32">
+                          Paid plan starts
+                        </dt>
+                        <dd className="text-sm leading-relaxed text-muted">{tool.paidPlan}</dd>
+                      </div>
+                    </dl>
+
+                    {/* Verdict callout */}
+                    <div className="mb-6 rounded-2xl bg-accent-soft px-5 py-4">
+                      <p className="text-sm font-medium italic leading-relaxed text-accent-ink">
+                        &ldquo;{tool.freeVerdict}&rdquo;
+                      </p>
+                    </div>
+
+                    {/* CTA */}
+                    <Link
+                      to={`/tools/${tool.slug}`}
+                      className="inline-flex items-center gap-2 rounded-full bg-ink px-5 py-2.5 text-sm font-medium text-bg transition-all duration-200 hover:gap-3 hover:bg-ink-2"
+                    >
+                      See full review
+                      <ArrowUpRight className="h-4 w-4 transition-transform duration-200 group-hover:rotate-12" />
+                    </Link>
+                  </div>
+                </div>
+              </MotionDiv>
+            )
+          })}
         </MotionDiv>
 
         {/* Tips */}
