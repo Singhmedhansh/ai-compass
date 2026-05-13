@@ -17,140 +17,142 @@ const tools = [
     rank: 1,
     name: "ChatGPT",
     slug: "chatgpt",
-    emoji: "🤖",
-    tagline: "Best all-rounder for students",
-    pricing: "Free + Paid",
-    bestFor: "Essays, brainstorming, explaining concepts, coding help",
-    studentWin: "Free tier is genuinely powerful. GPT-4o included in free plan.",
+    iconUrl: "/static/icons/chatgpt.svg",
+    tagline: "The universal AI assistant for students",
+    pricing: "Free + Plus $20/mo",
+    bestFor: "Essays, research, coding, brainstorming",
+    studentWin:
+      "Free tier handles most coursework; Plus unlocks GPT-5 and longer context for complex projects",
     verdict:
-      "The go-to starting point for almost every student use case. If you only use one AI tool, make it this.",
+      "If you pick one AI tool this year, make it this one. Everything else is a specialist beside it.",
     color: "#10a37f",
   },
   {
     rank: 2,
     name: "Claude",
     slug: "claude",
-    emoji: "⚡",
-    tagline: "Best for long documents & deep reasoning",
-    pricing: "Free + Paid",
-    bestFor: "Research papers, reading PDFs, nuanced writing, coding",
+    iconUrl: "/static/icons/claude.svg",
+    tagline: "Best for long-form writing and careful reasoning",
+    pricing: "Free + Pro $20/mo",
+    bestFor: "Essays, literature reviews, code review, nuanced analysis",
     studentWin:
-      "200K token context window — paste an entire textbook chapter and ask questions.",
+      "Handles 200-page PDFs as context; the free tier alone outperforms paid alternatives for writing",
     verdict:
-      "Better than ChatGPT for reading and analysing long documents. Ideal for literature reviews and research.",
+      "The model I reach for when the answer needs to be right, not just plausible.",
     color: "#cc785c",
   },
   {
     rank: 3,
-    name: "Grammarly",
-    slug: "grammarly",
-    emoji: "✍️",
-    tagline: "Best for writing polish & grammar",
-    pricing: "Free + Paid",
-    bestFor: "Essays, emails, assignments, job applications",
-    studentWin:
-      "Free tier catches grammar, spelling, and clarity issues. Works in every browser.",
-    verdict:
-      "Non-negotiable if English isn't your first language, and still very useful if it is. Install the browser extension.",
-    color: "#15c39a",
-  },
-  {
-    rank: 4,
     name: "Notion AI",
     slug: "notion-ai",
-    emoji: "📓",
-    tagline: "Best for notes, organisation & summaries",
-    pricing: "Freemium",
-    bestFor: "Lecture notes, project planning, summarising readings",
+    iconUrl: "/static/icons/notionai.svg",
+    tagline: "Notes and AI assistance in one workspace",
+    pricing: "Free for students + AI add-on $10/mo",
+    bestFor: "Lecture notes, project tracking, study planning",
     studentWin:
-      "If you already use Notion, the AI is built right in. Summarise your notes in one click.",
+      "Notion Plus is free with .edu email; AI summarizes lectures and drafts study guides inline with your notes",
     verdict:
-      "The best tool for students who want AI woven into their actual workflow rather than a separate tab.",
+      "The only note-taking tool where AI feels native, not bolted on.",
     color: "#6366f1",
   },
   {
-    rank: 5,
-    name: "Perplexity AI",
-    slug: "perplexity-ai",
-    emoji: "🔍",
-    tagline: "Best for research with real citations",
-    pricing: "Free + Paid",
-    bestFor: "Research, fact-checking, finding sources, current events",
+    rank: 4,
+    name: "Cursor",
+    slug: "cursor",
+    iconUrl: "/static/icons/cursor.svg",
+    tagline: "AI-first code editor for serious projects",
+    pricing: "Free + Pro $20/mo",
+    bestFor: "CS coursework, side projects, learning to code",
     studentWin:
-      "Every answer comes with citations you can actually use in your bibliography.",
+      "Free tier ships with Claude and GPT-5 integrated; reads your whole codebase, not just the current file",
     verdict:
-      "Use this instead of Googling. You get a direct answer plus the sources — massive time saver for research.",
+      "If you write code as a student, this is the productivity multiplier that actually multiplies.",
+    color: "#000000",
+  },
+  {
+    rank: 5,
+    name: "Perplexity",
+    slug: "perplexity-ai",
+    iconUrl: "/static/icons/perplexity.svg",
+    tagline: "AI search with cited sources, free for students",
+    pricing: "FREE for students + Pro $20/mo",
+    bestFor: "Research, fact-checking, finding sources for papers",
+    studentWin:
+      "Perplexity Pro is genuinely free for verified students — same model access as paying users",
+    verdict:
+      "The fastest way to research a topic when you actually need citations, not vibes.",
     color: "#20b8cd",
   },
   {
     rank: 6,
-    name: "GitHub Copilot",
-    slug: "github-copilot",
-    emoji: "💻",
-    tagline: "Best for CS students & coding assignments",
-    pricing: "Free for students",
-    bestFor: "Code completion, debugging, learning new languages",
+    name: "Grammarly",
+    slug: "grammarly",
+    iconUrl: "/static/icons/grammarly.svg",
+    tagline: "Final-pass writing polish across every app",
+    pricing: "Free + Premium ~$12/mo (student discount)",
+    bestFor: "Essay submission, professional emails, application writing",
     studentWin:
-      "Completely free with GitHub Student Developer Pack. Saves hours on assignments.",
+      "Premium adds tone suggestions and full-sentence rewrites; student discount drops it by ~40%",
     verdict:
-      "If you're a CS student, this is the single best free tool available to you. Apply for the student pack today.",
-    color: "#6e40c9",
+      "Free tier is fine for catching typos. Premium is worth it the week you submit a major application.",
+    color: "#15c39a",
   },
   {
     rank: 7,
-    name: "Gamma",
-    slug: "gamma-app",
-    emoji: "🎨",
-    tagline: "Best for presentations & pitch decks",
-    pricing: "Freemium",
-    bestFor: "Class presentations, project pitches, visual reports",
+    name: "Otter.ai",
+    slug: "otter-ai",
+    // tools.json has no icon for otter-ai; fall back to initial-letter tile at render time.
+    iconUrl: null,
+    tagline: "Lecture transcription that actually works",
+    pricing: "Free 300 min/mo + Pro $17/mo",
+    bestFor: "Recording lectures, transcribing interviews, capturing meetings",
     studentWin:
-      "Generate a full slide deck from a prompt in under 2 minutes. No design skills needed.",
+      "300 free minutes per month covers ~10 lectures; transcripts are searchable, timestamped, and AI-summarized",
     verdict:
-      "The fastest way to go from bullet points to a beautiful presentation. Beats spending 3 hours in PowerPoint.",
-    color: "#f5a623",
+      "Worth installing before your next 9 AM class. Stop trying to write and listen at the same time.",
+    color: "#ff6b6b",
   },
   {
     rank: 8,
-    name: "Quillbot",
+    name: "QuillBot",
     slug: "quillbot",
-    emoji: "🔄",
-    tagline: "Best for paraphrasing & summarising",
-    pricing: "Free + Paid",
-    bestFor: "Paraphrasing, summarising articles, citation generator",
+    iconUrl: "/static/icons/quillbot.svg",
+    tagline: "Paraphrasing and grammar for academic writing",
+    pricing: "Free + Premium $9.95/mo",
+    bestFor: "Rephrasing sources, summarizing readings, grammar polish",
     studentWin:
-      "Free paraphraser and summariser. Also has a free citation generator that supports APA, MLA, Chicago.",
+      "The free tier handles paraphrasing well enough for most assignments; cheaper than Grammarly Premium for similar work",
     verdict:
-      "The citation generator alone makes this worth bookmarking. Summarise a 20-page paper in 30 seconds.",
+      "A specialist tool for one specific job — rephrasing without losing meaning — and it does that job well.",
     color: "#4caf50",
   },
   {
     rank: 9,
-    name: "Elicit",
-    slug: "elicit",
-    emoji: "🧪",
-    tagline: "Best for academic research & literature reviews",
-    pricing: "Freemium",
-    bestFor: "Literature reviews, finding papers, research summaries",
+    name: "GitHub Copilot",
+    slug: "github-copilot",
+    iconUrl: "/static/icons/copilot.svg",
+    tagline: "AI pair programmer built into your editor",
+    pricing: "FREE for verified students + Pro $10/mo",
+    bestFor: "Learning languages, finishing assignments, exploring new frameworks",
     studentWin:
-      "Searches academic databases and summarises papers automatically. Built for researchers.",
+      "Completely free for students with the GitHub Student Developer Pack — same access as paying users",
     verdict:
-      "If you're writing a literature review or dissertation, Elicit saves you days of manual searching.",
-    color: "#7c6af5",
+      "If Cursor feels like too much, Copilot in VS Code is the easier on-ramp to AI-assisted coding.",
+    color: "#6e40c9",
   },
   {
     rank: 10,
-    name: "Otter.ai",
-    slug: "otter-ai",
-    emoji: "🎙️",
-    tagline: "Best for lecture transcription & notes",
-    pricing: "Free + Paid",
-    bestFor: "Recording lectures, meeting notes, interview transcripts",
+    name: "Wolfram Alpha",
+    slug: "wolfram-alpha",
+    iconUrl: "/static/icons/wolframalpha.svg",
+    tagline: "Computational engine for math, science, and data",
+    pricing: "Free + Pro $7/mo (student discount)",
+    bestFor: "Step-by-step math solutions, physics problems, statistics homework",
     studentWin:
-      "Free tier gives 300 minutes of transcription per month — enough for most students.",
+      "Pro shows step-by-step solutions — essentially a tutor for every problem set in STEM",
     verdict:
-      "Record your lecture, get a full transcript and AI summary. Never miss a key point again.",
-    color: "#ff6b6b",
+      "Not AI in the LLM sense, but the closest thing to a math tutor that fits in your pocket.",
+    color: "#dd1100",
   },
 ];
 
@@ -337,12 +339,24 @@ export default function BestAIToolsForStudents() {
                       {String(tool.rank).padStart(2, '0')}
                     </span>
                     <div
-                      className={`flex shrink-0 items-center justify-center rounded-2xl ${isHero ? 'h-16 w-16 text-4xl md:h-20 md:w-20 md:text-5xl' : 'h-14 w-14 text-3xl md:h-16 md:w-16 md:text-4xl'}`}
-                      // tool.color at ~10% opacity (1A hex suffix ≈ 26/255) — brand-tinted icon backdrop is the per-tool color accent for this card.
-                      style={{ backgroundColor: `${tool.color}1A` }}
+                      className={`flex shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-line bg-white ${isHero ? 'h-16 w-16 md:h-20 md:w-20' : 'h-14 w-14 md:h-16 md:w-16'}`}
                       aria-hidden="true"
                     >
-                      {tool.emoji}
+                      {tool.iconUrl ? (
+                        <img
+                          src={tool.iconUrl}
+                          alt=""
+                          loading="lazy"
+                          className={isHero ? 'h-12 w-12 object-contain md:h-14 md:w-14' : 'h-10 w-10 object-contain md:h-12 md:w-12'}
+                        />
+                      ) : (
+                        <span
+                          className={`font-bold ${isHero ? 'text-2xl md:text-3xl' : 'text-xl md:text-2xl'}`}
+                          style={{ color: tool.color || '#666666' }}
+                        >
+                          {tool.name.charAt(0)}
+                        </span>
+                      )}
                     </div>
                   </div>
 
