@@ -1,11 +1,14 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowUpRight, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 
-// Brand logos live as Vite-imported assets (only ones currently shipped under /assets/brand/).
-// Everything else falls back to the styled initial-letter tile in the icon-tile JSX.
+// Brand logos: tools with a curated SVG under /assets/brand/ get pixel-perfect
+// vector marks; everything else uses Clearbit's logo CDN keyed off the tool's
+// canonical domain. Clearbit returns 404 on miss (unlike Google's favicon API
+// which returns a generic globe with HTTP 200), so onError correctly flips the
+// card to its initial-letter tile.
 import chatgptIcon from "../assets/brand/chatgpt.svg";
 import claudeIcon from "../assets/brand/claude.svg";
 
@@ -50,7 +53,7 @@ const tools = [
     rank: 3,
     name: "Gemini",
     slug: "gemini",
-    iconUrl: null,
+    iconUrl: "https://logo.clearbit.com/gemini.google.com",
     tagline: "Google's free multimodal AI",
     freeLimit: "Unlimited free access to Gemini 2.5 Flash",
     paidPlan: "$20/month for Advanced",
@@ -64,7 +67,7 @@ const tools = [
     rank: 4,
     name: "DeepL",
     slug: "deepl",
-    iconUrl: null,
+    iconUrl: "https://logo.clearbit.com/deepl.com",
     tagline: "Translation that beats Google Translate",
     freeLimit: "500K characters/month free",
     paidPlan: "$8.74/month for Pro",
@@ -78,7 +81,7 @@ const tools = [
     rank: 5,
     name: "Hugging Face Chat",
     slug: "hugging-face",
-    iconUrl: null,
+    iconUrl: "https://logo.clearbit.com/huggingface.co",
     tagline: "Open-source models, free, no signup",
     freeLimit: "Unlimited free access to Llama, Mistral, and other open models",
     paidPlan: "N/A — fully free",
@@ -92,7 +95,7 @@ const tools = [
     rank: 6,
     name: "Perplexity",
     slug: "perplexity-ai",
-    iconUrl: null,
+    iconUrl: "https://logo.clearbit.com/perplexity.ai",
     tagline: "Free AI search with citations",
     freeLimit: "Unlimited free searches with the base model",
     paidPlan: "Free for students + $20/month for Pro",
@@ -106,7 +109,7 @@ const tools = [
     rank: 7,
     name: "Phind",
     slug: "phind",
-    iconUrl: null,
+    iconUrl: "https://logo.clearbit.com/phind.com",
     tagline: "AI search built for developers",
     freeLimit: "Generous free tier with current models",
     paidPlan: "$15/month for Pro",
@@ -121,7 +124,7 @@ const tools = [
     rank: 8,
     name: "Microsoft Copilot",
     slug: "microsoft-copilot",
-    iconUrl: null,
+    iconUrl: "https://logo.clearbit.com/microsoft.com",
     tagline: "Conversational AI with no signup wall",
     freeLimit: "Unlimited free conversations",
     paidPlan: "N/A — fully free",
@@ -136,7 +139,7 @@ const tools = [
     rank: 9,
     name: "Remove.bg",
     slug: "remove.bg",
-    iconUrl: null,
+    iconUrl: "https://logo.clearbit.com/remove.bg",
     tagline: "Free AI image editing and background removal",
     freeLimit: "Free for basic editing; unlimited background removals",
     paidPlan: "$12.99/month for Pro",
@@ -151,7 +154,7 @@ const tools = [
     rank: 10,
     name: "Mistral AI",
     slug: "mistral-ai",
-    iconUrl: null,
+    iconUrl: "https://logo.clearbit.com/mistral.ai",
     tagline: "Fast free AI from a top open-source lab",
     freeLimit: "Unlimited free access to Mistral's best model",
     paidPlan: "N/A for now — fully free in beta",
@@ -210,6 +213,8 @@ const faqs = [
 ];
 
 export default function BestFreeAITools() {
+  const [failedLogos, setFailedLogos] = useState(() => new Set());
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -365,12 +370,20 @@ export default function BestFreeAITools() {
                       className={`flex shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-line bg-white ${isHero ? 'h-16 w-16 md:h-20 md:w-20' : 'h-14 w-14 md:h-16 md:w-16'}`}
                       aria-hidden="true"
                     >
-                      {tool.iconUrl ? (
+                      {tool.iconUrl && !failedLogos.has(tool.slug) ? (
                         <img
                           src={tool.iconUrl}
                           alt=""
                           loading="lazy"
                           className={isHero ? 'h-12 w-12 object-contain md:h-14 md:w-14' : 'h-10 w-10 object-contain md:h-12 md:w-12'}
+                          onError={() => {
+                            setFailedLogos((prev) => {
+                              if (prev.has(tool.slug)) return prev
+                              const next = new Set(prev)
+                              next.add(tool.slug)
+                              return next
+                            })
+                          }}
                         />
                       ) : (
                         <span
