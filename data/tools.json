@@ -30139,5 +30139,70 @@
     "trending": true,
     "is_ai_native": true,
     "last_verified_at": "2026-05-14"
+  },
+  {
+    "id": 533,
+    "name": "Pictory",
+    "slug": "pictory",
+    "icon": "https://logo.clearbit.com/pictory.ai",
+    "maker": "Pictory AI",
+    "tagline": "Turn long-form scripts, articles, and footage into short videos with AI",
+    "category": "Video & Audio",
+    "subCategory": "AI Video Generation",
+    "price": "Freemium",
+    "pricingDetail": "Free 3 projects/10 min; Starter $25/mo, Professional $59/mo, Teams $119/mo",
+    "bestFor": "Repurposing class notes and research summaries into short presentation videos",
+    "tags": [
+      "video",
+      "video-generation",
+      "AI-video",
+      "content-creation",
+      "short-form",
+      "voiceover",
+      "students",
+      "presentations"
+    ],
+    "trending": false,
+    "rating": 4.4,
+    "weeklyUsers": "200K+",
+    "link": "https://pictory.ai",
+    "apiAvailable": false,
+    "openSource": false,
+    "studentPerk": false,
+    "uniHack": "Paste your study notes — Pictory auto-generates a narrated video summary you can use for revision or as supporting material for a project presentation",
+    "features": [
+      "Script-to-video",
+      "Auto-captions",
+      "AI voiceover in 60+ languages",
+      "Long-video summarization"
+    ],
+    "platforms": [
+      "Web"
+    ],
+    "languages": "60+",
+    "launchYear": 2019,
+    "description": "Pictory turns long-form content — scripts, articles, lecture transcripts, or raw video footage — into polished short-form videos in minutes. Students use it to repurpose research summaries into video pitches for assignments, convert lecture notes into revision videos, and build YouTube Shorts from longer recordings. The free tier covers small projects; paid tiers unlock more video minutes and HD export.",
+    "pricing_tier": "freemium",
+    "difficulty": "beginner",
+    "student_friendly": true,
+    "use_cases": [
+      "Turning class notes into video summaries",
+      "Building short pitch videos for project submissions",
+      "Repurposing long lecture recordings into Shorts",
+      "Creating presentation explainer videos",
+      "Auto-captioning recorded study sessions"
+    ],
+    "pricing": "freemium",
+    "student_perk": false,
+    "company": "Pictory AI",
+    "review_count": 0,
+    "featured": false,
+    "logo_emoji": "🎬",
+    "strengths": [
+      "Fast script-to-video pipeline",
+      "Solid AI voiceovers",
+      "Decent free tier for small projects",
+      "Auto-captions"
+    ]
   }
 ]
