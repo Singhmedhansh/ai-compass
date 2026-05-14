@@ -233,7 +233,7 @@ function Navbar() {
               onChange={setSearchValue}
               onClear={() => setSearchValue('')}
               onKeyDown={handleSearchKeyDown}
-              placeholder="Search tools, categories, and tags"
+              placeholder="Search or describe what you need..."
             />
           </div>
         )}
