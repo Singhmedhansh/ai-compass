@@ -74,8 +74,9 @@ function normalizeTool(rawTool) {
     rating: Number(rawTool?.rating || rawTool?.averageRating || rawTool?.average_rating || 0),
     ratingCount: Number(rawTool?.ratingCount || rawTool?.reviewCount || rawTool?.reviews || rawTool?.total_reviews || 0),
     ratingDistribution: rawTool?.rating_distribution || rawTool?.ratingDistribution || null,
-    url: rawTool?.url || rawTool?.website || rawTool?.link || '#',
+    url: rawTool?.affiliate_url || rawTool?.url || rawTool?.website || rawTool?.link || '#',
     website: rawTool?.website || rawTool?.url || rawTool?.link,
+    isAffiliateLink: Boolean(rawTool?.affiliate_url),
     platform: rawTool?.platform || (Array.isArray(rawTool?.platforms) ? rawTool.platforms.join(', ') : null),
     lastUpdated: rawTool?.last_updated || rawTool?.updatedAt || rawTool?.updated_at || rawTool?.lastUpdated,
     studentFriendly: Boolean(rawTool?.student_friendly ?? rawTool?.studentPerk ?? rawTool?.student_perk),
@@ -364,7 +365,12 @@ function ToolDetailPage() {
                 <p className="mt-3 text-sm text-muted">{tool.shortDescription}</p>
 
                 <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  <a href={tool.url} target="_blank" rel="noreferrer" className="w-full">
+                  <a
+                    href={tool.url}
+                    target="_blank"
+                    rel={tool.isAffiliateLink ? 'sponsored noopener noreferrer' : 'noreferrer'}
+                    className="w-full"
+                  >
                     <Button className="w-full">Visit Tool</Button>
                   </a>
                   <Button variant="ghost" className="w-full gap-2" onClick={handleFavoriteToggle}>
@@ -372,6 +378,11 @@ function ToolDetailPage() {
                     {isFavorite ? 'Saved to Favorites' : 'Save to Favorites'}
                   </Button>
                 </div>
+                {tool.isAffiliateLink ? (
+                  <p className="mt-2 text-xs text-muted-2">
+                    AI Compass may earn a commission when you sign up through this link, at no extra cost to you.
+                  </p>
+                ) : null}
                 <Link
                   to={`/alternatives/${tool.slug}`}
                   className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-ink-2 hover:gap-2 hover:text-ink"

@@ -137,7 +137,7 @@ function ToolColumn({ slug, status, tool, error, onRemove }) {
   const name = tool.name || slug
   const tagline = tool.tagline || tool.shortDescription || tool.description || ''
   const category = tool.category || tool.subCategory || 'General'
-  const url = tool.url || tool.website || tool.link || '#'
+  const url = tool.affiliate_url || tool.url || tool.website || tool.link || '#'
   const platforms = Array.isArray(tool.platforms)
     ? tool.platforms.join(', ')
     : tool.platform || 'Web'
