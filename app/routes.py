@@ -27,6 +27,7 @@ _ROUTE_META = {
     'best-ai-tools-for-students': ('Best AI Tools for Students — AI Compass', 'Hand-picked AI tools for studying, writing essays, coding, and research. Student-friendly pricing and perks.'),
     'best-free-ai-tools': ('Best Free AI Tools — AI Compass', 'The best AI tools you can use without paying. Curated and ranked by quality, not popularity.'),
     'best-coding-tools-for-students': ('Best Coding Tools for Students — AI Compass', 'The 10 best AI coding tools for student developers — Cursor, GitHub Copilot, Claude Code, Supabase, v0, Netlify. Free tiers and student plans, hand-tested.'),
+    'best-jasper-alternatives': ('10 Best Jasper AI Alternatives in 2026 — AI Compass', 'Jasper is $39+/mo and built for marketing teams. These 10 alternatives are cheaper, better suited to fiction, academic, and student workflows — most with usable free tiers.'),
 }
 
 _INDEX_HTML_CACHE = None
@@ -143,6 +144,7 @@ def sitemap():
         ('/best-ai-tools-for-students', '0.9', 'weekly', '2026-04-19'),
         ('/best-free-ai-tools', '0.9', 'weekly', '2026-04-20'),
         ('/best-coding-tools-for-students', '0.9', 'weekly', '2026-05-14'),
+        ('/best-jasper-alternatives', '0.9', 'weekly', '2026-05-14'),
         ('/collections', '0.7', 'weekly', '2026-04-16'),
     ]
     for path, priority, freq, lastmod in static:

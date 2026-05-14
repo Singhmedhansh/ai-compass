@@ -291,6 +291,14 @@ function Navbar() {
                 >
                   Best Coding Tools for Students
                 </Link>
+                <Link
+                  to="/best-jasper-alternatives"
+                  onClick={() => setIsGuidesMenuOpen(false)}
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-ink-2 transition hover:bg-bg-sunk"
+                  role="menuitem"
+                >
+                  Best Jasper Alternatives
+                </Link>
               </div>
             ) : null}
           </div>
@@ -478,6 +486,13 @@ function Navbar() {
               className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
             >
               Best Coding Tools for Students
+            </Link>
+            <Link
+              to="/best-jasper-alternatives"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
+            >
+              Best Jasper Alternatives
             </Link>
             {isAdmin ? (
               <Link
