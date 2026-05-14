@@ -149,7 +149,7 @@ function getPricingPillClass(pricing = '') {
 }
 
 function getToolUrl(tool = {}) {
-  return tool.website_url || tool.url || tool.link || '#'
+  return tool.affiliate_url || tool.website_url || tool.url || tool.link || '#'
 }
 
 function articleFor(nextWord = '') {

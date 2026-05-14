@@ -26,7 +26,7 @@ function readRecentlyViewedSlugs() {
 }
 
 function normalizeTool(rawTool) {
-  const resolvedUrl = rawTool?.url || rawTool?.website || rawTool?.link || rawTool?.homepage || ''
+  const resolvedUrl = rawTool?.affiliate_url || rawTool?.url || rawTool?.website || rawTool?.link || rawTool?.homepage || ''
 
   return {
     slug: rawTool?.slug,

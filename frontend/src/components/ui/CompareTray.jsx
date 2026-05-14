@@ -30,7 +30,7 @@ function ChipRow({ slugs, onRemove }) {
           .then((data) => ({
             slug,
             name: data?.name || slug,
-            url: data?.url || data?.website || data?.link || null,
+            url: data?.affiliate_url || data?.url || data?.website || data?.link || null,
           })),
       ),
     ).then((results) => {
