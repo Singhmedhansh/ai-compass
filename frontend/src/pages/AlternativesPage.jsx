@@ -129,7 +129,7 @@ export default function AlternativesPage() {
   const count = alternatives.length
 
   const pageTitle = `Top ${tool.name} Alternatives in 2026 | AI Compass`
-  const pageDescription = `${count} hand-tested alternatives to ${tool.name}, ranked by similarity. Free tiers, pricing, and use cases compared. Curated by AI Compass — no affiliate ranking.`
+  const pageDescription = `${count} hand-tested alternatives to ${tool.name}, ranked by similarity. Free tiers, pricing, and use cases compared. Curated by AI Compass.`
   const canonical = `https://ai-compass.in/alternatives/${tool.slug}`
 
   const jsonLd = {
@@ -171,7 +171,7 @@ export default function AlternativesPage() {
         name: 'How were these alternatives ranked?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: `Alternatives are ranked by similarity to ${tool.name} using a combination of category, use case, and feature overlap. Every tool on this list has been hand-tested by the AI Compass team — no paid placements, no affiliate ranking.`,
+          text: `Alternatives are ranked by similarity to ${tool.name} using a combination of category, use case, and feature overlap. Every tool on this list has been hand-tested by the AI Compass team.`,
         },
       },
     ],
@@ -328,7 +328,7 @@ export default function AlternativesPage() {
                 How were these alternatives ranked?
               </summary>
               <p className="mt-3 text-sm leading-relaxed text-muted">
-                Alternatives are ranked by similarity to {tool.name} using a combination of category, use case, and feature overlap. Every tool on this list has been hand-tested by the AI Compass team — no paid placements, no affiliate ranking.
+                Alternatives are ranked by similarity to {tool.name} using a combination of category, use case, and feature overlap. Every tool on this list has been hand-tested by the AI Compass team.
               </p>
             </details>
           </div>

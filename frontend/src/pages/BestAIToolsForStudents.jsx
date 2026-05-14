@@ -287,7 +287,7 @@ export default function BestAIToolsForStudents() {
             There are thousands of AI tools. Most aren't worth your time. These 10 are — ranked by how much they actually help students with essays, research, coding, and staying organised.
           </p>
           <div className="flex flex-wrap justify-center gap-3 font-sans text-[13px] text-muted">
-            {["✅ All have free tiers", "✅ Tested by students", "✅ No sponsored rankings"].map(t => (
+            {["✅ All have free tiers", "✅ Tested by students", "✅ Ranked by real utility"].map(t => (
               <span key={t}>{t}</span>
             ))}
           </div>
@@ -324,7 +324,7 @@ export default function BestAIToolsForStudents() {
               </li>
               <li className="flex items-start gap-3 text-sm text-ink-2 leading-relaxed">
                 <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" aria-hidden="true" />
-                <span>No paid placements, no affiliate ranking — order reflects student utility, not commercial deals.</span>
+                <span>Order reflects student utility — what actually helps with coursework, research, and projects.</span>
               </li>
             </ul>
           </MotionDiv>

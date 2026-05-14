@@ -34,7 +34,7 @@ export default function CurationDiscipline() {
               Every tool in AI Compass has been opened, used for at least an hour, and
               assigned a written rationale.{' '}
               <strong className="font-semibold text-ink">
-                No scraping. No paid placements. No affiliate ranking tricks.
+                No scraping. No copy-paste from press releases.
               </strong>{' '}
               If a tool is in the catalog, someone here found it useful for a specific kind of student.
             </p>
@@ -57,7 +57,7 @@ export default function CurationDiscipline() {
           <div
             ref={statsRef}
             aria-label="Catalog facts"
-            className="grid grid-cols-1 gap-px self-start overflow-hidden rounded-xl border border-line bg-line sm:grid-cols-3"
+            className="grid grid-cols-1 gap-px self-start overflow-hidden rounded-xl border border-line bg-line sm:grid-cols-2"
           >
             <div className="bg-bg p-5 md:p-7">
               <div className="text-[32px] font-semibold leading-none tracking-tight tabular-nums text-ink md:text-[40px]">
@@ -65,15 +65,6 @@ export default function CurationDiscipline() {
               </div>
               <div className="mt-2 text-[13px] leading-[1.45] text-muted">
                 tools, hand-tested<br />last touched · this week
-              </div>
-            </div>
-
-            <div className="bg-bg p-5 md:p-7">
-              <div className="text-[32px] font-semibold leading-none tracking-tight tabular-nums text-ink md:text-[40px]">
-                0<span className="ml-0.5 text-sm font-medium text-muted">paid</span>
-              </div>
-              <div className="mt-2 text-[13px] leading-[1.45] text-muted">
-                sponsored placements<br />ever
               </div>
             </div>
 

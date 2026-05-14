@@ -21,7 +21,7 @@ export default function TeamPage() {
         <title>About — Built by Medhansh | AI Compass</title>
         <meta
           name="description"
-          content="AI Compass is built by Medhansh, a CS AI/ML student at RVCE Bengaluru. Curated AI tools directory for students, no paid placements."
+          content="AI Compass is built by Medhansh, a CS AI/ML student at RVCE Bengaluru. Curated AI tools directory for students, hand-tested weekly."
         />
       </Helmet>
 

@@ -15,7 +15,7 @@ export default function TermsPage() {
         <title>Terms of Service | AI Compass</title>
         <meta
           name="description"
-          content="Terms of using AI Compass. Acceptable use, content ownership, no-affiliate-ranking commitment, and governing law. Last updated 2026."
+          content="Terms of using AI Compass. Acceptable use, content ownership, tool listings, and governing law. Last updated 2026."
         />
       </Helmet>
 
@@ -93,12 +93,11 @@ export default function TermsPage() {
 
             <section className="mt-12">
               <h2 id="tool-listings" className="text-xl font-semibold text-ink sm:text-2xl">
-                5. Tool listings — no affiliate ranking
+                5. Tool listings and affiliate disclosure
               </h2>
-              {/* Visually emphasized callout — the no-affiliate-ranking disclosure is a core site differentiator and needs to stand out from surrounding boilerplate. */}
               <div className="mt-3 rounded-xl border border-accent/30 bg-accent-soft p-5">
                 <p className="leading-relaxed text-ink-2">
-                  Tool listings on AI Compass are curated by us, not paid placements. We do not accept payment from tool providers to influence rankings, reviews, or visibility. If we ever introduce affiliate links or sponsored content, we will disclose it clearly.
+                  Tool listings on AI Compass are curated by us. Rankings, reviews, and visibility are not for sale. Some outbound links on individual tool pages are affiliate links — when that's the case, the link is marked clearly on the page and the rating is unaffected.
                 </p>
               </div>
               <p className="mt-3 leading-relaxed text-ink-2">

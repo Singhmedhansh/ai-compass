@@ -94,7 +94,7 @@ function CollectionsPage() {
     <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <Helmet>
         <title>AI Tool Collections — Curated Stacks by Use Case | AI Compass</title>
-        <meta name="description" content="Curated collections of AI tools grouped by use case: writing, research, coding, design, productivity. Hand-tested stacks, no affiliate ranking." />
+        <meta name="description" content="Curated collections of AI tools grouped by use case: writing, research, coding, design, productivity. Hand-tested stacks for students." />
       </Helmet>
 
       <header className="mb-12 text-center md:mb-16">

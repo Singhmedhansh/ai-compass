@@ -335,7 +335,7 @@ function DirectoryPage() {
     >
       <Helmet>
         <title>Browse 427 AI Tools by Category | AI Compass</title>
-        <meta name="description" content="Browse our hand-curated directory of 427 AI tools. Filter by category, pricing tier, or student plans. Pricing verified weekly, no affiliate ranking." />
+        <meta name="description" content="Browse our hand-curated directory of 427 AI tools. Filter by category, pricing tier, or student plans. Pricing verified weekly." />
       </Helmet>
       <MotionDiv variants={sectionReveal} initial="initial" animate="animate">
       <section className="mb-6 flex flex-wrap items-center justify-between gap-3">
