@@ -1,11 +1,14 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowUpRight, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 
-// Brand logos live as Vite-imported assets (only ones currently shipped under /assets/brand/).
-// Everything else falls back to the styled initial-letter tile in the icon-tile JSX.
+// Brand logos: tools with a curated SVG under /assets/brand/ get pixel-perfect
+// vector marks; everything else uses Clearbit's logo CDN keyed off the tool's
+// canonical domain. Clearbit returns 404 on miss (unlike Google's favicon API
+// which returns a generic globe with HTTP 200), so onError correctly flips the
+// card to its initial-letter tile.
 import chatgptIcon from "../assets/brand/chatgpt.svg";
 import claudeIcon from "../assets/brand/claude.svg";
 import githubCopilotIcon from "../assets/brand/github-copilot.svg";
@@ -51,7 +54,7 @@ const tools = [
     rank: 3,
     name: "Notion AI",
     slug: "notion-ai",
-    iconUrl: null,
+    iconUrl: "https://logo.clearbit.com/notion.so",
     tagline: "Notes and AI assistance in one workspace",
     pricing: "Free for students + AI add-on $10/mo",
     bestFor: "Lecture notes, project tracking, study planning",
@@ -65,7 +68,7 @@ const tools = [
     rank: 4,
     name: "Cursor",
     slug: "cursor",
-    iconUrl: null,
+    iconUrl: "https://logo.clearbit.com/cursor.com",
     tagline: "AI-first code editor for serious projects",
     pricing: "Free + Pro $20/mo",
     bestFor: "CS coursework, side projects, learning to code",
@@ -79,7 +82,7 @@ const tools = [
     rank: 5,
     name: "Perplexity",
     slug: "perplexity-ai",
-    iconUrl: null,
+    iconUrl: "https://logo.clearbit.com/perplexity.ai",
     tagline: "AI search with cited sources, free for students",
     pricing: "FREE for students + Pro $20/mo",
     bestFor: "Research, fact-checking, finding sources for papers",
@@ -93,7 +96,7 @@ const tools = [
     rank: 6,
     name: "Grammarly",
     slug: "grammarly",
-    iconUrl: null,
+    iconUrl: "https://logo.clearbit.com/grammarly.com",
     tagline: "Final-pass writing polish across every app",
     pricing: "Free + Premium ~$12/mo (student discount)",
     bestFor: "Essay submission, professional emails, application writing",
@@ -107,7 +110,7 @@ const tools = [
     rank: 7,
     name: "Otter.ai",
     slug: "otter-ai",
-    iconUrl: null,
+    iconUrl: "https://logo.clearbit.com/otter.ai",
     tagline: "Lecture transcription that actually works",
     pricing: "Free 300 min/mo + Pro $17/mo",
     bestFor: "Recording lectures, transcribing interviews, capturing meetings",
@@ -121,7 +124,7 @@ const tools = [
     rank: 8,
     name: "QuillBot",
     slug: "quillbot",
-    iconUrl: null,
+    iconUrl: "https://logo.clearbit.com/quillbot.com",
     tagline: "Paraphrasing and grammar for academic writing",
     pricing: "Free + Premium $9.95/mo",
     bestFor: "Rephrasing sources, summarizing readings, grammar polish",
@@ -149,7 +152,7 @@ const tools = [
     rank: 10,
     name: "Wolfram Alpha",
     slug: "wolfram-alpha",
-    iconUrl: null,
+    iconUrl: "https://logo.clearbit.com/wolframalpha.com",
     tagline: "Computational engine for math, science, and data",
     pricing: "Free + Pro $7/mo (student discount)",
     bestFor: "Step-by-step math solutions, physics problems, statistics homework",
@@ -192,6 +195,8 @@ const stacks = [
 ];
 
 export default function BestAIToolsForStudents() {
+  const [failedLogos, setFailedLogos] = useState(() => new Set());
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -347,12 +352,20 @@ export default function BestAIToolsForStudents() {
                       className={`flex shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-line bg-white ${isHero ? 'h-16 w-16 md:h-20 md:w-20' : 'h-14 w-14 md:h-16 md:w-16'}`}
                       aria-hidden="true"
                     >
-                      {tool.iconUrl ? (
+                      {tool.iconUrl && !failedLogos.has(tool.slug) ? (
                         <img
                           src={tool.iconUrl}
                           alt=""
                           loading="lazy"
                           className={isHero ? 'h-12 w-12 object-contain md:h-14 md:w-14' : 'h-10 w-10 object-contain md:h-12 md:w-12'}
+                          onError={() => {
+                            setFailedLogos((prev) => {
+                              if (prev.has(tool.slug)) return prev
+                              const next = new Set(prev)
+                              next.add(tool.slug)
+                              return next
+                            })
+                          }}
                         />
                       ) : (
                         <span
