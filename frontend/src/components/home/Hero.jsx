@@ -69,9 +69,6 @@ export default function Hero() {
           <span className="inline-flex items-center gap-1.5">
             <b className="font-semibold text-ink">0</b> · accounts required
           </span>
-          <span className="inline-flex items-center gap-1.5">
-            <b className="font-semibold text-ink">0</b> · paid placements
-          </span>
         </div>
 
         <div

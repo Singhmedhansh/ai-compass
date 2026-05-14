@@ -50,7 +50,7 @@ function CollectionPage() {
         <title>{`${collection?.title || 'AI Tools'} — AI Tools Collection | AI Compass`}</title>
         <meta
           name="description"
-          content={`Hand-picked AI tools for ${collection?.title || 'this category'}. Curated stack, verified pricing, no affiliate ranking. Browse alternatives at AI Compass.`}
+          content={`Hand-picked AI tools for ${collection?.title || 'this category'}. Curated stack, verified pricing, written rationale. Browse alternatives at AI Compass.`}
         />
         <meta property="og:title" content={`${collection?.title || 'AI Tools'} — AI Tools Collection | AI Compass`} />
       </Helmet>

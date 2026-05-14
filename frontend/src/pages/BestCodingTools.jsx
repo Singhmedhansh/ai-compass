@@ -287,10 +287,10 @@ export default function BestCodingTools() {
             <WordReveal>The 10 Best Coding Tools for Students in 2026</WordReveal>
           </h1>
           <p className="text-[1.15rem] leading-[1.75] text-muted max-w-[640px] mx-auto mb-8 font-sans">
-            Frontend, backend, full-stack, deploy, code editors, API — the 10 tools student devs actually reach for in 2026. Ranked by real workflow utility, not vibes or sponsored placements.
+            Frontend, backend, full-stack, deploy, code editors, API — the 10 tools student devs actually reach for in 2026. Ranked by real workflow utility.
           </p>
           <div className="flex flex-wrap justify-center gap-3 font-sans text-[13px] text-muted">
-            {["✅ Free tier or student plan", "✅ Real student workflows", "✅ No sponsored rankings"].map(t => (
+            {["✅ Free tier or student plan", "✅ Real student workflows", "✅ Ranked by real utility"].map(t => (
               <span key={t}>{t}</span>
             ))}
           </div>
@@ -327,7 +327,7 @@ export default function BestCodingTools() {
               </li>
               <li className="flex items-start gap-3 text-sm text-ink-2 leading-relaxed">
                 <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" aria-hidden="true" />
-                <span>No paid placements, no affiliate ranking — order reflects real workflow utility, not commercial deals.</span>
+                <span>Order reflects real workflow utility — what student devs actually ship side projects and assignments with.</span>
               </li>
             </ul>
           </MotionDiv>
