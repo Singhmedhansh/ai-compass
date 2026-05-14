@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import { AlertTriangle, Heart, Star } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet-async'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 
 import RatingWidget from '../components/ui/RatingWidget'
 import ReviewsSection from '../components/ui/ReviewsSection'
@@ -87,6 +87,7 @@ function normalizeTool(rawTool) {
 function ToolDetailPage() {
   const { slug = '' } = useParams()
   const navigate = useNavigate()
+  const location = useLocation()
 
   const [tool, setTool] = useState(null)
   const [relatedTools, setRelatedTools] = useState([])
@@ -403,8 +404,20 @@ function ToolDetailPage() {
                       </button>
                     </div>
                     <div className="mt-3 flex flex-wrap gap-2">
-                      <a href="/login" className="rounded-lg bg-accent px-3 py-1.5 text-xs font-semibold text-bg hover:opacity-90">Log In</a>
-                      <a href="/register" className="rounded-lg border border-accent px-3 py-1.5 text-xs font-semibold text-accent-ink hover:bg-bg-elev">Register Free</a>
+                      <Link
+                        to="/login"
+                        state={{ from: location.pathname }}
+                        className="rounded-lg bg-accent px-3 py-1.5 text-xs font-semibold text-bg hover:opacity-90"
+                      >
+                        Log In
+                      </Link>
+                      <Link
+                        to="/register"
+                        state={{ from: location.pathname }}
+                        className="rounded-lg border border-accent px-3 py-1.5 text-xs font-semibold text-accent-ink hover:bg-bg-elev"
+                      >
+                        Register Free
+                      </Link>
                     </div>
                   </div>
                 ) : null}

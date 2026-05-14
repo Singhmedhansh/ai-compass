@@ -56,8 +56,20 @@ function LoginPage() {
         duration: 3000,
       })
 
+      // Honor return URL from <Link state={{ from: '...' }}> on the page that
+      // sent the user here. Falls back to /dashboard if the user navigated
+      // directly to /login. Reject obviously-bad return targets (login/register
+      // themselves) so a refreshed login page doesn't bounce back to itself.
+      const fromPath = location.state?.from
+      const safeReturn = typeof fromPath === 'string'
+        && fromPath.startsWith('/')
+        && !fromPath.startsWith('/login')
+        && !fromPath.startsWith('/register')
+        ? fromPath
+        : '/dashboard'
+
       setTimeout(() => {
-        navigate('/dashboard', { replace: true })
+        navigate(safeReturn, { replace: true })
       }, 800)
 
     } catch (requestError) {
