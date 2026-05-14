@@ -72,6 +72,7 @@ function DirectoryPage() {
   const categoryFromParams = searchParams.get('category') || 'All'
 
   const [tools, setTools] = useState([])
+  const [searchMeta, setSearchMeta] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
   const [category, setCategory] = useState(
@@ -160,6 +161,16 @@ function DirectoryPage() {
         }
 
         setTools((data.results || data || []).map(mapTool))
+        setSearchMeta(
+          isRemoteSearch
+            ? {
+                fuzzy_matched: Boolean(data.fuzzy_matched),
+                suggested_query: data.suggested_query || null,
+                fallback: Boolean(data.fallback),
+                original_query: data.original_query || normalizedQuery,
+              }
+            : null,
+        )
       } catch (err) {
         if (requestId !== latestRequestIdRef.current || controller.signal.aborted) {
           return
@@ -444,6 +455,19 @@ function DirectoryPage() {
       </MotionDiv>
 
       {error && <p className="text-danger">{error}</p>}
+
+      {!isLoading && !error && searchMeta?.fuzzy_matched && searchMeta?.suggested_query && (
+        <div className="mb-4 rounded-lg border border-accent/20 bg-accent-soft px-4 py-2.5 text-sm text-ink">
+          Showing results for <strong className="font-medium">{searchMeta.suggested_query}</strong>.
+          {' '}Searched for <em className="text-muted">{searchMeta.original_query}</em>.
+        </div>
+      )}
+
+      {!isLoading && !error && searchMeta?.fallback && filteredTools.length > 0 && (
+        <div className="mb-4 rounded-lg border border-line bg-bg-sunk px-4 py-2.5 text-sm text-muted">
+          No exact matches for <em>{searchMeta.original_query}</em>. Showing trending tools — try a different keyword or browse by category.
+        </div>
+      )}
 
       {!error && isLoading && (
         <div className="tools-grid grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
