@@ -854,6 +854,104 @@ def post_review(slug: str):
         db.session.rollback()
         current_app.logger.exception("Review submit error")
         return jsonify({"error": "Could not save review"}), 500
+
+
+@api_bp.post("/submit-tool")
+@csrf.exempt
+def submit_tool():
+    # Receive a public tool-submission form. Submissions are appended to
+    # data/tool_submissions.json for durable record (the founder reviews them
+    # before adding to tools.json) and a notification email is sent to
+    # SUBMIT_NOTIFY_EMAIL when SMTP is configured. The file write is the
+    # source of truth — email is best-effort and a delivery failure does not
+    # fail the request.
+    try:
+        payload = request.get_json(silent=True) or {}
+
+        name = str(payload.get("name") or "").strip()
+        url = str(payload.get("url") or "").strip()
+        category = str(payload.get("category") or "").strip()
+        reason = str(payload.get("reason") or "").strip()
+
+        if not name or not url or not category or not reason:
+            return jsonify({"error": "Name, URL, category, and reason are all required."}), 400
+
+        if len(name) > 200 or len(url) > 500 or len(category) > 100 or len(reason) > 2000:
+            return jsonify({"error": "One or more fields exceed length limits."}), 400
+
+        if not (url.startswith("http://") or url.startswith("https://")):
+            return jsonify({"error": "URL must start with http:// or https://"}), 400
+
+        submitted_at = datetime.now(timezone.utc).isoformat()
+        submitter_email = current_user.email if current_user.is_authenticated else None
+        submission = {
+            "name": name,
+            "url": url,
+            "category": category,
+            "reason": reason,
+            "submitted_at": submitted_at,
+            "submitter_user_id": current_user.id if current_user.is_authenticated else None,
+            "submitter_email": submitter_email,
+        }
+
+        submissions_path = os.path.join(current_app.root_path, "..", "data", "tool_submissions.json")
+        try:
+            existing = []
+            if os.path.exists(submissions_path):
+                with open(submissions_path, "r", encoding="utf-8") as f:
+                    loaded = json.load(f)
+                    if isinstance(loaded, list):
+                        existing = loaded
+            existing.append(submission)
+            os.makedirs(os.path.dirname(submissions_path), exist_ok=True)
+            with open(submissions_path, "w", encoding="utf-8") as f:
+                json.dump(existing, f, indent=2, ensure_ascii=False)
+        except Exception:
+            current_app.logger.exception("Failed to write submission to disk")
+            # File write failed (likely read-only filesystem on ephemeral host).
+            # Don't fail the request — email is the fallback durable channel.
+
+        notify_email = os.environ.get("SUBMIT_NOTIFY_EMAIL", "medhansh.builds@gmail.com")
+        smtp_host = os.environ.get("SMTP_HOST")
+        smtp_user = os.environ.get("SMTP_USER")
+        smtp_pass = os.environ.get("SMTP_PASS")
+
+        if smtp_host and smtp_user and smtp_pass:
+            try:
+                import smtplib
+                from email.message import EmailMessage
+
+                msg = EmailMessage()
+                msg["Subject"] = f"[AI Compass] New tool submission: {name}"
+                msg["From"] = smtp_user
+                msg["To"] = notify_email
+                msg.set_content(
+                    f"A new tool was submitted via ai-compass.in/submit:\n\n"
+                    f"Name: {name}\n"
+                    f"URL: {url}\n"
+                    f"Category: {category}\n\n"
+                    f"Why it's useful:\n{reason}\n\n"
+                    f"Submitted by: {submitter_email or 'anonymous (not logged in)'}\n"
+                    f"Submitted at: {submitted_at}\n"
+                )
+
+                smtp_port = int(os.environ.get("SMTP_PORT", "587"))
+                with smtplib.SMTP(smtp_host, smtp_port, timeout=10) as smtp:
+                    smtp.starttls()
+                    smtp.login(smtp_user, smtp_pass)
+                    smtp.send_message(msg)
+            except Exception:
+                current_app.logger.exception("Failed to send submission email — submission still recorded")
+        else:
+            current_app.logger.info("SMTP not configured (set SMTP_HOST/SMTP_USER/SMTP_PASS) — submission saved to file only")
+
+        return jsonify({"success": True, "message": "Submission received. Thanks!"}), 201
+
+    except Exception:
+        current_app.logger.exception("Tool submission error")
+        return jsonify({"error": "Unable to submit right now"}), 500
+
+
 @api_bp.get("/search")
 def api_search():
     raw_query   = request.args.get('q', '').strip()[:150]

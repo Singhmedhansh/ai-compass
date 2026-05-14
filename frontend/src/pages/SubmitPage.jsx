@@ -24,6 +24,8 @@ const INITIAL_FORM = {
 export default function SubmitPage() {
   const [formData, setFormData] = useState(INITIAL_FORM)
   const [submitted, setSubmitted] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState('')
 
   function handleChange(event) {
     const { name, value } = event.target
@@ -33,10 +35,33 @@ export default function SubmitPage() {
     }))
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault()
-    setSubmitted(true)
-    setFormData(INITIAL_FORM)
+    setError('')
+    setSubmitting(true)
+    setSubmitted(false)
+
+    try {
+      const response = await fetch('/api/v1/submit-tool', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(formData),
+      })
+
+      const payload = await response.json().catch(() => ({}))
+
+      if (!response.ok) {
+        throw new Error(payload.error || 'Unable to submit right now. Please try again.')
+      }
+
+      setSubmitted(true)
+      setFormData(INITIAL_FORM)
+    } catch (requestError) {
+      setError(requestError.message || 'Unable to submit right now. Please try again.')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -115,14 +140,20 @@ export default function SubmitPage() {
             />
           </div>
 
-          <Button variant="primary" type="submit" className="font-semibold">
-            Submit
+          <Button variant="primary" type="submit" disabled={submitting} className="font-semibold">
+            {submitting ? 'Submitting...' : 'Submit'}
           </Button>
         </form>
 
         {submitted && (
           <div className="mt-4 rounded-lg border border-accent bg-accent-soft px-4 py-3 text-sm text-accent-ink">
-            Thanks! We&apos;ll review your submission.
+            Thanks! Your submission has been received — we&apos;ll review and add it to the catalog if it&apos;s a good fit.
+          </div>
+        )}
+
+        {error && (
+          <div className="mt-4 rounded-lg border border-danger bg-danger-soft px-4 py-3 text-sm text-danger">
+            {error}
           </div>
         )}
       </section>
