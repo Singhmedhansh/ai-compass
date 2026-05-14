@@ -18,10 +18,16 @@ import { sectionReveal, staggerParent, staggerChild } from "../lib/motion";
 const MotionDiv = motion.div;
 
 // Per-card icon with a 3-stage fallback: primary (tool.iconUrl, usually Clearbit
-// or a Vite-imported brand SVG) -> 'fallback' (Google's favicon API, derived from
+// or a Vite-imported brand SVG) -> 'fallback' (DuckDuckGo's icon proxy, keyed off
 // the Clearbit domain) -> letter tile. Each onError advances one step. A
 // Vite-bundled SVG that 404s jumps straight to the letter since its URL doesn't
 // match the Clearbit pattern, so domain extraction returns null.
+//
+// DuckDuckGo over Google: Google's s2/favicons API returns a generic globe
+// placeholder with HTTP 200 for unknown sites, which never triggers onError —
+// Phind manifested this exact bug (globe icon stuck on the card). DuckDuckGo's
+// ip3 endpoint returns a clean 404 on miss, so the cascade reliably falls
+// through to the letter tile.
 function BrandIcon({ tool, isHero }) {
   const [stage, setStage] = useState(tool.iconUrl ? "primary" : "letter");
 
@@ -40,7 +46,7 @@ function BrandIcon({ tool, isHero }) {
   if (stage === "fallback") {
     const match = tool.iconUrl?.match(/clearbit\.com\/(.+)/);
     if (!match) return renderLetter();
-    src = `https://www.google.com/s2/favicons?domain=${match[1]}&sz=128`;
+    src = `https://icons.duckduckgo.com/ip3/${match[1]}.ico`;
   }
 
   return (
