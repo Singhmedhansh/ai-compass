@@ -257,9 +257,14 @@ export default function AlternativesPage() {
           viewport={{ once: true, margin: '-5% 0px' }}
           className="mx-auto max-w-5xl px-4 mb-16"
         >
-          <h2 className="mb-6 text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
+          <h2 className="mb-2 text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
             The {count} best alternatives
           </h2>
+          {alternatives.some(a => a.affiliate_url) && (
+            <p className="mb-6 text-xs text-muted-2">
+              Some "Try" buttons below are affiliate links — we may earn a small commission if you sign up. Ranking and review content are unaffected. <Link to="/terms" className="underline hover:text-ink-2">Disclosure</Link>.
+            </p>
+          )}
           <div className="grid gap-4 sm:gap-5 md:grid-cols-2">
             {alternatives.map((alt, i) => (
               <MotionDiv
@@ -282,13 +287,31 @@ export default function AlternativesPage() {
                     <p className="mb-3 line-clamp-2 text-sm leading-relaxed text-muted">
                       {alt.tagline || alt.description || ''}
                     </p>
-                    <Link
-                      to={`/tools/${alt.slug}`}
-                      className="inline-flex items-center gap-1 text-sm font-medium text-ink-2 hover:gap-2 hover:text-ink"
-                    >
-                      See review
-                      <ArrowUpRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:rotate-12" />
-                    </Link>
+                    {(() => {
+                      const outboundUrl = alt.affiliate_url || alt.link || alt.url || alt.website
+                      const isAffiliate = Boolean(alt.affiliate_url)
+                      return (
+                        <div className="flex flex-wrap items-center gap-2">
+                          {outboundUrl && outboundUrl !== '#' && (
+                            <a
+                              href={outboundUrl}
+                              target="_blank"
+                              rel={isAffiliate ? 'sponsored noopener noreferrer' : 'noopener noreferrer'}
+                              className="inline-flex items-center gap-1.5 rounded-full bg-ink px-3.5 py-1.5 text-xs font-medium text-bg transition-all hover:gap-2 hover:bg-ink-2"
+                            >
+                              Try {alt.name}
+                              <ArrowUpRight className="h-3 w-3" />
+                            </a>
+                          )}
+                          <Link
+                            to={`/tools/${alt.slug}`}
+                            className="inline-flex items-center gap-1 text-xs font-medium text-muted hover:text-ink"
+                          >
+                            Review →
+                          </Link>
+                        </div>
+                      )
+                    })()}
                   </div>
                 </div>
               </MotionDiv>
