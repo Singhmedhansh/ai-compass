@@ -299,6 +299,22 @@ function Navbar() {
                 >
                   Best Jasper Alternatives
                 </Link>
+                <Link
+                  to="/best-murf-alternatives"
+                  onClick={() => setIsGuidesMenuOpen(false)}
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-ink-2 transition hover:bg-bg-sunk"
+                  role="menuitem"
+                >
+                  Best Murf Alternatives
+                </Link>
+                <Link
+                  to="/best-synthesia-alternatives"
+                  onClick={() => setIsGuidesMenuOpen(false)}
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-ink-2 transition hover:bg-bg-sunk"
+                  role="menuitem"
+                >
+                  Best Synthesia Alternatives
+                </Link>
               </div>
             ) : null}
           </div>
@@ -493,6 +509,20 @@ function Navbar() {
               className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
             >
               Best Jasper Alternatives
+            </Link>
+            <Link
+              to="/best-murf-alternatives"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
+            >
+              Best Murf Alternatives
+            </Link>
+            <Link
+              to="/best-synthesia-alternatives"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
+            >
+              Best Synthesia Alternatives
             </Link>
             {isAdmin ? (
               <Link

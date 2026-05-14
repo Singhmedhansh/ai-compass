@@ -28,6 +28,8 @@ _ROUTE_META = {
     'best-free-ai-tools': ('Best Free AI Tools — AI Compass', 'The best AI tools you can use without paying. Curated and ranked by quality, not popularity.'),
     'best-coding-tools-for-students': ('Best Coding Tools for Students — AI Compass', 'The 10 best AI coding tools for student developers — Cursor, GitHub Copilot, Claude Code, Supabase, v0, Netlify. Free tiers and student plans, hand-tested.'),
     'best-jasper-alternatives': ('10 Best Jasper AI Alternatives in 2026 — AI Compass', 'Jasper is $39+/mo and built for marketing teams. These 10 alternatives are cheaper, better suited to fiction, academic, and student workflows — most with usable free tiers.'),
+    'best-murf-alternatives': ('10 Best Murf AI Alternatives in 2026 — AI Compass', "Murf is no longer the voice-quality leader. These 10 alternatives — led by ElevenLabs — have better voices, usable free tiers, and pricing that doesn't feel like a 2022 SaaS quote."),
+    'best-synthesia-alternatives': ('10 Best Synthesia Alternatives in 2026 — AI Compass', "Synthesia is $22+/mo for AI avatar videos most creators don't need. These 10 alternatives — led by Pictory — split into cheaper avatar tools and 'AI video without avatars' for explainers, training, and social shorts."),
 }
 
 _INDEX_HTML_CACHE = None
@@ -145,6 +147,8 @@ def sitemap():
         ('/best-free-ai-tools', '0.9', 'weekly', '2026-04-20'),
         ('/best-coding-tools-for-students', '0.9', 'weekly', '2026-05-14'),
         ('/best-jasper-alternatives', '0.9', 'weekly', '2026-05-14'),
+        ('/best-murf-alternatives', '0.9', 'weekly', '2026-05-14'),
+        ('/best-synthesia-alternatives', '0.9', 'weekly', '2026-05-14'),
         ('/collections', '0.7', 'weekly', '2026-04-16'),
     ]
     for path, priority, freq, lastmod in static:

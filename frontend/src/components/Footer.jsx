@@ -12,6 +12,8 @@ const GUIDES_LINKS = [
   { label: 'Best free tools', to: '/best-free-ai-tools' },
   { label: 'Best coding tools', to: '/best-coding-tools-for-students' },
   { label: 'Jasper alternatives', to: '/best-jasper-alternatives' },
+  { label: 'Murf alternatives', to: '/best-murf-alternatives' },
+  { label: 'Synthesia alternatives', to: '/best-synthesia-alternatives' },
 ]
 
 const ABOUT_LINKS = [
