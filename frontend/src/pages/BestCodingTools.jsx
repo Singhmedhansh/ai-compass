@@ -125,8 +125,8 @@ const tools = [
     rank: 5,
     name: "Antigravity",
     slug: "antigravity",
-    iconUrl: "https://logo.clearbit.com/antigravity.dev",
-    tagline: "Cloud AI agents that build, debug, and ship full-stack apps end-to-end",
+    iconUrl: "https://logo.clearbit.com/antigravity.google",
+    tagline: "Google's cloud AI agents that build, debug, and ship full-stack apps end-to-end (Gemini 3)",
     pricing: "Freemium + paid tiers",
     bestFor: "Hands-off shipping of a working SaaS, codebase-level debugging, automating repetitive coding chores",
     studentWin:
