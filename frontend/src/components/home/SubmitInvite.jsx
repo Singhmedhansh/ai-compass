@@ -40,7 +40,7 @@ export default function SubmitInvite() {
               </h2>
               <p className="mt-2 text-[14px] leading-[1.55] text-muted md:text-[15px]">
                 Made it this far — you probably know one we don&apos;t. Send it
-                over and we&apos;ll hand-check it the same way as the other 425.
+                over and we&apos;ll hand-check it the same way as the other 427.
               </p>
             </div>
 
