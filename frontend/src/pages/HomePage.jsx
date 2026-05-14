@@ -3,6 +3,7 @@ import { Helmet } from 'react-helmet-async'
 import CurationDiscipline from '../components/home/CurationDiscipline'
 import FinalCTA from '../components/home/FinalCTA'
 import Hero from '../components/home/Hero'
+import SubmitInvite from '../components/home/SubmitInvite'
 import SunoStory from '../components/home/SunoStory'
 import WizardDemo from '../components/home/WizardDemo'
 
@@ -22,6 +23,7 @@ export default function HomePage() {
       <CurationDiscipline />
       <SunoStory />
       <FinalCTA />
+      <SubmitInvite />
     </>
   )
 }
