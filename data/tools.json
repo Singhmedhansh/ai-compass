@@ -30204,5 +30204,72 @@
       "Decent free tier for small projects",
       "Auto-captions"
     ]
+  },
+  {
+    "id": 534,
+    "name": "Resend",
+    "slug": "resend",
+    "icon": "https://logo.clearbit.com/resend.com",
+    "maker": "Resend",
+    "tagline": "Modern email API for developers — transactional emails, broadcasts, and audiences in one HTTP call",
+    "category": "Productivity",
+    "subCategory": "Developer Email Infrastructure",
+    "price": "Freemium",
+    "pricingDetail": "Free 3,000 emails/mo and 100/day; Pro $20/mo for 50K emails; Scale tiers above",
+    "bestFor": "Student builders sending password resets, welcome emails, and form notifications from a side-project SaaS without standing up SMTP",
+    "tags": [
+      "email",
+      "api",
+      "developer-tool",
+      "transactional-email",
+      "saas-infrastructure",
+      "react-email",
+      "students",
+      "side-project"
+    ],
+    "trending": true,
+    "rating": 4.7,
+    "weeklyUsers": "500K+",
+    "link": "https://resend.com",
+    "apiAvailable": true,
+    "openSource": false,
+    "studentPerk": false,
+    "uniHack": "Wire the submit-a-tool form on your student project to Resend's HTTPS API in 10 lines of code — works on free hosting tiers that block outbound SMTP (Render, Vercel, etc.)",
+    "features": [
+      "HTTP API (works on cloud hosts that block SMTP)",
+      "React Email components for HTML templates",
+      "Domain verification + DKIM/SPF auto-setup",
+      "Broadcasts and audience management",
+      "Webhooks for delivery/bounce events"
+    ],
+    "platforms": [
+      "Web",
+      "API"
+    ],
+    "languages": "Any (HTTP API)",
+    "launchYear": 2023,
+    "description": "Resend is a modern email API built for developers who'd rather make one HTTPS call than wrestle with SMTP. The free tier covers 3,000 emails per month — plenty for a student SaaS that needs to send signup confirmations, password resets, and form-submission notifications. Critically, Resend works on cloud platforms that block outbound SMTP (most free Render/Vercel/Railway plans), which is where most student projects deploy. The React Email component library lets you template emails with the same JSX you already write for the rest of your app.",
+    "pricing_tier": "freemium",
+    "difficulty": "intermediate",
+    "student_friendly": true,
+    "use_cases": [
+      "Sending signup confirmation and password-reset emails from a student SaaS",
+      "Wiring contact and submission forms on a personal portfolio to deliver to your inbox",
+      "Newsletter broadcasts from a side-project",
+      "Transactional email for class projects and hackathon builds",
+      "Replacing Gmail SMTP when your hosting platform blocks port 587"
+    ],
+    "pricing": "freemium",
+    "student_perk": false,
+    "company": "Resend",
+    "review_count": 0,
+    "featured": false,
+    "logo_emoji": "📧",
+    "strengths": [
+      "Works on hosts that block SMTP (the practical default)",
+      "Genuinely simple API — no SDK required, just HTTP POST",
+      "Generous free tier",
+      "React Email integration"
+    ]
   }
 ]
