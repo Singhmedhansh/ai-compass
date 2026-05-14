@@ -26,6 +26,7 @@ _ROUTE_META = {
     'collections': ('AI Tool Collections — AI Compass', 'Curated collections — best free, best for students, best for coding, and more.'),
     'best-ai-tools-for-students': ('Best AI Tools for Students — AI Compass', 'Hand-picked AI tools for studying, writing essays, coding, and research. Student-friendly pricing and perks.'),
     'best-free-ai-tools': ('Best Free AI Tools — AI Compass', 'The best AI tools you can use without paying. Curated and ranked by quality, not popularity.'),
+    'best-coding-tools-for-students': ('Best Coding Tools for Students — AI Compass', 'The 10 best AI coding tools for student developers — Cursor, GitHub Copilot, Claude Code, Supabase, v0, Netlify. Free tiers and student plans, hand-tested.'),
 }
 
 _INDEX_HTML_CACHE = None
@@ -141,6 +142,7 @@ def sitemap():
         ('/ai-tool-finder', '0.8', 'monthly', '2026-04-29'),
         ('/best-ai-tools-for-students', '0.9', 'weekly', '2026-04-19'),
         ('/best-free-ai-tools', '0.9', 'weekly', '2026-04-20'),
+        ('/best-coding-tools-for-students', '0.9', 'weekly', '2026-05-14'),
         ('/collections', '0.7', 'weekly', '2026-04-16'),
     ]
     for path, priority, freq, lastmod in static:
