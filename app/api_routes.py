@@ -7,6 +7,7 @@ import time
 from collections import Counter
 from datetime import datetime, timezone
 
+import requests
 from flask import Blueprint, current_app, jsonify, request
 from flask_login import current_user, login_required, login_user, logout_user
 from sqlalchemy import func
@@ -912,38 +913,57 @@ def submit_tool():
             # Don't fail the request — email is the fallback durable channel.
 
         notify_email = os.environ.get("SUBMIT_NOTIFY_EMAIL", "medhansh.builds@gmail.com")
-        smtp_host = os.environ.get("SMTP_HOST")
-        smtp_user = os.environ.get("SMTP_USER")
-        smtp_pass = os.environ.get("SMTP_PASS")
+        # Render's free/hobby tier blocks outbound SMTP (port 587 etc.) at the
+        # network level — got "OSError: [Errno 101] Network is unreachable"
+        # when the prior SMTP-based send tried to reach smtp.gmail.com. Switched
+        # to Resend's HTTPS API (port 443, always reachable). The existing
+        # requests dependency handles the call — no new package needed.
+        resend_api_key = os.environ.get("RESEND_API_KEY")
 
-        if smtp_host and smtp_user and smtp_pass:
+        if resend_api_key:
             try:
-                import smtplib
-                from email.message import EmailMessage
+                # 'from' must be either a verified domain sender or Resend's
+                # shared onboarding@resend.dev (which only delivers back to
+                # your own Resend account email — fine for founder-only
+                # notifications). Override via RESEND_FROM env once the
+                # ai-compass.in domain is verified in Resend.
+                from_address = os.environ.get("RESEND_FROM", "AI Compass <onboarding@resend.dev>")
 
-                msg = EmailMessage()
-                msg["Subject"] = f"[AI Compass] New tool submission: {name}"
-                msg["From"] = smtp_user
-                msg["To"] = notify_email
-                msg.set_content(
-                    f"A new tool was submitted via ai-compass.in/submit:\n\n"
-                    f"Name: {name}\n"
-                    f"URL: {url}\n"
-                    f"Category: {category}\n\n"
-                    f"Why it's useful:\n{reason}\n\n"
-                    f"Submitted by: {submitter_email or 'anonymous (not logged in)'}\n"
-                    f"Submitted at: {submitted_at}\n"
+                resend_response = requests.post(
+                    "https://api.resend.com/emails",
+                    headers={
+                        "Authorization": f"Bearer {resend_api_key}",
+                        "Content-Type": "application/json",
+                    },
+                    json={
+                        "from": from_address,
+                        "to": [notify_email],
+                        "subject": f"[AI Compass] New tool submission: {name}",
+                        "text": (
+                            f"A new tool was submitted via ai-compass.in/submit:\n\n"
+                            f"Name: {name}\n"
+                            f"URL: {url}\n"
+                            f"Category: {category}\n\n"
+                            f"Why it's useful:\n{reason}\n\n"
+                            f"Submitted by: {submitter_email or 'anonymous (not logged in)'}\n"
+                            f"Submitted at: {submitted_at}\n"
+                        ),
+                    },
+                    timeout=10,
                 )
-
-                smtp_port = int(os.environ.get("SMTP_PORT", "587"))
-                with smtplib.SMTP(smtp_host, smtp_port, timeout=10) as smtp:
-                    smtp.starttls()
-                    smtp.login(smtp_user, smtp_pass)
-                    smtp.send_message(msg)
+                if not resend_response.ok:
+                    # Resend returns useful JSON error details — log them so the
+                    # operator can see why a send was rejected (typical causes:
+                    # unverified from address, invalid API key, rate limit).
+                    current_app.logger.error(
+                        "Resend rejected submission email (status %s): %s",
+                        resend_response.status_code,
+                        resend_response.text[:500],
+                    )
             except Exception:
-                current_app.logger.exception("Failed to send submission email — submission still recorded")
+                current_app.logger.exception("Failed to send submission email via Resend — submission still recorded")
         else:
-            current_app.logger.info("SMTP not configured (set SMTP_HOST/SMTP_USER/SMTP_PASS) — submission saved to file only")
+            current_app.logger.info("RESEND_API_KEY not set — submission saved to file only, no email sent")
 
         return jsonify({"success": True, "message": "Submission received. Thanks!"}), 201
 
