@@ -212,7 +212,7 @@ export default function AlternativesPage() {
           <p className="max-w-2xl text-lg leading-relaxed text-muted">
             Hand-tested alternatives to {tool.name}, ranked by similarity across
             category, use case, and feature set. Every tool on this list is in
-            our curated catalog of 400+ AI tools.
+            our curated catalog of 427+ AI tools.
           </p>
           <p className="mt-4 text-sm text-muted">
             <span className="inline-flex items-center gap-2 rounded-full border border-line bg-bg-elev px-3 py-1 text-xs font-medium text-ink-2">
@@ -346,7 +346,7 @@ export default function AlternativesPage() {
               Looking for something different?
             </h2>
             <p className="mt-3 text-muted">
-              Take our 30-second quiz to find the right AI tool for your specific needs, or browse the full catalog of 400+ hand-curated tools.
+              Take our 30-second quiz to find the right AI tool for your specific needs, or browse the full catalog of 427+ hand-curated tools.
             </p>
             <div className="mt-6 flex flex-wrap justify-center gap-3">
               <Link
