@@ -1,5 +1,10 @@
 import sys
 
+# WHY: semantic path only kicks in for relevance-sorted queries with this much
+# cosine confidence; below this we treat the model as having no opinion and let
+# the keyword scorer run as before.
+SEMANTIC_CONFIDENCE_THRESHOLD = 0.10
+
 STOPWORDS = {
     "for", "a", "an", "the", "to", "and", "or", "with", "that",
     "is", "in", "of", "my", "me", "i", "on", "best", "good",
@@ -141,7 +146,13 @@ def score_token_against_tool(token, tool_index):
 def search_tools(raw_query, category_filter="All", pricing_filter_ui="All",
                  student_only=False, trending_only=False, sort_by="Relevance", limit=50):
 
-    from app.tool_cache import SEARCH_INDEX
+    from app.tool_cache import SEARCH_INDEX, get_cached_tools
+
+    # Lazy-prime in case search is the first endpoint hit (e.g. under TESTING where
+    # startup-time cache priming is skipped) — get_cached_tools rebuilds SEARCH_INDEX.
+    if not SEARCH_INDEX:
+        get_cached_tools()
+        from app.tool_cache import SEARCH_INDEX  # rebind to populated list
 
     print(f"[SEARCH] query='{raw_query}' index_size={len(SEARCH_INDEX)}", file=sys.stderr)
 
@@ -158,6 +169,58 @@ def search_tools(raw_query, category_filter="All", pricing_filter_ui="All",
     selected_category = None
     if category_filter not in ("All", "", None):
         selected_category = category_filter
+
+    # ── SEMANTIC FAST PATH ──────────────────────────────────
+    # Try TF-IDF semantic ranking before keyword scoring. Only fires for
+    # relevance-sorted queries where the user actually typed something — other
+    # sort modes (Rating/Reviews/Trending) bypass relevance entirely, and a
+    # bare filter query has no text to vectorize.
+    if (
+        sort_by == "Relevance"
+        and raw_query
+        and tokens
+    ):
+        try:
+            from app.ml_recommender import semantic_search
+            semantic_pool = semantic_search(raw_query, limit=max(limit * 3, 60))
+        except Exception:
+            semantic_pool = []
+
+        if semantic_pool and semantic_pool[0].get("_score", 0) >= SEMANTIC_CONFIDENCE_THRESHOLD:
+            # The pickled model's tool dicts predate the slug field; rekey by name
+            # against the live SEARCH_INDEX so frontend links resolve correctly.
+            name_to_entry = {entry["_name_lower"]: entry for entry in SEARCH_INDEX}
+            seen_slugs = set()
+            semantic_results = []
+            for hit in semantic_pool:
+                name_key = (hit.get("name") or "").strip().lower()
+                entry = name_to_entry.get(name_key)
+                if entry is None:
+                    continue
+                tool = entry["_raw"]
+                if tool.get("hidden"):
+                    continue
+                tool_pricing = tool.get("pricing", "freemium").lower()
+                if effective_pricing and tool_pricing not in effective_pricing:
+                    continue
+                if selected_category and tool.get("category") != selected_category:
+                    continue
+                if student_only and not (tool.get("student_perk") or tool.get("studentPerk")):
+                    continue
+                if trending_only and not tool.get("trending"):
+                    continue
+                slug_key = tool.get("slug")
+                if slug_key and slug_key in seen_slugs:
+                    continue
+                if slug_key:
+                    seen_slugs.add(slug_key)
+                semantic_results.append({**tool, "_score": hit["_score"]})
+                if len(semantic_results) >= limit:
+                    break
+
+            if semantic_results:
+                return {"results": semantic_results, "fallback": False, "total": len(semantic_results)}
+
     results = []
 
     for entry in SEARCH_INDEX:

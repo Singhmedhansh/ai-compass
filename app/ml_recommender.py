@@ -310,6 +310,58 @@ def get_similar_tools(slug, limit=4):
     sim_scores = heapq.nlargest(limit + 1, enumerate(row), key=lambda x: x[1])
     return [tools[i] for i, _ in sim_scores[1:limit + 1]]
 
+def semantic_search(query, limit=50):
+    """Return tools ranked by TF-IDF cosine similarity to a free-form query.
+
+    Reuses the vectorizer trained for tool-to-tool similarity so query strings
+    land in the same vector space as tool descriptions. Each returned dict
+    carries a `_score` float in [0, 1] for the caller's threshold check.
+
+    Returns [] on any failure so callers can fall back to keyword search
+    without surfacing an error to the user.
+    """
+    if not query or not str(query).strip():
+        return []
+
+    try:
+        model = load_model()
+        if not model:
+            return []
+
+        vectorizer = model.get('vectorizer')
+        tfidf_matrix = model.get('tfidf_matrix')
+        model_tools = model.get('tools')
+        if vectorizer is None or tfidf_matrix is None or not model_tools:
+            return []
+
+        import numpy as np
+        from sklearn.metrics.pairwise import cosine_similarity
+
+        query_vec = vectorizer.transform([str(query).strip()])
+        similarities = cosine_similarity(query_vec, tfidf_matrix)[0]
+
+        top_k = min(int(limit) if limit else 50, similarities.size)
+        if top_k <= 0:
+            return []
+
+        top_indices = np.argpartition(similarities, -top_k)[-top_k:]
+        ranked_indices = top_indices[np.argsort(similarities[top_indices])[::-1]]
+
+        results = []
+        for idx in ranked_indices:
+            score = float(similarities[idx])
+            if score <= 0:
+                continue
+            tool = dict(model_tools[int(idx)])
+            tool['_score'] = score
+            results.append(tool)
+        return results
+    except Exception:
+        # Any vectorizer/matrix/import failure must degrade to keyword search,
+        # not error out to the user.
+        return []
+
+
 def _reason(tool, goal, budget, level):
     parts = []
     pricing = tool.get('pricing_tier', tool.get('pricing', '')).lower()

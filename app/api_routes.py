@@ -688,6 +688,53 @@ def get_tool(slug: str):
     return jsonify({"error": "Tool not found"}), 404
 
 
+@api_bp.get("/tools/<slug>/alternatives")
+def tool_alternatives(slug):
+    tools = get_cached_tools(DATA_PATH)
+    main_tool = next((t for t in tools if t.get('slug') == slug), None)
+    if not main_tool:
+        return jsonify({"error": "Tool not found"}), 404
+
+    alternatives = []
+    try:
+        similar = get_similar_tools(slug, limit=10)
+        slug_lookup = {t['slug']: t for t in tools if t.get('slug')}
+        # The pickled recommender was trained on an older schema and its tool dicts
+        # lack a 'slug' field — re-key by name against the live catalog so the frontend
+        # always receives slug-bearing dicts it can link to.
+        name_lookup = {(t.get('name') or '').strip().lower(): t for t in tools if t.get('name')}
+        if similar and isinstance(similar[0], str):
+            alternatives = [slug_lookup[s] for s in similar if s in slug_lookup]
+        elif similar:
+            mapped = []
+            for entry in similar:
+                if entry.get('slug') and entry['slug'] in slug_lookup:
+                    mapped.append(slug_lookup[entry['slug']])
+                    continue
+                name_key = (entry.get('name') or '').strip().lower()
+                if name_key and name_key in name_lookup:
+                    mapped.append(name_lookup[name_key])
+            alternatives = mapped
+    except Exception:
+        # Recommender failures must not break the page — fall through to category fallback.
+        alternatives = []
+
+    if not alternatives:
+        category = (main_tool.get('category') or '').strip().lower()
+        if category:
+            alternatives = [
+                t for t in tools
+                if (t.get('category') or '').strip().lower() == category
+                and t.get('slug') != slug
+            ][:10]
+
+    return jsonify({
+        "tool": main_tool,
+        "alternatives": alternatives,
+        "count": len(alternatives),
+    })
+
+
 @api_bp.get("/tools/<slug>/reviews")
 def get_tool_reviews(slug: str):
     try:

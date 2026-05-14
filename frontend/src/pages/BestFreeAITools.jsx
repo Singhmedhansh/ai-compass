@@ -4,6 +4,11 @@ import { ArrowUpRight, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 
+// Brand logos live as Vite-imported assets (only ones currently shipped under /assets/brand/).
+// Everything else falls back to the styled initial-letter tile in the icon-tile JSX.
+import chatgptIcon from "../assets/brand/chatgpt.svg";
+import claudeIcon from "../assets/brand/claude.svg";
+
 import { MagneticWrapper, WordReveal } from "../components/ui";
 import { sectionReveal, staggerParent, staggerChild } from "../lib/motion";
 
@@ -17,7 +22,7 @@ const tools = [
     rank: 1,
     name: "ChatGPT",
     slug: "chatgpt",
-    iconUrl: "/static/icons/chatgpt.svg",
+    iconUrl: chatgptIcon,
     tagline: "Best free all-purpose AI",
     freeLimit: "Unlimited GPT-5 mini on free plan",
     paidPlan: "$20/month for Plus",
@@ -31,7 +36,7 @@ const tools = [
     rank: 2,
     name: "Claude",
     slug: "claude",
-    iconUrl: "/static/icons/claude.svg",
+    iconUrl: claudeIcon,
     tagline: "Best free model for long writing",
     freeLimit: "Generous daily message cap with Claude Sonnet",
     paidPlan: "$20/month for Pro",
@@ -45,7 +50,7 @@ const tools = [
     rank: 3,
     name: "Gemini",
     slug: "gemini",
-    iconUrl: "/static/icons/gemini.svg",
+    iconUrl: null,
     tagline: "Google's free multimodal AI",
     freeLimit: "Unlimited free access to Gemini 2.5 Flash",
     paidPlan: "$20/month for Advanced",
@@ -59,7 +64,7 @@ const tools = [
     rank: 4,
     name: "DeepL",
     slug: "deepl",
-    iconUrl: "/static/icons/deepl.svg",
+    iconUrl: null,
     tagline: "Translation that beats Google Translate",
     freeLimit: "500K characters/month free",
     paidPlan: "$8.74/month for Pro",
@@ -73,7 +78,7 @@ const tools = [
     rank: 5,
     name: "Hugging Face Chat",
     slug: "hugging-face",
-    iconUrl: "/static/icons/huggingface.svg",
+    iconUrl: null,
     tagline: "Open-source models, free, no signup",
     freeLimit: "Unlimited free access to Llama, Mistral, and other open models",
     paidPlan: "N/A — fully free",
@@ -87,7 +92,7 @@ const tools = [
     rank: 6,
     name: "Perplexity",
     slug: "perplexity-ai",
-    iconUrl: "/static/icons/perplexity.svg",
+    iconUrl: null,
     tagline: "Free AI search with citations",
     freeLimit: "Unlimited free searches with the base model",
     paidPlan: "Free for students + $20/month for Pro",
@@ -101,7 +106,7 @@ const tools = [
     rank: 7,
     name: "Phind",
     slug: "phind",
-    iconUrl: "/static/icons/phind.svg",
+    iconUrl: null,
     tagline: "AI search built for developers",
     freeLimit: "Generous free tier with current models",
     paidPlan: "$15/month for Pro",
@@ -116,7 +121,7 @@ const tools = [
     rank: 8,
     name: "Microsoft Copilot",
     slug: "microsoft-copilot",
-    iconUrl: "/static/icons/mscopilot.svg",
+    iconUrl: null,
     tagline: "Conversational AI with no signup wall",
     freeLimit: "Unlimited free conversations",
     paidPlan: "N/A — fully free",
@@ -131,7 +136,7 @@ const tools = [
     rank: 9,
     name: "Remove.bg",
     slug: "remove.bg",
-    iconUrl: "/static/icons/removebg.svg",
+    iconUrl: null,
     tagline: "Free AI image editing and background removal",
     freeLimit: "Free for basic editing; unlimited background removals",
     paidPlan: "$12.99/month for Pro",
@@ -146,7 +151,7 @@ const tools = [
     rank: 10,
     name: "Mistral AI",
     slug: "mistral-ai",
-    iconUrl: "/static/icons/mistralai.svg",
+    iconUrl: null,
     tagline: "Fast free AI from a top open-source lab",
     freeLimit: "Unlimited free access to Mistral's best model",
     paidPlan: "N/A for now — fully free in beta",

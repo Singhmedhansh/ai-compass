@@ -157,6 +157,9 @@ def sitemap():
         urls.append(
             f'<url><loc>{base}/tools/{safe_slug}</loc><lastmod>{today}</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>'
         )
+        urls.append(
+            f'<url><loc>{base}/alternatives/{safe_slug}</loc><lastmod>{today}</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>'
+        )
 
     xml = (
         '<?xml version="1.0" encoding="UTF-8"?>\n'

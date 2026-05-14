@@ -436,7 +436,7 @@ function DirectoryPage() {
             value={searchQuery}
             onChange={handleSearchChange}
             onClear={() => handleSearchChange('')}
-            placeholder="Search tools, categories, or use cases..."
+            placeholder="Search or describe what you need..."
             style={{ fontSize: 16 }}
           />
         </div>

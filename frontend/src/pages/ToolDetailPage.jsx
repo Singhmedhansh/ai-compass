@@ -2,7 +2,7 @@ import clsx from 'clsx'
 import { motion } from 'framer-motion'
 import { AlertTriangle, Heart, Star } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import RatingWidget from '../components/ui/RatingWidget'
 import ReviewsSection from '../components/ui/ReviewsSection'
@@ -320,6 +320,12 @@ function ToolDetailPage() {
                     {isFavorite ? 'Saved to Favorites' : 'Save to Favorites'}
                   </Button>
                 </div>
+                <Link
+                  to={`/alternatives/${tool.slug}`}
+                  className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-ink-2 hover:gap-2 hover:text-ink"
+                >
+                  See alternatives to {tool.name} →
+                </Link>
 
                 {showLoginPrompt ? (
                   <div className="mt-4 rounded-xl border border-accent bg-accent-soft p-3 text-sm">

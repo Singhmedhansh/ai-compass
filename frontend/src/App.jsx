@@ -13,6 +13,7 @@ import HomePage from './pages/HomePage'
 // Everything else loads on demand, dropping the initial bundle
 const DirectoryPage = lazy(() => import('./pages/DirectoryPage'))
 const ToolDetailPage = lazy(() => import('./pages/ToolDetailPage'))
+const AlternativesPage = lazy(() => import('./pages/AlternativesPage'))
 const ToolFinderPage = lazy(() => import('./pages/ToolFinderPage'))
 const CollectionsPage = lazy(() => import('./pages/CollectionsPage'))
 const CollectionPage = lazy(() => import('./pages/CollectionPage'))
@@ -56,6 +57,7 @@ function AnimatedRoutes() {
             <Route path="/" element={<HomePage />} />
             <Route path="/tools" element={<DirectoryPage />} />
             <Route path="/tools/:slug" element={<ToolDetailPage />} />
+            <Route path="/alternatives/:slug" element={<AlternativesPage />} />
             <Route path="/ai-tool-finder" element={<ToolFinderPage />} />
             <Route path="/collections" element={<CollectionsPage />} />
             <Route path="/collections/:slug" element={<CollectionPage />} />

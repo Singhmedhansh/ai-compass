@@ -4,6 +4,12 @@ import { ArrowUpRight, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 
+// Brand logos live as Vite-imported assets (only ones currently shipped under /assets/brand/).
+// Everything else falls back to the styled initial-letter tile in the icon-tile JSX.
+import chatgptIcon from "../assets/brand/chatgpt.svg";
+import claudeIcon from "../assets/brand/claude.svg";
+import githubCopilotIcon from "../assets/brand/github-copilot.svg";
+
 import { MagneticWrapper, WordReveal } from "../components/ui";
 import { sectionReveal, staggerParent, staggerChild } from "../lib/motion";
 
@@ -17,7 +23,7 @@ const tools = [
     rank: 1,
     name: "ChatGPT",
     slug: "chatgpt",
-    iconUrl: "/static/icons/chatgpt.svg",
+    iconUrl: chatgptIcon,
     tagline: "The universal AI assistant for students",
     pricing: "Free + Plus $20/mo",
     bestFor: "Essays, research, coding, brainstorming",
@@ -31,7 +37,7 @@ const tools = [
     rank: 2,
     name: "Claude",
     slug: "claude",
-    iconUrl: "/static/icons/claude.svg",
+    iconUrl: claudeIcon,
     tagline: "Best for long-form writing and careful reasoning",
     pricing: "Free + Pro $20/mo",
     bestFor: "Essays, literature reviews, code review, nuanced analysis",
@@ -45,7 +51,7 @@ const tools = [
     rank: 3,
     name: "Notion AI",
     slug: "notion-ai",
-    iconUrl: "/static/icons/notionai.svg",
+    iconUrl: null,
     tagline: "Notes and AI assistance in one workspace",
     pricing: "Free for students + AI add-on $10/mo",
     bestFor: "Lecture notes, project tracking, study planning",
@@ -59,7 +65,7 @@ const tools = [
     rank: 4,
     name: "Cursor",
     slug: "cursor",
-    iconUrl: "/static/icons/cursor.svg",
+    iconUrl: null,
     tagline: "AI-first code editor for serious projects",
     pricing: "Free + Pro $20/mo",
     bestFor: "CS coursework, side projects, learning to code",
@@ -73,7 +79,7 @@ const tools = [
     rank: 5,
     name: "Perplexity",
     slug: "perplexity-ai",
-    iconUrl: "/static/icons/perplexity.svg",
+    iconUrl: null,
     tagline: "AI search with cited sources, free for students",
     pricing: "FREE for students + Pro $20/mo",
     bestFor: "Research, fact-checking, finding sources for papers",
@@ -87,7 +93,7 @@ const tools = [
     rank: 6,
     name: "Grammarly",
     slug: "grammarly",
-    iconUrl: "/static/icons/grammarly.svg",
+    iconUrl: null,
     tagline: "Final-pass writing polish across every app",
     pricing: "Free + Premium ~$12/mo (student discount)",
     bestFor: "Essay submission, professional emails, application writing",
@@ -101,7 +107,6 @@ const tools = [
     rank: 7,
     name: "Otter.ai",
     slug: "otter-ai",
-    // tools.json has no icon for otter-ai; fall back to initial-letter tile at render time.
     iconUrl: null,
     tagline: "Lecture transcription that actually works",
     pricing: "Free 300 min/mo + Pro $17/mo",
@@ -116,7 +121,7 @@ const tools = [
     rank: 8,
     name: "QuillBot",
     slug: "quillbot",
-    iconUrl: "/static/icons/quillbot.svg",
+    iconUrl: null,
     tagline: "Paraphrasing and grammar for academic writing",
     pricing: "Free + Premium $9.95/mo",
     bestFor: "Rephrasing sources, summarizing readings, grammar polish",
@@ -130,7 +135,7 @@ const tools = [
     rank: 9,
     name: "GitHub Copilot",
     slug: "github-copilot",
-    iconUrl: "/static/icons/copilot.svg",
+    iconUrl: githubCopilotIcon,
     tagline: "AI pair programmer built into your editor",
     pricing: "FREE for verified students + Pro $10/mo",
     bestFor: "Learning languages, finishing assignments, exploring new frameworks",
@@ -144,7 +149,7 @@ const tools = [
     rank: 10,
     name: "Wolfram Alpha",
     slug: "wolfram-alpha",
-    iconUrl: "/static/icons/wolframalpha.svg",
+    iconUrl: null,
     tagline: "Computational engine for math, science, and data",
     pricing: "Free + Pro $7/mo (student discount)",
     bestFor: "Step-by-step math solutions, physics problems, statistics homework",
