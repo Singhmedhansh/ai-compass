@@ -22,7 +22,7 @@ export default function Hero() {
         </div>
 
         <h1 className="mt-4 mb-3.5 text-balance text-3xl font-semibold leading-[1.1] tracking-tight text-ink md:max-w-[16ch] md:text-[56px] lg:text-[64px]">
-          <WordReveal>A hand-picked AI finder. Made for students, not SEO.</WordReveal>
+          <WordReveal>A hand-picked AI finder. Made for students.</WordReveal>
         </h1>
 
         <p className="mb-5 max-w-[36ch] text-pretty text-[15px] text-muted md:max-w-[48ch] md:text-lg">
