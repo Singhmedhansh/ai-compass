@@ -456,6 +456,85 @@ def detect_intent(query):
     return None
 
 
+def fuzzy_search_tools(query, threshold=75, limit=10):
+    """Find tools by approximate name match — typo-tolerance tier.
+
+    Fires only after semantic and keyword search both come up empty
+    (e.g. 'stich' for Stitch, 'anti0gravity' for Antigravity). Uses
+    rapidfuzz WRatio, which combines token-sort and partial-ratio scores
+    so it handles character swaps, missing letters, and reordered words.
+
+    Matches against both the tool name and its slug-as-words ('google ai
+    studio' vs 'google-ai-studio'), then dedupes by slug. Returns full
+    tool dicts from the live SEARCH_INDEX so frontend links work.
+    """
+    if not query or len(str(query).strip()) < 2:
+        return []
+
+    try:
+        from rapidfuzz import process, fuzz
+    except ImportError:
+        # Library not installed (defensive — should be in requirements.txt).
+        return []
+
+    from app.tool_cache import SEARCH_INDEX, get_cached_tools
+    if not SEARCH_INDEX:
+        get_cached_tools()
+        from app.tool_cache import SEARCH_INDEX  # rebind to populated list
+
+    # Build a flat list of (display_string, tool_dict) pairs covering both
+    # name and slug-as-words. We track the index so we can recover the tool
+    # after rapidfuzz returns the matched string.
+    choices = []
+    tool_refs = []
+    for entry in SEARCH_INDEX:
+        tool = entry["_raw"]
+        if tool.get("hidden"):
+            continue
+        name = tool.get("name") or ""
+        if name:
+            choices.append(name.lower())
+            tool_refs.append(tool)
+        slug = tool.get("slug") or ""
+        slug_words = slug.replace("-", " ").strip().lower()
+        if slug_words and slug_words != name.lower():
+            choices.append(slug_words)
+            tool_refs.append(tool)
+
+    if not choices:
+        return []
+
+    # process.extract returns list of (matched_string, score, index_in_choices).
+    # fuzz.ratio is pure Levenshtein-normalized — preferable to WRatio here
+    # because WRatio's partial-substring boost made short tool names like
+    # "Lex" outrank "Perplexity" for the query "perplexty" (the substring
+    # "lex" inside "perplexty" scored 90+). Pure ratio penalizes length
+    # mismatch, so longer queries match longer correct names.
+    matches = process.extract(
+        str(query).strip().lower(),
+        choices,
+        scorer=fuzz.ratio,
+        limit=limit * 2,  # extra room for slug/name dedup
+    )
+
+    seen_slugs = set()
+    results = []
+    for _matched, score, idx in matches:
+        if score < threshold:
+            continue
+        tool = tool_refs[idx]
+        slug = tool.get("slug")
+        if slug and slug in seen_slugs:
+            continue
+        if slug:
+            seen_slugs.add(slug)
+        results.append({**tool, "_score": float(score), "_match_type": "fuzzy"})
+        if len(results) >= limit:
+            break
+
+    return results
+
+
 def rerank_by_category(results, intent_rule, boost_factor=1.5, penalize_factor=0.4):
     """Re-rank semantic_search results by category match against intent.
 

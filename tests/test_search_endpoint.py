@@ -81,3 +81,50 @@ def test_search_no_intent_query_unchanged(client):
     assert response.status_code == 200
     results = response.get_json().get('results', [])
     assert any('chatgpt' in (t.get('slug', '').lower()) for t in results[:3])
+
+
+def test_fuzzy_match_typo_stich(client):
+    """P-SEARCH-3: typo 'stich' fuzzy-matches Stitch."""
+    response = client.get('/api/v1/search?q=stich')
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data.get('fuzzy_matched') is True
+    assert data.get('fallback') is False
+    assert any(r.get('slug') == 'stitch-google' for r in data.get('results', []))
+    assert data.get('suggested_query') == 'Stitch'
+
+
+def test_fuzzy_match_character_swap_antigravity(client):
+    """P-SEARCH-3: 'anti0gravity' (zero substituted for 'i') matches Antigravity."""
+    response = client.get('/api/v1/search?q=anti0gravity')
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data.get('fuzzy_matched') is True
+    assert any(r.get('slug') == 'antigravity' for r in data.get('results', []))
+
+
+def test_exact_match_no_fuzzy_flag(client):
+    """Exact-name match does not set fuzzy_matched."""
+    response = client.get('/api/v1/search?q=Stitch')
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data.get('fuzzy_matched') is False
+
+
+def test_nonsense_falls_through_to_trending(client):
+    """Nonsense query falls through past fuzzy to the trending fallback."""
+    response = client.get('/api/v1/search?q=xxxqqqzzzfffggghhh')
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data.get('fallback') is True
+    assert data.get('fuzzy_matched') is False
+    assert len(data.get('results', [])) > 0  # trending fills slots
+
+
+def test_fuzzy_short_query_returns_no_garbage(client):
+    """1-character queries skip fuzzy (would otherwise match everything)."""
+    response = client.get('/api/v1/search?q=a')
+    assert response.status_code == 200
+    data = response.get_json()
+    # Whatever this returns, fuzzy_matched should NOT be True for a 1-char query.
+    assert data.get('fuzzy_matched') is False

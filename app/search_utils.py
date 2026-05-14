@@ -5,6 +5,13 @@ import sys
 # the keyword scorer run as before.
 SEMANTIC_CONFIDENCE_THRESHOLD = 0.10
 
+# When semantic's top score is below this, the match is "plausible but weak" —
+# typo queries like "gogle ai studio" land here because they hit a partial
+# word ("studio") rather than the actual target. We consult fuzzy as a
+# tiebreaker and prefer it if it's confidently matching a real tool name.
+SEMANTIC_STRONG_THRESHOLD = 0.30
+FUZZY_OVERRIDE_THRESHOLD = 85  # fuzz.ratio score (0-100) needed to override weak semantic
+
 STOPWORDS = {
     "for", "a", "an", "the", "to", "and", "or", "with", "that",
     "is", "in", "of", "my", "me", "i", "on", "best", "good",
@@ -220,12 +227,39 @@ def search_tools(raw_query, category_filter="All", pricing_filter_ui="All",
                 semantic_results.append({**tool, "_score": hit["_score"]})
 
             if semantic_results:
-                from app.ml_recommender import detect_intent, rerank_by_category
+                from app.ml_recommender import detect_intent, rerank_by_category, fuzzy_search_tools
                 intent_rule = detect_intent(raw_query)
                 if intent_rule:
                     semantic_results = rerank_by_category(semantic_results, intent_rule)
+
+                # Weak-semantic override: when TF-IDF was only marginally above
+                # the floor (e.g. typo queries that partially overlap one word
+                # with an unrelated tool), check whether fuzzy matches the user's
+                # intended tool name more confidently and prefer it if so.
+                top_semantic_score = semantic_pool[0].get("_score", 0)
+                if top_semantic_score < SEMANTIC_STRONG_THRESHOLD and not (
+                    effective_pricing or selected_category or student_only or trending_only
+                ):
+                    fuzzy_results = fuzzy_search_tools(raw_query, threshold=FUZZY_OVERRIDE_THRESHOLD, limit=limit)
+                    if fuzzy_results:
+                        if intent_rule:
+                            fuzzy_results = rerank_by_category(fuzzy_results, intent_rule)
+                        return {
+                            "results": fuzzy_results,
+                            "fallback": False,
+                            "fuzzy_matched": True,
+                            "suggested_query": fuzzy_results[0].get("name"),
+                            "original_query": raw_query,
+                            "total": len(fuzzy_results),
+                        }
+
                 semantic_results = semantic_results[:limit]
-                return {"results": semantic_results, "fallback": False, "total": len(semantic_results)}
+                return {
+                    "results": semantic_results,
+                    "fallback": False,
+                    "fuzzy_matched": False,
+                    "total": len(semantic_results),
+                }
 
     results = []
 
@@ -295,11 +329,37 @@ def search_tools(raw_query, category_filter="All", pricing_filter_ui="All",
 
     # ── FALLBACK ────────────────────────────────────────────
     if not results and tokens:
-        # Return top 6 by rating as fallback
+        # Typo-tolerance tier: try fuzzy matching on tool names + slugs before
+        # falling back to trending. Catches "stich" -> Stitch, "anti0gravity" ->
+        # Antigravity, etc. Skipped when explicit filters narrow the set, since
+        # fuzzy_search_tools doesn't apply category/pricing/student filters.
+        if not (effective_pricing or selected_category or student_only or trending_only):
+            from app.ml_recommender import fuzzy_search_tools, detect_intent, rerank_by_category
+            fuzzy_results = fuzzy_search_tools(raw_query, threshold=75, limit=limit)
+            if fuzzy_results:
+                intent_rule = detect_intent(raw_query)
+                if intent_rule:
+                    fuzzy_results = rerank_by_category(fuzzy_results, intent_rule)
+                return {
+                    "results": fuzzy_results,
+                    "fallback": False,
+                    "fuzzy_matched": True,
+                    "suggested_query": fuzzy_results[0].get("name"),
+                    "original_query": raw_query,
+                    "total": len(fuzzy_results),
+                }
+
+        # Final fallback — top 6 by rating so the page isn't empty.
         fallback = sorted(SEARCH_INDEX,
                           key=lambda x: x["_raw"].get("rating", 0),
                           reverse=True)[:6]
-        return {"results": [f["_raw"] for f in fallback], "fallback": True, "total": 0}
+        return {
+            "results": [f["_raw"] for f in fallback],
+            "fallback": True,
+            "fuzzy_matched": False,
+            "original_query": raw_query,
+            "total": 0,
+        }
 
     # ── SORT ────────────────────────────────────────────────
     if sort_by == "Rating":
@@ -311,4 +371,9 @@ def search_tools(raw_query, category_filter="All", pricing_filter_ui="All",
     else:  # Relevance (default)
         results.sort(key=lambda x: x["_score"], reverse=True)
 
-    return {"results": results[:limit], "fallback": False, "total": len(results)}
+    return {
+        "results": results[:limit],
+        "fallback": False,
+        "fuzzy_matched": False,
+        "total": len(results),
+    }
