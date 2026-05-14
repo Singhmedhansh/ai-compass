@@ -10,6 +10,7 @@ const PRODUCT_LINKS = [
 const GUIDES_LINKS = [
   { label: 'Best for students', to: '/best-ai-tools-for-students' },
   { label: 'Best free tools', to: '/best-free-ai-tools' },
+  { label: 'Best coding tools', to: '/best-coding-tools-for-students' },
 ]
 
 const ABOUT_LINKS = [

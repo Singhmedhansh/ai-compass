@@ -283,6 +283,14 @@ function Navbar() {
                 >
                   Best Free AI Tools
                 </Link>
+                <Link
+                  to="/best-coding-tools-for-students"
+                  onClick={() => setIsGuidesMenuOpen(false)}
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-ink-2 transition hover:bg-bg-sunk"
+                  role="menuitem"
+                >
+                  Best Coding Tools for Students
+                </Link>
               </div>
             ) : null}
           </div>
@@ -463,6 +471,13 @@ function Navbar() {
               className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
             >
               Best Free AI Tools
+            </Link>
+            <Link
+              to="/best-coding-tools-for-students"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
+            >
+              Best Coding Tools for Students
             </Link>
             {isAdmin ? (
               <Link

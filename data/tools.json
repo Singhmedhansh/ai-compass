@@ -27961,22 +27961,27 @@
   {
     "name": "Antigravity",
     "slug": "antigravity",
-    "description": "Antigravity is an AI-powered agentic coding platform that lets you build, run, and deploy full-stack applications through natural language. It runs agents in the cloud to write code, fix bugs, and ship products end-to-end without a local setup.",
+    "description": "Google Antigravity is an AI-powered agentic development platform launched November 2025 alongside Gemini 3. It runs cloud-hosted agents that build, run, debug, and ship full-stack applications from natural-language prompts — no local toolchain required. Currently in public preview, free for individuals.",
     "category": "Coding",
     "pricing": "freemium",
-    "url": "https://antigravity.dev",
+    "url": "https://antigravity.google",
+    "link": "https://antigravity.google",
     "tags": [
       "coding",
       "ai-agent",
       "app-builder",
       "full-stack",
-      "deployment"
+      "deployment",
+      "google",
+      "gemini-3"
     ],
-    "logo_emoji": "???",
+    "maker": "Google",
+    "company": "Google",
+    "logo_emoji": "🚀",
     "student_friendly": true,
     "student_perk": true,
     "featured": false,
-    "icon": "https://logo.clearbit.com/antigravity.dev"
+    "icon": "https://logo.clearbit.com/antigravity.google"
   },
   {
     "name": "Hostinger Horizons",
