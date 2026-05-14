@@ -10,6 +10,55 @@ import { sectionReveal, staggerParent, staggerChild } from '../lib/motion'
 const MotionDiv = motion.div
 const LAST_REVIEWED = 'May 2026'
 
+// Most catalog tools have a broken `/static/icons/<slug>.svg` icon path that
+// returns 404 in the Vite SPA, so we don't trust tool.icon. Instead derive a
+// DuckDuckGo favicon from the tool's canonical domain (link/url) — DuckDuckGo
+// returns 404 on miss, so onError reliably falls through to the letter tile.
+// Same pattern as BrandIcon in BestFreeAITools/BestAIToolsForStudents.
+function getDomain(url) {
+  if (!url) return null
+  try {
+    return new URL(url).hostname.replace(/^www\./, '')
+  } catch {
+    try {
+      return new URL(`https://${url}`).hostname.replace(/^www\./, '')
+    } catch {
+      return null
+    }
+  }
+}
+
+function BrandIcon({ tool, size = 'md' }) {
+  const domain = getDomain(tool?.link || tool?.url || tool?.website)
+  const [failed, setFailed] = useState(!domain)
+
+  const sizeClasses = size === 'sm'
+    ? 'h-10 w-10 text-lg'
+    : 'h-12 w-12 text-xl'
+
+  if (failed) {
+    return (
+      <div
+        className={`flex shrink-0 items-center justify-center rounded-xl border border-line bg-white font-bold ${sizeClasses}`}
+        style={{ color: tool?.color || '#666666' }}
+        aria-hidden="true"
+      >
+        {tool?.name?.charAt(0) || '?'}
+      </div>
+    )
+  }
+
+  return (
+    <img
+      src={`https://icons.duckduckgo.com/ip3/${domain}.ico`}
+      alt=""
+      loading="lazy"
+      className={`shrink-0 rounded-xl border border-line bg-white object-contain p-1.5 ${sizeClasses}`}
+      onError={() => setFailed(true)}
+    />
+  )
+}
+
 export default function AlternativesPage() {
   const { slug } = useParams()
   const [data, setData] = useState(null)
@@ -185,22 +234,7 @@ export default function AlternativesPage() {
               You&apos;re viewing alternatives to
             </div>
             <div className="flex items-center gap-4">
-              {tool.icon ? (
-                <img
-                  src={tool.icon}
-                  alt=""
-                  loading="lazy"
-                  className="h-12 w-12 rounded-xl border border-line bg-white object-contain p-1.5"
-                />
-              ) : (
-                <div
-                  className="flex h-12 w-12 items-center justify-center rounded-xl border border-line bg-white text-xl font-bold"
-                  style={{ color: tool.color || '#666666' }}
-                  aria-hidden="true"
-                >
-                  {tool.name?.charAt(0) || '?'}
-                </div>
-              )}
+              <BrandIcon tool={tool} />
               <div className="min-w-0 flex-1">
                 <h2 className="text-xl font-semibold text-ink">{tool.name}</h2>
                 <p className="truncate text-sm text-muted">{tool.tagline || tool.description || ''}</p>
@@ -235,22 +269,7 @@ export default function AlternativesPage() {
                 className="group rounded-2xl border border-line bg-bg-elev p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-line-strong hover:shadow-sm"
               >
                 <div className="flex items-start gap-4">
-                  {alt.icon ? (
-                    <img
-                      src={alt.icon}
-                      alt=""
-                      loading="lazy"
-                      className="h-12 w-12 shrink-0 rounded-xl border border-line bg-white object-contain p-1.5"
-                    />
-                  ) : (
-                    <div
-                      className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-line bg-white text-xl font-bold"
-                      style={{ color: alt.color || '#666666' }}
-                      aria-hidden="true"
-                    >
-                      {alt.name?.charAt(0) || '?'}
-                    </div>
-                  )}
+                  <BrandIcon tool={alt} />
                   <div className="min-w-0 flex-1">
                     <div className="mb-1 flex flex-wrap items-start justify-between gap-2">
                       <h3 className="text-lg font-semibold text-ink">{alt.name}</h3>
