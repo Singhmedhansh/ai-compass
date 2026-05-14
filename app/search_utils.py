@@ -192,6 +192,9 @@ def search_tools(raw_query, category_filter="All", pricing_filter_ui="All",
             name_to_entry = {entry["_name_lower"]: entry for entry in SEARCH_INDEX}
             seen_slugs = set()
             semantic_results = []
+            # Build the full filtered candidate set before re-ranking — the rerank
+            # step uses LIVE catalog categories (not the model snapshot's), so the
+            # mapping has to happen first. Slice to `limit` only after re-rank.
             for hit in semantic_pool:
                 name_key = (hit.get("name") or "").strip().lower()
                 entry = name_to_entry.get(name_key)
@@ -215,10 +218,13 @@ def search_tools(raw_query, category_filter="All", pricing_filter_ui="All",
                 if slug_key:
                     seen_slugs.add(slug_key)
                 semantic_results.append({**tool, "_score": hit["_score"]})
-                if len(semantic_results) >= limit:
-                    break
 
             if semantic_results:
+                from app.ml_recommender import detect_intent, rerank_by_category
+                intent_rule = detect_intent(raw_query)
+                if intent_rule:
+                    semantic_results = rerank_by_category(semantic_results, intent_rule)
+                semantic_results = semantic_results[:limit]
                 return {"results": semantic_results, "fallback": False, "total": len(semantic_results)}
 
     results = []
