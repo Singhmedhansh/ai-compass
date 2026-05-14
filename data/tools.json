@@ -27779,7 +27779,8 @@
     "student_friendly": true,
     "student_perk": true,
     "featured": false,
-    "is_ai_native": true
+    "is_ai_native": true,
+    "icon": "https://logo.clearbit.com/ai.google.dev"
   },
   {
     "name": "OpenAI Codex",
@@ -27798,7 +27799,8 @@
     "logo_emoji": "??",
     "student_friendly": true,
     "student_perk": true,
-    "featured": false
+    "featured": false,
+    "icon": "https://logo.clearbit.com/openai.com"
   },
   {
     "name": "v0 by Vercel",
@@ -27870,7 +27872,8 @@
           "cta_url": "https://v0.dev/pricing"
         }
       ]
-    }
+    },
+    "icon": "https://logo.clearbit.com/v0.dev"
   },
   {
     "name": "Rocket.new",
@@ -27889,7 +27892,8 @@
     "logo_emoji": "??",
     "student_friendly": true,
     "student_perk": true,
-    "featured": false
+    "featured": false,
+    "icon": "https://logo.clearbit.com/rocket.new"
   },
   {
     "name": "Railway",
@@ -27908,7 +27912,8 @@
     "logo_emoji": "??",
     "student_friendly": true,
     "student_perk": true,
-    "featured": false
+    "featured": false,
+    "icon": "https://logo.clearbit.com/railway.app"
   },
   {
     "name": "Kiro",
@@ -27927,7 +27932,8 @@
     "logo_emoji": "???",
     "student_friendly": true,
     "student_perk": true,
-    "featured": false
+    "featured": false,
+    "icon": "https://logo.clearbit.com/kiro.dev"
   },
   {
     "name": "Emergent",
@@ -27946,7 +27952,8 @@
     "logo_emoji": "??",
     "student_friendly": true,
     "student_perk": true,
-    "featured": false
+    "featured": false,
+    "icon": "https://logo.clearbit.com/emergent.sh"
   },
   {
     "name": "Antigravity",
@@ -27965,7 +27972,8 @@
     "logo_emoji": "???",
     "student_friendly": true,
     "student_perk": true,
-    "featured": false
+    "featured": false,
+    "icon": "https://logo.clearbit.com/antigravity.dev"
   },
   {
     "name": "Hostinger Horizons",
@@ -27984,7 +27992,8 @@
     "logo_emoji": "??",
     "student_friendly": true,
     "student_perk": true,
-    "featured": false
+    "featured": false,
+    "icon": "https://logo.clearbit.com/hostinger.com"
   },
   {
     "name": "Claude Code",
@@ -28003,7 +28012,8 @@
     "logo_emoji": "??",
     "student_friendly": true,
     "student_perk": true,
-    "featured": false
+    "featured": false,
+    "icon": "https://logo.clearbit.com/anthropic.com"
   },
   {
     "id": 501,
@@ -28137,7 +28147,7 @@
     "id": 504,
     "name": "Veo 3",
     "slug": "veo-3",
-    "icon": "",
+    "icon": "https://logo.clearbit.com/deepmind.google",
     "maker": "Google DeepMind",
     "tagline": "Google's video model with native audio generation",
     "category": "Video Generation",
@@ -28200,7 +28210,7 @@
     "id": 505,
     "name": "Hailuo AI",
     "slug": "hailuo-ai",
-    "icon": "",
+    "icon": "https://logo.clearbit.com/hailuoai.com",
     "maker": "MiniMax",
     "tagline": "MiniMax's video AI known for high-quality motion",
     "category": "Video Generation",
@@ -28329,7 +28339,7 @@
     "id": 506,
     "name": "Higgsfield AI",
     "slug": "higgsfield-ai",
-    "icon": "",
+    "icon": "https://logo.clearbit.com/higgsfield.ai",
     "maker": "Higgsfield",
     "tagline": "Cinematic AI video with motion-controlled camera moves",
     "category": "Video Generation",
@@ -28443,7 +28453,7 @@
     "id": 507,
     "name": "Otter.ai",
     "slug": "otter-ai",
-    "icon": "",
+    "icon": "https://logo.clearbit.com/otter.ai",
     "maker": "Otter.ai",
     "tagline": "AI transcription for meetings, lectures, and study sessions",
     "category": "Productivity",
@@ -28558,7 +28568,7 @@
     "id": 508,
     "name": "Granola",
     "slug": "granola",
-    "icon": "",
+    "icon": "https://logo.clearbit.com/granola.ai",
     "maker": "Granola",
     "tagline": "AI notepad that enhances your meeting notes in the background",
     "category": "Productivity",
@@ -28672,7 +28682,7 @@
     "id": 509,
     "name": "Fathom",
     "slug": "fathom",
-    "icon": "",
+    "icon": "https://logo.clearbit.com/fathom.video",
     "maker": "Fathom Video",
     "tagline": "Free unlimited AI meeting recording and summaries",
     "category": "Productivity",
@@ -28801,7 +28811,7 @@
     "id": 510,
     "name": "tl;dv",
     "slug": "tldv",
-    "icon": "",
+    "icon": "https://logo.clearbit.com/tldv.io",
     "maker": "tl;dv",
     "tagline": "Meeting recorder with AI summary across Zoom, Meet, and Teams",
     "category": "Productivity",
@@ -28915,7 +28925,7 @@
     "id": 511,
     "name": "Fireflies.ai",
     "slug": "fireflies-ai",
-    "icon": "",
+    "icon": "https://logo.clearbit.com/fireflies.ai",
     "maker": "Fireflies.ai",
     "tagline": "AI meeting assistant with conversation intelligence",
     "category": "Productivity",
@@ -29044,7 +29054,7 @@
     "id": 512,
     "name": "Murf",
     "slug": "murf",
-    "icon": "",
+    "icon": "https://logo.clearbit.com/murf.ai",
     "maker": "Murf AI",
     "tagline": "AI voice generation with 200+ realistic voices",
     "category": "Audio & Voice",
@@ -29158,7 +29168,7 @@
     "id": 513,
     "name": "Flux",
     "slug": "flux",
-    "icon": "",
+    "icon": "https://logo.clearbit.com/blackforestlabs.ai",
     "maker": "Black Forest Labs",
     "tagline": "State-of-the-art open-weights image generation",
     "category": "Image Generation",
@@ -29220,7 +29230,7 @@
     "id": 514,
     "name": "Recraft",
     "slug": "recraft",
-    "icon": "",
+    "icon": "https://logo.clearbit.com/recraft.ai",
     "maker": "Recraft AI",
     "tagline": "Vector and brand-consistent AI image generation",
     "category": "Image Generation",
@@ -29335,7 +29345,7 @@
     "id": 515,
     "name": "Reve Image",
     "slug": "reve-image",
-    "icon": "",
+    "icon": "https://logo.clearbit.com/reve.com",
     "maker": "Reve",
     "tagline": "High-aesthetic AI image generation focused on quality",
     "category": "Image Generation",
@@ -29397,7 +29407,7 @@
     "id": 516,
     "name": "Bolt.new",
     "slug": "bolt-new",
-    "icon": "",
+    "icon": "https://logo.clearbit.com/bolt.new",
     "maker": "StackBlitz",
     "tagline": "AI app builder running full-stack code in your browser",
     "category": "Coding",
@@ -29528,7 +29538,7 @@
     "id": 517,
     "name": "Cline",
     "slug": "cline",
-    "icon": "",
+    "icon": "https://logo.clearbit.com/cline.bot",
     "maker": "Cline (open source)",
     "tagline": "Autonomous coding agent for VS Code",
     "category": "Coding",
@@ -29591,7 +29601,7 @@
     "id": 518,
     "name": "Devin",
     "slug": "devin",
-    "icon": "",
+    "icon": "https://logo.clearbit.com/devin.ai",
     "maker": "Cognition",
     "tagline": "Autonomous AI software engineer for end-to-end tasks",
     "category": "Coding",
@@ -29705,7 +29715,7 @@
     "id": 519,
     "name": "Undermind",
     "slug": "undermind",
-    "icon": "",
+    "icon": "https://logo.clearbit.com/undermind.ai",
     "maker": "Undermind",
     "tagline": "AI research agent for deeper semantic literature discovery",
     "category": "Research",
@@ -29785,7 +29795,7 @@
       "ui-design",
       "frontend-development"
     ],
-    "icon": "",
+    "icon": "https://logo.clearbit.com/stitch.withgoogle.com",
     "rating": 0,
     "review_count": 0,
     "weeklyUsers": null,
@@ -29815,7 +29825,7 @@
       "ai-prototyping",
       "model-testing"
     ],
-    "icon": "",
+    "icon": "https://logo.clearbit.com/aistudio.google.com",
     "rating": 0,
     "review_count": 0,
     "weeklyUsers": null,
@@ -29842,7 +29852,7 @@
       "prototyping",
       "ui-design"
     ],
-    "icon": "",
+    "icon": "https://logo.clearbit.com/uizard.io",
     "rating": 0,
     "review_count": 0,
     "weeklyUsers": null,
@@ -29870,7 +29880,7 @@
       "ui-design",
       "wireframing"
     ],
-    "icon": "",
+    "icon": "https://logo.clearbit.com/visily.ai",
     "rating": 0,
     "review_count": 0,
     "weeklyUsers": null,
@@ -29898,7 +29908,7 @@
       "prototyping",
       "ui-design"
     ],
-    "icon": "",
+    "icon": "https://logo.clearbit.com/magicpatterns.com",
     "rating": 0,
     "review_count": 0,
     "weeklyUsers": null,
@@ -29926,7 +29936,7 @@
       "ui-design",
       "component-building"
     ],
-    "icon": "",
+    "icon": "https://logo.clearbit.com/subframe.com",
     "rating": 0,
     "review_count": 0,
     "weeklyUsers": null,
@@ -29954,7 +29964,7 @@
       "frontend-development",
       "figma-to-code"
     ],
-    "icon": "",
+    "icon": "https://logo.clearbit.com/animaapp.com",
     "rating": 0,
     "review_count": 0,
     "weeklyUsers": null,
@@ -29983,7 +29993,7 @@
       "figma-to-code",
       "cms"
     ],
-    "icon": "",
+    "icon": "https://logo.clearbit.com/builder.io",
     "rating": 0,
     "review_count": 0,
     "weeklyUsers": null,
@@ -30010,7 +30020,7 @@
       "prototyping",
       "frontend-development"
     ],
-    "icon": "",
+    "icon": "https://logo.clearbit.com/polymet.ai",
     "rating": 0,
     "review_count": 0,
     "weeklyUsers": null,
@@ -30037,7 +30047,7 @@
       "ai-coding",
       "aws-development"
     ],
-    "icon": "",
+    "icon": "https://logo.clearbit.com/aws.amazon.com",
     "rating": 0,
     "review_count": 0,
     "weeklyUsers": null,
@@ -30092,7 +30102,7 @@
       "prototyping",
       "figma-handoff"
     ],
-    "icon": "",
+    "icon": "https://logo.clearbit.com/usegalileo.ai",
     "rating": 0,
     "review_count": 0,
     "weeklyUsers": null,
@@ -30119,7 +30129,7 @@
       "frontend-development",
       "design-to-code"
     ],
-    "icon": "",
+    "icon": "https://logo.clearbit.com/tempo.new",
     "rating": 0,
     "review_count": 0,
     "weeklyUsers": null,
