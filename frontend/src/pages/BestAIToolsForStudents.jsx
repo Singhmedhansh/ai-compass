@@ -18,6 +18,45 @@ import { sectionReveal, staggerParent, staggerChild } from "../lib/motion";
 
 const MotionDiv = motion.div;
 
+// Per-card icon with a 3-stage fallback: primary (tool.iconUrl, usually Clearbit
+// or a Vite-imported brand SVG) -> 'fallback' (Google's favicon API, derived from
+// the Clearbit domain) -> letter tile. Each onError advances one step. A
+// Vite-bundled SVG that 404s jumps straight to the letter since its URL doesn't
+// match the Clearbit pattern, so domain extraction returns null.
+function BrandIcon({ tool, isHero }) {
+  const [stage, setStage] = useState(tool.iconUrl ? "primary" : "letter");
+
+  const renderLetter = () => (
+    <span
+      className={`font-bold ${isHero ? "text-2xl md:text-3xl" : "text-xl md:text-2xl"}`}
+      style={{ color: tool.color || "#666666" }}
+    >
+      {tool.name.charAt(0)}
+    </span>
+  );
+
+  if (stage === "letter") return renderLetter();
+
+  let src = tool.iconUrl;
+  if (stage === "fallback") {
+    const match = tool.iconUrl?.match(/clearbit\.com\/(.+)/);
+    if (!match) return renderLetter();
+    src = `https://www.google.com/s2/favicons?domain=${match[1]}&sz=128`;
+  }
+
+  return (
+    <img
+      src={src}
+      alt=""
+      loading="lazy"
+      className={isHero ? "h-12 w-12 object-contain md:h-14 md:w-14" : "h-10 w-10 object-contain md:h-12 md:w-12"}
+      onError={() => {
+        setStage((prev) => (prev === "primary" ? "fallback" : "letter"));
+      }}
+    />
+  );
+}
+
 // Surface review recency as a trust signal — matches the catalog's "no scraping, hand-tested" claim on the homepage Curation Discipline section.
 const LAST_REVIEWED = "April 2026";
 
@@ -150,17 +189,17 @@ const tools = [
   },
   {
     rank: 10,
-    name: "Wolfram Alpha",
-    slug: "wolfram-alpha",
-    iconUrl: "https://logo.clearbit.com/wolframalpha.com",
-    tagline: "Computational engine for math, science, and data",
-    pricing: "Free + Pro $7/mo (student discount)",
-    bestFor: "Step-by-step math solutions, physics problems, statistics homework",
+    name: "Gamma",
+    slug: "gamma",
+    iconUrl: "https://logo.clearbit.com/gamma.app",
+    tagline: "AI presentation builder for class decks and pitches",
+    pricing: "Free + Plus $10/mo",
+    bestFor: "Class presentations, project decks, internship pitches, club proposals",
     studentWin:
-      "Pro shows step-by-step solutions — essentially a tutor for every problem set in STEM",
+      "Free tier ships 400 AI credits — enough for 4-5 full decks before any paywall; outputs look better than what most students produce manually",
     verdict:
-      "Not AI in the LLM sense, but the closest thing to a math tutor that fits in your pocket.",
-    color: "#dd1100",
+      "PowerPoint takes three hours; Gamma takes five minutes. The night-before-a-presentation tool.",
+    color: "#a259ff",
   },
 ];
 
@@ -195,8 +234,6 @@ const stacks = [
 ];
 
 export default function BestAIToolsForStudents() {
-  const [failedLogos, setFailedLogos] = useState(() => new Set());
-
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -352,29 +389,7 @@ export default function BestAIToolsForStudents() {
                       className={`flex shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-line bg-white ${isHero ? 'h-16 w-16 md:h-20 md:w-20' : 'h-14 w-14 md:h-16 md:w-16'}`}
                       aria-hidden="true"
                     >
-                      {tool.iconUrl && !failedLogos.has(tool.slug) ? (
-                        <img
-                          src={tool.iconUrl}
-                          alt=""
-                          loading="lazy"
-                          className={isHero ? 'h-12 w-12 object-contain md:h-14 md:w-14' : 'h-10 w-10 object-contain md:h-12 md:w-12'}
-                          onError={() => {
-                            setFailedLogos((prev) => {
-                              if (prev.has(tool.slug)) return prev
-                              const next = new Set(prev)
-                              next.add(tool.slug)
-                              return next
-                            })
-                          }}
-                        />
-                      ) : (
-                        <span
-                          className={`font-bold ${isHero ? 'text-2xl md:text-3xl' : 'text-xl md:text-2xl'}`}
-                          style={{ color: tool.color || '#666666' }}
-                        >
-                          {tool.name.charAt(0)}
-                        </span>
-                      )}
+                      <BrandIcon tool={tool} isHero={isHero} />
                     </div>
                   </div>
 
