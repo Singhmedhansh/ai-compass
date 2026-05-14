@@ -64,6 +64,23 @@ function BrandIcon({ tool, isHero }) {
 
 const LAST_REVIEWED = "May 2026";
 
+// Slug -> affiliate URL. Add entries here when partnerships are signed;
+// the CTA picks them up and adds rel="sponsored" automatically.
+const AFFILIATE_URLS = {
+  // 'sudowrite': 'https://www.sudowrite.com/?via=medhansh',
+  // 'jenni-ai': 'https://jenni.ai/?via=medhansh',
+  // 'elevenlabs': 'https://try.elevenlabs.io/2f10b9jmqa4g',
+  // 'pictory': 'https://pictory.ai?ref=medhansh34',
+};
+
+function getOutboundUrl(tool) {
+  const affiliate = AFFILIATE_URLS[tool.slug];
+  if (affiliate) return { url: affiliate, isAffiliate: true };
+  const m = typeof tool.iconUrl === 'string' && tool.iconUrl.match(/clearbit\.com\/([^/]+)/);
+  if (m) return { url: `https://${m[1]}`, isAffiliate: false };
+  return { url: null, isAffiliate: false };
+}
+
 const tools = [
   {
     rank: 1,
@@ -439,14 +456,31 @@ export default function BestCodingTools() {
                       </p>
                     </div>
 
-                    {/* CTA */}
-                    <Link
-                      to={`/tools/${tool.slug}`}
-                      className="inline-flex items-center gap-2 rounded-full bg-ink px-5 py-2.5 text-sm font-medium text-bg transition-all duration-200 hover:gap-3 hover:bg-ink-2"
-                    >
-                      See full review
-                      <ArrowUpRight className="h-4 w-4 transition-transform duration-200 group-hover:rotate-12" />
-                    </Link>
+                    {/* CTA — outbound primary, internal review secondary. Outbound uses affiliate_url with rel=sponsored when partnered, else falls through to the tool's homepage extracted from its Clearbit icon URL. */}
+                    {(() => {
+                      const { url, isAffiliate } = getOutboundUrl(tool)
+                      return (
+                        <div className="flex flex-wrap items-center gap-3">
+                          {url && (
+                            <a
+                              href={url}
+                              target="_blank"
+                              rel={isAffiliate ? 'sponsored noopener noreferrer' : 'noopener noreferrer'}
+                              className="inline-flex items-center gap-2 rounded-full bg-ink px-5 py-2.5 text-sm font-medium text-bg transition-all duration-200 hover:gap-3 hover:bg-ink-2"
+                            >
+                              Try {tool.name}
+                              <ArrowUpRight className="h-4 w-4" />
+                            </a>
+                          )}
+                          <Link
+                            to={`/tools/${tool.slug}`}
+                            className="inline-flex items-center gap-1 text-sm font-medium text-muted hover:text-ink"
+                          >
+                            Read review →
+                          </Link>
+                        </div>
+                      )
+                    })()}
                   </div>
                 </div>
               </MotionDiv>
