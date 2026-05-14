@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
+import { Link, useLocation } from 'react-router-dom'
 import { AlertTriangle, Loader2, MessageSquare } from 'lucide-react'
 
 import Button from './Button'
 
 export default function ReviewsSection({ slug, isLoggedIn }) {
+  const location = useLocation()
   const [reviews, setReviews] = useState([])
   const [body, setBody] = useState('')
   const [error, setError] = useState('')
@@ -120,18 +122,20 @@ export default function ReviewsSection({ slug, isLoggedIn }) {
         <div className="mt-4 rounded-xl border border-accent bg-accent-soft p-3 text-sm">
           <p className="font-medium text-accent-ink">Log in to write a review</p>
           <div className="mt-3 flex flex-wrap gap-2">
-            <a
-              href="/login"
+            <Link
+              to="/login"
+              state={{ from: location.pathname }}
               className="rounded-lg bg-accent px-3 py-1.5 text-xs font-semibold text-bg outline-none transition hover:opacity-90 focus-visible:ring-2 focus-visible:ring-accent"
             >
               Log In
-            </a>
-            <a
-              href="/register"
+            </Link>
+            <Link
+              to="/register"
+              state={{ from: location.pathname }}
               className="rounded-lg border border-accent px-3 py-1.5 text-xs font-semibold text-accent-ink outline-none transition hover:bg-bg-elev focus-visible:ring-2 focus-visible:ring-accent"
             >
               Register Free
-            </a>
+            </Link>
           </div>
         </div>
       )}

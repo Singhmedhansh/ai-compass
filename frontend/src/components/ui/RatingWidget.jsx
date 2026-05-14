@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
+import { Link, useLocation } from 'react-router-dom'
 import { Star } from 'lucide-react'
 
 export default function RatingWidget({ slug, isLoggedIn }) {
+  const location = useLocation()
   const [ratingData, setRatingData] = useState({
     average: 0,
     count: 0,
@@ -181,19 +183,21 @@ export default function RatingWidget({ slug, isLoggedIn }) {
                 </button>
               </div>
               <div className="mt-3 flex flex-wrap gap-2">
-                <a
+                <Link
                   ref={loginCtaRef}
-                  href="/login"
+                  to="/login"
+                  state={{ from: location.pathname }}
                   className="rounded-lg bg-accent px-3 py-1.5 text-xs font-semibold text-bg outline-none transition hover:opacity-90 focus-visible:ring-2 focus-visible:ring-accent"
                 >
                   Log In
-                </a>
-                <a
-                  href="/register"
+                </Link>
+                <Link
+                  to="/register"
+                  state={{ from: location.pathname }}
                   className="rounded-lg border border-accent px-3 py-1.5 text-xs font-semibold text-accent-ink outline-none transition hover:bg-bg-elev focus-visible:ring-2 focus-visible:ring-accent"
                 >
                   Register Free
-                </a>
+                </Link>
               </div>
             </div>
           ) : null}

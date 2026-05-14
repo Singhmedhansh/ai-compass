@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 import Button from '../components/ui/Button'
 
@@ -7,6 +7,7 @@ const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 function RegisterPage() {
   const navigate = useNavigate()
+  const location = useLocation()
 
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
@@ -79,9 +80,13 @@ function RegisterPage() {
         return
       }
 
+      // Preserve the original source page across register -> login -> destination,
+      // so a user who clicked "Register" from /tools/<slug> lands back there
+      // after logging in with their fresh account.
       navigate('/login', {
         state: {
           message: 'Account created successfully. Please sign in.',
+          from: location.state?.from,
         },
       })
     } catch (requestError) {
