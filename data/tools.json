@@ -29763,5 +29763,368 @@
       "Created by researchers for researchers"
     ],
     "is_ai_native": true
+  },
+  {
+    "id": 520,
+    "name": "Stitch",
+    "slug": "stitch-google",
+    "tagline": "Design and code UI from text prompts (Google)",
+    "description": "Google's AI tool for generating frontend UI designs and code from natural-language prompts. Outputs production-ready code in popular frameworks; iterate visually or via prompt refinement.",
+    "category": "Coding",
+    "pricing": "free",
+    "link": "https://stitch.withgoogle.com",
+    "tags": [
+      "design-to-code",
+      "ui-generation",
+      "prototyping",
+      "google",
+      "free"
+    ],
+    "use_cases": [
+      "prototyping",
+      "ui-design",
+      "frontend-development"
+    ],
+    "icon": "",
+    "rating": 0,
+    "review_count": 0,
+    "weeklyUsers": null,
+    "trending": true,
+    "is_ai_native": true,
+    "last_verified_at": "2026-05-14"
+  },
+  {
+    "id": 521,
+    "name": "Google AI Studio",
+    "slug": "google-ai-studio",
+    "tagline": "Prototype with Gemini and Google AI models",
+    "description": "Free workbench for prototyping with Gemini and other Google models. Build and test prompts, tune behavior, export to API. Includes free access to current Gemini models.",
+    "category": "Coding",
+    "pricing": "free",
+    "link": "https://aistudio.google.com",
+    "tags": [
+      "prompting",
+      "prototyping",
+      "gemini",
+      "google",
+      "api",
+      "free"
+    ],
+    "use_cases": [
+      "prompt-engineering",
+      "ai-prototyping",
+      "model-testing"
+    ],
+    "icon": "",
+    "rating": 0,
+    "review_count": 0,
+    "weeklyUsers": null,
+    "trending": true,
+    "is_ai_native": true,
+    "last_verified_at": "2026-05-14"
+  },
+  {
+    "id": 522,
+    "name": "Uizard",
+    "slug": "uizard",
+    "tagline": "AI design tool for non-designers",
+    "description": "Turn text prompts, sketches, or screenshots into editable UI designs. Built for fast prototyping and team handoff to designers.",
+    "category": "Coding",
+    "pricing": "freemium",
+    "link": "https://uizard.io",
+    "tags": [
+      "design-to-code",
+      "wireframing",
+      "prototyping",
+      "no-code"
+    ],
+    "use_cases": [
+      "prototyping",
+      "ui-design"
+    ],
+    "icon": "",
+    "rating": 0,
+    "review_count": 0,
+    "weeklyUsers": null,
+    "trending": true,
+    "is_ai_native": true,
+    "last_verified_at": "2026-05-14"
+  },
+  {
+    "id": 523,
+    "name": "Visily",
+    "slug": "visily",
+    "tagline": "AI wireframe and mockup tool",
+    "description": "Generate wireframes and mockups from text, sketches, or screenshots. Pre-built component library and templates for fast iteration.",
+    "category": "Coding",
+    "pricing": "freemium",
+    "link": "https://www.visily.ai",
+    "tags": [
+      "wireframing",
+      "prototyping",
+      "design",
+      "freemium"
+    ],
+    "use_cases": [
+      "prototyping",
+      "ui-design",
+      "wireframing"
+    ],
+    "icon": "",
+    "rating": 0,
+    "review_count": 0,
+    "weeklyUsers": null,
+    "trending": true,
+    "is_ai_native": true,
+    "last_verified_at": "2026-05-14"
+  },
+  {
+    "id": 524,
+    "name": "Magic Patterns",
+    "slug": "magic-patterns",
+    "tagline": "Generate React UI patterns from text",
+    "description": "AI tool for generating React components and UI patterns from natural-language prompts. Export production-ready code; works alongside existing component libraries.",
+    "category": "Coding",
+    "pricing": "freemium",
+    "link": "https://www.magicpatterns.com",
+    "tags": [
+      "design-to-code",
+      "react",
+      "ui-generation",
+      "frontend"
+    ],
+    "use_cases": [
+      "frontend-development",
+      "prototyping",
+      "ui-design"
+    ],
+    "icon": "",
+    "rating": 0,
+    "review_count": 0,
+    "weeklyUsers": null,
+    "trending": true,
+    "is_ai_native": true,
+    "last_verified_at": "2026-05-14"
+  },
+  {
+    "id": 525,
+    "name": "Subframe",
+    "slug": "subframe",
+    "tagline": "AI design and code editor in one",
+    "description": "Build UI components visually with AI assistance; export clean React code. Bridges the design-to-code workflow without the Figma export step.",
+    "category": "Coding",
+    "pricing": "freemium",
+    "link": "https://www.subframe.com",
+    "tags": [
+      "design-to-code",
+      "react",
+      "visual-editor",
+      "frontend"
+    ],
+    "use_cases": [
+      "frontend-development",
+      "ui-design",
+      "component-building"
+    ],
+    "icon": "",
+    "rating": 0,
+    "review_count": 0,
+    "weeklyUsers": null,
+    "trending": true,
+    "is_ai_native": true,
+    "last_verified_at": "2026-05-14"
+  },
+  {
+    "id": 526,
+    "name": "Anima",
+    "slug": "anima",
+    "tagline": "Convert Figma designs to React/Vue/HTML code",
+    "description": "Design-to-code with AI assistance. Generates clean component code from Figma frames, with support for React, Vue, and plain HTML/CSS output.",
+    "category": "Coding",
+    "pricing": "freemium",
+    "link": "https://www.animaapp.com",
+    "tags": [
+      "design-to-code",
+      "figma",
+      "react",
+      "vue",
+      "frontend"
+    ],
+    "use_cases": [
+      "frontend-development",
+      "figma-to-code"
+    ],
+    "icon": "",
+    "rating": 0,
+    "review_count": 0,
+    "weeklyUsers": null,
+    "trending": true,
+    "is_ai_native": true,
+    "last_verified_at": "2026-05-14"
+  },
+  {
+    "id": 527,
+    "name": "Builder.io",
+    "slug": "builder-io",
+    "tagline": "Visual development with AI (Visual Copilot)",
+    "description": "Visual page builder with AI-powered Figma-to-code conversion (Visual Copilot). Generates production code in your component framework and design system.",
+    "category": "Coding",
+    "pricing": "freemium",
+    "link": "https://www.builder.io",
+    "tags": [
+      "design-to-code",
+      "visual-development",
+      "cms",
+      "react",
+      "enterprise"
+    ],
+    "use_cases": [
+      "frontend-development",
+      "figma-to-code",
+      "cms"
+    ],
+    "icon": "",
+    "rating": 0,
+    "review_count": 0,
+    "weeklyUsers": null,
+    "trending": true,
+    "is_ai_native": true,
+    "last_verified_at": "2026-05-14"
+  },
+  {
+    "id": 528,
+    "name": "Polymet AI",
+    "slug": "polymet-ai",
+    "tagline": "AI UI design from text or reference images",
+    "description": "Generate UI designs from natural language prompts or reference images. Export to React code or hand off to designers.",
+    "category": "Coding",
+    "pricing": "freemium",
+    "link": "https://polymet.ai",
+    "tags": [
+      "design-to-code",
+      "ui-generation",
+      "react"
+    ],
+    "use_cases": [
+      "ui-design",
+      "prototyping",
+      "frontend-development"
+    ],
+    "icon": "",
+    "rating": 0,
+    "review_count": 0,
+    "weeklyUsers": null,
+    "trending": true,
+    "is_ai_native": true,
+    "last_verified_at": "2026-05-14"
+  },
+  {
+    "id": 529,
+    "name": "Amazon Q Developer",
+    "slug": "amazon-q-developer",
+    "tagline": "AWS-integrated AI coding assistant",
+    "description": "AWS's AI coding tool (formerly CodeWhisperer). Particularly strong for AWS-centric workflows — generates SDK calls, IAM policies, CloudFormation. Free tier with monthly limits.",
+    "category": "Coding",
+    "pricing": "free + paid",
+    "link": "https://aws.amazon.com/q/developer",
+    "tags": [
+      "aws",
+      "ai-coding",
+      "enterprise",
+      "amazon"
+    ],
+    "use_cases": [
+      "ai-coding",
+      "aws-development"
+    ],
+    "icon": "",
+    "rating": 0,
+    "review_count": 0,
+    "weeklyUsers": null,
+    "trending": true,
+    "is_ai_native": true,
+    "last_verified_at": "2026-05-14"
+  },
+  {
+    "id": 530,
+    "name": "Roo Code",
+    "slug": "roo-code",
+    "tagline": "Autonomous AI coding agent for VS Code",
+    "description": "Fork of Cline with extended autonomous coding capabilities. Free and open-source; brings agent-level autonomy directly into VS Code.",
+    "category": "Coding",
+    "pricing": "free",
+    "link": "https://github.com/RooVetGit/Roo-Code",
+    "tags": [
+      "ai-agent",
+      "autonomous-coding",
+      "open-source",
+      "vscode",
+      "free"
+    ],
+    "use_cases": [
+      "ai-coding",
+      "autonomous-development"
+    ],
+    "icon": "",
+    "rating": 0,
+    "review_count": 0,
+    "weeklyUsers": null,
+    "trending": true,
+    "is_ai_native": true,
+    "last_verified_at": "2026-05-14"
+  },
+  {
+    "id": 531,
+    "name": "Galileo AI",
+    "slug": "galileo-ai",
+    "tagline": "Text-to-design for product UI mockups",
+    "description": "Generate UI mockups from text prompts; outputs to Figma for further iteration. Acquired by Google in 2024 and partially folded into Stitch — original product still operates.",
+    "category": "Coding",
+    "pricing": "freemium",
+    "link": "https://www.usegalileo.ai",
+    "tags": [
+      "design-to-code",
+      "figma",
+      "ui-generation"
+    ],
+    "use_cases": [
+      "ui-design",
+      "prototyping",
+      "figma-handoff"
+    ],
+    "icon": "",
+    "rating": 0,
+    "review_count": 0,
+    "weeklyUsers": null,
+    "trending": true,
+    "is_ai_native": true,
+    "last_verified_at": "2026-05-14"
+  },
+  {
+    "id": 532,
+    "name": "Tempo",
+    "slug": "tempo-ai",
+    "tagline": "AI design tool that writes real React code",
+    "description": "Visual editor that produces React + Tailwind code synced to your codebase. Bridges designer and developer workflows on the same source files.",
+    "category": "Coding",
+    "pricing": "freemium",
+    "link": "https://tempo.new",
+    "tags": [
+      "design-to-code",
+      "react",
+      "tailwind",
+      "visual-editor"
+    ],
+    "use_cases": [
+      "frontend-development",
+      "design-to-code"
+    ],
+    "icon": "",
+    "rating": 0,
+    "review_count": 0,
+    "weeklyUsers": null,
+    "trending": true,
+    "is_ai_native": true,
+    "last_verified_at": "2026-05-14"
   }
 ]
