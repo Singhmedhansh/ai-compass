@@ -2,6 +2,7 @@ import clsx from 'clsx'
 import { motion } from 'framer-motion'
 import { AlertTriangle, Heart, Star } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { Helmet } from 'react-helmet-async'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import RatingWidget from '../components/ui/RatingWidget'
@@ -265,8 +266,59 @@ function ToolDetailPage() {
     }
   }
 
+  // Gate Helmet on `tool` being present so we don't briefly render a generic
+  // title before the fetch completes (which would otherwise flicker in tab title).
+  const helmetDescription = tool
+    ? (tool.tagline
+        ? `${tool.name}: ${tool.tagline}. Read our review, pricing breakdown, and alternatives on AI Compass.`
+        : `${tool.name} review on AI Compass: pricing, features, and alternatives. Hand-curated for students.`
+      ).slice(0, 160)
+    : null
+
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      {tool ? (
+        <Helmet>
+          <title>{`${tool.name} — Review, Pricing & Alternatives | AI Compass`}</title>
+          <meta name="description" content={helmetDescription} />
+          <link rel="canonical" href={`https://ai-compass.in/tools/${tool.slug}`} />
+          <meta property="og:type" content="article" />
+          <meta property="og:title" content={`${tool.name} — Review & Alternatives`} />
+          <meta property="og:description" content={tool.tagline || `${tool.name} on AI Compass`} />
+          <meta property="og:url" content={`https://ai-compass.in/tools/${tool.slug}`} />
+          {tool.icon ? <meta property="og:image" content={tool.icon} /> : null}
+          <meta name="twitter:card" content="summary" />
+          <meta name="twitter:title" content={`${tool.name} — AI Compass`} />
+          <meta name="twitter:description" content={tool.tagline || `${tool.name} on AI Compass`} />
+          {tool.icon ? <meta name="twitter:image" content={tool.icon} /> : null}
+          <script type="application/ld+json">
+            {JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'SoftwareApplication',
+              name: tool.name,
+              description: tool.description || tool.tagline,
+              applicationCategory: tool.category,
+              operatingSystem: 'Web',
+              offers: {
+                '@type': 'Offer',
+                price: tool.pricing === 'free' ? '0' : undefined,
+                priceCurrency: 'USD',
+              },
+              ...(Number(tool.rating) > 0
+                ? {
+                    aggregateRating: {
+                      '@type': 'AggregateRating',
+                      ratingValue: Number(tool.rating),
+                      reviewCount: Number(tool.review_count) || 1,
+                    },
+                  }
+                : {}),
+              url: `https://ai-compass.in/tools/${tool.slug}`,
+              ...(tool.icon ? { image: tool.icon } : {}),
+            })}
+          </script>
+        </Helmet>
+      ) : null}
       {loading ? (
         <SkeletonToolDetail />
       ) : error || !tool ? (

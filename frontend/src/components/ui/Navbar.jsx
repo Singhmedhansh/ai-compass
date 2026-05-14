@@ -32,6 +32,11 @@ function Navbar() {
   const [isDark, setIsDark] = useState(getInitialTheme)
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
   const [isGuidesMenuOpen, setIsGuidesMenuOpen] = useState(false)
+  // Track the failed URL rather than a plain boolean so a new picture URL
+  // (after re-login as a different user) implicitly resets the failure state —
+  // no effect needed to compare prev/next prop values.
+  const [failedAvatarUrl, setFailedAvatarUrl] = useState(null)
+  const avatarFailed = failedAvatarUrl != null && failedAvatarUrl === user?.picture
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [authRefreshKey, setAuthRefreshKey] = useState(0)
   const [user, setUser] = useState(() => {
@@ -307,29 +312,20 @@ function Navbar() {
                 aria-expanded={isProfileMenuOpen}
               >
                 <div className="relative h-8 w-8 overflow-hidden rounded-full ring-2 ring-accent">
-                  {user?.picture && user.picture.length > 10 ? (
+                  {user?.picture && user.picture.length > 10 && !avatarFailed ? (
                     <img
                       src={user.picture}
                       alt={user?.name || 'Profile'}
                       referrerPolicy="no-referrer"
                       crossOrigin="anonymous"
                       className="h-full w-full object-cover"
-                      onError={(event) => {
-                        event.currentTarget.style.display = 'none'
-                        const fallback = event.currentTarget.parentNode?.querySelector('.avatar-fallback')
-                        if (fallback) {
-                          fallback.style.display = 'flex'
-                        }
-                      }}
+                      onError={() => setFailedAvatarUrl(user.picture)}
                     />
-                  ) : null}
-                  <div
-                    id="nav-avatar-fallback"
-                    style={{ display: user?.picture && user.picture.length > 10 ? 'none' : 'flex' }}
-                    className="avatar-fallback h-8 w-8 items-center justify-center rounded-full bg-accent text-sm font-bold text-white"
-                  >
-                    {avatarLetter}
-                  </div>
+                  ) : (
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent text-sm font-bold text-white">
+                      {avatarLetter}
+                    </div>
+                  )}
                 </div>
                 <ChevronDown className="h-4 w-4 text-muted" />
               </button>

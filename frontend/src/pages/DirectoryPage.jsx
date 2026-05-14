@@ -44,6 +44,7 @@ function mapTool(rawTool) {
     logo_url: rawTool.logo_url || rawTool.logoUrl,
     logo_emoji: rawTool.logo_emoji || rawTool.emoji,
     accent_color: rawTool.accent_color,
+    _score: rawTool._score,
   }
 }
 
@@ -137,6 +138,12 @@ function DirectoryPage() {
     const canonicalCategory = toCanonicalCategory(normalizedCategory)
     const isRemoteSearch = Boolean(normalizedQuery)
 
+    // WHY 300ms: hit the backend after the user stops typing for one quarter
+    // second — short enough that the page feels live, long enough that a
+    // 12-character query fires 1 request instead of 12. No delay on the bare
+    // directory load (empty query) since that's a single page-init fetch.
+    const debounceDelay = isRemoteSearch ? 300 : 0
+
     async function loadTools() {
       setIsLoading(true)
       setError(null)
@@ -191,8 +198,11 @@ function DirectoryPage() {
       }
     }
 
-    loadTools()
-    return () => controller.abort()
+    const debounceTimer = setTimeout(loadTools, debounceDelay)
+    return () => {
+      clearTimeout(debounceTimer)
+      controller.abort()
+    }
   }, [queryFromParams, category])
 
   const filteredTools = useMemo(() => {
