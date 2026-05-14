@@ -32,6 +32,7 @@ const TermsPage = lazy(() => import('./pages/TermsPage'))
 const BestAIToolsForStudents = lazy(() => import('./pages/BestAIToolsForStudents'))
 const BestFreeAITools = lazy(() => import('./pages/BestFreeAITools'))
 const BestCodingTools = lazy(() => import('./pages/BestCodingTools'))
+const BestJasperAlternatives = lazy(() => import('./pages/BestJasperAlternatives'))
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -76,6 +77,7 @@ function AnimatedRoutes() {
             <Route path="/best-ai-tools-for-students" element={<BestAIToolsForStudents />} />
             <Route path="/best-free-ai-tools" element={<BestFreeAITools />} />
             <Route path="/best-coding-tools-for-students" element={<BestCodingTools />} />
+            <Route path="/best-jasper-alternatives" element={<BestJasperAlternatives />} />
           </Routes>
         </Suspense>
       </RouteTransition>
