@@ -362,6 +362,126 @@ def semantic_search(query, limit=50):
         return []
 
 
+# Short intent queries with stopwords ("homework", "make slides") confuse TF-IDF
+# because word co-occurrence in tool descriptions leaks unrelated tools (e.g. a
+# design tool whose blurb mentions "students" scores for "homework" queries).
+# detect_intent + rerank_by_category run AFTER semantic_search to push category
+# matches up and mismatches down. First matching rule wins.
+INTENT_RULES = [
+    {
+        'name': 'academic',
+        'keywords': {'homework', 'essay', 'study', 'studying', 'exam', 'exams',
+                     'paper', 'papers', 'class', 'classes', 'lecture', 'lectures',
+                     'course', 'courses', 'assignment', 'assignments', 'tutor',
+                     'tutoring', 'math', 'physics', 'chemistry', 'biology',
+                     'thesis', 'dissertation', 'phd', 'mba', 'undergrad',
+                     'graduate', 'coursework'},
+        'boost': {'Research', 'Productivity', 'Writing & Chat'},
+        'penalize': {'Image Generation', 'Video Generation', 'Audio & Voice'},
+    },
+    {
+        'name': 'coding',
+        'keywords': {'code', 'coding', 'programming', 'developer', 'debug',
+                     'debugging', 'refactor', 'compiler', 'ide', 'function',
+                     'api', 'backend', 'frontend', 'database', 'sql',
+                     'javascript', 'python', 'react', 'typescript'},
+        'boost': {'Coding'},
+        'penalize': {'Image Generation', 'Video Generation', 'Audio & Voice',
+                     'Writing & Chat'},
+    },
+    {
+        'name': 'design',
+        'keywords': {'design', 'mockup', 'mockups', 'wireframe', 'wireframes',
+                     'illustration', 'illustrations', 'logo', 'logos', 'poster',
+                     'posters', 'ui', 'ux', 'figma', 'visual'},
+        # Coding is boosted alongside Image Generation so design-to-code tools
+        # (v0, Stitch, Subframe) rank for "design a landing page" style queries.
+        'boost': {'Image Generation', 'Coding'},
+        'penalize': {'Audio & Voice', 'Video Generation'},
+    },
+    {
+        'name': 'writing',
+        # 'edit'/'editing' deliberately omitted — they collide with the video rule
+        # ("edit my video" should hit video intent, not writing).
+        'keywords': {'write', 'writing', 'essay', 'essays', 'blog', 'article',
+                     'articles', 'content', 'copywriting', 'grammar', 'rewrite',
+                     'paraphrase'},
+        'boost': {'Writing & Chat', 'Research'},
+        'penalize': {'Image Generation', 'Video Generation', 'Audio & Voice'},
+    },
+    {
+        'name': 'video',
+        'keywords': {'video', 'videos', 'edit', 'editing', 'animation',
+                     'animate', 'recording', 'screencast', 'film'},
+        'boost': {'Video Generation'},
+        'penalize': {'Writing & Chat', 'Research'},
+    },
+    {
+        'name': 'audio',
+        'keywords': {'audio', 'voice', 'voices', 'podcast', 'podcasts',
+                     'speech', 'transcribe', 'transcription', 'transcript',
+                     'music', 'tts', 'narration'},
+        'boost': {'Audio & Voice'},
+        'penalize': {'Image Generation', 'Video Generation'},
+    },
+    {
+        'name': 'research',
+        'keywords': {'research', 'citation', 'citations', 'literature',
+                     'scholar', 'academic', 'journal', 'journals', 'review'},
+        'boost': {'Research'},
+        'penalize': {'Image Generation', 'Video Generation', 'Audio & Voice'},
+    },
+    {
+        'name': 'productivity',
+        'keywords': {'task', 'tasks', 'todo', 'todos', 'note', 'notes',
+                     'calendar', 'schedule', 'meeting', 'meetings', 'organize',
+                     'organization', 'project', 'projects', 'planning'},
+        'boost': {'Productivity', 'Writing & Chat'},
+        'penalize': {'Image Generation', 'Video Generation', 'Audio & Voice'},
+    },
+]
+
+
+def detect_intent(query):
+    """Return the first matched intent rule, or None if no intent detected."""
+    if not query:
+        return None
+    import re
+    tokens = set(re.findall(r'[a-z0-9]+', str(query).lower()))
+    if not tokens:
+        return None
+    for rule in INTENT_RULES:
+        if tokens & rule['keywords']:
+            return rule
+    return None
+
+
+def rerank_by_category(results, intent_rule, boost_factor=1.5, penalize_factor=0.4):
+    """Re-rank semantic_search results by category match against intent.
+
+    Pure transform — never mutates input. Multiplies each result's _score by
+    boost_factor when category is in the rule's boost set, by penalize_factor
+    when in penalize, leaves untouched otherwise. Re-sorts descending.
+    """
+    if not intent_rule or not results:
+        return list(results) if results else []
+
+    boost = intent_rule.get('boost', set())
+    penalize = intent_rule.get('penalize', set())
+
+    adjusted = []
+    for r in results:
+        score = float(r.get('_score', 0))
+        category = (r.get('category') or '').strip()
+        if category in boost:
+            score *= boost_factor
+        elif category in penalize:
+            score *= penalize_factor
+        adjusted.append({**r, '_score': score})
+
+    return sorted(adjusted, key=lambda x: x.get('_score', 0), reverse=True)
+
+
 def _reason(tool, goal, budget, level):
     parts = []
     pricing = tool.get('pricing_tier', tool.get('pricing', '')).lower()
