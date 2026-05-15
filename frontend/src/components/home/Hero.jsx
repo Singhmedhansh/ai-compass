@@ -1,4 +1,3 @@
-import { useRef } from 'react'
 import { Link } from 'react-router-dom'
 
 import { useCatalogStats } from '../../hooks/useCatalogStats'
@@ -11,9 +10,8 @@ const FALLBACK_TOOL_COUNT = 427
 export default function Hero() {
   const { totalTools } = useCatalogStats()
   const displayCount = totalTools ?? FALLBACK_TOOL_COUNT
-  const trackRef = useRef(null)
   return (
-    <header ref={trackRef} className="relative pt-9 pb-8 md:min-h-[calc(100vh-5rem)] md:pt-24 md:pb-20">
+    <header className="relative pt-9 pb-8 md:pt-24 md:pb-20">
       <div className="mx-auto grid max-w-6xl grid-cols-1 items-start gap-12 px-5 md:grid-cols-[minmax(0,1fr)_auto] md:gap-16">
         <div>
         <div className="inline-flex items-center gap-2 rounded-full border border-line bg-bg-elev px-2.5 py-1 text-xs font-medium text-muted">
@@ -94,8 +92,8 @@ export default function Hero() {
         </div>
         </div>
 
-        <div className="sticky top-24 hidden justify-center md:flex">
-          <AnimatedCompass size={340} trackRef={trackRef} />
+        <div className="hidden justify-center md:flex">
+          <AnimatedCompass size={340} />
         </div>
       </div>
     </header>

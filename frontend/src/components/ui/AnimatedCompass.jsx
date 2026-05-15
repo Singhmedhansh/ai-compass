@@ -13,18 +13,14 @@ const CATEGORIES = [
   { label: 'Video', angle: 315 },
 ]
 
-const FULL_ROTATIONS = 1.5
+const SECONDS_PER_ROTATION = 14
 
 function shortestDelta(a, b) {
   const diff = ((a - b + 540) % 360) - 180
   return Math.abs(diff)
 }
 
-export default function AnimatedCompass({
-  size = 340,
-  className = '',
-  trackRef,
-}) {
+export default function AnimatedCompass({ size = 340, className = '' }) {
   const [rotation, setRotation] = useState(0)
   const reduceMotion = useRef(false)
 
@@ -35,38 +31,19 @@ export default function AnimatedCompass({
     if (reduceMotion.current) return undefined
 
     let frame = 0
+    const start = performance.now()
+    const degPerMs = 360 / (SECONDS_PER_ROTATION * 1000)
 
-    const compute = () => {
-      const track = trackRef?.current
-      if (!track) {
-        setRotation(window.scrollY * 0.6)
-        return
-      }
-      const rect = track.getBoundingClientRect()
-      const viewportH = window.innerHeight
-      const total = Math.max(rect.height + viewportH, 1)
-      const scrolled = Math.min(Math.max(viewportH - rect.top, 0), total)
-      const progress = scrolled / total
-      setRotation(progress * 360 * FULL_ROTATIONS)
+    const tick = (now) => {
+      setRotation((now - start) * degPerMs)
+      frame = window.requestAnimationFrame(tick)
     }
 
-    const handleScroll = () => {
-      if (frame) return
-      frame = window.requestAnimationFrame(() => {
-        compute()
-        frame = 0
-      })
-    }
-
-    compute()
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    window.addEventListener('resize', handleScroll)
+    frame = window.requestAnimationFrame(tick)
     return () => {
-      window.removeEventListener('scroll', handleScroll)
-      window.removeEventListener('resize', handleScroll)
       if (frame) window.cancelAnimationFrame(frame)
     }
-  }, [trackRef])
+  }, [])
 
   const normalizedRotation = ((rotation % 360) + 360) % 360
 
@@ -134,9 +111,9 @@ export default function AnimatedCompass({
             key={cat.label}
             className="absolute left-1/2 top-1/2 select-none whitespace-nowrap text-[11px] font-semibold uppercase tracking-[0.18em] transition-all duration-300"
             style={{
-              transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) scale(${isActive ? 1.12 : 1})`,
+              transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) scale(${isActive ? 1.15 : 1})`,
               color: isActive ? 'var(--accent)' : 'var(--muted-2)',
-              opacity: isActive ? 1 : 0.55,
+              opacity: isActive ? 1 : 0.5,
               textShadow: isActive ? '0 0 14px color-mix(in oklab, var(--accent) 60%, transparent)' : 'none',
               letterSpacing: '0.18em',
             }}
@@ -163,7 +140,7 @@ export default function AnimatedCompass({
           style={{
             transform: `rotate(${rotation}deg)`,
             transformOrigin: '100px 100px',
-            transition: reduceMotion.current ? 'none' : 'transform 200ms cubic-bezier(0.22, 1, 0.36, 1)',
+            willChange: 'transform',
           }}
         >
           <polygon points="100,22 92,108 100,100 108,108" fill="var(--accent)" />
