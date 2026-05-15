@@ -1,16 +1,17 @@
 import { useEffect, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 
 const TICK_COUNT = 24
 
 const CATEGORIES = [
-  { label: 'Coding', angle: 0 },
-  { label: 'Writing', angle: 45 },
-  { label: 'Research', angle: 90 },
-  { label: 'Study', angle: 135 },
-  { label: 'Productivity', angle: 180 },
-  { label: 'Design', angle: 225 },
-  { label: 'Image', angle: 270 },
-  { label: 'Video', angle: 315 },
+  { label: 'Coding', angle: 0, to: '/tools?category=Coding' },
+  { label: 'Writing', angle: 45, to: '/tools?category=Writing' },
+  { label: 'Research', angle: 90, to: '/tools?category=Research' },
+  { label: 'Study', angle: 135, to: '/tools?q=study' },
+  { label: 'Productivity', angle: 180, to: '/tools?category=Productivity' },
+  { label: 'Design', angle: 225, to: '/tools?q=design' },
+  { label: 'Image', angle: 270, to: '/tools?category=Image Gen' },
+  { label: 'Video', angle: 315, to: '/tools?category=Video Gen' },
 ]
 
 const SLICE = 360 / CATEGORIES.length
@@ -118,12 +119,12 @@ export default function AnimatedCompass({ size = 340, className = '' }) {
   return (
     <div
       ref={wrapRef}
-      aria-hidden="true"
-      className={`pointer-events-none relative ${className}`}
+      className={`relative ${className}`}
       style={{ width: containerSize, height: containerSize }}
     >
       <div
-        className="absolute left-1/2 top-1/2 rounded-full"
+        aria-hidden="true"
+        className="pointer-events-none absolute left-1/2 top-1/2 rounded-full"
         style={{
           width: size * 0.95,
           height: size * 0.95,
@@ -140,9 +141,11 @@ export default function AnimatedCompass({ size = 340, className = '' }) {
         const y = -Math.cos(rad) * labelRadius
         const isActive = i === activeIndex
         return (
-          <span
+          <Link
             key={cat.label}
-            className="absolute left-1/2 top-1/2 select-none whitespace-nowrap text-[11px] font-semibold uppercase tracking-[0.18em] transition-all duration-300"
+            to={cat.to}
+            aria-label={`Browse ${cat.label} AI tools`}
+            className="absolute left-1/2 top-1/2 cursor-pointer select-none whitespace-nowrap text-[11px] font-semibold uppercase tracking-[0.18em] outline-none transition-all duration-300 hover:!opacity-100 hover:!text-accent focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
             style={{
               transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) scale(${isActive ? 1.15 : 1})`,
               color: isActive ? 'var(--accent)' : 'var(--muted-2)',
@@ -152,7 +155,7 @@ export default function AnimatedCompass({ size = 340, className = '' }) {
             }}
           >
             {cat.label}
-          </span>
+          </Link>
         )
       })}
 
@@ -160,7 +163,8 @@ export default function AnimatedCompass({ size = 340, className = '' }) {
         viewBox="0 0 200 200"
         width={size}
         height={size}
-        className="absolute left-1/2 top-1/2"
+        aria-hidden="true"
+        className="pointer-events-none absolute left-1/2 top-1/2"
         style={{ transform: 'translate(-50%, -50%)' }}
       >
         <circle cx="100" cy="100" r="86" fill="none" stroke="var(--accent)" strokeOpacity="0.55" strokeWidth="1.5" />
