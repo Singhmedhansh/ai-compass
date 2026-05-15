@@ -12,7 +12,7 @@ export default function Hero() {
   const displayCount = totalTools ?? FALLBACK_TOOL_COUNT
   return (
     <header className="relative pt-9 pb-8 md:pt-24 md:pb-20">
-      <div className="mx-auto grid max-w-6xl grid-cols-1 items-start gap-12 px-5 md:grid-cols-[minmax(0,1fr)_auto] md:gap-16">
+      <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-10 px-5 md:grid-cols-[minmax(0,1fr)_auto] md:gap-16">
         <div>
         <div className="inline-flex items-center gap-2 rounded-full border border-line bg-bg-elev px-2.5 py-1 text-xs font-medium text-muted">
           <span

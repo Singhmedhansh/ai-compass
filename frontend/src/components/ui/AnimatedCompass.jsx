@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 const TICK_COUNT = 24
 
@@ -13,52 +13,84 @@ const CATEGORIES = [
   { label: 'Video', angle: 315 },
 ]
 
-const SECONDS_PER_ROTATION = 14
+const SLICE = 360 / CATEGORIES.length
+const NEEDLE_TRANSITION = 'transform 450ms cubic-bezier(0.22, 1, 0.36, 1)'
 
-function shortestDelta(a, b) {
-  const diff = ((a - b + 540) % 360) - 180
-  return Math.abs(diff)
+function nearestCategoryFor(cursorAngleDeg) {
+  const normalized = ((cursorAngleDeg % 360) + 360) % 360
+  return Math.round(normalized / SLICE) % CATEGORIES.length
 }
 
 export default function AnimatedCompass({ size = 340, className = '' }) {
-  const [rotation, setRotation] = useState(0)
-  const reduceMotion = useRef(false)
+  const wrapRef = useRef(null)
+  const needleRef = useRef(null)
+  // Cumulative rotation so we always take the shortest arc rather than
+  // winding the long way around (e.g. from 350° → 10° goes +20°, not -340°).
+  const rotationRef = useRef(0)
+  const [activeIndex, setActiveIndex] = useState(0)
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined
 
-    reduceMotion.current = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    if (reduceMotion.current) return undefined
+    let lastIndex = -1
+    let rafId = 0
+    let pendingX = 0
+    let pendingY = 0
 
-    let frame = 0
-    const start = performance.now()
-    const degPerMs = 360 / (SECONDS_PER_ROTATION * 1000)
+    const updateNeedle = () => {
+      rafId = 0
+      const wrap = wrapRef.current
+      const needle = needleRef.current
+      if (!wrap || !needle) return
 
-    const tick = (now) => {
-      setRotation((now - start) * degPerMs)
-      frame = window.requestAnimationFrame(tick)
-    }
+      const rect = wrap.getBoundingClientRect()
+      const cx = rect.left + rect.width / 2
+      const cy = rect.top + rect.height / 2
+      const dx = pendingX - cx
+      const dy = pendingY - cy
 
-    frame = window.requestAnimationFrame(tick)
-    return () => {
-      if (frame) window.cancelAnimationFrame(frame)
-    }
-  }, [])
+      // Cursor angle from compass center (0° = north, clockwise).
+      const cursorAngle = (Math.atan2(dx, -dy) * 180) / Math.PI
 
-  const normalizedRotation = ((rotation % 360) + 360) % 360
+      // Snap to the nearest category — needle only ever rests on a label.
+      const idx = nearestCategoryFor(cursorAngle)
+      const targetAngle = CATEGORIES[idx].angle
 
-  const activeIndex = useMemo(() => {
-    let best = 0
-    let bestDelta = Infinity
-    for (let i = 0; i < CATEGORIES.length; i += 1) {
-      const delta = shortestDelta(CATEGORIES[i].angle, normalizedRotation)
-      if (delta < bestDelta) {
-        bestDelta = delta
-        best = i
+      // Shortest-arc delta from current modular angle to target.
+      const currentMod = ((rotationRef.current % 360) + 360) % 360
+      let delta = targetAngle - currentMod
+      if (delta > 180) delta -= 360
+      if (delta <= -180) delta += 360
+
+      rotationRef.current += delta
+      needle.style.transform = `rotate(${rotationRef.current}deg)`
+
+      if (idx !== lastIndex) {
+        lastIndex = idx
+        setActiveIndex(idx)
       }
     }
-    return best
-  }, [normalizedRotation])
+
+    const handleMove = (e) => {
+      pendingX = e.clientX
+      pendingY = e.clientY
+      if (!rafId) rafId = window.requestAnimationFrame(updateNeedle)
+    }
+
+    const handleScroll = () => {
+      if (!rafId) rafId = window.requestAnimationFrame(updateNeedle)
+    }
+
+    window.addEventListener('mousemove', handleMove, { passive: true })
+    window.addEventListener('scroll', handleScroll, { passive: true })
+
+    return () => {
+      window.removeEventListener('mousemove', handleMove)
+      window.removeEventListener('scroll', handleScroll)
+      if (rafId) window.cancelAnimationFrame(rafId)
+    }
+  }, [])
 
   const ticks = Array.from({ length: TICK_COUNT }).map((_, i) => {
     const angle = (i * 360) / TICK_COUNT
@@ -85,6 +117,7 @@ export default function AnimatedCompass({ size = 340, className = '' }) {
 
   return (
     <div
+      ref={wrapRef}
       aria-hidden="true"
       className={`pointer-events-none relative ${className}`}
       style={{ width: containerSize, height: containerSize }}
@@ -113,8 +146,8 @@ export default function AnimatedCompass({ size = 340, className = '' }) {
             style={{
               transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) scale(${isActive ? 1.15 : 1})`,
               color: isActive ? 'var(--accent)' : 'var(--muted-2)',
-              opacity: isActive ? 1 : 0.5,
-              textShadow: isActive ? '0 0 14px color-mix(in oklab, var(--accent) 60%, transparent)' : 'none',
+              opacity: isActive ? 1 : 0.45,
+              textShadow: isActive ? '0 0 16px color-mix(in oklab, var(--accent) 65%, transparent)' : 'none',
               letterSpacing: '0.18em',
             }}
           >
@@ -137,10 +170,16 @@ export default function AnimatedCompass({ size = 340, className = '' }) {
         {ticks}
 
         <g
+          ref={needleRef}
           style={{
-            transform: `rotate(${rotation}deg)`,
-            transformOrigin: '100px 100px',
+            // 50% 50% + fill-box pivots around the bbox center, which for
+            // these two polygons sits exactly on (100, 100) — the compass
+            // center dot. The needle now rotates in place instead of
+            // translating off-center.
+            transformOrigin: '50% 50%',
+            transformBox: 'fill-box',
             willChange: 'transform',
+            transition: NEEDLE_TRANSITION,
           }}
         >
           <polygon points="100,22 92,108 100,100 108,108" fill="var(--accent)" />
