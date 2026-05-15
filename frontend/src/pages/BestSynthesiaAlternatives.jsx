@@ -544,7 +544,7 @@ export default function BestSynthesiaAlternatives() {
               Best Jasper alternatives →
             </Link>
             <Link to="/tools" className="text-[14px] font-semibold text-accent no-underline hover:underline">
-              Browse all 427+ tools →
+              Browse all 399 tools →
             </Link>
           </div>
         </MotionDiv>

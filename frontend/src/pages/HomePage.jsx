@@ -11,10 +11,10 @@ export default function HomePage() {
   return (
     <>
       <Helmet>
-        <title>AI Compass — 427 Hand-Tested AI Tools for Students</title>
-        <meta name="description" content="Curated AI tools directory for students. 427 tools hand-tested, with a one-line reason each. Free to browse, updated weekly." />
-        <meta property="og:title" content="AI Compass — 427 Hand-Tested AI Tools for Students" />
-        <meta property="og:description" content="Curated AI tools directory for students. 427 tools hand-tested, with a one-line reason each. Free to browse, updated weekly." />
+        <title>AI Compass — 399 Hand-Tested AI Tools for Students</title>
+        <meta name="description" content="Curated AI tools directory for students. 399 tools hand-tested, with a one-line reason each. Free to browse, updated weekly." />
+        <meta property="og:title" content="AI Compass — 399 Hand-Tested AI Tools for Students" />
+        <meta property="og:description" content="Curated AI tools directory for students. 399 tools hand-tested, with a one-line reason each. Free to browse, updated weekly." />
         <link rel="canonical" href="https://ai-compass.in/" />
       </Helmet>
 

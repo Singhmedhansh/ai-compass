@@ -5,7 +5,7 @@ import AnimatedCompass from '../ui/AnimatedCompass'
 import { MagneticWrapper, WordReveal } from '../ui'
 
 // Static fallback covers the ~100ms before /api/v1/stats responds — kept close to the live count so the page never reads as broken.
-const FALLBACK_TOOL_COUNT = 427
+const FALLBACK_TOOL_COUNT = 399
 
 export default function Hero() {
   const { totalTools } = useCatalogStats()

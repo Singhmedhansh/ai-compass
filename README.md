@@ -33,7 +33,7 @@ AI Compass is designed to be the ultimate discovery engine for students. Here is
 
 ### 1. The User Experience
 When a student lands on AI Compass, they are greeted by a sleek, dynamic interface where they can:
-*   **Search & Filter:** Instantly search through a curated database of 400+ AI tools by category, intent, or pricing (e.g., "Free Coding Tools"). 
+*   **Search & Filter:** Instantly search through a curated database of 399 AI tools by category, intent, or pricing (e.g., "Free Coding Tools"). 
 *   **Discover via AI Tool Finder:** Not sure what to use? Users can click "Get My AI Stack" to enter a multi-step interactive wizard. By selecting their goal, budget, and skill level, the system dynamically generates a personalized "AI Stack" recommendation using our recommendation engine.
 *   **Explore Curated Collections:** Browse SEO-optimized, editorial collections like "Best Free AI Tools for Students" to quickly find high-quality resources without sifting through enterprise software.
 *   **Engage:** Authenticated users can rate tools, write real reviews, and build a library of favorites.

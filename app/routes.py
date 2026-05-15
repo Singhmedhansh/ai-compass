@@ -20,7 +20,7 @@ DIST_DIR = os.path.join(
 # Per-route static meta (title, description). /tools/<slug> is handled
 # dynamically against the tool catalog below.
 _ROUTE_META = {
-    'tools': ('AI Tools Directory — AI Compass', 'Browse 427+ curated AI tools by category, rating, and pricing. Find the right tool for writing, coding, research, and more.'),
+    'tools': ('AI Tools Directory — AI Compass', 'Browse 399 curated AI tools by category, rating, and pricing. Find the right tool for writing, coding, research, and more.'),
     'ai-tool-finder': ('AI Tool Finder Wizard — AI Compass', 'Answer 4 questions and get 5-6 AI tools picked for you. Free, no login, no ranking tricks.'),
     'compare': ('Compare AI Tools — AI Compass', 'Side-by-side comparison of AI tools — pricing, features, platforms, and ratings.'),
     'collections': ('AI Tool Collections — AI Compass', 'Curated collections — best free, best for students, best for coding, and more.'),
