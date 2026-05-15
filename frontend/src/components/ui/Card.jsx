@@ -32,6 +32,11 @@ function Card({ tool = {} }) {
   const description = tool.shortDescription || tool.description || 'No description available.'
   const category = tool.category || 'coding'
   const rating = Math.max(0, Math.min(5, Number(tool.rating) || 0))
+  const reviewCount = Number(tool.review_count ?? tool.reviewCount ?? tool.reviews ?? 0)
+  // Only show a star rating when it's backed by real user reviews. Every tool
+  // here is hand-picked, so with no reviews we show an honest "Curated" mark
+  // instead of a fabricated or empty star widget.
+  const hasRealRating = rating > 0 && reviewCount > 0
   const pricing = (tool.pricing || 'free').toLowerCase()
   const slug = tool.slug || slugify(name)
 
@@ -81,9 +86,19 @@ function Card({ tool = {} }) {
       <div className="flex items-center justify-between gap-3">
         <Badge label={category} variant={category} />
 
-        <div className="flex items-center gap-1" aria-label={`Rated ${rating} out of 5`}>
-          {ratingStars}
-        </div>
+        {hasRealRating ? (
+          <div className="flex items-center gap-1" aria-label={`Rated ${rating} out of 5`}>
+            {ratingStars}
+          </div>
+        ) : (
+          <span
+            className="inline-flex items-center gap-1 rounded-full bg-accent-soft px-2 py-0.5 text-[11px] font-medium text-accent-ink"
+            aria-label="Hand-curated pick"
+          >
+            <Star className="h-3 w-3 fill-current" />
+            Curated
+          </span>
+        )}
 
         <span
           className={clsx(

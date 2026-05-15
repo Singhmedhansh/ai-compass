@@ -226,8 +226,17 @@ def _pricing_value(tool: dict) -> str:
 
 
 def _rating_value(tool: dict) -> float:
+    # Ratings are no longer fabricated, so real review-backed ratings are
+    # usually 0. Fall back to the honest internal curation_score so
+    # "top rated", related tools, and collection ordering stay meaningful.
     try:
-        return float(tool.get("rating", 0) or 0)
+        rating = float(tool.get("rating", 0) or 0)
+    except (TypeError, ValueError):
+        rating = 0.0
+    if rating > 0:
+        return rating
+    try:
+        return float(tool.get("curation_score", 0) or 0) / 20.0
     except (TypeError, ValueError):
         return 0.0
 
@@ -1016,31 +1025,31 @@ def get_collection(slug: str):
             t for t in tools
             if str(t.get("pricing", "") or t.get("price", "")).strip().lower() == "free"
         ]
-        collection_tools.sort(key=lambda t: float(t.get("rating", 0) or 0), reverse=True)
+        collection_tools.sort(key=_rating_value, reverse=True)
     elif slug_value == "best-for-students":
         collection_tools = [t for t in tools if t.get("student_perk")]
-        collection_tools.sort(key=lambda t: float(t.get("rating", 0) or 0), reverse=True)
+        collection_tools.sort(key=_rating_value, reverse=True)
     elif slug_value == "best-for-coding":
         collection_tools = [
             t for t in tools
             if str(t.get("category", "")).strip().lower() == "coding"
         ]
-        collection_tools.sort(key=lambda t: float(t.get("rating", 0) or 0), reverse=True)
+        collection_tools.sort(key=_rating_value, reverse=True)
     elif slug_value == "best-for-writing":
         collection_tools = [
             t for t in tools
             if str(t.get("category", "")).strip().lower() == "writing & chat"
         ]
-        collection_tools.sort(key=lambda t: float(t.get("rating", 0) or 0), reverse=True)
+        collection_tools.sort(key=_rating_value, reverse=True)
     elif slug_value == "best-for-research":
         collection_tools = [
             t for t in tools
             if str(t.get("category", "")).strip().lower() == "research"
         ]
-        collection_tools.sort(key=lambda t: float(t.get("rating", 0) or 0), reverse=True)
+        collection_tools.sort(key=_rating_value, reverse=True)
     elif slug_value == "trending":
         collection_tools = [t for t in tools if bool(t.get("trending"))]
-        collection_tools.sort(key=lambda t: float(t.get("rating", 0) or 0), reverse=True)
+        collection_tools.sort(key=_rating_value, reverse=True)
     elif slug_value == "top-rated":
         ratings = db.session.query(
             Rating.tool_slug,

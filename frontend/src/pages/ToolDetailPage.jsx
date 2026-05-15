@@ -529,7 +529,9 @@ function ToolDetailPage() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-semibold text-ink">{relatedTool.name}</p>
-                        <div className="mt-1 flex items-center gap-0.5">{buildStarNodes(relatedTool.rating, 'h-3.5 w-3.5')}</div>
+                        <p className="mt-0.5 truncate text-xs text-muted">
+                          {relatedTool.category || relatedTool.pricing || 'Curated pick'}
+                        </p>
                       </div>
                     </button>
                   </MotionDiv>
