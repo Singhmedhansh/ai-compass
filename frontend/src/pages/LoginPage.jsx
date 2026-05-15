@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import Button from '../components/ui/Button'
+import CompassMark from '../components/ui/CompassMark'
 import { API_BASE_URL } from '../config/api'
 
 function GoogleIcon() {
@@ -82,8 +83,11 @@ function LoginPage() {
   return (
     <div className="mx-auto flex min-h-[calc(100vh-4rem)] w-full items-center justify-center px-4 py-8">
       <section className="w-full max-w-md rounded-2xl border border-line bg-bg-elev p-6 shadow-xl sm:p-8">
-        <h1 className="text-2xl font-bold text-ink">Welcome back</h1>
-        <p className="mt-2 text-sm text-muted">
+        <div className="mb-5 flex justify-center">
+          <CompassMark size={48} />
+        </div>
+        <h1 className="text-center text-2xl font-bold text-ink">Welcome back</h1>
+        <p className="mt-2 text-center text-sm text-muted">
           Sign in to your AI Compass account
         </p>
 
