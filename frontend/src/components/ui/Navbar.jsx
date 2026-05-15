@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 import Button from './Button'
+import CompassMark from './CompassMark'
 import SearchInput from './SearchInput'
 import useClickOutside from '../../hooks/useClickOutside'
 
@@ -226,8 +227,9 @@ function Navbar() {
       >
         <Link
           to="/"
-          className="shrink-0 text-lg font-bold tracking-tight text-ink transition-colors hover:text-accent-ink"
+          className="flex shrink-0 items-center gap-2 text-lg font-bold tracking-tight text-ink transition-colors hover:text-accent-ink"
         >
+          <CompassMark size={28} />
           AI Compass
         </Link>
 

@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom'
 
+import CompassMark from './ui/CompassMark'
+
 const PRODUCT_LINKS = [
   { label: 'Wizard', to: '/ai-tool-finder' },
   { label: 'Catalog', to: '/tools' },
@@ -30,12 +32,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 gap-8 md:grid-cols-[1.5fr_1fr_1fr_1fr]">
           <div>
             <div className="flex items-center gap-2">
-              <span
-                aria-hidden="true"
-                className="flex h-6 w-6 items-center justify-center rounded-md bg-ink text-sm font-bold text-bg"
-              >
-                /
-              </span>
+              <CompassMark size={24} />
               <span className="text-base font-semibold text-ink">AI Compass</span>
             </div>
             <p className="mt-3 max-w-[32ch] text-sm leading-relaxed text-muted">
