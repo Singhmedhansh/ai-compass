@@ -65,9 +65,24 @@
         console.warn('PostHog init skipped:', e && e.message);
       }
     </script>
+    <!-- Critical CSS for the boot loader: shown until the JS bundle parses
+         and React mounts (createRoot replaces #root children, removing it).
+         Inline because the app stylesheet hasn't loaded at this point. -->
+    <style>
+      #app-boot{position:fixed;inset:0;display:flex;align-items:center;
+        justify-content:center;background:#fafaf9;z-index:9999}
+      html[data-theme="dark"] #app-boot{background:#0e1311}
+      #app-boot .ring{width:42px;height:42px;border-radius:50%;
+        border:3px solid rgba(47,179,137,.25);border-top-color:#2fb389;
+        animation:abspin .8s linear infinite}
+      @keyframes abspin{to{transform:rotate(360deg)}}
+      @media (prefers-reduced-motion:reduce){#app-boot .ring{animation:none}}
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div id="app-boot" aria-hidden="true"><div class="ring"></div></div>
+    </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

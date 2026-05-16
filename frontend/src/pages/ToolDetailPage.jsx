@@ -288,11 +288,11 @@ function ToolDetailPage() {
           <meta property="og:title" content={`${tool.name} — Review & Alternatives`} />
           <meta property="og:description" content={tool.tagline || `${tool.name} on AI Compass`} />
           <meta property="og:url" content={`https://ai-compass.in/tools/${tool.slug}`} />
-          {tool.icon ? <meta property="og:image" content={tool.icon} /> : null}
-          <meta name="twitter:card" content="summary" />
+          <meta property="og:image" content={`https://ai-compass.in/og/${tool.slug}.png`} />
+          <meta name="twitter:card" content="summary_large_image" />
           <meta name="twitter:title" content={`${tool.name} — AI Compass`} />
           <meta name="twitter:description" content={tool.tagline || `${tool.name} on AI Compass`} />
-          {tool.icon ? <meta name="twitter:image" content={tool.icon} /> : null}
+          <meta name="twitter:image" content={`https://ai-compass.in/og/${tool.slug}.png`} />
           <script type="application/ld+json">
             {JSON.stringify({
               '@context': 'https://schema.org',
@@ -316,7 +316,7 @@ function ToolDetailPage() {
                   }
                 : {}),
               url: `https://ai-compass.in/tools/${tool.slug}`,
-              ...(tool.icon ? { image: tool.icon } : {}),
+              image: `https://ai-compass.in/og/${tool.slug}.png`,
             })}
           </script>
         </Helmet>

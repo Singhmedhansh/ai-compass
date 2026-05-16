@@ -61,3 +61,4 @@ scikit-learn>=1.4.0
 numpy>=2.0.0,<2.3.0
 pandas==2.2.2
 protobuf>=3.19.5,<5.0.0
+Pillow>=10.1.0

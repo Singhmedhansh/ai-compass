@@ -46,7 +46,14 @@ def _get_base_index_html():
     return _INDEX_HTML_CACHE
 
 
-def _inject_meta(base_html: str, *, title: str, description: str, canonical_path: str | None = None) -> str:
+def _inject_meta(
+    base_html: str,
+    *,
+    title: str,
+    description: str,
+    canonical_path: str | None = None,
+    image_url: str | None = None,
+) -> str:
     safe_title = html_module.escape(title or '', quote=True)
     safe_desc = html_module.escape((description or '')[:160], quote=True)
 
@@ -64,6 +71,10 @@ def _inject_meta(base_html: str, *, title: str, description: str, canonical_path
         canonical_url = f'https://ai-compass.in{canonical_path}'
         out = re.sub(r'(<link\s+rel="canonical"\s+href=")[^"]*(")', rf'\g<1>{canonical_url}\g<2>', out, count=1)
         out = re.sub(r'(property="og:url"\s+content=")[^"]*(")', rf'\g<1>{canonical_url}\g<2>', out, count=1)
+    if image_url:
+        safe_img = html_module.escape(image_url, quote=True)
+        out = re.sub(r'(property="og:image"\s+content=")[^"]*(")', rf'\g<1>{safe_img}\g<2>', out, count=1)
+        out = re.sub(r'(name="twitter:image"\s+content=")[^"]*(")', rf'\g<1>{safe_img}\g<2>', out, count=1)
     return out
 
 
@@ -94,9 +105,11 @@ def _inject_seo_root(out_html: str, seo_html: str) -> str:
         'clip:rect(0 0 0 0);white-space:nowrap;border:0">'
         f'{seo_html}</div>'
     )
+    # Insert right after the opening <div id="root"> tag, so this works
+    # whether the root is empty OR already contains the boot loader (#2).
     replaced, count = re.subn(
-        r'<div id="root">\s*</div>',
-        f'<div id="root">{hidden}</div>',
+        r'(<div id="root"[^>]*>)',
+        rf'\g<1>{hidden}',
         out_html,
         count=1,
     )
@@ -107,8 +120,15 @@ def _seo_body(normalized: str, tool: dict | None = None) -> str:
     """Build a minimal semantic HTML block for crawlers, per route."""
     if tool is not None:
         name = _esc(tool.get('name'))
-        desc = _esc(tool.get('shortDescription') or tool.get('description'))
+        # shortDescription is null for most records; tagline is the real
+        # one-liner. Prefer it, then fall back to the long description.
+        desc = _esc(
+            tool.get('shortDescription')
+            or tool.get('tagline')
+            or tool.get('description')
+        )
         category = _esc(tool.get('category'))
+        sub = _esc(tool.get('subCategory'))
         pricing = _esc(tool.get('pricing') or tool.get('price'))
         link = _esc(tool.get('url') or tool.get('website') or tool.get('link'))
         parts = [f'<h1>{name}</h1>']
@@ -117,27 +137,54 @@ def _seo_body(normalized: str, tool: dict | None = None) -> str:
         meta_bits = []
         if category:
             meta_bits.append(f'Category: {category}')
+        if sub:
+            meta_bits.append(f'Type: {sub}')
         if pricing:
             meta_bits.append(f'Pricing: {pricing}')
+        if tool.get('studentPerk') or tool.get('student_perk'):
+            meta_bits.append('Student-friendly')
         if meta_bits:
             parts.append(f'<p>{" · ".join(meta_bits)}</p>')
+
+        features = tool.get('features') or []
+        if isinstance(features, list) and features:
+            lis = ''.join(f'<li>{_esc(f)}</li>' for f in features[:8] if f)
+            if lis:
+                parts.append(f'<h2>Key features of {name}</h2><ul>{lis}</ul>')
+
+        use_cases = tool.get('use_cases') or tool.get('useCases') or []
+        if isinstance(use_cases, list) and use_cases:
+            uc = ', '.join(_esc(u) for u in use_cases[:6] if u)
+            if uc:
+                parts.append(f'<p>Best for: {uc}.</p>')
+
         if link:
             parts.append(f'<p><a href="{link}" rel="nofollow noopener">Visit {name}</a></p>')
-        parts.append('<p><a href="/tools">Browse all 399 curated AI tools on AI Compass</a></p>')
+        parts.append(
+            f'<p><a href="/alternatives/{_esc(tool.get("slug"))}">'
+            f'See {name} alternatives</a> · '
+            '<a href="/tools">Browse all 399 curated AI tools on AI Compass</a></p>'
+        )
         return ''.join(parts)
 
     if normalized in ('', 'tools'):
         tools = get_cached_tools() or []
+        is_home = normalized == ''
         heading = (
             'AI Compass — 399 Hand-Tested AI Tools for Students'
-            if normalized == ''
+            if is_home
             else 'AI Tools Directory — AI Compass'
         )
+        # The homepage only needs a representative sample for crawl discovery
+        # (keeps the served HTML lean); the full 399-link index lives on /tools.
+        listed = tools[:30] if is_home else tools
         items = []
-        for t in tools:
+        for t in listed:
             slug = _esc(t.get('slug'))
             tname = _esc(t.get('name'))
-            tdesc = _esc(t.get('shortDescription') or t.get('description'))
+            tdesc = _esc(
+                t.get('shortDescription') or t.get('tagline') or t.get('description')
+            )
             if not slug or not tname:
                 continue
             items.append(
@@ -145,12 +192,17 @@ def _seo_body(normalized: str, tool: dict | None = None) -> str:
                 + (f' — {tdesc}' if tdesc else '')
                 + '</li>'
             )
+        tail = (
+            '<p><a href="/tools">Browse all 399 curated AI tools</a></p>'
+            if is_home
+            else ''
+        )
         return (
             f'<h1>{heading}</h1>'
             '<p>Hand-curated, hand-tested AI tools for students — writing, coding, '
             'research, design, image, video, audio, and study tools. Free to browse, '
             'no login required.</p>'
-            f'<ul>{"".join(items)}</ul>'
+            f'<ul>{"".join(items)}</ul>{tail}'
         )
 
     if normalized in _ROUTE_META:
@@ -204,6 +256,7 @@ def _meta_for_request_path(path: str):
             name = tool.get('name') or slug
             desc = (
                 tool.get('shortDescription')
+                or tool.get('tagline')
                 or tool.get('description')
                 or f'{name} — pricing, features, platforms, and student-friendly alternatives on AI Compass.'
             )
@@ -212,6 +265,7 @@ def _meta_for_request_path(path: str):
                 title=f'{name} — AI Compass',
                 description=desc,
                 canonical_path=f'/tools/{slug}',
+                image_url=f'https://ai-compass.in/og/{slug}.png',
             )
             return _inject_seo_root(html, _seo_body(normalized, tool=tool))
 
@@ -243,6 +297,7 @@ def _meta_for_request_path(path: str):
                     'Free tiers, pricing, and use cases compared. Curated by AI Compass.'
                 ),
                 canonical_path=f'/alternatives/{slug}',
+                image_url=f'https://ai-compass.in/og/{slug}.png',
             )
             return _inject_seo_root(html, _seo_alternatives(tool, alts))
 
@@ -344,6 +399,103 @@ def sitemap():
 def robots():
     content = 'User-agent: *\nAllow: /\nSitemap: https://ai-compass.in/sitemap.xml'
     return Response(content, mimetype='text/plain')
+
+
+_OG_CACHE: dict[str, bytes] = {}
+
+
+def _og_font(size: int):
+    """Scalable font with no external font-file dependency.
+
+    Pillow >= 10.1 ships a scalable default via load_default(size=...),
+    so this works identically on Render without needing system fonts.
+    """
+    from PIL import ImageFont
+    try:
+        return ImageFont.load_default(size=size)
+    except TypeError:
+        # Very old Pillow — fixed-size bitmap fallback (degraded but safe).
+        return ImageFont.load_default()
+
+
+def _wrap(draw, text, font, max_width):
+    words = str(text).split()
+    lines, line = [], ''
+    for w in words:
+        trial = f'{line} {w}'.strip()
+        if draw.textlength(trial, font=font) <= max_width:
+            line = trial
+        else:
+            if line:
+                lines.append(line)
+            line = w
+    if line:
+        lines.append(line)
+    return lines[:3]
+
+
+@main_bp.route('/og/<slug>.png')
+def og_image(slug):
+    """Branded 1200x630 social card per tool. Falls back to the static
+    brand image if Pillow is unavailable or the tool is unknown."""
+    slug = (slug or '').strip().lower()
+    if slug in _OG_CACHE:
+        return Response(_OG_CACHE[slug], mimetype='image/png')
+
+    tool = next(
+        (t for t in (get_cached_tools() or [])
+         if str(t.get('slug', '')).strip().lower() == slug),
+        None,
+    )
+    if tool is None:
+        return redirect('/og-image.png', code=302)
+
+    try:
+        import io
+
+        from PIL import Image, ImageDraw
+
+        BG, INK, ACCENT, MUTED = (14, 19, 17), (241, 242, 238), (47, 179, 137), (148, 163, 158)
+        img = Image.new('RGB', (1200, 630), BG)
+        d = ImageDraw.Draw(img)
+
+        # Accent compass ring + corner bar
+        d.ellipse((84, 84, 168, 168), outline=ACCENT, width=8)
+        d.line((126, 96, 126, 156), fill=ACCENT, width=8)
+        d.line((96, 126, 156, 126), fill=ACCENT, width=8)
+        d.rectangle((0, 0, 1200, 10), fill=ACCENT)
+
+        d.text((196, 104), 'AI COMPASS', font=_og_font(34), fill=ACCENT)
+
+        name = str(tool.get('name') or slug)
+        f_name = _og_font(82)
+        y = 250
+        for ln in _wrap(d, name, f_name, 1000):
+            d.text((90, y), ln, font=f_name, fill=INK)
+            y += 96
+
+        bits = [b for b in (
+            tool.get('category'),
+            tool.get('pricing') or tool.get('price'),
+            'Student-friendly' if (tool.get('studentPerk') or tool.get('student_perk')) else None,
+        ) if b]
+        if bits:
+            d.text((90, y + 8), '  ·  '.join(str(b) for b in bits),
+                    font=_og_font(38), fill=MUTED)
+
+        d.text((90, 548), 'ai-compass.in', font=_og_font(36), fill=ACCENT)
+        d.text((860, 548), '399 hand-tested AI tools', font=_og_font(30), fill=MUTED)
+
+        buf = io.BytesIO()
+        img.save(buf, format='PNG', optimize=True)
+        data = buf.getvalue()
+        if len(_OG_CACHE) < 600:
+            _OG_CACHE[slug] = data
+        return Response(data, mimetype='image/png',
+                        headers={'Cache-Control': 'public, max-age=86400'})
+    except Exception:
+        # Pillow missing/broken — never break unfurls; serve the brand image.
+        return redirect('/og-image.png', code=302)
 
 
 @main_bp.route('/tool/<slug>')

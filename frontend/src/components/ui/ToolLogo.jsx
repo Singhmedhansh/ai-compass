@@ -1,5 +1,11 @@
 import { useState } from 'react'
 
+// Every catalog record points tool.icon at /static/icons/<slug>.svg, but that
+// directory only contains default.png — so the old "curated" step 404'd on all
+// 398 tools and then leaned on Google's favicon API, which returns a generic
+// globe (HTTP 200) for unknown domains and never triggers onError. We now use
+// the same proven chain as the Best*/Alternatives pages:
+//   DuckDuckGo favicon (404s cleanly on miss) -> emoji tile -> letter tile.
 function getDomain(url) {
   if (!url) {
     return null
@@ -16,91 +22,69 @@ function getDomain(url) {
   }
 }
 
-function getLogoUrl(tool, source) {
-  // Source progression: 'curated' (tool.icon from catalog) -> 'google' favicon
-  // -> 'duckduckgo' favicon -> 'fallback' (initial-letter circle).
-  // 'curated' takes precedence because hand-set or Clearbit URLs are sharper
-  // and 404 cleanly when missing; the Google favicon API returns a generic
-  // globe placeholder (HTTP 200) for unknown domains, which never triggers
-  // onError, so relying on it alone left obscure tools with a globe in the UI.
-  if (source === 'curated') {
-    const explicit = (tool?.icon || '').trim()
-    return explicit || null
-  }
-
-  const domain = getDomain(tool?.url || tool?.website || tool?.link)
-
-  if (!domain) {
-    return null
-  }
-
-  if (source === 'duckduckgo') {
-    return `https://icons.duckduckgo.com/ip3/${domain}.ico`
-  }
-
-  return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`
+function getEmoji(tool) {
+  const emoji = (tool?.logo_emoji || tool?.emoji || '').trim()
+  return emoji || null
 }
 
 function getFallbackLetter(tool) {
   const name = String(tool?.name || '').trim()
-  if (!name) {
-    return '?'
-  }
-
-  return name[0].toUpperCase()
+  return name ? name[0].toUpperCase() : '?'
 }
 
 function ToolLogo({ tool, size = 48 }) {
-  // Start with the curated icon if the catalog has one; otherwise jump straight
-  // to the favicon chain. Tools without tool.icon set ('curated' resolves null)
-  // skip past the curated step on first render and fail forward to google.
-  const initialSource = (tool?.icon || '').trim() ? 'curated' : 'google'
-  const [logoSource, setLogoSource] = useState(initialSource)
-  const url = getLogoUrl(tool, logoSource)
-  const shouldShowImage = Boolean(url) && logoSource !== 'fallback'
+  const domain = getDomain(tool?.url || tool?.website || tool?.link)
+  // 'favicon' -> 'emoji' (if available) -> 'letter'
+  const [stage, setStage] = useState(domain ? 'favicon' : (getEmoji(tool) ? 'emoji' : 'letter'))
 
-  if (shouldShowImage) {
+  const boxStyle = {
+    width: size,
+    height: size,
+    borderRadius: size * 0.2,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  }
+
+  if (stage === 'favicon' && domain) {
     return (
       <img
-        src={url}
-        alt={tool?.name || 'Tool logo'}
+        src={`https://icons.duckduckgo.com/ip3/${domain}.ico`}
+        alt={tool?.name ? `${tool.name} logo` : 'Tool logo'}
+        loading="lazy"
         style={{
-          width: size,
-          height: size,
-          borderRadius: size * 0.2,
+          ...boxStyle,
           objectFit: 'contain',
           background: '#fff',
           padding: 3,
         }}
-        onError={() => {
-          setLogoSource((currentSource) => {
-            if (currentSource === 'curated') {
-              return 'google'
-            }
-            if (currentSource === 'google') {
-              return 'duckduckgo'
-            }
-            return 'fallback'
-          })
-        }}
+        onError={() => setStage(getEmoji(tool) ? 'emoji' : 'letter')}
       />
+    )
+  }
+
+  if (stage === 'emoji') {
+    return (
+      <div
+        style={{ ...boxStyle, background: 'var(--bg-sunk)', fontSize: size * 0.55 }}
+        aria-hidden="true"
+      >
+        {getEmoji(tool)}
+      </div>
     )
   }
 
   return (
     <div
       style={{
-        width: size,
-        height: size,
-        borderRadius: size * 0.2,
+        ...boxStyle,
         background: 'var(--accent)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
         color: 'var(--bg)',
         fontWeight: 700,
-        fontSize: 20,
+        fontSize: size * 0.42,
       }}
+      aria-hidden="true"
     >
       {getFallbackLetter(tool)}
     </div>
