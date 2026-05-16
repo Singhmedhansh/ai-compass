@@ -1251,6 +1251,7 @@ def admin_get_tool(slug):
 
 
 @api_bp.put("/admin/tools/<slug>")
+@csrf.exempt
 @login_required
 def update_tool(slug):
     if not _is_admin():
@@ -1282,6 +1283,7 @@ def update_tool(slug):
 
 
 @api_bp.post("/admin/tools")
+@csrf.exempt
 @login_required
 def create_tool():
     if not _is_admin():
@@ -1312,6 +1314,7 @@ def create_tool():
 
 
 @api_bp.post("/admin/tools/<slug>/hide")
+@csrf.exempt
 @login_required
 def hide_tool(slug):
     if not _is_admin():
@@ -1325,6 +1328,7 @@ def hide_tool(slug):
 
 
 @api_bp.put("/admin/tools/<slug>/affiliate")
+@csrf.exempt
 @login_required
 def set_tool_affiliate(slug):
     if not _is_admin():
@@ -1338,6 +1342,7 @@ def set_tool_affiliate(slug):
 
 
 @api_bp.delete("/admin/tools/<slug>")
+@csrf.exempt
 @login_required
 def delete_tool(slug):
     if not _is_admin():

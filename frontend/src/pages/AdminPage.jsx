@@ -1,5 +1,5 @@
-import { Eye, EyeOff, Pencil, Trash2 } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { Eye, EyeOff, Pencil, Plus, Trash2, Link2 } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
@@ -7,761 +7,518 @@ import SearchInput from '../components/ui/SearchInput'
 
 const ADMIN_EMAILS = ['singhmedhansh07@gmail.com']
 const TOOLS_PAGE_SIZE = 15
-const COLLECTIONS_COUNT = 7
-const TABS = ['Overview', 'Tools', 'Users', 'Reviews', 'ML Model']
+const TABS = ['Overview', 'Tools', 'Submissions', 'Analytics', 'Email', 'Flags', 'Users', 'Reviews']
 
-const CATEGORY_STYLES = {
-  Coding: 'bg-blue-500',
-  'Writing & Docs': 'bg-purple-500',
-  Research: 'bg-emerald-500',
-  Productivity: 'bg-amber-500',
-  'Image Gen': 'bg-pink-500',
-  'Video Gen': 'bg-red-500',
-  Design: 'bg-cyan-500',
+const EMPTY_TOOL = {
+  slug: '', name: '', tagline: '', description: '', category: '',
+  subCategory: '', pricing: '', link: '', affiliate_url: '',
+  features: '', tags: '', use_cases: '', studentPerk: false, hidden: false,
 }
-
-const CATEGORY_ORDER = [
-  'Writing & Docs',
-  'Coding',
-  'Research',
-  'Productivity',
-  'Image Gen',
-  'Video Gen',
-  'Design',
-]
 
 function getToolSlug(tool = {}) {
-  if (tool.slug) {
-    return String(tool.slug)
+  if (tool.slug) return String(tool.slug)
+  return String(tool.name || '').toLowerCase().trim()
+    .replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-')
+}
+
+async function api(url, options = {}) {
+  const res = await fetch(url, { credentials: 'include', ...options })
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`)
+  return data
+}
+
+function listToText(v) {
+  return Array.isArray(v) ? v.join(', ') : (v || '')
+}
+
+/* ---------- Full tool editor (create + edit) ---------- */
+function ToolForm({ initial, isNew, onClose, onSaved }) {
+  const [form, setForm] = useState({
+    ...EMPTY_TOOL,
+    ...initial,
+    features: listToText(initial?.features),
+    tags: listToText(initial?.tags),
+    use_cases: listToText(initial?.use_cases ?? initial?.useCases),
+  })
+  const [saving, setSaving] = useState(false)
+
+  const set = (k) => (e) => {
+    const v = e.target.type === 'checkbox' ? e.target.checked : e.target.value
+    setForm((f) => ({ ...f, [k]: v }))
   }
-  return String(tool.name || '')
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9\s-]/g, '')
-    .replace(/\s+/g, '-')
-}
 
-function getToolRating(tool = {}) {
-  return Number(tool.rating || tool.average_rating || tool.averageRating || 0)
-}
-
-function downloadTextFile(filename, content, mimeType) {
-  const blob = new Blob([content], { type: mimeType })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = filename
-  document.body.appendChild(link)
-  link.click()
-  link.remove()
-  URL.revokeObjectURL(url)
-}
-
-function buildCsvRow(values) {
-  return values
-    .map((value) => {
-      const text = String(value ?? '')
-      const escaped = text.replaceAll('"', '""')
-      return `"${escaped}"`
-    })
-    .join(',')
-}
-
-function EditToolModal({ tool, onClose, onSave }) {
-  const [name, setName] = useState(tool?.name || '')
-  const [description, setDescription] = useState(tool?.description || tool?.shortDescription || '')
-
-  if (!tool) {
-    return null
+  const submit = async () => {
+    if (!form.name.trim()) {
+      toast.error('Name is required')
+      return
+    }
+    setSaving(true)
+    try {
+      const body = JSON.stringify(form)
+      const headers = { 'Content-Type': 'application/json' }
+      if (isNew) {
+        await api('/api/v1/admin/tools', { method: 'POST', headers, body })
+        toast.success('Tool created')
+      } else {
+        await api(`/api/v1/admin/tools/${encodeURIComponent(getToolSlug(form))}`, {
+          method: 'PUT', headers, body,
+        })
+        toast.success('Tool updated')
+      }
+      onSaved()
+      onClose()
+    } catch (err) {
+      toast.error(err.message)
+    } finally {
+      setSaving(false)
+    }
   }
+
+  const field = (label, key, opts = {}) => (
+    <label className="block">
+      <span className="text-xs font-medium text-gray-600 dark:text-gray-400">{label}</span>
+      {opts.textarea ? (
+        <textarea
+          value={form[key]} onChange={set(key)} rows={opts.rows || 3}
+          className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100"
+        />
+      ) : (
+        <input
+          value={form[key]} onChange={set(key)} placeholder={opts.placeholder}
+          className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100"
+        />
+      )}
+    </label>
+  )
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-      <div className="w-full max-w-lg rounded-2xl border border-gray-700 bg-white dark:bg-gray-900 p-6 shadow-xl dark:shadow-gray-900/50">
-        <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Edit Tool</h3>
-        <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">Local inline edit preview for admin workflow.</p>
-
-        <label className="mt-4 block text-sm text-gray-700 dark:text-gray-300">Name</label>
-        <input
-          value={name}
-          onChange={(event) => setName(event.target.value)}
-          className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-        />
-
-        <label className="mt-4 block text-sm text-gray-700 dark:text-gray-300">Description</label>
-        <textarea
-          value={description}
-          onChange={(event) => setDescription(event.target.value)}
-          rows={4}
-          className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-        />
-
+      <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-gray-700 bg-white p-6 shadow-xl dark:bg-gray-900">
+        <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+          {isNew ? 'Add New Tool' : `Edit: ${form.name}`}
+        </h3>
+        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {field('Name *', 'name')}
+          {field('Slug' + (isNew ? ' (auto if blank)' : ' (locked)'), 'slug', { placeholder: 'auto-generated' })}
+          {field('Tagline', 'tagline')}
+          {field('Category', 'category')}
+          {field('Sub-category', 'subCategory')}
+          {field('Pricing', 'pricing', { placeholder: 'Free / Freemium / Paid' })}
+          {field('Website / link', 'link')}
+          {field('Affiliate URL', 'affiliate_url', { placeholder: 'optional' })}
+        </div>
+        <div className="mt-4 grid grid-cols-1 gap-4">
+          {field('Description', 'description', { textarea: true, rows: 3 })}
+          {field('Features (comma-separated)', 'features', { textarea: true, rows: 2 })}
+          {field('Tags (comma-separated)', 'tags')}
+          {field('Use cases (comma-separated)', 'use_cases')}
+        </div>
+        <div className="mt-4 flex gap-6">
+          <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+            <input type="checkbox" checked={!!form.studentPerk} onChange={set('studentPerk')} />
+            Student-friendly
+          </label>
+          <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+            <input type="checkbox" checked={!!form.hidden} onChange={set('hidden')} />
+            Hidden
+          </label>
+        </div>
         <div className="mt-6 flex justify-end gap-2">
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 transition hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
-          >
+          <button onClick={onClose} className="rounded-lg border border-gray-300 px-4 py-2 text-sm dark:border-gray-700 dark:text-gray-300">
             Cancel
           </button>
-          <button
-            type="button"
-            onClick={() => onSave({ ...tool, name, description })}
-            className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-500"
-          >
-            Save
+          <button onClick={submit} disabled={saving} className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60">
+            {saving ? 'Saving…' : isNew ? 'Create' : 'Save'}
           </button>
         </div>
       </div>
     </div>
   )
+}
+
+function Card({ children }) {
+  return <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">{children}</section>
 }
 
 function AdminPage() {
   const navigate = useNavigate()
-
   const [activeTab, setActiveTab] = useState('Overview')
-  const [isAuthorized, setIsAuthorized] = useState(false)
+  const [authed, setAuthed] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [runningAction, setRunningAction] = useState('')
 
-  const [stats, setStats] = useState({
-    total_tools: 0,
-    total_users: 0,
-    model_status: 'inactive',
-    new_users_today: 0,
-    category_counts: {},
-    free_tools: 0,
-    freemium_tools: 0,
-    index_size: 0,
-  })
-
+  const [stats, setStats] = useState({})
   const [tools, setTools] = useState([])
   const [users, setUsers] = useState([])
   const [reviews, setReviews] = useState([])
+  const [submissions, setSubmissions] = useState([])
+  const [analytics, setAnalytics] = useState(null)
+  const [flags, setFlags] = useState([])
 
   const [toolsQuery, setToolsQuery] = useState('')
   const [toolsPage, setToolsPage] = useState(1)
-
-  const [editingTool, setEditingTool] = useState(null)
+  const [editing, setEditing] = useState(null) // {tool, isNew}
+  const [digestBusy, setDigestBusy] = useState('')
 
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem('user') || 'null')
-    if (!user || !ADMIN_EMAILS.includes(user.email)) {
+    const u = JSON.parse(localStorage.getItem('user') || 'null')
+    if (!u || !(u.is_admin || ADMIN_EMAILS.includes(u.email))) {
       navigate('/')
       return
     }
-
-    setIsAuthorized(true)
+    setAuthed(true)
   }, [navigate])
 
+  const reloadTools = useCallback(async () => {
+    const data = await api('/api/v1/tools')
+    setTools(Array.isArray(data) ? data : data.results || [])
+  }, [])
+
   useEffect(() => {
-    if (!isAuthorized) {
-      return
-    }
-
-    let mounted = true
-
-    async function loadAdminData() {
+    if (!authed) return
+    let on = true
+    ;(async () => {
       try {
-        const [statsResponse, toolsResponse, usersResponse, reviewsResponse] = await Promise.all([
-          fetch('/api/v1/admin/stats'),
-          fetch('/api/v1/tools'),
-          fetch('/api/v1/admin/users'),
-          fetch('/api/v1/admin/reviews'),
+        const [s, t, u, r] = await Promise.all([
+          api('/api/v1/admin/stats').catch(() => ({})),
+          api('/api/v1/tools').catch(() => []),
+          api('/api/v1/admin/users').catch(() => []),
+          api('/api/v1/admin/reviews').catch(() => ({ reviews: [] })),
         ])
-
-        const statsData = statsResponse.ok ? await statsResponse.json() : {}
-        const toolsData = toolsResponse.ok ? await toolsResponse.json() : []
-        const usersData = usersResponse.ok ? await usersResponse.json() : []
-        const reviewsData = reviewsResponse.ok ? await reviewsResponse.json() : { reviews: [] }
-
-        if (!mounted) {
-          return
-        }
-
-        setStats({
-          total_tools: Number(statsData.total_tools || 0),
-          total_users: Number(statsData.total_users || 0),
-          new_users_today: Number(statsData.new_users_today || 0),
-          category_counts: statsData.category_counts || {},
-          free_tools: Number(statsData.free_tools || 0),
-          freemium_tools: Number(statsData.freemium_tools || 0),
-          model_status: String(statsData.model_status || 'inactive').toLowerCase(),
-          index_size: Number(statsData.index_size || 0),
-        })
-        const normalizedTools = Array.isArray(toolsData)
-          ? toolsData
-          : Array.isArray(toolsData?.results)
-            ? toolsData.results
-            : []
-        setTools(normalizedTools)
-        setUsers(Array.isArray(usersData) ? usersData : [])
-        setReviews(Array.isArray(reviewsData.reviews) ? reviewsData.reviews : [])
-      } catch {
-        if (mounted) {
-          toast.error('Failed to load admin data')
-        }
+        if (!on) return
+        setStats(s || {})
+        setTools(Array.isArray(t) ? t : t.results || [])
+        setUsers(Array.isArray(u) ? u : [])
+        setReviews(Array.isArray(r.reviews) ? r.reviews : [])
       } finally {
-        if (mounted) {
-          setLoading(false)
-        }
+        if (on) setLoading(false)
       }
-    }
+    })()
+    return () => { on = false }
+  }, [authed])
 
-    loadAdminData()
-
-    return () => {
-      mounted = false
-    }
-  }, [isAuthorized])
-
-  const modelActive = stats.model_status === 'active'
-
-  const freeToolsPercent = useMemo(() => {
-    if (!stats.total_tools) {
-      return 0
-    }
-    return Math.round((stats.free_tools / stats.total_tools) * 100)
-  }, [stats.free_tools, stats.total_tools])
-
-  const categoryBreakdown = useMemo(() => {
-    const counts = CATEGORY_ORDER.map((category) => ({
-      category,
-      count: Number(stats.category_counts?.[category] || 0),
-    }))
-    const maxCount = Math.max(1, ...counts.map((item) => item.count))
-
-    return counts.map((item) => ({
-      ...item,
-      widthPercent: Math.max(2, Math.round((item.count / maxCount) * 100)),
-      barClass: CATEGORY_STYLES[item.category] || 'bg-slate-500',
-    }))
-  }, [stats.category_counts])
+  // lazy-load tab data
+  useEffect(() => {
+    if (!authed) return
+    if (activeTab === 'Submissions') api('/api/v1/admin/submissions?status=pending').then(setSubmissions).catch(() => {})
+    if (activeTab === 'Analytics') api('/api/v1/admin/analytics').then(setAnalytics).catch(() => {})
+    if (activeTab === 'Flags') api('/api/v1/admin/flags').then(setFlags).catch(() => {})
+  }, [activeTab, authed])
 
   const filteredTools = useMemo(() => {
-    const normalized = toolsQuery.trim().toLowerCase()
-    if (!normalized) {
-      return tools
-    }
-
-    return tools.filter((tool) => {
-      const name = String(tool.name || '').toLowerCase()
-      const category = String(tool.category || '').toLowerCase()
-      return name.includes(normalized) || category.includes(normalized)
-    })
+    const q = toolsQuery.trim().toLowerCase()
+    if (!q) return tools
+    return tools.filter((t) =>
+      String(t.name || '').toLowerCase().includes(q) ||
+      String(t.category || '').toLowerCase().includes(q))
   }, [tools, toolsQuery])
 
-  const totalToolsPages = Math.max(1, Math.ceil(filteredTools.length / TOOLS_PAGE_SIZE))
+  const totalPages = Math.max(1, Math.ceil(filteredTools.length / TOOLS_PAGE_SIZE))
+  const pageTools = useMemo(() => {
+    const p = Math.min(toolsPage, totalPages)
+    return filteredTools.slice((p - 1) * TOOLS_PAGE_SIZE, p * TOOLS_PAGE_SIZE)
+  }, [filteredTools, toolsPage, totalPages])
+  useEffect(() => { setToolsPage(1) }, [toolsQuery])
 
-  const paginatedTools = useMemo(() => {
-    const safePage = Math.min(toolsPage, totalToolsPages)
-    const start = (safePage - 1) * TOOLS_PAGE_SIZE
-    return filteredTools.slice(start, start + TOOLS_PAGE_SIZE)
-  }, [filteredTools, toolsPage, totalToolsPages])
-
-  useEffect(() => {
-    setToolsPage(1)
-  }, [toolsQuery])
-
-  useEffect(() => {
-    if (toolsPage > totalToolsPages) {
-      setToolsPage(totalToolsPages)
-    }
-  }, [toolsPage, totalToolsPages])
-
-  const handleSaveEditedTool = async (updatedTool) => {
+  const openEdit = async (tool) => {
     try {
-      const response = await fetch(`/api/v1/admin/tools/${encodeURIComponent(getToolSlug(updatedTool))}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ name: updatedTool.name, description: updatedTool.description }),
-      })
-      const payload = await response.json().catch(() => ({}))
-
-      if (!response.ok || !payload.success) {
-        throw new Error(payload.error || 'Failed to update tool')
-      }
-
-      setTools((prev) =>
-        prev.map((tool) => {
-          if (getToolSlug(tool) === getToolSlug(updatedTool)) {
-            return {
-              ...tool,
-              name: updatedTool.name,
-              description: updatedTool.description,
-            }
-          }
-          return tool
-        }),
-      )
-      setEditingTool(null)
-      toast.success('Tool updated successfully')
-    } catch (error) {
-      toast.error(error.message || 'Failed to update tool')
+      const data = await api(`/api/v1/admin/tools/${encodeURIComponent(getToolSlug(tool))}`)
+      setEditing({ tool: data.tool, isNew: false })
+    } catch (e) {
+      toast.error(e.message)
     }
   }
 
-  const handleHideTool = async (slug) => {
+  const toggleHide = async (tool) => {
     try {
-      const response = await fetch(`/api/v1/admin/tools/${encodeURIComponent(slug)}/hide`, {
-        method: 'POST',
-        credentials: 'include',
+      const next = !tool.hidden
+      await api(`/api/v1/admin/tools/${encodeURIComponent(getToolSlug(tool))}/hide`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ hidden: next }),
       })
-      const payload = await response.json().catch(() => ({}))
-
-      if (!response.ok || !payload.success) {
-        throw new Error(payload.error || 'Failed to hide tool')
-      }
-
-      setTools((prev) => prev.map((tool) => (getToolSlug(tool) === slug ? { ...tool, hidden: true } : tool)))
-      toast.success('Tool hidden from search')
-    } catch (error) {
-      toast.error(error.message || 'Failed to hide tool')
-    }
+      await reloadTools()
+      toast.success(next ? 'Tool hidden' : 'Tool visible')
+    } catch (e) { toast.error(e.message) }
   }
 
-  const handleDeleteTool = async (slug) => {
-    const confirmed = window.confirm('Delete this tool permanently? This cannot be undone.')
-    if (!confirmed) {
-      return
-    }
-
+  const setAffiliate = async (tool) => {
+    const url = window.prompt(`Affiliate URL for ${tool.name} (blank to clear):`, tool.affiliate_url || '')
+    if (url === null) return
     try {
-      const response = await fetch(`/api/v1/admin/tools/${encodeURIComponent(slug)}`, {
-        method: 'DELETE',
-        credentials: 'include',
+      await api(`/api/v1/admin/tools/${encodeURIComponent(getToolSlug(tool))}/affiliate`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ affiliate_url: url.trim() }),
       })
-      const payload = await response.json().catch(() => ({}))
+      await reloadTools()
+      toast.success('Affiliate link updated')
+    } catch (e) { toast.error(e.message) }
+  }
 
-      if (!response.ok || !payload.success) {
-        throw new Error(payload.error || 'Failed to delete tool')
-      }
-
-      setTools((prev) => prev.filter((tool) => getToolSlug(tool) !== slug))
-      setStats((prev) => ({ ...prev, total_tools: Math.max(0, prev.total_tools - 1) }))
+  const removeTool = async (tool) => {
+    if (!window.confirm(`Delete "${tool.name}" permanently?`)) return
+    try {
+      await api(`/api/v1/admin/tools/${encodeURIComponent(getToolSlug(tool))}`, { method: 'DELETE' })
+      await reloadTools()
       toast.success('Tool deleted')
-    } catch (error) {
-      toast.error(error.message || 'Failed to delete tool')
-    }
+    } catch (e) { toast.error(e.message) }
   }
 
-  const handleDeleteReview = async (id) => {
-    if (!confirm("Delete this review?")) return;
+  const runDigest = async (dry) => {
+    setDigestBusy(dry ? 'dry' : 'send')
     try {
-      const res = await fetch(`/api/v1/admin/reviews/${id}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
-      const data = await res.json();
-      if (data.success) {
-        setReviews(prev => prev.filter(r => r.id !== id));
-        toast.success("Review deleted");
-      }
-    } catch {
-      toast.error("Failed to delete review");
-    }
-  };
-
-  const handleExportCsv = () => {
-    const header = buildCsvRow(['Name', 'Category', 'Rating', 'Pricing', 'Student Friendly', 'Slug'])
-    const rows = tools.map((tool) =>
-      buildCsvRow([
-        tool.name || '',
-        tool.category || '',
-        getToolRating(tool).toFixed(1),
-        tool.pricing || tool.pricing_tier || '',
-        String(tool.student_friendly === true),
-        getToolSlug(tool),
-      ]),
-    )
-
-    downloadTextFile('ai-compass-tools.csv', [header, ...rows].join('\n'), 'text/csv;charset=utf-8;')
-    toast.success('CSV exported')
+      const data = await api(`/api/v1/admin/digest?${dry ? 'dry_run=1' : ''}`, { method: 'POST' })
+      toast.success(`${data.status}: ${data.new_tools ?? data.seeded ?? 0} new · ${data.recipients ?? 0} recipients${data.delivered != null ? ` · ${data.delivered} sent` : ''}`)
+    } catch (e) { toast.error(e.message) } finally { setDigestBusy('') }
   }
 
-  const handleRetrainModel = async () => {
-    setRunningAction('retrain')
+  const reviewSubmission = async (id, action) => {
     try {
-      const response = await fetch('/api/v1/admin/retrain', { method: 'POST' })
-      const payload = await response.json()
-      if (payload.success) {
-        toast.success('Model retrained successfully')
-      } else {
-        toast.error('Model retrain failed')
-      }
-    } catch {
-      toast.error('Failed to retrain model')
-    } finally {
-      setRunningAction('')
-    }
+      await api(`/api/v1/admin/submissions/${id}/${action}`, { method: 'POST' })
+      setSubmissions((s) => s.filter((x) => x.id !== id))
+      toast.success(action === 'approve' ? 'Approved & added to catalog' : 'Rejected')
+    } catch (e) { toast.error(e.message) }
   }
 
-  const handleClearCache = async () => {
-    setRunningAction('cache')
+  const setFlag = async (key, patch) => {
     try {
-      const response = await fetch('/api/v1/admin/clear-cache', { method: 'POST' })
-      const payload = await response.json()
-      if (payload.success) {
-        toast.success(payload.message || 'Cache cleared')
-      } else {
-        toast.error('Cache clear failed')
-      }
-    } catch {
-      toast.error('Failed to clear cache')
-    } finally {
-      setRunningAction('')
-    }
+      const data = await api(`/api/v1/admin/flags/${encodeURIComponent(key)}`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(patch),
+      })
+      setFlags((fs) => fs.map((f) => (f.key === key ? { ...f, ...data } : f)))
+    } catch (e) { toast.error(e.message) }
   }
 
-  const renderOverviewTab = () => (
-    <div className="space-y-6">
-      <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
-        <div className="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
-          <p className="text-xs uppercase tracking-wide text-gray-600 dark:text-gray-400">Total Tools</p>
-          <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">{loading ? '...' : stats.total_tools}</p>
-          <p className="mt-1 text-sm text-emerald-400">+12 this week</p>
-        </div>
-
-        <div className="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
-          <p className="text-xs uppercase tracking-wide text-gray-600 dark:text-gray-400">Total Users</p>
-          <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">{loading ? '...' : stats.total_users}</p>
-          <p className="mt-1 text-sm text-emerald-400">↑ {stats.new_users_today} new today</p>
-        </div>
-
-        <div className="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
-          <p className="text-xs uppercase tracking-wide text-gray-600 dark:text-gray-400">ML Model</p>
-          <div className="mt-3 flex items-center gap-2">
-            <span className={`h-3 w-3 rounded-full ${modelActive ? 'animate-pulse bg-emerald-400' : 'bg-rose-400'}`} />
-            <p className="text-lg font-semibold text-gray-900 dark:text-white">{modelActive ? 'Active' : 'Inactive'}</p>
-          </div>
-        </div>
-
-        <div className="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
-          <p className="text-xs uppercase tracking-wide text-gray-600 dark:text-gray-400">Collections</p>
-          <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">{COLLECTIONS_COUNT}</p>
-        </div>
-
-        <div className="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
-          <p className="text-xs uppercase tracking-wide text-gray-600 dark:text-gray-400">Free Tools %</p>
-          <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">{freeToolsPercent}%</p>
-        </div>
-      </section>
-
-      <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Category Breakdown</h2>
-        <div className="mt-4 space-y-3">
-          {categoryBreakdown.map((item) => (
-            <div key={item.category} className="grid grid-cols-[160px_1fr_48px] items-center gap-3">
-              <p className="truncate text-sm text-gray-700 dark:text-gray-300">{item.category}</p>
-              <div className="h-6 rounded-md bg-gray-200 p-1 dark:bg-gray-800">
-                <div
-                  className={`h-full rounded ${item.barClass}`}
-                  style={{ width: `${item.widthPercent}%` }}
-                  aria-label={`${item.category} ${item.count}`}
-                />
-              </div>
-              <p className="text-right text-sm font-semibold text-gray-700 dark:text-gray-200">{item.count}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-    </div>
-  )
-
-  const renderToolsTab = () => (
-    <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
-      <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Tools</h2>
-        <div className="flex w-full flex-col gap-2 md:w-auto md:flex-row">
-          <div className="w-full md:w-80">
-            <SearchInput
-              value={toolsQuery}
-              onChange={setToolsQuery}
-              onClear={() => setToolsQuery('')}
-              placeholder="Search name or category"
-            />
-          </div>
-          <button
-            type="button"
-            onClick={handleExportCsv}
-            className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-500"
-          >
-            Export CSV
-          </button>
-        </div>
-      </div>
-
-      <div className="overflow-x-auto">
-        <table className="min-w-full text-left text-sm">
-          <thead>
-            <tr className="border-b border-gray-200 text-gray-600 dark:border-gray-700 dark:text-gray-400">
-              <th className="px-3 py-2 font-semibold">Name</th>
-              <th className="px-3 py-2 font-semibold">Category</th>
-              <th className="px-3 py-2 font-semibold">Rating</th>
-              <th className="px-3 py-2 font-semibold">Pricing</th>
-              <th className="px-3 py-2 font-semibold">Student Friendly</th>
-              <th className="px-3 py-2 font-semibold">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {paginatedTools.map((tool) => {
-              const slug = getToolSlug(tool)
-
-              return (
-                <tr key={slug} className="border-b border-gray-200 dark:border-gray-800">
-                  <td className="px-3 py-2 text-gray-900 dark:text-gray-100">{tool.name || 'Unknown'}</td>
-                  <td className="px-3 py-2 text-gray-700 dark:text-gray-300">{tool.category || 'Uncategorized'}</td>
-                  <td className="px-3 py-2 text-gray-700 dark:text-gray-300">{getToolRating(tool).toFixed(1)}</td>
-                  <td className="px-3 py-2 text-gray-700 dark:text-gray-300">{tool.pricing || tool.pricing_tier || 'Unknown'}</td>
-                  <td className="px-3 py-2 text-gray-700 dark:text-gray-300">{tool.student_friendly === true ? 'Yes' : 'No'}</td>
-                  <td className="px-3 py-2">
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => window.open(`/tools/${slug}`, '_blank', 'noopener,noreferrer')}
-                        className="rounded-md border border-gray-300 p-1.5 text-gray-700 transition hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
-                        aria-label={`View ${tool.name}`}
-                      >
-                        <Eye className="h-4 w-4" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setEditingTool(tool)}
-                        className="rounded-md border border-gray-300 p-1.5 text-gray-700 transition hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
-                        aria-label={`Edit ${tool.name}`}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleHideTool(slug)}
-                        disabled={Boolean(tool.hidden)}
-                        className="rounded-md border border-gray-300 p-1.5 text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
-                        aria-label={`Hide ${tool.name}`}
-                      >
-                        <EyeOff className="h-4 w-4" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteTool(slug)}
-                        className="rounded-md border border-rose-300 p-1.5 text-rose-700 transition hover:bg-rose-50 dark:border-rose-500/40 dark:text-rose-300 dark:hover:bg-rose-500/10"
-                        aria-label={`Delete ${tool.name}`}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              )
-            })}
-
-            {!loading && paginatedTools.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="px-3 py-6 text-center text-gray-500 dark:text-gray-400">
-                  No tools found.
-                </td>
-              </tr>
-            ) : null}
-          </tbody>
-        </table>
-      </div>
-
-      <div className="mt-4 flex items-center justify-between">
-        <p className="text-xs text-gray-600 dark:text-gray-400">
-          Showing {paginatedTools.length} of {filteredTools.length}
-        </p>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setToolsPage((prev) => Math.max(1, prev - 1))}
-            disabled={toolsPage <= 1}
-            className="rounded-md border border-gray-300 px-3 py-1 text-sm text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
-          >
-            Prev
-          </button>
-          <span className="text-sm text-gray-700 dark:text-gray-300">
-            Page {toolsPage} / {totalToolsPages}
-          </span>
-          <button
-            type="button"
-            onClick={() => setToolsPage((prev) => Math.min(totalToolsPages, prev + 1))}
-            disabled={toolsPage >= totalToolsPages}
-            className="rounded-md border border-gray-300 px-3 py-1 text-sm text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
-          >
-            Next
-          </button>
-        </div>
-      </div>
-    </section>
-  )
-
-  const renderUsersTab = () => (
-    <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
-      <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Users</h2>
-      <div className="mt-4 overflow-x-auto">
-        <table className="min-w-full text-left text-sm">
-          <thead>
-            <tr className="border-b border-gray-200 text-gray-600 dark:border-gray-700 dark:text-gray-400">
-              <th className="px-3 py-2 font-semibold">ID</th>
-              <th className="px-3 py-2 font-semibold">Name</th>
-              <th className="px-3 py-2 font-semibold">Email</th>
-              <th className="px-3 py-2 font-semibold">OAuth Provider</th>
-              <th className="px-3 py-2 font-semibold">Member Since</th>
-              <th className="px-3 py-2 font-semibold">Admin</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((user) => (
-              <tr key={user.id} className="border-b border-gray-200 dark:border-gray-800">
-                <td className="px-3 py-2 text-gray-700 dark:text-gray-300">{user.id}</td>
-                <td className="px-3 py-2 text-gray-900 dark:text-gray-100">{user.display_name || 'Unknown'}</td>
-                <td className="px-3 py-2 text-gray-700 dark:text-gray-300">{user.email || 'Unknown'}</td>
-                <td className="px-3 py-2 text-gray-700 dark:text-gray-300">{user.oauth_provider || 'password'}</td>
-                <td className="px-3 py-2 text-gray-700 dark:text-gray-300">
-                  {user.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}
-                </td>
-                <td className="px-3 py-2">
-                  {user.is_admin ? (
-                    <span className="rounded-full bg-emerald-900/60 px-2 py-1 text-xs font-semibold text-emerald-300">Admin</span>
-                  ) : (
-                    <span className="rounded-full bg-gray-200 px-2 py-1 text-xs font-semibold text-gray-700 dark:bg-gray-800 dark:text-gray-300">User</span>
-                  )}
-                </td>
-              </tr>
-            ))}
-            {!loading && users.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="px-3 py-6 text-center text-gray-500 dark:text-gray-400">
-                  No users found.
-                </td>
-              </tr>
-            ) : null}
-          </tbody>
-        </table>
-      </div>
-    </section>
-  )
-
-  const renderReviewsTab = () => (
-    <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
-      <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Reviews</h2>
-      <div className="mt-4 space-y-4">
-        {reviews.map((r) => (
-          <div key={r.id} className="rounded-lg border border-gray-200 p-4 dark:border-gray-800">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="font-medium text-gray-900 dark:text-gray-100">{r.user}</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Tool: {r.tool_slug}</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => handleDeleteReview(r.id)}
-                className="rounded-md border border-rose-300 p-2 text-rose-700 transition hover:bg-rose-50 dark:border-rose-500/40 dark:text-rose-300 dark:hover:bg-rose-500/10"
-                aria-label={`Delete review`}
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
-            </div>
-            <p className="mt-2 text-gray-700 dark:text-gray-300">{r.body}</p>
-          </div>
-        ))}
-        {!loading && reviews.length === 0 ? (
-          <p className="text-gray-500 dark:text-gray-400">No reviews found.</p>
-        ) : null}
-      </div>
-    </section>
-  )
-
-  const renderModelTab = () => (
-    <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
-      <h2 className="text-xl font-semibold text-gray-900 dark:text-white">ML Model</h2>
-      <p className={`mt-3 text-lg font-semibold ${modelActive ? 'text-emerald-400' : 'text-rose-400'}`}>
-        {modelActive ? 'ML Model: Active ✓' : 'ML Model: Inactive'}
-      </p>
-      <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">Index size: {stats.index_size}</p>
-      <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">Use quick actions to retrain and refresh cached tool data.</p>
-    </section>
-  )
-
-  if (!isAuthorized) {
-    return null
-  }
+  if (!authed) return null
 
   return (
     <div className="mx-auto w-full max-w-[1400px] px-4 py-8 sm:px-6 lg:px-8">
-      <section className="mb-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900 dark:shadow-gray-900/50">
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Admin Dashboard</h1>
-        <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">Platform analytics, inventory control, and model operations.</p>
-      </section>
+      <header className="mb-6 rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Admin Dashboard</h1>
+        <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+          Catalog, monetisation, email, analytics — all changes persist in the database.
+        </p>
+      </header>
 
-      <section className="mb-6 flex items-center gap-6 border-b border-gray-200 dark:border-gray-800">
-        {TABS.map((tab) => {
-          const active = tab === activeTab
-          return (
-            <button
-              key={tab}
-              type="button"
-              onClick={() => setActiveTab(tab)}
-              className={`pb-3 text-sm font-semibold transition ${
-                active ? 'border-b-2 border-indigo-500 text-indigo-400' : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200'
-              }`}
-            >
-              {tab}
-            </button>
-          )
-        })}
-      </section>
+      <nav className="mb-6 flex flex-wrap gap-5 border-b border-gray-200 dark:border-gray-800">
+        {TABS.map((t) => (
+          <button key={t} onClick={() => setActiveTab(t)}
+            className={`pb-3 text-sm font-semibold ${activeTab === t ? 'border-b-2 border-indigo-500 text-indigo-500' : 'text-gray-500 hover:text-gray-800 dark:hover:text-gray-200'}`}>
+            {t}
+          </button>
+        ))}
+      </nav>
 
-      <section className="grid grid-cols-1 gap-6 xl:grid-cols-[1fr_320px]">
-        <div>
-          {activeTab === 'Overview' ? renderOverviewTab() : null}
-          {activeTab === 'Tools' ? renderToolsTab() : null}
-          {activeTab === 'Users' ? renderUsersTab() : null}
-          {activeTab === 'Reviews' ? renderReviewsTab() : null}
-          {activeTab === 'ML Model' ? renderModelTab() : null}
+      {activeTab === 'Overview' && (
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          {[
+            ['Total Tools', stats.total_tools],
+            ['Total Users', stats.total_users],
+            ['New Today', stats.new_users_today],
+            ['Free Tools', stats.free_tools],
+          ].map(([k, v]) => (
+            <Card key={k}>
+              <p className="text-xs uppercase tracking-wide text-gray-500">{k}</p>
+              <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">{loading ? '…' : (v ?? 0)}</p>
+            </Card>
+          ))}
         </div>
+      )}
 
-        <aside className="h-fit rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Quick Actions</h2>
-          <div className="mt-4 space-y-3">
-            <button
-              type="button"
-              onClick={handleRetrainModel}
-              disabled={runningAction === 'retrain'}
-              className="w-full rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-500 disabled:opacity-60"
-            >
-              {runningAction === 'retrain' ? 'Retraining...' : 'Retrain ML Model'}
-            </button>
-
-            <button
-              type="button"
-              onClick={handleClearCache}
-              disabled={runningAction === 'cache'}
-              className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-100 disabled:opacity-60 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
-            >
-              {runningAction === 'cache' ? 'Clearing...' : 'Clear Tool Cache'}
-            </button>
-
-            <a
-              href="/data/tools.json"
-              download
-              className="block w-full rounded-lg border border-gray-300 px-4 py-2 text-center text-sm font-semibold text-gray-700 transition hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
-            >
-              Export All Tools JSON
-            </a>
+      {activeTab === 'Tools' && (
+        <Card>
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Tools ({filteredTools.length})</h2>
+            <div className="flex gap-2">
+              <div className="w-64"><SearchInput value={toolsQuery} onChange={setToolsQuery} onClear={() => setToolsQuery('')} placeholder="Search name/category" /></div>
+              <button onClick={() => setEditing({ tool: { ...EMPTY_TOOL }, isNew: true })}
+                className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white">
+                <Plus className="h-4 w-4" /> Add Tool
+              </button>
+            </div>
           </div>
-        </aside>
-      </section>
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-left text-sm">
+              <thead><tr className="border-b border-gray-200 text-gray-500 dark:border-gray-700">
+                <th className="px-3 py-2">Name</th><th className="px-3 py-2">Category</th>
+                <th className="px-3 py-2">Pricing</th><th className="px-3 py-2">Affiliate</th>
+                <th className="px-3 py-2">Status</th><th className="px-3 py-2">Actions</th>
+              </tr></thead>
+              <tbody>
+                {pageTools.map((tool) => (
+                  <tr key={getToolSlug(tool)} className="border-b border-gray-100 dark:border-gray-800">
+                    <td className="px-3 py-2 text-gray-900 dark:text-gray-100">{tool.name}</td>
+                    <td className="px-3 py-2 text-gray-600 dark:text-gray-400">{tool.category || '—'}</td>
+                    <td className="px-3 py-2 text-gray-600 dark:text-gray-400">{tool.pricing || '—'}</td>
+                    <td className="px-3 py-2">{tool.affiliate_url ? <span className="text-emerald-500">✓</span> : <span className="text-gray-400">—</span>}</td>
+                    <td className="px-3 py-2">{tool.hidden ? <span className="text-amber-500">Hidden</span> : <span className="text-emerald-500">Live</span>}</td>
+                    <td className="px-3 py-2">
+                      <div className="flex gap-1.5">
+                        <button onClick={() => openEdit(tool)} title="Edit" className="rounded border border-gray-300 p-1.5 dark:border-gray-700"><Pencil className="h-4 w-4" /></button>
+                        <button onClick={() => setAffiliate(tool)} title="Affiliate URL" className="rounded border border-gray-300 p-1.5 dark:border-gray-700"><Link2 className="h-4 w-4" /></button>
+                        <button onClick={() => toggleHide(tool)} title={tool.hidden ? 'Show' : 'Hide'} className="rounded border border-gray-300 p-1.5 dark:border-gray-700">{tool.hidden ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}</button>
+                        <button onClick={() => removeTool(tool)} title="Delete" className="rounded border border-rose-300 p-1.5 text-rose-600 dark:border-rose-500/40"><Trash2 className="h-4 w-4" /></button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="mt-4 flex items-center justify-between text-sm">
+            <span className="text-gray-500">Page {toolsPage}/{totalPages}</span>
+            <div className="flex gap-2">
+              <button disabled={toolsPage <= 1} onClick={() => setToolsPage((p) => p - 1)} className="rounded border border-gray-300 px-3 py-1 disabled:opacity-50 dark:border-gray-700">Prev</button>
+              <button disabled={toolsPage >= totalPages} onClick={() => setToolsPage((p) => p + 1)} className="rounded border border-gray-300 px-3 py-1 disabled:opacity-50 dark:border-gray-700">Next</button>
+            </div>
+          </div>
+        </Card>
+      )}
 
-      {editingTool ? (
-        <EditToolModal
-          tool={editingTool}
-          onClose={() => setEditingTool(null)}
-          onSave={handleSaveEditedTool}
+      {activeTab === 'Submissions' && (
+        <Card>
+          <h2 className="mb-4 text-xl font-semibold text-gray-900 dark:text-white">Pending Submissions ({submissions.length})</h2>
+          <div className="space-y-3">
+            {submissions.map((s) => (
+              <div key={s.id} className="rounded-lg border border-gray-200 p-4 dark:border-gray-800">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="font-medium text-gray-900 dark:text-gray-100">{s.name} <span className="text-xs text-gray-500">· {s.category} · {s.pricing_model}</span></p>
+                    <a href={s.website} target="_blank" rel="noreferrer" className="text-xs text-indigo-500">{s.website}</a>
+                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{s.description}</p>
+                  </div>
+                  <div className="flex shrink-0 gap-2">
+                    <button onClick={() => reviewSubmission(s.id, 'approve')} className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white">Approve</button>
+                    <button onClick={() => reviewSubmission(s.id, 'reject')} className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs dark:border-gray-700">Reject</button>
+                  </div>
+                </div>
+              </div>
+            ))}
+            {submissions.length === 0 && <p className="text-sm text-gray-500">No pending submissions.</p>}
+          </div>
+        </Card>
+      )}
+
+      {activeTab === 'Analytics' && (
+        <div className="space-y-4">
+          {!analytics ? <Card><p className="text-sm text-gray-500">Loading…</p></Card> : (
+            <>
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+                {[
+                  ['Outbound clicks', analytics.outbound?.total],
+                  ['Affiliate clicks', analytics.outbound?.affiliate],
+                  ['Clicks (30d)', analytics.outbound?.last_30d],
+                  ['Favorites', analytics.favorites_total],
+                ].map(([k, v]) => (
+                  <Card key={k}><p className="text-xs uppercase text-gray-500">{k}</p><p className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">{v ?? 0}</p></Card>
+                ))}
+              </div>
+              <Card>
+                <h3 className="mb-3 font-semibold text-gray-900 dark:text-white">Top clicked tools</h3>
+                {(analytics.outbound?.top || []).map((r) => (
+                  <div key={r.slug} className="flex justify-between border-b border-gray-100 py-1.5 text-sm dark:border-gray-800">
+                    <span className="text-gray-700 dark:text-gray-300">{r.slug}</span><span className="font-semibold">{r.clicks}</span>
+                  </div>
+                ))}
+                {(analytics.outbound?.top || []).length === 0 && <p className="text-sm text-gray-500">No clicks recorded yet.</p>}
+              </Card>
+            </>
+          )}
+        </div>
+      )}
+
+      {activeTab === 'Email' && (
+        <Card>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">New-tools Email Digest</h2>
+          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+            Dry-run shows how many new tools / recipients without sending. Send emails opted-in users.
+            (Requires SMTP_* env vars set on the server.)
+          </p>
+          <div className="mt-4 flex gap-2">
+            <button disabled={!!digestBusy} onClick={() => runDigest(true)} className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold disabled:opacity-60 dark:border-gray-700 dark:text-gray-200">
+              {digestBusy === 'dry' ? 'Checking…' : 'Dry run'}
+            </button>
+            <button disabled={!!digestBusy} onClick={() => { if (window.confirm('Send the digest email to all opted-in users now?')) runDigest(false) }} className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60">
+              {digestBusy === 'send' ? 'Sending…' : 'Send digest'}
+            </button>
+          </div>
+        </Card>
+      )}
+
+      {activeTab === 'Flags' && (
+        <Card>
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Feature Flags</h2>
+            <button onClick={() => {
+              const k = window.prompt('New flag key (e.g. pro_tier):')
+              if (k) setFlag(k.trim(), { enabled: false })
+            }} className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white">+ New flag</button>
+          </div>
+          <div className="space-y-2">
+            {flags.map((f) => (
+              <div key={f.key} className="flex items-center justify-between rounded-lg border border-gray-200 p-3 dark:border-gray-800">
+                <span className="font-mono text-sm text-gray-800 dark:text-gray-200">{f.key}</span>
+                <button onClick={() => setFlag(f.key, { enabled: !f.enabled })}
+                  className={`rounded-full px-3 py-1 text-xs font-semibold ${f.enabled ? 'bg-emerald-600 text-white' : 'bg-gray-300 text-gray-700 dark:bg-gray-700 dark:text-gray-300'}`}>
+                  {f.enabled ? 'ON' : 'OFF'}
+                </button>
+              </div>
+            ))}
+            {flags.length === 0 && <p className="text-sm text-gray-500">No flags yet.</p>}
+          </div>
+        </Card>
+      )}
+
+      {activeTab === 'Users' && (
+        <Card>
+          <h2 className="mb-4 text-xl font-semibold text-gray-900 dark:text-white">Users ({users.length})</h2>
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-left text-sm">
+              <thead><tr className="border-b border-gray-200 text-gray-500 dark:border-gray-700">
+                <th className="px-3 py-2">Email</th><th className="px-3 py-2">Name</th><th className="px-3 py-2">Joined</th><th className="px-3 py-2">Admin</th>
+              </tr></thead>
+              <tbody>
+                {users.map((u) => (
+                  <tr key={u.id} className="border-b border-gray-100 dark:border-gray-800">
+                    <td className="px-3 py-2 text-gray-700 dark:text-gray-300">{u.email}</td>
+                    <td className="px-3 py-2 text-gray-900 dark:text-gray-100">{u.name || '—'}</td>
+                    <td className="px-3 py-2 text-gray-500">{u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}</td>
+                    <td className="px-3 py-2">{u.is_admin ? '✓' : ''}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      )}
+
+      {activeTab === 'Reviews' && (
+        <Card>
+          <h2 className="mb-4 text-xl font-semibold text-gray-900 dark:text-white">Reviews</h2>
+          <div className="space-y-3">
+            {reviews.map((r) => (
+              <div key={r.id} className="flex items-start justify-between rounded-lg border border-gray-200 p-4 dark:border-gray-800">
+                <div><p className="font-medium text-gray-900 dark:text-gray-100">{r.user} · <span className="text-xs text-gray-500">{r.tool_slug}</span></p><p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{r.body}</p></div>
+                <button onClick={async () => {
+                  if (!window.confirm('Delete this review?')) return
+                  try { await api(`/api/v1/admin/reviews/${r.id}`, { method: 'DELETE' }); setReviews((p) => p.filter((x) => x.id !== r.id)); toast.success('Deleted') }
+                  catch (e) { toast.error(e.message) }
+                }} className="rounded border border-rose-300 p-2 text-rose-600 dark:border-rose-500/40"><Trash2 className="h-4 w-4" /></button>
+              </div>
+            ))}
+            {reviews.length === 0 && <p className="text-sm text-gray-500">No reviews.</p>}
+          </div>
+        </Card>
+      )}
+
+      {editing && (
+        <ToolForm
+          initial={editing.tool}
+          isNew={editing.isNew}
+          onClose={() => setEditing(null)}
+          onSaved={reloadTools}
         />
-      ) : null}
+      )}
     </div>
   )
 }
