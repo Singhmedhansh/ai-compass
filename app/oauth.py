@@ -141,7 +141,14 @@ def init_oauth(app):
             client_id=app.config["LINKEDIN_CLIENT_ID"],
             client_secret=app.config["LINKEDIN_CLIENT_SECRET"],
             server_metadata_url="https://www.linkedin.com/oauth/.well-known/openid-configuration",
-            client_kwargs={"scope": "openid profile email"},
+            client_kwargs={
+                "scope": "openid profile email",
+                # LinkedIn's discovery doc omits
+                # token_endpoint_auth_methods_supported, so Authlib would
+                # default to HTTP Basic — which LinkedIn's token endpoint
+                # rejects. It requires the client creds in the POST body.
+                "token_endpoint_auth_method": "client_secret_post",
+            },
         )
 
 
@@ -264,6 +271,7 @@ def github_callback():
 
         return _spa_success_redirect(user, display_name, avatar_url)
     except Exception:
+        current_app.logger.exception("GitHub OAuth callback failed")
         return redirect(f"{frontend_url}/login?error=github_failed")
 
 
@@ -307,4 +315,5 @@ def linkedin_callback():
 
         return _spa_success_redirect(user, name, picture)
     except Exception:
+        current_app.logger.exception("LinkedIn OAuth callback failed")
         return redirect(f"{frontend_url}/login?error=linkedin_failed")
