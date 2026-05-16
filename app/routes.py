@@ -464,6 +464,73 @@ def outbound(slug):
     return resp
 
 
+# --- First-party favicon proxy --------------------------------------------
+# Tool logos previously loaded straight from icons.duckduckgo.com in the
+# browser. Privacy blockers (Brave Shields, uBlock, network policies)
+# block that third-party request, so a large slice of users saw bland
+# letter tiles instead of logos everywhere on the site. Proxying through
+# our own origin makes it a first-party request (unblockable by shields),
+# cached, and fast. ToolLogo points its <img> here; on a genuine miss we
+# 404 so the component can still fall back to emoji/letter.
+_ICON_CACHE: dict[str, bytes] = {}
+_ICON_NEG_CACHE: set[str] = set()
+_ICON_UA = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/124.0 Safari/537.36"
+)
+
+
+def _fetch_icon_bytes(domain: str) -> bytes | None:
+    """Fetch a favicon for a bare domain, server-side. Tries DuckDuckGo
+    then Google's s2 service. Returns image bytes or None."""
+    import urllib.request
+
+    for url in (
+        f"https://icons.duckduckgo.com/ip3/{domain}.ico",
+        f"https://www.google.com/s2/favicons?domain={domain}&sz=64",
+    ):
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": _ICON_UA})
+            with urllib.request.urlopen(req, timeout=4) as r:
+                if r.status != 200:
+                    continue
+                data = r.read()
+            # Reject empty or implausibly tiny payloads (blank/placeholder).
+            if data and len(data) >= 70:
+                return data
+        except Exception:
+            continue
+    return None
+
+
+@main_bp.route('/icon/<path:domain>')
+def tool_icon(domain):
+    """Cached, first-party favicon proxy for a bare hostname."""
+    dom = (domain or '').strip().lower().rstrip('/')
+    # Accept only sane hostnames; strip scheme/path if any slipped in.
+    dom = re.sub(r'^https?://', '', dom).split('/')[0].lstrip('.')
+    if not dom or not re.fullmatch(r'[a-z0-9.-]{3,253}', dom) or '.' not in dom:
+        return Response(status=404)
+
+    if dom in _ICON_CACHE:
+        body = _ICON_CACHE[dom]
+    elif dom in _ICON_NEG_CACHE:
+        return Response(status=404)
+    else:
+        body = _fetch_icon_bytes(dom)
+        if body is None:
+            if len(_ICON_NEG_CACHE) < 2000:
+                _ICON_NEG_CACHE.add(dom)
+            return Response(status=404)
+        if len(_ICON_CACHE) < 2000:
+            _ICON_CACHE[dom] = body
+
+    resp = Response(body, mimetype='image/x-icon')
+    resp.headers['Cache-Control'] = 'public, max-age=604800, immutable'
+    resp.headers['X-Robots-Tag'] = 'noindex'
+    return resp
+
+
 _OG_CACHE: dict[str, bytes] = {}
 
 

@@ -1,11 +1,12 @@
 import { useState } from 'react'
 
-// Every catalog record points tool.icon at /static/icons/<slug>.svg, but that
-// directory only contains default.png — so the old "curated" step 404'd on all
-// 398 tools and then leaned on Google's favicon API, which returns a generic
-// globe (HTTP 200) for unknown domains and never triggers onError. We now use
-// the same proven chain as the Best*/Alternatives pages:
-//   DuckDuckGo favicon (404s cleanly on miss) -> emoji tile -> letter tile.
+// Logos resolve through a FIRST-PARTY proxy (/icon/<domain>) so privacy
+// blockers (Brave Shields, uBlock, corp networks) can't strip them the way
+// they block a direct icons.duckduckgo.com request — that was leaving a
+// large share of users with bland letter tiles site-wide. The server
+// fetches + caches the favicon (DuckDuckGo, then Google s2) and 404s on a
+// genuine miss so the chain still degrades:
+//   /icon proxy -> emoji tile -> letter tile.
 function getDomain(url) {
   if (!url) {
     return null
@@ -50,7 +51,7 @@ function ToolLogo({ tool, size = 48 }) {
   if (stage === 'favicon' && domain) {
     return (
       <img
-        src={`https://icons.duckduckgo.com/ip3/${domain}.ico`}
+        src={`/icon/${domain}`}
         alt={tool?.name ? `${tool.name} logo` : 'Tool logo'}
         loading="lazy"
         style={{

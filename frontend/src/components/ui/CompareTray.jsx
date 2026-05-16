@@ -31,6 +31,7 @@ function ChipRow({ slugs, onRemove }) {
             slug,
             name: data?.name || slug,
             url: data?.affiliate_url || data?.url || data?.website || data?.link || null,
+            logo_emoji: data?.logo_emoji || data?.emoji || null,
           })),
       ),
     ).then((results) => {
@@ -38,7 +39,11 @@ function ChipRow({ slugs, onRemove }) {
       const updates = {}
       for (const result of results) {
         if (result.status === 'fulfilled' && result.value) {
-          updates[result.value.slug] = { name: result.value.name, url: result.value.url }
+          updates[result.value.slug] = {
+            name: result.value.name,
+            url: result.value.url,
+            logo_emoji: result.value.logo_emoji,
+          }
         }
       }
       if (Object.keys(updates).length > 0) {
@@ -62,7 +67,7 @@ function ChipRow({ slugs, onRemove }) {
             className="inline-flex items-center gap-2 rounded-full border border-line bg-bg-sunk py-1 pl-1 pr-2 text-xs text-ink"
           >
             <span aria-hidden="true" className="flex h-5 w-5 shrink-0 items-center justify-center overflow-hidden">
-              <ToolLogo tool={{ name: displayName, url: meta.url }} size={20} />
+              <ToolLogo tool={{ name: displayName, url: meta.url, logo_emoji: meta.logo_emoji }} size={20} />
             </span>
             <span className="max-w-[8rem] truncate">{displayName}</span>
             <button
