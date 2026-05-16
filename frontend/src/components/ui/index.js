@@ -1,6 +1,7 @@
 export { default as Badge } from './Badge'
 export { default as Button } from './Button'
 export { default as Card } from './Card'
+export { default as CountUp } from './CountUp'
 export { default as CompareToggleButton } from './CompareToggleButton'
 export { default as CompareTray } from './CompareTray'
 export { default as Dropdown } from './Dropdown'

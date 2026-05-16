@@ -1,10 +1,9 @@
 import { motion } from 'framer-motion'
 import { Calendar, Eye, Grid3X3, Heart, Home, Sparkles, Wand2 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
-import CountUp from 'react-countup'
 import { useNavigate } from 'react-router-dom'
 
-import { Button, Card } from '../components/ui'
+import { Button, Card, CountUp } from '../components/ui'
 
 const fadeUp = {
   hidden: { opacity: 0, y: 16 },

@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { AnimatePresence, MotionConfig } from 'framer-motion'
 
+import ErrorBoundary from './components/ErrorBoundary'
 import Footer from './components/Footer'
 import RouteTransition from './components/RouteTransition'
 import CompareTray from './components/ui/CompareTray'
@@ -55,6 +56,7 @@ function AnimatedRoutes() {
   return (
     <AnimatePresence mode="wait" initial={false}>
       <RouteTransition key={location.pathname}>
+        <ErrorBoundary key={location.pathname}>
         <Suspense fallback={<RouteFallback />}>
           <Routes location={location}>
             <Route path="/auth/callback" element={<AuthCallbackPage />} />
@@ -84,6 +86,7 @@ function AnimatedRoutes() {
             <Route path="/best-synthesia-alternatives" element={<BestSynthesiaAlternatives />} />
           </Routes>
         </Suspense>
+        </ErrorBoundary>
       </RouteTransition>
     </AnimatePresence>
   )
