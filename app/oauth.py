@@ -132,21 +132,28 @@ def init_oauth(app):
             client_kwargs={"scope": "read:user user:email"},
         )
 
-    # LinkedIn via "Sign In with LinkedIn using OpenID Connect" (the
-    # current product — the old r_liteprofile/r_emailaddress v2 API is
-    # deprecated). Authlib reads endpoints from the discovery document.
+    # LinkedIn — registered as PLAIN OAUTH2 (no server_metadata_url), not
+    # OIDC. Reason: with OIDC metadata, Authlib auto-injects a nonce into
+    # the authorize request and then requires that nonce echoed back
+    # inside the id_token. LinkedIn does NOT echo nonce in its id_token,
+    # so authorize_access_token() throws "MissingClaimError: Missing
+    # 'nonce' claim" and login fails. (nonce=False does not suppress this
+    # in our Authlib version.) Treating LinkedIn as plain OAuth2 means
+    # Authlib never parses/validates the id_token — we read identity from
+    # the OIDC /v2/userinfo endpoint with the access token instead, which
+    # still works with the openid/profile/email scopes.
     if app.config.get("LINKEDIN_CLIENT_ID") and app.config.get("LINKEDIN_CLIENT_SECRET"):
         oauth.register(
             name="linkedin",
             client_id=app.config["LINKEDIN_CLIENT_ID"],
             client_secret=app.config["LINKEDIN_CLIENT_SECRET"],
-            server_metadata_url="https://www.linkedin.com/oauth/.well-known/openid-configuration",
+            access_token_url="https://www.linkedin.com/oauth/v2/accessToken",
+            authorize_url="https://www.linkedin.com/oauth/v2/authorization",
+            api_base_url="https://api.linkedin.com/",
             client_kwargs={
                 "scope": "openid profile email",
-                # LinkedIn's discovery doc omits
-                # token_endpoint_auth_methods_supported, so Authlib would
-                # default to HTTP Basic — which LinkedIn's token endpoint
-                # rejects. It requires the client creds in the POST body.
+                # LinkedIn's token endpoint requires the client creds in
+                # the POST body, not HTTP Basic.
                 "token_endpoint_auth_method": "client_secret_post",
             },
         )
@@ -285,12 +292,7 @@ def login_linkedin():
         return redirect(f"{frontend_url}/login?error=linkedin_not_configured")
     try:
         redirect_uri = _provider_redirect_uri("oauth.linkedin_callback", "/login/linkedin/callback")
-        # nonce=False: LinkedIn does NOT echo the nonce back in its
-        # id_token, so Authlib's default nonce validation throws
-        # "MissingClaimError: Missing 'nonce' claim" in the callback.
-        # Same reason the Google flow passes nonce=False; identity is
-        # taken from the userinfo endpoint, not the id_token claims.
-        return oauth.linkedin.authorize_redirect(redirect_uri, nonce=False)
+        return oauth.linkedin.authorize_redirect(redirect_uri)
     except Exception:
         return redirect(f"{frontend_url}/login?error=linkedin_failed")
 
@@ -299,12 +301,11 @@ def login_linkedin():
 def linkedin_callback():
     frontend_url = _frontend_base_url()
     try:
-        token = oauth.linkedin.authorize_access_token()
-        # OIDC: the id_token's claims (or the userinfo endpoint) carry
-        # name / email / picture / sub.
-        userinfo = token.get("userinfo")
-        if not userinfo:
-            userinfo = oauth.linkedin.userinfo()
+        # Plain OAuth2 (see init_oauth): Authlib does NOT parse the
+        # id_token, so no nonce validation. Identity comes from LinkedIn's
+        # OIDC userinfo endpoint, called with the access token.
+        oauth.linkedin.authorize_access_token()
+        userinfo = oauth.linkedin.get("v2/userinfo").json()
 
         email = str(userinfo.get("email") or "").strip().lower()
         name = str(userinfo.get("name") or "").strip()
