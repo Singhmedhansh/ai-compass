@@ -3,7 +3,9 @@ import sys
 from urllib.parse import urlparse
 from dotenv import load_dotenv
 
-from flask import Flask, redirect, request
+from datetime import timedelta
+
+from flask import Flask, redirect, request, session
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
@@ -116,8 +118,15 @@ def create_app(config: dict | None = None) -> Flask:
 
     # FIXED SECRET KEY (no setdefault)
     app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "ai-compass-fixed-key-2024")
-    app.config["PERMANENT_SESSION_LIFETIME"] = 86400  # 24 hours
+    # Stay logged in across browser restarts and server deploys until the
+    # user explicitly logs out. The Flask-Login "remember" cookie is signed
+    # with SECRET_KEY (stable), so it survives Render's ephemeral session
+    # store being wiped on every deploy.
+    app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=30)
     app.config["SESSION_REFRESH_EACH_REQUEST"] = True
+    app.config["REMEMBER_COOKIE_DURATION"] = timedelta(days=30)
+    app.config["REMEMBER_COOKIE_SAMESITE"] = "Lax"
+    app.config["REMEMBER_COOKIE_HTTPONLY"] = True
     configured_frontend_url = os.getenv("FRONTEND_URL", "").strip()
     default_frontend_url = "https://ai-compass.in" if is_production else "http://localhost:5173"
     frontend_url = (configured_frontend_url or default_frontend_url).rstrip("/")
@@ -204,6 +213,13 @@ def create_app(config: dict | None = None) -> Flask:
     if not canonical_host and frontend_url:
         parsed_frontend_url = urlparse(frontend_url if "://" in frontend_url else f"https://{frontend_url}")
         canonical_host = (parsed_frontend_url.hostname or "").strip().lower()
+
+    @app.before_request
+    def make_session_permanent():
+        # Without this the session cookie is a browser-session cookie that
+        # dies when the tab/browser closes. Permanent => it lasts
+        # PERMANENT_SESSION_LIFETIME (30 days) instead.
+        session.permanent = True
 
     @app.before_request
     def enforce_canonical_host():

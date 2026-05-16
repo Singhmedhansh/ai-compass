@@ -203,7 +203,14 @@ function Navbar() {
     navigate(`/tools?q=${encodeURIComponent(query)}`)
   }
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    // Clear the server session + Flask-Login remember cookie so the user
+    // stays logged out (otherwise the remember cookie would re-auth them).
+    try {
+      await fetch('/api/v1/auth/logout', { method: 'POST', credentials: 'include' })
+    } catch {
+      // best-effort — still clear client state below
+    }
     localStorage.removeItem('user')
     setUser(null)
     setIsAuthenticated(false)

@@ -1561,11 +1561,23 @@ def auth_login():
         if not password_ok:
             return jsonify({"error": "Invalid credentials"}), 401
 
-        login_user(user)
+        login_user(user, remember=True)
         return jsonify(_serialize_user(user))
     except Exception as e:
         current_app.logger.exception("/auth/login failed: %s", e)
         return jsonify({"error": "Login temporarily unavailable"}), 500
+
+
+@csrf.exempt
+@api_bp.route("/auth/logout", methods=["POST"])
+def auth_logout():
+    """Explicit logout — clears the server session AND the Flask-Login
+    remember cookie so the user stays logged out until they sign in again."""
+    try:
+        logout_user()
+    except Exception:
+        pass
+    return jsonify({"success": True})
 
 
 @csrf.exempt

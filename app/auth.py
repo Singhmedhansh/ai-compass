@@ -114,7 +114,7 @@ def register():
         db.session.commit()
 
         _clear_stale_login_flash_errors()
-        login_user(user)
+        login_user(user, remember=True)
         flash("Welcome to AI Compass.", "success")
         if _requires_onboarding(user):
             return redirect(url_for("main.onboarding"))

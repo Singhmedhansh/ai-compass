@@ -192,7 +192,7 @@ def google_callback():
             db.session.commit()
 
         _clear_stale_login_flash_errors()
-        login_user(user)
+        login_user(user, remember=True)
         user.first_login = False
         user.onboarding_completed = True
         db.session.commit()
@@ -256,7 +256,7 @@ def github_callback():
             user.oauth_picture_url = avatar_url
             db.session.commit()
         _clear_stale_login_flash_errors()
-        login_user(user)
+        login_user(user, remember=True)
         if _requires_onboarding(user):
             return redirect(url_for("main.onboarding"))
         return redirect(url_for("main.dashboard"))
