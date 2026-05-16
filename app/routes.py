@@ -117,7 +117,7 @@ def _seo_body(normalized: str, tool: dict | None = None) -> str:
     if normalized in ('', 'tools'):
         tools = get_cached_tools() or []
         heading = (
-            'AI Compass — Find the Right AI Tool'
+            'AI Compass — 399 Hand-Tested AI Tools for Students'
             if normalized == ''
             else 'AI Tools Directory — AI Compass'
         )
@@ -146,6 +146,31 @@ def _seo_body(normalized: str, tool: dict | None = None) -> str:
         return f'<h1>{_esc(title)}</h1><p>{_esc(desc)}</p><p><a href="/tools">Browse all 399 curated AI tools</a></p>'
 
     return ''
+
+
+def _seo_alternatives(tool: dict, alts: list[dict]) -> str:
+    name = _esc(tool.get('name'))
+    slug = _esc(tool.get('slug'))
+    items = []
+    for a in alts:
+        a_slug = _esc(a.get('slug'))
+        a_name = _esc(a.get('name'))
+        a_desc = _esc(a.get('shortDescription') or a.get('description'))
+        if not a_slug or not a_name:
+            continue
+        items.append(
+            f'<li><a href="/tools/{a_slug}">{a_name}</a>'
+            + (f' — {a_desc}' if a_desc else '')
+            + '</li>'
+        )
+    return (
+        f'<h1>Top {name} Alternatives in 2026</h1>'
+        f'<p>Hand-tested alternatives to {name}, ranked by similarity — pricing, '
+        'free tiers, and use cases compared. Curated by AI Compass.</p>'
+        f'<ul>{"".join(items)}</ul>'
+        f'<p><a href="/tools/{slug}">See {name} details</a> · '
+        '<a href="/tools">Browse all 399 curated AI tools</a></p>'
+    )
 
 
 def _meta_for_request_path(path: str):
@@ -177,6 +202,37 @@ def _meta_for_request_path(path: str):
                 canonical_path=f'/tools/{slug}',
             )
             return _inject_seo_root(html, _seo_body(normalized, tool=tool))
+
+    # Alternatives: /alternatives/<slug> — must emit its OWN canonical.
+    # Without this the SPA fallback served the static homepage canonical,
+    # so Google flagged every alternatives page "Alternate page with proper
+    # canonical tag" and refused to index it.
+    if normalized.startswith('alternatives/') and normalized.count('/') == 1:
+        slug = normalized.split('/', 1)[1]
+        tools = get_cached_tools() or []
+        tool = next(
+            (t for t in tools if str(t.get('slug', '')).strip().lower() == slug.strip().lower()),
+            None,
+        )
+        if tool:
+            name = tool.get('name') or slug
+            tool_cat = str(tool.get('category') or '').strip().lower()
+            alts = [
+                t for t in tools
+                if t is not tool
+                and str(t.get('category') or '').strip().lower() == tool_cat
+                and t.get('slug') and t.get('name')
+            ][:12]
+            html = _inject_meta(
+                base,
+                title=f'Top {name} Alternatives in 2026 | AI Compass',
+                description=(
+                    f'Hand-tested alternatives to {name}, ranked by similarity. '
+                    'Free tiers, pricing, and use cases compared. Curated by AI Compass.'
+                ),
+                canonical_path=f'/alternatives/{slug}',
+            )
+            return _inject_seo_root(html, _seo_alternatives(tool, alts))
 
     # Homepage — keep server title/description identical to the client
     # (HomePage.jsx <Helmet>) so crawlers and users never see a mismatch.
