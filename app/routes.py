@@ -79,12 +79,24 @@ def _inject_seo_root(out_html: str, seo_html: str) -> str:
     React's createRoot().render() replaces these children on mount, so real
     users never see it — this is the standard progressive-enhancement SSR
     shell, not cloaking (the content mirrors what the SPA renders).
+
+    The content is wrapped in an inline visually-hidden (clip) container so
+    that during the ~1s before the JS bundle parses, the browser does NOT
+    paint a flash of unstyled headings/links. It stays in the DOM (crawlers
+    read it fine); it's just off-screen for humans. Inline style is required
+    because the app stylesheet hasn't loaded yet at this point.
     """
     if not seo_html:
         return out_html
+    hidden = (
+        '<div data-seo-shell aria-hidden="true" style="position:absolute;'
+        'width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;'
+        'clip:rect(0 0 0 0);white-space:nowrap;border:0">'
+        f'{seo_html}</div>'
+    )
     replaced, count = re.subn(
         r'<div id="root">\s*</div>',
-        f'<div id="root">{seo_html}</div>',
+        f'<div id="root">{hidden}</div>',
         out_html,
         count=1,
     )
