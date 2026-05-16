@@ -1836,6 +1836,48 @@ def admin_digest():
         return jsonify({"error": "digest_failed", "detail": str(exc)}), 500
 
 
+@api_bp.post("/admin/digest/test")
+@csrf.exempt
+@login_required
+def admin_digest_test():
+    """Send ONE sample digest email to the logged-in admin only.
+
+    Lets the operator verify real inbox delivery (Resend wiring, SPF/
+    DKIM, spam placement) without emailing the whole subscriber list —
+    e.g. when the only 'new' tool is a throwaway test entry.
+    """
+    if not _is_admin():
+        return jsonify({"error": "Forbidden"}), 403
+
+    from app.digest import _email_html
+    from app.email_utils import email_enabled, make_unsubscribe_token, send_email
+
+    if not email_enabled():
+        return jsonify({
+            "status": "disabled",
+            "message": "No email transport configured — set RESEND_API_KEY on the server.",
+        }), 200
+
+    to = (current_user.email or "").strip()
+    if not to:
+        return jsonify({"status": "error", "message": "Your admin account has no email address."}), 400
+
+    # A representative sample so the test email looks like the real thing.
+    tools = (get_cached_tools() or [])[:5]
+    unsub = f"https://ai-compass.in/unsubscribe?token={make_unsubscribe_token(to)}"
+    html, text = _email_html(tools, unsub)
+    ok = send_email(to, "AI Compass — digest test email", html, text)
+    return jsonify({
+        "status": "sent" if ok else "failed",
+        "to": to,
+        "message": (
+            f"Test email sent to {to} — check inbox & spam."
+            if ok else
+            "Send failed — check RESEND_API_KEY / RESEND_FROM and server logs."
+        ),
+    })
+
+
 # ---------------------------------------------------------------------------
 # Admin: feature flags
 # ---------------------------------------------------------------------------

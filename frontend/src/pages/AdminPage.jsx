@@ -245,6 +245,14 @@ function AdminPage() {
       toast.success(`${d.status}: ${d.new_tools ?? d.seeded ?? 0} new · ${d.recipients ?? 0} recipients${d.delivered != null ? ` · ${d.delivered} sent` : ''}`)
     } catch (e) { toast.error(e.message) } finally { setDigestBusy('') }
   }
+  const sendTestEmail = async () => {
+    setDigestBusy('test')
+    try {
+      const d = await api('/api/v1/admin/digest/test', { method: 'POST' })
+      if (d.status === 'sent') toast.success(d.message)
+      else toast.error(d.message || d.status)
+    } catch (e) { toast.error(e.message) } finally { setDigestBusy('') }
+  }
   const reviewSubmission = async (id, action) => {
     try {
       await api(`/api/v1/admin/submissions/${id}/${action}`, { method: 'POST' })
@@ -430,7 +438,8 @@ function AdminPage() {
             </p>
             <div className="mt-4 flex gap-2">
               <button disabled={!!digestBusy} onClick={() => runDigest(true)} className={BTN_GHOST}>{digestBusy === 'dry' ? 'Checking…' : 'Dry run'}</button>
-              <button disabled={!!digestBusy} onClick={() => { if (window.confirm('Send the digest email to all opted-in users now?')) runDigest(false) }} className={BTN_PRIMARY}>{digestBusy === 'send' ? 'Sending…' : 'Send digest'}</button>
+              <button disabled={!!digestBusy} onClick={sendTestEmail} className={BTN_GHOST}>{digestBusy === 'test' ? 'Sending…' : 'Send test to me'}</button>
+              <button disabled={!!digestBusy} onClick={() => { if (window.confirm('Send the digest email to ALL opted-in users now? This is real — use “Send test to me” first to verify delivery.')) runDigest(false) }} className={BTN_PRIMARY}>{digestBusy === 'send' ? 'Sending…' : 'Send digest'}</button>
             </div>
           </Card>
         )}
