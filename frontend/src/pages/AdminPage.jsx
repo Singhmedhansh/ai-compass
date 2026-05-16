@@ -383,11 +383,36 @@ function AdminPage() {
                     <Card key={k}><p className="text-xs uppercase text-muted">{k}</p><p className="mt-2 text-2xl font-bold text-ink">{v ?? 0}</p></Card>
                   ))}
                 </div>
+                {(analytics.outbound?.monetization_gaps || []).length > 0 && (
+                  <Card>
+                    <h3 className="font-semibold text-ink">💸 Monetization gaps</h3>
+                    <p className="mb-3 mt-1 text-xs text-muted">
+                      High-traffic tools with no affiliate link yet — these clicks earn nothing. Sign up for these programs first, then paste the referral URL via each tool&apos;s “Affiliate” action in the Tools tab.
+                    </p>
+                    {(analytics.outbound?.monetization_gaps || []).map((r) => (
+                      <div key={r.slug} className="flex items-center justify-between border-b border-line/60 py-1.5 text-sm">
+                        <span className="text-ink-2">{r.name || r.slug}</span>
+                        <span className="flex items-center gap-3">
+                          <span className="text-xs text-muted">{r.clicks} clicks</span>
+                          <span className="rounded-full bg-danger-soft px-2 py-0.5 text-[11px] font-semibold text-danger">no affiliate</span>
+                        </span>
+                      </div>
+                    ))}
+                  </Card>
+                )}
                 <Card>
                   <h3 className="mb-3 font-semibold text-ink">Top clicked tools</h3>
                   {(analytics.outbound?.top || []).map((r) => (
-                    <div key={r.slug} className="flex justify-between border-b border-line/60 py-1.5 text-sm">
-                      <span className="text-ink-2">{r.slug}</span><span className="font-semibold text-ink">{r.clicks}</span>
+                    <div key={r.slug} className="flex items-center justify-between border-b border-line/60 py-1.5 text-sm">
+                      <span className="text-ink-2">{r.name || r.slug}</span>
+                      <span className="flex items-center gap-3">
+                        {r.has_affiliate ? (
+                          <span className="rounded-full bg-accent-soft px-2 py-0.5 text-[11px] font-semibold text-accent-ink">✓ affiliate</span>
+                        ) : (
+                          <span className="rounded-full bg-bg-sunk px-2 py-0.5 text-[11px] font-semibold text-muted">no affiliate</span>
+                        )}
+                        <span className="font-semibold text-ink">{r.clicks}</span>
+                      </span>
                     </div>
                   ))}
                   {(analytics.outbound?.top || []).length === 0 && <p className="text-sm text-muted">No clicks recorded yet.</p>}

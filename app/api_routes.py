@@ -2002,12 +2002,51 @@ def admin_analytics():
         .all()
     )
 
+    # Annotate each top-clicked tool with its affiliate status (registry
+    # OR admin-set affiliate_url) and surface the monetisation gaps:
+    # high-traffic tools with NO affiliate are where outbound clicks are
+    # currently being given away for free — the priority signup list.
+    from app.affiliates import affiliate_for
+    from app.tool_cache import get_cached_tools
+
+    cached = get_cached_tools() or []
+    aff_url_by_slug = {
+        str(t.get("slug", "")).strip().lower(): (
+            str(t.get("affiliate_url") or "").strip() or None
+        )
+        for t in cached
+    }
+    name_by_slug = {
+        str(t.get("slug", "")).strip().lower(): t.get("name")
+        for t in cached
+    }
+
+    def _has_aff(slug):
+        sl = (slug or "").strip().lower()
+        return bool(affiliate_for(sl) or aff_url_by_slug.get(sl))
+
+    top = [
+        {
+            "slug": s,
+            "name": name_by_slug.get((s or "").strip().lower()) or s,
+            "clicks": n,
+            "has_affiliate": _has_aff(s),
+        }
+        for s, n in top_clicked
+    ]
+    monetization_gaps = [
+        row for row in top if not row["has_affiliate"]
+    ]
+
     return jsonify({
         "outbound": {
             "total": total_clicks,
             "affiliate": affiliate_clicks,
             "last_30d": clicks_30d,
-            "top": [{"slug": s, "clicks": n} for s, n in top_clicked],
+            "top": top,
+            # High-traffic tools with no affiliate link yet — sign up
+            # for these programs first for the biggest revenue lift.
+            "monetization_gaps": monetization_gaps,
         },
         "tool_views_top": [{"tool": t, "views": n} for t, n in top_viewed],
         "favorites_total": Favorite.query.count(),

@@ -427,9 +427,10 @@ def outbound(slug):
         return redirect('/tools', code=302)
 
     aff = affiliate_for(slug_l)
+    db_aff = (str(tool.get('affiliate_url') or '').strip()) or None
     dest = (
         aff
-        or tool.get('affiliate_url')
+        or db_aff
         or tool.get('link')
         or tool.get('url')
         or tool.get('website')
@@ -437,12 +438,19 @@ def outbound(slug):
     if not dest:
         return redirect(f'/tools/{slug_l}', code=302)
 
+    # A click is "affiliate" if the destination is a monetised link from
+    # EITHER source: the affiliates.py registry OR an admin-set
+    # affiliate_url on the catalog row. Previously only registry links
+    # counted, so every affiliate added via the admin panel was logged
+    # as non-affiliate and silently missing from revenue analytics.
+    is_aff = bool(aff or db_aff)
+
     try:
         current_app.logger.info(
-            'outbound_click slug=%s affiliate=%s', slug_l, bool(aff)
+            'outbound_click slug=%s affiliate=%s', slug_l, is_aff
         )
         from app.models import OutboundClick
-        db.session.add(OutboundClick(slug=slug_l, is_affiliate=bool(aff)))
+        db.session.add(OutboundClick(slug=slug_l, is_affiliate=is_aff))
         db.session.commit()
     except Exception:
         try:
