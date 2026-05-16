@@ -426,7 +426,7 @@ function AdminPage() {
           <Card>
             <h2 className="text-xl font-semibold text-ink">New-tools Email Digest</h2>
             <p className="mt-1 text-sm text-muted">
-              Dry-run shows new tools / recipients without sending. Send emails opted-in users. (Requires SMTP_* env vars on the server.)
+              Dry run previews new tools &amp; recipient count without sending anything. Send digest emails all opted-in users (each with an unsubscribe link). Sends automatically once a day when there are new tools — this is for a manual run. Requires <code className="rounded bg-bg-sunk px-1 py-0.5 text-xs">RESEND_API_KEY</code> on the server.
             </p>
             <div className="mt-4 flex gap-2">
               <button disabled={!!digestBusy} onClick={() => runDigest(true)} className={BTN_GHOST}>{digestBusy === 'dry' ? 'Checking…' : 'Dry run'}</button>
