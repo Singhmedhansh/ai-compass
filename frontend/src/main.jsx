@@ -53,8 +53,18 @@ createRoot(document.getElementById('root')).render(
     <HelmetProvider>
       <Toaster
         position="top-right"
+        closeButton
         toastOptions={{
-          style: { background: '#1e1b4b', color: '#fff', border: '1px solid #4f46e5' },
+          style: {
+            background: 'var(--bg-elev)',
+            color: 'var(--ink)',
+            border: '1px solid var(--line)',
+            boxShadow: 'var(--shadow-lg, 0 8px 24px rgba(0,0,0,0.12))',
+          },
+          classNames: {
+            closeButton:
+              'border border-line bg-bg-elev text-ink-2 hover:bg-bg-sunk',
+          },
         }}
       />
       <App />

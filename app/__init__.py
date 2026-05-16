@@ -300,6 +300,28 @@ def create_app(config: dict | None = None) -> Flask:
             except Exception as e:
                 print(f"[STARTUP] catalog seed skipped: {e}")
 
+            # SECRET_KEY: prefer the env var (operator-controlled, best).
+            # Otherwise use a random key persisted in the DB so it's stable
+            # across Render's ephemeral deploys AND isn't the public
+            # hard-coded constant. Requests aren't served until create_app
+            # returns, so assigning it here is safe.
+            if not os.environ.get("SECRET_KEY"):
+                try:
+                    import secrets as _secrets
+
+                    from app.models import AppSetting
+                    row = AppSetting.query.filter_by(key="secret_key").first()
+                    if row is None:
+                        row = AppSetting(key="secret_key", value=_secrets.token_hex(32))
+                        db.session.add(row)
+                        db.session.commit()
+                        print("[STARTUP] generated & persisted a new SECRET_KEY")
+                    app.config["SECRET_KEY"] = row.value
+                    app.secret_key = row.value
+                except Exception as e:
+                    db.session.rollback()
+                    print(f"[STARTUP] DB SECRET_KEY unavailable, using fallback: {e}")
+
             print(f"[STARTUP] cwd: {os.getcwd()}")
             print("[STARTUP] Loading tools...")
             prime_tools_cache(DEFAULT_TOOLS_PATH)

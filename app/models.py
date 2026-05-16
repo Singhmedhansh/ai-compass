@@ -30,6 +30,17 @@ class User(UserMixin, db.Model):
     favorites = db.relationship("Favorite", back_populates="user", cascade="all, delete-orphan")
 
 
+class AppSetting(db.Model):
+    """Tiny key/value store for server-managed settings that must survive
+    deploys (e.g. a generated SECRET_KEY when none is provided via env)."""
+
+    __tablename__ = "app_settings"
+
+    id = db.Column(db.Integer, primary_key=True)
+    key = db.Column(db.String(80), unique=True, nullable=False, index=True)
+    value = db.Column(db.Text, nullable=False)
+
+
 class CatalogTool(db.Model):
     """Durable, editable catalog. tools.json becomes a one-time seed; from
     then on this DB table is the source of truth so admin edits survive

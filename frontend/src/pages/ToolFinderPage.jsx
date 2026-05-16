@@ -649,7 +649,7 @@ function ToolFinderPage() {
             </div>
           </div>
 
-          <div className="tools-grid mt-6 grid">
+          <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {results.map((tool, index) => {
               const toolKey = tool.slug || tool.name || `${tool.name}-${index}`
               const isTopMatch = index === 0
@@ -657,60 +657,47 @@ function ToolFinderPage() {
               return (
                 <article
                   key={toolKey}
-                  className="group relative flex h-full min-w-0 flex-col rounded-2xl border border-line bg-bg-elev shadow-sm transition-all hover:-translate-y-0.5 hover:border-accent hover:shadow-md"
+                  className="group relative flex h-full min-w-0 flex-col rounded-2xl border border-line bg-bg-elev p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:border-accent hover:shadow-md"
                 >
-                  {isTopMatch ? (
-                    <span className="absolute right-3 top-3 z-10 inline-flex items-center gap-1 rounded-full bg-accent-soft px-2.5 py-1 text-xs font-semibold text-accent-ink shadow-sm ring-1 ring-inset ring-accent/30">
-                      ★ Best Match
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/tools/${tool.slug || ''}`)}
+                    className="flex items-start gap-3 text-left"
+                  >
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-bg-sunk" aria-hidden="true">
+                      <ToolLogo tool={tool} size={36} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <h3 className="truncate text-sm font-semibold text-ink">{tool.name}</h3>
+                        {isTopMatch && (
+                          <span className="shrink-0 rounded-full bg-accent-soft px-2 py-0.5 text-[10px] font-semibold text-accent-ink">★ Best</span>
+                        )}
+                      </div>
+                      <p className="mt-0.5 truncate text-xs text-muted">{tool.category || 'General'}</p>
+                    </div>
+                  </button>
+
+                  <p className="mt-3 line-clamp-2 text-xs italic leading-snug text-muted">✨ {tool.reason}</p>
+                  <p className="mt-2 line-clamp-2 text-sm leading-snug text-ink-2">{tool.description}</p>
+
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${getPricingPillClass(tool.pricing)}`}>
+                      {String(tool.pricing || 'Free').toUpperCase()}
                     </span>
-                  ) : null}
-
-                  <div className="flex flex-1 flex-col gap-3 p-5">
-                    <div
-                      className="flex items-start gap-3"
-                      onClick={() => navigate(`/tools/${tool.slug || ''}`)}
-                      style={{ cursor: 'pointer' }}
-                    >
-                      <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-bg-sunk text-lg font-bold text-ink-2" aria-hidden="true">
-                        <ToolLogo tool={tool} size={40} />
-                      </div>
-
-                      <div className="min-w-0 flex-1">
-                        <div className={`flex items-start justify-between gap-2 ${isTopMatch ? 'pr-24' : ''}`}>
-                          <h3 className="truncate text-base font-semibold text-ink">{tool.name}</h3>
-                          <Badge label={tool.category || 'General'} variant={tool.category} />
-                        </div>
-
-                        <p className="mt-1.5 text-sm italic leading-5 text-muted">
-                          ✨ {tool.reason}
-                        </p>
-
-                        <p className="mt-2 line-clamp-2 overflow-hidden text-sm leading-snug text-ink-2">
-                          {tool.description}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-wrap gap-2">
-                      <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold uppercase tracking-wide ${getPricingPillClass(tool.pricing)}`}>
-                        {String(tool.pricing || 'Free').toUpperCase()}
-                      </span>
-                      <span className="inline-flex items-center rounded-full bg-bg-sunk px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-ink-2 ring-1 ring-inset ring-line">
-                        {String(tool.platformLabel || 'Web').toUpperCase()}
-                      </span>
-                    </div>
-
-                    <div className="mt-auto">
-                      <a
-                        href={getToolUrl(tool)}
-                        target="_blank"
-                        rel={OUTBOUND_REL}
-                        className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-accent px-4 text-sm font-semibold text-bg transition-opacity hover:opacity-90"
-                      >
-                        Visit Tool
-                      </a>
-                    </div>
+                    <span className="inline-flex items-center rounded-full bg-bg-sunk px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-ink-2 ring-1 ring-inset ring-line">
+                      {String(tool.platformLabel || 'Web').toUpperCase()}
+                    </span>
                   </div>
+
+                  <a
+                    href={getToolUrl(tool)}
+                    target="_blank"
+                    rel={OUTBOUND_REL}
+                    className="mt-4 inline-flex h-9 w-full items-center justify-center gap-2 rounded-lg bg-accent px-4 text-xs font-semibold text-bg transition-opacity hover:opacity-90"
+                  >
+                    Visit Tool
+                  </a>
                 </article>
               )
             })}

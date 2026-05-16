@@ -96,6 +96,9 @@ function DashboardPage() {
   const [recommendations, setRecommendations] = useState([])
   const [favorites, setFavorites] = useState([])
   const [savedStack, setSavedStack] = useState(null)
+  const [editingStack, setEditingStack] = useState(false)
+  const [draftTools, setDraftTools] = useState([])
+  const [stackBusy, setStackBusy] = useState(false)
   const [recentlyViewedTools, setRecentlyViewedTools] = useState([])
   const [recentlyViewedSlugs, setRecentlyViewedSlugs] = useState(() => readRecentlyViewedSlugs())
   const [loading, setLoading] = useState(true)
@@ -217,6 +220,57 @@ function DashboardPage() {
     }
     return categories.size
   }, [favorites, recommendations, recentlyViewedTools])
+
+  const startEditStack = () => {
+    setDraftTools(Array.isArray(savedStack?.tools) ? [...savedStack.tools] : [])
+    setEditingStack(true)
+  }
+
+  const saveStackEdits = async () => {
+    if (!user?.id) return
+    setStackBusy(true)
+    try {
+      const res = await fetch('/api/v1/stack', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          user_id: user.id,
+          goal: savedStack?.goal,
+          budget: savedStack?.budget,
+          platform: savedStack?.platform,
+          level: savedStack?.level,
+          tools: draftTools,
+        }),
+      })
+      if (!res.ok) throw new Error('save failed')
+      const data = await res.json()
+      setSavedStack(data.stack || { ...savedStack, tools: draftTools })
+      setEditingStack(false)
+    } catch {
+      setError('Could not save your stack. Try again.')
+    } finally {
+      setStackBusy(false)
+    }
+  }
+
+  const clearStack = async () => {
+    if (!user?.id || !window.confirm('Clear your saved stack?')) return
+    setStackBusy(true)
+    try {
+      const res = await fetch(`/api/v1/stack?user_id=${encodeURIComponent(user.id)}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      })
+      if (!res.ok) throw new Error('clear failed')
+      setSavedStack(null)
+      setEditingStack(false)
+    } catch {
+      setError('Could not clear your stack. Try again.')
+    } finally {
+      setStackBusy(false)
+    }
+  }
 
   if (loading) {
     return (
@@ -451,13 +505,52 @@ function DashboardPage() {
                     <p className="text-sm font-semibold text-ink">Saved preferences</p>
                     <p className="mt-1 text-xs text-muted">Your latest finder profile used to build this stack.</p>
                   </div>
-                  <Button
-                    type="button"
-                    className="h-9 rounded-lg px-3 text-xs"
-                    onClick={() => navigate('/ai-tool-finder')}
-                  >
-                    Update Stack
-                  </Button>
+                  <div className="flex flex-wrap gap-2">
+                    {editingStack ? (
+                      <>
+                        <Button
+                          type="button"
+                          className="h-9 rounded-lg px-3 text-xs"
+                          disabled={stackBusy}
+                          onClick={saveStackEdits}
+                        >
+                          {stackBusy ? 'Saving…' : 'Save changes'}
+                        </Button>
+                        <button
+                          type="button"
+                          className="h-9 rounded-lg border border-line-strong px-3 text-xs font-semibold text-ink-2 transition hover:bg-bg-sunk"
+                          onClick={() => setEditingStack(false)}
+                        >
+                          Cancel
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          type="button"
+                          className="h-9 rounded-lg border border-line-strong px-3 text-xs font-semibold text-ink-2 transition hover:bg-bg-sunk"
+                          onClick={startEditStack}
+                        >
+                          Edit stack
+                        </button>
+                        <button
+                          type="button"
+                          className="h-9 rounded-lg border border-line-strong px-3 text-xs font-semibold text-ink-2 transition hover:bg-bg-sunk"
+                          onClick={() => navigate('/ai-tool-finder')}
+                        >
+                          Rebuild
+                        </button>
+                        <button
+                          type="button"
+                          className="h-9 rounded-lg border border-danger/40 px-3 text-xs font-semibold text-danger transition hover:bg-danger-soft"
+                          disabled={stackBusy}
+                          onClick={clearStack}
+                        >
+                          Clear
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
 
                 <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
@@ -475,14 +568,37 @@ function DashboardPage() {
                   </div>
                   <div className="rounded-xl border border-accent/80 bg-accent-soft px-3 py-2">
                     <p className="text-[11px] font-semibold uppercase tracking-wide text-accent-ink">Saved Tools</p>
-                    <p className="mt-1 text-sm font-semibold text-accent-ink">{Array.isArray(savedStack.tools) ? savedStack.tools.length : 0}</p>
+                    <p className="mt-1 text-sm font-semibold text-accent-ink">{editingStack ? draftTools.length : (Array.isArray(savedStack.tools) ? savedStack.tools.length : 0)}</p>
                   </div>
                 </div>
 
                 <div className="mt-5">
-                  <p className="text-sm font-semibold text-ink">Saved tools</p>
+                  <p className="text-sm font-semibold text-ink">
+                    {editingStack ? 'Edit tools — tap × to remove' : 'Saved tools'}
+                  </p>
                   <div className="mt-2 flex flex-wrap gap-2">
-                    {Array.isArray(savedStack.tools) && savedStack.tools.length > 0 ? (
+                    {editingStack ? (
+                      draftTools.length > 0 ? (
+                        draftTools.map((toolName, index) => (
+                          <span
+                            key={`draft-tool-${index}`}
+                            className="inline-flex items-center gap-1.5 rounded-full border border-line/80 bg-bg-elev px-3 py-1.5 text-xs font-medium text-ink-2 shadow-sm"
+                          >
+                            {toolName}
+                            <button
+                              type="button"
+                              aria-label={`Remove ${toolName}`}
+                              onClick={() => setDraftTools((d) => d.filter((_, i) => i !== index))}
+                              className="text-muted transition hover:text-danger"
+                            >
+                              ×
+                            </button>
+                          </span>
+                        ))
+                      ) : (
+                        <p className="text-sm text-muted">No tools — Cancel, or Clear the stack.</p>
+                      )
+                    ) : Array.isArray(savedStack.tools) && savedStack.tools.length > 0 ? (
                       savedStack.tools.map((toolName, index) => (
                         <span
                           key={`saved-stack-tool-${index}`}

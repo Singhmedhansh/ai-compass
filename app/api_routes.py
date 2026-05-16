@@ -1687,53 +1687,91 @@ def list_favorites():
     return jsonify(payload)
 
 
+def _stack_user_id(data=None):
+    if data and data.get('user_id'):
+        return data.get('user_id')
+    if current_user.is_authenticated:
+        return current_user.id
+    return None
+
+
 @csrf.exempt
 @api_bp.route('/stack', methods=['POST'])
 def save_stack():
+    """Upsert the user's stack into the DB. Was an ephemeral JSON file
+    that Render wiped on every deploy — one row per user now."""
+    from app.models import SavedStack
+
     data = request.get_json() or {}
-
-    # Get user id from request body (since React uses localStorage not Flask session)
-    user_id = data.get('user_id') or (current_user.id if current_user.is_authenticated else None)
-
+    user_id = _stack_user_id(data)
     if not user_id:
         return jsonify({'error': 'Not logged in'}), 401
 
-    stack_data = {
-        'user_id': user_id,
+    stack_payload = {
         'goal': data.get('goal'),
         'budget': data.get('budget'),
         'platform': data.get('platform'),
         'level': data.get('level'),
         'tools': data.get('tools', []),
-        'saved_at': str(__import__('datetime').datetime.now())
+        'saved_at': datetime.now(timezone.utc).isoformat(),
     }
+    try:
+        row = (
+            SavedStack.query.filter_by(user_id=user_id)
+            .order_by(SavedStack.id.desc())
+            .first()
+        )
+        if row is None:
+            row = SavedStack(user_id=user_id, name='default', tools_json='')
+            db.session.add(row)
+        row.tools_json = json.dumps(stack_payload, ensure_ascii=False)
+        db.session.commit()
+    except Exception as exc:  # noqa: BLE001
+        db.session.rollback()
+        current_app.logger.exception("save_stack failed")
+        return jsonify({'error': 'Could not save stack', 'detail': str(exc)}), 500
 
-    stacks_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data', 'stacks')
-    os.makedirs(stacks_dir, exist_ok=True)
-
-    stack_path = os.path.join(stacks_dir, f'{user_id}.json')
-    with open(stack_path, 'w', encoding='utf-8') as f:
-        json.dump(stack_data, f, indent=2)
-
-    return jsonify({'message': 'Stack saved!', 'stack': stack_data}), 200
+    return jsonify({'message': 'Stack saved!', 'stack': {'user_id': user_id, **stack_payload}}), 200
 
 
 @api_bp.route('/stack', methods=['GET'])
 def get_stack():
-    user_id = request.args.get('user_id')
+    from app.models import SavedStack
+
+    user_id = request.args.get('user_id') or _stack_user_id()
     if not user_id:
         return jsonify({'stack': None}), 200
 
-    stack_path = os.path.join(
-        os.path.dirname(os.path.dirname(__file__)),
-        'data', 'stacks', f'{user_id}.json'
+    row = (
+        SavedStack.query.filter_by(user_id=user_id)
+        .order_by(SavedStack.id.desc())
+        .first()
     )
-    if not os.path.exists(stack_path):
+    if row is None or not row.tools_json:
         return jsonify({'stack': None}), 200
-
-    with open(stack_path, 'r', encoding='utf-8') as f:
-        stack = json.load(f)
+    try:
+        stack = json.loads(row.tools_json)
+        stack['user_id'] = user_id
+    except (ValueError, TypeError):
+        return jsonify({'stack': None}), 200
     return jsonify({'stack': stack}), 200
+
+
+@csrf.exempt
+@api_bp.route('/stack', methods=['DELETE'])
+def delete_stack():
+    from app.models import SavedStack
+
+    user_id = request.args.get('user_id') or _stack_user_id(request.get_json(silent=True) or {})
+    if not user_id:
+        return jsonify({'error': 'Not logged in'}), 401
+    try:
+        SavedStack.query.filter_by(user_id=user_id).delete()
+        db.session.commit()
+    except Exception:  # noqa: BLE001
+        db.session.rollback()
+        return jsonify({'error': 'Could not clear stack'}), 500
+    return jsonify({'message': 'Stack cleared'}), 200
 
 
 # ── Backward-compat alias: /api/search → same logic as /api/v1/search ──────────
