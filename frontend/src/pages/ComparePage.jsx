@@ -7,6 +7,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Button, SkeletonCompareColumn, ToolLogo } from '../components/ui'
 import { sectionReveal, staggerChild, staggerParent } from '../lib/motion'
 import { MAX_COMPARE } from '../hooks/useCompare'
+import { outboundUrl, OUTBOUND_REL } from '../utils/outbound'
 
 const MotionDiv = motion.div
 
@@ -137,7 +138,7 @@ function ToolColumn({ slug, status, tool, error, onRemove }) {
   const name = tool.name || slug
   const tagline = tool.tagline || tool.shortDescription || tool.description || ''
   const category = tool.category || tool.subCategory || 'General'
-  const url = tool.affiliate_url || tool.url || tool.website || tool.link || '#'
+  const url = outboundUrl(tool.slug ? tool : { ...tool, slug })
   const platforms = Array.isArray(tool.platforms)
     ? tool.platforms.join(', ')
     : tool.platform || 'Web'
@@ -177,7 +178,7 @@ function ToolColumn({ slug, status, tool, error, onRemove }) {
       <a
         href={url}
         target="_blank"
-        rel="noopener noreferrer"
+        rel={OUTBOUND_REL}
         className="mt-4 inline-flex items-center justify-center gap-1.5 rounded-lg bg-accent px-3 py-2 text-sm font-semibold text-bg outline-none transition hover:opacity-90 focus-visible:ring-2 focus-visible:ring-accent"
       >
         Visit tool

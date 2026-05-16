@@ -4,7 +4,7 @@ import re
 from datetime import datetime, timezone
 from xml.sax.saxutils import escape
 
-from flask import Blueprint, Response, jsonify, redirect, send_from_directory
+from flask import Blueprint, Response, current_app, jsonify, redirect, send_from_directory
 from sqlalchemy import text
 
 from app import db
@@ -397,8 +397,57 @@ def sitemap():
 
 @main_bp.route('/robots.txt')
 def robots():
-    content = 'User-agent: *\nAllow: /\nSitemap: https://ai-compass.in/sitemap.xml'
+    content = (
+        'User-agent: *\n'
+        'Allow: /\n'
+        'Disallow: /go/\n'  # affiliate/outbound redirects — not for crawling
+        'Sitemap: https://ai-compass.in/sitemap.xml'
+    )
     return Response(content, mimetype='text/plain')
+
+
+@main_bp.route('/go/<slug>')
+def outbound(slug):
+    """Single tracked outbound hop for every 'Visit tool' click.
+
+    Resolves affiliate URL (if the tool is enrolled) else the tool's normal
+    link. Centralising this means affiliate links can change without a
+    frontend redeploy, and every click is logged in one place for revenue
+    analytics. Marked noindex/nofollow so it never affects SEO.
+    """
+    from app.affiliates import affiliate_for
+
+    slug_l = (slug or '').strip().lower()
+    tool = next(
+        (t for t in (get_cached_tools() or [])
+         if str(t.get('slug', '')).strip().lower() == slug_l),
+        None,
+    )
+    if tool is None:
+        return redirect('/tools', code=302)
+
+    aff = affiliate_for(slug_l)
+    dest = (
+        aff
+        or tool.get('affiliate_url')
+        or tool.get('link')
+        or tool.get('url')
+        or tool.get('website')
+    )
+    if not dest:
+        return redirect(f'/tools/{slug_l}', code=302)
+
+    try:
+        current_app.logger.info(
+            'outbound_click slug=%s affiliate=%s', slug_l, bool(aff)
+        )
+    except Exception:
+        pass
+
+    resp = redirect(dest, code=302)
+    resp.headers['X-Robots-Tag'] = 'noindex, nofollow'
+    resp.headers['Referrer-Policy'] = 'no-referrer-when-downgrade'
+    return resp
 
 
 _OG_CACHE: dict[str, bytes] = {}

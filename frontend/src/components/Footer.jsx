@@ -95,7 +95,14 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-8 flex flex-wrap justify-between gap-2 border-t border-line pt-5 text-sm text-muted">
+        <p className="mt-8 border-t border-line pt-5 text-xs leading-relaxed text-muted">
+          Some links to tools are affiliate links — if you sign up through them
+          we may earn a small commission, at no extra cost to you. This never
+          affects which tools we list or how we rank them; curation is
+          independent and based only on quality.
+        </p>
+
+        <div className="mt-4 flex flex-wrap justify-between gap-2 text-sm text-muted">
           <span>© 2026 AI Compass · ai-compass.in</span>
           <span className="font-mono text-xs">Made with care, not scrapers.</span>
         </div>

@@ -6,6 +6,7 @@ import { ArrowUpRight, ArrowLeft } from 'lucide-react'
 
 import { WordReveal } from '../components/ui'
 import { sectionReveal, staggerParent, staggerChild } from '../lib/motion'
+import { outboundUrl, OUTBOUND_REL } from '../utils/outbound'
 
 const MotionDiv = motion.div
 const LAST_REVIEWED = 'May 2026'
@@ -288,15 +289,14 @@ export default function AlternativesPage() {
                       {alt.tagline || alt.description || ''}
                     </p>
                     {(() => {
-                      const outboundUrl = alt.affiliate_url || alt.link || alt.url || alt.website
-                      const isAffiliate = Boolean(alt.affiliate_url)
+                      const altUrl = outboundUrl(alt)
                       return (
                         <div className="flex flex-wrap items-center gap-2">
-                          {outboundUrl && outboundUrl !== '#' && (
+                          {altUrl && altUrl !== '#' && (
                             <a
-                              href={outboundUrl}
+                              href={altUrl}
                               target="_blank"
-                              rel={isAffiliate ? 'sponsored noopener noreferrer' : 'noopener noreferrer'}
+                              rel={OUTBOUND_REL}
                               className="inline-flex items-center gap-1.5 rounded-full bg-ink px-3.5 py-1.5 text-xs font-medium text-bg transition-all hover:gap-2 hover:bg-ink-2"
                             >
                               Try {alt.name}

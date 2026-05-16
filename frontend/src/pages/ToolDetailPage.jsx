@@ -9,6 +9,7 @@ import RatingWidget from '../components/ui/RatingWidget'
 import ReviewsSection from '../components/ui/ReviewsSection'
 import { Badge, Button, PricingSection, SkeletonToolDetail, ToolLogo } from '../components/ui'
 import { sectionReveal, staggerChild, staggerParent } from '../lib/motion'
+import { outboundUrl, OUTBOUND_REL } from '../utils/outbound'
 
 const MotionDiv = motion.div
 
@@ -367,9 +368,9 @@ function ToolDetailPage() {
 
                 <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <a
-                    href={tool.url}
+                    href={outboundUrl(tool)}
                     target="_blank"
-                    rel={tool.isAffiliateLink ? 'sponsored noopener noreferrer' : 'noreferrer'}
+                    rel={OUTBOUND_REL}
                     className="w-full"
                   >
                     <Button className="w-full">Visit Tool</Button>

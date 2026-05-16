@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom'
 import Badge from '../components/ui/Badge'
 import Button from '../components/ui/Button'
 import { ToolLogo, WordReveal } from '../components/ui'
+import { outboundUrl, OUTBOUND_REL } from '../utils/outbound'
 
 function getAspectBucket() {
   if (typeof window === 'undefined') {
@@ -149,7 +150,7 @@ function getPricingPillClass(pricing = '') {
 }
 
 function getToolUrl(tool = {}) {
-  return tool.affiliate_url || tool.website_url || tool.url || tool.link || '#'
+  return outboundUrl(tool)
 }
 
 function articleFor(nextWord = '') {
@@ -661,7 +662,7 @@ function ToolFinderPage() {
                       <a
                         href={getToolUrl(tool)}
                         target="_blank"
-                        rel="noopener noreferrer"
+                        rel={OUTBOUND_REL}
                         className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-accent px-4 text-sm font-semibold text-bg transition-opacity hover:opacity-90"
                       >
                         Visit Tool
