@@ -72,6 +72,21 @@ class FeatureFlag(db.Model):
     )
 
 
+class OutboundClick(db.Model):
+    """One row per /go/<slug> click — powers the admin analytics view
+    (revenue signal: which tools people actually click through to)."""
+
+    __tablename__ = "outbound_clicks"
+
+    id = db.Column(db.Integer, primary_key=True)
+    slug = db.Column(db.String(255), nullable=False, index=True)
+    is_affiliate = db.Column(db.Boolean, nullable=False, default=False)
+    created_at = db.Column(
+        db.DateTime, nullable=False, index=True,
+        default=lambda: datetime.now(timezone.utc),
+    )
+
+
 class DigestState(db.Model):
     """Singleton (id=1) tracking which tool slugs have already been
     announced, so the 'new tools' email only ever sends genuinely new

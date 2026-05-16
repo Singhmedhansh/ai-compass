@@ -1193,98 +1193,159 @@ def admin_clear_cache():
     return jsonify({"success": True, "message": "Cache cleared and reloaded"})
 
 
+def _is_admin() -> bool:
+    return bool(getattr(current_user, "is_admin", False))
+
+
+def _slugify(value: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "-", str(value or "").strip().lower()).strip("-")
+
+
+# Fields the admin UI may edit. List fields accept an array or a
+# comma-separated string. Everything else is treated as a scalar.
+_EDITABLE_SCALARS = (
+    "name", "description", "shortDescription", "tagline", "category",
+    "subCategory", "pricing", "price", "link", "url", "website", "icon",
+    "company", "difficulty", "bestFor", "affiliate_url",
+)
+_EDITABLE_LISTS = ("features", "tags", "use_cases")
+_EDITABLE_BOOLS = ("studentPerk", "student_perk", "hidden", "featured")
+
+
+def _apply_payload(record: dict, payload: dict) -> dict:
+    rec = dict(record)
+    for key in _EDITABLE_SCALARS:
+        if key in payload:
+            rec[key] = str(payload.get(key) or "").strip()
+    for key in _EDITABLE_LISTS:
+        if key in payload:
+            val = payload.get(key)
+            if isinstance(val, str):
+                val = [p.strip() for p in val.split(",") if p.strip()]
+            rec[key] = [str(x).strip() for x in (val or []) if str(x).strip()]
+    for key in _EDITABLE_BOOLS:
+        if key in payload:
+            rec[key] = bool(payload.get(key))
+    return rec
+
+
+def _refresh_catalog():
+    from app.tool_cache import refresh_tools_cache
+    refresh_tools_cache()
+
+
+@api_bp.get("/admin/tools/<slug>")
+@login_required
+def admin_get_tool(slug):
+    if not _is_admin():
+        return jsonify({"error": "Forbidden"}), 403
+    s = str(slug).strip().lower()
+    tool = next(
+        (t for t in (get_cached_tools() or [])
+         if str(t.get("slug") or "").strip().lower() == s),
+        None,
+    )
+    if tool is None:
+        return jsonify({"error": "Tool not found"}), 404
+    return jsonify({"success": True, "tool": tool})
+
+
 @api_bp.put("/admin/tools/<slug>")
 @login_required
 def update_tool(slug):
-    if not getattr(current_user, "is_admin", False):
+    if not _is_admin():
         return jsonify({"error": "Forbidden"}), 403
 
+    from app.catalog_store import upsert_tool
+    from app.tool_cache import _normalize_tool_record
+
     payload = request.get_json(silent=True) or {}
-    path = _tools_json_path()
-
-    try:
-        with open(path, "r", encoding="utf-8") as tools_file:
-            tools = json.load(tools_file)
-    except (OSError, ValueError, TypeError, json.JSONDecodeError):
-        return jsonify({"error": "Unable to load tools data"}), 500
-
-    updated = None
-    for tool in tools:
-        if str(tool.get("slug") or "").strip().lower() == str(slug).strip().lower():
-            tool["name"] = str(payload.get("name") or tool.get("name") or "").strip()
-            tool["description"] = str(
-                payload.get("description")
-                or tool.get("description")
-                or tool.get("shortDescription")
-                or ""
-            ).strip()
-            updated = tool
-            break
-
-    if updated is None:
+    s = str(slug).strip().lower()
+    existing = next(
+        (t for t in (get_cached_tools() or [])
+         if str(t.get("slug") or "").strip().lower() == s),
+        None,
+    )
+    if existing is None:
         return jsonify({"error": "Tool not found"}), 404
 
-    with open(path, "w", encoding="utf-8") as tools_file:
-        json.dump(tools, tools_file, indent=2, ensure_ascii=False)
+    merged = _apply_payload(existing, payload)
+    merged["slug"] = s
+    if not merged.get("name"):
+        return jsonify({"error": "Name is required"}), 400
 
-    prime_tools_cache(path)
-    return jsonify({"success": True, "tool": updated})
+    record = _normalize_tool_record(merged)
+    if not upsert_tool(record):
+        return jsonify({"error": "Save failed"}), 500
+    _refresh_catalog()
+    return jsonify({"success": True, "tool": record})
+
+
+@api_bp.post("/admin/tools")
+@login_required
+def create_tool():
+    if not _is_admin():
+        return jsonify({"error": "Forbidden"}), 403
+
+    from app.catalog_store import upsert_tool
+    from app.tool_cache import _normalize_tool_record
+
+    payload = request.get_json(silent=True) or {}
+    name = str(payload.get("name") or "").strip()
+    if not name:
+        return jsonify({"error": "Name is required"}), 400
+
+    slug = _slugify(payload.get("slug") or name)
+    if not slug:
+        return jsonify({"error": "Could not derive a slug"}), 400
+
+    if any(str(t.get("slug") or "").strip().lower() == slug
+           for t in (get_cached_tools() or [])):
+        return jsonify({"error": f"A tool with slug '{slug}' already exists"}), 409
+
+    record = _normalize_tool_record(_apply_payload({"slug": slug}, payload))
+    record["slug"] = slug
+    if not upsert_tool(record):
+        return jsonify({"error": "Create failed"}), 500
+    _refresh_catalog()
+    return jsonify({"success": True, "tool": record}), 201
 
 
 @api_bp.post("/admin/tools/<slug>/hide")
 @login_required
 def hide_tool(slug):
-    if not getattr(current_user, "is_admin", False):
+    if not _is_admin():
         return jsonify({"error": "Forbidden"}), 403
-
-    path = _tools_json_path()
-    try:
-        with open(path, "r", encoding="utf-8") as tools_file:
-            tools = json.load(tools_file)
-    except (OSError, ValueError, TypeError, json.JSONDecodeError):
-        return jsonify({"error": "Unable to load tools data"}), 500
-
-    changed = False
-    for tool in tools:
-        if str(tool.get("slug") or "").strip().lower() == str(slug).strip().lower():
-            tool["hidden"] = True
-            changed = True
-            break
-
-    if not changed:
+    from app.catalog_store import set_fields
+    hidden = (request.get_json(silent=True) or {}).get("hidden", True)
+    if not set_fields(slug, hidden=bool(hidden)):
         return jsonify({"error": "Tool not found"}), 404
+    _refresh_catalog()
+    return jsonify({"success": True, "hidden": bool(hidden)})
 
-    with open(path, "w", encoding="utf-8") as tools_file:
-        json.dump(tools, tools_file, indent=2, ensure_ascii=False)
 
-    prime_tools_cache(path)
-    return jsonify({"success": True})
+@api_bp.put("/admin/tools/<slug>/affiliate")
+@login_required
+def set_tool_affiliate(slug):
+    if not _is_admin():
+        return jsonify({"error": "Forbidden"}), 403
+    from app.catalog_store import set_fields
+    url = str((request.get_json(silent=True) or {}).get("affiliate_url") or "").strip()
+    if not set_fields(slug, affiliate_url=url):
+        return jsonify({"error": "Tool not found"}), 404
+    _refresh_catalog()
+    return jsonify({"success": True, "affiliate_url": url})
 
 
 @api_bp.delete("/admin/tools/<slug>")
 @login_required
 def delete_tool(slug):
-    if not getattr(current_user, "is_admin", False):
+    if not _is_admin():
         return jsonify({"error": "Forbidden"}), 403
-
-    path = _tools_json_path()
-    try:
-        with open(path, "r", encoding="utf-8") as tools_file:
-            tools = json.load(tools_file)
-    except (OSError, ValueError, TypeError, json.JSONDecodeError):
-        return jsonify({"error": "Unable to load tools data"}), 500
-
-    original_count = len(tools)
-    slug_value = str(slug).strip().lower()
-    tools = [t for t in tools if str(t.get("slug") or "").strip().lower() != slug_value]
-
-    if len(tools) == original_count:
+    from app.catalog_store import delete_tool as _del
+    if not _del(slug):
         return jsonify({"error": "Tool not found"}), 404
-
-    with open(path, "w", encoding="utf-8") as tools_file:
-        json.dump(tools, tools_file, indent=2, ensure_ascii=False)
-
-    prime_tools_cache(path)
+    _refresh_catalog()
     return jsonify({"success": True})
 
 
@@ -1697,3 +1758,179 @@ def admin_send_digest():
     except Exception as exc:  # noqa: BLE001
         current_app.logger.exception("send-digest failed")
         return jsonify({"error": "digest_failed", "detail": str(exc)}), 500
+
+
+# ---------------------------------------------------------------------------
+# Admin: digest controls (session-authed — for the admin panel UI)
+# ---------------------------------------------------------------------------
+@api_bp.post("/admin/digest")
+@csrf.exempt
+@login_required
+def admin_digest():
+    if not _is_admin():
+        return jsonify({"error": "Forbidden"}), 403
+    from app.digest import run_digest
+    dry_run = request.args.get("dry_run") in ("1", "true", "yes")
+    force = request.args.get("force") in ("1", "true", "yes")
+    try:
+        return jsonify(run_digest(dry_run=dry_run, force=force))
+    except Exception as exc:  # noqa: BLE001
+        current_app.logger.exception("admin digest failed")
+        return jsonify({"error": "digest_failed", "detail": str(exc)}), 500
+
+
+# ---------------------------------------------------------------------------
+# Admin: feature flags
+# ---------------------------------------------------------------------------
+@api_bp.get("/admin/flags")
+@login_required
+def admin_list_flags():
+    if not _is_admin():
+        return jsonify({"error": "Forbidden"}), 403
+    from app.models import FeatureFlag
+    flags = FeatureFlag.query.order_by(FeatureFlag.key).all()
+    return jsonify([
+        {"key": f.key, "enabled": f.enabled, "value": f.value}
+        for f in flags
+    ])
+
+
+@api_bp.put("/admin/flags/<key>")
+@csrf.exempt
+@login_required
+def admin_set_flag(key):
+    if not _is_admin():
+        return jsonify({"error": "Forbidden"}), 403
+    from app.models import FeatureFlag
+    payload = request.get_json(silent=True) or {}
+    flag = FeatureFlag.query.filter_by(key=key).first()
+    if flag is None:
+        flag = FeatureFlag(key=key)
+        db.session.add(flag)
+    if "enabled" in payload:
+        flag.enabled = bool(payload["enabled"])
+    if "value" in payload:
+        flag.value = payload["value"]
+    db.session.commit()
+    return jsonify({"success": True, "key": flag.key, "enabled": flag.enabled, "value": flag.value})
+
+
+# ---------------------------------------------------------------------------
+# Admin: submissions (review user-submitted tools)
+# ---------------------------------------------------------------------------
+@api_bp.get("/admin/submissions")
+@login_required
+def admin_list_submissions():
+    if not _is_admin():
+        return jsonify({"error": "Forbidden"}), 403
+    from app.models import Submission
+    status = request.args.get("status", "pending")
+    q = Submission.query
+    if status != "all":
+        q = q.filter_by(status=status)
+    subs = q.order_by(Submission.submitted_at.desc()).limit(200).all()
+    return jsonify([
+        {
+            "id": s.id, "name": s.name, "website": s.website,
+            "category": s.category, "description": s.description,
+            "pricing_model": s.pricing_model, "tags": s.tags,
+            "submitter_email": s.submitter_email, "status": s.status,
+            "submitted_at": s.submitted_at.isoformat() if s.submitted_at else None,
+        }
+        for s in subs
+    ])
+
+
+@api_bp.post("/admin/submissions/<int:sub_id>/approve")
+@csrf.exempt
+@login_required
+def admin_approve_submission(sub_id):
+    if not _is_admin():
+        return jsonify({"error": "Forbidden"}), 403
+    from app.catalog_store import upsert_tool
+    from app.models import Submission
+    from app.tool_cache import _normalize_tool_record
+
+    s = Submission.query.get_or_404(sub_id)
+    slug = _slugify(s.name)
+    if not slug:
+        return jsonify({"error": "Bad submission name"}), 400
+    if any(str(t.get("slug") or "").strip().lower() == slug
+           for t in (get_cached_tools() or [])):
+        return jsonify({"error": f"Slug '{slug}' already in catalog"}), 409
+
+    record = _normalize_tool_record({
+        "slug": slug,
+        "name": s.name,
+        "link": s.website,
+        "category": s.category,
+        "description": s.description,
+        "tagline": s.description,
+        "pricing": s.pricing_model,
+        "tags": [t.strip() for t in (s.tags or "").split(",") if t.strip()],
+    })
+    if not upsert_tool(record):
+        return jsonify({"error": "Could not add to catalog"}), 500
+    s.status = "approved"
+    db.session.commit()
+    _refresh_catalog()
+    return jsonify({"success": True, "tool": record})
+
+
+@api_bp.post("/admin/submissions/<int:sub_id>/reject")
+@csrf.exempt
+@login_required
+def admin_reject_submission(sub_id):
+    if not _is_admin():
+        return jsonify({"error": "Forbidden"}), 403
+    from app.models import Submission
+    s = Submission.query.get_or_404(sub_id)
+    s.status = "rejected"
+    db.session.commit()
+    return jsonify({"success": True})
+
+
+# ---------------------------------------------------------------------------
+# Admin: analytics overview
+# ---------------------------------------------------------------------------
+@api_bp.get("/admin/analytics")
+@login_required
+def admin_analytics():
+    if not _is_admin():
+        return jsonify({"error": "Forbidden"}), 403
+    from sqlalchemy import func as _f
+
+    from app.models import Favorite, OutboundClick, Submission, ToolView
+
+    from datetime import timedelta
+    since = datetime.now(timezone.utc) - timedelta(days=30)
+
+    total_clicks = OutboundClick.query.count()
+    affiliate_clicks = OutboundClick.query.filter_by(is_affiliate=True).count()
+    clicks_30d = OutboundClick.query.filter(OutboundClick.created_at >= since).count()
+    top_clicked = (
+        db.session.query(OutboundClick.slug, _f.count().label("n"))
+        .group_by(OutboundClick.slug)
+        .order_by(_f.count().desc())
+        .limit(10)
+        .all()
+    )
+    top_viewed = (
+        db.session.query(ToolView.tool_name, _f.count().label("n"))
+        .group_by(ToolView.tool_name)
+        .order_by(_f.count().desc())
+        .limit(10)
+        .all()
+    )
+
+    return jsonify({
+        "outbound": {
+            "total": total_clicks,
+            "affiliate": affiliate_clicks,
+            "last_30d": clicks_30d,
+            "top": [{"slug": s, "clicks": n} for s, n in top_clicked],
+        },
+        "tool_views_top": [{"tool": t, "views": n} for t, n in top_viewed],
+        "favorites_total": Favorite.query.count(),
+        "submissions_pending": Submission.query.filter_by(status="pending").count(),
+    })

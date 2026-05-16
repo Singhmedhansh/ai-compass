@@ -441,8 +441,14 @@ def outbound(slug):
         current_app.logger.info(
             'outbound_click slug=%s affiliate=%s', slug_l, bool(aff)
         )
+        from app.models import OutboundClick
+        db.session.add(OutboundClick(slug=slug_l, is_affiliate=bool(aff)))
+        db.session.commit()
     except Exception:
-        pass
+        try:
+            db.session.rollback()
+        except Exception:
+            pass
 
     resp = redirect(dest, code=302)
     resp.headers['X-Robots-Tag'] = 'noindex, nofollow'
