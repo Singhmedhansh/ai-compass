@@ -30,6 +30,48 @@ class User(UserMixin, db.Model):
     favorites = db.relationship("Favorite", back_populates="user", cascade="all, delete-orphan")
 
 
+class CatalogTool(db.Model):
+    """Durable, editable catalog. tools.json becomes a one-time seed; from
+    then on this DB table is the source of truth so admin edits survive
+    Render's ephemeral filesystem. The full normalized record (all ~40
+    fields) lives in `data`; the columns are just for fast query/filter.
+    """
+
+    __tablename__ = "catalog_tools"
+
+    id = db.Column(db.Integer, primary_key=True)
+    slug = db.Column(db.String(255), unique=True, nullable=False, index=True)
+    name = db.Column(db.String(255), nullable=False, index=True)
+    category = db.Column(db.String(100), nullable=True, index=True)
+    hidden = db.Column(db.Boolean, nullable=False, default=False, index=True)
+    affiliate_url = db.Column(db.String(500), nullable=True)
+    data = db.Column(db.Text, nullable=False)  # full normalized tool dict (JSON)
+    sort_order = db.Column(db.Integer, nullable=True, index=True)
+    updated_at = db.Column(
+        db.DateTime,
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
+
+
+class FeatureFlag(db.Model):
+    """Simple key/value site toggles editable from the admin panel."""
+
+    __tablename__ = "feature_flags"
+
+    id = db.Column(db.Integer, primary_key=True)
+    key = db.Column(db.String(80), unique=True, nullable=False, index=True)
+    enabled = db.Column(db.Boolean, nullable=False, default=False)
+    value = db.Column(db.Text, nullable=True)
+    updated_at = db.Column(
+        db.DateTime,
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
+
+
 class DigestState(db.Model):
     """Singleton (id=1) tracking which tool slugs have already been
     announced, so the 'new tools' email only ever sends genuinely new

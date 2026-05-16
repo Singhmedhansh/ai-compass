@@ -269,6 +269,16 @@ def create_app(config: dict | None = None) -> Flask:
             except Exception as e:
                 print(f"[STARTUP] db.create_all() error: {e}")
 
+            # One-time import of tools.json into the durable DB catalog.
+            # Idempotent: no-ops once seeded. Failure is non-fatal — the
+            # cache falls back to tools.json.
+            try:
+                from app.catalog_store import seed_from_json_if_empty
+                seeded = seed_from_json_if_empty()
+                print(f"[STARTUP] catalog seed: {seeded} rows inserted")
+            except Exception as e:
+                print(f"[STARTUP] catalog seed skipped: {e}")
+
             print(f"[STARTUP] cwd: {os.getcwd()}")
             print("[STARTUP] Loading tools...")
             prime_tools_cache(DEFAULT_TOOLS_PATH)

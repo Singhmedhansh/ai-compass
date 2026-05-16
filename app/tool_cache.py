@@ -16,6 +16,7 @@ if not os.path.exists(DEFAULT_TOOLS_PATH):
 
 _TOOLS_CACHE: List[Dict[str, Any]] | None = None
 _TOOLS_CACHE_MTIME: float | None = None
+_DB_BACKED: bool = False  # True once the catalog is served from the DB
 TOOL_CACHE: Dict[str, Dict[str, Any]] = {}
 
 CANONICAL_CATEGORIES = {
@@ -218,6 +219,27 @@ def _load_tools_from_disk(data_path: str = DEFAULT_TOOLS_PATH) -> List[Dict[str,
 
 
 
+def _load_tools(data_path: str = DEFAULT_TOOLS_PATH) -> List[Dict[str, Any]]:
+    """Source of truth: the DB catalog if seeded, else tools.json.
+
+    The DB path is wrapped so that ANY failure transparently falls back to
+    the JSON loader — the read path can never break because of the DB.
+    """
+    global _DB_BACKED
+    try:
+        from app.catalog_store import load_tools_from_db
+
+        db_tools = load_tools_from_db()
+        if db_tools:
+            _DB_BACKED = True
+            return [_normalize_tool_record(t) for t in db_tools if isinstance(t, dict)]
+    except Exception as exc:  # noqa: BLE001
+        print(f"[CATALOG] DB load failed, using tools.json: {exc}", file=sys.stderr)
+
+    _DB_BACKED = False
+    return _load_tools_from_disk(data_path)
+
+
 SEARCH_INDEX = []
 
 def build_search_index(tools):
@@ -245,7 +267,7 @@ def prime_tools_cache(data_path: str = DEFAULT_TOOLS_PATH) -> List[Dict[str, Any
     """Load tools into module-level cache once (startup-safe)."""
     global _TOOLS_CACHE, _TOOLS_CACHE_MTIME
     if _TOOLS_CACHE is None:
-        _TOOLS_CACHE = _load_tools_from_disk(data_path)
+        _TOOLS_CACHE = _load_tools(data_path)
         if not _TOOLS_CACHE:
             print(
                 f"[STARTUP] WARNING: Tool cache is empty after loading {data_path!r}. "
@@ -267,6 +289,11 @@ def get_cached_tools(data_path: str = DEFAULT_TOOLS_PATH) -> List[Dict[str, Any]
     if _TOOLS_CACHE is None:
         return prime_tools_cache(data_path)
 
+    # When the catalog comes from the DB, file mtime is meaningless — the
+    # cache is busted explicitly by admin writes via refresh_tools_cache().
+    if _DB_BACKED:
+        return list(_TOOLS_CACHE)
+
     try:
         current_mtime = os.path.getmtime(data_path)
     except OSError:
@@ -281,7 +308,7 @@ def get_cached_tools(data_path: str = DEFAULT_TOOLS_PATH) -> List[Dict[str, Any]
 def refresh_tools_cache(data_path: str = DEFAULT_TOOLS_PATH) -> List[Dict[str, Any]]:
     """Force cache reload from disk after tools.json updates."""
     global _TOOLS_CACHE, _TOOLS_CACHE_MTIME
-    _TOOLS_CACHE = _load_tools_from_disk(data_path)
+    _TOOLS_CACHE = _load_tools(data_path)
     try:
         _TOOLS_CACHE_MTIME = os.path.getmtime(data_path)
     except OSError:
