@@ -11,7 +11,7 @@ const MotionDiv = motion.div
 const FOCUSABLE_SELECTOR =
   'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
 
-const CATEGORY_OPTIONS = ['All', 'Coding', 'Writing', 'Research', 'Productivity', 'Image Gen', 'Video Gen']
+const CATEGORY_OPTIONS = ['All', 'Coding', 'Writing', 'Research', 'Productivity', 'Design', 'Image Gen', 'Video Gen', 'Audio', 'Courses']
 const SORT_OPTIONS = [
   { value: 'Trending',   label: 'Trending' },
   { value: 'Newest',     label: 'Newest' },
@@ -19,10 +19,16 @@ const SORT_OPTIONS = [
   { value: 'Free First', label: 'Free First' },
 ]
 
+// Maps the short filter label shown in the UI to the canonical category string
+// stored in tools.json. Labels that already equal the canonical value
+// (Coding, Research, Productivity) are intentionally omitted — they pass through.
 const CATEGORY_FILTER_MAP = {
   Writing: 'Writing & Chat',
+  Design: 'Design & Graphics',
   'Image Gen': 'Image Generation',
   'Video Gen': 'Video Generation',
+  Audio: 'Audio & Voice',
+  Courses: 'Courses & Tutorials',
 }
 
 function mapTool(rawTool) {
@@ -334,8 +340,8 @@ function DirectoryPage() {
       className="container main-content mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8"
     >
       <Helmet>
-        <title>Browse 399 AI Tools by Category | AI Compass</title>
-        <meta name="description" content="Browse our hand-curated directory of 399 AI tools. Filter by category, pricing tier, or student plans. Pricing verified weekly." />
+        <title>AI Tools Directory — AI Compass</title>
+        <meta name="description" content="Browse 399 curated AI tools by category, rating, and pricing. Find the right tool for writing, coding, research, and more." />
       </Helmet>
       <MotionDiv variants={sectionReveal} initial="initial" animate="animate">
       <section className="mb-6 flex flex-wrap items-center justify-between gap-3">

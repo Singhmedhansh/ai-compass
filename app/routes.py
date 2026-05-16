@@ -67,6 +67,87 @@ def _inject_meta(base_html: str, *, title: str, description: str, canonical_path
     return out
 
 
+def _esc(value) -> str:
+    return html_module.escape(str(value or ''), quote=True)
+
+
+def _inject_seo_root(out_html: str, seo_html: str) -> str:
+    """Render real, crawlable content into the otherwise-empty React root.
+
+    Search engines (and link-unfurlers that do a shallow render) see this
+    server-rendered HTML instead of a blank <div id="root">. On the client,
+    React's createRoot().render() replaces these children on mount, so real
+    users never see it — this is the standard progressive-enhancement SSR
+    shell, not cloaking (the content mirrors what the SPA renders).
+    """
+    if not seo_html:
+        return out_html
+    replaced, count = re.subn(
+        r'<div id="root">\s*</div>',
+        f'<div id="root">{seo_html}</div>',
+        out_html,
+        count=1,
+    )
+    return replaced if count else out_html
+
+
+def _seo_body(normalized: str, tool: dict | None = None) -> str:
+    """Build a minimal semantic HTML block for crawlers, per route."""
+    if tool is not None:
+        name = _esc(tool.get('name'))
+        desc = _esc(tool.get('shortDescription') or tool.get('description'))
+        category = _esc(tool.get('category'))
+        pricing = _esc(tool.get('pricing') or tool.get('price'))
+        link = _esc(tool.get('url') or tool.get('website') or tool.get('link'))
+        parts = [f'<h1>{name}</h1>']
+        if desc:
+            parts.append(f'<p>{desc}</p>')
+        meta_bits = []
+        if category:
+            meta_bits.append(f'Category: {category}')
+        if pricing:
+            meta_bits.append(f'Pricing: {pricing}')
+        if meta_bits:
+            parts.append(f'<p>{" · ".join(meta_bits)}</p>')
+        if link:
+            parts.append(f'<p><a href="{link}" rel="nofollow noopener">Visit {name}</a></p>')
+        parts.append('<p><a href="/tools">Browse all 399 curated AI tools on AI Compass</a></p>')
+        return ''.join(parts)
+
+    if normalized in ('', 'tools'):
+        tools = get_cached_tools() or []
+        heading = (
+            'AI Compass — Find the Right AI Tool'
+            if normalized == ''
+            else 'AI Tools Directory — AI Compass'
+        )
+        items = []
+        for t in tools:
+            slug = _esc(t.get('slug'))
+            tname = _esc(t.get('name'))
+            tdesc = _esc(t.get('shortDescription') or t.get('description'))
+            if not slug or not tname:
+                continue
+            items.append(
+                f'<li><a href="/tools/{slug}">{tname}</a>'
+                + (f' — {tdesc}' if tdesc else '')
+                + '</li>'
+            )
+        return (
+            f'<h1>{heading}</h1>'
+            '<p>Hand-curated, hand-tested AI tools for students — writing, coding, '
+            'research, design, image, video, audio, and study tools. Free to browse, '
+            'no login required.</p>'
+            f'<ul>{"".join(items)}</ul>'
+        )
+
+    if normalized in _ROUTE_META:
+        title, desc = _ROUTE_META[normalized]
+        return f'<h1>{_esc(title)}</h1><p>{_esc(desc)}</p><p><a href="/tools">Browse all 399 curated AI tools</a></p>'
+
+    return ''
+
+
 def _meta_for_request_path(path: str):
     base = _get_base_index_html()
     if base is None:
@@ -89,17 +170,30 @@ def _meta_for_request_path(path: str):
                 or tool.get('description')
                 or f'{name} — pricing, features, platforms, and student-friendly alternatives on AI Compass.'
             )
-            return _inject_meta(
+            html = _inject_meta(
                 base,
                 title=f'{name} — AI Compass',
                 description=desc,
                 canonical_path=f'/tools/{slug}',
             )
+            return _inject_seo_root(html, _seo_body(normalized, tool=tool))
+
+    # Homepage — keep server title/description identical to the client
+    # (HomePage.jsx <Helmet>) so crawlers and users never see a mismatch.
+    if normalized == '':
+        title = 'AI Compass — 399 Hand-Tested AI Tools for Students'
+        desc = (
+            'Curated AI tools directory for students. 399 tools hand-tested, '
+            'with a one-line reason each. Free to browse, updated weekly.'
+        )
+        html = _inject_meta(base, title=title, description=desc, canonical_path='/')
+        return _inject_seo_root(html, _seo_body(''))
 
     # Static route meta
     if normalized in _ROUTE_META:
         title, desc = _ROUTE_META[normalized]
-        return _inject_meta(base, title=title, description=desc, canonical_path=f'/{normalized}')
+        html = _inject_meta(base, title=title, description=desc, canonical_path=f'/{normalized}')
+        return _inject_seo_root(html, _seo_body(normalized))
 
     return base
 
