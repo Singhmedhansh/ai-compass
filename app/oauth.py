@@ -314,6 +314,11 @@ def linkedin_callback():
             db.session.commit()
 
         return _spa_success_redirect(user, name, picture)
-    except Exception:
+    except Exception as exc:
         current_app.logger.exception("LinkedIn OAuth callback failed")
-        return redirect(f"{frontend_url}/login?error=linkedin_failed")
+        # TEMP DIAGNOSTIC: surface the precise reason in the redirect so
+        # the exact LinkedIn/Authlib failure is visible without server
+        # log access. Remove once LinkedIn login is confirmed working.
+        from urllib.parse import quote
+        detail = quote(f"{type(exc).__name__}: {str(exc)}"[:200], safe="")
+        return redirect(f"{frontend_url}/login?error=linkedin_failed&detail={detail}")
