@@ -12,6 +12,11 @@ from app.models import User
 oauth_bp = Blueprint("oauth", __name__)
 oauth = OAuth()
 
+# TEMP: last LinkedIn callback outcome for diagnosis (no secrets — only
+# which branch ran + field presence + exception class). Read via
+# GET /debug/linkedin-last. Removed once LinkedIn login is confirmed.
+_LAST_LINKEDIN_DEBUG: dict = {}
+
 
 def _is_production_env() -> bool:
     return str(os.getenv("APP_ENV", "development")).strip().lower() == "production"
@@ -300,18 +305,34 @@ def login_linkedin():
 @oauth_bp.route("/login/linkedin/callback")
 def linkedin_callback():
     frontend_url = _frontend_base_url()
+    dbg: dict = {"stage": "start"}
     try:
         # Plain OAuth2 (see init_oauth): Authlib does NOT parse the
         # id_token, so no nonce validation. Identity comes from LinkedIn's
         # OIDC userinfo endpoint, called with the access token.
-        oauth.linkedin.authorize_access_token()
-        userinfo = oauth.linkedin.get("v2/userinfo").json()
+        token = oauth.linkedin.authorize_access_token()
+        dbg["stage"] = "token_ok"
+        dbg["token_keys"] = sorted(list(token.keys())) if hasattr(token, "keys") else str(type(token))
+
+        ui_resp = oauth.linkedin.get("v2/userinfo")
+        dbg["stage"] = "userinfo_called"
+        dbg["userinfo_status"] = ui_resp.status_code
+        try:
+            userinfo = ui_resp.json()
+        except Exception:
+            userinfo = {}
+            dbg["userinfo_body_head"] = ui_resp.text[:200]
+        dbg["userinfo_keys"] = sorted(list(userinfo.keys())) if isinstance(userinfo, dict) else str(type(userinfo))
 
         email = str(userinfo.get("email") or "").strip().lower()
         name = str(userinfo.get("name") or "").strip()
         picture = str(userinfo.get("picture") or "").strip()
+        dbg["has_email"] = bool(email)
+        dbg["has_name"] = bool(name)
 
         if not email:
+            dbg["stage"] = "no_email"
+            _LAST_LINKEDIN_DEBUG.clear(); _LAST_LINKEDIN_DEBUG.update(dbg)
             return redirect(f"{frontend_url}/login?error=linkedin_no_email")
 
         user = _get_or_create_oauth_user(email, name, "linkedin")
@@ -319,12 +340,23 @@ def linkedin_callback():
             user.oauth_picture_url = picture
             db.session.commit()
 
+        dbg["stage"] = "success_redirect"
+        dbg["user_id"] = user.id
+        _LAST_LINKEDIN_DEBUG.clear(); _LAST_LINKEDIN_DEBUG.update(dbg)
         return _spa_success_redirect(user, name, picture)
     except Exception as exc:
         current_app.logger.exception("LinkedIn OAuth callback failed")
-        # TEMP DIAGNOSTIC: surface the precise reason in the redirect so
-        # the exact LinkedIn/Authlib failure is visible without server
-        # log access. Remove once LinkedIn login is confirmed working.
+        dbg["stage"] = dbg.get("stage", "?") + ":exception"
+        dbg["exc"] = f"{type(exc).__name__}: {str(exc)}"[:300]
+        _LAST_LINKEDIN_DEBUG.clear(); _LAST_LINKEDIN_DEBUG.update(dbg)
+        # TEMP DIAGNOSTIC: surface the precise reason in the redirect.
         from urllib.parse import quote
         detail = quote(f"{type(exc).__name__}: {str(exc)}"[:200], safe="")
         return redirect(f"{frontend_url}/login?error=linkedin_failed&detail={detail}")
+
+
+@oauth_bp.route("/debug/linkedin-last")
+def debug_linkedin_last():
+    """TEMP: last LinkedIn callback outcome (no secrets — branch +
+    field presence + exception class only). Removed once login works."""
+    return jsonify(_LAST_LINKEDIN_DEBUG or {"stage": "no attempt recorded yet"})
