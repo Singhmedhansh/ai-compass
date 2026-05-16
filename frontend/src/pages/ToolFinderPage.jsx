@@ -95,6 +95,9 @@ const QUESTIONS = [
   },
 ]
 
+const TOTAL_QUESTIONS = QUESTIONS.length
+const QUESTION_FLOW = QUESTIONS.map((q) => q.id)
+
 const PRICING_PILL_CLASS = {
   free: 'bg-accent-soft text-accent-ink',
   freemium: 'bg-bg-sunk text-ink-2 ring-1 ring-inset ring-line',
@@ -200,12 +203,13 @@ function buildPersona(answers) {
   return clauses.length > 0 ? `${lead} ${clauses.join(', ')}:` : `${lead}:`
 }
 
-function QuestionRow({ index, question, answer, isActive, onActivate, onSelect, onTextChange, onCollapse }) {
+function QuestionRow({ index, question, answer, isActive, onActivate, onSelect, onTextChange, onNext }) {
   const indexLabel = String(index).padStart(2, '0')
   const isMulti = Boolean(question.multiSelect)
   const isAnswered = isMulti
     ? Array.isArray(answer) && answer.length > 0
     : Boolean(answer)
+  const selectedCount = isMulti && Array.isArray(answer) ? answer.length : 0
 
   const answerLabel = (() => {
     if (!isAnswered) return '— pending —'
@@ -234,7 +238,12 @@ function QuestionRow({ index, question, answer, isActive, onActivate, onSelect, 
       </span>
 
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span className="text-xs font-medium uppercase tracking-wide text-muted">{question.label}</span>
+        <span className="text-xs font-medium uppercase tracking-wide text-muted">
+          {question.label}
+          {isActive ? (
+            <span className="ml-2 text-muted-2">· Question {index} of {TOTAL_QUESTIONS}</span>
+          ) : null}
+        </span>
         {isActive ? (
           <span className="text-base font-semibold text-ink">{question.activeHeading}</span>
         ) : isAnswered ? (
@@ -276,16 +285,17 @@ function QuestionRow({ index, question, answer, isActive, onActivate, onSelect, 
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       e.preventDefault()
-                      onCollapse()
+                      onNext()
                     }
                   }}
                   maxLength={120}
                   style={{ fontSize: 16 }}
                   autoFocus
                 />
-                <div className="flex justify-end">
-                  <Button variant="primary" size="sm" onClick={onCollapse}>
-                    Use this
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-xs text-muted-2">Optional — press Enter or Continue to skip</span>
+                  <Button variant="primary" size="sm" onClick={onNext}>
+                    Continue →
                   </Button>
                 </div>
               </div>
@@ -313,6 +323,27 @@ function QuestionRow({ index, question, answer, isActive, onActivate, onSelect, 
                     )
                   })}
                 </div>
+                {isMulti ? (
+                  <div className="flex items-center justify-between gap-3 pt-1">
+                    <span className="text-xs text-muted-2">
+                      {selectedCount > 0
+                        ? `${selectedCount} selected — pick more or continue`
+                        : 'Pick all that apply'}
+                    </span>
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={onNext}
+                      disabled={selectedCount === 0}
+                    >
+                      Continue →
+                    </Button>
+                  </div>
+                ) : (
+                  <p className="pt-0.5 text-xs text-muted-2">
+                    Pick one — we&apos;ll jump to the next question automatically.
+                  </p>
+                )}
               </div>
             )}
           </div>
@@ -519,8 +550,17 @@ function ToolFinderPage() {
     setAnswers((previous) => ({ ...previous, [key]: value }))
   }
 
+  // Move focus to the next unanswered question (or finish). Guarded so a
+  // late auto-advance can't yank the user if they've already moved on.
+  const goToQuestionAfter = (questionId) => {
+    const i = QUESTION_FLOW.indexOf(questionId)
+    const next = QUESTIONS[i + 1]
+    setActiveQuestion((prev) => (prev === questionId ? (next ? next.id : null) : prev))
+  }
+
   const handleQuestionSelect = (question, value) => {
     if (question.multiSelect) {
+      // Multi-select: toggle only — the user taps several, then "Continue".
       setAnswers((previous) => {
         const current = Array.isArray(previous[question.id]) ? previous[question.id] : []
         const next = current.includes(value)
@@ -528,9 +568,11 @@ function ToolFinderPage() {
           : [...current, value]
         return { ...previous, [question.id]: next }
       })
-    } else {
-      writeAnswer(question.id, value)
+      return
     }
+    // Single-select: record, let the highlight register, then auto-advance.
+    writeAnswer(question.id, value)
+    window.setTimeout(() => goToQuestionAfter(question.id), 280)
   }
 
   const handleRestart = () => {
@@ -684,7 +726,8 @@ function ToolFinderPage() {
         <div className="mb-6">
           <h1 className="text-3xl font-bold tracking-tight text-ink sm:text-4xl"><WordReveal>AI Tool Finder Wizard</WordReveal></h1>
           <p className="mt-2 text-sm text-muted sm:text-base">
-            Tap any question to refine your fit. Preview updates in real time.
+            Answer {TOTAL_QUESTIONS} quick questions — pick an option and we&apos;ll move you
+            to the next automatically. Your matches build live on the right as you go.
           </p>
         </div>
 
@@ -700,9 +743,29 @@ function ToolFinderPage() {
                 onActivate={() => setActiveQuestion(question.id)}
                 onSelect={(value) => handleQuestionSelect(question, value)}
                 onTextChange={(value) => writeAnswer(question.id, value)}
-                onCollapse={() => setActiveQuestion(null)}
+                onNext={() => goToQuestionAfter(question.id)}
               />
             ))}
+
+            {!activeQuestion ? (
+              <div className="rounded-2xl border border-accent/40 bg-accent-soft/40 p-4">
+                <p className="text-sm font-semibold text-ink">You&apos;re all set ✓</p>
+                <p className="mt-0.5 text-sm text-muted">
+                  {canSeeResults
+                    ? 'Your matches are ready — open the full list whenever you want.'
+                    : 'Pick a goal and your level above to unlock your full results.'}
+                </p>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  className="mt-3"
+                  disabled={!canSeeResults}
+                  onClick={() => setViewMode('results')}
+                >
+                  See full results →
+                </Button>
+              </div>
+            ) : null}
           </div>
 
           <LivePreview

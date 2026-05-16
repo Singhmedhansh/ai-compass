@@ -547,6 +547,48 @@ def og_image(slug):
         return redirect('/og-image.png', code=302)
 
 
+@main_bp.route('/unsubscribe')
+def unsubscribe():
+    """One-click email opt-out (tokenised, no login needed)."""
+    from flask import request
+
+    from app.email_utils import read_unsubscribe_token
+    from app.models import User
+
+    def _page(msg: str) -> Response:
+        html = (
+            '<!doctype html><html><head><meta charset="utf-8">'
+            '<meta name="viewport" content="width=device-width,initial-scale=1">'
+            '<title>AI Compass</title></head>'
+            '<body style="font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;'
+            'background:#fafaf9;color:#0e1311;display:flex;min-height:100vh;'
+            'align-items:center;justify-content:center;margin:0">'
+            '<div style="max-width:420px;padding:32px;text-align:center">'
+            '<div style="font-weight:700;font-size:18px;margin-bottom:14px">AI Compass</div>'
+            f'<p style="color:#5b6b64;line-height:1.6">{msg}</p>'
+            '<a href="https://ai-compass.in" style="color:#0f5f47;font-weight:600;'
+            'text-decoration:none">Back to AI Compass</a></div></body></html>'
+        )
+        return Response(html, mimetype='text/html')
+
+    token = request.args.get('token', '')
+    email = read_unsubscribe_token(token)
+    if not email:
+        return _page('This unsubscribe link is invalid or has expired.')
+
+    user = User.query.filter_by(email=email).first()
+    if user is None:
+        return _page('You are already unsubscribed.')
+
+    if user.notifications_enabled:
+        user.notifications_enabled = False
+        db.session.commit()
+    return _page(
+        'You have been unsubscribed from AI Compass tool updates. '
+        'You can re-enable notifications anytime in your profile settings.'
+    )
+
+
 @main_bp.route('/tool/<slug>')
 def redirect_tool_singular(slug):
     return redirect(f'/tools/{slug}', code=301)

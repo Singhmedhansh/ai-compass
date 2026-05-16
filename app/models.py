@@ -30,6 +30,25 @@ class User(UserMixin, db.Model):
     favorites = db.relationship("Favorite", back_populates="user", cascade="all, delete-orphan")
 
 
+class DigestState(db.Model):
+    """Singleton (id=1) tracking which tool slugs have already been
+    announced, so the 'new tools' email only ever sends genuinely new
+    additions. Stored in the DB (not a file) so it survives Render's
+    ephemeral filesystem across deploys."""
+
+    __tablename__ = "digest_state"
+
+    id = db.Column(db.Integer, primary_key=True)
+    known_slugs = db.Column(db.Text, nullable=True)  # JSON list
+    last_sent_at = db.Column(db.DateTime, nullable=True)
+    updated_at = db.Column(
+        db.DateTime,
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
+
+
 class Favorite(db.Model):
     __tablename__ = "favorites"
 

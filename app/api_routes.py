@@ -1668,3 +1668,32 @@ def list_all_tools_compat():
         "total": len(tools),
         "fallback": not bool(tools)
     })
+
+
+@api_bp.post("/admin/send-digest")
+@csrf.exempt
+def admin_send_digest():
+    """Trigger the new-tools email digest.
+
+    Auth: header  X-Digest-Secret: <DIGEST_SECRET env>  (so an external
+    scheduler like cron-job.org can call it without a browser session).
+    Query: ?dry_run=1 to preview counts, ?force=1 to send even if no new
+    tools. Safe to call repeatedly — the DB snapshot prevents re-sends.
+    """
+    import hmac
+
+    secret = os.environ.get("DIGEST_SECRET")
+    provided = request.headers.get("X-Digest-Secret", "")
+    if not secret or not hmac.compare_digest(secret, provided):
+        return jsonify({"error": "unauthorized"}), 401
+
+    from app.digest import run_digest
+
+    dry_run = request.args.get("dry_run") in ("1", "true", "yes")
+    force = request.args.get("force") in ("1", "true", "yes")
+    try:
+        result = run_digest(dry_run=dry_run, force=force)
+        return jsonify(result)
+    except Exception as exc:  # noqa: BLE001
+        current_app.logger.exception("send-digest failed")
+        return jsonify({"error": "digest_failed", "detail": str(exc)}), 500
