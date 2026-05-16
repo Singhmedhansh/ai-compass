@@ -18,10 +18,10 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from app import db
-from app.email_utils import make_unsubscribe_token, send_email
+from app.email_utils import email_enabled, make_unsubscribe_token, send_email
 from app.models import DigestState, User
 from app.tool_cache import get_cached_tools
 
@@ -178,3 +178,61 @@ def run_digest(dry_run: bool = False, force: bool = False) -> dict:
         "delivered": sent,
         "snapshot_size": seeded,
     }
+
+
+_DIGEST_CLAIM_KEY = "digest_last_run"
+_EPOCH = "1970-01-01T00:00:00+00:00"
+
+
+def maybe_run_digest(min_interval_hours: int = 24) -> None:
+    """Self-scheduled digest. Render's free tier has no cron, so this is
+    invoked opportunistically from request traffic (a cheap, throttled
+    before_request hook — see app/__init__.py). Safe to call as often as
+    you like:
+
+      * Atomic single-statement claim on AppSetting[digest_last_run]
+        (UPDATE ... WHERE value < threshold) means exactly ONE worker
+        wins per interval — no double-send across Render's workers.
+      * No-op unless email is actually configured.
+      * Never raises — must not affect the triggering request.
+    """
+    try:
+        if not email_enabled():
+            return
+
+        from sqlalchemy import update
+
+        from app.models import AppSetting
+
+        now = datetime.now(timezone.utc)
+        threshold = (now - timedelta(hours=min_interval_hours)).isoformat()
+
+        # Ensure the claim row exists (first run on a fresh DB).
+        if db.session.query(AppSetting).filter_by(key=_DIGEST_CLAIM_KEY).one_or_none() is None:
+            try:
+                db.session.add(AppSetting(key=_DIGEST_CLAIM_KEY, value=_EPOCH))
+                db.session.commit()
+            except Exception:
+                db.session.rollback()  # another worker inserted it concurrently
+
+        # Atomic claim: ISO-8601 UTC strings sort lexicographically, so a
+        # single conditional UPDATE both checks "is it due?" and claims
+        # the slot. rowcount == 1 means this worker won.
+        res = db.session.execute(
+            update(AppSetting)
+            .where(AppSetting.key == _DIGEST_CLAIM_KEY)
+            .where(AppSetting.value < threshold)
+            .values(value=now.isoformat())
+        )
+        db.session.commit()
+        if res.rowcount != 1:
+            return  # not due yet, or another worker already claimed it
+
+        result = run_digest(dry_run=False, force=False)
+        log.info("Auto-digest tick result: %s", result)
+    except Exception:
+        try:
+            db.session.rollback()
+        except Exception:
+            pass
+        log.exception("maybe_run_digest failed (non-fatal)")

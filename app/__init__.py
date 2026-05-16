@@ -1,5 +1,7 @@
 import os
 import sys
+import threading
+import time
 from urllib.parse import urlparse
 from dotenv import load_dotenv
 
@@ -225,6 +227,37 @@ def create_app(config: dict | None = None) -> Flask:
         # dies when the tab/browser closes. Permanent => it lasts
         # PERMANENT_SESSION_LIFETIME (30 days) instead.
         session.permanent = True
+
+    # Self-scheduled new-tools digest. Render free tier has no cron, so we
+    # piggyback on request traffic (the keep-alive ping alone is enough to
+    # keep this ticking). Per-request cost is a single monotonic compare;
+    # at most every 30 min per process it spawns a daemon thread that does
+    # the DB-claimed, once-per-day actual run. State is per-process — the
+    # atomic DB claim in maybe_run_digest() serialises across workers.
+    _digest_tick_state = {"last": 0.0}
+    _DIGEST_TICK_MIN_GAP = 1800  # seconds between considering a run
+
+    @app.before_request
+    def digest_tick():
+        # Never spawn the background scheduler under tests — it would race
+        # the shared test DB session and make unrelated tests flaky.
+        if app.config.get("TESTING"):
+            return None
+        now = time.monotonic()
+        if now - _digest_tick_state["last"] < _DIGEST_TICK_MIN_GAP:
+            return None
+        _digest_tick_state["last"] = now
+
+        def _run():
+            with app.app_context():
+                try:
+                    from app.digest import maybe_run_digest
+                    maybe_run_digest()
+                except Exception:  # noqa: BLE001
+                    app.logger.exception("digest_tick background run failed")
+
+        threading.Thread(target=_run, name="digest-tick", daemon=True).start()
+        return None
 
     @app.before_request
     def enforce_canonical_host():

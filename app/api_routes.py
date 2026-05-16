@@ -23,7 +23,6 @@ compat_bp = Blueprint("compat", __name__)  # registered at /api for backward com
 
 DATA_PATH = DEFAULT_TOOLS_PATH
 STACKS_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "stacks")
-SUBMISSIONS_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "submissions.json")
 MODEL_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "recommendation_model.pkl")
 
 GOAL_CATEGORY_MAP = {
@@ -875,12 +874,10 @@ def post_review(slug: str):
 @api_bp.post("/submit-tool")
 @csrf.exempt
 def submit_tool():
-    # Receive a public tool-submission form. Submissions are appended to
-    # data/tool_submissions.json for durable record (the founder reviews them
-    # before adding to tools.json) and a notification email is sent to
-    # SUBMIT_NOTIFY_EMAIL when SMTP is configured. The file write is the
-    # source of truth — email is best-effort and a delivery failure does not
-    # fail the request.
+    # Receive a public tool-submission form. A Submission row is written to
+    # the DB (the durable source of truth the admin review queue reads) and
+    # a notification email is sent to SUBMIT_NOTIFY_EMAIL when configured.
+    # Email is best-effort — a delivery failure does not fail the request.
     try:
         payload = request.get_json(silent=True) or {}
 
@@ -900,32 +897,30 @@ def submit_tool():
 
         submitted_at = datetime.now(timezone.utc).isoformat()
         submitter_email = current_user.email if current_user.is_authenticated else None
-        submission = {
-            "name": name,
-            "url": url,
-            "category": category,
-            "reason": reason,
-            "submitted_at": submitted_at,
-            "submitter_user_id": current_user.id if current_user.is_authenticated else None,
-            "submitter_email": submitter_email,
-        }
 
-        submissions_path = os.path.join(current_app.root_path, "..", "data", "tool_submissions.json")
+        # Durable record: a Submission row in the DB — this is the table the
+        # admin review queue (/admin/submissions) and the approve/reject
+        # flow read. The old code wrote an ephemeral JSON file that Render
+        # wiped on every deploy, so the queue was permanently empty and no
+        # submission could ever be reviewed. Email notify below stays
+        # best-effort and is no longer the durable channel.
         try:
-            existing = []
-            if os.path.exists(submissions_path):
-                with open(submissions_path, "r", encoding="utf-8") as f:
-                    loaded = json.load(f)
-                    if isinstance(loaded, list):
-                        existing = loaded
-            existing.append(submission)
-            os.makedirs(os.path.dirname(submissions_path), exist_ok=True)
-            with open(submissions_path, "w", encoding="utf-8") as f:
-                json.dump(existing, f, indent=2, ensure_ascii=False)
+            from app.models import Submission
+            db.session.add(Submission(
+                name=name,
+                website=url,
+                category=category,
+                description=reason,
+                pricing_model="unknown",
+                submitter_email=submitter_email,
+                status="pending",
+            ))
+            db.session.commit()
         except Exception:
-            current_app.logger.exception("Failed to write submission to disk")
-            # File write failed (likely read-only filesystem on ephemeral host).
-            # Don't fail the request — email is the fallback durable channel.
+            db.session.rollback()
+            current_app.logger.exception("Failed to persist submission to DB")
+            # Don't hard-fail the user — the notification email below is
+            # the backup channel.
 
         notify_email = os.environ.get("SUBMIT_NOTIFY_EMAIL", "medhansh.builds@gmail.com")
         # Render's free/hobby tier blocks outbound SMTP (port 587 etc.) at the
@@ -1415,23 +1410,6 @@ def admin_get_reviews():
             "is_hidden": r.is_hidden,
         } for r in reviews]
     })
-
-
-@api_bp.get("/admin/submissions")
-def admin_submissions():
-    if not os.path.exists(SUBMISSIONS_PATH):
-        return jsonify([])
-
-    try:
-        with open(SUBMISSIONS_PATH, "r", encoding="utf-8") as submissions_file:
-            payload = json.load(submissions_file)
-    except (OSError, ValueError, TypeError, json.JSONDecodeError):
-        return jsonify([])
-
-    if not isinstance(payload, list):
-        return jsonify([])
-
-    return jsonify(payload)
 
 
 @csrf.exempt
