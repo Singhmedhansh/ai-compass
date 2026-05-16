@@ -285,7 +285,12 @@ def login_linkedin():
         return redirect(f"{frontend_url}/login?error=linkedin_not_configured")
     try:
         redirect_uri = _provider_redirect_uri("oauth.linkedin_callback", "/login/linkedin/callback")
-        return oauth.linkedin.authorize_redirect(redirect_uri)
+        # nonce=False: LinkedIn does NOT echo the nonce back in its
+        # id_token, so Authlib's default nonce validation throws
+        # "MissingClaimError: Missing 'nonce' claim" in the callback.
+        # Same reason the Google flow passes nonce=False; identity is
+        # taken from the userinfo endpoint, not the id_token claims.
+        return oauth.linkedin.authorize_redirect(redirect_uri, nonce=False)
     except Exception:
         return redirect(f"{frontend_url}/login?error=linkedin_failed")
 
