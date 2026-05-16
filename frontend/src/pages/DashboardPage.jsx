@@ -3,7 +3,7 @@ import { Calendar, Eye, Grid3X3, Heart, Home, Sparkles, Wand2 } from 'lucide-rea
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { Button, Card, CountUp } from '../components/ui'
+import { Button, Card, CompassLoader, CountUp } from '../components/ui'
 
 const fadeUp = {
   hidden: { opacity: 0, y: 16 },
@@ -274,9 +274,7 @@ function DashboardPage() {
   if (loading) {
     return (
       <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="rounded-2xl border border-line bg-bg-elev p-6 text-ink-2">
-          Loading your dashboard...
-        </div>
+        <CompassLoader full size={64} label="Loading your dashboard…" />
       </div>
     )
   }

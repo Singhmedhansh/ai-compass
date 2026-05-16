@@ -6,6 +6,7 @@ import ErrorBoundary from './components/ErrorBoundary'
 import Footer from './components/Footer'
 import RouteTransition from './components/RouteTransition'
 import CompareTray from './components/ui/CompareTray'
+import CompassLoader from './components/ui/CompassLoader'
 import Navbar from './components/ui/Navbar'
 import ScrollProgress from './components/ui/ScrollProgress'
 // HomePage stays eager — it's the most common first paint
@@ -44,11 +45,7 @@ function ScrollToTop() {
 }
 
 function RouteFallback() {
-  return (
-    <div className="flex min-h-[60vh] items-center justify-center" role="status" aria-label="Loading">
-      <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
-    </div>
-  )
+  return <CompassLoader full size={64} />
 }
 
 function AnimatedRoutes() {

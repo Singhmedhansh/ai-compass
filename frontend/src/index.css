@@ -107,3 +107,17 @@ html[data-aspect='portrait'] {
 .max-w-4xl { max-width: var(--adaptive-max-4xl); }
 .max-w-3xl { max-width: var(--adaptive-max-3xl); }
 .max-w-2xl { max-width: var(--adaptive-max-2xl); }
+
+/* Compass loader — the dial/ring stays fixed while the needle sweeps,
+   like a compass searching for direction. Used by RouteFallback and
+   any page-level loading state. fill-box keeps the rotation centred
+   on the SVG needle regardless of viewBox. */
+@keyframes compass-needle-spin { to { transform: rotate(360deg); } }
+.compass-needle {
+	transform-box: fill-box;
+	transform-origin: center;
+	animation: compass-needle-spin 1.4s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+	.compass-needle { animation: none; }
+}
