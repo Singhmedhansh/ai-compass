@@ -1,8 +1,20 @@
+import { motion } from 'framer-motion'
 import { Calendar, Eye, Grid3X3, Heart, Home, Sparkles, Wand2 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
+import CountUp from 'react-countup'
 import { useNavigate } from 'react-router-dom'
 
 import { Button, Card } from '../components/ui'
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 16 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] } },
+}
+const stagger = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.07 } },
+}
+const MotionSection = motion.section
 
 function readRecentlyViewedSlugs() {
   try {
@@ -157,7 +169,12 @@ function DashboardPage() {
           const toolsResponse = await fetch('/api/v1/tools', { signal: controller.signal })
           if (toolsResponse.ok) {
             const allToolsPayload = await toolsResponse.json()
-            const allTools = Array.isArray(allToolsPayload) ? allToolsPayload.map(normalizeTool) : []
+            // /api/v1/tools returns { results: [...] } — the old code only
+            // accepted a bare array, so Recently Viewed was always empty.
+            const rawTools = Array.isArray(allToolsPayload)
+              ? allToolsPayload
+              : allToolsPayload?.results || allToolsPayload?.tools || []
+            const allTools = rawTools.map(normalizeTool)
             const toolBySlug = new Map(allTools.map((tool) => [String(tool.slug || '').toLowerCase(), tool]))
 
             const recentTools = recentSlugs
@@ -252,7 +269,12 @@ function DashboardPage() {
         </aside>
 
         <div className="space-y-6">
-          <section className="rounded-2xl border border-line bg-bg-elev p-6 shadow-sm">
+          <MotionSection
+            variants={fadeUp}
+            initial="hidden"
+            animate="show"
+            className="rounded-2xl border border-line bg-bg-elev p-6 shadow-sm"
+          >
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
                 <h1 className="text-2xl font-bold text-ink">
@@ -284,47 +306,38 @@ function DashboardPage() {
                 </div>
               </div>
             </div>
-          </section>
+          </MotionSection>
 
-          <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <motion.section
+            variants={stagger}
+            initial="hidden"
+            animate="show"
+            className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4"
+          >
             {[
-              {
-                key: 'saved',
-                icon: <Heart className="h-4 w-4" />,
-                label: 'Tools Saved',
-                value: favorites.length,
-              },
-              {
-                key: 'categories',
-                icon: <Grid3X3 className="h-4 w-4" />,
-                label: 'Categories Explored',
-                value: categoriesExplored,
-              },
-              {
-                key: 'visited',
-                icon: <Eye className="h-4 w-4" />,
-                label: 'Tools Visited',
-                value: recentlyViewedSlugs.length,
-              },
-              {
-                key: 'member',
-                icon: <Calendar className="h-4 w-4" />,
-                label: 'Member Since',
-                value: user?.member_since || formatMemberSince(user?.created_at) || 'Unknown',
-              },
+              { key: 'saved', icon: <Heart className="h-4 w-4" />, label: 'Tools Saved', value: favorites.length, numeric: true },
+              { key: 'categories', icon: <Grid3X3 className="h-4 w-4" />, label: 'Categories Explored', value: categoriesExplored, numeric: true },
+              { key: 'visited', icon: <Eye className="h-4 w-4" />, label: 'Tools Visited', value: recentlyViewedSlugs.length, numeric: true },
+              { key: 'member', icon: <Calendar className="h-4 w-4" />, label: 'Member Since', value: user?.member_since || formatMemberSince(user?.created_at) || 'Unknown', numeric: false },
             ].map((item) => (
-              <div
+              <motion.div
                 key={item.key}
-                className="rounded-2xl border border-line bg-bg-elev p-4"
+                variants={fadeUp}
+                whileHover={{ y: -3 }}
+                className="rounded-2xl border border-line bg-bg-elev p-4 shadow-sm transition-shadow hover:shadow-md"
               >
                 <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-lg bg-accent-soft text-accent">
                   {item.icon}
                 </div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-muted">{item.label}</p>
-                <p className="mt-2 text-2xl font-bold text-ink">{item.value}</p>
-              </div>
+                <p className="mt-2 text-2xl font-bold tabular-nums text-ink">
+                  {item.numeric
+                    ? <CountUp end={Number(item.value) || 0} duration={1.1} />
+                    : item.value}
+                </p>
+              </motion.div>
             ))}
-          </section>
+          </motion.section>
 
           <section className="grid grid-cols-1 gap-3 md:grid-cols-3">
             <button
