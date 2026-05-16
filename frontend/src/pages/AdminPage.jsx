@@ -144,6 +144,8 @@ function AdminPage() {
   const [toolsPage, setToolsPage] = useState(1)
   const [editing, setEditing] = useState(null)
   const [digestBusy, setDigestBusy] = useState('')
+  const [liDrafts, setLiDrafts] = useState(null)
+  const [liBusy, setLiBusy] = useState(false)
 
   useEffect(() => {
     const u = JSON.parse(localStorage.getItem('user') || 'null')
@@ -252,6 +254,22 @@ function AdminPage() {
       if (d.status === 'sent') toast.success(d.message)
       else toast.error(d.message || d.status)
     } catch (e) { toast.error(e.message) } finally { setDigestBusy('') }
+  }
+  const loadLinkedinDrafts = async () => {
+    setLiBusy(true)
+    try {
+      const d = await api('/api/v1/admin/linkedin-drafts?n=5')
+      setLiDrafts(d)
+      if (!d.count) toast.message(d.message || 'No tools to build a post from.')
+    } catch (e) { toast.error(e.message) } finally { setLiBusy(false) }
+  }
+  const copyText = async (text, label) => {
+    try {
+      await navigator.clipboard.writeText(text)
+      toast.success(`${label} copied — paste into LinkedIn`)
+    } catch {
+      toast.error('Copy failed — select the text and copy manually')
+    }
   }
   const reviewSubmission = async (id, action) => {
     try {
@@ -431,17 +449,65 @@ function AdminPage() {
         )}
 
         {activeTab === 'Email' && (
-          <Card>
-            <h2 className="text-xl font-semibold text-ink">New-tools Email Digest</h2>
-            <p className="mt-1 text-sm text-muted">
-              Dry run previews new tools &amp; recipient count without sending anything. Send digest emails all opted-in users (each with an unsubscribe link). Sends automatically once a day when there are new tools — this is for a manual run. Requires <code className="rounded bg-bg-sunk px-1 py-0.5 text-xs">RESEND_API_KEY</code> on the server.
-            </p>
-            <div className="mt-4 flex gap-2">
-              <button disabled={!!digestBusy} onClick={() => runDigest(true)} className={BTN_GHOST}>{digestBusy === 'dry' ? 'Checking…' : 'Dry run'}</button>
-              <button disabled={!!digestBusy} onClick={sendTestEmail} className={BTN_GHOST}>{digestBusy === 'test' ? 'Sending…' : 'Send test to me'}</button>
-              <button disabled={!!digestBusy} onClick={() => { if (window.confirm('Send the digest email to ALL opted-in users now? This is real — use “Send test to me” first to verify delivery.')) runDigest(false) }} className={BTN_PRIMARY}>{digestBusy === 'send' ? 'Sending…' : 'Send digest'}</button>
-            </div>
-          </Card>
+          <div className="space-y-4">
+            <Card>
+              <h2 className="text-xl font-semibold text-ink">New-tools Email Digest</h2>
+              <p className="mt-1 text-sm text-muted">
+                Dry run previews new tools &amp; recipient count without sending anything. Send digest emails all opted-in users (each with an unsubscribe link). Sends automatically once a day when there are new tools — this is for a manual run. Requires <code className="rounded bg-bg-sunk px-1 py-0.5 text-xs">RESEND_API_KEY</code> on the server.
+              </p>
+              <div className="mt-4 flex gap-2">
+                <button disabled={!!digestBusy} onClick={() => runDigest(true)} className={BTN_GHOST}>{digestBusy === 'dry' ? 'Checking…' : 'Dry run'}</button>
+                <button disabled={!!digestBusy} onClick={sendTestEmail} className={BTN_GHOST}>{digestBusy === 'test' ? 'Sending…' : 'Send test to me'}</button>
+                <button disabled={!!digestBusy} onClick={() => { if (window.confirm('Send the digest email to ALL opted-in users now? This is real — use “Send test to me” first to verify delivery.')) runDigest(false) }} className={BTN_PRIMARY}>{digestBusy === 'send' ? 'Sending…' : 'Send digest'}</button>
+              </div>
+            </Card>
+
+            <Card>
+              <h2 className="text-xl font-semibold text-ink">LinkedIn post drafts</h2>
+              <p className="mt-1 text-sm text-muted">
+                Ready-to-paste posts built from your 5 most recently added/updated tools. Generate, tweak if you like, copy, and post to the AI Compass Company Page. (No LinkedIn API needed — you post manually.)
+              </p>
+              <div className="mt-4">
+                <button disabled={liBusy} onClick={loadLinkedinDrafts} className={BTN_PRIMARY}>
+                  {liBusy ? 'Generating…' : (liDrafts ? 'Regenerate' : 'Generate drafts')}
+                </button>
+              </div>
+
+              {liDrafts?.count > 0 && (
+                <div className="mt-5 space-y-5">
+                  <p className="text-xs text-muted">
+                    Built from: {(liDrafts.tools || []).join(', ')}
+                  </p>
+
+                  <div>
+                    <div className="mb-1.5 flex items-center justify-between">
+                      <h3 className="text-sm font-semibold text-ink">Roundup post (all 5)</h3>
+                      <button onClick={() => copyText(liDrafts.roundup, 'Roundup post')} className={BTN_GHOST}>Copy</button>
+                    </div>
+                    <textarea
+                      readOnly
+                      value={liDrafts.roundup}
+                      rows={10}
+                      className="w-full resize-y rounded-lg border border-line bg-bg-sunk p-3 font-mono text-xs text-ink-2"
+                    />
+                  </div>
+
+                  <div>
+                    <div className="mb-1.5 flex items-center justify-between">
+                      <h3 className="text-sm font-semibold text-ink">Spotlight post (newest tool)</h3>
+                      <button onClick={() => copyText(liDrafts.spotlight, 'Spotlight post')} className={BTN_GHOST}>Copy</button>
+                    </div>
+                    <textarea
+                      readOnly
+                      value={liDrafts.spotlight}
+                      rows={9}
+                      className="w-full resize-y rounded-lg border border-line bg-bg-sunk p-3 font-mono text-xs text-ink-2"
+                    />
+                  </div>
+                </div>
+              )}
+            </Card>
+          </div>
         )}
 
         {activeTab === 'Flags' && (

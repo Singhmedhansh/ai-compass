@@ -1879,6 +1879,128 @@ def admin_digest_test():
 
 
 # ---------------------------------------------------------------------------
+# Admin: LinkedIn post drafts (turn newly-added tools into copy-paste content)
+# ---------------------------------------------------------------------------
+_LI_BASE = "https://ai-compass.in"
+
+
+def _li_tagline(tool: dict, limit: int = 180) -> str:
+    raw = (
+        tool.get("tagline")
+        or tool.get("shortDescription")
+        or tool.get("description")
+        or ""
+    )
+    raw = " ".join(str(raw).split())  # collapse whitespace/newlines
+    if len(raw) > limit:
+        raw = raw[: limit - 1].rstrip() + "…"
+    return raw
+
+
+def _li_category_tag(category: str) -> str:
+    parts = "".join(
+        c if c.isalnum() else " " for c in str(category or "")
+    ).split()
+    return "#" + "".join(p.capitalize() for p in parts) if parts else "#AItools"
+
+
+def _li_roundup(tools: list[dict]) -> str:
+    bullets = "\n".join(
+        f"• {t['name']} — {t['tagline']}" if t["tagline"] else f"• {t['name']}"
+        for t in tools
+    )
+    n = len(tools)
+    return (
+        f"🚀 Fresh on AI Compass — {n} new AI tool{'s' if n != 1 else ''}, "
+        f"hand-tested for students\n\n"
+        f"{bullets}\n\n"
+        f"We try every tool before it goes in the directory. "
+        f"Free to browse, no signup:\n{_LI_BASE}\n\n"
+        f"#AItools #ArtificialIntelligence #StudentLife #Productivity #EdTech"
+    )
+
+
+def _li_spotlight(t: dict) -> str:
+    tag = _li_category_tag(t.get("category"))
+    best = t.get("bestFor") or (t.get("features") or [""])[0] or t.get("category") or ""
+    best = " ".join(str(best).split())
+    lines = [f"🔍 Tool spotlight: {t['name']}", ""]
+    if t["tagline"]:
+        lines += [t["tagline"], ""]
+    if best:
+        lines += [f"Best for: {best}", ""]
+    lines += [
+        "One of 400+ hand-tested AI tools for students on AI Compass:",
+        f"{_LI_BASE}/tools/{t['slug']}",
+        "",
+        f"#AI #StudentTools {tag} #ArtificialIntelligence",
+    ]
+    return "\n".join(lines)
+
+
+@api_bp.get("/admin/linkedin-drafts")
+@csrf.exempt
+@login_required
+def admin_linkedin_drafts():
+    """Ready-to-paste LinkedIn post drafts built from the most recently
+    added/updated catalog tools. Same source data as the email digest —
+    just formatted for the Company Page. No LinkedIn API needed; the
+    operator copies the text and posts it (human in the loop)."""
+    if not _is_admin():
+        return jsonify({"error": "Forbidden"}), 403
+
+    from app.models import CatalogTool
+
+    try:
+        n = max(1, min(10, int(request.args.get("n", 5))))
+    except (TypeError, ValueError):
+        n = 5
+
+    rows = (
+        CatalogTool.query.filter_by(hidden=False)
+        .order_by(CatalogTool.updated_at.desc())
+        .limit(n)
+        .all()
+    )
+    cache = {
+        str(t.get("slug", "")).strip().lower(): t
+        for t in (get_cached_tools() or [])
+    }
+
+    tools = []
+    for r in rows:
+        src = cache.get(r.slug.strip().lower())
+        if src is None:
+            try:
+                src = json.loads(r.data)
+            except (ValueError, TypeError):
+                src = {}
+        tools.append({
+            "name": src.get("name") or r.name,
+            "slug": r.slug,
+            "tagline": _li_tagline(src),
+            "category": src.get("category") or r.category or "",
+            "bestFor": src.get("bestFor"),
+            "features": src.get("features"),
+        })
+
+    if not tools:
+        return jsonify({
+            "count": 0,
+            "roundup": "",
+            "spotlight": "",
+            "message": "No tools found to build a post from.",
+        })
+
+    return jsonify({
+        "count": len(tools),
+        "roundup": _li_roundup(tools),
+        "spotlight": _li_spotlight(tools[0]),
+        "tools": [t["name"] for t in tools],
+    })
+
+
+# ---------------------------------------------------------------------------
 # Admin: feature flags
 # ---------------------------------------------------------------------------
 @api_bp.get("/admin/flags")
