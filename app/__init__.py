@@ -131,6 +131,11 @@ def create_app(config: dict | None = None) -> Flask:
     default_frontend_url = "https://ai-compass.in" if is_production else "http://localhost:5173"
     frontend_url = (configured_frontend_url or default_frontend_url).rstrip("/")
     app.config["FRONTEND_URL"] = frontend_url
+    app.config["ADMIN_EMAILS"] = [
+        e.strip().lower()
+        for e in os.environ.get("ADMIN_EMAILS", "singhmedhansh07@gmail.com").split(",")
+        if e.strip()
+    ]
     app.config["GOOGLE_CLIENT_ID"] = os.getenv("GOOGLE_CLIENT_ID", "")
     app.config["GOOGLE_CLIENT_SECRET"] = os.getenv("GOOGLE_CLIENT_SECRET", "")
     app.config["GOOGLE_REDIRECT_URI"] = os.getenv("GOOGLE_REDIRECT_URI", "http://localhost:5000/auth/google/callback")

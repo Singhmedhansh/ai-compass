@@ -196,6 +196,11 @@ def _serialize_user(user: User) -> dict:
         except (AttributeError, ValueError):
             member_since = "April 2026"
     
+    allow = current_app.config.get("ADMIN_EMAILS", [])
+    is_admin = bool(getattr(user, "is_admin", False)) or (
+        str(user.email or "").strip().lower() in allow
+    )
+
     return {
         "id": user.id,
         "name": user.display_name or "",
@@ -203,6 +208,7 @@ def _serialize_user(user: User) -> dict:
         "picture": user.oauth_picture_url or "",
         "created_at": user.created_at.isoformat() if user.created_at else None,
         "member_since": member_since,
+        "is_admin": is_admin,
     }
 
 
@@ -1145,7 +1151,7 @@ def admin_stats():
 @api_bp.post("/admin/retrain")
 @login_required
 def retrain_model():
-    if not getattr(current_user, "is_admin", False):
+    if not _is_admin():
         return jsonify({"error": "Forbidden"}), 403
     try:
         from app.tool_cache import SEARCH_INDEX, prime_tools_cache
@@ -1187,14 +1193,30 @@ def retrain_model():
 @api_bp.post("/admin/clear-cache")
 @login_required
 def admin_clear_cache():
-    if not getattr(current_user, "is_admin", False):
+    if not _is_admin():
         return jsonify({"error": "Forbidden"}), 403
     prime_tools_cache(DATA_PATH)
     return jsonify({"success": True, "message": "Cache cleared and reloaded"})
 
 
 def _is_admin() -> bool:
-    return bool(getattr(current_user, "is_admin", False))
+    """Admin if the account flag is set OR the email is in the configured
+    allowlist. Self-heals: an allowlisted account gets is_admin persisted
+    so every other is_admin check across the app also passes."""
+    if not getattr(current_user, "is_authenticated", False):
+        return False
+    if getattr(current_user, "is_admin", False):
+        return True
+    allow = current_app.config.get("ADMIN_EMAILS", [])
+    email = str(getattr(current_user, "email", "") or "").strip().lower()
+    if email and email in allow:
+        try:
+            current_user.is_admin = True
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+        return True
+    return False
 
 
 def _slugify(value: str) -> str:
@@ -1357,7 +1379,7 @@ def delete_tool(slug):
 @api_bp.delete("/admin/reviews/<int:review_id>")
 @login_required
 def admin_delete_review(review_id):
-    if not current_user.is_admin:
+    if not _is_admin():
         return jsonify({"error": "Forbidden"}), 403
     r = Review.query.get_or_404(review_id)
     db.session.delete(r)
@@ -1367,7 +1389,7 @@ def admin_delete_review(review_id):
 @api_bp.delete("/admin/ratings/<int:rating_id>")
 @login_required
 def admin_delete_rating(rating_id):
-    if not current_user.is_admin:
+    if not _is_admin():
         return jsonify({"error": "Forbidden"}), 403
     r = Rating.query.get_or_404(rating_id)
     db.session.delete(r)
@@ -1377,14 +1399,16 @@ def admin_delete_rating(rating_id):
 @api_bp.get("/admin/reviews")
 @login_required
 def admin_get_reviews():
-    if not current_user.is_admin:
+    if not _is_admin():
         return jsonify({"error": "Forbidden"}), 403
     from app.models import Review
     reviews = Review.query.order_by(Review.created_at.desc()).limit(100).all()
     return jsonify({
         "reviews": [{
             "id": r.id,
-            "user": (r.user.full_name or r.user.username) if r.user else "Anonymous",
+            # User has display_name/email — full_name/username don't exist
+            # and were raising AttributeError -> 500 (blank reviews tab).
+            "user": ((r.user.display_name or r.user.email) if r.user else "Anonymous"),
             "tool_slug": r.tool_slug,
             "body": r.body,
             "created_at": r.created_at.isoformat() if r.created_at else None,
