@@ -1878,6 +1878,39 @@ def admin_digest_test():
     })
 
 
+@api_bp.post("/admin/broadcast")
+@csrf.exempt
+@login_required
+def admin_broadcast():
+    """One-off announcement to all opted-in users. Body:
+      {subject, body, mode}  mode = 'dry' | 'test' | 'send'
+    'dry' counts recipients (no send), 'test' sends only to the logged-in
+    admin, 'send' emails everyone. Each email carries an unsubscribe link.
+    """
+    if not _is_admin():
+        return jsonify({"error": "Forbidden"}), 403
+
+    from app.broadcast import run_broadcast
+
+    payload = request.get_json(silent=True) or {}
+    subject = str(payload.get("subject") or "").strip()
+    body = str(payload.get("body") or "").strip()
+    mode = str(payload.get("mode") or "dry").strip().lower()
+
+    try:
+        if mode == "test":
+            to = (current_user.email or "").strip()
+            if not to:
+                return jsonify({"status": "error", "message": "Your admin account has no email."}), 400
+            return jsonify(run_broadcast(subject, body, test_to=to))
+        if mode == "send":
+            return jsonify(run_broadcast(subject, body))
+        return jsonify(run_broadcast(subject, body, dry_run=True))
+    except Exception as exc:  # noqa: BLE001
+        current_app.logger.exception("broadcast failed")
+        return jsonify({"status": "error", "message": str(exc)}), 500
+
+
 # ---------------------------------------------------------------------------
 # Admin: LinkedIn post drafts (turn newly-added tools into copy-paste content)
 # ---------------------------------------------------------------------------

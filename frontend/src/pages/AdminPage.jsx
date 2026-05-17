@@ -145,6 +145,19 @@ function AdminPage() {
   const [editing, setEditing] = useState(null)
   const [digestBusy, setDigestBusy] = useState('')
   const [liDrafts, setLiDrafts] = useState(null)
+  const [bcSubject, setBcSubject] = useState("What's new on AI Compass ✨")
+  const [bcBody, setBcBody] = useState(
+    "<p>Hey — it's been a while. We've shipped a lot since you last visited:</p>"
+    + "<ul>"
+    + "<li><b>Sign in with GitHub</b> — one click, no password.</li>"
+    + "<li><b>Much faster &amp; more reliable</b> — pages load instantly and the crashes are gone.</li>"
+    + "<li><b>Redesigned dashboard</b> — save and edit your own AI stack.</li>"
+    + "<li><b>400+ hand-tested tools</b>, with new ones added regularly.</li>"
+    + "<li><b>Smarter tool finder</b> — answer 4 quick questions, get tools picked for you.</li>"
+    + "</ul>"
+    + "<p>Come see what fits your workflow now — it's still free and takes ~40 seconds.</p>"
+  )
+  const [bcBusy, setBcBusy] = useState('')
   const [liBusy, setLiBusy] = useState(false)
 
   useEffect(() => {
@@ -262,6 +275,21 @@ function AdminPage() {
       setLiDrafts(d)
       if (!d.count) toast.message(d.message || 'No tools to build a post from.')
     } catch (e) { toast.error(e.message) } finally { setLiBusy(false) }
+  }
+  const runBroadcast = async (mode) => {
+    if (mode === 'send' && !window.confirm('Send this announcement to ALL opted-in users now? This is real and immediate. Use “Send test to me” first.')) return
+    setBcBusy(mode)
+    try {
+      const d = await api('/api/v1/admin/broadcast', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subject: bcSubject, body: bcBody, mode }),
+      })
+      if (d.status === 'dry_run') toast.success(`${d.recipients} recipients (no email sent)`)
+      else if (d.status === 'sent' && d.test) toast.success(d.message)
+      else if (d.status === 'sent') toast.success(`Delivered to ${d.delivered}/${d.recipients} users`)
+      else toast.error(d.message || d.status)
+    } catch (e) { toast.error(e.message) } finally { setBcBusy('') }
   }
   const copyText = async (text, label) => {
     try {
@@ -506,6 +534,31 @@ function AdminPage() {
                   </div>
                 </div>
               )}
+            </Card>
+
+            <Card>
+              <h2 className="text-xl font-semibold text-ink">Announcement / re-engagement email</h2>
+              <p className="mt-1 text-sm text-muted">
+                A one-off broadcast to all opted-in users (each with an unsubscribe link) — separate from the new-tools digest. Edit the subject &amp; body, <b>Dry run</b> to see the recipient count, <b>Send test to me</b> to preview delivery, then <b>Send to all</b>. Simple HTML allowed (&lt;p&gt;, &lt;b&gt;, &lt;a&gt;, &lt;ul&gt;&lt;li&gt;).
+              </p>
+              <input
+                value={bcSubject}
+                onChange={(e) => setBcSubject(e.target.value)}
+                placeholder="Subject"
+                className="mt-4 w-full rounded-lg border border-line bg-bg-sunk px-3 py-2 text-sm text-ink"
+              />
+              <textarea
+                value={bcBody}
+                onChange={(e) => setBcBody(e.target.value)}
+                rows={10}
+                placeholder="Email body (simple HTML)"
+                className="mt-2 w-full resize-y rounded-lg border border-line bg-bg-sunk p-3 font-mono text-xs text-ink-2"
+              />
+              <div className="mt-4 flex flex-wrap gap-2">
+                <button disabled={!!bcBusy} onClick={() => runBroadcast('dry')} className={BTN_GHOST}>{bcBusy === 'dry' ? 'Checking…' : 'Dry run'}</button>
+                <button disabled={!!bcBusy} onClick={() => runBroadcast('test')} className={BTN_GHOST}>{bcBusy === 'test' ? 'Sending…' : 'Send test to me'}</button>
+                <button disabled={!!bcBusy} onClick={() => runBroadcast('send')} className={BTN_PRIMARY}>{bcBusy === 'send' ? 'Sending…' : 'Send to all'}</button>
+              </div>
             </Card>
           </div>
         )}
