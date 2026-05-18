@@ -113,8 +113,12 @@ export default function AnimatedCompass({ size = 340, className = '' }) {
     )
   })
 
-  const containerSize = size + 140
-  const labelRadius = size * 0.55
+  // Labels ride at 0.6·size so the longest one ("Research" at 3 o'clock)
+  // clears the outer ring (0.43·size) even at the smaller 300px size used
+  // in the auth panel. Container padding widened to match so the wider
+  // labels don't clip against an overflow-hidden parent.
+  const containerSize = size + 160
+  const labelRadius = size * 0.6
 
   return (
     <div
