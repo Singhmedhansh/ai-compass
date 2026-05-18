@@ -654,10 +654,10 @@ def _rank_finder_tools(tools: list[dict], goal, budget: str, platform, level: st
 
 @api_bp.get("/tools")
 def list_tools():
-    from app.tool_cache import get_cached_tools
+    from app.tool_cache import get_visible_tools
     from flask import make_response
     try:
-        tools = get_cached_tools()
+        tools = get_visible_tools()
     except Exception:
         tools = []
     response = make_response(jsonify({"results": tools, "total": len(tools), "fallback": not bool(tools)}))
@@ -669,8 +669,10 @@ def list_tools():
 def get_public_stats():
     # Public counterpart to /admin/stats — used by the homepage to display a live tool count
     # instead of a hardcoded number that drifts every time the catalog changes.
-    tools = get_cached_tools(DATA_PATH)
-    return jsonify({"total_tools": len(tools)})
+    # Counts only visible tools so it always matches what the catalog displays
+    # (a hidden tool is neither shown nor counted).
+    from app.tool_cache import get_visible_tools
+    return jsonify({"total_tools": len(get_visible_tools(DATA_PATH))})
 
 
 @api_bp.get("/tools/<slug>")

@@ -305,6 +305,17 @@ def get_cached_tools(data_path: str = DEFAULT_TOOLS_PATH) -> List[Dict[str, Any]
     return list(_TOOLS_CACHE)
 
 
+def get_visible_tools(data_path: str = DEFAULT_TOOLS_PATH) -> List[Dict[str, Any]]:
+    """Tools actually shown to users — excludes admin-hidden entries.
+
+    Single source of truth so the catalog listing and the public tool
+    count can never disagree (or drift from a hardcoded number). A tool
+    hidden via the admin panel must not be displayed *and* must not be
+    counted.
+    """
+    return [t for t in get_cached_tools(data_path) if not t.get("hidden")]
+
+
 def refresh_tools_cache(data_path: str = DEFAULT_TOOLS_PATH) -> List[Dict[str, Any]]:
     """Force cache reload from disk after tools.json updates."""
     global _TOOLS_CACHE, _TOOLS_CACHE_MTIME
