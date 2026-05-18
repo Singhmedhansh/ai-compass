@@ -1,6 +1,58 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import CompassMark from './ui/CompassMark'
+
+const PEERLIST_PROJECT_URL = 'https://peerlist.io/medhansh_builds/project/ai-compass'
+const PEERLIST_EMBED_ID = 'PRJHP6L7BMB7E6OK6C69OE89MNAREK'
+
+function useIsDarkTheme() {
+  const read = () =>
+    typeof document !== 'undefined' &&
+    document.documentElement.getAttribute('data-theme') === 'dark'
+
+  const [isDark, setIsDark] = useState(read)
+
+  useEffect(() => {
+    const sync = () => setIsDark(read())
+    // Navbar toggles the theme by setting data-theme on <html>; ProfilePage
+    // also fires a themeChanged event. Watch the attribute to cover both.
+    const observer = new MutationObserver(sync)
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-theme'],
+    })
+    window.addEventListener('themeChanged', sync)
+    window.addEventListener('storage', sync)
+    return () => {
+      observer.disconnect()
+      window.removeEventListener('themeChanged', sync)
+      window.removeEventListener('storage', sync)
+    }
+  }, [])
+
+  return isDark
+}
+
+function PeerlistBadge() {
+  const isDark = useIsDarkTheme()
+  const theme = isDark ? 'dark' : 'light'
+
+  return (
+    <a
+      href={PEERLIST_PROJECT_URL}
+      target="_blank"
+      rel="noreferrer"
+      aria-label="AI Compass on Peerlist Launchpad"
+    >
+      <img
+        src={`https://peerlist.io/api/v1/projects/embed/${PEERLIST_EMBED_ID}?showUpvote=true&theme=${theme}`}
+        alt="Live on Peerlist Launchpad"
+        style={{ width: 'auto', height: '48px' }}
+      />
+    </a>
+  )
+}
 
 const PRODUCT_LINKS = [
   { label: 'Wizard', to: '/ai-tool-finder' },
@@ -102,8 +154,9 @@ export default function Footer() {
           independent and based only on quality.
         </p>
 
-        <div className="mt-4 flex flex-wrap justify-between gap-2 text-sm text-muted">
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm text-muted">
           <span>© 2026 AI Compass · ai-compass.in</span>
+          <PeerlistBadge />
           <span className="font-mono text-xs">Made with care, not scrapers.</span>
         </div>
       </div>
