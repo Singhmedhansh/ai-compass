@@ -24629,7 +24629,11 @@
     "maker": "Google",
     "company": "Google",
     "subCategory": "AI Coding Assistant",
-    "tagline": "Google Gemini models in your terminal"
+    "tagline": "Google Gemini models in your terminal",
+    "pricing_tier": "Freemium",
+    "pricingDetail": "Free with a personal Google account (60 req/min, 1,000 req/day); higher limits via Google AI Pro/Ultra or pay-as-you-go API. Open-source.",
+    "pricing_source_url": "https://github.com/google-gemini/gemini-cli/blob/main/docs/resources/quota-and-pricing.md",
+    "pricing_verified_at": "2026-05-18"
   },
   {
     "name": "OpenAI Codex",
@@ -24660,7 +24664,11 @@
     "maker": "OpenAI",
     "company": "OpenAI",
     "subCategory": "AI Coding Agent",
-    "tagline": "AI coding agent for your codebase"
+    "tagline": "AI coding agent for your codebase",
+    "pricing_tier": "Paid",
+    "pricingDetail": "No standalone price; included in paid ChatGPT plans — Plus $20/mo, Pro $200/mo, Business $25/user/mo; also available via API.",
+    "pricing_source_url": "https://chatgpt.com/pricing/",
+    "pricing_verified_at": "2026-05-18"
   },
   {
     "name": "Rocket.new",
@@ -24691,7 +24699,11 @@
     "maker": "Rocket",
     "company": "Rocket",
     "subCategory": "AI App Builder",
-    "tagline": "Build full apps from a prompt"
+    "tagline": "Build full apps from a prompt",
+    "pricing_tier": "Freemium",
+    "pricingDetail": "Free tier (20 credits); Pro $25/mo, Rocket $50/mo, Booster $250/mo.",
+    "pricing_source_url": "https://rocket.new/pricing",
+    "pricing_verified_at": "2026-05-18"
   },
   {
     "name": "Kiro",
@@ -24722,7 +24734,11 @@
     "maker": "Amazon",
     "company": "Amazon",
     "subCategory": "AI Coding Assistant",
-    "tagline": "Agentic AI IDE for spec-driven development"
+    "tagline": "Agentic AI IDE for spec-driven development",
+    "pricing_tier": "Freemium",
+    "pricingDetail": "Free tier (50 credits/mo); Pro $20/mo, Pro+ $40/mo, Power $200/mo; overage $0.04/credit.",
+    "pricing_source_url": "https://kiro.dev/pricing",
+    "pricing_verified_at": "2026-05-18"
   },
   {
     "name": "Emergent",
@@ -24753,7 +24769,11 @@
     "maker": "Emergent",
     "company": "Emergent",
     "subCategory": "AI App Builder",
-    "tagline": "Turn product ideas into web apps with AI"
+    "tagline": "Turn product ideas into web apps with AI",
+    "pricing_tier": "Freemium",
+    "pricingDetail": "Free tier (10 credits/mo); Standard $20/mo, Pro $200/mo.",
+    "pricing_source_url": "https://emergent.sh/pricing",
+    "pricing_verified_at": "2026-05-18"
   },
   {
     "name": "Antigravity",
@@ -24784,14 +24804,18 @@
     "review_count": 0,
     "studentPerk": true,
     "price": "Freemium",
-    "id": 542
+    "id": 542,
+    "pricing_tier": "Freemium",
+    "pricingDetail": "Free during public preview (all models, rate-limited); AI Pro $20/mo, AI Ultra $249.99/mo.",
+    "pricing_source_url": "https://antigravity.google/pricing",
+    "pricing_verified_at": "2026-05-18"
   },
   {
     "name": "Hostinger Horizons",
     "slug": "hostinger-horizons",
     "description": "Hostinger Horizons is an AI website and app builder that helps students launch projects quickly with generated pages, components, and deployment-ready output.",
     "category": "Coding",
-    "pricing": "Freemium",
+    "pricing": "Paid",
     "url": "https://www.hostinger.com/horizons",
     "tags": [
       "website-builder",
@@ -24809,13 +24833,17 @@
     "rating": 0,
     "review_count": 0,
     "studentPerk": true,
-    "price": "Freemium",
+    "price": "Paid",
     "id": 543,
     "link": "https://www.hostinger.com/horizons",
     "maker": "Hostinger",
     "company": "Hostinger",
     "subCategory": "AI Website Builder",
-    "tagline": "AI website and app builder for quick projects"
+    "tagline": "AI website and app builder for quick projects",
+    "pricing_tier": "Paid",
+    "pricingDetail": "No free tier (free trial, no card). Explorer $6.99/mo, Starter $13.99/mo, Hobbyist $39.99/mo, Hustler $79.99/mo (intro pricing).",
+    "pricing_source_url": "https://www.hostinger.com/horizons",
+    "pricing_verified_at": "2026-05-18"
   },
   {
     "name": "Claude Code",
@@ -24846,7 +24874,11 @@
     "maker": "Anthropic",
     "company": "Anthropic",
     "subCategory": "AI Coding Agent",
-    "tagline": "Anthropic's agentic coding tool for the terminal"
+    "tagline": "Anthropic's agentic coding tool for the terminal",
+    "pricing_tier": "Paid",
+    "pricingDetail": "No free tier; included with Claude Pro ($20/mo, $17/mo annual) and Max plans; also pay-as-you-go via the Anthropic API.",
+    "pricing_source_url": "https://claude.com/product/claude-code",
+    "pricing_verified_at": "2026-05-18"
   },
   {
     "id": 501,
@@ -26237,7 +26269,11 @@
     "price": "Free",
     "maker": "Google",
     "company": "Google",
-    "subCategory": "AI Design to Code"
+    "subCategory": "AI Design to Code",
+    "pricing_tier": "Free",
+    "pricingDetail": "Free during Google Labs preview (daily generation credits, no card required); paid plans expected later.",
+    "pricing_source_url": "https://stitch.withgoogle.com/pricing",
+    "pricing_verified_at": "2026-05-18"
   },
   {
     "id": 521,
@@ -26275,7 +26311,11 @@
     "price": "Free",
     "maker": "Google",
     "company": "Google",
-    "subCategory": "AI Development"
+    "subCategory": "AI Development",
+    "pricing_tier": "Free",
+    "pricingDetail": "Free to use with rate-limited Gemini models (Flash/Flash-Lite on the free tier); production use billed via the Gemini API per token.",
+    "pricing_source_url": "https://ai.google.dev/gemini-api/docs/pricing",
+    "pricing_verified_at": "2026-05-18"
   },
   {
     "id": 522,
@@ -26310,7 +26350,11 @@
     "price": "Freemium",
     "maker": "Uizard",
     "company": "Uizard",
-    "subCategory": "AI UI Design"
+    "subCategory": "AI UI Design",
+    "pricing_tier": "Freemium",
+    "pricingDetail": "Free tier for students/hobbyists (3 AI generations/mo); Pro $12/mo, Business $39/mo, Enterprise custom.",
+    "pricing_source_url": "https://uizard.io/pricing/",
+    "pricing_verified_at": "2026-05-18"
   },
   {
     "id": 523,
@@ -26346,7 +26390,11 @@
     "price": "Freemium",
     "maker": "Visily",
     "company": "Visily",
-    "subCategory": "AI Wireframing"
+    "subCategory": "AI Wireframing",
+    "pricing_tier": "Freemium",
+    "pricingDetail": "Free Starter tier (300 AI credits/mo); Pro $11/editor/mo, Business $29/editor/mo, Enterprise custom.",
+    "pricing_source_url": "https://www.visily.ai/pricing/",
+    "pricing_verified_at": "2026-05-18"
   },
   {
     "id": 524,
@@ -26382,7 +26430,11 @@
     "price": "Freemium",
     "maker": "Magic Patterns",
     "company": "Magic Patterns",
-    "subCategory": "AI UI Generation"
+    "subCategory": "AI UI Generation",
+    "pricing_tier": "Freemium",
+    "pricingDetail": "Free tier (basic generation); Hobby $19/mo, Pro $75/mo, Enterprise custom.",
+    "pricing_source_url": "https://www.magicpatterns.com/pricing",
+    "pricing_verified_at": "2026-05-18"
   },
   {
     "id": 525,
@@ -26418,7 +26470,11 @@
     "price": "Freemium",
     "maker": "Subframe",
     "company": "Subframe",
-    "subCategory": "AI Design to Code"
+    "subCategory": "AI Design to Code",
+    "pricing_tier": "Freemium",
+    "pricingDetail": "Free tier (1 project, 5 pages, unlimited AI); Pro $29/editor/mo; Custom for orgs. Student/educator pricing on request.",
+    "pricing_source_url": "https://docs.subframe.com/learn/admin/pricing-and-plans",
+    "pricing_verified_at": "2026-05-18"
   },
   {
     "id": 526,
@@ -26454,7 +26510,11 @@
     "price": "Freemium",
     "maker": "Anima",
     "company": "Anima",
-    "subCategory": "Design to Code"
+    "subCategory": "Design to Code",
+    "pricing_tier": "Freemium",
+    "pricingDetail": "Free plan (limited daily AI playground use); Pro $24/mo, Business $150/mo, Enterprise from $500/mo.",
+    "pricing_source_url": "https://www.animaapp.com/pricing",
+    "pricing_verified_at": "2026-05-18"
   },
   {
     "id": 527,
@@ -26491,7 +26551,11 @@
     "price": "Freemium",
     "maker": "Builder.io",
     "company": "Builder.io",
-    "subCategory": "Visual Development"
+    "subCategory": "Visual Development",
+    "pricing_tier": "Freemium",
+    "pricingDetail": "Free tier (up to 5 users, 75 agent credits/mo); paid Pro & Team per-user; Enterprise custom.",
+    "pricing_source_url": "https://www.builder.io/m/pricing",
+    "pricing_verified_at": "2026-05-18"
   },
   {
     "id": 528,
@@ -26526,7 +26590,11 @@
     "price": "Freemium",
     "maker": "Polymet",
     "company": "Polymet",
-    "subCategory": "AI UI Design"
+    "subCategory": "AI UI Design",
+    "pricing_tier": "Freemium",
+    "pricingDetail": "Free plan (limited credits); Pro from ~$49.99/mo; Enterprise custom (unlimited credits).",
+    "pricing_source_url": "https://polymet.ai/",
+    "pricing_verified_at": "2026-05-18"
   },
   {
     "id": 529,
@@ -26561,7 +26629,11 @@
     "price": "Freemium",
     "maker": "Amazon",
     "company": "Amazon",
-    "subCategory": "AI Coding Assistant"
+    "subCategory": "AI Coding Assistant",
+    "pricing_tier": "Freemium",
+    "pricingDetail": "Perpetual Free tier (50 agentic requests/mo); Pro $19/user/mo.",
+    "pricing_source_url": "https://aws.amazon.com/q/developer/pricing/",
+    "pricing_verified_at": "2026-05-18"
   },
   {
     "id": 530,
@@ -26597,7 +26669,11 @@
     "price": "Free",
     "maker": "Roo Code",
     "company": "Roo Code",
-    "subCategory": "AI Coding Agent"
+    "subCategory": "AI Coding Agent",
+    "pricing_tier": "Free",
+    "pricingDetail": "Free and open-source (Apache 2.0) VS Code extension — bring your own API key; optional Roo Cloud free tier with paid $20/mo & $99/mo plans.",
+    "pricing_source_url": "https://roocode.com/",
+    "pricing_verified_at": "2026-05-18"
   },
   {
     "id": 532,
@@ -26632,7 +26708,11 @@
     "price": "Freemium",
     "maker": "Tempo",
     "company": "Tempo",
-    "subCategory": "AI Design to Code"
+    "subCategory": "AI Design to Code",
+    "pricing_tier": "Freemium",
+    "pricingDetail": "Free plan (30 credits/mo); Pro ~$30/mo; Agent+ $4,500/mo (human-assisted).",
+    "pricing_source_url": "https://www.tempo.new/",
+    "pricing_verified_at": "2026-05-18"
   },
   {
     "id": 545,
