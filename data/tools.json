@@ -2905,8 +2905,8 @@
     "tagline": "OpenAI's text-to-video generator for cinematic AI videos",
     "category": "Video Generation",
     "subCategory": "Text to Video",
-    "price": "Freemium",
-    "pricingDetail": "Accessible via ChatGPT Plus at $20/month",
+    "price": "Paid",
+    "pricingDetail": "No longer free (since Jan 2026). Included in ChatGPT Plus $20/mo and Pro $200/mo; API $0.10/sec (720p).",
     "bestFor": "Creating short cinematic video clips for creative student projects",
     "tags": [
       "video generation",
@@ -2938,7 +2938,7 @@
     "languages": "10+",
     "launchYear": 2024,
     "description": "Sora by OpenAI generates highly realistic short videos from text prompts, enabling students to create cinematic clips for film projects, presentations, and creative assignments. Its storyboard feature lets users plan multi-scene sequences. It is accessible through a ChatGPT Plus subscription with a monthly generation limit.",
-    "pricing_tier": "Freemium",
+    "pricing_tier": "Paid",
     "difficulty": "advanced",
     "student_friendly": true,
     "use_cases": [
@@ -2948,7 +2948,7 @@
       "Producing educational video content",
       "Repurposing long-form content into clips"
     ],
-    "pricing": "Freemium",
+    "pricing": "Paid",
     "student_perk": true,
     "company": "OpenAI",
     "review_count": 0,
@@ -2961,7 +2961,51 @@
       "Remix existing videos"
     ],
     "slug": "sora",
-    "curation_score": 76.2
+    "curation_score": 76.2,
+    "pricing_source_url": "https://help.openai.com/en/articles/10245774-sora-billing-faq",
+    "pricing_verified_at": "2026-05-18",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-18",
+      "source_url": "https://help.openai.com/en/articles/10245774-sora-billing-faq",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "ChatGPT Plus",
+          "price_amount": 20,
+          "price_display": "$20/mo",
+          "features": [
+            "Unlimited 480p video",
+            "Included with ChatGPT Plus",
+            "No extra cost"
+          ],
+          "cta_label": "Get ChatGPT Plus",
+          "cta_url": "https://sora.com"
+        },
+        {
+          "name": "ChatGPT Pro",
+          "price_amount": 200,
+          "price_display": "$200/mo",
+          "features": [
+            "Sora 2 Pro model",
+            "Up to 1080p / 20s",
+            "Higher quality & limits"
+          ],
+          "cta_label": "Get ChatGPT Pro",
+          "cta_url": "https://sora.com"
+        },
+        {
+          "name": "API",
+          "price_amount": 0,
+          "price_display": "Usage-based",
+          "features": [
+            "$0.10/sec 720p (Sora 2)",
+            "$0.30-0.50/sec (Sora 2 Pro)"
+          ],
+          "cta_label": "Get API",
+          "cta_url": "https://sora.com"
+        }
+      ]
+    }
   },
   {
     "id": 32,
@@ -3476,7 +3520,7 @@
     "category": "Design & Graphics",
     "subCategory": "AI Slide Generator",
     "price": "Freemium",
-    "pricingDetail": "Free 400 AI credits; Plus $10/month",
+    "pricingDetail": "Free (400 one-time credits); Plus $8/user/mo (1,000 credits/mo); Pro $18/user/mo (4,000 credits/mo); ~20% off annual.",
     "bestFor": "Generating a full presentation draft from a one-line prompt",
     "tags": [
       "presentations",
@@ -3531,7 +3575,53 @@
       "Embed media"
     ],
     "slug": "gamma",
-    "curation_score": 75.2
+    "curation_score": 75.2,
+    "pricing_source_url": "https://gamma.app/pricing",
+    "pricing_verified_at": "2026-05-18",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-18",
+      "source_url": "https://gamma.app/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "400 one-time credits",
+            "AI deck generation",
+            "Gamma branding on output"
+          ],
+          "cta_label": "Visit site",
+          "cta_url": "https://gamma.app"
+        },
+        {
+          "name": "Plus",
+          "price_amount": 8,
+          "price_display": "$8/user/mo",
+          "features": [
+            "1,000 credits/mo",
+            "Remove Gamma branding",
+            "Basic brand kit & analytics"
+          ],
+          "cta_label": "Get Plus",
+          "cta_url": "https://gamma.app"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 18,
+          "price_display": "$18/user/mo",
+          "features": [
+            "4,000 credits/mo",
+            "Premium AI models",
+            "Custom fonts & domains",
+            "API access"
+          ],
+          "cta_label": "Get Pro",
+          "cta_url": "https://gamma.app"
+        }
+      ]
+    }
   },
   {
     "id": 38,
@@ -10427,7 +10517,7 @@
     "category": "Writing & Chat",
     "subCategory": "AI Writing Assistant",
     "price": "Freemium",
-    "pricingDetail": "Free chat; API pay-as-you-go",
+    "pricingDetail": "Le Chat: Free tier; Pro $14.99/mo; Team $24.99/user/mo. Student discount on Pro.",
     "bestFor": "Fast, private AI assistance with powerful open-weight models",
     "tags": [
       "AI",
@@ -10485,7 +10575,55 @@
       "Function calling API"
     ],
     "slug": "mistral-ai",
-    "curation_score": 83.2
+    "curation_score": 83.2,
+    "pricing_source_url": "https://mistral.ai/pricing",
+    "pricing_verified_at": "2026-05-18",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-18",
+      "source_url": "https://mistral.ai/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "Le Chat with SOTA models",
+            "Up to 500 memories",
+            "Image generation",
+            "40+ connectors"
+          ],
+          "cta_label": "Visit site",
+          "cta_url": "https://mistral.ai"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 14.99,
+          "price_display": "$14.99/mo",
+          "features": [
+            "Higher message limits",
+            "Web search & extended thinking",
+            "15GB storage",
+            "Mistral Vibe (coding)"
+          ],
+          "cta_label": "Get Pro",
+          "cta_url": "https://mistral.ai"
+        },
+        {
+          "name": "Team",
+          "price_amount": 24.99,
+          "price_display": "$24.99/user/mo",
+          "features": [
+            "Collaborative workspace",
+            "30GB storage/user",
+            "Domain verification",
+            "Data export"
+          ],
+          "cta_label": "Get Team",
+          "cta_url": "https://mistral.ai"
+        }
+      ]
+    }
   },
   {
     "id": 152,
@@ -10562,7 +10700,7 @@
     "category": "Coding",
     "subCategory": "UI Generation",
     "price": "Freemium",
-    "pricingDetail": "Free limited; Premium $20/month",
+    "pricingDetail": "Free ($5 credits/mo, 7 msgs/day); Team $30/user/mo; Business $100/user/mo; Enterprise custom.",
     "bestFor": "Generating React UI components from plain text descriptions instantly",
     "tags": [
       "React",
@@ -10617,7 +10755,65 @@
       "Copy-paste code"
     ],
     "slug": "vercel-v0",
-    "curation_score": 76.2
+    "curation_score": 76.2,
+    "pricing_source_url": "https://v0.app/pricing",
+    "pricing_verified_at": "2026-05-18",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-18",
+      "source_url": "https://v0.app/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "$5 monthly credits",
+            "7 messages/day",
+            "Deploy to Vercel",
+            "GitHub sync"
+          ],
+          "cta_label": "Visit site",
+          "cta_url": "https://v0.app"
+        },
+        {
+          "name": "Team",
+          "price_amount": 30,
+          "price_display": "$30/user/mo",
+          "features": [
+            "$30 credits/user/mo",
+            "$2 free daily credits",
+            "Team collaboration"
+          ],
+          "cta_label": "Get Team",
+          "cta_url": "https://v0.app"
+        },
+        {
+          "name": "Business",
+          "price_amount": 100,
+          "price_display": "$100/user/mo",
+          "features": [
+            "$30 credits/user/mo",
+            "Training opt-out",
+            "Team features"
+          ],
+          "cta_label": "Get Business",
+          "cta_url": "https://v0.app"
+        },
+        {
+          "name": "Enterprise",
+          "price_amount": 0,
+          "price_display": "Custom",
+          "features": [
+            "No training on data",
+            "SAML SSO & RBAC",
+            "Support SLAs"
+          ],
+          "cta_label": "Get Enterprise",
+          "cta_url": "https://v0.app"
+        }
+      ]
+    }
   },
   {
     "id": 155,
@@ -15377,7 +15573,7 @@
     "category": "Coding",
     "subCategory": "AI Inference",
     "price": "Freemium",
-    "pricingDetail": "Free generous tier; pay-as-you-go for heavy use",
+    "pricingDetail": "Free API key + playground; usage-based per-token pricing, no subscription.",
     "bestFor": "Getting ultra-fast free AI API responses for student app development",
     "tags": [
       "API",
@@ -15432,7 +15628,40 @@
       "Very fast responses"
     ],
     "slug": "groq",
-    "curation_score": 76.5
+    "curation_score": 76.5,
+    "pricing_source_url": "https://groq.com/pricing",
+    "pricing_verified_at": "2026-05-18",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-18",
+      "source_url": "https://groq.com/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "Free API key",
+            "Playground access",
+            "Try models before scaling"
+          ],
+          "cta_label": "Visit site",
+          "cta_url": "https://groq.com"
+        },
+        {
+          "name": "Pay-as-you-go",
+          "price_amount": 0,
+          "price_display": "Usage-based",
+          "features": [
+            "Per-million-token pricing",
+            "e.g. Llama 3.1 8B $0.05/$0.08",
+            "50% off cached input & batch"
+          ],
+          "cta_label": "Get Pay-as-you-go",
+          "cta_url": "https://groq.com"
+        }
+      ]
+    }
   },
   {
     "id": 234,
@@ -16037,7 +16266,7 @@
     "category": "Research",
     "subCategory": "AI Search",
     "price": "Freemium",
-    "pricingDetail": "Free via X app; X Premium for extended use",
+    "pricingDetail": "Free tier (rate-limited); SuperGrok Lite $10/mo, SuperGrok $30/mo, SuperGrok Heavy $300/mo; also via X Premium $8/mo & Premium+ $40/mo.",
     "bestFor": "Real-time research on current events and trending social discussions",
     "tags": [
       "AI assistant",
@@ -16096,7 +16325,66 @@
       "STEM focus"
     ],
     "slug": "grok",
-    "curation_score": 85.0
+    "curation_score": 85.0,
+    "pricing_source_url": "https://grok.com/plans",
+    "pricing_verified_at": "2026-05-18",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-18",
+      "source_url": "https://grok.com/plans",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "Basic Grok access",
+            "~10 prompts / 2 hours",
+            "Limited image gen & analysis"
+          ],
+          "cta_label": "Visit site",
+          "cta_url": "https://grok.com"
+        },
+        {
+          "name": "SuperGrok Lite",
+          "price_amount": 10,
+          "price_display": "$10/mo",
+          "features": [
+            "Grok Imagine",
+            "2x longer chats vs free",
+            "1 AI agent",
+            "480p image/video gen"
+          ],
+          "cta_label": "Get SuperGrok Lite",
+          "cta_url": "https://grok.com"
+        },
+        {
+          "name": "SuperGrok",
+          "price_amount": 30,
+          "price_display": "$30/mo",
+          "features": [
+            "Full Grok access",
+            "DeepSearch & Big Brain",
+            "Voice mode",
+            "Unlimited Grok Imagine"
+          ],
+          "cta_label": "Get SuperGrok",
+          "cta_url": "https://grok.com"
+        },
+        {
+          "name": "SuperGrok Heavy",
+          "price_amount": 300,
+          "price_display": "$300/mo",
+          "features": [
+            "Grok 4.3 + Grok 4 Heavy",
+            "Maximum rate limits",
+            "Everything in SuperGrok"
+          ],
+          "cta_label": "Get SuperGrok Heavy",
+          "cta_url": "https://grok.com"
+        }
+      ]
+    }
   },
   {
     "id": 245,
@@ -17364,7 +17652,7 @@
     "category": "Productivity",
     "subCategory": "Study Platform",
     "price": "Freemium",
-    "pricingDetail": "Free; Premium Ã¢â€šÂ¬4.99/month",
+    "pricingDetail": "Free with core features; Premium ~EUR 5.80/mo (billed annually) for unlimited AI flashcards & ad-free.",
     "bestFor": "Centralizing all study materials, flashcards, and notes in one AI-assisted platform",
     "tags": [
       "study",
@@ -17421,7 +17709,41 @@
       "Progress analytics"
     ],
     "slug": "studysmarter",
-    "curation_score": 77.0
+    "curation_score": 77.0,
+    "pricing_source_url": "https://www.studysmarter.com/our-rates",
+    "pricing_verified_at": "2026-05-18",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-18",
+      "source_url": "https://www.studysmarter.com/our-rates",
+      "currency": "EUR",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "EUR 0",
+          "features": [
+            "Core study tools",
+            "Flashcards & notes",
+            "Community content"
+          ],
+          "cta_label": "Visit site",
+          "cta_url": "https://studysmarter.de"
+        },
+        {
+          "name": "Premium",
+          "price_amount": 5.8,
+          "price_display": "~EUR 5.80/mo (annual)",
+          "features": [
+            "Unlimited AI flashcards",
+            "Ad-free & offline",
+            "CSV export",
+            "AI Assistant"
+          ],
+          "cta_label": "Get Premium",
+          "cta_url": "https://studysmarter.de"
+        }
+      ]
+    }
   },
   {
     "id": 275,
@@ -17633,8 +17955,8 @@
     "tagline": "AI research notebook that chats with your uploaded sources and generates podcasts",
     "category": "Research",
     "subCategory": "AI Research Assistant",
-    "price": "Free",
-    "pricingDetail": "Free with Google account",
+    "price": "Freemium",
+    "pricingDetail": "Standard free; Plus $7.99/mo (Google AI Plus), Pro $19.99/mo (Google AI Pro), Ultra $249.99/mo. Bundled with Google AI subscriptions.",
     "bestFor": "Synthesizing multiple research sources and generating audio summaries",
     "tags": [
       "research",
@@ -17666,7 +17988,7 @@
     "languages": "20+",
     "launchYear": 2024,
     "description": "NotebookLM by Google is a completely free AI research assistant that grounds all its responses in the sources you upload, eliminating hallucinations by only drawing from your provided materials. Its Audio Overview feature generates a realistic two-host podcast discussing your sources that students can listen to on the go. The mind map and study guide outputs structure research instantly.",
-    "pricing_tier": "Free",
+    "pricing_tier": "Freemium",
     "difficulty": "intermediate",
     "student_friendly": true,
     "use_cases": [
@@ -17676,7 +17998,7 @@
       "Discovering related research and citations",
       "Synthesizing findings from multiple sources"
     ],
-    "pricing": "Free",
+    "pricing": "Freemium",
     "student_perk": true,
     "company": "Google",
     "review_count": 0,
@@ -17689,7 +18011,67 @@
       "Study guide generation"
     ],
     "slug": "notebooklm",
-    "curation_score": 83.0
+    "curation_score": 83.0,
+    "pricing_source_url": "https://notebooklm.google/plans",
+    "pricing_verified_at": "2026-05-18",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-18",
+      "source_url": "https://notebooklm.google/plans",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Standard",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "100 notebooks",
+            "50 sources/notebook",
+            "50 chats/day",
+            "3 Audio Overviews/day"
+          ],
+          "cta_label": "Get Standard",
+          "cta_url": "https://notebooklm.google.com"
+        },
+        {
+          "name": "Plus",
+          "price_amount": 7.99,
+          "price_display": "$7.99/mo",
+          "features": [
+            "200 notebooks",
+            "100 sources/notebook",
+            "200 chats/day",
+            "Video Overviews",
+            "via Google AI Plus"
+          ],
+          "cta_label": "Get Plus",
+          "cta_url": "https://notebooklm.google.com"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 19.99,
+          "price_display": "$19.99/mo",
+          "features": [
+            "Higher limits",
+            "Bundled with Google AI Pro",
+            "All NotebookLM features"
+          ],
+          "cta_label": "Get Pro",
+          "cta_url": "https://notebooklm.google.com"
+        },
+        {
+          "name": "Ultra",
+          "price_amount": 249.99,
+          "price_display": "$249.99/mo",
+          "features": [
+            "Highest limits",
+            "Watermark-free decks",
+            "Cinematic Video Overviews at scale"
+          ],
+          "cta_label": "Get Ultra",
+          "cta_url": "https://notebooklm.google.com"
+        }
+      ]
+    }
   },
   {
     "id": 280,
@@ -19494,7 +19876,7 @@
     "category": "Productivity",
     "subCategory": "Launcher & AI",
     "price": "Freemium",
-    "pricingDetail": "Free; Pro $8/month for AI features",
+    "pricingDetail": "Free forever (core + 50 AI msgs); Pro $10/mo ($8 annual); Advanced AI +$8/mo; Team Pro $15/user/mo.",
     "bestFor": "Mac students who want a fast launcher with built-in AI for quick tasks",
     "tags": [
       "launcher",
@@ -19549,7 +19931,52 @@
       "Extensions marketplace"
     ],
     "slug": "raycast",
-    "curation_score": 76.0
+    "curation_score": 76.0,
+    "pricing_source_url": "https://www.raycast.com/pricing",
+    "pricing_verified_at": "2026-05-18",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-18",
+      "source_url": "https://www.raycast.com/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "Clipboard, snippets, window mgmt",
+            "Thousands of extensions",
+            "50 AI messages"
+          ],
+          "cta_label": "Visit site",
+          "cta_url": "https://raycast.com"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 10,
+          "price_display": "$10/mo ($8 annual)",
+          "features": [
+            "Unlimited clipboard & notes",
+            "Raycast AI",
+            "Advanced AI add-on +$8/mo"
+          ],
+          "cta_label": "Get Pro",
+          "cta_url": "https://raycast.com"
+        },
+        {
+          "name": "Team Pro",
+          "price_amount": 15,
+          "price_display": "$15/user/mo ($12 annual)",
+          "features": [
+            "Unlimited shared content",
+            "AI Control Center",
+            "Admin & SAML"
+          ],
+          "cta_label": "Get Team Pro",
+          "cta_url": "https://raycast.com"
+        }
+      ]
+    }
   },
   {
     "id": 341,
@@ -19695,7 +20122,7 @@
     "category": "Video Generation",
     "subCategory": "Video Editing",
     "price": "Freemium",
-    "pricingDetail": "Free; Pro $7.99/month",
+    "pricingDetail": "Free plan (1080p export, limited AI credits); Pro ~$9.99/mo ($4.99/mo billed annually). 50% student discount.",
     "bestFor": "Creating engaging short video content and presentations with AI templates",
     "tags": [
       "video editing",
@@ -19753,7 +20180,42 @@
       "Templates"
     ],
     "slug": "capcut",
-    "curation_score": 81.0
+    "curation_score": 81.0,
+    "pricing_source_url": "https://www.capcut.com/pricing",
+    "pricing_verified_at": "2026-05-18",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-18",
+      "source_url": "https://www.capcut.com/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "Full basic editing",
+            "1080p export",
+            "Free music & effects",
+            "Limited monthly AI credits"
+          ],
+          "cta_label": "Visit site",
+          "cta_url": "https://capcut.com"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 9.99,
+          "price_display": "$9.99/mo (from $4.99/mo annual)",
+          "features": [
+            "Watermark-free",
+            "Full AI credits",
+            "Premium templates & effects",
+            "50% student discount"
+          ],
+          "cta_label": "Get Pro",
+          "cta_url": "https://capcut.com"
+        }
+      ]
+    }
   },
   {
     "id": 357,
@@ -20302,7 +20764,7 @@
     "category": "Design & Graphics",
     "subCategory": "Graphic Design",
     "price": "Freemium",
-    "pricingDetail": "Free; Pro $120/year; Education free",
+    "pricingDetail": "Free plan; Pro $15/mo ($120/yr); Teams $10/user/mo (3-user min); Enterprise custom. Free for verified students/teachers via Canva for Education.",
     "bestFor": "Creating any visual content quickly with professional results and no design background",
     "tags": [
       "design",
@@ -20360,7 +20822,63 @@
       "Print ordering"
     ],
     "slug": "canva",
-    "curation_score": 69.0
+    "curation_score": 69.0,
+    "pricing_source_url": "https://www.canva.com/pricing/",
+    "pricing_verified_at": "2026-05-18",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-18",
+      "source_url": "https://www.canva.com/pricing/",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "Core design tools",
+            "Templates & basic assets",
+            "Limited cloud storage"
+          ],
+          "cta_label": "Visit site",
+          "cta_url": "https://canva.com"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 15,
+          "price_display": "$15/mo ($120/yr)",
+          "features": [
+            "Premium templates & assets",
+            "Brand kit",
+            "Background remover",
+            "Magic AI tools"
+          ],
+          "cta_label": "Get Pro",
+          "cta_url": "https://canva.com"
+        },
+        {
+          "name": "Teams",
+          "price_amount": 10,
+          "price_display": "$10/user/mo (min 3)",
+          "features": [
+            "Everything in Pro",
+            "Team collaboration & brand controls"
+          ],
+          "cta_label": "Get Teams",
+          "cta_url": "https://canva.com"
+        },
+        {
+          "name": "Education",
+          "price_amount": 0,
+          "price_display": "$0 (verified)",
+          "features": [
+            "Most Pro features free",
+            "For verified K-12 students/teachers"
+          ],
+          "cta_label": "Visit site",
+          "cta_url": "https://canva.com"
+        }
+      ]
+    }
   },
   {
     "id": 376,
@@ -24889,7 +25407,7 @@
     "category": "Coding",
     "subCategory": "LLM API",
     "price": "Freemium",
-    "pricingDetail": "Free tier available; usage-based pricing varies by model",
+    "pricingDetail": "No subscription — pay-as-you-go credits across all models; some free models available; small fee on credit purchases.",
     "bestFor": "Comparing LLM models, optimizing costs, and switching providers without code changes",
     "tags": [
       "api",
@@ -24946,7 +25464,40 @@
     ],
     "slug": "openrouter",
     "curation_score": 78.2,
-    "pricing": "Freemium"
+    "pricing": "Freemium",
+    "pricing_source_url": "https://openrouter.ai/",
+    "pricing_verified_at": "2026-05-18",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-18",
+      "source_url": "https://openrouter.ai/",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free models",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "Access to free/community models",
+            "No subscription",
+            "Single API for 300+ models"
+          ],
+          "cta_label": "Visit site",
+          "cta_url": "https://openrouter.ai"
+        },
+        {
+          "name": "Pay-as-you-go",
+          "price_amount": 0,
+          "price_display": "Usage-based",
+          "features": [
+            "Prepaid credits",
+            "Per-token model pricing",
+            "Works across any provider"
+          ],
+          "cta_label": "Get Pay-as-you-go",
+          "cta_url": "https://openrouter.ai"
+        }
+      ]
+    }
   },
   {
     "id": 504,
