@@ -1959,7 +1959,7 @@
     "category": "Productivity",
     "subCategory": "Math Solver",
     "price": "Freemium",
-    "pricingDetail": "Free basic; Plus $10/month for animated explanations",
+    "pricingDetail": "Free core step-by-step solver; Plus $9.99/mo ($69.99/yr ≈ $5.83/mo).",
     "bestFor": "Understanding math problem-solving steps from a photo",
     "tags": [
       "math",
@@ -2017,7 +2017,40 @@
       "Graphing"
     ],
     "slug": "photomath",
-    "curation_score": 40.0
+    "curation_score": 40.0,
+    "pricing_source_url": "https://photomath.com/en/help/how-much-does-photomath-cost",
+    "pricing_verified_at": "2026-05-18",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-18",
+      "source_url": "https://photomath.com/en/help/how-much-does-photomath-cost",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "Unlimited step-by-step solutions",
+            "Scan & calculator",
+            "Core math support"
+          ],
+          "cta_label": "Visit site",
+          "cta_url": "https://photomath.com"
+        },
+        {
+          "name": "Plus",
+          "price_amount": 9.99,
+          "price_display": "$9.99/mo ($69.99/yr)",
+          "features": [
+            "AI animated tutorials",
+            "Deeper explanations",
+            "Textbook solutions"
+          ],
+          "cta_label": "Get Plus",
+          "cta_url": "https://photomath.com"
+        }
+      ]
+    }
   },
   {
     "id": 21,
@@ -2028,7 +2061,7 @@
     "category": "Research",
     "subCategory": "Math Solver",
     "price": "Freemium",
-    "pricingDetail": "Free basic; Pro $7.25/month",
+    "pricingDetail": "Free tier; Pro for Students $4.75/mo; Pro $7.25/mo; Pro Premium ~$12/mo (priority compute).",
     "bestFor": "Solving complex math, chemistry, and physics problems computationally",
     "tags": [
       "math",
@@ -2087,7 +2120,65 @@
       "Unit conversions"
     ],
     "slug": "wolfram-alpha",
-    "curation_score": 65.0
+    "curation_score": 65.0,
+    "pricing_source_url": "https://www.wolframalpha.com/pro/pricing/",
+    "pricing_verified_at": "2026-05-18",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-18",
+      "source_url": "https://www.wolframalpha.com/pro/pricing/",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "Instant answers & data",
+            "Basic computations",
+            "No step-by-step"
+          ],
+          "cta_label": "Visit site",
+          "cta_url": "https://wolframalpha.com"
+        },
+        {
+          "name": "Pro (Students)",
+          "price_amount": 4.75,
+          "price_display": "$4.75/mo",
+          "features": [
+            "Step-by-step solutions",
+            "Web Apps",
+            "Extended computation",
+            "Student discount"
+          ],
+          "cta_label": "Get Pro (Students)",
+          "cta_url": "https://wolframalpha.com"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 7.25,
+          "price_display": "$7.25/mo",
+          "features": [
+            "Step-by-step solutions",
+            "Data downloads",
+            "Expert support"
+          ],
+          "cta_label": "Get Pro",
+          "cta_url": "https://wolframalpha.com"
+        },
+        {
+          "name": "Pro Premium",
+          "price_amount": 12,
+          "price_display": "~$12/mo",
+          "features": [
+            "Everything in Pro",
+            "Priority compute",
+            "Maximum upload sizes"
+          ],
+          "cta_label": "Get Pro Premium",
+          "cta_url": "https://wolframalpha.com"
+        }
+      ]
+    }
   },
   {
     "id": 22,
@@ -2167,7 +2258,7 @@
     "category": "Productivity",
     "subCategory": "Task Management",
     "price": "Freemium",
-    "pricingDetail": "Free basic; Pro $4/month",
+    "pricingDetail": "Beginner free (5 projects); Pro $5/mo annual ($7 monthly); Business $8/user/mo annual ($10 monthly).",
     "bestFor": "Organizing assignments and deadlines with natural language",
     "tags": [
       "productivity",
@@ -2227,7 +2318,54 @@
       "Collaboration"
     ],
     "slug": "todoist-ai",
-    "curation_score": 60.0
+    "curation_score": 60.0,
+    "pricing_source_url": "https://www.todoist.com/pricing",
+    "pricing_verified_at": "2026-05-18",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-18",
+      "source_url": "https://www.todoist.com/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Beginner",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "5 personal projects",
+            "Smart quick add",
+            "Basic reminders",
+            "Calendar integration"
+          ],
+          "cta_label": "Visit site",
+          "cta_url": "https://todoist.com"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 5,
+          "price_display": "$5/mo (annual)",
+          "features": [
+            "300 projects",
+            "Reminders & attachments",
+            "Advanced filters",
+            "$7/mo if monthly"
+          ],
+          "cta_label": "Get Pro",
+          "cta_url": "https://todoist.com"
+        },
+        {
+          "name": "Business",
+          "price_amount": 8,
+          "price_display": "$8/user/mo (annual)",
+          "features": [
+            "Shared team workspace",
+            "500 team projects",
+            "Roles & permissions"
+          ],
+          "cta_label": "Get Business",
+          "cta_url": "https://todoist.com"
+        }
+      ]
+    }
   },
   {
     "id": 24,
@@ -2238,7 +2376,7 @@
     "category": "Productivity",
     "subCategory": "AI Scheduling",
     "price": "Paid",
-    "pricingDetail": "$19/month; student discount sometimes available",
+    "pricingDetail": "No free plan (7-day trial); Pro AI $19/mo ($12.73 annual); Business AI $29/seat/mo ($19.43 annual).",
     "bestFor": "Auto-scheduling study blocks around classes and deadlines",
     "tags": [
       "scheduling",
@@ -2298,7 +2436,40 @@
       "Meeting booking"
     ],
     "slug": "motion",
-    "curation_score": 62.8
+    "curation_score": 62.8,
+    "pricing_source_url": "https://www.usemotion.com/pricing",
+    "pricing_verified_at": "2026-05-18",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-18",
+      "source_url": "https://www.usemotion.com/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Pro AI",
+          "price_amount": 19,
+          "price_display": "$19/mo ($12.73 annual)",
+          "features": [
+            "7,500 AI credits/mo",
+            "AI calendar & tasks",
+            "7-day free trial"
+          ],
+          "cta_label": "Get Pro AI",
+          "cta_url": "https://usemotion.com"
+        },
+        {
+          "name": "Business AI",
+          "price_amount": 29,
+          "price_display": "$29/seat/mo ($19.43 annual)",
+          "features": [
+            "15,000 AI credits/seat",
+            "Shared projects",
+            "Workload view"
+          ],
+          "cta_label": "Get Business AI",
+          "cta_url": "https://usemotion.com"
+        }
+      ]
+    }
   },
   {
     "id": 25,
@@ -2309,7 +2480,7 @@
     "category": "Productivity",
     "subCategory": "Transcription",
     "price": "Freemium",
-    "pricingDetail": "Free 300 min/month; Pro $17/month",
+    "pricingDetail": "Basic free (300 min/mo); Pro $16.99/user/mo ($8.33 annual); Business $30/user/mo ($20 annual); Enterprise custom. ~20% .edu discount.",
     "bestFor": "Transcribing lectures and study group discussions automatically",
     "tags": [
       "transcription",
@@ -2368,7 +2539,64 @@
       "Searchable notes"
     ],
     "slug": "otter.ai",
-    "curation_score": 62.0
+    "curation_score": 62.0,
+    "pricing_source_url": "https://otter.ai/pricing",
+    "pricing_verified_at": "2026-05-18",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-18",
+      "source_url": "https://otter.ai/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Basic",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "300 transcription min/mo",
+            "30 min/conversation",
+            "Live transcription"
+          ],
+          "cta_label": "Visit site",
+          "cta_url": "https://otter.ai"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 16.99,
+          "price_display": "$16.99/user/mo ($8.33 annual)",
+          "features": [
+            "1,200 min/mo",
+            "90 min/conversation",
+            "~20% .edu discount"
+          ],
+          "cta_label": "Get Pro",
+          "cta_url": "https://otter.ai"
+        },
+        {
+          "name": "Business",
+          "price_amount": 30,
+          "price_display": "$30/user/mo ($20 annual)",
+          "features": [
+            "6,000 min/user/mo",
+            "Admin controls",
+            "Shared vocabulary"
+          ],
+          "cta_label": "Get Business",
+          "cta_url": "https://otter.ai"
+        },
+        {
+          "name": "Enterprise",
+          "price_amount": 0,
+          "price_display": "Custom",
+          "features": [
+            "SSO & SCIM",
+            "Advanced security",
+            "Dedicated support"
+          ],
+          "cta_label": "Get Enterprise",
+          "cta_url": "https://otter.ai"
+        }
+      ]
+    }
   },
   {
     "id": 26,
@@ -3016,7 +3244,7 @@
     "category": "Video Generation",
     "subCategory": "Text to Video",
     "price": "Freemium",
-    "pricingDetail": "Free 125 credits; Standard $15/month",
+    "pricingDetail": "Free (125 one-time credits); Standard $12/mo (625 credits/mo); Pro $28/mo (2,250 credits); Unlimited $76/mo.",
     "bestFor": "AI video effects, editing, and generation for media students",
     "tags": [
       "video generation",
@@ -3072,7 +3300,63 @@
       "Green screen removal"
     ],
     "slug": "runway-gen-3",
-    "curation_score": 72.2
+    "curation_score": 72.2,
+    "pricing_source_url": "https://runwayml.com/pricing",
+    "pricing_verified_at": "2026-05-18",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-18",
+      "source_url": "https://runwayml.com/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "125 one-time credits",
+            "Non-commercial",
+            "Try Gen-3"
+          ],
+          "cta_label": "Visit site",
+          "cta_url": "https://runwayml.com"
+        },
+        {
+          "name": "Standard",
+          "price_amount": 12,
+          "price_display": "$12/mo (annual)",
+          "features": [
+            "625 credits/mo",
+            "Personal use",
+            "~12 sec Gen-3 video/credit batch"
+          ],
+          "cta_label": "Get Standard",
+          "cta_url": "https://runwayml.com"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 28,
+          "price_display": "$28/mo (annual)",
+          "features": [
+            "2,250 credits/mo",
+            "Commercial rights",
+            "Higher limits"
+          ],
+          "cta_label": "Get Pro",
+          "cta_url": "https://runwayml.com"
+        },
+        {
+          "name": "Unlimited",
+          "price_amount": 76,
+          "price_display": "$76/mo (annual)",
+          "features": [
+            "Unlimited generations (Explore mode)",
+            "Commercial rights"
+          ],
+          "cta_label": "Get Unlimited",
+          "cta_url": "https://runwayml.com"
+        }
+      ]
+    }
   },
   {
     "id": 33,
@@ -3802,7 +4086,7 @@
     "category": "Coding",
     "subCategory": "AI Data Analyst",
     "price": "Freemium",
-    "pricingDetail": "Free 10 analyses; Basic $20/month",
+    "pricingDetail": "Free (15 msgs/mo); Plus $35/mo (~$29 annual); Pro $45/mo; Max $75/mo (unlimited). 50% student/educator discount.",
     "bestFor": "Analyzing research datasets without knowing data science",
     "tags": [
       "data analysis",
@@ -3857,7 +4141,64 @@
       "PDF report export"
     ],
     "slug": "julius-ai",
-    "curation_score": 73.8
+    "curation_score": 73.8,
+    "pricing_source_url": "https://julius.ai/pricing",
+    "pricing_verified_at": "2026-05-18",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-18",
+      "source_url": "https://julius.ai/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "15 messages/month",
+            "Core data analysis",
+            "Try the platform"
+          ],
+          "cta_label": "Visit site",
+          "cta_url": "https://julius.ai"
+        },
+        {
+          "name": "Plus",
+          "price_amount": 35,
+          "price_display": "$35/mo (~$29 annual)",
+          "features": [
+            "More messages",
+            "Data viz & analysis",
+            "50% student discount"
+          ],
+          "cta_label": "Get Plus",
+          "cta_url": "https://julius.ai"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 45,
+          "price_display": "$45/mo",
+          "features": [
+            "Higher limits",
+            "Advanced models",
+            "Priority"
+          ],
+          "cta_label": "Get Pro",
+          "cta_url": "https://julius.ai"
+        },
+        {
+          "name": "Max",
+          "price_amount": 75,
+          "price_display": "$75/mo",
+          "features": [
+            "Unlimited messages",
+            "Top model access",
+            "Best for power users"
+          ],
+          "cta_label": "Get Max",
+          "cta_url": "https://julius.ai"
+        }
+      ]
+    }
   },
   {
     "id": 44,
@@ -12254,7 +12595,7 @@
     "category": "Coding",
     "subCategory": "Backend as a Service",
     "price": "Freemium",
-    "pricingDetail": "Free tier forever; Pro $25/month",
+    "pricingDetail": "Free (500MB DB, 50K MAUs); Pro $25/mo + usage; Team $599/mo + usage; Enterprise custom.",
     "bestFor": "Adding authentication, database, and storage to student web projects quickly",
     "tags": [
       "backend",
@@ -12309,7 +12650,65 @@
       "Vector embeddings"
     ],
     "slug": "supabase",
-    "curation_score": 72.2
+    "curation_score": 72.2,
+    "pricing_source_url": "https://supabase.com/pricing",
+    "pricing_verified_at": "2026-05-18",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-18",
+      "source_url": "https://supabase.com/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "500MB database",
+            "50K monthly active users",
+            "1GB file storage"
+          ],
+          "cta_label": "Visit site",
+          "cta_url": "https://supabase.com"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 25,
+          "price_display": "$25/mo + usage",
+          "features": [
+            "8GB database",
+            "100K MAUs",
+            "100GB storage",
+            "Daily backups"
+          ],
+          "cta_label": "Get Pro",
+          "cta_url": "https://supabase.com"
+        },
+        {
+          "name": "Team",
+          "price_amount": 599,
+          "price_display": "$599/mo + usage",
+          "features": [
+            "SOC2 & ISO 27001",
+            "14-day backups",
+            "Priority support"
+          ],
+          "cta_label": "Get Team",
+          "cta_url": "https://supabase.com"
+        },
+        {
+          "name": "Enterprise",
+          "price_amount": 0,
+          "price_display": "Custom",
+          "features": [
+            "HIPAA & BYO cloud",
+            "Dedicated support",
+            "Custom SLAs"
+          ],
+          "cta_label": "Get Enterprise",
+          "cta_url": "https://supabase.com"
+        }
+      ]
+    }
   },
   {
     "id": 180,
@@ -20630,7 +21029,7 @@
     "category": "Design & Graphics",
     "subCategory": "UI/UX Design",
     "price": "Freemium",
-    "pricingDetail": "Free Education plan for students; Professional $15/month",
+    "pricingDetail": "Free Starter plan; Professional $12/editor/mo (annual, $15 monthly); Organization $45/editor/mo; Enterprise custom. Viewers free.",
     "bestFor": "Designing user interfaces, prototypes, and design systems for web and app projects",
     "tags": [
       "UI design",
@@ -20686,7 +21085,65 @@
       "Dev mode"
     ],
     "slug": "figma",
-    "curation_score": 67.0
+    "curation_score": 67.0,
+    "pricing_source_url": "https://www.figma.com/pricing/",
+    "pricing_verified_at": "2026-05-18",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-18",
+      "source_url": "https://www.figma.com/pricing/",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Starter",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "3 design files & 3 FigJam boards",
+            "Unlimited viewers",
+            "Core editor"
+          ],
+          "cta_label": "Visit site",
+          "cta_url": "https://figma.com"
+        },
+        {
+          "name": "Professional",
+          "price_amount": 12,
+          "price_display": "$12/editor/mo (annual)",
+          "features": [
+            "Unlimited files",
+            "Shared libraries",
+            "Free viewers/devs",
+            "$15/mo if monthly"
+          ],
+          "cta_label": "Get Professional",
+          "cta_url": "https://figma.com"
+        },
+        {
+          "name": "Organization",
+          "price_amount": 45,
+          "price_display": "$45/editor/mo (annual)",
+          "features": [
+            "Org-wide libraries",
+            "Admin & security",
+            "Design system analytics"
+          ],
+          "cta_label": "Get Organization",
+          "cta_url": "https://figma.com"
+        },
+        {
+          "name": "Enterprise",
+          "price_amount": 0,
+          "price_display": "Custom",
+          "features": [
+            "Advanced security",
+            "Dedicated support",
+            "Org controls at scale"
+          ],
+          "cta_label": "Get Enterprise",
+          "cta_url": "https://figma.com"
+        }
+      ]
+    }
   },
   {
     "id": 369,
@@ -20697,7 +21154,7 @@
     "category": "Design & Graphics",
     "subCategory": "Web Design",
     "price": "Freemium",
-    "pricingDetail": "Free subdomain site; Mini $5/month",
+    "pricingDetail": "Free; Basic $10/mo (annual, $15 monthly); Pro $30/mo (annual, $45 monthly); Scale $100/mo; Enterprise custom.",
     "bestFor": "Building and publishing a designed portfolio website without code",
     "tags": [
       "web design",
@@ -20753,7 +21210,65 @@
       "Custom animations"
     ],
     "slug": "framer",
-    "curation_score": 74.0
+    "curation_score": 74.0,
+    "pricing_source_url": "https://www.framer.com/pricing",
+    "pricing_verified_at": "2026-05-18",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-18",
+      "source_url": "https://www.framer.com/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "framer.website domain",
+            "1,000 pages",
+            "10 CMS collections",
+            "1 locale"
+          ],
+          "cta_label": "Visit site",
+          "cta_url": "https://framer.com"
+        },
+        {
+          "name": "Basic",
+          "price_amount": 10,
+          "price_display": "$10/mo (annual)",
+          "features": [
+            "Custom domain",
+            "2 editors",
+            "$15/mo if monthly"
+          ],
+          "cta_label": "Get Basic",
+          "cta_url": "https://framer.com"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 30,
+          "price_display": "$30/mo (annual)",
+          "features": [
+            "10 editors",
+            "More CMS & bandwidth",
+            "$45/mo if monthly"
+          ],
+          "cta_label": "Get Pro",
+          "cta_url": "https://framer.com"
+        },
+        {
+          "name": "Scale",
+          "price_amount": 100,
+          "price_display": "$100/mo (annual)",
+          "features": [
+            "High traffic & CMS limits",
+            "10 editors",
+            "Priority"
+          ],
+          "cta_label": "Get Scale",
+          "cta_url": "https://framer.com"
+        }
+      ]
+    }
   },
   {
     "id": 371,
@@ -22682,7 +23197,7 @@
     "category": "Productivity",
     "subCategory": "Cloud Storage",
     "price": "Freemium",
-    "pricingDetail": "Free 2GB; Plus $9.99/month",
+    "pricingDetail": "Free 2GB; Plus $11.99/mo (2TB); Professional $19.99/mo (3TB); Business Standard $18/user/mo (annual).",
     "bestFor": "Reliable cross-device file sync and sharing for academic projects",
     "tags": [
       "cloud storage",
@@ -22740,7 +23255,64 @@
       "AI document search"
     ],
     "slug": "dropbox",
-    "curation_score": 67.0
+    "curation_score": 67.0,
+    "pricing_source_url": "https://www.dropbox.com/plans",
+    "pricing_verified_at": "2026-05-18",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-18",
+      "source_url": "https://www.dropbox.com/plans",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Basic",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "2GB storage",
+            "File sync & sharing",
+            "Basic recovery"
+          ],
+          "cta_label": "Visit site",
+          "cta_url": "https://dropbox.com"
+        },
+        {
+          "name": "Plus",
+          "price_amount": 11.99,
+          "price_display": "$11.99/mo",
+          "features": [
+            "2TB storage",
+            "File recovery (30 days)",
+            "Personal use"
+          ],
+          "cta_label": "Get Plus",
+          "cta_url": "https://dropbox.com"
+        },
+        {
+          "name": "Professional",
+          "price_amount": 19.99,
+          "price_display": "$19.99/mo",
+          "features": [
+            "3TB storage",
+            "File engagement tracking",
+            "Advanced sharing"
+          ],
+          "cta_label": "Get Professional",
+          "cta_url": "https://dropbox.com"
+        },
+        {
+          "name": "Business Standard",
+          "price_amount": 18,
+          "price_display": "$18/user/mo (annual)",
+          "features": [
+            "9TB pooled storage",
+            "Team collaboration",
+            "Admin controls"
+          ],
+          "cta_label": "Get Business Standard",
+          "cta_url": "https://dropbox.com"
+        }
+      ]
+    }
   },
   {
     "id": 435,
@@ -22889,7 +23461,7 @@
     "category": "Productivity",
     "subCategory": "Video Conferencing",
     "price": "Freemium",
-    "pricingDetail": "Free 40-min meetings; Pro $13.33/month; Free via university",
+    "pricingDetail": "Basic free (40-min group cap); Pro $13.33/user/mo (annual); Business $18.33/user/mo; Business Plus $29/user/mo.",
     "bestFor": "Online class sessions, virtual office hours, and research team meetings",
     "tags": [
       "video conferencing",
@@ -22947,7 +23519,64 @@
       "Recording"
     ],
     "slug": "zoom",
-    "curation_score": 69.0
+    "curation_score": 69.0,
+    "pricing_source_url": "https://zoom.us/pricing",
+    "pricing_verified_at": "2026-05-18",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-18",
+      "source_url": "https://zoom.us/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Basic",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "Unlimited 1:1 meetings",
+            "40-min group meeting limit",
+            "100 participants"
+          ],
+          "cta_label": "Visit site",
+          "cta_url": "https://zoom.us"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 13.33,
+          "price_display": "$13.33/user/mo (annual)",
+          "features": [
+            "30-hour meetings",
+            "Cloud recording",
+            "$16.99/mo if monthly"
+          ],
+          "cta_label": "Get Pro",
+          "cta_url": "https://zoom.us"
+        },
+        {
+          "name": "Business",
+          "price_amount": 18.33,
+          "price_display": "$18.33/user/mo (annual)",
+          "features": [
+            "300 participants",
+            "SSO & managed domains",
+            "Branding"
+          ],
+          "cta_label": "Get Business",
+          "cta_url": "https://zoom.us"
+        },
+        {
+          "name": "Business Plus",
+          "price_amount": 29,
+          "price_display": "$29/user/mo (annual)",
+          "features": [
+            "Unlimited cloud storage",
+            "Translated captions",
+            "Workspace mgmt"
+          ],
+          "cta_label": "Get Business Plus",
+          "cta_url": "https://zoom.us"
+        }
+      ]
+    }
   },
   {
     "id": 443,
