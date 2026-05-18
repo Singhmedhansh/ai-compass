@@ -1015,8 +1015,8 @@
     "tagline": "Free AI coding assistant with autocomplete and chat",
     "category": "Coding",
     "subCategory": "Code Completion",
-    "price": "Free",
-    "pricingDetail": "Always free for individuals",
+    "price": "Freemium",
+    "pricingDetail": "Now Windsurf. Free (25 credits/mo, unlimited Tab); Pro $15/mo (500 credits); Pro Plus $35/mo; Teams $30/user/mo. 50%+ .edu student discount.",
     "bestFor": "Free alternative to Copilot for student projects",
     "tags": [
       "coding",
@@ -1057,10 +1057,10 @@
     ],
     "difficulty": "intermediate",
     "student_friendly": true,
-    "pricing_tier": "Free",
+    "pricing_tier": "Freemium",
     "popularity_score": 0.62,
     "weekly_users_estimate": "500K+",
-    "pricing": "Free",
+    "pricing": "Freemium",
     "student_perk": true,
     "company": "Exafunction",
     "review_count": 0,
@@ -1073,7 +1073,64 @@
       "Context-aware completions"
     ],
     "slug": "codeium",
-    "curation_score": 56.2
+    "curation_score": 56.2,
+    "pricing_source_url": "https://windsurf.com/pricing",
+    "pricing_verified_at": "2026-05-18",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-18",
+      "source_url": "https://windsurf.com/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "25 prompt credits/mo",
+            "Unlimited Tab completions",
+            "Unlimited inline edits"
+          ],
+          "cta_label": "Visit site",
+          "cta_url": "https://codeium.com"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 15,
+          "price_display": "$15/mo",
+          "features": [
+            "500 credits/mo",
+            "All premium models",
+            "Full Cascade",
+            "50%+ student discount"
+          ],
+          "cta_label": "Get Pro",
+          "cta_url": "https://codeium.com"
+        },
+        {
+          "name": "Pro Plus",
+          "price_amount": 35,
+          "price_display": "$35/mo",
+          "features": [
+            "Priority flagship model access",
+            "Higher credit allowance"
+          ],
+          "cta_label": "Get Pro Plus",
+          "cta_url": "https://codeium.com"
+        },
+        {
+          "name": "Teams",
+          "price_amount": 30,
+          "price_display": "$30/user/mo",
+          "features": [
+            "500 credits/user (not pooled)",
+            "Admin dashboard",
+            "Centralized billing"
+          ],
+          "cta_label": "Get Teams",
+          "cta_url": "https://codeium.com"
+        }
+      ]
+    }
   },
   {
     "id": 11,
@@ -1644,7 +1701,7 @@
     "category": "Research",
     "subCategory": "Citation Mapping",
     "price": "Freemium",
-    "pricingDetail": "5 free graphs; $3/month for unlimited",
+    "pricingDetail": "Free (5 graphs/month); Academic ~$5/mo (quarterly) or ~$3/mo billed annually — unlimited graphs.",
     "bestFor": "Visualizing how papers relate and finding seminal works",
     "tags": [
       "research",
@@ -1701,7 +1758,40 @@
     ],
     "slug": "connected-papers",
     "is_ai_native": true,
-    "curation_score": 47.5
+    "curation_score": 47.5,
+    "pricing_source_url": "https://www.connectedpapers.com/pricing",
+    "pricing_verified_at": "2026-05-18",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-18",
+      "source_url": "https://www.connectedpapers.com/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "5 graphs per month",
+            "Visual paper exploration",
+            "Prior & derivative works"
+          ],
+          "cta_label": "Visit site",
+          "cta_url": "https://connectedpapers.com"
+        },
+        {
+          "name": "Academic",
+          "price_amount": 5,
+          "price_display": "~$5/mo ($3/mo annual)",
+          "features": [
+            "Unlimited graphs",
+            "Multi-origin graphs",
+            "All features"
+          ],
+          "cta_label": "Get Academic",
+          "cta_url": "https://connectedpapers.com"
+        }
+      ]
+    }
   },
   {
     "id": 17,
@@ -1889,7 +1979,7 @@
     "category": "Courses & Tutorials",
     "subCategory": "AI Tutoring",
     "price": "Freemium",
-    "pricingDetail": "Free for students; donation-based",
+    "pricingDetail": "Free for teachers; Learners/Parents $4/mo ($44/year). Khan Academy content & platform always 100% free.",
     "bestFor": "Math tutoring and concept mastery through guided practice",
     "tags": [
       "tutoring",
@@ -1948,7 +2038,40 @@
       "Essay feedback"
     ],
     "slug": "khan-academy-khanmigo",
-    "curation_score": 69.0
+    "curation_score": 69.0,
+    "pricing_source_url": "https://www.khanmigo.ai/pricing",
+    "pricing_verified_at": "2026-05-18",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-18",
+      "source_url": "https://www.khanmigo.ai/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Teachers",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "Free for teachers",
+            "Lesson & rubric tools",
+            "Student insights"
+          ],
+          "cta_label": "Visit site",
+          "cta_url": "https://khanacademy.org"
+        },
+        {
+          "name": "Learners & Parents",
+          "price_amount": 4,
+          "price_display": "$4/mo ($44/yr)",
+          "features": [
+            "AI tutor & coach",
+            "Always-available help",
+            "Khan content free"
+          ],
+          "cta_label": "Get Learners & Parents",
+          "cta_url": "https://khanacademy.org"
+        }
+      ]
+    }
   },
   {
     "id": 20,
@@ -4811,7 +4934,7 @@
     "category": "Design & Graphics",
     "subCategory": "Diagram Generation",
     "price": "Freemium",
-    "pricingDetail": "Free beta; Pro coming soon",
+    "pricingDetail": "Free (500 weekly credits); Plus $12/person/mo (10,000 credits/mo); Pro $30/person/mo (30,000); Enterprise custom. 25% off annual.",
     "bestFor": "Converting written explanations into clean visual diagrams",
     "tags": [
       "diagrams",
@@ -4865,7 +4988,63 @@
       "Brand customization"
     ],
     "slug": "napkin-ai",
-    "curation_score": 73.8
+    "curation_score": 73.8,
+    "pricing_source_url": "https://www.napkin.ai/pricing/",
+    "pricing_verified_at": "2026-05-18",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-18",
+      "source_url": "https://www.napkin.ai/pricing/",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "500 weekly credits",
+            "AI visuals from text",
+            "Core editor"
+          ],
+          "cta_label": "Visit site",
+          "cta_url": "https://napkin.ai"
+        },
+        {
+          "name": "Plus",
+          "price_amount": 12,
+          "price_display": "$12/person/mo",
+          "features": [
+            "10,000 AI credits/mo",
+            "More visual styles",
+            "25% off annual"
+          ],
+          "cta_label": "Get Plus",
+          "cta_url": "https://napkin.ai"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 30,
+          "price_display": "$30/person/mo",
+          "features": [
+            "30,000 AI credits/mo",
+            "Advanced controls"
+          ],
+          "cta_label": "Get Pro",
+          "cta_url": "https://napkin.ai"
+        },
+        {
+          "name": "Enterprise",
+          "price_amount": 0,
+          "price_display": "Custom",
+          "features": [
+            "SSO & admin",
+            "Custom limits",
+            "Support"
+          ],
+          "cta_label": "Get Enterprise",
+          "cta_url": "https://napkin.ai"
+        }
+      ]
+    }
   },
   {
     "id": 52,
@@ -10658,7 +10837,7 @@
     "category": "Research",
     "subCategory": "Document Q&A",
     "price": "Freemium",
-    "pricingDetail": "Free 3 PDFs/day; Plus $5/month",
+    "pricingDetail": "Free (2 docs/day, 50 questions/day); Plus $19.99/mo — unlimited docs, up to 2,000 pages/PDF.",
     "bestFor": "Getting quick answers from research papers and textbook chapters",
     "tags": [
       "PDF",
@@ -10715,7 +10894,40 @@
     ],
     "slug": "chatpdf",
     "is_ai_native": true,
-    "curation_score": 66.0
+    "curation_score": 66.0,
+    "pricing_source_url": "https://www.chatpdf.com/",
+    "pricing_verified_at": "2026-05-18",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-18",
+      "source_url": "https://www.chatpdf.com/",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "2 PDFs/day",
+            "120 pages/doc",
+            "50 questions/day"
+          ],
+          "cta_label": "Visit site",
+          "cta_url": "https://chatpdf.com"
+        },
+        {
+          "name": "Plus",
+          "price_amount": 19.99,
+          "price_display": "$19.99/mo",
+          "features": [
+            "Unlimited PDFs",
+            "Up to 2,000 pages/PDF",
+            "Unlimited questions"
+          ],
+          "cta_label": "Get Plus",
+          "cta_url": "https://chatpdf.com"
+        }
+      ]
+    }
   },
   {
     "id": 149,
@@ -15240,7 +15452,7 @@
     "category": "Image Generation",
     "subCategory": "Image Editing",
     "price": "Freemium",
-    "pricingDetail": "Free preview resolution; paid for full quality",
+    "pricingDetail": "Free unlimited SD (0.25MP) + 1 HD credit/day; subscriptions: 40 credits $9/mo, 200 credits $39/mo; pay-as-you-go credit packs.",
     "bestFor": "Removing backgrounds from photos for design and presentation projects",
     "tags": [
       "background removal",
@@ -15296,7 +15508,52 @@
       "Batch processing"
     ],
     "slug": "remove.bg",
-    "curation_score": 65.0
+    "curation_score": 65.0,
+    "pricing_source_url": "https://www.remove.bg/pricing",
+    "pricing_verified_at": "2026-05-18",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-18",
+      "source_url": "https://www.remove.bg/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "Unlimited SD removals (0.25MP)",
+            "1 HD credit/day",
+            "Web & API"
+          ],
+          "cta_label": "Visit site",
+          "cta_url": "https://remove.bg"
+        },
+        {
+          "name": "40 Credits",
+          "price_amount": 9,
+          "price_display": "$9/mo",
+          "features": [
+            "40 HD images/mo",
+            "Credits roll over",
+            "~$0.23/image"
+          ],
+          "cta_label": "Get 40 Credits",
+          "cta_url": "https://remove.bg"
+        },
+        {
+          "name": "200 Credits",
+          "price_amount": 39,
+          "price_display": "$39/mo",
+          "features": [
+            "200 HD images/mo",
+            "Lower per-image cost",
+            "Bulk use"
+          ],
+          "cta_label": "Get 200 Credits",
+          "cta_url": "https://remove.bg"
+        }
+      ]
+    }
   },
   {
     "id": 223,
@@ -16533,7 +16790,7 @@
     "category": "Image Generation",
     "subCategory": "AI Inference",
     "price": "Freemium",
-    "pricingDetail": "Pay-as-you-go from $0.003/image; free starting credit",
+    "pricingDetail": "No ongoing free plan ($20 starter credits on signup); pay-as-you-go usage-based (~$0.02-0.40 per output).",
     "bestFor": "Integrating fast AI image and video generation into student applications",
     "tags": [
       "API",
@@ -16588,7 +16845,40 @@
       "Webhooks"
     ],
     "slug": "fal.ai",
-    "curation_score": 68.5
+    "curation_score": 68.5,
+    "pricing_source_url": "https://fal.ai/pricing",
+    "pricing_verified_at": "2026-05-18",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-18",
+      "source_url": "https://fal.ai/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Starter credits",
+          "price_amount": 0,
+          "price_display": "$20 free",
+          "features": [
+            "$20 free credits on signup",
+            "Try image/video models",
+            "Introductory only"
+          ],
+          "cta_label": "Visit site",
+          "cta_url": "https://fal.ai"
+        },
+        {
+          "name": "Pay-as-you-go",
+          "price_amount": 0,
+          "price_display": "Usage-based",
+          "features": [
+            "~$0.02-0.40 per output",
+            "GPU billed per second",
+            "Prepaid credits"
+          ],
+          "cta_label": "Get Pay-as-you-go",
+          "cta_url": "https://fal.ai"
+        }
+      ]
+    }
   },
   {
     "id": 243,
@@ -19013,7 +19303,7 @@
     "category": "Research",
     "subCategory": "Survey Tools",
     "price": "Freemium",
-    "pricingDetail": "Free limited; Basic $25/month",
+    "pricingDetail": "Free (10 questions, 40 responses); Advantage $39/mo (annual); Standard Monthly $99/mo; Premier $139/mo (annual).",
     "bestFor": "Collecting primary research data for dissertations and capstone projects",
     "tags": [
       "surveys",
@@ -19070,7 +19360,64 @@
       "A/B testing"
     ],
     "slug": "surveymonkey",
-    "curation_score": 65.0
+    "curation_score": 65.0,
+    "pricing_source_url": "https://www.surveymonkey.com/pricing/",
+    "pricing_verified_at": "2026-05-18",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-18",
+      "source_url": "https://www.surveymonkey.com/pricing/",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "10 questions/survey",
+            "40 responses/survey",
+            "Basic question types"
+          ],
+          "cta_label": "Visit site",
+          "cta_url": "https://surveymonkey.com"
+        },
+        {
+          "name": "Advantage",
+          "price_amount": 39,
+          "price_display": "$39/mo (annual)",
+          "features": [
+            "15,000 responses/yr",
+            "Advanced logic",
+            "Data exports"
+          ],
+          "cta_label": "Get Advantage",
+          "cta_url": "https://surveymonkey.com"
+        },
+        {
+          "name": "Standard Monthly",
+          "price_amount": 99,
+          "price_display": "$99/mo",
+          "features": [
+            "Month-to-month billing",
+            "1,000 responses/mo",
+            "Core analysis"
+          ],
+          "cta_label": "Get Standard Monthly",
+          "cta_url": "https://surveymonkey.com"
+        },
+        {
+          "name": "Premier",
+          "price_amount": 139,
+          "price_display": "$139/mo (annual)",
+          "features": [
+            "100,000 responses/yr",
+            "Advanced analysis",
+            "Priority support"
+          ],
+          "cta_label": "Get Premier",
+          "cta_url": "https://surveymonkey.com"
+        }
+      ]
+    }
   },
   {
     "id": 290,
@@ -20894,7 +21241,7 @@
     "category": "Productivity",
     "subCategory": "Collaborative Whiteboard",
     "price": "Freemium",
-    "pricingDetail": "Free 3 boards; Starter $8/month",
+    "pricingDetail": "Free (3 editable boards, unlimited members); Starter $8/user/mo (annual, $10 monthly); Business $16/user/mo (annual, $20 monthly); Enterprise custom.",
     "bestFor": "Collaborative group projects, design sprints, and visual planning with remote teams",
     "tags": [
       "whiteboard",
@@ -20952,7 +21299,64 @@
       "Video chat integration"
     ],
     "slug": "miro",
-    "curation_score": 65.0
+    "curation_score": 65.0,
+    "pricing_source_url": "https://miro.com/pricing/",
+    "pricing_verified_at": "2026-05-18",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-18",
+      "source_url": "https://miro.com/pricing/",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "3 editable boards",
+            "Unlimited members",
+            "Core templates"
+          ],
+          "cta_label": "Visit site",
+          "cta_url": "https://miro.com"
+        },
+        {
+          "name": "Starter",
+          "price_amount": 8,
+          "price_display": "$8/user/mo (annual)",
+          "features": [
+            "Unlimited boards",
+            "Private boards",
+            "$10/mo if monthly"
+          ],
+          "cta_label": "Get Starter",
+          "cta_url": "https://miro.com"
+        },
+        {
+          "name": "Business",
+          "price_amount": 16,
+          "price_display": "$16/user/mo (annual)",
+          "features": [
+            "Advanced AI & integrations",
+            "SSO",
+            "$20/mo if monthly"
+          ],
+          "cta_label": "Get Business",
+          "cta_url": "https://miro.com"
+        },
+        {
+          "name": "Enterprise",
+          "price_amount": 0,
+          "price_display": "Custom",
+          "features": [
+            "Org-wide admin",
+            "Advanced security",
+            "Dedicated support"
+          ],
+          "cta_label": "Get Enterprise",
+          "cta_url": "https://miro.com"
+        }
+      ]
+    }
   },
   {
     "id": 365,
@@ -21851,7 +22255,7 @@
     "category": "Coding",
     "subCategory": "Interview Prep",
     "price": "Freemium",
-    "pricingDetail": "Free roadmap and videos; Pro $39/month",
+    "pricingDetail": "Free YouTube + site content; Pro $149/year or $297 one-time lifetime.",
     "bestFor": "Systematic coding interview preparation with video explanations for every problem",
     "tags": [
       "interview prep",
@@ -21906,7 +22310,53 @@
       "Flashcards"
     ],
     "slug": "neetcode",
-    "curation_score": 74.0
+    "curation_score": 74.0,
+    "pricing_source_url": "https://neetcode.io/pro",
+    "pricing_verified_at": "2026-05-18",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-18",
+      "source_url": "https://neetcode.io/pro",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "All practice problems & roadmap",
+            "YouTube solution videos",
+            "Core content"
+          ],
+          "cta_label": "Visit site",
+          "cta_url": "https://neetcode.io"
+        },
+        {
+          "name": "Pro (Annual)",
+          "price_amount": 149,
+          "price_display": "$149/year",
+          "features": [
+            "Structured courses",
+            "Progress tracking",
+            "Spaced repetition",
+            "Community"
+          ],
+          "cta_label": "Get Pro (Annual)",
+          "cta_url": "https://neetcode.io"
+        },
+        {
+          "name": "Pro (Lifetime)",
+          "price_amount": 297,
+          "price_display": "$297 one-time",
+          "features": [
+            "All Pro features",
+            "Lifetime access",
+            "No recurring fee"
+          ],
+          "cta_label": "Get Pro (Lifetime)",
+          "cta_url": "https://neetcode.io"
+        }
+      ]
+    }
   },
   {
     "id": 388,
@@ -24044,7 +24494,7 @@
     "category": "Productivity",
     "subCategory": "AI Agent",
     "price": "Freemium",
-    "pricingDetail": "Free limited credits; Pro plans available",
+    "pricingDetail": "Free (300 daily credits + 1,000 starter); Pro Entry $20/mo (4,000 credits); Pro Mid $40/mo (8,000); Pro Top $200/mo (40,000).",
     "bestFor": "Delegating complex multi-step research and data tasks to an autonomous AI agent",
     "tags": [
       "AI agent",
@@ -24099,7 +24549,63 @@
       "File output"
     ],
     "slug": "manus-ai",
-    "curation_score": 76.2
+    "curation_score": 76.2,
+    "pricing_source_url": "https://manus.im/pricing",
+    "pricing_verified_at": "2026-05-18",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-18",
+      "source_url": "https://manus.im/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "300 daily refresh credits",
+            "1,000-credit starter pack",
+            "Manus Lite agent"
+          ],
+          "cta_label": "Visit site",
+          "cta_url": "https://manus.im"
+        },
+        {
+          "name": "Pro Entry",
+          "price_amount": 20,
+          "price_display": "$20/mo",
+          "features": [
+            "4,000 credits/mo",
+            "Full agent mode",
+            "300 daily credits"
+          ],
+          "cta_label": "Get Pro Entry",
+          "cta_url": "https://manus.im"
+        },
+        {
+          "name": "Pro Mid",
+          "price_amount": 40,
+          "price_display": "$40/mo",
+          "features": [
+            "8,000 credits/mo",
+            "7-day free trial",
+            "Priority"
+          ],
+          "cta_label": "Get Pro Mid",
+          "cta_url": "https://manus.im"
+        },
+        {
+          "name": "Pro Top",
+          "price_amount": 200,
+          "price_display": "$200/mo",
+          "features": [
+            "40,000 credits/mo",
+            "Highest throughput"
+          ],
+          "cta_label": "Get Pro Top",
+          "cta_url": "https://manus.im"
+        }
+      ]
+    }
   },
   {
     "id": 454,
@@ -24694,7 +25200,7 @@
     "category": "Productivity",
     "subCategory": "Mind Mapping",
     "price": "Freemium",
-    "pricingDetail": "Free 3 maps; Pro $9.9/month",
+    "pricingDetail": "Free (limited tools); Basic $9.99/mo; Pro $19.99/mo ($11.99 annual); Unlimited $29.99/mo ($8.25 annual). 30% student discount.",
     "bestFor": "Automatically mapping out any article, paper, or YouTube video into a visual mind map",
     "tags": [
       "mind maps",
@@ -24749,7 +25255,61 @@
       "Export options"
     ],
     "slug": "mapify",
-    "curation_score": 74.5
+    "curation_score": 74.5,
+    "pricing_source_url": "https://mapify.so/pricing",
+    "pricing_verified_at": "2026-05-18",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-18",
+      "source_url": "https://mapify.so/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "Limited mind-map tools",
+            "Try AI summarization"
+          ],
+          "cta_label": "Visit site",
+          "cta_url": "https://mapify.so"
+        },
+        {
+          "name": "Basic",
+          "price_amount": 9.99,
+          "price_display": "$9.99/mo",
+          "features": [
+            "More maps & exports",
+            "AI summaries"
+          ],
+          "cta_label": "Get Basic",
+          "cta_url": "https://mapify.so"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 19.99,
+          "price_display": "$19.99/mo ($11.99 annual)",
+          "features": [
+            "Higher limits",
+            "Advanced AI",
+            "30% student discount"
+          ],
+          "cta_label": "Get Pro",
+          "cta_url": "https://mapify.so"
+        },
+        {
+          "name": "Unlimited",
+          "price_amount": 29.99,
+          "price_display": "$29.99/mo ($8.25 annual)",
+          "features": [
+            "Unlimited maps",
+            "All features"
+          ],
+          "cta_label": "Get Unlimited",
+          "cta_url": "https://mapify.so"
+        }
+      ]
+    }
   },
   {
     "id": 475,
