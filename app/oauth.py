@@ -13,9 +13,31 @@ oauth_bp = Blueprint("oauth", __name__)
 oauth = OAuth()
 
 # TEMP: last LinkedIn callback outcome for diagnosis (no secrets — only
-# which branch ran + field presence + exception class). Read via
-# GET /debug/linkedin-last. Removed once LinkedIn login is confirmed.
-_LAST_LINKEDIN_DEBUG: dict = {}
+# which branch ran + field presence + exception class). Persisted to the
+# DB (AppSetting) so it's readable across Render's multiple workers and
+# survives dyno restarts. Read via GET /debug/linkedin-last. Removed once
+# LinkedIn login is confirmed working.
+_LINKEDIN_DBG_KEY = "linkedin_debug_last"
+
+
+def _save_linkedin_debug(dbg: dict) -> None:
+    try:
+        import json as _json
+
+        from app import db
+        from app.models import AppSetting
+        row = db.session.query(AppSetting).filter_by(key=_LINKEDIN_DBG_KEY).one_or_none()
+        if row is None:
+            db.session.add(AppSetting(key=_LINKEDIN_DBG_KEY, value=_json.dumps(dbg)))
+        else:
+            row.value = _json.dumps(dbg)
+        db.session.commit()
+    except Exception:
+        try:
+            from app import db
+            db.session.rollback()
+        except Exception:
+            pass
 
 
 def _is_production_env() -> bool:
@@ -332,7 +354,7 @@ def linkedin_callback():
 
         if not email:
             dbg["stage"] = "no_email"
-            _LAST_LINKEDIN_DEBUG.clear(); _LAST_LINKEDIN_DEBUG.update(dbg)
+            _save_linkedin_debug(dbg)
             return redirect(f"{frontend_url}/login?error=linkedin_no_email")
 
         user = _get_or_create_oauth_user(email, name, "linkedin")
@@ -342,13 +364,13 @@ def linkedin_callback():
 
         dbg["stage"] = "success_redirect"
         dbg["user_id"] = user.id
-        _LAST_LINKEDIN_DEBUG.clear(); _LAST_LINKEDIN_DEBUG.update(dbg)
+        _save_linkedin_debug(dbg)
         return _spa_success_redirect(user, name, picture)
     except Exception as exc:
         current_app.logger.exception("LinkedIn OAuth callback failed")
         dbg["stage"] = dbg.get("stage", "?") + ":exception"
         dbg["exc"] = f"{type(exc).__name__}: {str(exc)}"[:300]
-        _LAST_LINKEDIN_DEBUG.clear(); _LAST_LINKEDIN_DEBUG.update(dbg)
+        _save_linkedin_debug(dbg)
         # TEMP DIAGNOSTIC: surface the precise reason in the redirect.
         from urllib.parse import quote
         detail = quote(f"{type(exc).__name__}: {str(exc)}"[:200], safe="")
@@ -359,4 +381,14 @@ def linkedin_callback():
 def debug_linkedin_last():
     """TEMP: last LinkedIn callback outcome (no secrets — branch +
     field presence + exception class only). Removed once login works."""
-    return jsonify(_LAST_LINKEDIN_DEBUG or {"stage": "no attempt recorded yet"})
+    try:
+        import json as _json
+
+        from app import db
+        from app.models import AppSetting
+        row = db.session.query(AppSetting).filter_by(key=_LINKEDIN_DBG_KEY).one_or_none()
+        if row and row.value:
+            return jsonify(_json.loads(row.value))
+    except Exception as exc:  # noqa: BLE001
+        return jsonify({"stage": "debug read failed", "exc": str(exc)})
+    return jsonify({"stage": "no attempt recorded yet"})
