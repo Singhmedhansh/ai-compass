@@ -66,7 +66,7 @@ export default function Hero() {
           aria-label="Quick facts"
         >
           <span className="inline-flex items-center gap-1.5">
-            <b className="font-semibold text-ink">~40 sec</b> · average time to result
+            <b className="font-semibold text-ink">~1 min</b> · to a shortlist
           </span>
           <span className="inline-flex items-center gap-1.5">
             <b className="font-semibold text-ink">0</b> · accounts required
