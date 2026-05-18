@@ -1533,7 +1533,7 @@
     "category": "Research",
     "subCategory": "Academic Search",
     "price": "Free",
-    "pricingDetail": "Always free",
+    "pricingDetail": "Free academic search by the Allen Institute for AI; free public API.",
     "bestFor": "Finding and understanding academic papers with AI insights",
     "tags": [
       "research",
@@ -1587,7 +1587,28 @@
       "Research alerts"
     ],
     "slug": "semantic-scholar",
-    "curation_score": 47.0
+    "curation_score": 47.0,
+    "pricing_source_url": "https://www.semanticscholar.org/",
+    "pricing_verified_at": "2026-05-18",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-18",
+      "source_url": "https://www.semanticscholar.org/",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "200M+ papers",
+            "AI-powered search & TLDRs",
+            "Free public API"
+          ],
+          "cta_label": "Visit site",
+          "cta_url": "https://semanticscholar.org"
+        }
+      ]
+    }
   },
   {
     "id": 15,
@@ -1801,8 +1822,8 @@
     "tagline": "Spaced repetition flashcard system for long-term memory retention",
     "category": "Productivity",
     "subCategory": "Flashcards",
-    "price": "Free",
-    "pricingDetail": "Free on desktop and Android; $25 one-time on iOS",
+    "price": "Freemium",
+    "pricingDetail": "Free & open-source on desktop (Win/Mac/Linux), Android (AnkiDroid) and AnkiWeb. iOS AnkiMobile is a one-time $24.99 (funds the project).",
     "bestFor": "Memorizing vocabulary, formulas, and facts with proven science",
     "tags": [
       "flashcards",
@@ -1846,10 +1867,10 @@
     ],
     "difficulty": "intermediate",
     "student_friendly": true,
-    "pricing_tier": "Free",
+    "pricing_tier": "Freemium",
     "popularity_score": 0.82,
     "weekly_users_estimate": "5M+",
-    "pricing": "Free",
+    "pricing": "Freemium",
     "student_perk": true,
     "company": "Damien Elmes",
     "review_count": 0,
@@ -1862,7 +1883,41 @@
       "Cross-device sync"
     ],
     "slug": "anki",
-    "curation_score": 63.0
+    "curation_score": 63.0,
+    "pricing_source_url": "https://apps.ankiweb.net/",
+    "pricing_verified_at": "2026-05-18",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-18",
+      "source_url": "https://apps.ankiweb.net/",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "Desktop (Win/Mac/Linux)",
+            "AnkiDroid (Android)",
+            "AnkiWeb sync",
+            "Open-source (AGPLv3)"
+          ],
+          "cta_label": "Visit site",
+          "cta_url": "https://apps.ankiweb.net"
+        },
+        {
+          "name": "AnkiMobile (iOS)",
+          "price_amount": 24.99,
+          "price_display": "$24.99 one-time",
+          "features": [
+            "Official iOS app",
+            "One-time purchase, no subscription",
+            "Funds the project"
+          ],
+          "cta_label": "Get AnkiMobile (iOS)",
+          "cta_url": "https://apps.ankiweb.net"
+        }
+      ]
+    }
   },
   {
     "id": 18,
@@ -2312,7 +2367,7 @@
     "category": "Courses & Tutorials",
     "subCategory": "Homework Help",
     "price": "Free",
-    "pricingDetail": "Always free",
+    "pricingDetail": "Completely free — no paid tier, no ads.",
     "bestFor": "Getting visual explanations to homework questions via camera",
     "tags": [
       "homework",
@@ -2370,7 +2425,28 @@
       "Multi-subject support"
     ],
     "slug": "socratic-by-google",
-    "curation_score": 61.2
+    "curation_score": 61.2,
+    "pricing_source_url": "https://socratic.org/",
+    "pricing_verified_at": "2026-05-18",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-18",
+      "source_url": "https://socratic.org/",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "Photo-based homework help",
+            "Step-by-step explanations",
+            "No paid tier"
+          ],
+          "cta_label": "Visit site",
+          "cta_url": "https://socratic.org"
+        }
+      ]
+    }
   },
   {
     "id": 23,
@@ -2862,8 +2938,8 @@
     "tagline": "OpenAI's image generator with precise prompt understanding",
     "category": "Image Generation",
     "subCategory": "Text to Image",
-    "price": "Freemium",
-    "pricingDetail": "Accessible via ChatGPT Plus at $20/month",
+    "price": "Paid",
+    "pricingDetail": "Retired 12 May 2026 — replaced by GPT Image 1.5. Historically: limited free via ChatGPT free tier / Bing; full access via ChatGPT Plus $20/mo; API ~$0.04-0.12/image.",
     "bestFor": "Generating images that precisely match complex text descriptions",
     "tags": [
       "image generation",
@@ -2906,10 +2982,10 @@
     ],
     "difficulty": "beginner",
     "student_friendly": false,
-    "pricing_tier": "Freemium",
+    "pricing_tier": "Paid",
     "popularity_score": 0.9,
     "weekly_users_estimate": "10M+",
-    "pricing": "Freemium",
+    "pricing": "Paid",
     "student_perk": false,
     "company": "OpenAI",
     "review_count": 0,
@@ -2922,7 +2998,28 @@
       "API access"
     ],
     "slug": "dall-e-3",
-    "curation_score": 68.0
+    "curation_score": 68.0,
+    "pricing_source_url": "https://openai.com/api/pricing/",
+    "pricing_verified_at": "2026-05-18",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-18",
+      "source_url": "https://openai.com/api/pricing/",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Retired",
+          "price_amount": 0,
+          "price_display": "Discontinued",
+          "features": [
+            "Retired 12 May 2026",
+            "Succeeded by GPT Image 1.5",
+            "Use GPT Image 1.5 instead"
+          ],
+          "cta_label": "Visit site",
+          "cta_url": "https://openai.com/dall-e-3"
+        }
+      ]
+    }
   },
   {
     "id": 28,
@@ -3054,7 +3151,7 @@
     "category": "Image Generation",
     "subCategory": "Text to Image",
     "price": "Free",
-    "pricingDetail": "Free open-source; hosted options available",
+    "pricingDetail": "Free & open-source — self-host at no cost. Hosted/managed services (e.g. via APIs) are billed separately by providers.",
     "bestFor": "Students who want full control and privacy for image generation",
     "tags": [
       "image generation",
@@ -3111,7 +3208,28 @@
       "Huge community ecosystem"
     ],
     "slug": "stable-diffusion",
-    "curation_score": 58.2
+    "curation_score": 58.2,
+    "pricing_source_url": "https://stability.ai/",
+    "pricing_verified_at": "2026-05-18",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-18",
+      "source_url": "https://stability.ai/",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free (self-host)",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "Open-source weights",
+            "Run locally for free",
+            "Hosted APIs priced separately"
+          ],
+          "cta_label": "Visit site",
+          "cta_url": "https://stability.ai"
+        }
+      ]
+    }
   },
   {
     "id": 30,
@@ -6195,7 +6313,7 @@
     "category": "Image Generation",
     "subCategory": "Text to Image",
     "price": "Free",
-    "pricingDetail": "Free with Microsoft account",
+    "pricingDetail": "Free from Microsoft (powered by DALL-E / GPT Image); daily boosts, faster gen via Microsoft Rewards.",
     "bestFor": "Free high-quality image generation for student projects",
     "tags": [
       "image generation",
@@ -6249,7 +6367,28 @@
       "Download full resolution"
     ],
     "slug": "bing-image-creator",
-    "curation_score": 69.0
+    "curation_score": 69.0,
+    "pricing_source_url": "https://www.bing.com/images/create",
+    "pricing_verified_at": "2026-05-18",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-18",
+      "source_url": "https://www.bing.com/images/create",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "Free AI image generation",
+            "Daily fast 'boosts'",
+            "No subscription"
+          ],
+          "cta_label": "Visit site",
+          "cta_url": "https://bing.com/images/create"
+        }
+      ]
+    }
   },
   {
     "id": 67,
@@ -9130,7 +9269,7 @@
     "category": "Research",
     "subCategory": "Browser AI",
     "price": "Free",
-    "pricingDetail": "Free with Opera browser",
+    "pricingDetail": "Free AI assistant built into the Opera browser — no subscription.",
     "bestFor": "Summarizing webpages and researching without leaving the browser",
     "tags": [
       "browser",
@@ -9187,7 +9326,28 @@
       "Web access"
     ],
     "slug": "aria-by-opera",
-    "curation_score": 67.2
+    "curation_score": 67.2,
+    "pricing_source_url": "https://www.opera.com/features/aria",
+    "pricing_verified_at": "2026-05-18",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-18",
+      "source_url": "https://www.opera.com/features/aria",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "Built into Opera browser",
+            "Chat, search, image gen",
+            "No subscription"
+          ],
+          "cta_label": "Visit site",
+          "cta_url": "https://opera.com/features/aria"
+        }
+      ]
+    }
   },
   {
     "id": 123,
@@ -11187,7 +11347,7 @@
     "category": "Coding",
     "subCategory": "Open-source LLM",
     "price": "Free",
-    "pricingDetail": "Free and open source",
+    "pricingDetail": "Free & open-weight under the Meta Llama Community License — self-host or use via providers at their rates.",
     "bestFor": "Running a powerful open-source LLM for research and CS projects",
     "tags": [
       "open source",
@@ -11242,7 +11402,29 @@
       "Fine-tuning ready"
     ],
     "slug": "llama-3",
-    "curation_score": 67.0
+    "curation_score": 67.0,
+    "pricing_source_url": "https://www.llama.com/",
+    "pricing_verified_at": "2026-05-18",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-18",
+      "source_url": "https://www.llama.com/",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free (open weights)",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "Open-weight models",
+            "Self-host free",
+            "Meta Community License",
+            "Hosted inference priced by providers"
+          ],
+          "cta_label": "Visit site",
+          "cta_url": "https://llama.meta.com"
+        }
+      ]
+    }
   },
   {
     "id": 153,
@@ -12537,8 +12719,8 @@
     "tagline": "Persistent AI project spaces that remember context across conversations",
     "category": "Writing & Chat",
     "subCategory": "AI Workspace",
-    "price": "Freemium",
-    "pricingDetail": "Free; Pro $20/month for extended projects",
+    "price": "Paid",
+    "pricingDetail": "Not a standalone product — included with Claude Pro ($20/mo, $17/mo annual) and Team ($25/seat/mo). Unlimited projects on Pro+.",
     "bestFor": "Long-running research projects where context persistence saves time",
     "tags": [
       "AI",
@@ -12574,7 +12756,7 @@
     "languages": "50+",
     "launchYear": 2024,
     "description": "Claude Projects lets students create persistent AI workspaces where uploaded documents and custom instructions are remembered across every conversation. A student can set up a project for each course with the syllabus and textbook chapters uploaded, then ask detailed questions without re-establishing context each session. This dramatically speeds up research and study workflows.",
-    "pricing_tier": "Freemium",
+    "pricing_tier": "Paid",
     "difficulty": "beginner",
     "student_friendly": true,
     "use_cases": [
@@ -12585,7 +12767,7 @@
       "Reducing time on manual administrative work",
       "Managing multi-file coding projects with persistent context"
     ],
-    "pricing": "Freemium",
+    "pricing": "Paid",
     "student_perk": true,
     "company": "Anthropic",
     "review_count": 0,
@@ -12598,7 +12780,40 @@
       "Cross-session context"
     ],
     "slug": "claude-projects",
-    "curation_score": 65.0
+    "curation_score": 65.0,
+    "pricing_source_url": "https://claude.com/pricing",
+    "pricing_verified_at": "2026-05-18",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-18",
+      "source_url": "https://claude.com/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Claude Pro",
+          "price_amount": 20,
+          "price_display": "$20/mo ($17/mo annual)",
+          "features": [
+            "Unlimited projects",
+            "Larger context & usage",
+            "Included with Pro"
+          ],
+          "cta_label": "Get Claude Pro",
+          "cta_url": "https://claude.ai/projects"
+        },
+        {
+          "name": "Claude Team",
+          "price_amount": 25,
+          "price_display": "$25/seat/mo",
+          "features": [
+            "Projects across team",
+            "Central billing & admin",
+            "Min 5 seats"
+          ],
+          "cta_label": "Get Claude Team",
+          "cta_url": "https://claude.ai/projects"
+        }
+      ]
+    }
   },
   {
     "id": 174,
@@ -19428,7 +19643,7 @@
     "category": "Research",
     "subCategory": "Survey Tools",
     "price": "Free",
-    "pricingDetail": "Free with Google account",
+    "pricingDetail": "Free with any Google account; included in Google Workspace.",
     "bestFor": "Collecting unlimited free survey responses for research projects",
     "tags": [
       "surveys",
@@ -19484,7 +19699,28 @@
       "Response analytics"
     ],
     "slug": "google-forms-ai",
-    "curation_score": 67.0
+    "curation_score": 67.0,
+    "pricing_source_url": "https://www.google.com/forms/about/",
+    "pricing_verified_at": "2026-05-18",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-18",
+      "source_url": "https://www.google.com/forms/about/",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "Unlimited forms & responses",
+            "Free with Google account",
+            "Workspace integration"
+          ],
+          "cta_label": "Visit site",
+          "cta_url": "https://forms.google.com"
+        }
+      ]
+    }
   },
   {
     "id": 291,
@@ -20491,7 +20727,7 @@
     "category": "Research",
     "subCategory": "Academic Search",
     "price": "Free",
-    "pricingDetail": "Always free",
+    "pricingDetail": "Completely free academic search engine — no paid tier.",
     "bestFor": "Finding academic papers, patents, and citations across all disciplines",
     "tags": [
       "academic search",
@@ -20545,7 +20781,28 @@
       "Alerts"
     ],
     "slug": "google-scholar",
-    "curation_score": 67.0
+    "curation_score": 67.0,
+    "pricing_source_url": "https://scholar.google.com/",
+    "pricing_verified_at": "2026-05-18",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-18",
+      "source_url": "https://scholar.google.com/",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "Free scholarly search",
+            "Citations & profiles",
+            "No paid tier"
+          ],
+          "cta_label": "Visit site",
+          "cta_url": "https://scholar.google.com"
+        }
+      ]
+    }
   },
   {
     "id": 336,
@@ -21808,7 +22065,7 @@
     "category": "Coding",
     "subCategory": "Student Benefits",
     "price": "Free",
-    "pricingDetail": "Free with student verification",
+    "pricingDetail": "Free for verified students — bundle of free developer tools & credits.",
     "bestFor": "Getting free access to GitHub Copilot, domains, cloud credits, and 100+ tools",
     "tags": [
       "student benefits",
@@ -21863,7 +22120,28 @@
       ".me domain"
     ],
     "slug": "github-student-developer-pack",
-    "curation_score": 77.0
+    "curation_score": 77.0,
+    "pricing_source_url": "https://education.github.com/pack",
+    "pricing_verified_at": "2026-05-18",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-18",
+      "source_url": "https://education.github.com/pack",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free (verified students)",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "Free GitHub Pro",
+            "Dozens of partner tools & credits",
+            "Requires student verification"
+          ],
+          "cta_label": "Visit site",
+          "cta_url": "https://education.github.com/pack"
+        }
+      ]
+    }
   },
   {
     "id": 377,
@@ -23578,8 +23856,8 @@
     "tagline": "Free Docs, Drive, Meet, and Gemini AI for students through university",
     "category": "Productivity",
     "subCategory": "Productivity Suite",
-    "price": "Free",
-    "pricingDetail": "Free via university Google Workspace Education",
+    "price": "Freemium",
+    "pricingDetail": "Education Fundamentals free for qualifying institutions; Education Standard $3/user/yr; Education Plus from $4/user/mo (institution-priced).",
     "bestFor": "All Google productivity tools with AI built in, accessible with a university Google account",
     "tags": [
       "Google",
@@ -23613,7 +23891,7 @@
     "languages": "100+",
     "launchYear": 2006,
     "description": "Google Workspace for Education provides students with free access to Google Docs, Sheets, Slides, Drive with unlimited storage, Meet, and Gemini AI integration through their university account. The seamless collaborative editing in real time makes it the default choice for group assignments. Gemini AI integration in Docs and Sheets provides writing and data analysis assistance within familiar tools.",
-    "pricing_tier": "Free",
+    "pricing_tier": "Freemium",
     "difficulty": "beginner",
     "student_friendly": true,
     "use_cases": [
@@ -23623,7 +23901,7 @@
       "Summarizing meetings and calls",
       "Reducing time on manual administrative work"
     ],
-    "pricing": "Free",
+    "pricing": "Freemium",
     "student_perk": true,
     "company": "Google",
     "review_count": 0,
@@ -23636,7 +23914,51 @@
       "Gemini integration"
     ],
     "slug": "google-workspace-for-education",
-    "curation_score": 70.8
+    "curation_score": 70.8,
+    "pricing_source_url": "https://edu.google.com/workspace-for-education/editions/compare-editions/",
+    "pricing_verified_at": "2026-05-18",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-18",
+      "source_url": "https://edu.google.com/workspace-for-education/editions/compare-editions/",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Education Fundamentals",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "Free for qualifying schools",
+            "Classroom, Docs, Meet, Drive",
+            "Core security"
+          ],
+          "cta_label": "Visit site",
+          "cta_url": "https://workspace.google.com/education"
+        },
+        {
+          "name": "Education Standard",
+          "price_amount": 3,
+          "price_display": "$3/user/year",
+          "features": [
+            "Advanced security & analytics",
+            "Audit & investigation tools"
+          ],
+          "cta_label": "Get Education Standard",
+          "cta_url": "https://workspace.google.com/education"
+        },
+        {
+          "name": "Education Plus",
+          "price_amount": 4,
+          "price_display": "from $4/user/mo",
+          "features": [
+            "Premium teaching tools",
+            "Advanced Meet & security",
+            "Institution-priced"
+          ],
+          "cta_label": "Get Education Plus",
+          "cta_url": "https://workspace.google.com/education"
+        }
+      ]
+    }
   },
   {
     "id": 434,
@@ -27741,7 +28063,7 @@
     "category": "Coding",
     "subCategory": "AI Coding Agent",
     "price": "Free",
-    "pricingDetail": "Free open-source extension; pay per API token to your chosen provider",
+    "pricingDetail": "Free & open-source VS Code extension — bring your own API key; you pay the model provider directly.",
     "bestFor": "Agentic coding in VS Code with your choice of LLM provider",
     "tags": [
       "ai-coding",
@@ -27793,7 +28115,28 @@
       "Strong approval gates for safety"
     ],
     "is_ai_native": true,
-    "curation_score": 67.0
+    "curation_score": 67.0,
+    "pricing_source_url": "https://cline.bot/",
+    "pricing_verified_at": "2026-05-18",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-18",
+      "source_url": "https://cline.bot/",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free (open-source)",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "Open-source extension",
+            "Bring your own API key",
+            "Pay model provider directly"
+          ],
+          "cta_label": "Visit site",
+          "cta_url": "https://cline.bot"
+        }
+      ]
+    }
   },
   {
     "id": 518,
