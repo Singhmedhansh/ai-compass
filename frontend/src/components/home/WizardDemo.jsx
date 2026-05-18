@@ -89,6 +89,10 @@ export default function WizardDemo() {
   // Reduced-motion users skip the animation and start fully interactive.
   const [phase, setPhase] = useState(() => (prefersReducedMotion() ? 'done' : 'idle'))
   const [cursor, setCursor] = useState({ x: 0, y: 0, pressed: false, visible: false })
+  // clicks drives a one-shot ripple (re-keyed each press); flashId is the
+  // chip that just got "clicked" so it can pulse.
+  const [clicks, setClicks] = useState(0)
+  const [flashId, setFlashId] = useState(null)
 
   const rootRef = useRef(null)
   const chipRefs = useRef({}) // id -> element, for cursor targeting
@@ -120,23 +124,25 @@ export default function WizardDemo() {
     }))
   }, [])
 
-  const press = useCallback(() => {
+  const press = useCallback((targetId) => {
     setCursor((c) => ({ ...c, pressed: true }))
-    const id = setTimeout(() => setCursor((c) => ({ ...c, pressed: false })), 180)
-    timers.current.push(id)
+    setClicks((n) => n + 1) // re-mounts the ripple so it replays
+    if (targetId) setFlashId(targetId)
+    timers.current.push(setTimeout(() => setCursor((c) => ({ ...c, pressed: false })), 180))
+    timers.current.push(setTimeout(() => setFlashId(null), 420))
   }, [])
 
   // Scripted run, then hand control to the user.
   const runDemo = useCallback(() => {
     const seq = [
       [400, () => moveTo('budget-Freemium')],
-      [1100, () => { press(); setBudget('Freemium') }],
+      [1100, () => { press('budget-Freemium'); setBudget('Freemium') }],
       [2100, () => moveTo('use-Writing')],
-      [2800, () => { press(); setUseCase('Writing') }],
+      [2800, () => { press('use-Writing'); setUseCase('Writing') }],
       [3900, () => moveTo('budget-Free only')],
-      [4600, () => { press(); setBudget('Free only') }],
+      [4600, () => { press('budget-Free only'); setBudget('Free only') }],
       [5400, () => moveTo('use-Coding')],
-      [6100, () => { press(); setUseCase('Coding') }],
+      [6100, () => { press('use-Coding'); setUseCase('Coding') }],
       [7000, () => { setCursor((c) => ({ ...c, visible: false })); setPhase('done') }],
     ]
     seq.forEach(([delay, fn]) => {
@@ -176,21 +182,27 @@ export default function WizardDemo() {
   const doneSteps = 3 // Q1, Q2, Q3 answered in this demo
 
   const Chip = ({ group, value, current, onPick }) => {
+    const id = `${group}-${value}`
     const active = current === value
+    const flashing = flashId === id
     return (
       <button
         type="button"
-        ref={setChipRef(`${group}-${value}`)}
+        ref={setChipRef(id)}
         onClick={interactive ? () => onPick(value) : undefined}
         aria-pressed={active}
         disabled={!interactive}
         className={[
-          'rounded-full border px-2.5 py-1.5 text-xs transition-colors',
+          'rounded-full border px-2.5 py-1.5 text-xs transition-all duration-200',
           active
             ? 'border-accent bg-accent text-white'
             : 'border-line bg-bg text-muted',
           interactive ? 'cursor-pointer hover:border-accent' : 'cursor-default',
         ].join(' ')}
+        style={{
+          transform: flashing ? 'scale(1.08)' : 'scale(1)',
+          animation: flashing ? 'wd-flash .42s ease-out' : undefined,
+        }}
       >
         {value}
       </button>
@@ -221,6 +233,31 @@ export default function WizardDemo() {
           stepLabel={<>step <b className="text-accent">{doneSteps}</b> / 5</>}
         >
           <div ref={rootRef} className="relative grid grid-cols-1 md:grid-cols-[1fr_1.2fr]">
+            <style>{`
+              @keyframes wd-ripple {
+                0%   { transform: translate(-50%,-50%) scale(.25); opacity: .55; }
+                100% { transform: translate(-50%,-50%) scale(2.4); opacity: 0; }
+              }
+              @keyframes wd-flash {
+                0%   { box-shadow: 0 0 0 0 color-mix(in oklab, var(--accent) 55%, transparent); }
+                100% { box-shadow: 0 0 0 10px color-mix(in oklab, var(--accent) 0%, transparent); }
+              }
+            `}</style>
+
+            {/* Click ripple — re-mounts each press via key so it replays once */}
+            {clicks > 0 && cursor.visible ? (
+              <span
+                key={clicks}
+                aria-hidden="true"
+                className="pointer-events-none absolute z-10 h-7 w-7 rounded-full border-2 border-accent"
+                style={{
+                  left: cursor.x,
+                  top: cursor.y,
+                  animation: 'wd-ripple .5s ease-out forwards',
+                }}
+              />
+            ) : null}
+
             {/* Ghost cursor */}
             <div
               aria-hidden="true"
