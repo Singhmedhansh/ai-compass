@@ -104,6 +104,18 @@ function Navbar() {
   }, [isMobileMenuOpen])
 
   useEffect(() => {
+    if (!isMobileMenuOpen) return undefined
+    // Threshold is relative to where the page was when the menu opened, so a
+    // page that's already scrolled doesn't close the menu the instant it opens.
+    const openedAtY = window.scrollY
+    const handleScrollClose = () => {
+      if (Math.abs(window.scrollY - openedAtY) > 40) setIsMobileMenuOpen(false)
+    }
+    window.addEventListener('scroll', handleScrollClose, { passive: true })
+    return () => window.removeEventListener('scroll', handleScrollClose)
+  }, [isMobileMenuOpen])
+
+  useEffect(() => {
     const handleStorageChange = () => {
       try {
         const storedUser = JSON.parse(localStorage.getItem('user') || 'null')
