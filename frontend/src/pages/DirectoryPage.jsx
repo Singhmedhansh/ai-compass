@@ -2,11 +2,24 @@ import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { useSearchParams } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
-import { SearchX } from 'lucide-react'
-import { Button, Card, Dropdown, SearchInput, SkeletonCard, WordReveal } from '../components/ui'
-import { drawerSlideUp, frostedDropdown, sectionReveal, staggerChild, staggerParent } from '../lib/motion'
+import { ChevronDown, SearchX } from 'lucide-react'
+import { Button, Dropdown, SearchInput, SkeletonCard, WordReveal } from '../components/ui'
+import CategorySection from '../components/tools/CategorySection'
+import FlatToolGrid from '../components/tools/FlatToolGrid'
+import { drawerSlideUp, frostedDropdown, sectionReveal } from '../lib/motion'
 
 const MotionDiv = motion.div
+
+// Minimum tools for a category to earn its own hub section. Below this,
+// the category is reachable only via the bottom "show all" disclosure.
+const HUB_MIN_PER_SECTION = 6
+
+function categorySlug(canonical = '') {
+  return canonical
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
 
 const FOCUSABLE_SELECTOR =
   'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
@@ -50,8 +63,46 @@ function mapTool(rawTool) {
     logo_url: rawTool.logo_url || rawTool.logoUrl,
     logo_emoji: rawTool.logo_emoji || rawTool.emoji,
     accent_color: rawTool.accent_color,
+    tagline: rawTool.tagline,
+    featured: rawTool.featured === true,
+    student_friendly: rawTool.student_friendly === true,
+    curation_score: rawTool.curation_score,
+    popularity_score: rawTool.popularity_score,
     _score: rawTool._score,
   }
+}
+
+// Canonical category -> the short label DirectoryPage's filter expects in
+// ?category= (inverse of CATEGORY_FILTER_MAP). Pass-through when equal.
+const CANONICAL_TO_FILTER_LABEL = {
+  'Writing & Chat': 'Writing',
+  'Design & Graphics': 'Design',
+  'Image Generation': 'Image Gen',
+  'Video Generation': 'Video Gen',
+  'Audio & Voice': 'Audio',
+  'Courses & Tutorials': 'Courses',
+}
+
+// Per Phase 2: curation_score DESC; featured floats ahead within a score
+// tie; fall back to popularity_score when curation_score is null.
+function rankTools(list, n = 6) {
+  const scoreOf = (t) =>
+    t.curation_score ?? t.popularity_score ?? Number.NEGATIVE_INFINITY
+
+  return [...list]
+    .sort((a, b) => {
+      const diff = scoreOf(b) - scoreOf(a)
+      if (diff !== 0) return diff
+      return (b.featured ? 1 : 0) - (a.featured ? 1 : 0)
+    })
+    .slice(0, n)
+}
+
+function pickTopTools(tools, canonicalCategory, n = 6) {
+  return rankTools(
+    tools.filter((t) => t.category === canonicalCategory),
+    n,
+  )
 }
 
 function getNormalizedCategory(value = '') {
@@ -88,6 +139,7 @@ function DirectoryPage() {
   const [sortBy, setSortBy] = useState('Trending')
   const [searchQuery, setSearchQuery] = useState(initialQuery)
   const [showMobileFilters, setShowMobileFilters] = useState(false)
+  const [showAllOpened, setShowAllOpened] = useState(false)
   const latestRequestIdRef = useRef(0)
   const triggerRef = useRef(null)
   const panelRef = useRef(null)
@@ -268,6 +320,34 @@ function DirectoryPage() {
     return sorted
   }, [category, queryFromParams, hasSearchQuery, sortBy, tools])
 
+  // Sections are derived from the live catalog, not a hardcoded list: group
+  // by category, keep those with enough tools, order by size. Self-corrects
+  // when the DB taxonomy drifts; small categories stay in the disclosure.
+  const hubSections = useMemo(() => {
+    const counts = new Map()
+    for (const t of tools) {
+      const cat = t.category
+      if (cat) counts.set(cat, (counts.get(cat) || 0) + 1)
+    }
+    return [...counts.entries()]
+      .filter(([, n]) => n >= HUB_MIN_PER_SECTION)
+      .sort((a, b) => b[1] - a[1])
+      .map(([canonical, total]) => ({
+        canonical,
+        slug: categorySlug(canonical),
+        total,
+        top: pickTopTools(tools, canonical, 6),
+      }))
+  }, [tools])
+
+  // Strip = featured tools by curation_score; fall back to the broader
+  // student_friendly cut only if featured can't fill 6.
+  const studentTop = useMemo(() => {
+    const featured = rankTools(tools.filter((t) => t.featured), 6)
+    if (featured.length >= 6) return featured
+    return rankTools(tools.filter((t) => t.student_friendly), 6)
+  }, [tools])
+
   const handleReset = () => {
     setSortBy('Trending')
     setCategory('All')
@@ -315,6 +395,13 @@ function DirectoryPage() {
 
   const trimmedSearchTerm = queryFromParams.trim()
   const hasFilter = category !== 'All'
+  const viewMode = hasSearchQuery ? 'search' : hasFilter ? 'filter' : 'hub'
+
+  const scrollToCategory = (slug) => {
+    document
+      .getElementById(`cat-${slug}`)
+      ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
   const displaySearchTerm = trimmedSearchTerm.length > 40
     ? `${trimmedSearchTerm.slice(0, 40)}…`
     : trimmedSearchTerm
@@ -429,107 +516,158 @@ function DirectoryPage() {
         )}
       </AnimatePresence>
 
-      <section className="sticky top-16 z-20 mb-6 rounded-2xl border border-line bg-bg-elev/95 p-4 shadow-sm backdrop-blur hidden md:block">
-        <div className="filters-row flex gap-2 overflow-x-auto pb-1">
-          {CATEGORY_OPTIONS.map((option) => {
-            const active = option === category
+      <div className="mb-4">
+        <SearchInput
+          value={searchQuery}
+          onChange={handleSearchChange}
+          onClear={() => handleSearchChange('')}
+          placeholder="Search or describe what you need..."
+          style={{ fontSize: 16 }}
+        />
+      </div>
 
-            return (
+      <section className="sticky top-16 z-20 mb-6 rounded-2xl border border-line bg-bg-elev/95 p-4 shadow-sm backdrop-blur">
+        {viewMode === 'hub' ? (
+          <div className="filters-row flex gap-2 overflow-x-auto pb-1">
+            {hubSections.map((c) => (
               <button
-                key={option}
+                key={c.slug}
                 type="button"
-                onClick={() => handleCategoryChange(option)}
-                className={`rounded-full border px-3 py-1.5 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
-                  active
-                    ? 'border-accent bg-accent-soft text-accent-ink'
-                    : 'border-transparent bg-bg-sunk text-ink-2 hover:bg-bg-elev'
-                }`}
+                onClick={() => scrollToCategory(c.slug)}
+                className="whitespace-nowrap rounded-full border border-transparent bg-bg-sunk px-3 py-1.5 text-sm font-semibold text-ink-2 transition hover:bg-bg-elev focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               >
-                {option}
+                {c.canonical}
               </button>
-            )
-          })}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <>
+            <div className="filters-row flex gap-2 overflow-x-auto pb-1">
+              {CATEGORY_OPTIONS.map((option) => {
+                const active = option === category
 
-        <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-[180px_1fr]">
-          <Dropdown
-            value={sortBy}
-            onChange={setSortBy}
-            options={SORT_OPTIONS}
-            label="Sort tools"
-          />
+                return (
+                  <button
+                    key={option}
+                    type="button"
+                    onClick={() => handleCategoryChange(option)}
+                    className={`whitespace-nowrap rounded-full border px-3 py-1.5 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+                      active
+                        ? 'border-accent bg-accent-soft text-accent-ink'
+                        : 'border-transparent bg-bg-sunk text-ink-2 hover:bg-bg-elev'
+                    }`}
+                  >
+                    {option}
+                  </button>
+                )
+              })}
+            </div>
 
-          <SearchInput
-            value={searchQuery}
-            onChange={handleSearchChange}
-            onClear={() => handleSearchChange('')}
-            placeholder="Search or describe what you need..."
-            style={{ fontSize: 16 }}
-          />
-        </div>
+            <div className="mt-4 md:w-[220px]">
+              <Dropdown
+                value={sortBy}
+                onChange={setSortBy}
+                options={SORT_OPTIONS}
+                label="Sort tools"
+              />
+            </div>
+          </>
+        )}
       </section>
       </MotionDiv>
 
-      {error && <p className="text-danger">{error}</p>}
+      {viewMode !== 'hub' && (
+        <>
+          {error && <p className="text-danger">{error}</p>}
 
-      {!isLoading && !error && searchMeta?.fuzzy_matched && searchMeta?.suggested_query && (
-        <div className="mb-4 rounded-lg border border-accent/20 bg-accent-soft px-4 py-2.5 text-sm text-ink">
-          Showing results for <strong className="font-medium">{searchMeta.suggested_query}</strong>.
-          {' '}Searched for <em className="text-muted">{searchMeta.original_query}</em>.
-        </div>
-      )}
+          {!isLoading && !error && searchMeta?.fuzzy_matched && searchMeta?.suggested_query && (
+            <div className="mb-4 rounded-lg border border-accent/20 bg-accent-soft px-4 py-2.5 text-sm text-ink">
+              Showing results for <strong className="font-medium">{searchMeta.suggested_query}</strong>.
+              {' '}Searched for <em className="text-muted">{searchMeta.original_query}</em>.
+            </div>
+          )}
 
-      {!isLoading && !error && searchMeta?.fallback && filteredTools.length > 0 && (
-        <div className="mb-4 rounded-lg border border-line bg-bg-sunk px-4 py-2.5 text-sm text-muted">
-          No exact matches for <em>{searchMeta.original_query}</em>. Showing trending tools — try a different keyword or browse by category.
-        </div>
-      )}
+          {!isLoading && !error && searchMeta?.fallback && filteredTools.length > 0 && (
+            <div className="mb-4 rounded-lg border border-line bg-bg-sunk px-4 py-2.5 text-sm text-muted">
+              No exact matches for <em>{searchMeta.original_query}</em>. Showing trending tools — try a different keyword or browse by category.
+            </div>
+          )}
 
-      {!error && isLoading && (
-        <div className="tools-grid grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <SkeletonCard key={`directory-skeleton-${i}`} />
-          ))}
-        </div>
-      )}
+          {!error && isLoading && (
+            <div className="tools-grid grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <SkeletonCard key={`directory-skeleton-${i}`} />
+              ))}
+            </div>
+          )}
 
-      {!isLoading && !error && filteredTools.length > 0 && (
-        <MotionDiv
-          key={`${category}-${sortBy}-${queryFromParams}`}
-          variants={staggerParent}
-          initial="initial"
-          animate="animate"
-          className="tools-grid grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
-        >
-          {filteredTools.map((tool, i) => (
-            <MotionDiv
-              key={tool.slug || tool.name}
-              variants={staggerChild}
-              custom={Math.min(i, 11) * 0.04}
+          {!isLoading && !error && filteredTools.length > 0 && (
+            <FlatToolGrid
+              key={`${category}-${sortBy}-${queryFromParams}`}
+              tools={filteredTools}
+            />
+          )}
+
+          {!isLoading && !error && filteredTools.length === 0 && (
+            <section
+              role="status"
+              aria-live="polite"
+              className="rounded-2xl border border-line bg-bg-sunk px-6 py-16 text-center"
             >
-              <Card tool={tool} />
-            </MotionDiv>
-          ))}
-        </MotionDiv>
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-line bg-bg-elev shadow-sm" aria-hidden="true">
+                <SearchX className="h-7 w-7 text-muted" />
+              </div>
+              <h2 className="mt-5 text-xl font-semibold text-ink">{emptyHeading}</h2>
+              <p className="mt-2 text-sm text-muted">{emptyBody}</p>
+              <div className="mt-6">
+                <Button variant="secondary" onClick={handleReset}>
+                  Reset filters
+                </Button>
+              </div>
+            </section>
+          )}
+        </>
       )}
 
-      {!isLoading && !error && filteredTools.length === 0 && (
-        <section
-          role="status"
-          aria-live="polite"
-          className="rounded-2xl border border-line bg-bg-sunk px-6 py-16 text-center"
-        >
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-line bg-bg-elev shadow-sm" aria-hidden="true">
-            <SearchX className="h-7 w-7 text-muted" />
-          </div>
-          <h2 className="mt-5 text-xl font-semibold text-ink">{emptyHeading}</h2>
-          <p className="mt-2 text-sm text-muted">{emptyBody}</p>
-          <div className="mt-6">
-            <Button variant="secondary" onClick={handleReset}>
-              Reset filters
-            </Button>
-          </div>
-        </section>
+      {viewMode === 'hub' && (
+        <div>
+          <CategorySection
+            id="cat-students"
+            title="Top picks for students"
+            tools={studentTop}
+            seeAllHref="/best-ai-tools-for-students"
+            seeAllLabel="See the student guide"
+            emphasis
+          />
+
+          {hubSections.map((c) => (
+            <CategorySection
+              key={c.slug}
+              id={`cat-${c.slug}`}
+              title={c.canonical}
+              tools={c.top}
+              seeAllHref={`/tools?category=${encodeURIComponent(
+                CANONICAL_TO_FILTER_LABEL[c.canonical] || c.canonical,
+              )}`}
+              seeAllLabel={`See all ${c.total} ${c.canonical} tools`}
+            />
+          ))}
+
+          <details
+            className="group mt-2 overflow-hidden rounded-2xl border border-line bg-bg-elev"
+            onToggle={(e) => {
+              if (e.currentTarget.open) setShowAllOpened(true)
+            }}
+          >
+            <summary className="flex cursor-pointer select-none items-center justify-between px-5 py-4 text-sm font-semibold text-ink-2 marker:content-none [&::-webkit-details-marker]:hidden">
+              Show all {filteredTools.length} tools
+              <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" />
+            </summary>
+            <div className="px-5 pb-6 pt-2">
+              {showAllOpened && <FlatToolGrid tools={filteredTools} />}
+            </div>
+          </details>
+        </div>
       )}
     </div>
   )
