@@ -230,7 +230,16 @@ def create_app(config: dict | None = None) -> Flask:
         # Without this the session cookie is a browser-session cookie that
         # dies when the tab/browser closes. Permanent => it lasts
         # PERMANENT_SESSION_LIFETIME (30 days) instead.
-        session.permanent = True
+        #
+        # But: touching `session.permanent` on an empty session marks it
+        # modified, and Flask-Session then writes a Set-Cookie header on
+        # every response — even for anonymous visitors who never log in.
+        # Production was sending `Set-Cookie: ai_compass_session=;
+        # Max-Age=0` on every request as a result. Only flip the flag
+        # once the session has real content (logged in, flash messages,
+        # OAuth state, etc.).
+        if session and not session.permanent:
+            session.permanent = True
 
     # Self-scheduled new-tools digest. Render free tier has no cron, so we
     # piggyback on request traffic (the keep-alive ping alone is enough to

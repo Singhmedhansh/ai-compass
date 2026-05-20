@@ -17,6 +17,19 @@ import logging
 log = logging.getLogger(__name__)
 
 
+# Belt-and-braces guard: rows whose slug or name screams "left-over admin
+# fixture" must never reach the public catalog, even if someone later adds
+# another one via the admin panel. Keep this list short and obvious.
+_PLACEHOLDER_SLUGS: set[str] = {"test-tool", "test", "placeholder", "example"}
+_PLACEHOLDER_NAMES: set[str] = {"test_tool", "test tool", "placeholder", "example"}
+
+
+def _is_placeholder(slug: str, name: str) -> bool:
+    s = (slug or "").strip().lower()
+    n = (name or "").strip().lower()
+    return s in _PLACEHOLDER_SLUGS or n in _PLACEHOLDER_NAMES
+
+
 def _row_to_record(row) -> dict:
     try:
         rec = json.loads(row.data) if row.data else {}
@@ -48,7 +61,13 @@ def load_tools_from_db():
         )
         if not rows:
             return None
-        return [_row_to_record(r) for r in rows]
+        records = []
+        for r in rows:
+            if _is_placeholder(r.slug, r.name):
+                log.info("catalog_store: skipping placeholder row slug=%s name=%s", r.slug, r.name)
+                continue
+            records.append(_row_to_record(r))
+        return records or None
     except Exception as exc:  # noqa: BLE001 — never break the read path
         log.warning("catalog_store.load_tools_from_db failed, falling back: %s", exc)
         return None

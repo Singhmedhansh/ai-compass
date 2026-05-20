@@ -32,6 +32,36 @@ _ROUTE_META = {
     'best-synthesia-alternatives': ('10 Best Synthesia Alternatives in 2026 — AI Compass', "Synthesia is $22+/mo for AI avatar videos most creators don't need. These 10 alternatives — led by Pictory — split into cheaper avatar tools and 'AI video without avatars' for explainers, training, and social shorts."),
 }
 
+# Routes the React SPA actually renders. Anything not in this set (and
+# not a dynamic tool/alternatives/collections slug, handled below) is a
+# genuine 404 — the catch-all used to return 200 for every URL, which
+# Google treats as a soft-404 and which sent users to a blank page.
+# Keep in sync with frontend/src/App.jsx <Route> table.
+_KNOWN_SPA_ROUTES: set[str] = {
+    '',  # homepage
+    'tools',
+    'ai-tool-finder',
+    'collections',
+    'compare',
+    'dashboard',
+    'profile',
+    'login',
+    'register',
+    'admin',
+    'submit',
+    'team',
+    'contact',
+    'privacy',
+    'terms',
+    'best-ai-tools-for-students',
+    'best-free-ai-tools',
+    'best-coding-tools-for-students',
+    'best-jasper-alternatives',
+    'best-murf-alternatives',
+    'best-synthesia-alternatives',
+    'auth/callback',
+}
+
 _INDEX_HTML_CACHE = None
 
 
@@ -237,14 +267,45 @@ def _seo_alternatives(tool: dict, alts: list[dict]) -> str:
     )
 
 
+def _not_found_html(base: str, path: str) -> str:
+    """SPA shell with status-404 metadata and a minimal crawlable body.
+
+    Returned for any URL not in the known route set or for tool /
+    alternatives slugs that don't exist. The React app still mounts and
+    its <Route path="*"> renders a friendly NotFoundPage — but crawlers
+    see the 404 status + a "page not found" body instead of the
+    homepage's content.
+    """
+    safe_path = _esc(f'/{path}' if path else '/')
+    html = _inject_meta(
+        base,
+        title='Page not found — AI Compass',
+        description='That page does not exist on AI Compass. Browse 399 hand-tested AI tools for students instead.',
+        canonical_path=None,
+    )
+    seo = (
+        '<h1>Page not found</h1>'
+        f'<p>We could not find <code>{safe_path}</code> on AI Compass.</p>'
+        '<p><a href="/">Go to the homepage</a> · '
+        '<a href="/tools">Browse all 399 curated AI tools</a></p>'
+    )
+    return _inject_seo_root(html, seo)
+
+
 def _meta_for_request_path(path: str):
+    """Render the SPA shell for `path`. Returns (html, status_code).
+
+    `status_code` is 200 for known routes, 404 for everything else. A
+    None return means the dist build is missing entirely (cold deploy).
+    """
     base = _get_base_index_html()
     if base is None:
         return None
 
     normalized = (path or '').strip('/')
 
-    # Tool detail: /tools/<slug>
+    # Tool detail: /tools/<slug> — must validate the slug. A non-existent
+    # slug used to fall through and serve the homepage SEO shell.
     if normalized.startswith('tools/') and normalized.count('/') == 1:
         slug = normalized.split('/', 1)[1]
         tools = get_cached_tools() or []
@@ -267,7 +328,8 @@ def _meta_for_request_path(path: str):
                 canonical_path=f'/tools/{slug}',
                 image_url=f'https://ai-compass.in/og/{slug}.png',
             )
-            return _inject_seo_root(html, _seo_body(normalized, tool=tool))
+            return _inject_seo_root(html, _seo_body(normalized, tool=tool)), 200
+        return _not_found_html(base, path), 404
 
     # Alternatives: /alternatives/<slug> — must emit its OWN canonical.
     # Without this the SPA fallback served the static homepage canonical,
@@ -299,7 +361,20 @@ def _meta_for_request_path(path: str):
                 canonical_path=f'/alternatives/{slug}',
                 image_url=f'https://ai-compass.in/og/{slug}.png',
             )
-            return _inject_seo_root(html, _seo_alternatives(tool, alts))
+            return _inject_seo_root(html, _seo_alternatives(tool, alts)), 200
+        return _not_found_html(base, path), 404
+
+    # Collections slugs come from the DB and aren't cheap to validate
+    # here, so we let those fall through to the SPA which renders its
+    # own "collection not found" UI client-side.
+    if normalized.startswith('collections/') and normalized.count('/') == 1:
+        html = _inject_meta(
+            base,
+            title='Collection — AI Compass',
+            description='Curated collection of AI tools on AI Compass.',
+            canonical_path=f'/{normalized}',
+        )
+        return _inject_seo_root(html, _seo_body('collections')), 200
 
     # Homepage — keep server title/description identical to the client
     # (HomePage.jsx <Helmet>) so crawlers and users never see a mismatch.
@@ -310,15 +385,23 @@ def _meta_for_request_path(path: str):
             'with a one-line reason each. Free to browse, updated weekly.'
         )
         html = _inject_meta(base, title=title, description=desc, canonical_path='/')
-        return _inject_seo_root(html, _seo_body(''))
+        return _inject_seo_root(html, _seo_body('')), 200
 
     # Static route meta
     if normalized in _ROUTE_META:
         title, desc = _ROUTE_META[normalized]
         html = _inject_meta(base, title=title, description=desc, canonical_path=f'/{normalized}')
-        return _inject_seo_root(html, _seo_body(normalized))
+        return _inject_seo_root(html, _seo_body(normalized)), 200
 
-    return base
+    # Known SPA route with no server-side meta (login, dashboard, etc.):
+    # serve the shell unchanged. Status 200.
+    if normalized in _KNOWN_SPA_ROUTES:
+        return base, 200
+
+    # Anything else: real 404 (still serving the SPA shell so the React
+    # NotFoundPage can render — but with the right HTTP status for
+    # crawlers and link-checkers).
+    return _not_found_html(base, path), 404
 
 
 @main_bp.route('/health', strict_slashes=False)
@@ -693,8 +776,9 @@ def serve_react(path):
     if path and os.path.exists(file_path) and os.path.isfile(file_path):
         return send_from_directory(DIST_DIR, path)
 
-    html_with_meta = _meta_for_request_path(path)
-    if html_with_meta is not None:
-        return Response(html_with_meta, mimetype='text/html')
+    result = _meta_for_request_path(path)
+    if result is not None:
+        html, status = result
+        return Response(html, mimetype='text/html', status=status)
 
     return '<h2>Run: cd frontend && npm run build</h2>', 404
