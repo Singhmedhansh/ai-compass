@@ -37,6 +37,7 @@ const BestCodingTools = lazy(() => import('./pages/BestCodingTools'))
 const BestJasperAlternatives = lazy(() => import('./pages/BestJasperAlternatives'))
 const BestMurfAlternatives = lazy(() => import('./pages/BestMurfAlternatives'))
 const BestSynthesiaAlternatives = lazy(() => import('./pages/BestSynthesiaAlternatives'))
+const BestAIToolsForFictionWriters = lazy(() => import('./pages/BestAIToolsForFictionWriters'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 
 function ScrollToTop() {
@@ -82,6 +83,7 @@ function AnimatedRoutes() {
             <Route path="/best-jasper-alternatives" element={<BestJasperAlternatives />} />
             <Route path="/best-murf-alternatives" element={<BestMurfAlternatives />} />
             <Route path="/best-synthesia-alternatives" element={<BestSynthesiaAlternatives />} />
+            <Route path="/best-ai-tools-for-fiction-writers" element={<BestAIToolsForFictionWriters />} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </Suspense>

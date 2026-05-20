@@ -21,6 +21,7 @@ import pytest
     "/best-ai-tools-for-students",
     "/best-free-ai-tools",
     "/best-coding-tools-for-students",
+    "/best-ai-tools-for-fiction-writers",
     "/health",
 ])
 def test_route_exists(client, route):
