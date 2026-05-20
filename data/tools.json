@@ -7258,12 +7258,12 @@
     "name": "ElevenLabs",
     "icon": "/static/icons/elevenlabs.svg",
     "maker": "ElevenLabs",
-    "tagline": "Hyper-realistic AI voice generation and text-to-speech",
+    "tagline": "Hyper-realistic AI voice generation with Pro voice cloning and long-form audio",
     "category": "Audio & Voice",
     "subCategory": "Text to Speech",
     "price": "Freemium",
-    "pricingDetail": "Free 10K chars/month; Starter $5/month",
-    "bestFor": "Creating audio summaries of study notes for audio learners",
+    "pricingDetail": "Free 10K chars/mo · Starter $5 (Instant Voice Clone) · Creator $22 (Pro Voice Clone + Projects) · Pro $99",
+    "bestFor": "Narrating YouTube videos, audiobooks, and podcasts in your own cloned voice",
     "tags": [
       "text-to-speech",
       "audio",
@@ -7284,9 +7284,10 @@
     "studentPerk": true,
     "uniHack": "Convert your summarized lecture notes into a realistic voice audio file to listen to while exercising",
     "features": [
-      "Realistic voices",
-      "Voice cloning",
-      "29 languages",
+      "Hyper-realistic voices in 29 languages",
+      "Instant Voice Cloning (Starter $5+)",
+      "Professional Voice Cloning (Creator $22+)",
+      "Projects — long-form audiobooks & multi-speaker (Creator $22+)",
       "Audio narration API"
     ],
     "platforms": [
@@ -7296,16 +7297,16 @@
     ],
     "languages": "29",
     "launchYear": 2022,
-    "description": "ElevenLabs produces the most natural-sounding text-to-speech audio available, with a library of hundreds of voices and support for 29 languages. Students can paste study notes to create audio files for listening during commutes or workouts. The voice cloning feature allows creating a custom AI voice matching the student's own voice.",
+    "description": "ElevenLabs produces the most natural-sounding text-to-speech audio available, with hundreds of voices across 29 languages. The Starter plan ($5) unlocks Instant Voice Cloning — train a clone of your voice from about a minute of audio. The Creator plan ($22) is the sweet spot for content creators: Professional Voice Cloning produces a clone almost indistinguishable from your natural voice, and Projects turns full scripts into multi-speaker long-form audio in one click — ideal for audiobooks, podcasts, and YouTube voice-overs. The free tier (10K chars/month) is enough to evaluate quality before upgrading.",
     "pricing_tier": "Freemium",
     "difficulty": "advanced",
     "student_friendly": true,
     "use_cases": [
-      "Creating flashcards and quizzes from notes",
-      "Summarizing textbook chapters",
-      "Practicing exam-style questions",
-      "Organizing study schedules",
-      "Getting step-by-step explanations of concepts"
+      "Narrating YouTube videos and explainer content",
+      "Producing audiobooks and podcasts from scripts",
+      "Cloning your own voice for consistent content output",
+      "Adding voiceover to lecture slides and tutorials",
+      "Listening to long readings/notes during commutes"
     ],
     "pricing": "Freemium",
     "student_perk": true,
@@ -7314,9 +7315,10 @@
     "featured": false,
     "logo_emoji": "🤖",
     "strengths": [
-      "Realistic voices",
-      "Voice cloning",
-      "29 languages",
+      "Hyper-realistic voices in 29 languages",
+      "Instant Voice Cloning (Starter $5+)",
+      "Professional Voice Cloning (Creator $22+)",
+      "Projects — long-form audiobooks & multi-speaker (Creator $22+)",
       "Audio narration API"
     ],
     "slug": "elevenlabs",
