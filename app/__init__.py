@@ -38,6 +38,20 @@ try:
 except ImportError:
     sentry_sdk = None
 
+# --- Security headers (Talisman) + response compression (Flask-Compress).
+# Both are best-effort: missing libraries shouldn't prevent the app from
+# booting in a stripped-down environment (CI, contributor laptop). The
+# external UX audit flagged every security header missing AND /api/tools
+# at ~730KB uncompressed — these two libs solve both.
+try:
+    from flask_talisman import Talisman
+except ImportError:
+    Talisman = None
+try:
+    from flask_compress import Compress
+except ImportError:
+    Compress = None
+
 
 db = SQLAlchemy()
 login_manager = LoginManager()
@@ -185,6 +199,39 @@ def create_app(config: dict | None = None) -> Flask:
     login_manager.init_app(app)
     bcrypt.init_app(app)
     csrf.init_app(app)
+
+    # Security headers via Talisman. HSTS, X-Frame-Options, X-Content-Type-
+    # Options, Referrer-Policy, Permissions-Policy, X-XSS-Protection all get
+    # set automatically. CSP is opted out for now — the live HTML has inline
+    # scripts (theme detector, PostHog init) that would need nonces or
+    # hashes, which is a separate hardening pass. The other six headers
+    # close the audit gap immediately.
+    if Talisman is not None and not app.config.get("TESTING"):
+        Talisman(
+            app,
+            force_https=is_production,
+            strict_transport_security=True,
+            strict_transport_security_max_age=31536000,  # 1 year
+            strict_transport_security_include_subdomains=True,
+            frame_options="SAMEORIGIN",
+            referrer_policy="strict-origin-when-cross-origin",
+            content_security_policy=None,  # opt out — see comment above
+            permissions_policy={
+                "geolocation": "()",
+                "microphone": "()",
+                "camera": "()",
+                "payment": "()",
+                "interest-cohort": "()",  # opt out of FLoC
+            },
+            session_cookie_secure=is_production,
+            session_cookie_http_only=True,
+        )
+
+    # Response compression. /api/tools serves ~730KB of JSON every page
+    # load; gzip cuts that to ~80KB. Compress also handles HTML, CSS, JS,
+    # SVG by default. ~3x overall payload reduction on the directory page.
+    if Compress is not None:
+        Compress(app)
 
     # --- Safe blueprint registration (Fix 3b) ---
     def _register_blueprints(app):
