@@ -17,6 +17,11 @@ The default is a dry run. Pass `--apply` to actually commit the delete.
 from __future__ import annotations
 
 import sys
+from pathlib import Path
+
+# Make `from app import ...` work whether you invoke this as
+# `python scripts/remove_placeholder_tools.py ...` or `python -m scripts...`.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from app import create_app, db
 from app.catalog_store import _is_placeholder
