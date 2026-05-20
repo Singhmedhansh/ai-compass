@@ -46,7 +46,10 @@
 
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="apple-touch-icon" href="/favicon.svg" />
+    <!-- iOS home-screen icon: Apple does not render SVG here, so a 180x180
+         PNG is required. Generated from the same compass-mark geometry as
+         the SVG favicon. -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
 
     <!-- PostHog (production only — opt out on localhost / dev) -->
     <script>

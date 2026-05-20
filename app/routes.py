@@ -103,6 +103,9 @@ def _inject_meta(
         canonical_url = f'https://ai-compass.in{canonical_path}'
         out = re.sub(r'(<link\s+rel="canonical"\s+href=")[^"]*(")', rf'\g<1>{canonical_url}\g<2>', out, count=1)
         out = re.sub(r'(property="og:url"\s+content=")[^"]*(")', rf'\g<1>{canonical_url}\g<2>', out, count=1)
+        # twitter:url was left at the homepage default for every tool page,
+        # so X/Twitter unfurls of /tools/<slug> linked to the wrong URL.
+        out = re.sub(r'(name="twitter:url"\s+content=")[^"]*(")', rf'\g<1>{canonical_url}\g<2>', out, count=1)
     if image_url:
         safe_img = html_module.escape(image_url, quote=True)
         out = re.sub(r'(property="og:image"\s+content=")[^"]*(")', rf'\g<1>{safe_img}\g<2>', out, count=1)
@@ -441,26 +444,31 @@ def sitemap():
     urls = []
     today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
 
+    # `lastmod = today` for the static URLs (was hardcoded to dates that
+    # got stale within weeks). The homepage, /tools, and listicles all
+    # surface content that can change every deploy (new tools added, copy
+    # tweaked, listicle re-tested), so claiming a frozen April 2026 date
+    # was suppressing recrawl. The per-tool / per-alternatives URLs below
+    # already used `today`; static URLs now match.
     static = [
-        ('/', '1.0', 'weekly', '2026-04-23'),
-        ('/tools', '0.9', 'weekly', '2026-04-18'),
-        ('/ai-tool-finder', '0.8', 'monthly', '2026-04-29'),
-        ('/best-ai-tools-for-students', '0.9', 'weekly', '2026-04-19'),
-        ('/best-free-ai-tools', '0.9', 'weekly', '2026-04-20'),
-        ('/best-coding-tools-for-students', '0.9', 'weekly', '2026-05-14'),
-        ('/best-jasper-alternatives', '0.9', 'weekly', '2026-05-14'),
-        ('/best-murf-alternatives', '0.9', 'weekly', '2026-05-14'),
-        ('/best-synthesia-alternatives', '0.9', 'weekly', '2026-05-14'),
-        ('/best-ai-tools-for-fiction-writers', '0.9', 'weekly', '2026-05-21'),
-        ('/collections', '0.7', 'weekly', '2026-04-16'),
+        ('/', '1.0', 'weekly'),
+        ('/tools', '0.9', 'weekly'),
+        ('/ai-tool-finder', '0.8', 'monthly'),
+        ('/best-ai-tools-for-students', '0.9', 'weekly'),
+        ('/best-free-ai-tools', '0.9', 'weekly'),
+        ('/best-coding-tools-for-students', '0.9', 'weekly'),
+        ('/best-jasper-alternatives', '0.9', 'weekly'),
+        ('/best-murf-alternatives', '0.9', 'weekly'),
+        ('/best-synthesia-alternatives', '0.9', 'weekly'),
+        ('/best-ai-tools-for-fiction-writers', '0.9', 'weekly'),
+        ('/collections', '0.7', 'weekly'),
     ]
-    for path, priority, freq, lastmod in static:
+    for path, priority, freq in static:
         safe_path = escape(str(path))
         safe_priority = escape(str(priority))
         safe_freq = escape(str(freq))
-        safe_lastmod = escape(str(lastmod))
         urls.append(
-            f'<url><loc>{base}{safe_path}</loc><lastmod>{safe_lastmod}</lastmod><changefreq>{safe_freq}</changefreq><priority>{safe_priority}</priority></url>'
+            f'<url><loc>{base}{safe_path}</loc><lastmod>{today}</lastmod><changefreq>{safe_freq}</changefreq><priority>{safe_priority}</priority></url>'
         )
 
     for slug, _ in TOOL_CACHE.items():
