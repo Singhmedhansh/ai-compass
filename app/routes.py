@@ -746,11 +746,23 @@ def og_image(slug):
 
 @main_bp.route('/unsubscribe')
 def unsubscribe():
-    """One-click email opt-out (tokenised, no login needed)."""
+    """One-click email opt-out (tokenised, no login needed).
+
+    Handles BOTH sources of digest emails:
+    * Registered users — flip User.notifications_enabled to False (kept,
+      so the account profile can re-enable from the settings UI).
+    * Newsletter subscribers — DELETE the NewsletterSubscriber row (no
+      account = no UI to re-enable from, so a clean delete is honest
+      about what we're doing).
+
+    A single email may exist in both tables; the route handles both in
+    one pass so a user who's BOTH a registered account AND a newsletter
+    subscriber gets fully unsubscribed from one click.
+    """
     from flask import request
 
     from app.email_utils import read_unsubscribe_token
-    from app.models import User
+    from app.models import NewsletterSubscriber, User
 
     def _page(msg: str) -> Response:
         html = (
@@ -773,17 +785,28 @@ def unsubscribe():
     if not email:
         return _page('This unsubscribe link is invalid or has expired.')
 
-    user = User.query.filter_by(email=email).first()
-    if user is None:
-        return _page('You are already unsubscribed.')
+    changed = False
 
-    if user.notifications_enabled:
+    user = User.query.filter_by(email=email).first()
+    if user is not None and user.notifications_enabled:
         user.notifications_enabled = False
+        changed = True
+
+    subscriber = NewsletterSubscriber.query.filter_by(email=email).first()
+    if subscriber is not None:
+        db.session.delete(subscriber)
+        changed = True
+
+    if changed:
         db.session.commit()
-    return _page(
-        'You have been unsubscribed from AI Compass tool updates. '
-        'You can re-enable notifications anytime in your profile settings.'
-    )
+        return _page(
+            'You have been unsubscribed from AI Compass updates. '
+            'Registered accounts can re-enable notifications from profile '
+            'settings; newsletter-only subscribers can re-subscribe from '
+            'the homepage anytime.'
+        )
+
+    return _page('You are already unsubscribed.')
 
 
 @main_bp.route('/tool/<slug>')

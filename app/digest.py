@@ -22,7 +22,7 @@ from datetime import datetime, timedelta, timezone
 
 from app import db
 from app.email_utils import email_enabled, make_unsubscribe_token, send_email
-from app.models import DigestState, User
+from app.models import DigestState, NewsletterSubscriber, User
 from app.tool_cache import get_cached_tools
 
 log = logging.getLogger(__name__)
@@ -136,27 +136,40 @@ def run_digest(dry_run: bool = False, force: bool = False) -> dict:
     if not new_tools and not force:
         return {"status": "noop", "new_tools": 0, "message": "No new tools since last digest."}
 
-    recipients = (
-        User.query.filter(
+    # Combined recipient list: registered users with notifications on
+    # PLUS public newsletter subscribers. Deduped on email so an account
+    # holder who also signed up via the homepage form gets one digest,
+    # not two. The same unsubscribe token works for both because
+    # /unsubscribe handles both tables in one pass.
+    user_emails = [
+        u.email for u in User.query.filter(
             User.notifications_enabled.is_(True),
             User.email.isnot(None),
         ).all()
-    )
+        if u.email
+    ]
+    newsletter_emails = [
+        s.email for s in NewsletterSubscriber.query.with_entities(NewsletterSubscriber.email).all()
+        if s.email
+    ]
+    recipient_emails = sorted({e.strip().lower() for e in (user_emails + newsletter_emails) if e})
 
     if dry_run:
         return {
             "status": "dry_run",
             "new_tools": len(new_tools),
-            "recipients": len(recipients),
+            "recipients": len(recipient_emails),
+            "users": len(user_emails),
+            "newsletter_only": len(set(newsletter_emails) - set(user_emails)),
             "sample": [t.get("name") for t in new_tools[:10]],
         }
 
     sent = 0
-    for u in recipients:
-        unsub = f"{BASE}/unsubscribe?token={make_unsubscribe_token(u.email)}"
+    for email in recipient_emails:
+        unsub = f"{BASE}/unsubscribe?token={make_unsubscribe_token(email)}"
         html, text = _email_html(new_tools, unsub)
         if send_email(
-            u.email,
+            email,
             f"{len(new_tools)} new AI tool{'s' if len(new_tools) != 1 else ''} on AI Compass",
             html,
             text,
@@ -170,11 +183,11 @@ def run_digest(dry_run: bool = False, force: bool = False) -> dict:
     st.last_sent_at = datetime.now(timezone.utc)
     db.session.commit()
 
-    log.info("Digest sent: %s new tools to %s/%s users", len(new_tools), sent, len(recipients))
+    log.info("Digest sent: %s new tools to %s/%s recipients", len(new_tools), sent, len(recipient_emails))
     return {
         "status": "sent",
         "new_tools": len(new_tools),
-        "recipients": len(recipients),
+        "recipients": len(recipient_emails),
         "delivered": sent,
         "snapshot_size": seeded,
     }

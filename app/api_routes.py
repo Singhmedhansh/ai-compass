@@ -2458,3 +2458,58 @@ def admin_delete_feedback(fid: int):
     db.session.delete(row)
     db.session.commit()
     return jsonify({"success": True})
+
+
+# --- Newsletter signup (homepage form) -----------------------------------
+# Public endpoint for the homepage NewsletterCapture form. Single opt-in
+# (no confirmation email) — the next digest send is the welcome. The
+# unsubscribe link in every digest is one-click revocation, so the legal
+# obligation we'd otherwise need a confirmation flow for is satisfied.
+
+_EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+
+
+@api_bp.post("/newsletter/subscribe")
+@csrf.exempt
+def newsletter_subscribe():
+    """Public POST: persist an email to NewsletterSubscriber.
+
+    Spam defenses mirror /feedback:
+    * Honeypot field `website` — bots fill it, humans never see it.
+    * Per-IP rate limit (10/hour) — more generous than feedback since
+      a household may have multiple people signing up from one IP.
+    * Email regex is intentionally permissive (anything@anything.tld) —
+      we'd rather accept a typo and have a bounce than reject a real
+      address. Hard-bounce cleanup is a separate concern.
+
+    Idempotent: an already-subscribed address returns 200 so the UI just
+    says 'you're in' without leaking whether we'd seen the address.
+    """
+    from app.models import NewsletterSubscriber
+
+    payload = request.get_json(silent=True) or {}
+
+    # Honeypot — return 200 so bots stop retrying, persist nothing.
+    if str(payload.get("website") or "").strip():
+        return jsonify({"success": True}), 200
+
+    email = str(payload.get("email") or "").strip().lower()
+    if not email or len(email) > 255 or not _EMAIL_RE.match(email):
+        return jsonify({"error": "Please enter a valid email address."}), 400
+
+    ip = _feedback_client_ip()
+    if is_rate_limited(f"newsletter:{ip}", limit=10, window_seconds=3600):
+        return jsonify({"error": "Too many requests — try again later."}), 429
+
+    existing = NewsletterSubscriber.query.filter_by(email=email).one_or_none()
+    if existing is None:
+        try:
+            db.session.add(NewsletterSubscriber(email=email))
+            db.session.commit()
+        except Exception:
+            # Race with a concurrent subscribe of the same address — the
+            # unique index rejected the second insert. Treat as success
+            # so the UX is identical to the "already subscribed" path.
+            db.session.rollback()
+
+    return jsonify({"success": True}), 200

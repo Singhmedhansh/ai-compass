@@ -46,6 +46,9 @@ export default function PrivacyPage() {
                 Account information: When you create an account, we collect your email address and a hashed version of your password. We use bcrypt — we never store passwords in plain text.
               </p>
               <p className="mt-3 leading-relaxed text-ink-2">
+                Newsletter subscriptions: If you sign up via the homepage newsletter form (no account required), we store your email address and the timestamp of the subscription. We use it only to send the &quot;new tools&quot; digest. Every email has a one-click unsubscribe link; clicking it deletes the row from our database immediately.
+              </p>
+              <p className="mt-3 leading-relaxed text-ink-2">
                 User-generated content: Reviews, ratings, favorites, and collections you create are stored in our database. Reviews and ratings are publicly visible to other users along with your username.
               </p>
               <p className="mt-3 leading-relaxed text-ink-2">
@@ -109,6 +112,7 @@ export default function PrivacyPage() {
               </h2>
               <ul className="mt-3 list-disc space-y-2 pl-6 text-ink-2">
                 <li className="leading-relaxed">Account data: retained while your account is active. Deleted within 30 days of account deletion.</li>
+                <li className="leading-relaxed">Newsletter subscriptions: retained until you unsubscribe (one-click link in every email). Clicking unsubscribe deletes the row immediately — we don&apos;t keep a record of past subscribers.</li>
                 <li className="leading-relaxed">User content (reviews, ratings, favorites, collections): retained while associated with your account. You can delete individual items at any time. When you delete your account, your content is removed.</li>
                 <li className="leading-relaxed">Server logs: typically retained for 30-90 days by our hosting provider for security purposes.</li>
               </ul>
