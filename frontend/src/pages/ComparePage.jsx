@@ -2,7 +2,8 @@ import clsx from 'clsx'
 import { motion } from 'framer-motion'
 import { AlertTriangle, ArrowLeft, Check, ExternalLink, LayoutGrid, Star, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Helmet } from 'react-helmet-async'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 
 import { Button, SkeletonCompareColumn, ToolLogo } from '../components/ui'
 import { sectionReveal, staggerChild, staggerParent } from '../lib/motion'
@@ -23,6 +24,16 @@ function parseSlugs(raw) {
     if (out.length >= MAX_COMPARE) break
   }
   return out
+}
+
+// Path-based comparisons use "-vs-" as the separator, e.g.
+//   /compare/chatgpt-vs-claude              → ["chatgpt", "claude"]
+//   /compare/chatgpt-vs-claude-vs-gemini    → ["chatgpt", "claude", "gemini"]
+// Tool slugs are kebab-case but never contain the literal "-vs-" substring,
+// so splitting on it is unambiguous. Lowercased for canonical-URL hygiene.
+function parsePairPath(pair) {
+  if (!pair || typeof pair !== 'string') return []
+  return parseSlugs(pair.toLowerCase().split('-vs-').join(','))
 }
 
 function StarRow({ rating }) {
@@ -92,6 +103,11 @@ function QuickInfoRow({ label, value }) {
 }
 
 function ToolColumn({ slug, status, tool, error, onRemove }) {
+  // onRemove is null in path-mode (/compare/:pair) where the comparison is
+  // fixed by the URL. The X button only makes sense in query-mode where the
+  // user assembled the comparison ad-hoc from the directory.
+  const canRemove = typeof onRemove === 'function'
+
   if (status === 'loading') {
     return <SkeletonCompareColumn />
   }
@@ -112,25 +128,36 @@ function ToolColumn({ slug, status, tool, error, onRemove }) {
               <p className="truncate text-xs text-muted">{slug}</p>
             </div>
           </div>
+          {canRemove ? (
+            <button
+              type="button"
+              onClick={() => onRemove(slug)}
+              aria-label={`Remove ${slug} from comparison`}
+              className="rounded-full p-1.5 text-muted outline-none transition hover:bg-bg-sunk hover:text-ink focus-visible:ring-2 focus-visible:ring-accent"
+            >
+              <X className="h-4 w-4" aria-hidden="true" />
+            </button>
+          ) : null}
+        </div>
+        <p className="mt-4 text-sm text-ink-2">
+          {error || 'We could not load this tool. Try a different comparison.'}
+        </p>
+        {canRemove ? (
           <button
             type="button"
             onClick={() => onRemove(slug)}
-            aria-label={`Remove ${slug} from comparison`}
-            className="rounded-full p-1.5 text-muted outline-none transition hover:bg-bg-sunk hover:text-ink focus-visible:ring-2 focus-visible:ring-accent"
+            className="mt-6 inline-flex items-center justify-center rounded-lg border border-line bg-bg-sunk px-3 py-2 text-sm font-medium text-ink outline-none transition hover:border-line-strong focus-visible:ring-2 focus-visible:ring-accent"
           >
-            <X className="h-4 w-4" aria-hidden="true" />
+            Remove from comparison
           </button>
-        </div>
-        <p className="mt-4 text-sm text-ink-2">
-          {error || 'We could not load this tool. Try removing it and selecting another.'}
-        </p>
-        <button
-          type="button"
-          onClick={() => onRemove(slug)}
-          className="mt-6 inline-flex items-center justify-center rounded-lg border border-line bg-bg-sunk px-3 py-2 text-sm font-medium text-ink outline-none transition hover:border-line-strong focus-visible:ring-2 focus-visible:ring-accent"
-        >
-          Remove from comparison
-        </button>
+        ) : (
+          <Link
+            to="/tools"
+            className="mt-6 inline-flex items-center justify-center rounded-lg border border-line bg-bg-sunk px-3 py-2 text-sm font-medium text-ink outline-none transition hover:border-line-strong focus-visible:ring-2 focus-visible:ring-accent"
+          >
+            Browse all tools
+          </Link>
+        )}
       </div>
     )
   }
@@ -163,14 +190,16 @@ function ToolColumn({ slug, status, tool, error, onRemove }) {
             </span>
           </div>
         </div>
-        <button
-          type="button"
-          onClick={() => onRemove(slug)}
-          aria-label={`Remove ${name} from comparison`}
-          className="rounded-full p-1.5 text-muted outline-none transition hover:bg-bg-sunk hover:text-ink focus-visible:ring-2 focus-visible:ring-accent"
-        >
-          <X className="h-4 w-4" aria-hidden="true" />
-        </button>
+        {canRemove ? (
+          <button
+            type="button"
+            onClick={() => onRemove(slug)}
+            aria-label={`Remove ${name} from comparison`}
+            className="rounded-full p-1.5 text-muted outline-none transition hover:bg-bg-sunk hover:text-ink focus-visible:ring-2 focus-visible:ring-accent"
+          >
+            <X className="h-4 w-4" aria-hidden="true" />
+          </button>
+        ) : null}
       </div>
 
       {tagline ? <p className="mt-3 text-sm text-muted">{tagline}</p> : null}
@@ -252,8 +281,18 @@ function ToolColumn({ slug, status, tool, error, onRemove }) {
 export default function ComparePage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const navigate = useNavigate()
+  // pair is set by the /compare/:pair route ("chatgpt-vs-claude"); undefined
+  // on the plain /compare URL where slugs come from the ?tools= query param.
+  // Path-mode is the SEO-targeted form (canonical, indexable); query-mode is
+  // a transient comparison launched from the directory compare-tray, with no
+  // canonical or schema (we don't want every permutation indexed).
+  const { pair } = useParams()
+  const isPathMode = Boolean(pair)
 
-  const slugs = useMemo(() => parseSlugs(searchParams.get('tools')), [searchParams])
+  const slugs = useMemo(
+    () => (isPathMode ? parsePairPath(pair) : parseSlugs(searchParams.get('tools'))),
+    [isPathMode, pair, searchParams],
+  )
   const slugsKey = slugs.join('|')
 
   const [columns, setColumns] = useState(() =>
@@ -337,8 +376,79 @@ export default function ComparePage() {
 
   const count = slugs.length
 
+  // All columns resolved successfully? Path-mode only renders SEO Helmet when
+  // every tool loaded — we don't want a broken indexable page with canonical
+  // pointing to a comparison that 404s for one of its tools.
+  const allLoaded =
+    isPathMode &&
+    columns.length === slugs.length &&
+    columns.every((col) => col.status === 'ok' && col.tool)
+
+  // Build the "X vs Y" display string from actual tool names (not slugs) so
+  // the heading reads correctly even when slugs are abbreviated (e.g.,
+  // "chatgpt" → "ChatGPT", "gpt-4" → "GPT-4").
+  const pairTitle = allLoaded
+    ? columns.map((col) => col.tool.name).join(' vs ')
+    : null
+  const pairCanonical = isPathMode
+    ? `https://ai-compass.in/compare/${slugs.join('-vs-')}`
+    : null
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
+      {/* SEO Helmet: only fires in path-mode AND only when every tool loaded.
+          Query-mode comparisons (?tools=...) stay un-indexed to avoid
+          duplicate-content noise from every permutation. */}
+      {allLoaded ? (
+        <Helmet>
+          <title>{`${pairTitle} — Compare AI Tools | AI Compass`}</title>
+          <meta
+            name="description"
+            content={`${pairTitle}: side-by-side comparison of pricing, features, ratings, and platforms. Hand-tested by AI Compass.`}
+          />
+          <link rel="canonical" href={pairCanonical} />
+          <meta property="og:type" content="article" />
+          <meta property="og:title" content={`${pairTitle} — AI Compass`} />
+          <meta
+            property="og:description"
+            content={`Side-by-side comparison: ${pairTitle}. Pricing, features, ratings.`}
+          />
+          <meta property="og:url" content={pairCanonical} />
+          <meta property="og:image" content="https://ai-compass.in/og-image.png" />
+          <meta name="twitter:card" content="summary_large_image" />
+          <meta name="twitter:title" content={`${pairTitle} — AI Compass`} />
+          <script type="application/ld+json">
+            {JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'ItemList',
+              name: pairTitle,
+              numberOfItems: columns.length,
+              itemListElement: columns.map((col, i) => ({
+                '@type': 'ListItem',
+                position: i + 1,
+                item: {
+                  '@type': 'SoftwareApplication',
+                  name: col.tool.name,
+                  applicationCategory: col.tool.category || 'AI Tool',
+                  operatingSystem: 'Web',
+                  url: `https://ai-compass.in/tools/${col.slug}`,
+                },
+              })),
+            })}
+          </script>
+          <script type="application/ld+json">
+            {JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'BreadcrumbList',
+              itemListElement: [
+                { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://ai-compass.in/' },
+                { '@type': 'ListItem', position: 2, name: 'Compare', item: 'https://ai-compass.in/compare' },
+                { '@type': 'ListItem', position: 3, name: pairTitle, item: pairCanonical },
+              ],
+            })}
+          </script>
+        </Helmet>
+      ) : null}
       <Link
         to="/tools"
         className="inline-flex items-center gap-1.5 rounded text-sm text-muted outline-none transition hover:text-ink focus-visible:ring-2 focus-visible:ring-accent"
@@ -348,7 +458,7 @@ export default function ComparePage() {
       </Link>
 
       <h1 className="mt-4 text-2xl font-bold tracking-tight text-ink sm:text-3xl">
-        Comparing {count} tool{count === 1 ? '' : 's'}
+        {pairTitle ? pairTitle : `Comparing ${count} tool${count === 1 ? '' : 's'}`}
       </h1>
 
       <MotionDiv
@@ -369,7 +479,7 @@ export default function ComparePage() {
                 status={column.status}
                 tool={column.tool}
                 error={column.error}
-                onRemove={handleRemoveSlug}
+                onRemove={isPathMode ? null : handleRemoveSlug}
               />
             </MotionDiv>
           </MotionDiv>

@@ -598,6 +598,32 @@ function ToolDetailPage() {
           </section>
           </MotionDiv>
 
+          {/* Compare-with-X link list. Surfaces the /compare/<a>-vs-<b>
+              route so users can jump from a tool page straight into a
+              side-by-side view, AND so crawlers find the dynamic compare
+              pages via an editorial link (not just the sitemap). Anchor
+              text contains both tool names — exactly the long-tail query
+              shape ("X vs Y") we're targeting. */}
+          {relatedTools.length > 0 ? (
+            <MotionDiv variants={sectionReveal} initial="initial" animate="animate">
+              <section className="rounded-2xl border border-line bg-bg-elev p-5">
+                <h3 className="text-base font-semibold text-ink">Compare {tool.name} with</h3>
+                <ul className="mt-3 space-y-1.5">
+                  {relatedTools.slice(0, 4).map((rt) => (
+                    <li key={`compare-${rt.slug}`}>
+                      <Link
+                        to={`/compare/${tool.slug}-vs-${rt.slug}`}
+                        className="inline-flex items-center gap-1 text-sm text-ink-2 hover:gap-2 hover:text-ink transition-all"
+                      >
+                        {tool.name} vs {rt.name} →
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            </MotionDiv>
+          ) : null}
+
           <MotionDiv variants={sectionReveal} initial="initial" animate="animate">
           <section className="rounded-2xl border border-line bg-bg-elev p-5">
             <h3 className="text-base font-semibold text-ink">Related Tools</h3>

@@ -69,6 +69,9 @@ function AnimatedRoutes() {
             <Route path="/collections" element={<CollectionsPage />} />
             <Route path="/collections/:slug" element={<CollectionPage />} />
             <Route path="/compare" element={<ComparePage />} />
+            {/* Path-based comparisons (indexable, SEO-targeted). Slug format
+                is "<a>-vs-<b>"; the same component handles both URL shapes. */}
+            <Route path="/compare/:pair" element={<ComparePage />} />
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/login" element={<LoginPage />} />

@@ -386,6 +386,39 @@ def _meta_for_request_path(path: str):
             return _inject_seo_root(html, _seo_alternatives(tool, alts)), 200
         return _not_found_html(base, path), 404
 
+    # Compare pairs: /compare/<a>-vs-<b> — both slugs must validate so we
+    # don't index broken comparisons. 2-tool pairs are the SEO target
+    # (matches typical "X vs Y" search intent); 3+ way comparisons stay
+    # query-string-based and un-indexed. Cross-category pairs are allowed
+    # because real searches like "ChatGPT vs Midjourney" cross categories.
+    if normalized.startswith('compare/') and normalized.count('/') == 1:
+        pair = normalized.split('/', 1)[1]
+        pair_slugs = [s.strip().lower() for s in pair.split('-vs-') if s.strip()]
+        if len(pair_slugs) >= 2:
+            tools = get_cached_tools() or []
+            by_slug = {
+                str(t.get('slug', '')).strip().lower(): t
+                for t in tools
+                if t.get('slug')
+            }
+            matched_tools = [by_slug.get(s) for s in pair_slugs]
+            if all(matched_tools):
+                names = [t.get('name') or s for t, s in zip(matched_tools, pair_slugs)]
+                pair_title = ' vs '.join(names)
+                canonical_pair = '-vs-'.join(pair_slugs)
+                html = _inject_meta(
+                    base,
+                    title=f'{pair_title} — Compare AI Tools | AI Compass',
+                    description=(
+                        f'{pair_title}: side-by-side comparison of pricing, '
+                        'features, ratings, and platforms. Hand-tested by AI Compass.'
+                    ),
+                    canonical_path=f'/compare/{canonical_pair}',
+                )
+                return _inject_seo_root(html, _seo_body('compare')), 200
+        # Either malformed pair or one of the slugs doesn't exist — real 404.
+        return _not_found_html(base, path), 404
+
     # Collections slugs come from the DB and aren't cheap to validate
     # here, so we let those fall through to the SPA which renders its
     # own "collection not found" UI client-side.
@@ -510,6 +543,26 @@ def sitemap():
         urls.append(
             f'<url><loc>{base}/alternatives/{safe_slug}</loc><lastmod>{today}</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>'
         )
+
+    # Top-N compare pairs. Emits pairs (a, b) for the top 20 tools by
+    # curation_score → C(20, 2) = 190 indexable comparison URLs. Enough
+    # surface to capture long-tail "X vs Y" searches without spamming
+    # the sitemap with every permutation. Internal links from tool detail
+    # pages let crawlers discover additional pairs organically.
+    top_tools = sorted(
+        [t for t in TOOL_CACHE.values() if t.get('slug')],
+        key=lambda t: (t.get('curation_score') or 0),
+        reverse=True,
+    )[:20]
+    for i, tool_a in enumerate(top_tools):
+        for tool_b in top_tools[i + 1:]:
+            slug_a = escape(str(tool_a['slug']))
+            slug_b = escape(str(tool_b['slug']))
+            urls.append(
+                f'<url><loc>{base}/compare/{slug_a}-vs-{slug_b}</loc>'
+                f'<lastmod>{today}</lastmod><changefreq>monthly</changefreq>'
+                f'<priority>0.5</priority></url>'
+            )
 
     xml = (
         '<?xml version="1.0" encoding="UTF-8"?>\n'
