@@ -2574,3 +2574,122 @@ def admin_delete_newsletter_subscriber(sub_id: int):
     db.session.delete(row)
     db.session.commit()
     return jsonify({"success": True})
+
+
+# --- Catalog sync (JSON <-> DB drift) -----------------------------------
+# Background: tools.json is a one-time seed. After seed, catalog_tools
+# (Postgres) is the source of truth. So when a tool is *removed* from
+# tools.json, the DB still has it (Google Forms AI is the standing
+# example). And when a tool is *added* to tools.json post-seed, the DB
+# doesn't pick it up — seed only runs when the table is empty.
+#
+# This endpoint diffs the two and lets the admin act on the drift.
+
+@api_bp.get("/admin/catalog-diff")
+@login_required
+def admin_catalog_diff():
+    """Compute drift between tools.json and the catalog_tools DB table.
+
+    Returns three buckets:
+      * db_only       — slug exists in DB, not in JSON. Removed-from-JSON
+                        but never cleaned from DB (Google Forms AI lives
+                        here). Admin can hide or delete.
+      * json_only     — slug exists in JSON, not in DB. New tools added
+                        post-seed that never got into the source of truth.
+                        Admin can import (upsert into DB).
+      * matched_count — how many slugs are present in both, for context.
+
+    DB rows include their `hidden` flag so the admin UI can show which
+    drift rows are already hidden from the public catalog (a softer
+    state than deleted; useful for keeping the row around with its
+    affiliate / metadata while removing it from the directory).
+    """
+    if not _is_admin():
+        return jsonify({"error": "Forbidden"}), 403
+    from app.models import CatalogTool
+    from app.tool_cache import _load_tools_from_disk
+
+    try:
+        json_records = _load_tools_from_disk() or []
+    except Exception as exc:
+        return jsonify({"error": f"Failed to load tools.json: {exc}"}), 500
+
+    json_by_slug = {
+        str(t.get("slug") or "").strip().lower(): t
+        for t in json_records
+        if t.get("slug")
+    }
+    db_rows = CatalogTool.query.all()
+    db_by_slug = {(r.slug or "").strip().lower(): r for r in db_rows}
+
+    json_slugs = set(json_by_slug)
+    db_slugs = set(db_by_slug)
+
+    db_only = sorted(db_slugs - json_slugs)
+    json_only = sorted(json_slugs - db_slugs)
+    matched = json_slugs & db_slugs
+
+    return jsonify({
+        "db_only": [
+            {
+                "slug": s,
+                "name": db_by_slug[s].name,
+                "category": db_by_slug[s].category,
+                "hidden": bool(db_by_slug[s].hidden),
+                "updated_at": (
+                    db_by_slug[s].updated_at.isoformat()
+                    if db_by_slug[s].updated_at else None
+                ),
+            }
+            for s in db_only
+        ],
+        "json_only": [
+            {
+                "slug": s,
+                "name": str(json_by_slug[s].get("name") or s),
+                "category": str(json_by_slug[s].get("category") or "") or None,
+            }
+            for s in json_only
+        ],
+        "matched_count": len(matched),
+        "db_total": len(db_rows),
+        "json_total": len(json_records),
+    })
+
+
+@api_bp.post("/admin/catalog-import/<slug>")
+@csrf.exempt
+@login_required
+def admin_catalog_import_from_json(slug: str):
+    """Import one tool from tools.json into the DB catalog_tools table.
+
+    Use case: tools.json has a record that never made it into the DB
+    (added to JSON after the initial seed; seed only runs on empty
+    table). Idempotent upsert — calling twice is a no-op the second
+    time except for refreshing the `data` blob.
+    """
+    if not _is_admin():
+        return jsonify({"error": "Forbidden"}), 403
+    from app.catalog_store import upsert_tool
+    from app.tool_cache import _load_tools_from_disk, prime_tools_cache
+
+    slug_l = str(slug or "").strip().lower()
+    if not slug_l:
+        return jsonify({"error": "Slug is required"}), 400
+
+    json_records = _load_tools_from_disk() or []
+    record = next(
+        (t for t in json_records if str(t.get("slug") or "").strip().lower() == slug_l),
+        None,
+    )
+    if record is None:
+        return jsonify({"error": f"slug {slug_l!r} not present in tools.json"}), 404
+
+    ok = upsert_tool(record)
+    if not ok:
+        return jsonify({"error": "Import failed — check server logs"}), 500
+
+    # Cache invalidate so the newly-imported tool shows up immediately
+    # in the public catalog without a manual /admin/clear-cache click.
+    prime_tools_cache(DATA_PATH)
+    return jsonify({"success": True, "slug": slug_l, "name": record.get("name")})

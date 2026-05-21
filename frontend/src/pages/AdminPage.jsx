@@ -14,7 +14,7 @@ const MotionSpan = motion.span
 
 const ADMIN_EMAILS = ['singhmedhansh07@gmail.com']
 const TOOLS_PAGE_SIZE = 15
-const TABS = ['Overview', 'Tools', 'Submissions', 'Feedback', 'Analytics', 'Email', 'Newsletter', 'Flags', 'Users', 'Reviews']
+const TABS = ['Overview', 'Tools', 'Sync', 'Submissions', 'Feedback', 'Analytics', 'Email', 'Newsletter', 'Flags', 'Users', 'Reviews']
 
 const EMPTY_TOOL = {
   slug: '', name: '', tagline: '', description: '', category: '',
@@ -157,6 +157,8 @@ function AdminPage() {
   const [flags, setFlags] = useState([])
   const [newsletterSubs, setNewsletterSubs] = useState([])
   const [newsletterStats, setNewsletterStats] = useState({ count: 0, new_today: 0, new_this_week: 0 })
+  const [catalogDiff, setCatalogDiff] = useState({ db_only: [], json_only: [], matched_count: 0, db_total: 0, json_total: 0 })
+  const [catalogDiffLoading, setCatalogDiffLoading] = useState(false)
 
   const [toolsQuery, setToolsQuery] = useState('')
   const [toolsPage, setToolsPage] = useState(1)
@@ -243,7 +245,40 @@ function AdminPage() {
           setNewsletterStats({ count: 0, new_today: 0, new_this_week: 0 })
         })
     }
+    if (activeTab === 'Sync') {
+      setCatalogDiffLoading(true)
+      api('/api/v1/admin/catalog-diff')
+        .then((d) => setCatalogDiff({
+          db_only: Array.isArray(d.db_only) ? d.db_only : [],
+          json_only: Array.isArray(d.json_only) ? d.json_only : [],
+          matched_count: d.matched_count || 0,
+          db_total: d.db_total || 0,
+          json_total: d.json_total || 0,
+        }))
+        .catch(() => setCatalogDiff({ db_only: [], json_only: [], matched_count: 0, db_total: 0, json_total: 0 }))
+        .finally(() => setCatalogDiffLoading(false))
+    }
   }, [activeTab, authed])
+
+  const reloadCatalogDiff = useCallback(async () => {
+    setCatalogDiffLoading(true)
+    try {
+      const d = await api('/api/v1/admin/catalog-diff')
+      setCatalogDiff({
+        db_only: Array.isArray(d.db_only) ? d.db_only : [],
+        json_only: Array.isArray(d.json_only) ? d.json_only : [],
+        matched_count: d.matched_count || 0,
+        db_total: d.db_total || 0,
+        json_total: d.json_total || 0,
+      })
+    } catch {
+      // Surface load failures via toast — the table will just stay
+      // stale rather than wipe the existing view.
+      toast.error('Failed to refresh catalog diff')
+    } finally {
+      setCatalogDiffLoading(false)
+    }
+  }, [])
 
   const filteredTools = useMemo(() => {
     const q = toolsQuery.trim().toLowerCase()
@@ -712,6 +747,153 @@ function AdminPage() {
                   ))}
                 </tbody>
               </table>
+            </div>
+          </Card>
+        )}
+
+        {activeTab === 'Sync' && (
+          <Card>
+            <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <h2 className="text-xl font-semibold text-ink">Catalog sync</h2>
+                <p className="mt-1 text-sm text-muted">
+                  Drift between <code className="rounded bg-bg-sunk px-1.5 py-0.5 text-xs">tools.json</code> (seed) and the <code className="rounded bg-bg-sunk px-1.5 py-0.5 text-xs">catalog_tools</code> DB table (source of truth). Use this when a tool has been removed from JSON but is still serving from the DB, or when a tool was added to JSON after the initial seed and never made it into the DB.
+                </p>
+              </div>
+              <div className="flex items-end gap-4 text-sm">
+                <div>
+                  <div className="text-2xl font-semibold tabular-nums text-ink">{catalogDiff.json_total}</div>
+                  <div className="text-xs uppercase tracking-wider text-muted-2">JSON</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-semibold tabular-nums text-ink">{catalogDiff.db_total}</div>
+                  <div className="text-xs uppercase tracking-wider text-muted-2">DB</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-semibold tabular-nums text-ink">{catalogDiff.matched_count}</div>
+                  <div className="text-xs uppercase tracking-wider text-muted-2">In both</div>
+                </div>
+                <button onClick={reloadCatalogDiff} className={BTN_GHOST} disabled={catalogDiffLoading}>
+                  {catalogDiffLoading ? 'Refreshing…' : 'Refresh'}
+                </button>
+              </div>
+            </div>
+
+            <div className="mt-6">
+              <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-2">
+                In DB but not in JSON ({catalogDiff.db_only.length})
+              </h3>
+              <p className="mt-1 text-xs text-muted">
+                Removed from JSON but still in the live catalog. <b>Hide</b> keeps the row (metadata, affiliate URL) but excludes it from the public directory. <b>Delete</b> hard-removes the row.
+              </p>
+              {catalogDiff.db_only.length === 0 ? (
+                <p className="mt-3 text-sm text-muted">No drift in this direction.</p>
+              ) : (
+                <div className="mt-3 overflow-x-auto">
+                  <table className="min-w-full text-left text-sm">
+                    <thead><tr className="border-b border-line text-muted">
+                      <th className="px-3 py-2 font-semibold">Slug</th>
+                      <th className="px-3 py-2 font-semibold">Name</th>
+                      <th className="px-3 py-2 font-semibold">Category</th>
+                      <th className="px-3 py-2 font-semibold">Status</th>
+                      <th className="px-3 py-2 font-semibold text-right">Actions</th>
+                    </tr></thead>
+                    <tbody>
+                      {catalogDiff.db_only.map((row) => (
+                        <tr key={row.slug} className="border-b border-line/60">
+                          <td className="px-3 py-2 font-mono text-xs text-ink-2">{row.slug}</td>
+                          <td className="px-3 py-2 text-ink">{row.name}</td>
+                          <td className="px-3 py-2 text-muted">{row.category || '—'}</td>
+                          <td className="px-3 py-2">
+                            {row.hidden ? (
+                              <span className="rounded-full bg-bg-sunk px-2 py-0.5 text-xs text-ink-2">Hidden</span>
+                            ) : (
+                              <span className="rounded-full bg-accent-soft px-2 py-0.5 text-xs text-accent-ink">Live</span>
+                            )}
+                          </td>
+                          <td className="px-3 py-2 text-right">
+                            <div className="inline-flex gap-2">
+                              {!row.hidden && (
+                                <button
+                                  onClick={async () => {
+                                    try {
+                                      await api(`/api/v1/admin/tools/${encodeURIComponent(row.slug)}/hide`, { method: 'POST' })
+                                      toast.success(`Hid ${row.name}`)
+                                      reloadCatalogDiff()
+                                    } catch (e) { toast.error(e.message) }
+                                  }}
+                                  className={BTN_GHOST}
+                                >
+                                  Hide
+                                </button>
+                              )}
+                              <button
+                                onClick={async () => {
+                                  if (!window.confirm(`Delete ${row.name} (${row.slug}) from the DB? This is irreversible.`)) return
+                                  try {
+                                    await api(`/api/v1/admin/tools/${encodeURIComponent(row.slug)}`, { method: 'DELETE' })
+                                    toast.success(`Deleted ${row.name}`)
+                                    reloadCatalogDiff()
+                                  } catch (e) { toast.error(e.message) }
+                                }}
+                                className="rounded-lg border border-danger/40 px-3 py-1.5 text-xs font-semibold text-danger transition hover:bg-danger-soft"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            <div className="mt-8">
+              <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-2">
+                In JSON but not in DB ({catalogDiff.json_only.length})
+              </h3>
+              <p className="mt-1 text-xs text-muted">
+                Added to <code className="rounded bg-bg-sunk px-1 py-0.5 text-[10px]">tools.json</code> after the initial seed; never imported into the live catalog. <b>Import</b> upserts the JSON record into <code className="rounded bg-bg-sunk px-1 py-0.5 text-[10px]">catalog_tools</code> and primes the cache.
+              </p>
+              {catalogDiff.json_only.length === 0 ? (
+                <p className="mt-3 text-sm text-muted">No drift in this direction.</p>
+              ) : (
+                <div className="mt-3 overflow-x-auto">
+                  <table className="min-w-full text-left text-sm">
+                    <thead><tr className="border-b border-line text-muted">
+                      <th className="px-3 py-2 font-semibold">Slug</th>
+                      <th className="px-3 py-2 font-semibold">Name</th>
+                      <th className="px-3 py-2 font-semibold">Category</th>
+                      <th className="px-3 py-2 font-semibold text-right">Actions</th>
+                    </tr></thead>
+                    <tbody>
+                      {catalogDiff.json_only.map((row) => (
+                        <tr key={row.slug} className="border-b border-line/60">
+                          <td className="px-3 py-2 font-mono text-xs text-ink-2">{row.slug}</td>
+                          <td className="px-3 py-2 text-ink">{row.name}</td>
+                          <td className="px-3 py-2 text-muted">{row.category || '—'}</td>
+                          <td className="px-3 py-2 text-right">
+                            <button
+                              onClick={async () => {
+                                try {
+                                  await api(`/api/v1/admin/catalog-import/${encodeURIComponent(row.slug)}`, { method: 'POST' })
+                                  toast.success(`Imported ${row.name}`)
+                                  reloadCatalogDiff()
+                                } catch (e) { toast.error(e.message) }
+                              }}
+                              className={BTN_PRIMARY}
+                            >
+                              Import
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           </Card>
         )}
