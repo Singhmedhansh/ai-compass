@@ -89,6 +89,24 @@ function normalizeTool(rawTool) {
     lastVerifiedAt: rawTool?.last_verified_at || rawTool?.lastVerifiedAt || null,
     studentFriendly: Boolean(rawTool?.student_friendly ?? rawTool?.studentPerk ?? rawTool?.student_perk),
     pricing_tiers: rawTool?.pricing_tiers || null,
+    // Fields below feed structured data (SoftwareApplication JSON-LD).
+    // They're surfaced here so the JSON-LD block doesn't have to dig into
+    // raw payload shapes — and so we have one source of truth for what
+    // the SERP sees vs. what the visible UI renders.
+    maker: rawTool?.maker || rawTool?.company || null,
+    features: Array.isArray(rawTool?.features) ? rawTool.features : [],
+    useCases: Array.isArray(rawTool?.use_cases) ? rawTool.use_cases : [],
+    // Cheapest non-zero tier from pricing_tiers.tiers[], if any. Powers
+    // a real Offer in JSON-LD — Google requires a numeric `price`, so
+    // labels like "Freemium" alone aren't enough.
+    lowestPaidTier: (() => {
+      const tiers = rawTool?.pricing_tiers?.tiers
+      if (!Array.isArray(tiers)) return null
+      const paid = tiers.filter((t) => typeof t?.price_amount === 'number' && t.price_amount > 0)
+      if (paid.length === 0) return null
+      return paid.reduce((a, b) => (a.price_amount <= b.price_amount ? a : b))
+    })(),
+    pricingCurrency: rawTool?.pricing_tiers?.currency || 'USD',
   }
 }
 
@@ -326,24 +344,57 @@ function ToolDetailPage() {
               description: tool.description || tool.tagline,
               applicationCategory: tool.category,
               operatingSystem: 'Web',
-              // Only emit Offer when we have a numeric price we can vouch
-              // for. Google rejects Offer with no price; "freemium" and
-              // "paid" cover too many price points to claim a single one.
-              ...(tool.pricing === 'free'
+              ...(tool.maker
+                ? { brand: { '@type': 'Brand', name: tool.maker } }
+                : {}),
+              // featureList capped at 12 to keep payload reasonable and
+              // avoid Google's "keyword-stuffed structured data" flag.
+              ...(tool.features.length > 0
+                ? { featureList: tool.features.slice(0, 12) }
+                : {}),
+              // Offer logic, in priority order:
+              //   1. If pricing_tiers has a real paid tier with a numeric
+              //      price_amount, emit Offer at the cheapest paid tier.
+              //      Google needs a number; "Freemium" alone won't render.
+              //   2. Else if pricingTier label is "Free" (case-insensitive),
+              //      emit a $0 Offer. Earlier code used `=== 'free'` which
+              //      never matched the API's capitalised labels — Offer has
+              //      effectively been dead on every tool until now.
+              //   3. Else omit Offer entirely (better no Offer than a wrong
+              //      one — Google penalises misleading price markup).
+              ...(tool.lowestPaidTier
                 ? {
                     offers: {
                       '@type': 'Offer',
-                      price: '0',
-                      priceCurrency: 'USD',
+                      price: String(tool.lowestPaidTier.price_amount),
+                      priceCurrency: tool.pricingCurrency,
+                      ...(tool.lowestPaidTier.cta_url
+                        ? { url: tool.lowestPaidTier.cta_url }
+                        : {}),
+                      availability: 'https://schema.org/InStock',
                     },
                   }
-                : {}),
-              ...(Number(tool.rating) > 0
+                : String(tool.pricing || '').toLowerCase() === 'free'
+                  ? {
+                      offers: {
+                        '@type': 'Offer',
+                        price: '0',
+                        priceCurrency: 'USD',
+                        availability: 'https://schema.org/InStock',
+                      },
+                    }
+                  : {}),
+              // AggregateRating: previously referenced tool.review_count
+              // (undefined on the normalised object) so reviewCount always
+              // fell through to the hardcoded 1. Use tool.ratingCount and
+              // gate on both fields being real numbers so we don't claim
+              // "1 review" when there are zero.
+              ...(Number(tool.rating) > 0 && Number(tool.ratingCount) > 0
                 ? {
                     aggregateRating: {
                       '@type': 'AggregateRating',
                       ratingValue: Number(tool.rating),
-                      reviewCount: Number(tool.review_count) || 1,
+                      reviewCount: Number(tool.ratingCount),
                     },
                   }
                 : {}),
