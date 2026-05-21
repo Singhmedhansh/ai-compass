@@ -206,7 +206,7 @@ def _seo_body(normalized: str, tool: dict | None = None) -> str:
         tools = get_cached_tools() or []
         is_home = normalized == ''
         heading = (
-            'AI Compass — 399 Hand-Tested AI Tools for Students'
+            'Free AI Tools for Students — 400+ Hand-Tested | AI Compass'
             if is_home
             else 'AI Tools Directory — AI Compass'
         )
@@ -384,10 +384,10 @@ def _meta_for_request_path(path: str):
     # Homepage — keep server title/description identical to the client
     # (HomePage.jsx <Helmet>) so crawlers and users never see a mismatch.
     if normalized == '':
-        title = 'AI Compass — 399 Hand-Tested AI Tools for Students'
+        title = 'Free AI Tools for Students — 400+ Hand-Tested | AI Compass'
         desc = (
-            'Curated AI tools directory for students. 399 tools hand-tested, '
-            'with a one-line reason each. Free to browse, updated weekly.'
+            '400+ free and freemium AI tools, hand-tested for students. '
+            'Find the right one in 30 seconds. No login, no signup, no ranking tricks.'
         )
         html = _inject_meta(base, title=title, description=desc, canonical_path='/')
         return _inject_seo_root(html, _seo_body('')), 200

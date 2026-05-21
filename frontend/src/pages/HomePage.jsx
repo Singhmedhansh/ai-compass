@@ -11,10 +11,10 @@ export default function HomePage() {
   return (
     <>
       <Helmet>
-        <title>AI Compass — 399 Hand-Tested AI Tools for Students</title>
-        <meta name="description" content="Curated AI tools directory for students. 399 tools hand-tested, with a one-line reason each. Free to browse, updated weekly." />
-        <meta property="og:title" content="AI Compass — 399 Hand-Tested AI Tools for Students" />
-        <meta property="og:description" content="Curated AI tools directory for students. 399 tools hand-tested, with a one-line reason each. Free to browse, updated weekly." />
+        <title>Free AI Tools for Students — 400+ Hand-Tested | AI Compass</title>
+        <meta name="description" content="400+ free and freemium AI tools, hand-tested for students. Find the right one in 30 seconds. No login, no signup, no ranking tricks." />
+        <meta property="og:title" content="Free AI Tools for Students — 400+ Hand-Tested | AI Compass" />
+        <meta property="og:description" content="400+ free and freemium AI tools, hand-tested for students. Find the right one in 30 seconds. No login, no signup, no ranking tricks." />
         <link rel="canonical" href="https://ai-compass.in/" />
         {/* WebSite + SearchAction enables the Google "sitelinks search
             box" — Google shows a search input directly under our SERP
