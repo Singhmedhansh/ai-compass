@@ -867,8 +867,8 @@ def get_tool_reviews(slug: str):
         }
         current_app.logger.info(f"[PERF] total reviews: {time.time() - t0:.2f}s")
         return jsonify(payload)
-    except Exception as e:
-        print(f"[REVIEWS] Error: {e}")
+    except Exception:
+        current_app.logger.exception("reviews endpoint failed")
         return jsonify({"reviews": [], "count": 0,
                       "message": "No reviews yet. Be the first!"}), 200
 
@@ -1520,20 +1520,17 @@ def finder():
     budget = _normalize_text(data.get("budget"))
     platforms = _as_choice_list(data.get("platform"))
     level = _normalize_text(data.get("level"))
-    # Always collect use_case from both form and JSON for compatibility
+    # Accept use_case from form OR JSON for backward compat with the old POST
+    # shape; new requests send JSON.
     use_case = request.form.get("use_case", "").strip() or _normalize_text(data.get("use_case"))
 
-    print(
-        "[finder] received selections:",
-        {
-            "goals": goals,
-            "budget": budget,
-            "platforms": platforms,
-            "level": level,
-            "use_case": use_case,
-        },
+    current_app.logger.info(
+        "[finder] selections goals=%s budget=%s platforms=%s level=%s use_case=%r",
+        goals, budget, platforms, level, use_case,
     )
 
+    # Primary path: full scoring (category veto, pricing matrix, platform,
+    # level tags, rating). Returns 0-6 tools sorted by match_score.
     try:
         tools = _load_tools() or []
         results = _rank_finder_tools(
@@ -1546,48 +1543,60 @@ def finder():
             limit=6,
         )
         if results:
-            print("[finder] returning:", [tool.get("name") for tool in results])
-            # Results already include _reason; return as-is
+            current_app.logger.info(
+                "[finder] scored returning %d tools: %s",
+                len(results), [t.get("name") for t in results],
+            )
             return jsonify({"tools": results, "count": len(results)})
-    except Exception as exc:
-        print(f"Finder ranking failed: {exc}")
+        # No results from scoring is also a signal — fall through to the
+        # rating-only safety net so the wizard never returns an empty list.
+        current_app.logger.info("[finder] scorer returned 0 results, falling back")
+    except Exception:
+        # Truly defensive: if scoring throws (e.g., catalog payload shape
+        # changed), keep the wizard usable instead of bubbling a 500.
+        current_app.logger.exception("[finder] scoring failed, falling back")
 
+    # Safety-net fallback: pure rating + review-count sort within the goal's
+    # allowed categories. Deliberately does NOT re-call _rank_finder_tools —
+    # if the scorer just failed, calling it again with the same inputs will
+    # fail the same way. This path is intentionally simple so it can't fail.
     tools = get_cached_tools(DATA_PATH) or []
 
-    category_map = {
-        "coding": ["coding"],
-        "writing": ["writing & chat"],
-        "research": ["research"],
-        "learning": ["courses & tutorials", "research", "productivity"],
-        "creating": ["image generation", "video generation", "audio & voice", "design & graphics"],
-        "productivity": ["productivity"],
-    }
-
-    filtered = tools
     if goals:
-        allowed = []
+        allowed = set()
         for g in goals:
-            allowed.extend(category_map.get(g, []))
+            allowed.update(FINDER_GOAL_CATEGORY_MAP.get(g, []))
         if allowed:
-            allowed_set = set(allowed)
-            filtered = [tool for tool in tools if _normalize_text(tool.get("category")) in allowed_set]
+            tools = [t for t in tools if _normalize_text(t.get("category")) in allowed]
 
     if budget == "free":
-        filtered = [
-            tool for tool in filtered
-            if _pricing_value(tool) == "free"
-        ] or filtered
+        free_only = [t for t in tools if _pricing_value(t) == "free"]
+        # If "free" filter empties the result set, keep the wider list rather
+        # than show nothing (the user's preference is a preference, not a hard
+        # gate — same convention as the budget matrix in the main scorer).
+        if free_only:
+            tools = free_only
 
-    filtered.sort(key=lambda tool: (_rating_value(tool), float(tool.get("review_count", 0) or 0)), reverse=True)
-    results = _rank_finder_tools(filtered, goals, budget, platforms, level, use_case, limit=6)
+    tools.sort(
+        key=lambda t: (_rating_value(t), float(t.get("review_count", 0) or 0)),
+        reverse=True,
+    )
 
     primary_goal = goals[0] if goals else "your workflow"
-    for result in results:
-        result.setdefault("match_score", 0.0)
-        result.setdefault("reason", f"Great tool for {primary_goal}")
+    results = [
+        {
+            **tool,
+            "match_score": 0.0,
+            "reason": _build_finder_reason(tool, use_case, _normalize_budget_choice(budget))
+                      or f"Great tool for {primary_goal}",
+        }
+        for tool in tools[:6]
+    ]
 
-    print("[finder] fallback returning:", [tool.get("name") for tool in results])
-
+    current_app.logger.info(
+        "[finder] fallback returning %d tools: %s",
+        len(results), [t.get("name") for t in results],
+    )
     return jsonify({"tools": results, "count": len(results)})
 
 
