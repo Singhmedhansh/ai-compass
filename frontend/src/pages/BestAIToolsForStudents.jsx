@@ -512,6 +512,12 @@ export default function BestAIToolsForStudents() {
                           >
                             Read review →
                           </Link>
+                          <Link
+                            to={`/alternatives/${tool.slug}`}
+                            className="inline-flex items-center gap-1 text-sm font-medium text-muted hover:text-ink"
+                          >
+                            See alternatives →
+                          </Link>
                         </div>
                       )
                     })()}
