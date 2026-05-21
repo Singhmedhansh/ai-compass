@@ -299,6 +299,14 @@ export default function BestJasperAlternatives() {
             "acceptedAnswer": { "@type": "Answer", "text": f.a },
           })),
         })}</script>
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://ai-compass.in/" },
+            { "@type": "ListItem", "position": 2, "name": "Best Jasper Alternatives", "item": "https://ai-compass.in/best-jasper-alternatives" },
+          ],
+        })}</script>
       </Helmet>
 
       <div className="font-serif">
