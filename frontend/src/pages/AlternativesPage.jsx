@@ -2,11 +2,13 @@ import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { motion } from 'framer-motion'
-import { ArrowUpRight, ArrowLeft } from 'lucide-react'
+import { ArrowUpRight } from 'lucide-react'
 
 import { WordReveal } from '../components/ui'
+import ErrorState from '../components/ErrorState'
 import { sectionReveal, staggerParent, staggerChild } from '../lib/motion'
 import { outboundUrl, OUTBOUND_REL } from '../utils/outbound'
+import { inferErrorVariant } from '../utils/errorState'
 
 const MotionDiv = motion.div
 const LAST_REVIEWED = 'May 2026'
@@ -64,7 +66,10 @@ export default function AlternativesPage() {
   const { slug } = useParams()
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
+  // error is null when fine, otherwise one of 'offline' | 'server' |
+  // 'notfound' (see utils/errorState.js).
   const [error, setError] = useState(null)
+  const [retryNonce, setRetryNonce] = useState(0)
 
   useEffect(() => {
     const controller = new AbortController()
@@ -77,13 +82,15 @@ export default function AlternativesPage() {
           signal: controller.signal,
         })
         if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`)
+          const httpErr = new Error(`HTTP ${response.status}`)
+          httpErr.status = response.status
+          throw httpErr
         }
         const json = await response.json()
         setData(json)
       } catch (err) {
         if (err.name !== 'AbortError') {
-          setError(err.message)
+          setError(inferErrorVariant(err))
           setData(null)
         }
       } finally {
@@ -97,7 +104,7 @@ export default function AlternativesPage() {
     window.scrollTo(0, 0)
 
     return () => controller.abort()
-  }, [slug])
+  }, [slug, retryNonce])
 
   if (loading) {
     return (
@@ -109,19 +116,22 @@ export default function AlternativesPage() {
   }
 
   if (error || !data?.tool) {
+    // A real 404 (bad slug) gets the notfound variant with a tool-specific
+    // body. Network/server errors get the offline/server variants with
+    // a retry button — those are recoverable.
+    const variant = error || 'notfound'
     return (
-      <div className="mx-auto max-w-2xl px-4 py-24 text-center font-serif">
-        <h1 className="text-3xl font-bold text-ink">Tool not found</h1>
-        <p className="mt-4 text-muted">
-          We couldn&apos;t find alternatives for &ldquo;{slug}&rdquo;.
-        </p>
-        <Link
-          to="/tools"
-          className="mt-8 inline-flex items-center gap-2 rounded-full bg-ink px-5 py-2.5 text-sm font-medium text-bg hover:bg-ink-2"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Browse all tools
-        </Link>
+      <div className="mx-auto max-w-2xl px-4 py-24 font-serif">
+        <ErrorState
+          variant={variant}
+          message={
+            variant === 'notfound'
+              ? `We couldn't find alternatives for "${slug}". It may not be in our catalog yet.`
+              : undefined
+          }
+          onRetry={variant === 'notfound' ? undefined : () => setRetryNonce((n) => n + 1)}
+          secondaryAction={{ label: 'Browse all tools', to: '/tools' }}
+        />
       </div>
     )
   }

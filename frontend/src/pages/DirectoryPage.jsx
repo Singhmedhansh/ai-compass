@@ -6,7 +6,9 @@ import { ChevronDown, SearchX } from 'lucide-react'
 import { Button, Dropdown, SearchInput, SkeletonCard, WordReveal } from '../components/ui'
 import CategorySection from '../components/tools/CategorySection'
 import FlatToolGrid from '../components/tools/FlatToolGrid'
+import ErrorState from '../components/ErrorState'
 import { drawerSlideUp, frostedDropdown, sectionReveal } from '../lib/motion'
+import { inferErrorVariant } from '../utils/errorState'
 
 const MotionDiv = motion.div
 
@@ -132,7 +134,11 @@ function DirectoryPage() {
   const [tools, setTools] = useState([])
   const [searchMeta, setSearchMeta] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
+  // error is null when fine, otherwise one of 'offline' | 'server' (see
+  // utils/errorState.js). retryNonce is bumped on "Try again" so the
+  // useEffect re-runs without us having to factor the fetch out.
   const [error, setError] = useState(null)
+  const [retryNonce, setRetryNonce] = useState(0)
   const [category, setCategory] = useState(
     CATEGORY_OPTIONS.find((item) => item.toLowerCase() === initialCategory.toLowerCase()) || 'All',
   )
@@ -247,7 +253,7 @@ function DirectoryPage() {
           setTools([])
         } else {
           console.error('DirectoryPage fetch error:', err)
-          setError('Failed to load tools')
+          setError(inferErrorVariant(err))
         }
       } finally {
         if (requestId === latestRequestIdRef.current && !controller.signal.aborted) {
@@ -261,7 +267,7 @@ function DirectoryPage() {
       clearTimeout(debounceTimer)
       controller.abort()
     }
-  }, [queryFromParams, category])
+  }, [queryFromParams, category, retryNonce])
 
   const filteredTools = useMemo(() => {
     const normalizedSearch = queryFromParams.trim().toLowerCase()
@@ -578,7 +584,16 @@ function DirectoryPage() {
 
       {viewMode !== 'hub' && (
         <>
-          {error && <p className="text-danger">{error}</p>}
+          {error && (
+            <ErrorState
+              variant={error}
+              onRetry={() => {
+                setError(null)
+                setRetryNonce((n) => n + 1)
+              }}
+              className="mt-4"
+            />
+          )}
 
           {!isLoading && !error && searchMeta?.fuzzy_matched && searchMeta?.suggested_query && (
             <div className="mb-4 rounded-lg border border-accent/20 bg-accent-soft px-4 py-2.5 text-sm text-ink">

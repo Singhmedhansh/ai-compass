@@ -5,7 +5,9 @@ import { Helmet } from 'react-helmet-async'
 import { Link } from 'react-router-dom'
 
 import { WordReveal } from '../components/ui'
+import ErrorState from '../components/ErrorState'
 import { sectionReveal, staggerChild } from '../lib/motion'
+import { inferErrorVariant } from '../utils/errorState'
 
 // motion(component) calls aliased at module scope — ESLint quirk in the local config flags inline JSX with motion.X otherwise.
 const MotionDiv = motion.div
@@ -58,28 +60,44 @@ const COLLECTIONS = [
 
 function CollectionsPage() {
   const [counts, setCounts] = useState({})
+  // Only surface a full-page error if *every* count fetch fails — a single
+  // collection erroring shouldn't blank the whole grid, that's just a soft
+  // 0. variant: null | 'offline' | 'server'.
+  const [error, setError] = useState(null)
+  const [retryNonce, setRetryNonce] = useState(0)
 
   useEffect(() => {
     let mounted = true
 
     async function loadCounts() {
-      const entries = await Promise.all(
+      const results = await Promise.all(
         COLLECTIONS.map(async (collection) => {
           try {
             const response = await fetch(`/api/v1/collections/${collection.slug}`)
             if (!response.ok) {
-              return [collection.slug, 0]
+              const httpErr = new Error(`HTTP ${response.status}`)
+              httpErr.status = response.status
+              return { slug: collection.slug, count: 0, error: httpErr }
             }
             const data = await response.json()
-            return [collection.slug, Number(data?.count || 0)]
-          } catch {
-            return [collection.slug, 0]
+            return { slug: collection.slug, count: Number(data?.count || 0), error: null }
+          } catch (err) {
+            return { slug: collection.slug, count: 0, error: err }
           }
         }),
       )
 
-      if (mounted) {
-        setCounts(Object.fromEntries(entries))
+      if (!mounted) return
+
+      const successes = results.filter((r) => !r.error)
+      if (successes.length === 0 && results.length > 0) {
+        // All requests failed — treat as a real failure, not a "0 tools"
+        // wallpaper. Pick the first error to infer the variant from.
+        setError(inferErrorVariant(results[0].error))
+        setCounts({})
+      } else {
+        setError(null)
+        setCounts(Object.fromEntries(results.map((r) => [r.slug, r.count])))
       }
     }
 
@@ -88,7 +106,7 @@ function CollectionsPage() {
     return () => {
       mounted = false
     }
-  }, [])
+  }, [retryNonce])
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -106,12 +124,20 @@ function CollectionsPage() {
         </p>
       </header>
 
+      {error ? (
+        <ErrorState
+          variant={error}
+          onRetry={() => setRetryNonce((n) => n + 1)}
+          secondaryAction={{ label: 'Browse all tools', to: '/tools' }}
+        />
+      ) : null}
+
       <MotionDiv
         variants={sectionReveal}
         initial="initial"
         whileInView="animate"
         viewport={{ once: true, margin: '-10% 0px' }}
-        className="grid grid-cols-1 gap-6 md:grid-cols-2"
+        className={`grid grid-cols-1 gap-6 md:grid-cols-2 ${error ? 'hidden' : ''}`}
       >
         {COLLECTIONS.map((collection, i) => (
           <MotionLink

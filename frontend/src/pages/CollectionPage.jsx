@@ -3,12 +3,16 @@ import { Helmet } from 'react-helmet-async'
 import { Link, useParams } from 'react-router-dom'
 
 import { Button, Card, SkeletonCard } from '../components/ui'
+import ErrorState from '../components/ErrorState'
+import { inferErrorVariant } from '../utils/errorState'
 
 function CollectionPage() {
   const { slug } = useParams()
   const [collection, setCollection] = useState(null)
   const [loading, setLoading] = useState(true)
+  // error is null when fine, otherwise 'offline' | 'server' | 'notfound'.
   const [error, setError] = useState(null)
+  const [retryNonce, setRetryNonce] = useState(0)
 
   useEffect(() => {
     const controller = new AbortController()
@@ -21,7 +25,9 @@ function CollectionPage() {
         })
 
         if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+          const httpErr = new Error(`HTTP ${response.status}: ${response.statusText}`)
+          httpErr.status = response.status
+          throw httpErr
         }
 
         const data = await response.json()
@@ -29,7 +35,7 @@ function CollectionPage() {
         setError(null)
       } catch (err) {
         if (err.name !== 'AbortError') {
-          setError(err.message)
+          setError(inferErrorVariant(err))
           setCollection(null)
         }
       } finally {
@@ -42,7 +48,7 @@ function CollectionPage() {
     loadCollection()
 
     return () => controller.abort()
-  }, [slug])
+  }, [slug, retryNonce])
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -69,15 +75,11 @@ function CollectionPage() {
       </section>
 
       {error ? (
-        <section className="rounded-xl border border-danger bg-danger-soft p-4 text-danger">
-          <p className="font-semibold">Failed to load collection</p>
-          <p className="mt-1 text-sm">{error}</p>
-          <div className="mt-4">
-            <Link to="/collections">
-              <Button variant="secondary">Back to Collections</Button>
-            </Link>
-          </div>
-        </section>
+        <ErrorState
+          variant={error}
+          onRetry={error === 'notfound' ? undefined : () => setRetryNonce((n) => n + 1)}
+          secondaryAction={{ label: 'Back to Collections', to: '/collections' }}
+        />
       ) : null}
 
       {loading ? (

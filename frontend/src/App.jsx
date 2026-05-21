@@ -5,6 +5,7 @@ import { AnimatePresence, MotionConfig } from 'framer-motion'
 import ErrorBoundary from './components/ErrorBoundary'
 import FeedbackWidget from './components/FeedbackWidget'
 import Footer from './components/Footer'
+import OfflineBanner from './components/OfflineBanner'
 import RouteTransition from './components/RouteTransition'
 import CompareTray from './components/ui/CompareTray'
 import CompassLoader from './components/ui/CompassLoader'
@@ -108,6 +109,7 @@ export default function App() {
           <Footer />
           <CompareTray />
           <FeedbackWidget />
+          <OfflineBanner />
         </div>
       </BrowserRouter>
     </MotionConfig>

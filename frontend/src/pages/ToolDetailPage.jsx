@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import { motion } from 'framer-motion'
-import { AlertTriangle, BadgeCheck, Heart, Star } from 'lucide-react'
+import { BadgeCheck, Heart, Star } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
@@ -8,8 +8,10 @@ import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import RatingWidget from '../components/ui/RatingWidget'
 import ReviewsSection from '../components/ui/ReviewsSection'
 import { Badge, Button, PricingSection, SkeletonToolDetail, ToolLogo } from '../components/ui'
+import ErrorState from '../components/ErrorState'
 import { sectionReveal, staggerChild, staggerParent } from '../lib/motion'
 import { outboundUrl, OUTBOUND_REL } from '../utils/outbound'
+import { inferErrorVariant } from '../utils/errorState'
 
 const MotionDiv = motion.div
 
@@ -116,20 +118,28 @@ function ToolDetailPage() {
     }
   })
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+  // error is null when fine, otherwise one of 'offline' | 'server' |
+  // 'notfound' — see utils/errorState.js. retryNonce re-triggers the
+  // effect when the user hits "Try again" without reloading the page.
+  const [error, setError] = useState(null)
+  const [retryNonce, setRetryNonce] = useState(0)
 
   useEffect(() => {
     const toolController = new AbortController()
 
     async function loadPageData() {
       setLoading(true)
-      setError('')
+      setError(null)
 
       try {
         const toolResponse = await fetch(`/api/v1/tools/${slug}`, { signal: toolController.signal })
 
         if (!toolResponse.ok) {
-          throw new Error(`Unable to load tool (${toolResponse.status})`)
+          // Tag the error with its HTTP status so inferErrorVariant can
+          // distinguish a real 404 (bad slug) from a 5xx (server hiccup).
+          const httpErr = new Error(`Unable to load tool (${toolResponse.status})`)
+          httpErr.status = toolResponse.status
+          throw httpErr
         }
 
         const toolPayload = await toolResponse.json()
@@ -147,7 +157,7 @@ function ToolDetailPage() {
         }
       } catch (requestError) {
         if (requestError.name !== 'AbortError') {
-          setError(requestError.message || 'Unable to load tool details.')
+          setError(inferErrorVariant(requestError))
           setTool(null)
           setRelatedTools([])
         }
@@ -163,7 +173,7 @@ function ToolDetailPage() {
     return () => {
       toolController.abort()
     }
-  }, [slug])
+  }, [slug, retryNonce])
 
   useEffect(() => {
     const syncUserState = () => {
@@ -339,22 +349,11 @@ function ToolDetailPage() {
       {loading ? (
         <SkeletonToolDetail />
       ) : error || !tool ? (
-        <section
-          role="alert"
-          className="rounded-2xl border border-line bg-bg-sunk px-6 py-16 text-center"
-        >
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-line bg-bg-elev shadow-sm" aria-hidden="true">
-            <AlertTriangle className="h-7 w-7 text-danger" />
-          </div>
-          <h2 className="mt-5 text-xl font-semibold text-ink">Couldn't load this tool</h2>
-          <p className="mt-2 text-sm text-muted">
-            The tool data couldn't be retrieved. Try refreshing, or browse the directory.
-          </p>
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
-            <Button variant="primary" onClick={() => window.location.reload()}>Retry</Button>
-            <Button variant="secondary" onClick={() => navigate('/tools')}>Browse all tools</Button>
-          </div>
-        </section>
+        <ErrorState
+          variant={error || 'server'}
+          onRetry={() => setRetryNonce((n) => n + 1)}
+          secondaryAction={{ label: 'Browse all tools', to: '/tools' }}
+        />
       ) : (
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div className="flex-1 space-y-6">
