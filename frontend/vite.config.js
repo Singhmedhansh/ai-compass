@@ -1,9 +1,31 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { beasties } from 'vite-plugin-beasties'
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    // Critical-CSS extraction. PSI flagged /assets/index-*.css as a
+    // render-blocking request costing ~150ms LCP on mobile. Beasties
+    // walks the rendered HTML, picks out the CSS rules used above the
+    // fold, inlines those into <head>, and rewrites the original
+    // <link rel="stylesheet"> as a non-blocking preload that swaps in
+    // once loaded.
+    //
+    // pruneSource is OFF: beasties 0.4.2 crashes on inline <style>
+    // tags when pruning (the boot-loader CSS in index.html). The cost
+    // is that inlined rules get duplicated in the external CSS file —
+    // a few KiB at most, acceptable for the LCP win.
+    beasties({
+      options: {
+        preload: 'swap',
+        pruneSource: false,
+        inlineThreshold: 4000,
+      },
+      filter: (path) => path.endsWith('.html'),
+    }),
+  ],
   build: {
     outDir: '../static/dist',
     emptyOutDir: true,
