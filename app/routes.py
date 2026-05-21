@@ -484,6 +484,15 @@ def sitemap():
         ('/best-synthesia-alternatives', '0.9', 'weekly'),
         ('/best-ai-tools-for-fiction-writers', '0.9', 'weekly'),
         ('/collections', '0.7', 'weekly'),
+        # Public static routes that were previously absent from the sitemap
+        # despite being indexable. Lower priority — these aren't conversion
+        # surfaces, just trust pages — but worth declaring so crawlers find
+        # and refresh them on a sensible cadence.
+        ('/compare', '0.5', 'monthly'),
+        ('/team', '0.4', 'monthly'),
+        ('/contact', '0.3', 'yearly'),
+        ('/privacy', '0.2', 'yearly'),
+        ('/terms', '0.2', 'yearly'),
     ]
     for path, priority, freq in static:
         safe_path = escape(str(path))
@@ -513,11 +522,25 @@ def sitemap():
 
 @main_bp.route('/robots.txt')
 def robots():
+    # Disallow rules cover routes that either require auth (so crawlers
+    # would just see a login redirect) or are operationally not for
+    # public discovery. Most of these would already 401/redirect for
+    # crawlers, but declaring them saves crawl budget and stops Google
+    # surfacing login pages in SERPs.
     content = (
         'User-agent: *\n'
         'Allow: /\n'
-        'Disallow: /go/\n'  # affiliate/outbound redirects — not for crawling
-        'Sitemap: https://ai-compass.in/sitemap.xml'
+        'Disallow: /go/\n'        # affiliate/outbound redirects — not for crawling
+        'Disallow: /admin\n'      # admin panel — auth-gated, no SEO value
+        'Disallow: /dashboard\n'  # logged-in dashboard
+        'Disallow: /profile\n'    # logged-in profile
+        'Disallow: /login\n'      # login form
+        'Disallow: /register\n'   # signup form
+        'Disallow: /auth/\n'      # OAuth callback paths
+        'Disallow: /unsubscribe\n'  # tokenised, single-use
+        'Disallow: /icon/\n'      # internal favicon proxy
+        'Disallow: /og/\n'        # generated per-tool social cards
+        'Sitemap: https://ai-compass.in/sitemap.xml\n'
     )
     return Response(content, mimetype='text/plain')
 

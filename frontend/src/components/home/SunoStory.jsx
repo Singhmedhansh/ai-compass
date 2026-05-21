@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom'
+
 import { useCatalogStats } from '../../hooks/useCatalogStats'
 
 const FALLBACK_TOOL_COUNT = 400
@@ -19,7 +21,6 @@ export default function SunoStory() {
               <b className="font-medium text-accent-ink">incident · 2026-04</b>
             </span>
             <span>resolved · 2 days</span>
-            {/* TODO before merge to main: publish #2026-209 audit post at stable URL, link this reference */}
             <span>changelog · #2026-209</span>
           </div>
 
@@ -40,8 +41,12 @@ export default function SunoStory() {
             a <em>reason</em>.
           </p>
 
-          {/* TODO Saturday: link signature to /about or team page once that route exists */}
-          <div className="text-[13px] text-muted">— the AI Compass team</div>
+          <Link
+            to="/team"
+            className="inline-block text-[13px] text-muted transition-colors hover:text-ink"
+          >
+            — the AI Compass team
+          </Link>
         </blockquote>
       </div>
     </section>

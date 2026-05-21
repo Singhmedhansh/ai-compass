@@ -21,7 +21,6 @@ export default function MockupChrome({
   children,
 }) {
   return (
-    /* TODO Saturday: wire box-shadow to a `--shadow-lg` token once added to :root */
     <div
       role="region"
       aria-label={ariaLabel}
