@@ -5,7 +5,7 @@ import subprocess
 import sys
 import time
 from collections import Counter
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 import requests
 from flask import Blueprint, current_app, jsonify, request
@@ -2513,3 +2513,64 @@ def newsletter_subscribe():
             db.session.rollback()
 
     return jsonify({"success": True}), 200
+
+
+@api_bp.get("/admin/newsletter")
+@login_required
+def admin_newsletter_subscribers():
+    """List all newsletter subscribers, newest first.
+
+    Public newsletter signups (no account required) accumulate in
+    NewsletterSubscriber but had no admin-visible surface — you'd have
+    had to SSH into the DB to see who'd joined. This is the read view.
+    """
+    if not _is_admin():
+        return jsonify({"error": "Forbidden"}), 403
+    from app.models import NewsletterSubscriber
+
+    rows = (
+        NewsletterSubscriber.query
+        .order_by(NewsletterSubscriber.created_at.desc())
+        .all()
+    )
+    today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+    week_start = today_start - timedelta(days=7)
+    new_today = sum(1 for r in rows if r.created_at and r.created_at >= today_start)
+    new_this_week = sum(1 for r in rows if r.created_at and r.created_at >= week_start)
+    return jsonify({
+        "count": len(rows),
+        "new_today": new_today,
+        "new_this_week": new_this_week,
+        "subscribers": [
+            {
+                "id": r.id,
+                "email": r.email,
+                "created_at": r.created_at.isoformat() if r.created_at else None,
+            }
+            for r in rows
+        ],
+    })
+
+
+@api_bp.delete("/admin/newsletter/<int:sub_id>")
+@csrf.exempt
+@login_required
+def admin_delete_newsletter_subscriber(sub_id: int):
+    """Hard-delete a subscriber by id.
+
+    Equivalent to the user clicking unsubscribe in a digest email — same
+    DB action (DELETE row), just initiated from the admin UI. Useful for
+    cleaning up obvious spam-trap addresses or honoring out-of-band
+    unsubscribe requests (e.g. someone emails you instead of using the
+    link).
+    """
+    if not _is_admin():
+        return jsonify({"error": "Forbidden"}), 403
+    from app.models import NewsletterSubscriber
+
+    row = NewsletterSubscriber.query.get(sub_id)
+    if row is None:
+        return jsonify({"error": "Not found"}), 404
+    db.session.delete(row)
+    db.session.commit()
+    return jsonify({"success": True})

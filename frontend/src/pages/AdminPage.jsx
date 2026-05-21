@@ -14,7 +14,7 @@ const MotionSpan = motion.span
 
 const ADMIN_EMAILS = ['singhmedhansh07@gmail.com']
 const TOOLS_PAGE_SIZE = 15
-const TABS = ['Overview', 'Tools', 'Submissions', 'Feedback', 'Analytics', 'Email', 'Flags', 'Users', 'Reviews']
+const TABS = ['Overview', 'Tools', 'Submissions', 'Feedback', 'Analytics', 'Email', 'Newsletter', 'Flags', 'Users', 'Reviews']
 
 const EMPTY_TOOL = {
   slug: '', name: '', tagline: '', description: '', category: '',
@@ -155,6 +155,8 @@ function AdminPage() {
   const [analytics, setAnalytics] = useState(null)
   const [analyticsErr, setAnalyticsErr] = useState('')
   const [flags, setFlags] = useState([])
+  const [newsletterSubs, setNewsletterSubs] = useState([])
+  const [newsletterStats, setNewsletterStats] = useState({ count: 0, new_today: 0, new_this_week: 0 })
 
   const [toolsQuery, setToolsQuery] = useState('')
   const [toolsPage, setToolsPage] = useState(1)
@@ -226,6 +228,21 @@ function AdminPage() {
       api('/api/v1/admin/analytics').then(setAnalytics).catch((e) => setAnalyticsErr(e.message || 'Failed to load analytics'))
     }
     if (activeTab === 'Flags') api('/api/v1/admin/flags').then(setFlags).catch(() => setFlags([]))
+    if (activeTab === 'Newsletter') {
+      api('/api/v1/admin/newsletter')
+        .then((d) => {
+          setNewsletterSubs(Array.isArray(d.subscribers) ? d.subscribers : [])
+          setNewsletterStats({
+            count: d.count || 0,
+            new_today: d.new_today || 0,
+            new_this_week: d.new_this_week || 0,
+          })
+        })
+        .catch(() => {
+          setNewsletterSubs([])
+          setNewsletterStats({ count: 0, new_today: 0, new_this_week: 0 })
+        })
+    }
   }, [activeTab, authed])
 
   const filteredTools = useMemo(() => {
@@ -695,6 +712,79 @@ function AdminPage() {
                   ))}
                 </tbody>
               </table>
+            </div>
+          </Card>
+        )}
+
+        {activeTab === 'Newsletter' && (
+          <Card>
+            <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <h2 className="text-xl font-semibold text-ink">Newsletter subscribers</h2>
+                <p className="mt-1 text-sm text-muted">
+                  Public homepage signups (no account required). Same recipient pool as the digest send — these addresses get every &quot;new tools&quot; email, with a one-click unsubscribe link in each one.
+                </p>
+              </div>
+              <div className="flex gap-4 text-sm">
+                <div>
+                  <div className="text-2xl font-semibold tabular-nums text-ink">{newsletterStats.count}</div>
+                  <div className="text-xs uppercase tracking-wider text-muted-2">Total</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-semibold tabular-nums text-ink">{newsletterStats.new_this_week}</div>
+                  <div className="text-xs uppercase tracking-wider text-muted-2">Last 7d</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-semibold tabular-nums text-ink">{newsletterStats.new_today}</div>
+                  <div className="text-xs uppercase tracking-wider text-muted-2">Today</div>
+                </div>
+              </div>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-left text-sm">
+                <thead><tr className="border-b border-line text-muted">
+                  <th className="px-3 py-2 font-semibold">Email</th>
+                  <th className="px-3 py-2 font-semibold">Joined</th>
+                  <th className="px-3 py-2 font-semibold w-12"></th>
+                </tr></thead>
+                <tbody>
+                  {newsletterSubs.map((s) => (
+                    <tr key={s.id} className="border-b border-line/60">
+                      <td className="px-3 py-2 text-ink-2">{s.email}</td>
+                      <td className="px-3 py-2 text-muted tabular-nums">
+                        {s.created_at ? new Date(s.created_at).toLocaleString() : '—'}
+                      </td>
+                      <td className="px-3 py-2 text-right">
+                        <button
+                          onClick={async () => {
+                            if (!window.confirm(`Remove ${s.email} from the newsletter?`)) return
+                            try {
+                              await api(`/api/v1/admin/newsletter/${s.id}`, { method: 'DELETE' })
+                              setNewsletterSubs((prev) => prev.filter((x) => x.id !== s.id))
+                              setNewsletterStats((prev) => ({
+                                ...prev,
+                                count: Math.max(0, (prev.count || 0) - 1),
+                              }))
+                              toast.success('Subscriber removed')
+                            } catch (e) {
+                              toast.error(e.message)
+                            }
+                          }}
+                          className="rounded-md border border-danger/40 p-1.5 text-danger transition hover:bg-danger-soft"
+                          title="Remove subscriber"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {newsletterSubs.length === 0 && (
+                <p className="mt-4 text-sm text-muted">
+                  No newsletter subscribers yet. Signups land here from the homepage form.
+                </p>
+              )}
             </div>
           </Card>
         )}
