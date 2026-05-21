@@ -1,0 +1,98 @@
+name: Weekly DB backup
+
+# Schedule: every Sunday at 03:30 UTC (09:00 IST). Cron uses UTC.
+# Also runnable on-demand via the Actions tab if you ever need an
+# immediate dump (e.g., right before a risky migration).
+on:
+  schedule:
+    - cron: '30 3 * * 0'
+  workflow_dispatch:
+
+# Concurrency keeps one run at a time. If the scheduled run is still
+# going when you trigger a manual one, the older run is cancelled —
+# avoids two parallel pg_dumps competing for connections.
+concurrency:
+  group: backup-db
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  dump:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Install postgresql-client matching Neon's server version
+        # Neon is currently on Postgres 16. The Ubuntu runner ships an
+        # older client by default, which will fail with "server version
+        # mismatch" against newer servers. Pull pg_dump 16 from the
+        # PGDG apt repo.
+        run: |
+          set -euo pipefail
+          sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+          curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo gpg --dearmor -o /usr/share/keyrings/postgresql.gpg
+          sudo sh -c 'echo "deb [signed-by=/usr/share/keyrings/postgresql.gpg] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client-16
+          pg_dump --version
+
+      - name: Dump Neon Postgres to a gzipped .sql.gz
+        # The DATABASE_URL secret should be Neon's *External* connection
+        # string with ?sslmode=require. The dump is plain SQL (not custom
+        # format) so it can be restored with `gunzip ... | psql ...` in
+        # any environment without needing a matching pg_restore.
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          set -euo pipefail
+          if [ -z "${DATABASE_URL:-}" ]; then
+            echo "::error::DATABASE_URL secret is not set. Add it under Settings > Secrets > Actions."
+            exit 1
+          fi
+          mkdir -p backup
+          STAMP=$(date -u +'%Y-%m-%dT%H-%M-%SZ')
+          FILE="backup/ai-compass-${STAMP}.sql.gz"
+          # --no-owner / --no-privileges keeps the dump portable across
+          # roles (the Neon owner won't exist on a restore target).
+          # --quote-all-identifiers avoids quoting drift across pg versions.
+          # --schema=public limits to the application schema, skipping
+          # Neon's internal schemas you can't restore anyway.
+          pg_dump \
+            --no-owner --no-privileges \
+            --quote-all-identifiers \
+            --schema=public \
+            --file=/dev/stdout \
+            "$DATABASE_URL" | gzip -9 > "$FILE"
+          ls -lh "$FILE"
+          echo "BACKUP_FILE=$FILE" >> "$GITHUB_ENV"
+          # Sanity check — a dump that's suspiciously tiny is usually a
+          # failed dump. Refuse to upload anything under 50KB.
+          MIN_BYTES=51200
+          ACTUAL=$(stat -c%s "$FILE")
+          if [ "$ACTUAL" -lt "$MIN_BYTES" ]; then
+            echo "::error::Backup file is only ${ACTUAL} bytes — looks like a failed dump."
+            exit 1
+          fi
+
+      - name: Upload backup as workflow artifact
+        # 90 days is the default GitHub Actions free-tier retention, which
+        # gives us ~12 weekly snapshots before the oldest expires. If you
+        # ever want longer retention, push to Backblaze B2 / S3 instead.
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-compass-db-backup-${{ github.run_id }}
+          path: ${{ env.BACKUP_FILE }}
+          retention-days: 90
+          if-no-files-found: error
+
+      - name: Summary
+        run: |
+          echo "## Backup complete" >> "$GITHUB_STEP_SUMMARY"
+          echo "Artifact: \`ai-compass-db-backup-${{ github.run_id }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "**Restore one-liner** (from a Codespace / local shell):" >> "$GITHUB_STEP_SUMMARY"
+          echo '```bash' >> "$GITHUB_STEP_SUMMARY"
+          echo 'gunzip -c ai-compass-*.sql.gz | psql "$TARGET_DATABASE_URL"' >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
