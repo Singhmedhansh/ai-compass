@@ -119,7 +119,7 @@ export default function FeedbackWidget() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.15 }}
-              className="fixed inset-0 z-40 bg-black/40"
+              className="fixed inset-0 z-[60] bg-black/40"
               onClick={() => setOpen(false)}
               aria-hidden="true"
             />
@@ -133,7 +133,7 @@ export default function FeedbackWidget() {
               role="dialog"
               aria-modal="true"
               aria-labelledby="feedback-title"
-              className="fixed bottom-20 right-5 z-50 w-[calc(100vw-2.5rem)] max-w-sm rounded-2xl border border-line bg-bg-elev p-5 shadow-2xl sm:right-5"
+              className="fixed bottom-20 right-5 z-[70] w-[calc(100vw-2.5rem)] max-w-sm rounded-2xl border border-line bg-bg-elev p-5 shadow-2xl sm:right-5"
             >
               <div className="mb-3 flex items-start justify-between gap-3">
                 <div>
