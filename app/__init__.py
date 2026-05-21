@@ -433,34 +433,59 @@ def create_app(config: dict | None = None) -> Flask:
                     print(f"[STARTUP] DB SECRET_KEY unavailable, using fallback: {e}")
 
             print(f"[STARTUP] cwd: {os.getcwd()}")
-            print("[STARTUP] Loading tools...")
-            prime_tools_cache(DEFAULT_TOOLS_PATH)
-            print(f"[STARTUP] Loaded {len(get_cached_tools())} tools")
 
-            try:
-                from app.ml_recommender import load_model as _load_recommender_model
-                _load_recommender_model()
-                print("[STARTUP] Recommender model loaded")
-            except Exception as e:
-                print(f"[STARTUP] Recommender preload skipped: {e}")
+    # ── Defer slow warm-up to a background thread ────────────────────────
+    # On Neon's free tier the DB sometimes wakes from sleep on first
+    # connection (5-10s), and unpickling the recommender model adds
+    # another second or two. Doing both inline at create_app() time used
+    # to push total import-to-port-bind past Render's port-scan timeout
+    # (~30s), so Render SIGTERM'd the worker before it ever served a
+    # request — restart loop, deploys failing.
+    #
+    # Both ops are designed to be lazy: get_cached_tools() and
+    # load_model() both populate on first call if not yet primed. The
+    # background thread just warms the cache in parallel with gunicorn
+    # binding to the port, so the first user request hits a warm cache
+    # without blocking startup.
+    if not app.config.get("TESTING"):
+        def _warm_up():
+            with app.app_context():
+                try:
+                    print("[WARMUP] Loading tools...")
+                    prime_tools_cache(DEFAULT_TOOLS_PATH)
+                    print(f"[WARMUP] Loaded {len(get_cached_tools())} tools")
+                except Exception as exc:  # noqa: BLE001
+                    print(f"[WARMUP] Tools prime skipped: {exc}")
 
-    try:
-        model_path = os.path.join(project_root, 'data', 'recommendation_model.pkl')
-        if not os.path.exists(model_path):
-            print("Training ML model on first startup...")
-            train_script = os.path.join(project_root, 'scripts', 'train_model.py')
-            if os.path.exists(train_script):
-                import subprocess
-                result = subprocess.run(
-                    [sys.executable, train_script],
-                    capture_output=True, text=True, cwd=project_root, timeout=120
-                )
-                if result.returncode == 0:
-                    print("ML model trained successfully")
-                else:
-                    print("ML model training failed:", result.stderr[:500])
-    except Exception as e:
-        print(f"ML model auto-train skipped: {e}")
+                try:
+                    from app.ml_recommender import load_model as _load_recommender_model
+                    _load_recommender_model()
+                    print("[WARMUP] Recommender model loaded")
+                except Exception as exc:  # noqa: BLE001
+                    print(f"[WARMUP] Recommender preload skipped: {exc}")
+
+                # Train the recommender on first boot if the .pkl is
+                # missing. Subprocess can take up to 120s, so it
+                # ABSOLUTELY can't be on the request-serving path.
+                try:
+                    model_path = os.path.join(project_root, 'data', 'recommendation_model.pkl')
+                    if not os.path.exists(model_path):
+                        print("[WARMUP] Training ML model on first startup...")
+                        train_script = os.path.join(project_root, 'scripts', 'train_model.py')
+                        if os.path.exists(train_script):
+                            import subprocess
+                            result = subprocess.run(
+                                [sys.executable, train_script],
+                                capture_output=True, text=True, cwd=project_root, timeout=120
+                            )
+                            if result.returncode == 0:
+                                print("[WARMUP] ML model trained successfully")
+                            else:
+                                print("[WARMUP] ML model training failed:", result.stderr[:500])
+                except Exception as exc:  # noqa: BLE001
+                    print(f"[WARMUP] ML model auto-train skipped: {exc}")
+
+        threading.Thread(target=_warm_up, name="warmup", daemon=True).start()
 
     @app.context_processor
     def inject_global_template_vars():
