@@ -347,7 +347,7 @@ export default function BestCodingTools() {
           <p className="mt-4 text-sm text-muted">
             <span className="inline-flex items-center gap-2 rounded-full border border-line bg-bg-elev px-3 py-1 text-xs font-medium text-ink-2">
               <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden="true" />
-              Last reviewed: {LAST_REVIEWED}
+              Published: {LAST_REVIEWED}
             </span>
           </p>
         </div>

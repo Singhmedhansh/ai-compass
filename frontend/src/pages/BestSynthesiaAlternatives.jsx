@@ -244,7 +244,7 @@ export default function BestSynthesiaAlternatives() {
         <title>10 Best Synthesia Alternatives in 2026 (Tested & Ranked) | AI Compass</title>
         <meta
           name="description"
-          content="Synthesia is $22+/mo for AI avatar videos most creators don't need. These 10 alternatives — led by Pictory — split into cheaper avatar tools and 'AI video without avatars' for explainers, shorts, and explainers. Hand-tested, last reviewed May 2026."
+          content="Synthesia is $22+/mo for AI avatar videos most creators don't need. These 10 alternatives — led by Pictory — split into cheaper avatar tools and 'AI video without avatars' for explainers, shorts, and explainers. Hand-tested, published May 2026."
         />
         <meta
           name="keywords"
@@ -312,7 +312,7 @@ export default function BestSynthesiaAlternatives() {
           <p className="mt-4 text-sm text-muted">
             <span className="inline-flex items-center gap-2 rounded-full border border-line bg-bg-elev px-3 py-1 text-xs font-medium text-ink-2">
               <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden="true" />
-              Last reviewed: {LAST_REVIEWED}
+              Published: {LAST_REVIEWED}
             </span>
           </p>
           <p className="mt-3 text-xs text-muted-2 font-sans max-w-[640px] mx-auto">

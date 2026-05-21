@@ -294,7 +294,7 @@ export default function BestFreeAITools() {
         <title>10 Best Free AI Tools 2026 — No Credit Card | AI Compass</title>
         <meta
           name="description"
-          content="The 10 best truly-free AI tools in 2026. No credit card, no demo-grade limits. Hand-tested, pricing re-verified monthly. Last reviewed April 2026."
+          content="The 10 best truly-free AI tools in 2026. No credit card, no demo-grade limits. Hand-tested, pricing re-verified monthly. Published April 2026."
         />
         <meta
           name="keywords"
@@ -302,7 +302,7 @@ export default function BestFreeAITools() {
         />
         <link rel="canonical" href="https://ai-compass.in/best-free-ai-tools" />
         <meta property="og:title" content="10 Best Free AI Tools 2026 — No Credit Card | AI Compass" />
-        <meta property="og:description" content="The 10 best truly-free AI tools in 2026. No credit card, no demo-grade limits. Hand-tested, pricing re-verified monthly. Last reviewed April 2026." />
+        <meta property="og:description" content="The 10 best truly-free AI tools in 2026. No credit card, no demo-grade limits. Hand-tested, pricing re-verified monthly. Published April 2026." />
         <meta property="og:url" content="https://ai-compass.in/best-free-ai-tools" />
         <meta property="og:type" content="article" />
         <script type="application/ld+json">{JSON.stringify({
@@ -362,7 +362,7 @@ export default function BestFreeAITools() {
           <p className="mt-4 text-sm text-muted">
             <span className="inline-flex items-center gap-2 rounded-full border border-line bg-bg-elev px-3 py-1 text-xs font-medium text-ink-2">
               <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden="true" />
-              Last reviewed: {LAST_REVIEWED}
+              Published: {LAST_REVIEWED}
             </span>
           </p>
         </div>

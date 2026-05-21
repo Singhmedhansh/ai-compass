@@ -12,9 +12,18 @@ import { outboundUrl, OUTBOUND_REL } from '../utils/outbound'
 import { inferErrorVariant } from '../utils/errorState'
 
 const MotionDiv = motion.div
-const LAST_REVIEWED = 'May 2026'
 // Static fallback covers the ~100ms before /api/v1/stats responds — kept close to the live count so the body copy never reads as broken.
 const FALLBACK_TOOL_COUNT = 400
+
+// Format an ISO date ("2026-05-21") as "May 2026". Returns null for
+// missing / unparseable values so callers can conditionally render
+// instead of falling back to a hardcoded month that goes stale.
+function formatVerifiedMonth(iso) {
+  if (!iso) return null
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return null
+  return d.toLocaleString('en-US', { month: 'long', year: 'numeric' })
+}
 
 // Most catalog tools have a broken `/static/icons/<slug>.svg` icon path that
 // returns 404 in the Vite SPA, so we don't trust tool.icon. Instead derive a
@@ -218,8 +227,14 @@ export default function AlternativesPage() {
           author: { '@type': 'Organization', name: 'AI Compass', url: 'https://ai-compass.in' },
           image: 'https://ai-compass.in/og-image.png',
           mainEntityOfPage: { '@type': 'WebPage', '@id': canonical },
-          datePublished: tool.last_verified_at || LAST_REVIEWED,
-          dateModified: tool.last_verified_at || LAST_REVIEWED,
+          // Only emit dates when we have a real ISO timestamp from the
+          // tool record. The previous fallback was a human-readable
+          // "May 2026" string, which Google rejects as an invalid
+          // datePublished value AND silently went stale month over
+          // month. Omit > lie.
+          ...(tool.last_verified_at
+            ? { datePublished: tool.last_verified_at, dateModified: tool.last_verified_at }
+            : {}),
         })}</script>
         {/* Breadcrumbs — Home > Tools > [tool] > Alternatives, four
             hops, last one is current page. */}
@@ -260,12 +275,14 @@ export default function AlternativesPage() {
             category, use case, and feature set. Every tool on this list is in
             our curated catalog of {catalogCount} AI tools.
           </p>
-          <p className="mt-4 text-sm text-muted">
-            <span className="inline-flex items-center gap-2 rounded-full border border-line bg-bg-elev px-3 py-1 text-xs font-medium text-ink-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden="true" />
-              Last reviewed: {LAST_REVIEWED}
-            </span>
-          </p>
+          {formatVerifiedMonth(tool.last_verified_at) ? (
+            <p className="mt-4 text-sm text-muted">
+              <span className="inline-flex items-center gap-2 rounded-full border border-line bg-bg-elev px-3 py-1 text-xs font-medium text-ink-2">
+                <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden="true" />
+                Last reviewed: {formatVerifiedMonth(tool.last_verified_at)}
+              </span>
+            </p>
+          ) : null}
         </MotionDiv>
 
         <MotionDiv

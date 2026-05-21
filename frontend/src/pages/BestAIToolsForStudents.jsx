@@ -279,7 +279,7 @@ export default function BestAIToolsForStudents() {
         <title>10 Best AI Tools for Students in 2026 (Hand-Tested) | AI Compass</title>
         <meta
           name="description"
-          content="The 10 best AI tools for students in 2026, hand-tested and ranked. Free tiers, student plans, real workflows. Last reviewed April 2026."
+          content="The 10 best AI tools for students in 2026, hand-tested and ranked. Free tiers, student plans, real workflows. Published April 2026."
         />
         <meta
           name="keywords"
@@ -287,7 +287,7 @@ export default function BestAIToolsForStudents() {
         />
         <link rel="canonical" href="https://ai-compass.in/best-ai-tools-for-students" />
         <meta property="og:title" content="10 Best AI Tools for Students in 2026 (Hand-Tested) | AI Compass" />
-        <meta property="og:description" content="The 10 best AI tools for students in 2026, hand-tested and ranked. Free tiers, student plans, real workflows. Last reviewed April 2026." />
+        <meta property="og:description" content="The 10 best AI tools for students in 2026, hand-tested and ranked. Free tiers, student plans, real workflows. Published April 2026." />
         <meta property="og:url" content="https://ai-compass.in/best-ai-tools-for-students" />
         <meta property="og:type" content="article" />
         <script type="application/ld+json">{JSON.stringify({
@@ -347,7 +347,7 @@ export default function BestAIToolsForStudents() {
           <p className="mt-4 text-sm text-muted">
             <span className="inline-flex items-center gap-2 rounded-full border border-line bg-bg-elev px-3 py-1 text-xs font-medium text-ink-2">
               <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden="true" />
-              Last reviewed: {LAST_REVIEWED}
+              Published: {LAST_REVIEWED}
             </span>
           </p>
         </div>
