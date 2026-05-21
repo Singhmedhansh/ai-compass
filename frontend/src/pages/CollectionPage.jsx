@@ -59,6 +59,40 @@ function CollectionPage() {
           content={`Hand-picked AI tools for ${collection?.title || 'this category'}. Curated stack, verified pricing, written rationale. Browse alternatives at AI Compass.`}
         />
         <meta property="og:title" content={`${collection?.title || 'AI Tools'} — AI Tools Collection | AI Compass`} />
+        <link rel="canonical" href={`https://ai-compass.in/collections/${slug}`} />
+        {/* Breadcrumb + ItemList. Only emit when we actually have data
+            so the markup doesn't carry placeholder strings. */}
+        {collection && collection.tools && collection.tools.length > 0 ? (
+          <>
+            <script type="application/ld+json">{JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'BreadcrumbList',
+              itemListElement: [
+                { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://ai-compass.in/' },
+                { '@type': 'ListItem', position: 2, name: 'Collections', item: 'https://ai-compass.in/collections' },
+                { '@type': 'ListItem', position: 3, name: collection.title, item: `https://ai-compass.in/collections/${slug}` },
+              ],
+            })}</script>
+            <script type="application/ld+json">{JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'CollectionPage',
+              name: `${collection.title} — AI Tools Collection`,
+              description: collection.description,
+              url: `https://ai-compass.in/collections/${slug}`,
+              mainEntity: {
+                '@type': 'ItemList',
+                name: collection.title,
+                numberOfItems: collection.tools.length,
+                itemListElement: collection.tools.map((t, i) => ({
+                  '@type': 'ListItem',
+                  position: i + 1,
+                  name: t.name,
+                  url: `https://ai-compass.in/tools/${t.slug || ''}`,
+                })),
+              },
+            })}</script>
+          </>
+        ) : null}
       </Helmet>
 
       <section className="mb-6 rounded-2xl border border-line bg-bg-elev p-6 shadow-sm">

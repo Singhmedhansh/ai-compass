@@ -198,6 +198,30 @@ export default function AlternativesPage() {
         <meta property="og:description" content={pageDescription} />
         <meta property="og:url" content={canonical} />
         <meta property="og:type" content="article" />
+        {/* Article wrapper so this page is eligible for top-stories /
+            article rich results, matching what the listicles emit. */}
+        <script type="application/ld+json">{JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'Article',
+          headline: pageTitle,
+          description: pageDescription,
+          url: canonical,
+          publisher: { '@type': 'Organization', name: 'AI Compass', url: 'https://ai-compass.in' },
+          datePublished: tool.last_verified_at || LAST_REVIEWED,
+          dateModified: tool.last_verified_at || LAST_REVIEWED,
+        })}</script>
+        {/* Breadcrumbs — Home > Tools > [tool] > Alternatives, four
+            hops, last one is current page. */}
+        <script type="application/ld+json">{JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'BreadcrumbList',
+          itemListElement: [
+            { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://ai-compass.in/' },
+            { '@type': 'ListItem', position: 2, name: 'Tools', item: 'https://ai-compass.in/tools' },
+            { '@type': 'ListItem', position: 3, name: tool.name, item: `https://ai-compass.in/tools/${tool.slug}` },
+            { '@type': 'ListItem', position: 4, name: 'Alternatives', item: canonical },
+          ],
+        })}</script>
         <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
         <script type="application/ld+json">{JSON.stringify(faqJsonLd)}</script>
       </Helmet>

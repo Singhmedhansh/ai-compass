@@ -306,6 +306,27 @@ export default function BestFreeAITools() {
           "datePublished": "2026-04-20",
           "dateModified": "2026-04-20",
         })}</script>
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "ItemList",
+          "name": "Best Free AI Tools in 2026",
+          "numberOfItems": tools.length,
+          "itemListElement": tools.map(t => ({
+            "@type": "ListItem",
+            "position": t.rank,
+            "name": t.name,
+            "url": `https://ai-compass.in/tools/${t.slug}`,
+          })),
+        })}</script>
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          "mainEntity": faqs.map(f => ({
+            "@type": "Question",
+            "name": f.q,
+            "acceptedAnswer": { "@type": "Answer", "text": f.a },
+          })),
+        })}</script>
       </Helmet>
 
       <div className="font-serif">

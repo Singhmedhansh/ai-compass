@@ -326,11 +326,18 @@ function ToolDetailPage() {
               description: tool.description || tool.tagline,
               applicationCategory: tool.category,
               operatingSystem: 'Web',
-              offers: {
-                '@type': 'Offer',
-                price: tool.pricing === 'free' ? '0' : undefined,
-                priceCurrency: 'USD',
-              },
+              // Only emit Offer when we have a numeric price we can vouch
+              // for. Google rejects Offer with no price; "freemium" and
+              // "paid" cover too many price points to claim a single one.
+              ...(tool.pricing === 'free'
+                ? {
+                    offers: {
+                      '@type': 'Offer',
+                      price: '0',
+                      priceCurrency: 'USD',
+                    },
+                  }
+                : {}),
               ...(Number(tool.rating) > 0
                 ? {
                     aggregateRating: {
@@ -342,6 +349,20 @@ function ToolDetailPage() {
                 : {}),
               url: `https://ai-compass.in/tools/${tool.slug}`,
               image: `https://ai-compass.in/og/${tool.slug}.png`,
+            })}
+          </script>
+          {/* Breadcrumb structured data — Google renders this as the
+              breadcrumb trail under the SERP title. Two visible hops
+              (Home > Tools) plus the current tool. */}
+          <script type="application/ld+json">
+            {JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'BreadcrumbList',
+              itemListElement: [
+                { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://ai-compass.in/' },
+                { '@type': 'ListItem', position: 2, name: 'Tools', item: 'https://ai-compass.in/tools' },
+                { '@type': 'ListItem', position: 3, name: tool.name, item: `https://ai-compass.in/tools/${tool.slug}` },
+              ],
             })}
           </script>
         </Helmet>
