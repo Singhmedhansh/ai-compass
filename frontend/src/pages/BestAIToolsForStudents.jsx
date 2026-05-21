@@ -290,6 +290,9 @@ export default function BestAIToolsForStudents() {
           "publisher": { "@type": "Organization", "name": "AI Compass", "url": "https://ai-compass.in" },
           "datePublished": "2026-04-19",
           "dateModified": "2026-04-19",
+          "author": { "@type": "Organization", "name": "AI Compass", "url": "https://ai-compass.in" },
+          "image": "https://ai-compass.in/og-image.png",
+          "mainEntityOfPage": { "@type": "WebPage", "@id": "https://ai-compass.in/best-ai-tools-for-students" },
         })}</script>
         <script type="application/ld+json">{JSON.stringify({
           "@context": "https://schema.org",

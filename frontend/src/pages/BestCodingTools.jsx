@@ -290,6 +290,9 @@ export default function BestCodingTools() {
           "publisher": { "@type": "Organization", "name": "AI Compass", "url": "https://ai-compass.in" },
           "datePublished": "2026-05-14",
           "dateModified": "2026-05-14",
+          "author": { "@type": "Organization", "name": "AI Compass", "url": "https://ai-compass.in" },
+          "image": "https://ai-compass.in/og-image.png",
+          "mainEntityOfPage": { "@type": "WebPage", "@id": "https://ai-compass.in/best-coding-tools-for-students" },
         })}</script>
         <script type="application/ld+json">{JSON.stringify({
           "@context": "https://schema.org",

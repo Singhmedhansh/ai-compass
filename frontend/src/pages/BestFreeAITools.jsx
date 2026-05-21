@@ -305,6 +305,9 @@ export default function BestFreeAITools() {
           "publisher": { "@type": "Organization", "name": "AI Compass", "url": "https://ai-compass.in" },
           "datePublished": "2026-04-20",
           "dateModified": "2026-04-20",
+          "author": { "@type": "Organization", "name": "AI Compass", "url": "https://ai-compass.in" },
+          "image": "https://ai-compass.in/og-image.png",
+          "mainEntityOfPage": { "@type": "WebPage", "@id": "https://ai-compass.in/best-free-ai-tools" },
         })}</script>
         <script type="application/ld+json">{JSON.stringify({
           "@context": "https://schema.org",

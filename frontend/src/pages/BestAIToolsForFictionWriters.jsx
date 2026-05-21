@@ -264,6 +264,9 @@ export default function BestAIToolsForFictionWriters() {
           "publisher": { "@type": "Organization", "name": "AI Compass", "url": "https://ai-compass.in" },
           "datePublished": "2026-05-21",
           "dateModified": "2026-05-21",
+          "author": { "@type": "Organization", "name": "AI Compass", "url": "https://ai-compass.in" },
+          "image": "https://ai-compass.in/og-image.png",
+          "mainEntityOfPage": { "@type": "WebPage", "@id": "https://ai-compass.in/best-ai-tools-for-fiction-writers" },
         })}</script>
         <script type="application/ld+json">{JSON.stringify({
           "@context": "https://schema.org",

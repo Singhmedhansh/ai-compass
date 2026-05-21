@@ -207,6 +207,9 @@ export default function AlternativesPage() {
           description: pageDescription,
           url: canonical,
           publisher: { '@type': 'Organization', name: 'AI Compass', url: 'https://ai-compass.in' },
+          author: { '@type': 'Organization', name: 'AI Compass', url: 'https://ai-compass.in' },
+          image: 'https://ai-compass.in/og-image.png',
+          mainEntityOfPage: { '@type': 'WebPage', '@id': canonical },
           datePublished: tool.last_verified_at || LAST_REVIEWED,
           dateModified: tool.last_verified_at || LAST_REVIEWED,
         })}</script>
