@@ -664,7 +664,14 @@ def list_tools():
     except Exception:
         tools = []
     response = make_response(jsonify({"results": tools, "total": len(tools), "fallback": not bool(tools)}))
-    response.headers["Cache-Control"] = "public, max-age=3600"  # Cache for 1 hour
+    # 60 seconds is enough to absorb back-to-back navigations on a single
+    # session without making editorial edits invisible for an hour, which
+    # is what the old max-age=3600 caused (a /admin save would land in the
+    # DB instantly but the directory would keep serving the stale list
+    # until the cache expired). stale-while-revalidate lets the browser
+    # show the cached copy for up to 5 more minutes while refetching in
+    # the background, so perceived nav stays snappy.
+    response.headers["Cache-Control"] = "public, max-age=60, stale-while-revalidate=300"
     return response
 
 
@@ -703,7 +710,18 @@ def get_tool(slug: str):
         tool_payload["similar_tools"] = get_similar_tools(slug_value, limit=4)
         current_app.logger.info(f"[PERF] after related tools: {time.time() - t0:.2f}s")
         current_app.logger.info(f"[PERF] total: {time.time() - t0:.2f}s")
-        return jsonify(tool_payload)
+        from flask import make_response
+        response = make_response(jsonify(tool_payload))
+        # Tool detail pages are the surface most likely to be edited
+        # through /admin (pricing tweaks, last_verified_at, copy fixes).
+        # Without an explicit Cache-Control the browser uses heuristic
+        # caching from Last-Modified, which routinely served stale copies
+        # after admin saves. no-cache forces the browser to revalidate
+        # every navigation; must-revalidate forbids serving stale on
+        # network failure. Flask's automatic ETag will still let us
+        # return 304 when the body hasn't changed.
+        response.headers["Cache-Control"] = "no-cache, must-revalidate"
+        return response
 
     return jsonify({"error": "Tool not found"}), 404
 
@@ -748,11 +766,17 @@ def tool_alternatives(slug):
                 and t.get('slug') != slug
             ][:10]
 
-    return jsonify({
+    from flask import make_response
+    response = make_response(jsonify({
         "tool": main_tool,
         "alternatives": alternatives,
         "count": len(alternatives),
-    })
+    }))
+    # Alternatives are derived from the tool itself + the similarity
+    # graph, both of which change on admin edits. Same revalidation
+    # policy as /tools/<slug>.
+    response.headers["Cache-Control"] = "no-cache, must-revalidate"
+    return response
 
 
 @api_bp.get("/tools/<slug>/reviews")
@@ -1084,14 +1108,19 @@ def get_collection(slug: str):
     else:
         collection_tools = []
 
-    return jsonify(
+    from flask import make_response
+    response = make_response(jsonify(
         {
             **config,
             "slug": slug_value,
             "count": len(collection_tools),
             "tools": collection_tools,
         }
-    )
+    ))
+    # Collections derive from the catalog; if any included tool changes
+    # via /admin, the collection should reflect it on next nav.
+    response.headers["Cache-Control"] = "no-cache, must-revalidate"
+    return response
 
 @api_bp.get("/admin/users")
 def admin_users():

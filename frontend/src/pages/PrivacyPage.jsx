@@ -93,10 +93,13 @@ export default function PrivacyPage() {
 
             <section className="mt-12">
               <h2 id="cookies" className="text-xl font-semibold text-ink sm:text-2xl">
-                4. Cookies
+                4. Cookies & analytics
               </h2>
               <p className="mt-3 leading-relaxed text-ink-2">
                 We use a single session cookie to maintain your login session. We do not use tracking cookies or third-party advertising cookies.
+              </p>
+              <p className="mt-3 leading-relaxed text-ink-2">
+                We run anonymous product analytics through PostHog so we can see which pages and tools are useful — things like page paths, time on page, and aggregate click counts. PostHog is configured in memory-only mode on our site: no PostHog cookies and no <code className="rounded bg-bg-sunk px-1.5 py-0.5 text-sm">localStorage</code> are written, the per-tab identifier we get is discarded the moment you close the tab, and we never link analytics events to your email or account. If you want to opt out anyway, your browser&apos;s &quot;Do Not Track&quot; setting and standard ad blockers both block PostHog.
               </p>
             </section>
 

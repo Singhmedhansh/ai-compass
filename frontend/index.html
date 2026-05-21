@@ -62,6 +62,14 @@
               api_host: 'https://us.i.posthog.com',
               defaults: '2026-01-30',
               person_profiles: 'identified_only', // or 'always' to create profiles for anonymous users as well
+              // No tracking cookies and no localStorage — distinct_id lives
+              // only in this tab's memory. The user is rotated every tab/
+              // reload, so we can't do cross-session tracking, but we also
+              // don't trigger any cookie/ePrivacy obligation. Page-level
+              // analytics (event counts, paths, referrers, perf) still
+              // work fully; only the user-stitching is sacrificed.
+              persistence: 'memory',
+              disable_session_recording: true,
           })
         }
       } catch (e) {
