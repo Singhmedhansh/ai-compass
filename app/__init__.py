@@ -215,7 +215,18 @@ def create_app(config: dict | None = None) -> Flask:
     if Talisman is not None and not app.config.get("TESTING"):
         Talisman(
             app,
-            force_https=is_production,
+            # force_https=False: Cloudflare already redirects HTTP->HTTPS at
+            # the edge (Always Use HTTPS rule), and the HSTS header below
+            # tells browsers to keep using HTTPS going forward. Letting
+            # Talisman ALSO redirect at the origin breaks Render's internal
+            # port-scan probe: the probe hits the service without the
+            # `X-Forwarded-Proto: https` header that real Cloudflare traffic
+            # carries, Talisman sees the request as insecure and returns a
+            # 302, Render's scanner can't follow redirects so reports "No
+            # open HTTP ports", and SIGTERMs the worker after ~60s. The same
+            # class of problem the canonical-host redirect below already
+            # handles by exempting /health and /healthz.
+            force_https=False,
             strict_transport_security=True,
             strict_transport_security_max_age=31536000,  # 1 year
             strict_transport_security_include_subdomains=True,
