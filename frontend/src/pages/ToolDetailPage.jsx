@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import { motion } from 'framer-motion'
-import { AlertTriangle, Heart, Star } from 'lucide-react'
+import { AlertTriangle, BadgeCheck, Heart, Star } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
@@ -41,7 +41,9 @@ function formatDate(value) {
   return parsed.toLocaleDateString()
 }
 
-function buildStarNodes(rating, className = 'h-4 w-4') {
+// Kept for future use — not currently called. Prefixed to satisfy
+// no-unused-vars (the repo's ESLint rule allows underscore-prefixed names).
+function _buildStarNodes(rating, className = 'h-4 w-4') {
   const clamped = Math.max(0, Math.min(5, Number(rating) || 0))
 
   return Array.from({ length: 5 }, (_, index) => {
@@ -80,9 +82,21 @@ function normalizeTool(rawTool) {
     isAffiliateLink: Boolean(rawTool?.affiliate_url),
     platform: rawTool?.platform || (Array.isArray(rawTool?.platforms) ? rawTool.platforms.join(', ') : null),
     lastUpdated: rawTool?.last_updated || rawTool?.updatedAt || rawTool?.updated_at || rawTool?.lastUpdated,
+    // ISO date string of the most recent hand-test pass. Drives the
+    // "Verified <Month Year>" chip; missing = chip hidden.
+    lastVerifiedAt: rawTool?.last_verified_at || rawTool?.lastVerifiedAt || null,
     studentFriendly: Boolean(rawTool?.student_friendly ?? rawTool?.studentPerk ?? rawTool?.student_perk),
     pricing_tiers: rawTool?.pricing_tiers || null,
   }
+}
+
+// "2026-05-21" -> "Verified May 2026". Returns null for missing or
+// unparseable values so the chip can be conditionally rendered.
+function formatVerifiedDate(value) {
+  if (!value) return null
+  const d = new Date(value)
+  if (isNaN(d.getTime())) return null
+  return `Verified ${d.toLocaleString('en-US', { month: 'long', year: 'numeric' })}`
 }
 
 function ToolDetailPage() {
@@ -363,6 +377,18 @@ function ToolDetailPage() {
                   >
                     {tool.pricing}
                   </span>
+                  {/* Trust signal: when the tool was last hand-tested.
+                      Distinct from the pricing/category badges so users
+                      read it as editorial provenance, not metadata. */}
+                  {formatVerifiedDate(tool.lastVerifiedAt) && (
+                    <span
+                      className="inline-flex items-center gap-1 rounded-full border border-accent/40 bg-accent-soft px-2.5 py-1 text-xs font-medium text-accent-ink"
+                      title={`Hand-tested on ${tool.lastVerifiedAt}`}
+                    >
+                      <BadgeCheck className="h-3.5 w-3.5" aria-hidden="true" />
+                      {formatVerifiedDate(tool.lastVerifiedAt)}
+                    </span>
+                  )}
                 </div>
                 <p className="mt-3 text-sm text-muted">{tool.shortDescription}</p>
 

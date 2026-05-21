@@ -1229,6 +1229,9 @@ _EDITABLE_SCALARS = (
     "name", "description", "shortDescription", "tagline", "category",
     "subCategory", "pricing", "price", "link", "url", "website", "icon",
     "company", "difficulty", "bestFor", "affiliate_url",
+    # ISO date (YYYY-MM-DD) of the last hand-test pass. Displayed as a
+    # "Verified <Month Year>" chip on the tool card and detail page.
+    "last_verified_at",
 )
 _EDITABLE_LISTS = ("features", "tags", "use_cases")
 _EDITABLE_BOOLS = ("studentPerk", "student_perk", "hidden", "featured")

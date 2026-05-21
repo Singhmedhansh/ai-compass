@@ -19,7 +19,8 @@ const TABS = ['Overview', 'Tools', 'Submissions', 'Feedback', 'Analytics', 'Emai
 const EMPTY_TOOL = {
   slug: '', name: '', tagline: '', description: '', category: '',
   subCategory: '', pricing: '', link: '', affiliate_url: '',
-  features: '', tags: '', use_cases: '', studentPerk: false, hidden: false,
+  features: '', tags: '', use_cases: '', last_verified_at: '',
+  studentPerk: false, hidden: false,
 }
 
 const fade = {
@@ -88,7 +89,13 @@ function ToolForm({ initial, isNew, onClose, onSaved }) {
       <span className="text-xs font-medium text-muted">{label}</span>
       {opts.textarea
         ? <textarea value={form[key]} onChange={set(key)} rows={opts.rows || 3} className={INPUT} />
-        : <input value={form[key]} onChange={set(key)} placeholder={opts.placeholder} className={INPUT} />}
+        : <input
+            type={opts.type || 'text'}
+            value={form[key]}
+            onChange={set(key)}
+            placeholder={opts.placeholder}
+            className={INPUT}
+          />}
     </label>
   )
 
@@ -109,6 +116,7 @@ function ToolForm({ initial, isNew, onClose, onSaved }) {
           {field('Pricing', 'pricing', { placeholder: 'Free / Freemium / Paid' })}
           {field('Website / link', 'link')}
           {field('Affiliate URL', 'affiliate_url', { placeholder: 'optional' })}
+          {field('Last tested (date)', 'last_verified_at', { type: 'date', placeholder: 'YYYY-MM-DD' })}
         </div>
         <div className="mt-4 grid grid-cols-1 gap-4">
           {field('Description', 'description', { textarea: true })}
