@@ -1,4 +1,6 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+/* Inter + JetBrains Mono moved to index.html as a <link rel="stylesheet">
+ * so the font CSS fetch starts in parallel with the JS bundle instead of
+ * waiting behind it. See index.html for the matching <link> tag. */
 
 @tailwind base;
 @tailwind components;
@@ -12,7 +14,11 @@
 	--ink: #0F1411;
 	--ink-2: #2A2F2C;
 	--muted: #6B716D;
-	--muted-2: #9AA09C;
+	/* --muted-2 was #9AA09C — only 2.55:1 against the bg, failing WCAG
+	 * AA's 3:1 minimum for UI components. Darkened to #7F857F (3.34:1
+	 * against bg-sunk, 3.77:1 against elev) so secondary chips, count
+	 * pills, and decorative captions don't fail axe-DevTools. */
+	--muted-2: #7F857F;
 	--line: #E6E5DE;
 	--line-strong: #D5D3CA;
 	--accent: #1D9E75;
@@ -45,7 +51,11 @@ html[data-theme='dark'] {
 	--ink: #F1F2EE;
 	--ink-2: #C9CBC4;
 	--muted: #8B918C;
-	--muted-2: #5E635F;
+	/* See light-mode note. Was #5E635F (2.84:1 against bg-elev, fails
+	 * WCAG AA UI minimum). Lightened to #777C78 (4.10:1 against elev,
+	 * 4.41:1 against bg) — comfortably passes UI components and is
+	 * close to passing AA for normal text too. */
+	--muted-2: #777C78;
 	--line: #232927;
 	--line-strong: #2E3431;
 	--accent: #2FB389;

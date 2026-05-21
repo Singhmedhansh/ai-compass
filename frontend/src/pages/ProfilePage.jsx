@@ -331,17 +331,25 @@ function ProfilePage() {
 
       <section className="grid gap-6 lg:grid-cols-[20rem_minmax(0,1fr)]">
         <aside className="rounded-3xl border border-line bg-bg-elev p-6 shadow-sm">
-          <div className={`mx-auto flex h-24 w-24 items-center justify-center overflow-hidden rounded-full ${profile?.picture && profile.picture.length > 10 ? 'bg-bg-sunk' : 'bg-accent'}`}>
+          <div
+            className={`mx-auto flex h-24 w-24 items-center justify-center overflow-hidden rounded-full ${profile?.picture && profile.picture.length > 10 ? 'bg-bg-sunk' : 'bg-accent'}`}
+            role="img"
+            aria-label={`Avatar for ${profile?.name || 'your profile'}`}
+          >
             {profile?.picture && profile.picture.length > 10 ? (
               <img
                 src={profile.picture}
-                alt={profile?.name || 'Profile avatar'}
+                alt=""
                 referrerPolicy="no-referrer"
                 crossOrigin="anonymous"
                 className="h-full w-full object-cover"
+                width="96"
+                height="96"
+                loading="lazy"
+                decoding="async"
               />
             ) : (
-              <span className="text-3xl font-bold text-bg">{avatarLetter}</span>
+              <span className="text-3xl font-bold text-bg" aria-hidden="true">{avatarLetter}</span>
             )}
           </div>
 

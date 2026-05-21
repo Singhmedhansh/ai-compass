@@ -340,9 +340,13 @@ function DashboardPage() {
                 {user?.picture ? (
                   <img
                     src={user.picture}
-                    alt={user.name}
+                    alt={user.name || 'Your avatar'}
                     referrerPolicy="no-referrer"
                     className="w-12 h-12 rounded-full object-cover ring-2 ring-accent"
+                    width="48"
+                    height="48"
+                    loading="lazy"
+                    decoding="async"
                     onError={(e) => {
                       e.target.style.display = 'none'
                       e.target.nextSibling.style.display = 'flex'
@@ -352,8 +356,10 @@ function DashboardPage() {
                 <div
                   style={{ display: user?.picture ? 'none' : 'flex' }}
                   className="w-12 h-12 rounded-full bg-accent items-center justify-center text-bg text-lg font-bold"
+                  role="img"
+                  aria-label={`Avatar for ${displayName || 'your account'}`}
                 >
-                  {avatarLetter}
+                  <span aria-hidden="true">{avatarLetter}</span>
                 </div>
               </div>
             </div>

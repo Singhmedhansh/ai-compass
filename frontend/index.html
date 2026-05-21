@@ -51,6 +51,32 @@
          the SVG favicon. -->
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
 
+    <!-- Resource hints — kick off the TCP+TLS handshake for third-party
+         origins we KNOW we'll hit, before the parser gets to the actual
+         <script>/<link> that needs them. Saves ~150-300ms on the LCP
+         on mobile 3G/4G connections. preconnect does DNS+TCP+TLS;
+         dns-prefetch is the lighter cousin for origins we MIGHT use. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://us.i.posthog.com" />
+    <link rel="preconnect" href="https://us-assets.i.posthog.com" crossorigin />
+
+    <!-- Font stylesheet — moved out of src/index.css's @import (which
+         is render-blocking via the JS bundle) into a real <link> so the
+         browser can fetch it in parallel with the JS bundle instead of
+         after. display=swap means text renders in a system font first,
+         then swaps when Inter loads — no FOIT, minor FOUT. -->
+    <link
+      rel="preload"
+      as="style"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      media="all"
+    />
+
     <!-- PostHog (production only — opt out on localhost / dev) -->
     <script>
       try {

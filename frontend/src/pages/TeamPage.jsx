@@ -32,13 +32,18 @@ export default function TeamPage() {
               src={PHOTO_URL}
               alt="Medhansh Pratap Singh"
               className="mx-auto h-32 w-32 rounded-full object-cover ring-4 ring-bg-elev"
+              width="128"
+              height="128"
+              loading="eager"
+              decoding="async"
             />
           ) : (
             <div
-              aria-hidden="true"
+              role="img"
+              aria-label="Avatar for Medhansh Pratap Singh"
               className="mx-auto flex h-32 w-32 items-center justify-center rounded-full bg-accent text-4xl font-semibold text-bg ring-4 ring-bg-elev"
             >
-              M
+              <span aria-hidden="true">M</span>
             </div>
           )}
           <h1 className="mt-6 text-center text-3xl font-bold text-ink sm:text-4xl md:text-5xl">

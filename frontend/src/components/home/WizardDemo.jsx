@@ -395,7 +395,16 @@ export default function WizardDemo() {
                       style={{ background: t.bg }}
                     >
                       {t.type === 'svg' ? (
-                        <img src={t.src} alt={t.alt} className="h-5 w-5" style={{ filter: 'brightness(0) invert(1)' }} />
+                        <img
+                          src={t.src}
+                          alt={t.alt}
+                          className="h-5 w-5"
+                          style={{ filter: 'brightness(0) invert(1)' }}
+                          width="20"
+                          height="20"
+                          loading="lazy"
+                          decoding="async"
+                        />
                       ) : (
                         t.letter
                       )}
