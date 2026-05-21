@@ -61,6 +61,15 @@
     <link rel="preconnect" href="https://us.i.posthog.com" />
     <link rel="preconnect" href="https://us-assets.i.posthog.com" crossorigin />
 
+    <!-- dns-prefetch (lighter than preconnect — DNS lookup only) for the
+         tool-logo CDNs hit by every listicle and the directory page.
+         Saves the DNS round-trip (~20-100ms per domain) on the FIRST logo
+         that needs fetching. preconnect is heavier and we don't want to
+         claim those resources are critical; dns-prefetch is the right
+         weight for "we'll probably hit these soon". -->
+    <link rel="dns-prefetch" href="https://logo.clearbit.com" />
+    <link rel="dns-prefetch" href="https://icons.duckduckgo.com" />
+
     <!-- Font stylesheet — non-blocking pattern.
          media="print" makes the browser fetch this without blocking
          the render path (it's "only for printing", so render is

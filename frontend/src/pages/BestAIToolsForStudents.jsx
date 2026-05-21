@@ -16,6 +16,7 @@ import githubCopilotIcon from "../assets/brand/github-copilot.svg";
 import { MagneticWrapper, WordReveal } from "../components/ui";
 import { useCatalogStats } from "../hooks/useCatalogStats";
 import { sectionReveal, staggerParent, staggerChild } from "../lib/motion";
+import { toolHoverHandlers, alternativesHoverHandlers } from "../lib/prefetch";
 
 const MotionDiv = motion.div;
 // Static fallback covers the ~100ms before /api/v1/stats responds.
@@ -516,12 +517,14 @@ export default function BestAIToolsForStudents() {
                           )}
                           <Link
                             to={`/tools/${tool.slug}`}
+                            {...toolHoverHandlers(tool.slug)}
                             className="inline-flex items-center gap-1 text-sm font-medium text-muted hover:text-ink"
                           >
                             Read review →
                           </Link>
                           <Link
                             to={`/alternatives/${tool.slug}`}
+                            {...alternativesHoverHandlers(tool.slug)}
                             className="inline-flex items-center gap-1 text-sm font-medium text-muted hover:text-ink"
                           >
                             See alternatives →

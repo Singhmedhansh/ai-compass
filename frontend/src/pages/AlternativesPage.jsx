@@ -8,6 +8,7 @@ import { WordReveal } from '../components/ui'
 import ErrorState from '../components/ErrorState'
 import { useCatalogStats } from '../hooks/useCatalogStats'
 import { sectionReveal, staggerParent, staggerChild } from '../lib/motion'
+import { toolHoverHandlers } from '../lib/prefetch'
 import { outboundUrl, OUTBOUND_REL } from '../utils/outbound'
 import { inferErrorVariant } from '../utils/errorState'
 
@@ -262,7 +263,7 @@ export default function AlternativesPage() {
           <nav className="mb-6 text-sm text-muted-2">
             <Link to="/tools" className="hover:text-ink-2">All tools</Link>
             <span className="mx-2">/</span>
-            <Link to={`/tools/${tool.slug}`} className="hover:text-ink-2">{tool.name}</Link>
+            <Link to={`/tools/${tool.slug}`} {...toolHoverHandlers(tool.slug)} className="hover:text-ink-2">{tool.name}</Link>
             <span className="mx-2">/</span>
             <span className="text-ink-2">Alternatives</span>
           </nav>
@@ -304,6 +305,7 @@ export default function AlternativesPage() {
               </div>
               <Link
                 to={`/tools/${tool.slug}`}
+                {...toolHoverHandlers(tool.slug)}
                 className="hidden shrink-0 items-center gap-2 rounded-full border border-line bg-bg px-4 py-2 text-sm font-medium text-ink-2 hover:border-line-strong hover:text-ink sm:inline-flex"
               >
                 See full review
@@ -367,6 +369,7 @@ export default function AlternativesPage() {
                           )}
                           <Link
                             to={`/tools/${alt.slug}`}
+                            {...toolHoverHandlers(alt.slug)}
                             className="inline-flex items-center gap-1 text-xs font-medium text-muted hover:text-ink"
                           >
                             Review →

@@ -10,6 +10,11 @@ import ReviewsSection from '../components/ui/ReviewsSection'
 import { Badge, Button, PricingSection, SkeletonToolDetail, ToolLogo } from '../components/ui'
 import ErrorState from '../components/ErrorState'
 import { sectionReveal, staggerChild, staggerParent } from '../lib/motion'
+import {
+  toolHoverHandlers,
+  alternativesHoverHandlers,
+  compareHoverHandlers,
+} from '../lib/prefetch'
 import { outboundUrl, OUTBOUND_REL } from '../utils/outbound'
 import { inferErrorVariant } from '../utils/errorState'
 
@@ -484,6 +489,7 @@ function ToolDetailPage() {
                 ) : null}
                 <Link
                   to={`/alternatives/${tool.slug}`}
+                  {...alternativesHoverHandlers(tool.slug)}
                   className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-ink-2 hover:gap-2 hover:text-ink"
                 >
                   See alternatives to {tool.name} →
@@ -613,6 +619,7 @@ function ToolDetailPage() {
                     <li key={`compare-${rt.slug}`}>
                       <Link
                         to={`/compare/${tool.slug}-vs-${rt.slug}`}
+                        {...compareHoverHandlers()}
                         className="inline-flex items-center gap-1 text-sm text-ink-2 hover:gap-2 hover:text-ink transition-all"
                       >
                         {tool.name} vs {rt.name} →
@@ -646,6 +653,7 @@ function ToolDetailPage() {
                     <button
                       type="button"
                       onClick={() => navigate(`/tools/${relatedTool.slug}`)}
+                      {...toolHoverHandlers(relatedTool.slug)}
                       className="flex w-full items-center gap-3 rounded-xl border border-line bg-bg-elev p-3 text-left transition hover:border-accent hover:bg-bg-sunk focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                     >
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-bg-sunk">
