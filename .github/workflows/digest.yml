@@ -1,0 +1,84 @@
+name: Email digest
+
+# Schedule: every Sunday at 14:00 UTC (19:30 IST / 09:00 ET / 06:00 PT).
+# Sunday late-evening IST is a deliberate slot — Indian students check email
+# before the new week starts, US/EU subscribers wake up to it on Monday morning.
+# Cron uses UTC. Adjust the cadence here if weekly proves too aggressive.
+on:
+  schedule:
+    - cron: '0 14 * * 0'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Preview counts without sending'
+        required: false
+        default: 'false'
+        type: choice
+        options: ['false', 'true']
+      force:
+        description: 'Send even if no new tools since last digest'
+        required: false
+        default: 'false'
+        type: choice
+        options: ['false', 'true']
+
+# Only one run at a time. If a scheduled run is still going when you trigger
+# manually, the older run is cancelled — keeps us from double-sending if a
+# previous fire stalled inside Resend.
+concurrency:
+  group: digest
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: POST to /api/v1/admin/send-digest
+        # Auth is the DIGEST_SECRET header — must match the env var on Render.
+        # The endpoint is idempotent: it tracks last_digest_at in the DB and
+        # won't re-send the same tool set even if called multiple times.
+        # ?force=1 overrides the no-new-tools guard for the workflow_dispatch
+        # form; ?dry_run=1 makes it return counts without calling Resend.
+        env:
+          DIGEST_SECRET: ${{ secrets.DIGEST_SECRET }}
+          DRY_RUN: ${{ inputs.dry_run || 'false' }}
+          FORCE: ${{ inputs.force || 'false' }}
+        run: |
+          set -euo pipefail
+          if [ -z "${DIGEST_SECRET:-}" ]; then
+            echo "::error::DIGEST_SECRET secret is not set. Add it under Settings > Secrets > Actions, matching the value in Render env."
+            exit 1
+          fi
+
+          QS=""
+          if [ "$DRY_RUN" = "true" ]; then QS="${QS}dry_run=1&"; fi
+          if [ "$FORCE"   = "true" ]; then QS="${QS}force=1&";   fi
+          QS="${QS%&}"
+          URL="https://ai-compass.in/api/v1/admin/send-digest"
+          if [ -n "$QS" ]; then URL="${URL}?${QS}"; fi
+
+          echo "POST $URL"
+          RESP=$(curl -sS -w "\nHTTP_CODE:%{http_code}\n" \
+            -X POST \
+            -H "X-Digest-Secret: ${DIGEST_SECRET}" \
+            -H "Content-Type: application/json" \
+            --max-time 60 \
+            "$URL")
+          echo "$RESP"
+
+          CODE=$(echo "$RESP" | tail -1 | sed 's/HTTP_CODE://')
+          if [ "$CODE" != "200" ]; then
+            echo "::error::Digest endpoint returned HTTP $CODE"
+            exit 1
+          fi
+
+          BODY=$(echo "$RESP" | sed '$d')
+          echo "## Digest run complete" >> "$GITHUB_STEP_SUMMARY"
+          echo '```json' >> "$GITHUB_STEP_SUMMARY"
+          echo "$BODY" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
