@@ -61,11 +61,13 @@
     <link rel="preconnect" href="https://us.i.posthog.com" />
     <link rel="preconnect" href="https://us-assets.i.posthog.com" crossorigin />
 
-    <!-- Font stylesheet — moved out of src/index.css's @import (which
-         is render-blocking via the JS bundle) into a real <link> so the
-         browser can fetch it in parallel with the JS bundle instead of
-         after. display=swap means text renders in a system font first,
-         then swaps when Inter loads — no FOIT, minor FOUT. -->
+    <!-- Font stylesheet — non-blocking pattern.
+         media="print" makes the browser fetch this without blocking
+         the render path (it's "only for printing", so render is
+         unblocked). The onload handler then flips it back to media=all
+         which applies it to the screen. The <noscript> fallback covers
+         the (vanishingly small) no-JS audience. Lighthouse measured
+         the OLD blocking variant as costing ~950ms on mobile 4G. -->
     <link
       rel="preload"
       as="style"
@@ -74,8 +76,15 @@
     <link
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
-      media="all"
+      media="print"
+      onload="this.media='all'"
     />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      />
+    </noscript>
 
     <!-- PostHog (production only — opt out on localhost / dev) -->
     <script>

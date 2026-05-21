@@ -7,6 +7,36 @@ export default defineConfig({
   build: {
     outDir: '../static/dist',
     emptyOutDir: true,
+    // target=es2020 drops the legacy syntax transforms Vite ships by
+    // default (target=modules ~= ES2018 modulo a few features). Saves
+    // ~19 KiB of polyfill code per Lighthouse, and every browser we
+    // care about (Chrome 80+, Safari 14+, Firefox 78+) is on >2 years
+    // of ES2020 support — millennia in browser-years.
+    target: 'es2020',
+    rollupOptions: {
+      output: {
+        // Split heavyweight vendor libs into their own long-cached
+        // chunks. Before: framer-motion was being duplicated into the
+        // SearchInput chunk (111 KB) AND in the main bundle. Now:
+        // single framer-motion chunk loaded once, cached for a year
+        // (Vite content-hashes it). The main bundle and lazy route
+        // chunks both reference it, no duplicate code.
+        // Rolldown (Vite 8) requires manualChunks as a function.
+        manualChunks(id) {
+          if (id.includes('node_modules/framer-motion/')) {
+            return 'framer-motion'
+          }
+          if (
+            id.includes('node_modules/react-dom/') ||
+            id.includes('node_modules/react-router/') ||
+            id.includes('node_modules/react-router-dom/') ||
+            /node_modules[\\/]react[\\/]/.test(id)
+          ) {
+            return 'react-vendor'
+          }
+        },
+      },
+    },
   },
   server: {
     proxy: {

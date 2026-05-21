@@ -54,8 +54,11 @@ function BrandIcon({ tool, size = 'md' }) {
   return (
     <img
       src={`https://icons.duckduckgo.com/ip3/${domain}.ico`}
-      alt=""
+      alt={tool?.name ? `${tool.name} favicon` : ''}
       loading="lazy"
+      decoding="async"
+      width="64"
+      height="64"
       className={`shrink-0 rounded-xl border border-line bg-white object-contain p-1.5 ${sizeClasses}`}
       onError={() => setFailed(true)}
     />

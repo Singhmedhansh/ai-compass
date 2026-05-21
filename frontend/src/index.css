@@ -21,7 +21,13 @@
 	--muted-2: #7F857F;
 	--line: #E6E5DE;
 	--line-strong: #D5D3CA;
-	--accent: #1D9E75;
+	/* --accent was #1D9E75 but it only hit 3.24:1 against bg-text on
+	 * buttons (text-bg on bg-accent) and 2.94:1 for accent-on-accent-
+	 * soft chips — both failing WCAG AA. Darkened slightly to #168358
+	 * which passes AA across the board (button text 4.54:1, chips
+	 * 4.12:1, accent-on-white 4.75:1) while staying clearly the same
+	 * brand. Dark mode --accent is unchanged; that one already passed. */
+	--accent: #168358;
 	--accent-ink: #0F5F47;
 	--accent-soft: #E4F2EC;
 	--warn: #B45309;

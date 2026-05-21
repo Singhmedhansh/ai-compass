@@ -33,8 +33,11 @@ function BrandIcon({ tool, isHero }) {
   return (
     <img
       src={src}
-      alt=""
+      alt={`${tool.name} logo`}
       loading="lazy"
+      decoding="async"
+      width="64"
+      height="64"
       className={isHero ? "h-12 w-12 object-contain md:h-14 md:w-14" : "h-10 w-10 object-contain md:h-12 md:w-12"}
       onError={() => {
         setStage((prev) => (prev === "primary" ? "fallback" : "letter"));

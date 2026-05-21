@@ -785,7 +785,25 @@ def serve_react(path):
 
     file_path = os.path.join(DIST_DIR, path)
     if path and os.path.exists(file_path) and os.path.isfile(file_path):
-        return send_from_directory(DIST_DIR, path)
+        response = send_from_directory(DIST_DIR, path)
+        # Vite content-hashes everything under /assets/ — the filename
+        # itself contains a hash of the bytes, so the URL changes
+        # whenever the content does. That means we can cache them
+        # forever; the browser will only re-fetch when the HTML points
+        # at a new hashed URL. immutable tells the browser to skip
+        # revalidation entirely (no If-Modified-Since round trip),
+        # which is exactly what we want for hashed assets.
+        #
+        # Other static files (favicon.svg, og-image.png, apple-touch-
+        # icon.png, icons.svg) don't have hashes and we update them in
+        # place occasionally, so a 1-day cache is the right trade — a
+        # day of stale icons is fine, but they don't need a round trip
+        # on every page nav either.
+        if path.startswith('assets/'):
+            response.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
+        else:
+            response.headers['Cache-Control'] = 'public, max-age=86400'
+        return response
 
     result = _meta_for_request_path(path)
     if result is not None:

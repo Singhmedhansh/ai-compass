@@ -372,6 +372,10 @@ function Navbar() {
                       referrerPolicy="no-referrer"
                       crossOrigin="anonymous"
                       className="h-full w-full object-cover"
+                      width="32"
+                      height="32"
+                      loading="lazy"
+                      decoding="async"
                       onError={() => setFailedAvatarUrl(user.picture)}
                     />
                   ) : (
