@@ -1,13 +1,19 @@
 import { Link } from 'react-router-dom'
 
+import { useCatalogStats } from '../../hooks/useCatalogStats'
 import AnimatedCompass from '../ui/AnimatedCompass'
 import CompassMark from '../ui/CompassMark'
 
-const VALUE_POINTS = [
-  '399 AI tools, each opened and used for at least an hour',
-  'A written reason for every pick — no scraped descriptions',
-  'Free to browse · no account required to use the wizard',
-]
+// Static fallback covers the ~100ms before /api/v1/stats responds — kept close to the live count so the panel never reads as broken.
+const FALLBACK_TOOL_COUNT = 400
+
+function buildValuePoints(count) {
+  return [
+    `${count} AI tools, each opened and used for at least an hour`,
+    'A written reason for every pick — no scraped descriptions',
+    'Free to browse · no account required to use the wizard',
+  ]
+}
 
 /**
  * Split-panel shell for the auth pages. Left: interactive branded panel
@@ -17,6 +23,8 @@ const VALUE_POINTS = [
  * instead, so mobile stays a clean single column.
  */
 export default function AuthLayout({ children, eyebrow, title, subtitle }) {
+  const { totalTools } = useCatalogStats()
+  const valuePoints = buildValuePoints(totalTools ?? FALLBACK_TOOL_COUNT)
   return (
     <div className="grid min-h-[calc(100vh-4rem)] w-full grid-cols-1 lg:grid-cols-2">
       {/* Brand panel — desktop only */}
@@ -44,7 +52,7 @@ export default function AuthLayout({ children, eyebrow, title, subtitle }) {
             A hand-picked AI finder. Made for students.
           </p>
           <ul className="mt-5 space-y-2.5">
-            {VALUE_POINTS.map((point) => (
+            {valuePoints.map((point) => (
               <li key={point} className="flex items-start gap-2.5 text-sm text-ink-2">
                 <span
                   aria-hidden="true"

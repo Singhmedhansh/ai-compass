@@ -7,7 +7,7 @@ import claudeIcon from '../../assets/brand/claude.svg'
 import githubCopilotIcon from '../../assets/brand/github-copilot.svg'
 
 // Curated demo data. This is a homepage demo of the *interaction*, not the
-// full 399-tool engine — but every tool/reason here is real and honest, so
+// full catalog engine — but every tool/reason here is real and honest, so
 // nothing overclaims. Results react to the two driving questions the user
 // can actually click: Use case and Budget.
 const ICON = { chatgpt: chatgptIcon, claude: claudeIcon, copilot: githubCopilotIcon }

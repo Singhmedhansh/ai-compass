@@ -7,8 +7,12 @@ import { Button, Dropdown, SearchInput, SkeletonCard, WordReveal } from '../comp
 import CategorySection from '../components/tools/CategorySection'
 import FlatToolGrid from '../components/tools/FlatToolGrid'
 import ErrorState from '../components/ErrorState'
+import { useCatalogStats } from '../hooks/useCatalogStats'
 import { drawerSlideUp, frostedDropdown, sectionReveal } from '../lib/motion'
 import { inferErrorVariant } from '../utils/errorState'
+
+// Static fallback covers the ~100ms before /api/v1/stats responds — kept close to the live count so the meta never reads as broken.
+const FALLBACK_TOOL_COUNT = 400
 
 const MotionDiv = motion.div
 
@@ -126,6 +130,8 @@ function getTrendingScore(tool) {
 
 function DirectoryPage() {
   const [searchParams, setSearchParams] = useSearchParams()
+  const { totalTools } = useCatalogStats()
+  const displayCount = totalTools ?? FALLBACK_TOOL_COUNT
   const initialCategory = searchParams.get('category') || 'All'
   const initialQuery = searchParams.get('q') || ''
   const queryFromParams = searchParams.get('q') || ''
@@ -434,7 +440,7 @@ function DirectoryPage() {
     >
       <Helmet>
         <title>AI Tools Directory — AI Compass</title>
-        <meta name="description" content="Browse 399 curated AI tools by category, rating, and pricing. Find the right tool for writing, coding, research, and more." />
+        <meta name="description" content={`Browse ${displayCount} curated AI tools by category, rating, and pricing. Find the right tool for writing, coding, research, and more.`} />
       </Helmet>
       <MotionDiv variants={sectionReveal} initial="initial" animate="animate">
       <section className="mb-6 flex flex-wrap items-center justify-between gap-3">

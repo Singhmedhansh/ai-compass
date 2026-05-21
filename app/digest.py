@@ -4,7 +4,7 @@ Flow:
   1. Diff current catalog slugs against the slugs we've already announced
      (DigestState.known_slugs in the DB).
   2. First ever run seeds the snapshot silently — we never blast the whole
-     399-tool catalog as "new".
+     catalog as "new".
   3. Otherwise email every opted-in user (User.notifications_enabled) the
      genuinely new tools, each with a one-click unsubscribe link.
   4. Persist the new snapshot so the next run only sees what's added next.

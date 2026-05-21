@@ -6,12 +6,15 @@ import { ArrowUpRight } from 'lucide-react'
 
 import { WordReveal } from '../components/ui'
 import ErrorState from '../components/ErrorState'
+import { useCatalogStats } from '../hooks/useCatalogStats'
 import { sectionReveal, staggerParent, staggerChild } from '../lib/motion'
 import { outboundUrl, OUTBOUND_REL } from '../utils/outbound'
 import { inferErrorVariant } from '../utils/errorState'
 
 const MotionDiv = motion.div
 const LAST_REVIEWED = 'May 2026'
+// Static fallback covers the ~100ms before /api/v1/stats responds — kept close to the live count so the body copy never reads as broken.
+const FALLBACK_TOOL_COUNT = 400
 
 // Most catalog tools have a broken `/static/icons/<slug>.svg` icon path that
 // returns 404 in the Vite SPA, so we don't trust tool.icon. Instead derive a
@@ -67,6 +70,8 @@ function BrandIcon({ tool, size = 'md' }) {
 
 export default function AlternativesPage() {
   const { slug } = useParams()
+  const { totalTools } = useCatalogStats()
+  const catalogCount = totalTools ?? FALLBACK_TOOL_COUNT
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   // error is null when fine, otherwise one of 'offline' | 'server' |
@@ -253,7 +258,7 @@ export default function AlternativesPage() {
           <p className="max-w-2xl text-lg leading-relaxed text-muted">
             Hand-tested alternatives to {tool.name}, ranked by similarity across
             category, use case, and feature set. Every tool on this list is in
-            our curated catalog of 399 AI tools.
+            our curated catalog of {catalogCount} AI tools.
           </p>
           <p className="mt-4 text-sm text-muted">
             <span className="inline-flex items-center gap-2 rounded-full border border-line bg-bg-elev px-3 py-1 text-xs font-medium text-ink-2">
@@ -409,7 +414,7 @@ export default function AlternativesPage() {
               Looking for something different?
             </h2>
             <p className="mt-3 text-muted">
-              Take our 30-second quiz to find the right AI tool for your specific needs, or browse the full catalog of 399 hand-curated tools.
+              Take our 30-second quiz to find the right AI tool for your specific needs, or browse the full catalog of {catalogCount} hand-curated tools.
             </p>
             <div className="mt-6 flex flex-wrap justify-center gap-3">
               <Link

@@ -5,7 +5,11 @@
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 
+import { useCatalogStats } from '../../hooks/useCatalogStats'
 import { useScrollReveal } from '../../lib/motion'
+
+// Static fallback covers the ~100ms before /api/v1/stats responds — kept close to the live count so the page never reads as broken.
+const FALLBACK_TOOL_COUNT = 400
 
 // Sits at the very bottom of HomePage, after FinalCTA. FinalCTA is a big
 // bare-page section pitching the wizard (the primary conversion). This is
@@ -19,6 +23,8 @@ import { useScrollReveal } from '../../lib/motion'
 // genuine closer.
 export default function SubmitInvite() {
   const [ref, inView] = useScrollReveal({ threshold: 0.25 })
+  const { totalTools } = useCatalogStats()
+  const displayCount = totalTools ?? FALLBACK_TOOL_COUNT
 
   return (
     <section ref={ref} id="submit-invite" className="pb-16 pt-4 md:pb-24 md:pt-8">
@@ -40,7 +46,7 @@ export default function SubmitInvite() {
               </h2>
               <p className="mt-2 text-[14px] leading-[1.55] text-muted md:text-[15px]">
                 Made it this far — you probably know one we don&apos;t. Send it
-                over and we&apos;ll hand-check it the same way as the other 399.
+                over and we&apos;ll hand-check it the same way as the other {displayCount}.
               </p>
             </div>
 

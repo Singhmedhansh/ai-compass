@@ -8,9 +8,12 @@ import claudeIcon from "../assets/brand/claude.svg";
 import chatgptIcon from "../assets/brand/chatgpt.svg";
 
 import { MagneticWrapper, WordReveal } from "../components/ui";
+import { useCatalogStats } from "../hooks/useCatalogStats";
 import { sectionReveal, staggerParent, staggerChild } from "../lib/motion";
 
 const MotionDiv = motion.div;
+// Static fallback covers the ~100ms before /api/v1/stats responds.
+const FALLBACK_TOOL_COUNT = 400;
 
 // Same 3-stage cascade as the other Best* pages: bundled SVG / Clearbit ->
 // DuckDuckGo favicon -> letter tile. Keeps the page brand-coherent even
@@ -237,6 +240,9 @@ const stacks = [
 ];
 
 export default function BestAIToolsForFictionWriters() {
+  const { totalTools } = useCatalogStats();
+  const displayCount = totalTools ?? FALLBACK_TOOL_COUNT;
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -559,7 +565,7 @@ export default function BestAIToolsForFictionWriters() {
               Best AI tools for students →
             </Link>
             <Link to="/tools" className="text-[14px] font-semibold text-accent no-underline hover:underline">
-              Browse all 399 tools →
+              Browse all {displayCount} tools →
             </Link>
           </div>
         </MotionDiv>

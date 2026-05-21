@@ -13,9 +13,12 @@ import claudeIcon from "../assets/brand/claude.svg";
 import githubCopilotIcon from "../assets/brand/github-copilot.svg";
 
 import { MagneticWrapper, WordReveal } from "../components/ui";
+import { useCatalogStats } from "../hooks/useCatalogStats";
 import { sectionReveal, staggerParent, staggerChild } from "../lib/motion";
 
 const MotionDiv = motion.div;
+// Static fallback covers the ~100ms before /api/v1/stats responds.
+const FALLBACK_TOOL_COUNT = 400;
 
 // Per-card icon with a 3-stage fallback: primary (tool.iconUrl, usually Clearbit
 // or a Vite-imported brand SVG) -> 'fallback' (DuckDuckGo's icon proxy, keyed off
@@ -263,6 +266,9 @@ const stacks = [
 ];
 
 export default function BestCodingTools() {
+  const { totalTools } = useCatalogStats();
+  const displayCount = totalTools ?? FALLBACK_TOOL_COUNT;
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -587,7 +593,7 @@ export default function BestCodingTools() {
               Best free AI tools →
             </Link>
             <Link to="/tools" className="text-[14px] font-semibold text-accent no-underline hover:underline">
-              Browse all 399 tools →
+              Browse all {displayCount} tools →
             </Link>
           </div>
         </MotionDiv>

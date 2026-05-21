@@ -1,6 +1,6 @@
 import { useCatalogStats } from '../../hooks/useCatalogStats'
 
-const FALLBACK_TOOL_COUNT = 399
+const FALLBACK_TOOL_COUNT = 400
 
 export default function SunoStory() {
   const { totalTools } = useCatalogStats()

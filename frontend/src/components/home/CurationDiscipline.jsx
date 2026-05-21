@@ -5,7 +5,7 @@ import { motion } from 'framer-motion'
 import { useCatalogStats } from '../../hooks/useCatalogStats'
 import { useCountUp, useScrollReveal } from '../../lib/motion'
 
-const FALLBACK_TOOL_COUNT = 399
+const FALLBACK_TOOL_COUNT = 400
 
 export default function CurationDiscipline() {
   const [statsRef, statsInView] = useScrollReveal({ threshold: 0.3 })

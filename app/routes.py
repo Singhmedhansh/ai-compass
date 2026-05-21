@@ -8,9 +8,20 @@ from flask import Blueprint, Response, current_app, jsonify, redirect, send_from
 from sqlalchemy import text
 
 from app import db
-from app.tool_cache import TOOL_CACHE, get_cached_tools
+from app.tool_cache import TOOL_CACHE, get_cached_tools, get_visible_tools
 
 main_bp = Blueprint('main', __name__)
+
+
+def _total_tools() -> int:
+    """Live visible-tool count, shared by every SEO surface so the
+    figure can't drift when tools are added or hidden. Matches
+    /api/v1/stats (which the homepage hero reads), so server SSR
+    bodies and the React hydration agree on the same number."""
+    try:
+        return len(get_visible_tools() or [])
+    except Exception:
+        return 0
 
 DIST_DIR = os.path.join(
     os.path.dirname(os.path.dirname(__file__)),
@@ -20,7 +31,7 @@ DIST_DIR = os.path.join(
 # Per-route static meta (title, description). /tools/<slug> is handled
 # dynamically against the tool catalog below.
 _ROUTE_META = {
-    'tools': ('AI Tools Directory — AI Compass', 'Browse 399 curated AI tools by category, rating, and pricing. Find the right tool for writing, coding, research, and more.'),
+    'tools': ('AI Tools Directory — AI Compass', 'Browse {count} curated AI tools by category, rating, and pricing. Find the right tool for writing, coding, research, and more.'),
     'ai-tool-finder': ('AI Tool Finder Wizard — AI Compass', 'Answer 4 questions and get 5-6 AI tools picked for you. Free, no login, no ranking tricks.'),
     'compare': ('Compare AI Tools — AI Compass', 'Side-by-side comparison of AI tools — pricing, features, platforms, and ratings.'),
     'collections': ('AI Tool Collections — AI Compass', 'Curated collections — best free, best for students, best for coding, and more.'),
@@ -198,7 +209,7 @@ def _seo_body(normalized: str, tool: dict | None = None) -> str:
         parts.append(
             f'<p><a href="/alternatives/{_esc(tool.get("slug"))}">'
             f'See {name} alternatives</a> · '
-            '<a href="/tools">Browse all 399 curated AI tools on AI Compass</a></p>'
+            f'<a href="/tools">Browse all {_total_tools()} curated AI tools on AI Compass</a></p>'
         )
         return ''.join(parts)
 
@@ -211,7 +222,7 @@ def _seo_body(normalized: str, tool: dict | None = None) -> str:
             else 'AI Tools Directory — AI Compass'
         )
         # The homepage only needs a representative sample for crawl discovery
-        # (keeps the served HTML lean); the full 399-link index lives on /tools.
+        # (keeps the served HTML lean); the full link index lives on /tools.
         listed = tools[:30] if is_home else tools
         items = []
         for t in listed:
@@ -228,7 +239,7 @@ def _seo_body(normalized: str, tool: dict | None = None) -> str:
                 + '</li>'
             )
         tail = (
-            '<p><a href="/tools">Browse all 399 curated AI tools</a></p>'
+            f'<p><a href="/tools">Browse all {_total_tools()} curated AI tools</a></p>'
             if is_home
             else ''
         )
@@ -242,7 +253,12 @@ def _seo_body(normalized: str, tool: dict | None = None) -> str:
 
     if normalized in _ROUTE_META:
         title, desc = _ROUTE_META[normalized]
-        return f'<h1>{_esc(title)}</h1><p>{_esc(desc)}</p><p><a href="/tools">Browse all 399 curated AI tools</a></p>'
+        count = _total_tools()
+        # /tools description carries {count} as a template — sub in the
+        # live figure so the SSR body stays in sync with /api/v1/stats.
+        if normalized == 'tools':
+            desc = desc.format(count=count)
+        return f'<h1>{_esc(title)}</h1><p>{_esc(desc)}</p><p><a href="/tools">Browse all {count} curated AI tools</a></p>'
 
     return ''
 
@@ -268,7 +284,7 @@ def _seo_alternatives(tool: dict, alts: list[dict]) -> str:
         'free tiers, and use cases compared. Curated by AI Compass.</p>'
         f'<ul>{"".join(items)}</ul>'
         f'<p><a href="/tools/{slug}">See {name} details</a> · '
-        '<a href="/tools">Browse all 399 curated AI tools</a></p>'
+        f'<a href="/tools">Browse all {_total_tools()} curated AI tools</a></p>'
     )
 
 
@@ -282,17 +298,18 @@ def _not_found_html(base: str, path: str) -> str:
     homepage's content.
     """
     safe_path = _esc(f'/{path}' if path else '/')
+    count = _total_tools()
     html = _inject_meta(
         base,
         title='Page not found — AI Compass',
-        description='That page does not exist on AI Compass. Browse 399 hand-tested AI tools for students instead.',
+        description=f'That page does not exist on AI Compass. Browse {count} hand-tested AI tools for students instead.',
         canonical_path=None,
     )
     seo = (
         '<h1>Page not found</h1>'
         f'<p>We could not find <code>{safe_path}</code> on AI Compass.</p>'
         '<p><a href="/">Go to the homepage</a> · '
-        '<a href="/tools">Browse all 399 curated AI tools</a></p>'
+        f'<a href="/tools">Browse all {count} curated AI tools</a></p>'
     )
     return _inject_seo_root(html, seo)
 
@@ -395,6 +412,11 @@ def _meta_for_request_path(path: str):
     # Static route meta
     if normalized in _ROUTE_META:
         title, desc = _ROUTE_META[normalized]
+        # /tools description carries {count} as a template — sub in the
+        # live figure so the crawler-visible meta stays in sync with
+        # /api/v1/stats. Other routes' descriptions don't reference count.
+        if normalized == 'tools':
+            desc = desc.format(count=_total_tools())
         html = _inject_meta(base, title=title, description=desc, canonical_path=f'/{normalized}')
         return _inject_seo_root(html, _seo_body(normalized)), 200
 
@@ -708,7 +730,7 @@ def og_image(slug):
                     font=_og_font(38), fill=MUTED)
 
         d.text((90, 548), 'ai-compass.in', font=_og_font(36), fill=ACCENT)
-        d.text((860, 548), '399 hand-tested AI tools', font=_og_font(30), fill=MUTED)
+        d.text((860, 548), f'{_total_tools()} hand-tested AI tools', font=_og_font(30), fill=MUTED)
 
         buf = io.BytesIO()
         img.save(buf, format='PNG', optimize=True)

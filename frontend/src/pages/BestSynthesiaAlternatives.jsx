@@ -5,9 +5,12 @@ import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 
 import { MagneticWrapper, WordReveal } from "../components/ui";
+import { useCatalogStats } from "../hooks/useCatalogStats";
 import { sectionReveal, staggerParent, staggerChild } from "../lib/motion";
 
 const MotionDiv = motion.div;
+// Static fallback covers the ~100ms before /api/v1/stats responds.
+const FALLBACK_TOOL_COUNT = 400;
 
 function BrandIcon({ tool, isHero }) {
   const [stage, setStage] = useState(tool.iconUrl ? "primary" : "letter");
@@ -228,6 +231,9 @@ const stacks = [
 ];
 
 export default function BestSynthesiaAlternatives() {
+  const { totalTools } = useCatalogStats();
+  const displayCount = totalTools ?? FALLBACK_TOOL_COUNT;
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -550,7 +556,7 @@ export default function BestSynthesiaAlternatives() {
               Best Jasper alternatives →
             </Link>
             <Link to="/tools" className="text-[14px] font-semibold text-accent no-underline hover:underline">
-              Browse all 399 tools →
+              Browse all {displayCount} tools →
             </Link>
           </div>
         </MotionDiv>

@@ -1,12 +1,19 @@
 import { Link, useLocation } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 
+import { useCatalogStats } from '../hooks/useCatalogStats'
+
+// Static fallback covers the ~100ms before /api/v1/stats responds — kept close to the live count so the meta never reads as broken.
+const FALLBACK_TOOL_COUNT = 400
+
 // Rendered for any URL the React router cannot match (wildcard route in
 // App.jsx). The server returns a 404 status when it serves the SPA shell
 // for these paths — see _not_found_html in app/routes.py — so crawlers
 // see the correct status while users see this friendly page.
 export default function NotFoundPage() {
   const { pathname } = useLocation()
+  const { totalTools } = useCatalogStats()
+  const displayCount = totalTools ?? FALLBACK_TOOL_COUNT
 
   return (
     <>
@@ -14,7 +21,7 @@ export default function NotFoundPage() {
         <title>Page not found — AI Compass</title>
         <meta
           name="description"
-          content="That page does not exist on AI Compass. Browse 399 hand-tested AI tools for students instead."
+          content={`That page does not exist on AI Compass. Browse ${displayCount} hand-tested AI tools for students instead.`}
         />
         <meta name="robots" content="noindex" />
       </Helmet>
