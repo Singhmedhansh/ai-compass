@@ -83,7 +83,7 @@ def _sync_admin_flag(user):
 def register():
     if current_user.is_authenticated:
         _clear_stale_login_flash_errors()
-        return redirect(url_for("main.dashboard"))
+        return redirect("/dashboard")
 
     if request.method == "POST":
         if is_rate_limited(f"register:{_client_ip()}", limit=10, window_seconds=60):
@@ -117,8 +117,8 @@ def register():
         login_user(user, remember=True)
         flash("Welcome to AI Compass.", "success")
         if _requires_onboarding(user):
-            return redirect(url_for("main.onboarding"))
-        return redirect(url_for("main.dashboard"))
+            return redirect("/profile")
+        return redirect("/dashboard")
 
     return redirect('/')
 
@@ -127,7 +127,7 @@ def register():
 def login():
     if current_user.is_authenticated:
         _clear_stale_login_flash_errors()
-        return redirect(url_for("main.dashboard"))
+        return redirect("/dashboard")
 
     if request.method == "POST":
         try:
@@ -160,8 +160,8 @@ def login():
                 flash("Admin login detected. Use the Admin Panel button from the dashboard.", "success")
                 next_url = request.args.get("next")
                 if _requires_onboarding(user):
-                    return redirect(url_for("main.onboarding"))
-                return redirect(next_url or url_for("main.dashboard"))
+                    return redirect("/profile")
+                return redirect(next_url or "/dashboard")
 
             if user and _verify_password_hash(user.password_hash, password):
                 _sync_admin_flag(user)
@@ -170,8 +170,8 @@ def login():
                 flash("You are now logged in.", "success")
                 next_url = request.args.get("next")
                 if _requires_onboarding(user):
-                    return redirect(url_for("main.onboarding"))
-                return redirect(next_url or url_for("main.dashboard"))
+                    return redirect("/profile")
+                return redirect(next_url or "/dashboard")
 
             flash("Invalid email or password.", "error")
         except Exception:

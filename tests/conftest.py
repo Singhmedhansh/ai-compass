@@ -37,3 +37,26 @@ def app():
 @pytest.fixture
 def client(app):
     return app.test_client()
+
+
+# Some tests seed CatalogTool rows and call refresh_tools_cache() to exercise
+# DB-backed catalog paths (test_linkedin_drafts, test_affiliate_tracking). The
+# cache is module-level state, so once they run every subsequent test sees
+# just those 2 seeded tools and legit lookups like /api/v1/tools/chatgpt
+# 404 — the alternatives suite was the canary that caught this. Reset to the
+# tools.json baseline after every test.
+@pytest.fixture(autouse=True)
+def _reset_tool_cache(app):
+    yield
+    with app.app_context():
+        try:
+            from app.models import CatalogTool
+            CatalogTool.query.delete()
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+        try:
+            from app.tool_cache import refresh_tools_cache
+            refresh_tools_cache()
+        except Exception:
+            pass
