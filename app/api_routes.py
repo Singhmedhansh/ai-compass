@@ -709,6 +709,28 @@ def get_tool(slug: str):
         tool_payload = dict(tool)
         tool_payload["similar_tools"] = get_similar_tools(slug_value, limit=4)
         current_app.logger.info(f"[PERF] after related tools: {time.time() - t0:.2f}s")
+
+        # Aggregate live user ratings into the payload so the tool detail page
+        # and its SoftwareApplication JSON-LD render real numbers instead of
+        # the static rating: 0 / review_count: 0 from tools.json. Only overwrite
+        # when at least one rating exists; the static fields stay otherwise
+        # (no rating is honestly better than a fabricated "0 of 5").
+        try:
+            agg = (
+                db.session.query(
+                    func.avg(Rating.value).label("avg"),
+                    func.count(Rating.id).label("count"),
+                )
+                .filter(Rating.tool_slug == slug_value)
+                .first()
+            )
+            if agg and agg.count and int(agg.count) > 0:
+                tool_payload["rating"] = round(float(agg.avg), 1)
+                tool_payload["review_count"] = int(agg.count)
+        except Exception:
+            # Ratings table missing or unreachable — fall back to static fields.
+            db.session.rollback()
+        current_app.logger.info(f"[PERF] after rating aggregate: {time.time() - t0:.2f}s")
         current_app.logger.info(f"[PERF] total: {time.time() - t0:.2f}s")
         from flask import make_response
         response = make_response(jsonify(tool_payload))
