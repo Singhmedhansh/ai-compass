@@ -152,6 +152,12 @@ def create_app(config: dict | None = None) -> Flask:
         for e in os.environ.get("ADMIN_EMAILS", "singhmedhansh07@gmail.com").split(",")
         if e.strip()
     ]
+    # Address that receives the floating-widget feedback notifications.
+    # Separate from ADMIN_EMAILS so support/feedback can go to a different
+    # inbox than admin alerts. Override with FEEDBACK_EMAIL env var.
+    app.config["FEEDBACK_EMAIL"] = os.environ.get(
+        "FEEDBACK_EMAIL", "medhansh.builds@gmail.com"
+    ).strip()
     app.config["GOOGLE_CLIENT_ID"] = os.getenv("GOOGLE_CLIENT_ID", "")
     app.config["GOOGLE_CLIENT_SECRET"] = os.getenv("GOOGLE_CLIENT_SECRET", "")
     app.config["GOOGLE_REDIRECT_URI"] = os.getenv("GOOGLE_REDIRECT_URI", "http://localhost:5000/auth/google/callback")

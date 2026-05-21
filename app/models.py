@@ -280,3 +280,29 @@ class Tool(db.Model):
     category = db.relationship("Category", back_populates="tools")
     
     tags = db.relationship('Tag', secondary=tool_tags, lazy='subquery', backref=db.backref('tools', lazy=True))
+
+
+class Feedback(db.Model):
+    """User-submitted feedback from the floating widget on every page.
+
+    Email is optional (the form allows fire-and-forget bug reports), page
+    URL and user agent are auto-captured client-side so reproduction
+    context is recorded with the message. `is_read` powers the unread
+    badge in /admin -> Feedback tab.
+    """
+
+    __tablename__ = "feedback"
+
+    id = db.Column(db.Integer, primary_key=True)
+    message = db.Column(db.Text, nullable=False)
+    email = db.Column(db.String(255), nullable=True)
+    page_url = db.Column(db.String(500), nullable=True)
+    user_agent = db.Column(db.String(500), nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True, index=True)
+    is_read = db.Column(db.Boolean, nullable=False, default=False, index=True)
+    created_at = db.Column(
+        db.DateTime, nullable=False, index=True,
+        default=lambda: datetime.now(timezone.utc),
+    )
+
+    user = db.relationship("User", lazy="joined")

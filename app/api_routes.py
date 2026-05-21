@@ -12,9 +12,12 @@ from flask import Blueprint, current_app, jsonify, request
 from flask_login import current_user, login_required, login_user, logout_user
 from sqlalchemy import func
 
+from html import escape as html_escape
+
 from app import bcrypt, csrf, db
 from app.ml_recommender import clear_model_cache, get_similar_tools, load_model
 from app.models import Favorite, Rating, Review, ToolRating, User
+from app.rate_limit import is_rate_limited
 from app.search_utils import search_tools
 from app.tool_cache import DEFAULT_TOOLS_PATH, TOOL_CACHE, get_cached_tools, prime_tools_cache
 
@@ -2229,3 +2232,156 @@ def admin_analytics():
         "favorites_total": Favorite.query.count(),
         "submissions_pending": Submission.query.filter_by(status="pending").count(),
     })
+
+
+# --- User feedback (floating widget on every page) -----------------------
+# Public POST for the widget submit; admin GETs to view + mark read.
+# Submissions also fan-out to an email so the admin sees them in real time
+# without having to check /admin -- the DB row is the authoritative record.
+
+def _feedback_client_ip() -> str:
+    forwarded = str(request.headers.get("X-Forwarded-For") or "").strip()
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return str(request.remote_addr or "unknown")
+
+
+@api_bp.post("/feedback")
+@csrf.exempt
+def submit_feedback():
+    """Public endpoint for the floating feedback widget.
+
+    Spam defenses (cheap and effective for a low-volume target):
+    * Honeypot field `website` — bots fill it, humans never see it.
+    * Per-IP rate limit (5 per hour) using the existing in-memory limiter.
+    * Minimum message length 5 chars so accidental empty clicks don't
+      flood the DB.
+    """
+    from app.email_utils import send_email
+    from app.models import Feedback
+
+    payload = request.get_json(silent=True) or {}
+
+    # Honeypot — if filled, return 200 OK so the bot thinks it worked,
+    # but store nothing and send nothing. Bots don't retry on success.
+    if str(payload.get("website") or "").strip():
+        return jsonify({"success": True}), 200
+
+    message = str(payload.get("message") or "").strip()
+    if len(message) < 5:
+        return jsonify({"error": "Message is too short."}), 400
+    if len(message) > 5000:
+        return jsonify({"error": "Message is too long (5000 chars max)."}), 400
+
+    ip = _feedback_client_ip()
+    if is_rate_limited(f"feedback:{ip}", limit=5, window_seconds=3600):
+        return jsonify({"error": "Too many submissions — try again later."}), 429
+
+    email = (str(payload.get("email") or "").strip() or None)
+    if email and len(email) > 255:
+        return jsonify({"error": "Email is too long."}), 400
+
+    page_url = (str(payload.get("page_url") or "").strip() or None)
+    if page_url and len(page_url) > 500:
+        page_url = page_url[:500]
+    user_agent = (str(request.headers.get("User-Agent") or "").strip() or None)
+    if user_agent and len(user_agent) > 500:
+        user_agent = user_agent[:500]
+
+    user_id = current_user.id if getattr(current_user, "is_authenticated", False) else None
+
+    row = Feedback(
+        message=message,
+        email=email,
+        page_url=page_url,
+        user_agent=user_agent,
+        user_id=user_id,
+    )
+    db.session.add(row)
+    db.session.commit()
+
+    # Fire-and-forget email notify. Failure to send must not break the
+    # submission flow — the DB row is the source of truth.
+    try:
+        notify_to = current_app.config.get("FEEDBACK_EMAIL")
+        if notify_to:
+            short = (message[:80] + "...") if len(message) > 80 else message
+            html = (
+                f"<p><strong>New feedback on AI Compass</strong></p>"
+                f"<p style='white-space:pre-wrap'>{html_escape(message)}</p>"
+                f"<hr>"
+                f"<p style='font-size:13px;color:#666'>"
+                f"From: {html_escape(email) if email else '(no email)'}<br>"
+                f"Page: {html_escape(page_url) if page_url else '(unknown)'}<br>"
+                f"User: {('logged in #' + str(user_id)) if user_id else 'anonymous'}<br>"
+                f"IP: {html_escape(ip)}"
+                f"</p>"
+                f"<p style='font-size:13px;color:#666'>"
+                f"View in admin: https://ai-compass.in/admin (Feedback tab)"
+                f"</p>"
+            )
+            send_email(notify_to, f"AI Compass feedback: {short}", html)
+    except Exception:  # noqa: BLE001 — email never breaks the request
+        current_app.logger.exception("feedback notify email failed")
+
+    return jsonify({"success": True}), 201
+
+
+@api_bp.get("/admin/feedback")
+@login_required
+def admin_list_feedback():
+    if not _is_admin():
+        return jsonify({"error": "Forbidden"}), 403
+    from app.models import Feedback
+
+    rows = Feedback.query.order_by(Feedback.created_at.desc()).limit(500).all()
+    return jsonify({
+        "feedback": [
+            {
+                "id": r.id,
+                "message": r.message,
+                "email": r.email,
+                "page_url": r.page_url,
+                "user_agent": r.user_agent,
+                "user_id": r.user_id,
+                "user_email": (r.user.email if r.user else None),
+                "is_read": r.is_read,
+                "created_at": r.created_at.isoformat() if r.created_at else None,
+            }
+            for r in rows
+        ],
+        "total": len(rows),
+        "unread": sum(1 for r in rows if not r.is_read),
+    })
+
+
+@api_bp.post("/admin/feedback/<int:fid>/read")
+@csrf.exempt
+@login_required
+def admin_mark_feedback_read(fid: int):
+    if not _is_admin():
+        return jsonify({"error": "Forbidden"}), 403
+    from app.models import Feedback
+
+    row = Feedback.query.get(fid)
+    if row is None:
+        return jsonify({"error": "Not found"}), 404
+    row.is_read = True
+    db.session.commit()
+    return jsonify({"success": True})
+
+
+@api_bp.delete("/admin/feedback/<int:fid>")
+@csrf.exempt
+@login_required
+def admin_delete_feedback(fid: int):
+    if not _is_admin():
+        return jsonify({"error": "Forbidden"}), 403
+    from app.models import Feedback
+
+    row = Feedback.query.get(fid)
+    if row is None:
+        return jsonify({"error": "Not found"}), 404
+    db.session.delete(row)
+    db.session.commit()
+    return jsonify({"success": True})

@@ -6,9 +6,15 @@ import { toast } from 'sonner'
 
 import SearchInput from '../components/ui/SearchInput'
 
+// ESLint no-unused-vars doesn't recognise JSX namespaced tags (<MotionDiv>)
+// as a usage of `motion`. Alias to constants to satisfy the rule — same
+// pattern as the Best* listicle pages.
+const MotionDiv = motion.div
+const MotionSpan = motion.span
+
 const ADMIN_EMAILS = ['singhmedhansh07@gmail.com']
 const TOOLS_PAGE_SIZE = 15
-const TABS = ['Overview', 'Tools', 'Submissions', 'Analytics', 'Email', 'Flags', 'Users', 'Reviews']
+const TABS = ['Overview', 'Tools', 'Submissions', 'Feedback', 'Analytics', 'Email', 'Flags', 'Users', 'Reviews']
 
 const EMPTY_TOOL = {
   slug: '', name: '', tagline: '', description: '', category: '',
@@ -88,7 +94,7 @@ function ToolForm({ initial, isNew, onClose, onSaved }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-      <motion.div
+      <MotionDiv
         initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.2 }}
         className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-line bg-bg-elev p-6 shadow-2xl"
@@ -120,7 +126,7 @@ function ToolForm({ initial, isNew, onClose, onSaved }) {
             {saving ? 'Saving…' : isNew ? 'Create' : 'Save'}
           </button>
         </div>
-      </motion.div>
+      </MotionDiv>
     </div>
   )
 }
@@ -136,6 +142,8 @@ function AdminPage() {
   const [users, setUsers] = useState([])
   const [reviews, setReviews] = useState([])
   const [submissions, setSubmissions] = useState([])
+  const [feedback, setFeedback] = useState([])
+  const [feedbackUnread, setFeedbackUnread] = useState(0)
   const [analytics, setAnalytics] = useState(null)
   const [analyticsErr, setAnalyticsErr] = useState('')
   const [flags, setFlags] = useState([])
@@ -200,6 +208,11 @@ function AdminPage() {
   useEffect(() => {
     if (!authed) return
     if (activeTab === 'Submissions') api('/api/v1/admin/submissions?status=pending').then(setSubmissions).catch(() => setSubmissions([]))
+    if (activeTab === 'Feedback') {
+      api('/api/v1/admin/feedback')
+        .then((d) => { setFeedback(d.feedback || []); setFeedbackUnread(d.unread || 0) })
+        .catch(() => { setFeedback([]); setFeedbackUnread(0) })
+    }
     if (activeTab === 'Analytics') {
       setAnalyticsErr('')
       api('/api/v1/admin/analytics').then(setAnalytics).catch((e) => setAnalyticsErr(e.message || 'Failed to load analytics'))
@@ -306,6 +319,20 @@ function AdminPage() {
       toast.success(action === 'approve' ? 'Approved & added to catalog' : 'Rejected')
     } catch (e) { toast.error(e.message) }
   }
+  const markFeedbackRead = async (id) => {
+    try {
+      await api(`/api/v1/admin/feedback/${id}/read`, { method: 'POST' })
+      setFeedback((f) => f.map((x) => (x.id === id ? { ...x, is_read: true } : x)))
+      setFeedbackUnread((n) => Math.max(0, n - 1))
+    } catch (e) { toast.error(e.message) }
+  }
+  const deleteFeedback = async (id) => {
+    if (!window.confirm('Delete this feedback?')) return
+    try {
+      await api(`/api/v1/admin/feedback/${id}`, { method: 'DELETE' })
+      setFeedback((f) => f.filter((x) => x.id !== id))
+    } catch (e) { toast.error(e.message) }
+  }
   const setFlag = async (key, patch) => {
     try {
       const d = await api(`/api/v1/admin/flags/${encodeURIComponent(key)}`, {
@@ -334,12 +361,12 @@ function AdminPage() {
           <button key={t} onClick={() => setActiveTab(t)}
             className={`relative pb-3 text-sm font-semibold transition-colors ${activeTab === t ? 'text-accent-ink' : 'text-muted hover:text-ink'}`}>
             {t}
-            {activeTab === t && <motion.span layoutId="admintab" className="absolute inset-x-0 -bottom-px h-0.5 bg-accent" />}
+            {activeTab === t && <MotionSpan layoutId="admintab" className="absolute inset-x-0 -bottom-px h-0.5 bg-accent" />}
           </button>
         ))}
       </nav>
 
-      <motion.div key={tabKey} variants={fade} initial="hidden" animate="show">
+      <MotionDiv key={tabKey} variants={fade} initial="hidden" animate="show">
         {activeTab === 'Overview' && (
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
             {[['Total Tools', stats.total_tools], ['Total Users', stats.total_users], ['New Today', stats.new_users_today], ['Free Tools', stats.free_tools]].map(([k, v]) => (
@@ -420,6 +447,63 @@ function AdminPage() {
                 </div>
               ))}
               {submissions.length === 0 && <p className="text-sm text-muted">No pending submissions.</p>}
+            </div>
+          </Card>
+        )}
+
+        {activeTab === 'Feedback' && (
+          <Card>
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-ink">
+                User Feedback
+                <span className="ml-2 text-sm font-normal text-muted">
+                  ({feedback.length} total{feedbackUnread > 0 ? `, ${feedbackUnread} unread` : ''})
+                </span>
+              </h2>
+            </div>
+            <div className="space-y-3">
+              {feedback.map((f) => (
+                <div
+                  key={f.id}
+                  className={`rounded-xl border p-4 ${f.is_read ? 'border-line bg-bg-elev' : 'border-accent/50 bg-accent-soft/30'}`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <p className="whitespace-pre-wrap break-words text-sm text-ink">{f.message}</p>
+                      <div className="mt-2 flex flex-wrap gap-3 text-xs text-muted">
+                        <span>{new Date(f.created_at).toLocaleString()}</span>
+                        {f.email && (
+                          <a href={`mailto:${f.email}`} className="text-accent-ink hover:underline">{f.email}</a>
+                        )}
+                        {f.user_email && !f.email && (
+                          <span>logged in: {f.user_email}</span>
+                        )}
+                        {f.page_url && (
+                          <a href={f.page_url} target="_blank" rel="noreferrer" className="truncate text-accent-ink hover:underline" title={f.page_url}>
+                            {f.page_url.replace(/^https?:\/\/[^/]+/, '') || '/'}
+                          </a>
+                        )}
+                      </div>
+                      {f.user_agent && (
+                        <p className="mt-1 truncate text-[11px] text-muted-2" title={f.user_agent}>{f.user_agent}</p>
+                      )}
+                    </div>
+                    <div className="flex shrink-0 gap-2">
+                      {!f.is_read && (
+                        <button onClick={() => markFeedbackRead(f.id)} className={`${BTN_GHOST} px-3 py-1.5 text-xs`}>
+                          Mark read
+                        </button>
+                      )}
+                      <button onClick={() => deleteFeedback(f.id)} className={`${ICON_BTN}`} title="Delete">
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {feedback.length === 0 && (
+                <p className="text-sm text-muted">No feedback yet — the widget appears bottom-right on every page.</p>
+              )}
             </div>
           </Card>
         )}
@@ -625,7 +709,7 @@ function AdminPage() {
             </div>
           </Card>
         )}
-      </motion.div>
+      </MotionDiv>
 
       {editing && <ToolForm initial={editing.tool} isNew={editing.isNew} onClose={() => setEditing(null)} onSaved={reloadTools} />}
     </div>

@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { AnimatePresence, MotionConfig } from 'framer-motion'
 
 import ErrorBoundary from './components/ErrorBoundary'
+import FeedbackWidget from './components/FeedbackWidget'
 import Footer from './components/Footer'
 import RouteTransition from './components/RouteTransition'
 import CompareTray from './components/ui/CompareTray'
@@ -106,6 +107,7 @@ export default function App() {
           </main>
           <Footer />
           <CompareTray />
+          <FeedbackWidget />
         </div>
       </BrowserRouter>
     </MotionConfig>
