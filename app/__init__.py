@@ -195,7 +195,12 @@ def create_app(config: dict | None = None) -> Flask:
         "pool_recycle": 300,
     }
     if database_uri.startswith("postgres://") or database_uri.startswith("postgresql://"):
-        engine_options["connect_args"] = {"sslmode": "require"}
+        # connect_timeout=10 — if Neon is cold and unreachable, fail
+        # the connection attempt in 10s instead of letting psycopg's
+        # default (which is unbounded for libpq) hang gunicorn and
+        # cause Render's port scan to time out. 10s is enough for a
+        # cold Neon free-tier dyno to wake (~5s typical).
+        engine_options["connect_args"] = {"sslmode": "require", "connect_timeout": 10}
     app.config["SQLALCHEMY_ENGINE_OPTIONS"] = engine_options
 
     if USE_SERVER_SESSION:
@@ -385,56 +390,7 @@ def create_app(config: dict | None = None) -> Flask:
             response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization,X-CSRFToken'
         return response
 
-    if not app.config.get("TESTING"):
-        with app.app_context():
-            try:
-                from flask_migrate import upgrade as db_upgrade
-                db_upgrade()
-                print("[STARTUP] flask db upgrade done")
-            except Exception as e:
-                print(f"[STARTUP] migrate skipped: {e}")
-
-            try:
-                db.create_all()
-                print("[STARTUP] db.create_all() done")
-            except Exception as e:
-                print(f"[STARTUP] db.create_all() error: {e}")
-
-            # One-time import of tools.json into the durable DB catalog.
-            # Idempotent: no-ops once seeded. Failure is non-fatal — the
-            # cache falls back to tools.json.
-            try:
-                from app.catalog_store import seed_from_json_if_empty
-                seeded = seed_from_json_if_empty()
-                print(f"[STARTUP] catalog seed: {seeded} rows inserted")
-            except Exception as e:
-                print(f"[STARTUP] catalog seed skipped: {e}")
-
-            # SECRET_KEY: prefer the env var (operator-controlled, best).
-            # Otherwise use a random key persisted in the DB so it's stable
-            # across Render's ephemeral deploys AND isn't the public
-            # hard-coded constant. Requests aren't served until create_app
-            # returns, so assigning it here is safe.
-            if not os.environ.get("SECRET_KEY"):
-                try:
-                    import secrets as _secrets
-
-                    from app.models import AppSetting
-                    row = AppSetting.query.filter_by(key="secret_key").first()
-                    if row is None:
-                        row = AppSetting(key="secret_key", value=_secrets.token_hex(32))
-                        db.session.add(row)
-                        db.session.commit()
-                        print("[STARTUP] generated & persisted a new SECRET_KEY")
-                    app.config["SECRET_KEY"] = row.value
-                    app.secret_key = row.value
-                except Exception as e:
-                    db.session.rollback()
-                    print(f"[STARTUP] DB SECRET_KEY unavailable, using fallback: {e}")
-
-            print(f"[STARTUP] cwd: {os.getcwd()}")
-
-    # ── Defer slow warm-up to a background thread ────────────────────────
+    # ── Defer ALL DB-touching startup to a background thread ─────────────
     # On Neon's free tier the DB sometimes wakes from sleep on first
     # connection (5-10s), and unpickling the recommender model adds
     # another second or two. Doing both inline at create_app() time used
@@ -450,6 +406,62 @@ def create_app(config: dict | None = None) -> Flask:
     if not app.config.get("TESTING"):
         def _warm_up():
             with app.app_context():
+                # Phase 1 — DB schema bootstrap. Used to run inline in
+                # create_app() but a cold Neon connection could take 30+s
+                # to wake, which pushed total startup past Render's
+                # port-scan timeout. Running here lets gunicorn bind the
+                # port immediately and serve /health (which has its own
+                # try/except around SELECT 1) while we work.
+                try:
+                    from flask_migrate import upgrade as db_upgrade
+                    db_upgrade()
+                    print("[WARMUP] flask db upgrade done")
+                except Exception as e:
+                    print(f"[WARMUP] migrate skipped: {e}")
+
+                try:
+                    db.create_all()
+                    print("[WARMUP] db.create_all() done")
+                except Exception as e:
+                    print(f"[WARMUP] db.create_all() error: {e}")
+
+                # One-time import of tools.json into the durable DB
+                # catalog. Idempotent — no-ops once seeded. If this
+                # fails, the cache will fall back to tools.json.
+                try:
+                    from app.catalog_store import seed_from_json_if_empty
+                    seeded = seed_from_json_if_empty()
+                    print(f"[WARMUP] catalog seed: {seeded} rows inserted")
+                except Exception as e:
+                    print(f"[WARMUP] catalog seed skipped: {e}")
+
+                # SECRET_KEY rotation when no env var is set. Only runs
+                # in the rare config where SECRET_KEY isn't provided by
+                # Render — otherwise the env value set up top wins and
+                # this whole block is a no-op. If the DB query fails
+                # here, the env fallback set during config still works,
+                # so requests don't break.
+                if not os.environ.get("SECRET_KEY"):
+                    try:
+                        import secrets as _secrets
+
+                        from app.models import AppSetting
+                        row = AppSetting.query.filter_by(key="secret_key").first()
+                        if row is None:
+                            row = AppSetting(key="secret_key", value=_secrets.token_hex(32))
+                            db.session.add(row)
+                            db.session.commit()
+                            print("[WARMUP] generated & persisted a new SECRET_KEY")
+                        app.config["SECRET_KEY"] = row.value
+                        app.secret_key = row.value
+                    except Exception as e:
+                        db.session.rollback()
+                        print(f"[WARMUP] DB SECRET_KEY unavailable, using fallback: {e}")
+
+                print(f"[WARMUP] cwd: {os.getcwd()}")
+
+                # Phase 2 — cache priming. Reads from DB so has to wait
+                # for the DB to be reachable.
                 try:
                     print("[WARMUP] Loading tools...")
                     prime_tools_cache(DEFAULT_TOOLS_PATH)
