@@ -733,79 +733,38 @@ def tool_alternatives(slug):
     if not main_tool:
         return jsonify({"error": "Tool not found"}), 404
 
-    main_category = (main_tool.get('category') or '').strip().lower()
-    main_slug = (main_tool.get('slug') or '').strip().lower()
-    TARGET = 10
-
-    # Step 1: pull recommender candidates. Limit 20 (vs. TARGET=10)
-    # because the category filter below will cull out-of-category
-    # matches and we want enough headroom that the recommender's
-    # ranking still drives the top of the list.
-    recommender_results: list[dict] = []
+    alternatives = []
     try:
-        similar = get_similar_tools(slug, limit=20)
+        similar = get_similar_tools(slug, limit=10)
         slug_lookup = {t['slug']: t for t in tools if t.get('slug')}
         # The pickled recommender was trained on an older schema and its tool dicts
         # lack a 'slug' field — re-key by name against the live catalog so the frontend
         # always receives slug-bearing dicts it can link to.
         name_lookup = {(t.get('name') or '').strip().lower(): t for t in tools if t.get('name')}
         if similar and isinstance(similar[0], str):
-            recommender_results = [slug_lookup[s] for s in similar if s in slug_lookup]
+            alternatives = [slug_lookup[s] for s in similar if s in slug_lookup]
         elif similar:
+            mapped = []
             for entry in similar:
                 if entry.get('slug') and entry['slug'] in slug_lookup:
-                    recommender_results.append(slug_lookup[entry['slug']])
+                    mapped.append(slug_lookup[entry['slug']])
                     continue
                 name_key = (entry.get('name') or '').strip().lower()
                 if name_key and name_key in name_lookup:
-                    recommender_results.append(name_lookup[name_key])
+                    mapped.append(name_lookup[name_key])
+            alternatives = mapped
     except Exception:
-        # Recommender failures must not break the page — fall through to the
-        # category-only fill below.
-        recommender_results = []
+        # Recommender failures must not break the page — fall through to category fallback.
+        alternatives = []
 
-    # Step 2: hard category gate. Without this, TF-IDF cosine surfaces
-    # tools with description-word overlap regardless of category —
-    # writing tools leak into Claude's alternatives, video tools leak
-    # into design, etc. The recommender's value-add is RANKING within
-    # category; category SELECTION belongs to a hard gate. Mirrors the
-    # server-side SEO body in app/routes.py:_meta_for_request_path so
-    # crawlers and users converge on the same alternatives set.
-    if main_category:
-        alternatives = [
-            t for t in recommender_results
-            if (t.get('category') or '').strip().lower() == main_category
-            and (t.get('slug') or '').strip().lower() != main_slug
-        ]
-
-        # Step 3: top up from the catalog if the recommender didn't
-        # produce enough in-category matches. Preserves recommender
-        # ranking at the top, pads with catalog order (which tool_cache
-        # already sorts by rating).
-        if len(alternatives) < TARGET:
-            seen = {(t.get('slug') or '').strip().lower() for t in alternatives}
-            seen.add(main_slug)
-            for t in tools:
-                if len(alternatives) >= TARGET:
-                    break
-                if (t.get('category') or '').strip().lower() != main_category:
-                    continue
-                s = (t.get('slug') or '').strip().lower()
-                if not s or s in seen:
-                    continue
-                alternatives.append(t)
-                seen.add(s)
-    else:
-        # Degenerate case: main tool has no category. Fall back to raw
-        # recommender output, just dedup'd against the main tool. This
-        # almost never fires in practice — every catalog tool has a
-        # category — but is here so an unkeyed admin edit doesn't 500.
-        alternatives = [
-            t for t in recommender_results
-            if (t.get('slug') or '').strip().lower() != main_slug
-        ]
-
-    alternatives = alternatives[:TARGET]
+    if not alternatives:
+        category = (main_tool.get('category') or '').strip().lower()
+        if category:
+            alternatives = [
+                t for t in tools
+                if (t.get('category') or '').strip().lower() == category
+                and t.get('slug') != slug
+            ][:10]
 
     from flask import make_response
     response = make_response(jsonify({
