@@ -34,6 +34,7 @@ const ContactPage = lazy(() => import('./pages/ContactPage'))
 const PrivacyPage = lazy(() => import('./pages/PrivacyPage'))
 const TermsPage = lazy(() => import('./pages/TermsPage'))
 const BestAIToolsForStudents = lazy(() => import('./pages/BestAIToolsForStudents'))
+const BestAIToolsForTeachers = lazy(() => import('./pages/BestAIToolsForTeachers'))
 const BestFreeAITools = lazy(() => import('./pages/BestFreeAITools'))
 const BestCodingTools = lazy(() => import('./pages/BestCodingTools'))
 const BestJasperAlternatives = lazy(() => import('./pages/BestJasperAlternatives'))
@@ -83,6 +84,7 @@ function AnimatedRoutes() {
             <Route path="/privacy" element={<PrivacyPage />} />
             <Route path="/terms" element={<TermsPage />} />
             <Route path="/best-ai-tools-for-students" element={<BestAIToolsForStudents />} />
+            <Route path="/best-ai-tools-for-teachers" element={<BestAIToolsForTeachers />} />
             <Route path="/best-free-ai-tools" element={<BestFreeAITools />} />
             <Route path="/best-coding-tools-for-students" element={<BestCodingTools />} />
             <Route path="/best-jasper-alternatives" element={<BestJasperAlternatives />} />

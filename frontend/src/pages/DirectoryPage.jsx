@@ -157,8 +157,20 @@ function DirectoryPage() {
   const panelRef = useRef(null)
   const hasSearchQuery = queryFromParams.trim().length > 0
 
+  // Tracks the query value WE last wrote to the URL, so the sync effect below can
+  // tell an external URL change (navbar search, back/forward, deep link) apart
+  // from the echo of our own setSearchParams call. Without this guard the effect
+  // reverted `searchQuery` to the URL's *trimmed* value on every keystroke, which
+  // made it impossible to type a trailing space — i.e. you couldn't type a second
+  // word, and in production the input appeared frozen after the first search.
+  const lastPushedQueryRef = useRef(queryFromParams)
+
   useEffect(() => {
-    if (searchQuery !== queryFromParams) {
+    // Only adopt the URL query when it changed externally, never as a reaction to
+    // our own write. `searchQuery` stays the source of truth for the controlled
+    // input, so in-progress text (including spaces) is never clobbered.
+    if (queryFromParams !== lastPushedQueryRef.current) {
+      lastPushedQueryRef.current = queryFromParams
       setSearchQuery(queryFromParams)
     }
 
@@ -168,7 +180,7 @@ function DirectoryPage() {
     if (category !== normalizedCategory) {
       setCategory(normalizedCategory)
     }
-  }, [searchQuery, queryFromParams, categoryFromParams, category])
+  }, [queryFromParams, categoryFromParams, category])
 
   const updateUrlParams = (nextCategory, nextQuery) => {
     const nextParams = new URLSearchParams(searchParams)
@@ -186,6 +198,9 @@ function DirectoryPage() {
       nextParams.delete('q')
     }
 
+    // Record what we pushed so the sync effect treats this as our own write,
+    // not external navigation, and leaves the user's in-progress text alone.
+    lastPushedQueryRef.current = query
     setSearchParams(nextParams, { replace: true })
   }
 
