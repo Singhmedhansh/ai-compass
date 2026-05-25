@@ -10848,7 +10848,7 @@
     "category": "Writing & Chat",
     "subCategory": "Academic Writing",
     "price": "Freemium",
-    "pricingDetail": "Free tier; Pro $9/month",
+    "pricingDetail": "Free ($0, 50 credits); Ace $140/yr; Team custom. 14-day money-back guarantee",
     "bestFor": "Improving the quality and flow of academic essays and reports",
     "tags": [
       "academic writing",
@@ -10903,7 +10903,52 @@
       "Paragraph polish"
     ],
     "slug": "penelope-ai",
-    "curation_score": 58.5
+    "curation_score": 58.5,
+    "pricing_source_url": "https://www.penelopeai.com",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://www.penelopeai.com",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "50 AI credits",
+            "Unlimited documents",
+            "10 file uploads"
+          ],
+          "cta_label": "Get started",
+          "cta_url": "https://www.penelopeai.com"
+        },
+        {
+          "name": "Ace",
+          "price_amount": 140,
+          "price_display": "$140/yr",
+          "features": [
+            "Unlimited AI features",
+            "Unlimited documents",
+            "Unlimited uploads"
+          ],
+          "cta_label": "Go Ace",
+          "cta_url": "https://www.penelopeai.com"
+        },
+        {
+          "name": "Team",
+          "price_amount": null,
+          "price_display": "Custom",
+          "features": [
+            "Everything in Ace",
+            "Enterprise options"
+          ],
+          "cta_label": "Contact",
+          "cta_url": "https://www.penelopeai.com"
+        }
+      ]
+    }
   },
   {
     "id": 118,
@@ -11941,7 +11986,7 @@
     "category": "Writing & Chat",
     "subCategory": "Writing Tools",
     "price": "Free",
-    "pricingDetail": "Free collection of writing tools",
+    "pricingDetail": "Free suite of 40+ AI writing tools",
     "bestFor": "Free AI tools for paragraph writing, paraphrasing, and content outlining",
     "tags": [
       "writing",
@@ -11995,7 +12040,29 @@
       "Grammar checker"
     ],
     "slug": "ahrefs-ai-writing-tools",
-    "curation_score": 60.5
+    "curation_score": 60.5,
+    "pricing_source_url": "https://ahrefs.com/writing-tools",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://ahrefs.com/writing-tools",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "40+ AI writing tools",
+            "SEO, social & business copy",
+            "No cost to use"
+          ],
+          "cta_label": "Try a tool",
+          "cta_url": "https://ahrefs.com/writing-tools"
+        }
+      ]
+    }
   },
   {
     "id": 131,
@@ -15038,7 +15105,7 @@
     "category": "Research",
     "subCategory": "Document Q&A",
     "price": "Freemium",
-    "pricingDetail": "Free 5 docs; Basic $16/month",
+    "pricingDetail": "Now Anara. Free ($0); Plus $10/mo; Pro $20/mo; Max $167/mo (annual); Teams $30/user/mo",
     "bestFor": "Cross-referencing and asking questions across multiple research papers simultaneously",
     "tags": [
       "research",
@@ -15093,7 +15160,80 @@
       "Concept connections"
     ],
     "slug": "unriddle",
-    "curation_score": 58.5
+    "curation_score": 58.5,
+    "pricing_source_url": "https://anara.com/pricing",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://anara.com/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "2,000 AI words/day",
+            "5 uploads/day",
+            "120 pages per import"
+          ],
+          "cta_label": "Get started",
+          "cta_url": "https://anara.com/pricing"
+        },
+        {
+          "name": "Plus",
+          "price_amount": 10,
+          "price_display": "$10/mo",
+          "features": [
+            "4,000 AI words/day",
+            "10 uploads/day",
+            "Zotero & Mendeley connectors",
+            "5 collaborators/folder"
+          ],
+          "cta_label": "Choose Plus",
+          "cta_url": "https://anara.com/pricing"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 20,
+          "price_display": "$20/mo",
+          "features": [
+            "Unlimited AI words",
+            "Unlimited imports",
+            "GPT-5 / Claude Sonnet / Gemini Pro",
+            "50 collaborators/folder",
+            "Priority support"
+          ],
+          "cta_label": "Choose Pro",
+          "cta_url": "https://anara.com/pricing"
+        },
+        {
+          "name": "Max",
+          "price_amount": 167,
+          "price_display": "$167/mo (billed annually)",
+          "features": [
+            "Everything in Pro",
+            "Deep Search & Complete Form agents",
+            "Claude Opus access",
+            "Early access"
+          ],
+          "cta_label": "Choose Max",
+          "cta_url": "https://anara.com/pricing"
+        },
+        {
+          "name": "Teams",
+          "price_amount": 30,
+          "price_display": "$30/user/mo",
+          "features": [
+            "Shared team workspace",
+            "Collaborative folders"
+          ],
+          "cta_label": "Contact sales",
+          "cta_url": "https://anara.com/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 166,
@@ -15202,7 +15342,7 @@
     "category": "Research",
     "subCategory": "Paper Discovery",
     "price": "Free",
-    "pricingDetail": "Free",
+    "pricingDetail": "Free, open-source arXiv paper tracker & recommender",
     "bestFor": "Keeping up with new ML and AI research papers without information overload",
     "tags": [
       "arXiv",
@@ -15257,7 +15397,29 @@
       "Tag-based filtering"
     ],
     "slug": "arxiv-sanity",
-    "curation_score": 52.5
+    "curation_score": 52.5,
+    "pricing_source_url": "https://arxiv-sanity-lite.com",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://arxiv-sanity-lite.com",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free (open source)",
+          "features": [
+            "Track & recommend arXiv papers",
+            "Tag-based recommendations",
+            "Open source"
+          ],
+          "cta_label": "Use it",
+          "cta_url": "https://arxiv-sanity-lite.com"
+        }
+      ]
+    }
   },
   {
     "id": 168,
@@ -17135,7 +17297,7 @@
     "category": "Courses & Tutorials",
     "subCategory": "Self-assessment",
     "price": "Freemium",
-    "pricingDetail": "Free basic; Plus $15/month",
+    "pricingDetail": "Free Teacher; Paid Teacher $20.75/mo (annual); Balanced Assessment (district) — contact sales",
     "bestFor": "Self-testing knowledge with AI-graded short answers and instant feedback",
     "tags": [
       "assessment",
@@ -17190,7 +17352,55 @@
       "Progress tracking"
     ],
     "slug": "formative",
-    "curation_score": 56.2
+    "curation_score": 56.2,
+    "pricing_source_url": "https://www.formative.com/pricing",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://www.formative.com/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free Teacher",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Unlimited activity creation",
+            "Real-time responses",
+            "Basic auto-grading",
+            "Standard Luna AI"
+          ],
+          "cta_label": "Sign up",
+          "cta_url": "https://www.formative.com/pricing"
+        },
+        {
+          "name": "Paid Teacher",
+          "price_amount": 20.75,
+          "price_display": "$20.75/mo (billed annually)",
+          "features": [
+            "Advanced question types",
+            "Advanced feedback & rubrics",
+            "Anti-cheating"
+          ],
+          "cta_label": "Upgrade",
+          "cta_url": "https://www.formative.com/pricing"
+        },
+        {
+          "name": "Balanced Assessment",
+          "price_amount": null,
+          "price_display": "Contact sales",
+          "features": [
+            "Premium Luna AI",
+            "Item Bank",
+            "District assessments",
+            "LockDown Browser"
+          ],
+          "cta_label": "Contact sales",
+          "cta_url": "https://www.formative.com/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 192,
@@ -17314,7 +17524,7 @@
     "category": "Writing & Chat",
     "subCategory": "Homework Help",
     "price": "Paid",
-    "pricingDetail": "$14.99/month",
+    "pricingDetail": "No free tier (trial). Bartleby Learn $9.99/mo; Bartleby+ $14.99/mo. Tutoring add-ons ($15/30min, $30/hr)",
     "bestFor": "Getting detailed homework help across subjects with AI and human experts",
     "tags": [
       "homework",
@@ -17371,7 +17581,39 @@
       "Tutor chat"
     ],
     "slug": "bartleby",
-    "curation_score": 60.0
+    "curation_score": 60.0,
+    "pricing_source_url": "https://www.bartleby.com/plus",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://www.bartleby.com/plus",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Bartleby Learn",
+          "price_amount": 9.99,
+          "price_display": "$9.99/mo",
+          "features": [
+            "Textbook solutions library",
+            "Limited expert Q&A/mo"
+          ],
+          "cta_label": "Subscribe",
+          "cta_url": "https://www.bartleby.com/plus"
+        },
+        {
+          "name": "Bartleby+",
+          "price_amount": 14.99,
+          "price_display": "$14.99/mo",
+          "features": [
+            "Everything in Learn",
+            "Bartleby Write (plagiarism, grammar, citations)"
+          ],
+          "cta_label": "Subscribe",
+          "cta_url": "https://www.bartleby.com/plus"
+        }
+      ]
+    }
   },
   {
     "id": 194,
@@ -18767,7 +19009,7 @@
     "category": "Video Generation",
     "subCategory": "AI Video Art",
     "price": "Freemium",
-    "pricingDetail": "Free trial; Explorer $5/month",
+    "pricingDetail": "Free (100 credits); Starter $10/mo; Creator $29/mo; Pro $99/mo; Visionary custom. 20% off annual",
     "bestFor": "Creating AI music video art and animated visuals for creative media projects",
     "tags": [
       "video",
@@ -18822,7 +19064,79 @@
       "Style transfer"
     ],
     "slug": "kaiber",
-    "curation_score": 52.5
+    "curation_score": 52.5,
+    "pricing_source_url": "https://kaiber.ai/pricing",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://kaiber.ai/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "100 credits",
+            "2 Canvases",
+            "3 concurrent generations",
+            "No card required"
+          ],
+          "cta_label": "Start free",
+          "cta_url": "https://kaiber.ai/pricing"
+        },
+        {
+          "name": "Starter",
+          "price_amount": 10,
+          "price_display": "$10/mo",
+          "features": [
+            "500 credits",
+            "1 Canvas",
+            "3 concurrent generations"
+          ],
+          "cta_label": "Choose Starter",
+          "cta_url": "https://kaiber.ai/pricing"
+        },
+        {
+          "name": "Creator",
+          "price_amount": 29,
+          "price_display": "$29/mo",
+          "features": [
+            "1,500 credits",
+            "5 Canvases",
+            "Cuts",
+            "All premium models"
+          ],
+          "cta_label": "Choose Creator",
+          "cta_url": "https://kaiber.ai/pricing"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 99,
+          "price_display": "$99/mo",
+          "features": [
+            "5,000 credits",
+            "Unlimited Canvases",
+            "Auto-clip",
+            "4K export"
+          ],
+          "cta_label": "Choose Pro",
+          "cta_url": "https://kaiber.ai/pricing"
+        },
+        {
+          "name": "Visionary",
+          "price_amount": null,
+          "price_display": "Custom",
+          "features": [
+            "Unlimited credits",
+            "White-glove support"
+          ],
+          "cta_label": "Contact sales",
+          "cta_url": "https://kaiber.ai/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 212,
@@ -19366,7 +19680,7 @@
     "category": "Design & Graphics",
     "subCategory": "Product Design",
     "price": "Freemium",
-    "pricingDetail": "Free 10 renders; Standard $48/month",
+    "pricingDetail": "Starter free (2,250 credits/mo); Professional $49/user/mo; free Education plan; Enterprise custom",
     "bestFor": "Industrial and product design students visualizing concepts from rough sketches",
     "tags": [
       "product design",
@@ -19421,7 +19735,67 @@
       "Export"
     ],
     "slug": "vizcom",
-    "curation_score": 52.5
+    "curation_score": 52.5,
+    "pricing_source_url": "https://www.vizcom.com/pricing",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://www.vizcom.com/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Starter",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "2,250 monthly credits",
+            "Basic AI tools",
+            "Standard renders",
+            "10 files"
+          ],
+          "cta_label": "Get started",
+          "cta_url": "https://www.vizcom.com/pricing"
+        },
+        {
+          "name": "Professional",
+          "price_amount": 49,
+          "price_display": "$49/user/mo (30% off annual)",
+          "features": [
+            "20,000 monthly credits",
+            "Priority renders",
+            "4K exports",
+            "Live Render",
+            "Unlimited files"
+          ],
+          "cta_label": "Upgrade",
+          "cta_url": "https://www.vizcom.com/pricing"
+        },
+        {
+          "name": "Education",
+          "price_amount": 0,
+          "price_display": "Free for students & educators",
+          "features": [
+            "15,000 monthly credits",
+            "Priority render queue"
+          ],
+          "cta_label": "Verify status",
+          "cta_url": "https://www.vizcom.com/pricing"
+        },
+        {
+          "name": "Enterprise",
+          "price_amount": null,
+          "price_display": "Custom",
+          "features": [
+            "Custom AI models",
+            "SSO",
+            "Dedicated onboarding"
+          ],
+          "cta_label": "Contact sales",
+          "cta_url": "https://www.vizcom.com/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 219,
@@ -19432,7 +19806,7 @@
     "category": "Design & Graphics",
     "subCategory": "Color Tools",
     "price": "Free",
-    "pricingDetail": "Free",
+    "pricingDetail": "Free AI color palette generator",
     "bestFor": "Finding and generating color palettes for design and brand projects",
     "tags": [
       "color",
@@ -19487,7 +19861,29 @@
       "Accessibility check"
     ],
     "slug": "khroma",
-    "curation_score": 52.5
+    "curation_score": 52.5,
+    "pricing_source_url": "https://khroma.co",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://khroma.co",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "AI-personalized palettes",
+            "Search by hue/tint/value",
+            "Unlimited saved colors"
+          ],
+          "cta_label": "Get started",
+          "cta_url": "https://khroma.co"
+        }
+      ]
+    }
   },
   {
     "id": 220,
@@ -23590,7 +23986,7 @@
     "category": "Courses & Tutorials",
     "subCategory": "Personalized Learning",
     "price": "Paid",
-    "pricingDetail": "$19.95/month individual; free via school",
+    "pricingDetail": "No free tier. Individual subjects: AP $79; SAT/PSAT/ACT $49 per section (6 or 12 months). School/district from $15-18/student/yr",
     "bestFor": "Standardized test prep and skill building for AP, SAT, and early college subjects",
     "tags": [
       "standardized tests",
@@ -23645,7 +24041,50 @@
       "Detailed explanations"
     ],
     "slug": "albert-ai",
-    "curation_score": 56.2
+    "curation_score": 56.2,
+    "pricing_source_url": "https://www.albert.io/pricing-students",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://www.albert.io/pricing-students",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "AP subject",
+          "price_amount": 79,
+          "price_display": "$79 per AP subject",
+          "features": [
+            "Full subject practice",
+            "6 or 12-month access"
+          ],
+          "cta_label": "Buy subject",
+          "cta_url": "https://www.albert.io/pricing-students"
+        },
+        {
+          "name": "SAT / PSAT / ACT",
+          "price_amount": 49,
+          "price_display": "$49 per exam section",
+          "features": [
+            "Per-section practice",
+            "6 or 12-month access"
+          ],
+          "cta_label": "Buy section",
+          "cta_url": "https://www.albert.io/pricing-students"
+        },
+        {
+          "name": "Schools & Districts",
+          "price_amount": null,
+          "price_display": "$15-18/student/yr",
+          "features": [
+            "School-wide licensing",
+            "Teacher dashboards"
+          ],
+          "cta_label": "Contact sales",
+          "cta_url": "https://www.albert.io/pricing-schools"
+        }
+      ]
+    }
   },
   {
     "id": 278,
@@ -24171,8 +24610,8 @@
     "tagline": "Simple AI tool for getting step-by-step homework help across subjects",
     "category": "Productivity",
     "subCategory": "Homework Help",
-    "price": "Freemium",
-    "pricingDetail": "Free limited; Pro $9.99/month",
+    "price": "Free",
+    "pricingDetail": "Completely free; no sign-up required",
     "bestFor": "Quick homework help across multiple subjects without switching tools",
     "tags": [
       "homework",
@@ -24204,7 +24643,7 @@
     "languages": "10+",
     "launchYear": 2023,
     "description": "AI Homework Helper provides subject-specific AI tutoring across math, science, history, and English in a simple interface designed for students needing quick academic support. The step-by-step solution format helps students understand methods rather than just receiving answers. Its multi-subject coverage in one tool reduces the need to switch between specialized platforms.",
-    "pricing_tier": "Freemium",
+    "pricing_tier": "Free",
     "difficulty": "beginner",
     "student_friendly": true,
     "use_cases": [
@@ -24214,7 +24653,7 @@
       "Organizing study schedules",
       "Getting step-by-step explanations of concepts"
     ],
-    "pricing": "Freemium",
+    "pricing": "Free",
     "student_perk": true,
     "company": "AI Homework Helper",
     "review_count": 0,
@@ -24227,7 +24666,29 @@
       "Math solver"
     ],
     "slug": "ai-homework-helper",
-    "curation_score": 59.8
+    "curation_score": 59.8,
+    "pricing_source_url": "https://aihomeworkhelper.com",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://aihomeworkhelper.com",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Text, image & PDF input",
+            "Step-by-step solutions",
+            "No signup required"
+          ],
+          "cta_label": "Use free",
+          "cta_url": "https://aihomeworkhelper.com"
+        }
+      ]
+    }
   },
   {
     "id": 287,
@@ -24693,8 +25154,8 @@
     "tagline": "Build and deploy AI agents and workflows without complex coding",
     "category": "Coding",
     "subCategory": "AI Agents",
-    "price": "Freemium",
-    "pricingDetail": "Free plan; Pro $29/month",
+    "price": "Free",
+    "pricingDetail": "Free, open community registry of AI skills & tools",
     "bestFor": "Building multi-step AI workflows for automation and research tasks",
     "tags": [
       "AI agents",
@@ -24726,7 +25187,7 @@
     "languages": "5+",
     "launchYear": 2024,
     "description": "Explainx AI provides a platform for building and deploying AI agents that can perform multi-step research and automation tasks, connecting to the web, documents, and external services. CS and business students use it to automate repetitive research tasks like literature monitoring and data compilation. The visual builder lowers the barrier to creating functional AI agents without deep LangChain expertise.",
-    "pricing_tier": "Freemium",
+    "pricing_tier": "Free",
     "difficulty": "beginner",
     "student_friendly": true,
     "use_cases": [
@@ -24736,7 +25197,7 @@
       "Reviewing and refactoring code",
       "Generating boilerplate and project scaffolding"
     ],
-    "pricing": "Freemium",
+    "pricing": "Free",
     "student_perk": true,
     "company": "Explainx AI",
     "review_count": 0,
@@ -24749,7 +25210,29 @@
       "Scheduling"
     ],
     "slug": "explainx-ai",
-    "curation_score": 53.0
+    "curation_score": 53.0,
+    "pricing_source_url": "https://www.explainx.ai",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://www.explainx.ai",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Open AI skills & tools registry",
+            "Free skill install via CLI",
+            "Community-driven"
+          ],
+          "cta_label": "Explore",
+          "cta_url": "https://www.explainx.ai"
+        }
+      ]
+    }
   },
   {
     "id": 298,
@@ -25628,7 +26111,7 @@
     "category": "Audio & Voice",
     "subCategory": "Accessibility",
     "price": "Free",
-    "pricingDetail": "Free",
+    "pricingDetail": "Free text-to-speech browser extension",
     "bestFor": "Listening to any online article or reading without any setup",
     "tags": [
       "text-to-speech",
@@ -25683,7 +26166,29 @@
       "Multiple voices"
     ],
     "slug": "read-aloud",
-    "curation_score": 61.2
+    "curation_score": 61.2,
+    "pricing_source_url": "https://readaloud.app",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://readaloud.app",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "One-click TTS for any web page",
+            "Chrome, Firefox & Edge",
+            "Multiple voices & languages"
+          ],
+          "cta_label": "Add to browser",
+          "cta_url": "https://readaloud.app"
+        }
+      ]
+    }
   },
   {
     "id": 331,
@@ -25694,7 +26199,7 @@
     "category": "Research",
     "subCategory": "Literature Review",
     "price": "Freemium",
-    "pricingDetail": "Free basic; Pro $8/month",
+    "pricingDetail": "Free (100 articles, 1 Litmap); Pro $10/mo ($120/yr); Team custom. Education tier with academic email",
     "bestFor": "Mapping citation networks and discovering missing literature in a research area",
     "tags": [
       "literature review",
@@ -25749,7 +26254,53 @@
       "Collaboration"
     ],
     "slug": "litmaps",
-    "curation_score": 52.5
+    "curation_score": 52.5,
+    "pricing_source_url": "https://www.litmaps.com/pricing",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://www.litmaps.com/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Monthly literature alerts",
+            "Basic search (up to 20 inputs)",
+            "100 articles, 1 Litmap"
+          ],
+          "cta_label": "Get started",
+          "cta_url": "https://www.litmaps.com/pricing"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 10,
+          "price_display": "$10/mo ($120/yr)",
+          "features": [
+            "Daily alerts",
+            "Unlimited inputs & articles",
+            "Unlimited Litmaps",
+            "Education discount"
+          ],
+          "cta_label": "Go Pro",
+          "cta_url": "https://www.litmaps.com/pricing"
+        },
+        {
+          "name": "Team",
+          "price_amount": null,
+          "price_display": "Custom",
+          "features": [
+            "Team-wide collaboration",
+            "Unlimited everything"
+          ],
+          "cta_label": "Talk to us",
+          "cta_url": "https://www.litmaps.com/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 332,
@@ -26153,7 +26704,7 @@
     "category": "Productivity",
     "subCategory": "Screen Recording",
     "price": "Paid",
-    "pricingDetail": "$89 one-time",
+    "pricingDetail": "No free tier (free trial). $29/mo, or $108/yr ($9/mo billed annually). 40% education discount",
     "bestFor": "Creating professional-looking screen recordings for CS project demos and tutorials",
     "tags": [
       "screen recording",
@@ -26208,7 +26759,40 @@
       "Cursor effects"
     ],
     "slug": "screen-studio",
-    "curation_score": 52.5
+    "curation_score": 52.5,
+    "pricing_source_url": "https://screen.studio/pricing",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://screen.studio/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Monthly",
+          "price_amount": 29,
+          "price_display": "$29/mo",
+          "features": [
+            "Full toolkit",
+            "All features",
+            "Free trial"
+          ],
+          "cta_label": "Buy",
+          "cta_url": "https://screen.studio/pricing"
+        },
+        {
+          "name": "Annual",
+          "price_amount": 108,
+          "price_display": "$108/yr (~$9/mo)",
+          "features": [
+            "Full toolkit",
+            "Best value"
+          ],
+          "cta_label": "Buy",
+          "cta_url": "https://screen.studio/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 342,
@@ -28476,7 +29060,7 @@
     "category": "Productivity",
     "subCategory": "Flashcards",
     "price": "Freemium",
-    "pricingDetail": "Free web version; Windows app $66",
+    "pricingDetail": "Free trial month + some free courses; Premium $9.90/mo or 12 months for the price of 10 (~$99/yr)",
     "bestFor": "Students seeking the most scientifically optimized spaced repetition algorithm available",
     "tags": [
       "spaced repetition",
@@ -28532,7 +29116,50 @@
       "Neural reviews"
     ],
     "slug": "supermemo",
-    "curation_score": 52.5
+    "curation_score": 52.5,
+    "pricing_source_url": "https://www.supermemo.com/en/premium-subscription",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://www.supermemo.com/en/premium-subscription",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free trial",
+          "features": [
+            "1-month free trial",
+            "Selected free courses"
+          ],
+          "cta_label": "Try free",
+          "cta_url": "https://www.supermemo.com/en/premium-subscription"
+        },
+        {
+          "name": "Premium (Monthly)",
+          "price_amount": 9.9,
+          "price_display": "$9.90/mo",
+          "features": [
+            "Unlimited access to all courses",
+            "Incremental learning"
+          ],
+          "cta_label": "Subscribe",
+          "cta_url": "https://www.supermemo.com/en/premium-subscription"
+        },
+        {
+          "name": "Premium (12 months)",
+          "price_amount": 99,
+          "price_display": "~$99/yr (12 months for 10)",
+          "features": [
+            "Everything in Premium",
+            "2 months free"
+          ],
+          "cta_label": "Subscribe",
+          "cta_url": "https://www.supermemo.com/en/premium-annual-access"
+        }
+      ]
+    }
   },
   {
     "id": 400,
@@ -29081,7 +29708,7 @@
     "category": "Productivity",
     "subCategory": "Video Setup",
     "price": "Freemium",
-    "pricingDetail": "Free basic; Pro $39.99/year",
+    "pricingDetail": "Free (720p); Pro $4.99/mo, $39.99/yr or $79.99 lifetime; Enterprise custom",
     "bestFor": "Using your iPhone as a high-quality webcam for online presentations and interviews",
     "tags": [
       "webcam",
@@ -29137,7 +29764,74 @@
       "HD output"
     ],
     "slug": "camo",
-    "curation_score": 54.5
+    "curation_score": 54.5,
+    "pricing_source_url": "https://camo.com/pricing",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://camo.com/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "720p HD video",
+            "No watermark or ads",
+            "Standard autofocus, 30 fps"
+          ],
+          "cta_label": "Download",
+          "cta_url": "https://camo.com/pricing"
+        },
+        {
+          "name": "Pro (Monthly)",
+          "price_amount": 4.99,
+          "price_display": "$4.99/mo",
+          "features": [
+            "4K (UHD)",
+            "Portrait mode, blur, replace, Spotlight",
+            "Up to 60 fps",
+            "2 computers"
+          ],
+          "cta_label": "Go Pro",
+          "cta_url": "https://camo.com/pricing"
+        },
+        {
+          "name": "Pro (Annual)",
+          "price_amount": 39.99,
+          "price_display": "$39.99/yr",
+          "features": [
+            "Everything in Pro",
+            "Best value"
+          ],
+          "cta_label": "Go Pro",
+          "cta_url": "https://camo.com/pricing"
+        },
+        {
+          "name": "Pro (Lifetime)",
+          "price_amount": 79.99,
+          "price_display": "$79.99 one-time",
+          "features": [
+            "Lifetime Pro license"
+          ],
+          "cta_label": "Buy lifetime",
+          "cta_url": "https://camo.com/pricing"
+        },
+        {
+          "name": "Enterprise",
+          "price_amount": null,
+          "price_display": "Custom",
+          "features": [
+            "User management",
+            "Dedicated account manager"
+          ],
+          "cta_label": "Contact sales",
+          "cta_url": "https://camo.com/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 409,
@@ -29419,8 +30113,8 @@
     "tagline": "Community-built Anki decks for language learning with audio and images",
     "category": "Audio & Voice",
     "subCategory": "Language Learning",
-    "price": "Free",
-    "pricingDetail": "Free",
+    "price": "Freemium",
+    "pricingDetail": "Free & open source on desktop (Win/Mac/Linux), Android (AnkiDroid) and AnkiWeb. AnkiMobile (iOS) $24.99 one-time",
     "bestFor": "Building vocabulary in any language with proven spaced repetition",
     "tags": [
       "language",
@@ -29455,7 +30149,7 @@
     "languages": "100+",
     "launchYear": 2006,
     "description": "Anki's community deck library hosts thousands of language learning decks with audio pronunciation and imagery, making it the most cost-effective vocabulary builder available. Students use frequency-based vocabulary decks to focus on the most common words first, achieving conversational coverage efficiently. Combining Anki vocabulary study with Pimsleur audio provides comprehensive language acquisition.",
-    "pricing_tier": "Free",
+    "pricing_tier": "Freemium",
     "difficulty": "beginner",
     "student_friendly": true,
     "use_cases": [
@@ -29465,7 +30159,7 @@
       "Organizing study schedules",
       "Getting step-by-step explanations of concepts"
     ],
-    "pricing": "Free",
+    "pricing": "Freemium",
     "student_perk": true,
     "company": "Community",
     "review_count": 0,
@@ -29478,7 +30172,40 @@
       "Custom decks"
     ],
     "slug": "anki-for-language",
-    "curation_score": 61.2
+    "curation_score": 61.2,
+    "pricing_source_url": "https://apps.ankiweb.net/",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://apps.ankiweb.net/",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Desktop / Android / Web",
+          "price_amount": 0,
+          "price_display": "Free (open source)",
+          "features": [
+            "Anki for Windows/Mac/Linux",
+            "AnkiDroid for Android",
+            "AnkiWeb sync"
+          ],
+          "cta_label": "Download",
+          "cta_url": "https://apps.ankiweb.net/"
+        },
+        {
+          "name": "AnkiMobile (iOS)",
+          "price_amount": 24.99,
+          "price_display": "$24.99 one-time",
+          "features": [
+            "Official iOS app",
+            "Purchase funds the project"
+          ],
+          "cta_label": "Get on App Store",
+          "cta_url": "https://apps.ankiweb.net/"
+        }
+      ]
+    }
   },
   {
     "id": 420,
@@ -30586,7 +31313,7 @@
     "category": "Design & Graphics",
     "subCategory": "Math Tools",
     "price": "Free",
-    "pricingDetail": "Free",
+    "pricingDetail": "Free, open-source LaTeX symbol classifier",
     "bestFor": "Finding the LaTeX command for any mathematical symbol by drawing it",
     "tags": [
       "LaTeX",
@@ -30642,7 +31369,28 @@
     ],
     "slug": "detexify",
     "is_ai_native": true,
-    "curation_score": 53.8
+    "curation_score": 53.8,
+    "pricing_source_url": "https://detexify.kirelabs.org",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://detexify.kirelabs.org",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free (open source)",
+          "features": [
+            "Draw a symbol, get its LaTeX command",
+            "Open source"
+          ],
+          "cta_label": "Use it",
+          "cta_url": "https://detexify.kirelabs.org"
+        }
+      ]
+    }
   },
   {
     "id": 449,
@@ -32866,8 +33614,8 @@
     "tagline": "Run open-source AI models directly in the browser with WebGPU",
     "category": "Coding",
     "subCategory": "Client-side AI",
-    "price": "Free",
-    "pricingDetail": "Free and open source",
+    "price": "Freemium",
+    "pricingDetail": "Free ($0, 2 GB); Starter $39/mo (10 GB); Growth $149/mo (50 GB); Custom — contact sales",
     "bestFor": "CS students learning to run AI models client-side in web applications",
     "tags": [
       "WebGPU",
@@ -32899,7 +33647,7 @@
     "languages": "5+",
     "launchYear": 2024,
     "description": "Browser AI enables running open-source LLMs and ML models directly in the browser using WebGPU acceleration, enabling AI web applications with no server costs and complete user data privacy. CS students building privacy-sensitive AI applications use it to avoid sending user data to external APIs. This emerging architecture is ideal for capstone projects that demonstrate both AI and cutting-edge web technology knowledge.",
-    "pricing_tier": "Free",
+    "pricing_tier": "Freemium",
     "difficulty": "advanced",
     "student_friendly": true,
     "use_cases": [
@@ -32909,7 +33657,7 @@
       "Reviewing and refactoring code",
       "Generating boilerplate and project scaffolding"
     ],
-    "pricing": "Free",
+    "pricing": "Freemium",
     "student_perk": true,
     "company": "Browser AI",
     "review_count": 0,
@@ -32922,7 +33670,62 @@
       "No server needed"
     ],
     "slug": "browserai",
-    "curation_score": 53.0
+    "curation_score": 53.0,
+    "pricing_source_url": "https://browser.ai/pricing",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://browser.ai/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "2 GB storage",
+            "3 concurrent browsers",
+            "Unlimited browser hours",
+            "Built-in proxies & CAPTCHA solving"
+          ],
+          "cta_label": "Start free",
+          "cta_url": "https://browser.ai/pricing"
+        },
+        {
+          "name": "Starter",
+          "price_amount": 39,
+          "price_display": "$39/mo",
+          "features": [
+            "10 GB storage",
+            "Unlimited sessions"
+          ],
+          "cta_label": "Choose Starter",
+          "cta_url": "https://browser.ai/pricing"
+        },
+        {
+          "name": "Growth",
+          "price_amount": 149,
+          "price_display": "$149/mo",
+          "features": [
+            "50 GB storage",
+            "Unlimited sessions"
+          ],
+          "cta_label": "Choose Growth",
+          "cta_url": "https://browser.ai/pricing"
+        },
+        {
+          "name": "Custom",
+          "price_amount": null,
+          "price_display": "Contact sales",
+          "features": [
+            "Tailored to requirements"
+          ],
+          "cta_label": "Contact sales",
+          "cta_url": "https://browser.ai/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 488,
@@ -35280,7 +36083,7 @@
     "weeklyUsers": null,
     "trending": true,
     "is_ai_native": true,
-    "last_verified_at": "2026-05-14",
+    "last_verified_at": "2026-05-25",
     "curation_score": 54.0,
     "student_friendly": false,
     "studentPerk": false,
@@ -35290,9 +36093,28 @@
     "company": "Google",
     "subCategory": "AI Design to Code",
     "pricing_tier": "Free",
-    "pricingDetail": "Free during Google Labs preview (daily generation credits, no card required); paid plans expected later.",
-    "pricing_source_url": "https://stitch.withgoogle.com/pricing",
-    "pricing_verified_at": "2026-05-18"
+    "pricingDetail": "Free Google Labs experiment for AI UI design",
+    "pricing_source_url": "https://stitch.withgoogle.com",
+    "pricing_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://stitch.withgoogle.com",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "AI UI design from prompts",
+            "Export to Figma / code",
+            "Google Labs experiment"
+          ],
+          "cta_label": "Try Stitch",
+          "cta_url": "https://stitch.withgoogle.com"
+        }
+      ]
+    }
   },
   {
     "id": 521,
@@ -36106,7 +36928,7 @@
     "weeklyUsers": null,
     "trending": true,
     "is_ai_native": true,
-    "last_verified_at": "2026-05-14",
+    "last_verified_at": "2026-05-25",
     "curation_score": 54.0,
     "student_friendly": false,
     "studentPerk": false,
@@ -36116,9 +36938,52 @@
     "company": "Tempo",
     "subCategory": "AI Design to Code",
     "pricing_tier": "Freemium",
-    "pricingDetail": "Free plan (30 credits/mo); Pro ~$30/mo; Agent+ $4,500/mo (human-assisted).",
-    "pricing_source_url": "https://www.tempo.new/",
-    "pricing_verified_at": "2026-05-18"
+    "pricingDetail": "Free ($0, 30 credits/mo); Pro $30/mo (150 credits); Agent+ $4,500/mo (human-assisted)",
+    "pricing_source_url": "https://www.tempo.new",
+    "pricing_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://www.tempo.new",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "30 credits/mo (5/day cap)",
+            "Free error fixes",
+            "Build prototypes"
+          ],
+          "cta_label": "Start free",
+          "cta_url": "https://www.tempo.new"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 30,
+          "price_display": "$30/mo",
+          "features": [
+            "150 credits/mo",
+            "Credit packs (250 for $50, no expiry)",
+            "Full React workflow"
+          ],
+          "cta_label": "Go Pro",
+          "cta_url": "https://www.tempo.new"
+        },
+        {
+          "name": "Agent+",
+          "price_amount": 4500,
+          "price_display": "$4,500/mo",
+          "features": [
+            "Human design reviews",
+            "Code audits",
+            "For agencies & funded startups"
+          ],
+          "cta_label": "Contact sales",
+          "cta_url": "https://www.tempo.new"
+        }
+      ]
+    }
   },
   {
     "id": 545,
@@ -38149,7 +39014,7 @@
     "category": "Research",
     "subCategory": "Homework Help",
     "price": "Freemium",
-    "pricingDetail": "Freemium",
+    "pricingDetail": "Free (ad-supported, limited); Plus $11.99/mo or $99.99/yr",
     "pricing": "Freemium",
     "pricing_tier": "Freemium",
     "bestFor": "Snapping a math or science problem and getting worked steps",
@@ -38205,7 +39070,53 @@
     "curation_score": 55.0,
     "icon": "/static/icons/default.png",
     "id": 569,
-    "slug": "gauthmath"
+    "slug": "gauthmath",
+    "pricing_source_url": "https://www.gauthmath.com/plus",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://www.gauthmath.com/plus",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Limited questions/day",
+            "Step-by-step solutions",
+            "Ad-supported"
+          ],
+          "cta_label": "Use free",
+          "cta_url": "https://www.gauthmath.com/plus"
+        },
+        {
+          "name": "Plus (Monthly)",
+          "price_amount": 11.99,
+          "price_display": "$11.99/mo",
+          "features": [
+            "Unlimited questions",
+            "Faster processing",
+            "Ad-free",
+            "Super Gauth AI"
+          ],
+          "cta_label": "Go Plus",
+          "cta_url": "https://www.gauthmath.com/plus"
+        },
+        {
+          "name": "Plus (Annual)",
+          "price_amount": 99.99,
+          "price_display": "$99.99/yr",
+          "features": [
+            "Everything in Plus",
+            "Best value"
+          ],
+          "cta_label": "Go Plus",
+          "cta_url": "https://www.gauthmath.com/plus"
+        }
+      ]
+    }
   },
   {
     "name": "Question.AI",
@@ -38214,7 +39125,7 @@
     "category": "Research",
     "subCategory": "Homework Help",
     "price": "Freemium",
-    "pricingDetail": "Freemium",
+    "pricingDetail": "Free (limited); Monthly $9.90/mo; Yearly $58.80/yr (~$4.90/mo, unlimited)",
     "pricing": "Freemium",
     "pricing_tier": "Freemium",
     "bestFor": "Instant AI help across any subject from a photo",
@@ -38268,7 +39179,50 @@
     "curation_score": 55.0,
     "icon": "/static/icons/default.png",
     "id": 570,
-    "slug": "question-ai"
+    "slug": "question-ai",
+    "pricing_source_url": "https://questionai.ai/pricing",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://questionai.ai/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Limited daily questions",
+            "All core features"
+          ],
+          "cta_label": "Use free",
+          "cta_url": "https://questionai.ai/pricing"
+        },
+        {
+          "name": "Monthly",
+          "price_amount": 9.9,
+          "price_display": "$9.90/mo",
+          "features": [
+            "30 questions/mo",
+            "30 image uploads/mo"
+          ],
+          "cta_label": "Subscribe",
+          "cta_url": "https://questionai.ai/pricing"
+        },
+        {
+          "name": "Yearly",
+          "price_amount": 58.8,
+          "price_display": "$58.80/yr (~$4.90/mo)",
+          "features": [
+            "Unlimited problem solving",
+            "Unlimited image uploads"
+          ],
+          "cta_label": "Subscribe",
+          "cta_url": "https://questionai.ai/pricing"
+        }
+      ]
+    }
   },
   {
     "name": "Studdy",
@@ -38277,7 +39231,7 @@
     "category": "Courses & Tutorials",
     "subCategory": "AI Tutoring",
     "price": "Freemium",
-    "pricingDetail": "Freemium",
+    "pricingDetail": "Free (5 scans/day, unlimited chat); Studdy Plus $6.99/week",
     "pricing": "Freemium",
     "pricing_tier": "Freemium",
     "bestFor": "A patient AI tutor that explains problems step by step",
@@ -38331,7 +39285,39 @@
     "curation_score": 55.0,
     "icon": "/static/icons/default.png",
     "id": 571,
-    "slug": "studdy"
+    "slug": "studdy",
+    "pricing_source_url": "https://studdyai.com/",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://studdyai.com/",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "5 problem scans/day",
+            "Unlimited tutoring chat"
+          ],
+          "cta_label": "Get the app",
+          "cta_url": "https://studdyai.com/"
+        },
+        {
+          "name": "Studdy Plus",
+          "price_amount": 6.99,
+          "price_display": "$6.99/week",
+          "features": [
+            "Unlimited scans",
+            "Unlimited chat"
+          ],
+          "cta_label": "Go Plus",
+          "cta_url": "https://studdyai.com/"
+        }
+      ]
+    }
   },
   {
     "name": "ZeroGPT",
