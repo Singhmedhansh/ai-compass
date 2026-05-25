@@ -7465,8 +7465,8 @@
     "tagline": "AI-powered lecture capture and video management for universities",
     "category": "Courses & Tutorials",
     "subCategory": "Lecture Capture",
-    "price": "Free",
-    "pricingDetail": "Free via university license",
+    "price": "Paid",
+    "pricingDetail": "Custom quote-based pricing; no public rate card - contact sales.",
     "bestFor": "Reviewing recorded lectures with AI-searchable transcripts",
     "tags": [
       "lectures",
@@ -7500,7 +7500,7 @@
     "languages": "15+",
     "launchYear": 2007,
     "description": "Panopto is the leading university lecture capture platform that automatically transcribes recorded classes and makes every spoken word searchable. Students can type a term and jump instantly to the exact moment in the video where it was discussed. Most universities provide Panopto access free to enrolled students.",
-    "pricing_tier": "Free",
+    "pricing_tier": "Paid",
     "difficulty": "beginner",
     "student_friendly": true,
     "use_cases": [
@@ -7510,7 +7510,7 @@
       "Organizing study schedules",
       "Getting step-by-step explanations of concepts"
     ],
-    "pricing": "Free",
+    "pricing": "Paid",
     "student_perk": true,
     "company": "Panopto",
     "review_count": 0,
@@ -7523,7 +7523,28 @@
       "Mobile playback"
     ],
     "slug": "panopto",
-    "curation_score": 45.0
+    "curation_score": 45.0,
+    "pricing_source_url": "https://www.panopto.com/",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://www.panopto.com/",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Custom",
+          "price_amount": null,
+          "price_display": "Contact sales",
+          "features": [
+            "Video platform for education & enterprise",
+            "Tailored quote by scale"
+          ],
+          "cta_label": "Contact sales",
+          "cta_url": "https://www.panopto.com/"
+        }
+      ]
+    }
   },
   {
     "id": 72,
@@ -8208,7 +8229,7 @@
     "category": "Productivity",
     "subCategory": "AI Search",
     "price": "Paid",
-    "pricingDetail": "Enterprise pricing; often provided by university IT",
+    "pricingDetail": "Enterprise-only, quote-based (no public rate card). Industry estimates ~$40-50/user/month, ~100-user minimum.",
     "bestFor": "Searching across all university platforms and documents from one place",
     "tags": [
       "search",
@@ -8263,7 +8284,29 @@
       "Knowledge graph"
     ],
     "slug": "glean",
-    "curation_score": 58.2
+    "curation_score": 58.2,
+    "pricing_source_url": "https://www.glean.com/",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://www.glean.com/",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Enterprise",
+          "price_amount": null,
+          "price_display": "Contact sales",
+          "features": [
+            "Enterprise AI search & assistant",
+            "SaaS or self-hosted",
+            "Est. ~$40-50/user/month (100-user min)"
+          ],
+          "cta_label": "Contact sales",
+          "cta_url": "https://www.glean.com/"
+        }
+      ]
+    }
   },
   {
     "id": 81,
@@ -9872,7 +9915,7 @@
     "category": "Courses & Tutorials",
     "subCategory": "Flashcards",
     "price": "Freemium",
-    "pricingDetail": "Free; Cram Premium $7.99/month",
+    "pricingDetail": "Free flashcard site; Cram Premium upgrade (price not publicly listed - see site).",
     "bestFor": "Finding pre-made flashcard sets for almost any class topic",
     "tags": [
       "flashcards",
@@ -9928,7 +9971,39 @@
       "AI card generation"
     ],
     "slug": "cram",
-    "curation_score": 60.0
+    "curation_score": 60.0,
+    "pricing_source_url": "https://www.cram.com/",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://www.cram.com/",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Create & study flashcards",
+            "Browse public sets"
+          ],
+          "cta_label": "Use free",
+          "cta_url": "https://www.cram.com/"
+        },
+        {
+          "name": "Premium",
+          "price_amount": null,
+          "price_display": "See site for pricing",
+          "features": [
+            "Ad-free",
+            "Audio mode & extras"
+          ],
+          "cta_label": "Go Premium",
+          "cta_url": "https://www.cram.com/"
+        }
+      ]
+    }
   },
   {
     "id": 103,
@@ -12303,8 +12378,8 @@
     "tagline": "Daily summaries of the most important academic papers across fields",
     "category": "Research",
     "subCategory": "Paper Discovery",
-    "price": "Free",
-    "pricingDetail": "Free daily email digest",
+    "price": "Freemium",
+    "pricingDetail": "Free tier available; paid plans/API priced on the site (contact for higher usage).",
     "bestFor": "Staying current with research in your field without reading every paper",
     "tags": [
       "research",
@@ -12335,7 +12410,7 @@
     "languages": "5+",
     "launchYear": 2019,
     "description": "Paper Digest delivers daily email summaries of the most impactful new academic papers across selected research fields. Students subscribe to their discipline's digest to stay current with cutting-edge research effortlessly. Each summary is concise enough to read in under two minutes and includes a link to the full paper for deeper reading.",
-    "pricing_tier": "Free",
+    "pricing_tier": "Freemium",
     "difficulty": "intermediate",
     "student_friendly": true,
     "use_cases": [
@@ -12345,7 +12420,7 @@
       "Discovering related research and citations",
       "Synthesizing findings from multiple sources"
     ],
-    "pricing": "Free",
+    "pricing": "Freemium",
     "student_perk": true,
     "company": "Paper Digest",
     "review_count": 0,
@@ -12358,7 +12433,38 @@
       "Email delivery"
     ],
     "slug": "consensus-summarizer",
-    "curation_score": 52.5
+    "curation_score": 52.5,
+    "pricing_source_url": "https://www.paper-digest.com/",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://www.paper-digest.com/",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Paper summaries & digests",
+            "Basic usage"
+          ],
+          "cta_label": "Try free",
+          "cta_url": "https://www.paper-digest.com/"
+        },
+        {
+          "name": "Paid",
+          "price_amount": null,
+          "price_display": "Pricing on request",
+          "features": [
+            "Higher usage & API access"
+          ],
+          "cta_label": "See site",
+          "cta_url": "https://www.paper-digest.com/"
+        }
+      ]
+    }
   },
   {
     "id": 132,
@@ -16084,8 +16190,8 @@
     "tagline": "Academic integrity and AI writing detection platform used by universities",
     "category": "Writing & Chat",
     "subCategory": "Plagiarism Detection",
-    "price": "Free",
-    "pricingDetail": "Free via university license",
+    "price": "Paid",
+    "pricingDetail": "Licensed through schools & institutions; no public consumer pricing - contact sales.",
     "bestFor": "Checking originality of your work before submitting to avoid unintentional plagiarism",
     "tags": [
       "plagiarism",
@@ -16117,7 +16223,7 @@
     "languages": "30+",
     "launchYear": 1998,
     "description": "Turnitin is the academic integrity platform used by thousands of universities to check submissions for plagiarism and AI-generated content. Students with access through their institution can self-check drafts before final submission to catch unintentional similarity. Its Feedback Studio also provides inline commenting tools used by professors to deliver detailed writing feedback.",
-    "pricing_tier": "Free",
+    "pricing_tier": "Paid",
     "difficulty": "beginner",
     "student_friendly": true,
     "use_cases": [
@@ -16127,7 +16233,7 @@
       "Generating blog posts and content",
       "Creating professional emails and communications"
     ],
-    "pricing": "Free",
+    "pricing": "Paid",
     "student_perk": true,
     "company": "Turnitin",
     "review_count": 0,
@@ -16140,7 +16246,28 @@
       "Feedback studio"
     ],
     "slug": "turnitin",
-    "curation_score": 63.0
+    "curation_score": 63.0,
+    "pricing_source_url": "https://www.turnitin.com/",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://www.turnitin.com/",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Institutional",
+          "price_amount": null,
+          "price_display": "Contact sales",
+          "features": [
+            "Licensed via your school/institution",
+            "Similarity & AI-writing detection"
+          ],
+          "cta_label": "Contact sales",
+          "cta_url": "https://www.turnitin.com/"
+        }
+      ]
+    }
   },
   {
     "id": 173,
@@ -17990,7 +18117,7 @@
     "category": "Coding",
     "subCategory": "Reading & Retention",
     "price": "Freemium",
-    "pricingDetail": "Free basic; Pro $7/month",
+    "pricingDetail": "Free tier available; Premium upgrade (price not publicly listed - see site).",
     "bestFor": "Retaining knowledge from academic books and assigned readings long-term",
     "tags": [
       "reading",
@@ -18046,7 +18173,37 @@
       "Note connections"
     ],
     "slug": "thinker-notes",
-    "curation_score": 45.0
+    "curation_score": 45.0,
+    "pricing_source_url": "https://thinkernotes.app/",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://thinkernotes.app/",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "AI note-taking with limits"
+          ],
+          "cta_label": "Get started",
+          "cta_url": "https://thinkernotes.app/"
+        },
+        {
+          "name": "Premium",
+          "price_amount": null,
+          "price_display": "See site for pricing",
+          "features": [
+            "Unlocks premium features"
+          ],
+          "cta_label": "Upgrade",
+          "cta_url": "https://thinkernotes.app/"
+        }
+      ]
+    }
   },
   {
     "id": 195,
@@ -21131,7 +21288,7 @@
     "category": "Design & Graphics",
     "subCategory": "Design to Code",
     "price": "Freemium",
-    "pricingDetail": "Free limited; Pro $19/month",
+    "pricingDetail": "Free tools available; paid licenses via their marketplace (price not listed on site).",
     "bestFor": "Converting UI design mockups to React code for web development courses",
     "tags": [
       "design to code",
@@ -21188,7 +21345,37 @@
     ],
     "slug": "sketch2react",
     "is_ai_native": true,
-    "curation_score": 45.0
+    "curation_score": 45.0,
+    "pricing_source_url": "https://sketch2react.io/",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://sketch2react.io/",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Design-to-code tools"
+          ],
+          "cta_label": "Get started",
+          "cta_url": "https://sketch2react.io/"
+        },
+        {
+          "name": "Paid",
+          "price_amount": null,
+          "price_display": "See marketplace",
+          "features": [
+            "Pro tools & licenses"
+          ],
+          "cta_label": "View marketplace",
+          "cta_url": "https://sketch2react.io/"
+        }
+      ]
+    }
   },
   {
     "id": 227,
@@ -23020,8 +23207,8 @@
     "tagline": "AI-powered assessment platform used in university LMS environments",
     "category": "Coding",
     "subCategory": "Assessment Platform",
-    "price": "Free",
-    "pricingDetail": "Free via university integration",
+    "price": "Paid",
+    "pricingDetail": "Usage/quote-based assessment APIs; no public rate card - contact sales.",
     "bestFor": "Taking adaptive AI-assessed quizzes and assignments through your LMS",
     "tags": [
       "assessment",
@@ -23053,7 +23240,7 @@
     "languages": "30+",
     "launchYear": 2011,
     "description": "Learnosity is an assessment infrastructure platform embedded in university LMS systems including Canvas and Blackboard that powers interactive quizzes, adaptive tests, and rich media assessments. Students access it through their existing course platforms. The adaptive algorithm adjusts question difficulty based on performance to identify precise knowledge gaps efficiently.",
-    "pricing_tier": "Free",
+    "pricing_tier": "Paid",
     "difficulty": "beginner",
     "student_friendly": true,
     "use_cases": [
@@ -23063,7 +23250,7 @@
       "Organizing study schedules",
       "Getting step-by-step explanations of concepts"
     ],
-    "pricing": "Free",
+    "pricing": "Paid",
     "student_perk": true,
     "company": "Learnosity",
     "review_count": 0,
@@ -23076,7 +23263,29 @@
       "Detailed reporting"
     ],
     "slug": "learnosity",
-    "curation_score": 63.2
+    "curation_score": 63.2,
+    "pricing_source_url": "https://www.learnosity.com/",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://www.learnosity.com/",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Custom",
+          "price_amount": null,
+          "price_display": "Contact sales",
+          "features": [
+            "Assessment & authoring APIs",
+            "Usage-based pricing",
+            "Enterprise support"
+          ],
+          "cta_label": "Contact sales",
+          "cta_url": "https://www.learnosity.com/"
+        }
+      ]
+    }
   },
   {
     "id": 246,
@@ -24443,7 +24652,7 @@
     "category": "Coding",
     "subCategory": "Computer Vision",
     "price": "Freemium",
-    "pricingDetail": "Free Community; Academic plan available",
+    "pricingDetail": "LightlyStudio is free/open-source; LightlyTrain & enterprise services are quote-based - contact sales.",
     "bestFor": "Curating and selecting optimal training data for computer vision projects",
     "tags": [
       "computer vision",
@@ -24498,7 +24707,39 @@
       "Active learning"
     ],
     "slug": "lightly-ai",
-    "curation_score": 47.0
+    "curation_score": 47.0,
+    "pricing_source_url": "https://www.lightly.ai/",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://www.lightly.ai/",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free / Open source",
+          "price_amount": 0,
+          "price_display": "Free (LightlyStudio)",
+          "features": [
+            "Open-source data curation",
+            "Self-hosted"
+          ],
+          "cta_label": "Try free",
+          "cta_url": "https://www.lightly.ai/"
+        },
+        {
+          "name": "Enterprise",
+          "price_amount": null,
+          "price_display": "Contact sales",
+          "features": [
+            "LightlyTrain & services",
+            "Custom deployment"
+          ],
+          "cta_label": "Contact sales",
+          "cta_url": "https://www.lightly.ai/"
+        }
+      ]
+    }
   },
   {
     "id": 267,
@@ -24936,7 +25177,7 @@
     "category": "Courses & Tutorials",
     "subCategory": "Adaptive Learning",
     "price": "Freemium",
-    "pricingDetail": "Free; Premium Ã‚Â£7.99/month",
+    "pricingDetail": "Free for students (600+ exam-board courses); Premium upgrade available; Schools from GBP 646/year (600+ pupils).",
     "bestFor": "Exam revision with AI-adaptive quizzing based on retrieval practice science",
     "tags": [
       "revision",
@@ -24993,7 +25234,49 @@
       "Group classes"
     ],
     "slug": "seneca-learning",
-    "curation_score": 45.0
+    "curation_score": 45.0,
+    "pricing_source_url": "https://senecalearning.com/",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://senecalearning.com/",
+      "currency": "GBP",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "600+ exam-board courses",
+            "For students & teachers"
+          ],
+          "cta_label": "Sign up",
+          "cta_url": "https://senecalearning.com/"
+        },
+        {
+          "name": "Premium",
+          "price_amount": null,
+          "price_display": "See site for pricing",
+          "features": [
+            "Smart learning mode & extras"
+          ],
+          "cta_label": "Go Premium",
+          "cta_url": "https://senecalearning.com/"
+        },
+        {
+          "name": "Schools",
+          "price_amount": null,
+          "price_display": "from GBP 646/year (600+ pupils)",
+          "features": [
+            "School-wide premium",
+            "12-month free trial"
+          ],
+          "cta_label": "Contact sales",
+          "cta_url": "https://senecalearning.com/"
+        }
+      ]
+    }
   },
   {
     "id": 276,
@@ -25339,8 +25622,8 @@
     "tagline": "AI science tutor for physics, chemistry, and biology with interactive simulations",
     "category": "Research",
     "subCategory": "Science Tutoring",
-    "price": "Freemium",
-    "pricingDetail": "Free limited; Premium $8/month",
+    "price": "Paid",
+    "pricingDetail": "Institutional (Fast ForWord / Reading Assistant); annual school/district license - contact sales.",
     "bestFor": "Understanding science concepts through AI explanations and interactive simulations",
     "tags": [
       "science",
@@ -25372,7 +25655,7 @@
     "languages": "5+",
     "launchYear": 2022,
     "description": "MySciLearn combines AI tutoring explanations with interactive simulations for physics, chemistry, and biology, making abstract scientific concepts tangible through visual experimentation. Students can run virtual experiments and receive AI guidance on the underlying principles. The concept maps help students see how scientific ideas connect across topics.",
-    "pricing_tier": "Freemium",
+    "pricing_tier": "Paid",
     "difficulty": "beginner",
     "student_friendly": true,
     "use_cases": [
@@ -25382,7 +25665,7 @@
       "Organizing study schedules",
       "Getting step-by-step explanations of concepts"
     ],
-    "pricing": "Freemium",
+    "pricing": "Paid",
     "student_perk": true,
     "company": "MySciLearn",
     "review_count": 0,
@@ -25395,7 +25678,28 @@
       "Concept maps"
     ],
     "slug": "myscilearn",
-    "curation_score": 52.5
+    "curation_score": 52.5,
+    "pricing_source_url": "https://www.scilearn.com/",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://www.scilearn.com/",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Institutional",
+          "price_amount": null,
+          "price_display": "Contact sales",
+          "features": [
+            "Annual school/district license",
+            "Includes MySciLEARN courses & support"
+          ],
+          "cta_label": "Contact sales",
+          "cta_url": "https://www.scilearn.com/"
+        }
+      ]
+    }
   },
   {
     "id": 281,
@@ -25719,8 +26023,8 @@
     "tagline": "AI-powered knowledge management that surfaces the right information in context",
     "category": "Productivity",
     "subCategory": "Knowledge Management",
-    "price": "Freemium",
-    "pricingDetail": "Free up to 5 users; Starter $10/month",
+    "price": "Paid",
+    "pricingDetail": "Per-user plans (10-user minimum): Starter ~$10/user/month; Expert from ~$20/user/month; Enterprise custom. No free plan (trial via sales).",
     "bestFor": "Building a team knowledge base that proactively surfaces relevant content",
     "tags": [
       "knowledge management",
@@ -25753,7 +26057,7 @@
     "languages": "5+",
     "launchYear": 2015,
     "description": "Guru is an AI knowledge management platform that organizes team information into verified knowledge cards and surfaces them contextually when needed. Study groups use it to create a shared wiki of course concepts, definitions, and summaries that integrates with Slack for quick access during discussions. The verification workflow ensures shared content stays accurate and current.",
-    "pricing_tier": "Freemium",
+    "pricing_tier": "Paid",
     "difficulty": "beginner",
     "student_friendly": true,
     "use_cases": [
@@ -25763,7 +26067,7 @@
       "Summarizing meetings and calls",
       "Reducing time on manual administrative work"
     ],
-    "pricing": "Freemium",
+    "pricing": "Paid",
     "student_perk": true,
     "company": "Guru Technologies",
     "review_count": 0,
@@ -25776,7 +26080,50 @@
       "Verification workflow"
     ],
     "slug": "guru",
-    "curation_score": 54.5
+    "curation_score": 54.5,
+    "pricing_source_url": "https://www.getguru.com/pricing",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://www.getguru.com/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Starter",
+          "price_amount": 10,
+          "price_display": "~$10/user/month (annual)",
+          "features": [
+            "AI knowledge management",
+            "10-user minimum"
+          ],
+          "cta_label": "Choose Starter",
+          "cta_url": "https://www.getguru.com/pricing"
+        },
+        {
+          "name": "Expert",
+          "price_amount": 20,
+          "price_display": "from ~$20/user/month (annual)",
+          "features": [
+            "Advanced AI & analytics",
+            "Usage-based options"
+          ],
+          "cta_label": "Choose Expert",
+          "cta_url": "https://www.getguru.com/pricing"
+        },
+        {
+          "name": "Enterprise",
+          "price_amount": null,
+          "price_display": "Custom",
+          "features": [
+            "Usage-based value metric",
+            "Dedicated support"
+          ],
+          "cta_label": "Contact sales",
+          "cta_url": "https://www.getguru.com/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 286,
@@ -27683,8 +28030,8 @@
     "tagline": "AI research assistant that maps scientific papers and extracts insights",
     "category": "Research",
     "subCategory": "AI Research",
-    "price": "Freemium",
-    "pricingDetail": "Free basic; Researcher $29/month",
+    "price": "Paid",
+    "pricingDetail": "Quote-based research workspace; request a demo / contact sales for pricing.",
     "bestFor": "Systematic literature reviews and extracting structured data from papers",
     "tags": [
       "research",
@@ -27715,7 +28062,7 @@
     "languages": "5+",
     "launchYear": 2016,
     "description": "Iris.ai is an AI-powered research assistant that processes large sets of scientific papers and clusters them by topic, extracts key concepts, and identifies research gaps. Students conducting systematic literature reviews use it to organize hundreds of papers into thematic groups that reveal the structure of a research field. The workspace enables team-based research analysis.",
-    "pricing_tier": "Freemium",
+    "pricing_tier": "Paid",
     "difficulty": "intermediate",
     "student_friendly": true,
     "use_cases": [
@@ -27725,7 +28072,7 @@
       "Discovering related research and citations",
       "Synthesizing findings from multiple sources"
     ],
-    "pricing": "Freemium",
+    "pricing": "Paid",
     "student_perk": true,
     "company": "Iris AI",
     "review_count": 0,
@@ -27738,7 +28085,28 @@
       "Workspace"
     ],
     "slug": "iris.ai",
-    "curation_score": 45.0
+    "curation_score": 45.0,
+    "pricing_source_url": "https://iris.ai/",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://iris.ai/",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Custom",
+          "price_amount": null,
+          "price_display": "Request a demo",
+          "features": [
+            "AI research assistant workspace",
+            "Tailored to your team"
+          ],
+          "cta_label": "Request a demo",
+          "cta_url": "https://iris.ai/"
+        }
+      ]
+    }
   },
   {
     "id": 334,
@@ -32670,7 +33038,7 @@
     "category": "Research",
     "subCategory": "Academic Database",
     "price": "Freemium",
-    "pricingDetail": "Free for individuals; Plus plans for institutions",
+    "pricingDetail": "Free version for non-commercial use (unlimited search, export up to 500 records); Dimensions Analytics is institutional (~$10k-$50k/year); Discovery add-on extra.",
     "bestFor": "Comprehensive literature searches and research landscape analysis",
     "tags": [
       "academic database",
@@ -32726,7 +33094,41 @@
     ],
     "slug": "dimensions",
     "is_ai_native": true,
-    "curation_score": 62.0
+    "curation_score": 62.0,
+    "pricing_source_url": "https://www.dimensions.ai/products/",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://www.dimensions.ai/products/",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free version",
+          "price_amount": 0,
+          "price_display": "Free (non-commercial)",
+          "features": [
+            "Unlimited publication search",
+            "Citation & Altmetric data",
+            "Export up to 500 records"
+          ],
+          "cta_label": "Use free",
+          "cta_url": "https://www.dimensions.ai/products/all-products/dimensions-free-version/"
+        },
+        {
+          "name": "Analytics (Institutional)",
+          "price_amount": null,
+          "price_display": "Custom (~$10k-$50k/year)",
+          "features": [
+            "Advanced filtering & benchmarking",
+            "Grant tracking",
+            "Full export & API"
+          ],
+          "cta_label": "Contact sales",
+          "cta_url": "https://www.dimensions.ai/request-access/"
+        }
+      ]
+    }
   },
   {
     "id": 446,
@@ -33754,7 +34156,7 @@
     "category": "Writing & Chat",
     "subCategory": "Creative Writing",
     "price": "Freemium",
-    "pricingDetail": "Free limited; Plus $9/month",
+    "pricingDetail": "Free plan (up to 5 universes, unlimited characters/items); Premium unlocks unlimited universes, templates & 10GB (price not publicly listed).",
     "bestFor": "Creative writing students building fictional worlds and consistent character systems",
     "tags": [
       "creative writing",
@@ -33809,7 +34211,41 @@
       "Timeline tracking"
     ],
     "slug": "notebook-ai",
-    "curation_score": 53.8
+    "curation_score": 53.8,
+    "pricing_source_url": "https://www.notebook.ai/",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://www.notebook.ai/",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Up to 5 universes",
+            "Unlimited characters & items",
+            "50MB images"
+          ],
+          "cta_label": "Sign up",
+          "cta_url": "https://www.notebook.ai/"
+        },
+        {
+          "name": "Premium",
+          "price_amount": null,
+          "price_display": "See site for pricing",
+          "features": [
+            "Unlimited universes",
+            "25+ extra templates",
+            "10GB images"
+          ],
+          "cta_label": "Upgrade",
+          "cta_url": "https://www.notebook.ai/"
+        }
+      ]
+    }
   },
   {
     "id": 466,
@@ -38780,7 +39216,7 @@
     "weeklyUsers": null,
     "trending": true,
     "is_ai_native": true,
-    "last_verified_at": "2026-05-14",
+    "last_verified_at": "2026-05-25",
     "curation_score": 54.0,
     "student_friendly": false,
     "studentPerk": false,
@@ -38790,9 +39226,36 @@
     "company": "Polymet",
     "subCategory": "AI UI Design",
     "pricing_tier": "Freemium",
-    "pricingDetail": "Free plan (limited credits); Pro from ~$49.99/month; Enterprise custom (unlimited credits).",
+    "pricingDetail": "Free to get started; paid plans via the app (book a demo / contact for pricing).",
     "pricing_source_url": "https://polymet.ai/",
-    "pricing_verified_at": "2026-05-18"
+    "pricing_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://polymet.ai/",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free to start",
+          "features": [
+            "AI UI & design generation"
+          ],
+          "cta_label": "Get started",
+          "cta_url": "https://polymet.ai/"
+        },
+        {
+          "name": "Paid",
+          "price_amount": null,
+          "price_display": "Contact / book a demo",
+          "features": [
+            "Higher usage & team features"
+          ],
+          "cta_label": "Book a demo",
+          "cta_url": "https://polymet.ai/"
+        }
+      ]
+    }
   },
   {
     "id": 529,
