@@ -212,11 +212,29 @@ def create_app(config: dict | None = None) -> Flask:
     csrf.init_app(app)
 
     # Security headers via Talisman. HSTS, X-Frame-Options, X-Content-Type-
-    # Options, Referrer-Policy, Permissions-Policy, X-XSS-Protection all get
-    # set automatically. CSP is opted out for now — the live HTML has inline
-    # scripts (theme detector, PostHog init) that would need nonces or
-    # hashes, which is a separate hardening pass. The other six headers
-    # close the audit gap immediately.
+    # Options, Referrer-Policy, Permissions-Policy all get set automatically.
+    #
+    # CSP: the static SPA shell carries inline <script>/<style> (theme
+    # detector, PostHog init, boot CSS) and React emits inline style
+    # attributes; those inline scripts live in a static file we can't nonce
+    # at request time, so script-src/style-src use 'unsafe-inline'. Everything
+    # else is locked to 'self' plus the specific third parties we actually load
+    # — PostHog (analytics) and Google Fonts — with images allowed from any
+    # https host because tool logos come from many favicon/logo CDNs.
+    # cloudflareinsights is listed defensively in case CF Web Analytics is on.
+    csp = {
+        "default-src": "'self'",
+        "script-src": "'self' 'unsafe-inline' https://us-assets.i.posthog.com https://us.i.posthog.com https://static.cloudflareinsights.com",
+        "style-src": "'self' 'unsafe-inline' https://fonts.googleapis.com",
+        "font-src": "'self' https://fonts.gstatic.com data:",
+        "img-src": "'self' data: https:",
+        "connect-src": "'self' https://us.i.posthog.com https://us-assets.i.posthog.com https://cloudflareinsights.com",
+        "worker-src": "'self' blob:",
+        "frame-ancestors": "'self'",
+        "base-uri": "'self'",
+        "form-action": "'self'",
+        "object-src": "'none'",
+    }
     if Talisman is not None and not app.config.get("TESTING"):
         Talisman(
             app,
@@ -237,7 +255,7 @@ def create_app(config: dict | None = None) -> Flask:
             strict_transport_security_include_subdomains=True,
             frame_options="SAMEORIGIN",
             referrer_policy="strict-origin-when-cross-origin",
-            content_security_policy=None,  # opt out — see comment above
+            content_security_policy=csp,
             permissions_policy={
                 "geolocation": "()",
                 "microphone": "()",
