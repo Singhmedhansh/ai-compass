@@ -1,4 +1,5 @@
 import html as html_module
+import json
 import os
 import re
 from datetime import datetime, timezone
@@ -188,6 +189,48 @@ def _inject_seo_root(out_html: str, seo_html: str) -> str:
     return replaced if count else out_html
 
 
+# Homepage FAQ. Kept in sync with the visible React FAQ
+# (frontend/src/components/home/FAQ.jsx, FAGS export) so the FAQPage schema
+# mirrors on-page content. Rendered into the crawler shell + emitted as
+# FAQPage JSON-LD below.
+_HOME_FAQ = [
+    ("Is AI Compass free to use?",
+     "Yes. Browsing and searching all 400+ AI tools is completely free — no login, no signup, and no credit card required."),
+    ("How many AI tools are listed on AI Compass?",
+     "Over 400 hand-tested AI tools across writing, coding, research, design, image, video, audio, and study."),
+    ("Do I need an account to use AI Compass?",
+     "No. You can search, filter, compare, and open any tool without an account. An optional free account lets you save favourites and build a stack."),
+    ("How are the tools chosen?",
+     "Every tool is hand-picked and hand-tested by us — no pay-to-rank placement and no directory spam."),
+    ("Does AI Compass show pricing?",
+     "Yes. Tools show verified, up-to-date pricing tiers — free, freemium, or paid — sourced from each tool's official pricing page."),
+    ("Who is AI Compass for?",
+     "It's built for students first, but anyone trying to find the right AI tool quickly will find it useful."),
+]
+
+
+def _home_faq_block() -> str:
+    """Crawler-visible FAQ (heading + <dl>) plus matching FAQPage JSON-LD."""
+    rows = ''.join(
+        f'<div><dt>{_esc(q)}</dt><dd>{_esc(a)}</dd></div>' for q, a in _HOME_FAQ
+    )
+    jsonld = {
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        'mainEntity': [
+            {'@type': 'Question', 'name': q,
+             'acceptedAnswer': {'@type': 'Answer', 'text': a}}
+            for q, a in _HOME_FAQ
+        ],
+    }
+    script = (
+        '<script type="application/ld+json">'
+        + json.dumps(jsonld, ensure_ascii=False)
+        + '</script>'
+    )
+    return f'<h2>Frequently asked questions</h2><dl>{rows}</dl>{script}'
+
+
 def _seo_body(normalized: str, tool: dict | None = None) -> str:
     """Build a minimal semantic HTML block for crawlers, per route."""
     if tool is not None:
@@ -269,12 +312,13 @@ def _seo_body(normalized: str, tool: dict | None = None) -> str:
             if is_home
             else ''
         )
+        faq = _home_faq_block() if is_home else ''
         return (
             f'<h1>{heading}</h1>'
             '<p>Hand-curated, hand-tested AI tools for students — writing, coding, '
             'research, design, image, video, audio, and study tools. Free to browse, '
             'no login required.</p>'
-            f'<ul>{"".join(items)}</ul>{tail}'
+            f'<ul>{"".join(items)}</ul>{tail}{faq}'
         )
 
     if normalized in _ROUTE_META:
