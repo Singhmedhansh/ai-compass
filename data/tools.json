@@ -16624,7 +16624,7 @@
     "category": "Productivity",
     "subCategory": "Task Breakdown",
     "price": "Free",
-    "pricingDetail": "Free",
+    "pricingDetail": "Web app free (pay-what-you-want); low-cost mobile apps available",
     "bestFor": "Breaking overwhelming assignments into small, actionable steps",
     "tags": [
       "ADHD",
@@ -16681,7 +16681,40 @@
       "Judge tool"
     ],
     "slug": "goblin-tools",
-    "curation_score": 59.8
+    "curation_score": 59.8,
+    "pricing_source_url": "https://goblin.tools",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://goblin.tools",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "Magic To-Do, Formalizer, Judge & more",
+            "Web app free (pay-what-you-want)",
+            "Built for neurodivergent users"
+          ],
+          "cta_label": "Use free",
+          "cta_url": "https://goblin.tools"
+        },
+        {
+          "name": "Mobile app",
+          "price_amount": null,
+          "price_display": "Low one-time fee",
+          "features": [
+            "iOS / Android apps",
+            "Same tools on mobile"
+          ],
+          "cta_label": "Get the app",
+          "cta_url": "https://goblin.tools"
+        }
+      ]
+    }
   },
   {
     "id": 202,
@@ -19960,8 +19993,8 @@
     "tagline": "Run and fine-tune open-source AI models via a simple API",
     "category": "Coding",
     "subCategory": "AI API Platform",
-    "price": "Freemium",
-    "pricingDetail": "Pay-per-use; free trial credits",
+    "price": "Paid",
+    "pricingDetail": "Usage-based: pay per second of compute (varies by hardware); some models billed per input/output",
     "bestFor": "Running any open-source AI model with a single API call for student projects",
     "tags": [
       "API",
@@ -19993,7 +20026,7 @@
     "languages": "10+",
     "launchYear": 2021,
     "description": "Replicate hosts thousands of open-source AI models accessible via a standardized API, from image generation to speech recognition to specialized scientific models. Students can find a pre-built model for almost any AI task and call it with a single API request without setting up any infrastructure. The model library is browsable with example outputs, making it easy to evaluate models before building.",
-    "pricing_tier": "Freemium",
+    "pricing_tier": "Paid",
     "difficulty": "advanced",
     "student_friendly": true,
     "use_cases": [
@@ -20003,7 +20036,7 @@
       "Reviewing and refactoring code",
       "Generating boilerplate and project scaffolding"
     ],
-    "pricing": "Freemium",
+    "pricing": "Paid",
     "student_perk": true,
     "company": "Replicate",
     "review_count": 0,
@@ -20016,7 +20049,30 @@
       "Webhooks"
     ],
     "slug": "replicate",
-    "curation_score": 55.8
+    "curation_score": 55.8,
+    "pricing_source_url": "https://replicate.com/pricing",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://replicate.com/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Pay-as-you-go",
+          "price_amount": null,
+          "price_display": "Usage-based",
+          "features": [
+            "Pay per second of compute",
+            "CPU from ~$0.09/hr; Nvidia T4 ~$0.81/hr",
+            "A100 80GB ~$5.04/hr; H100 ~$5.49/hr",
+            "Some models billed per input/output"
+          ],
+          "cta_label": "View pricing",
+          "cta_url": "https://replicate.com/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 244,
@@ -20353,8 +20409,8 @@
     "tagline": "Data framework for connecting LLMs to your own data sources",
     "category": "Coding",
     "subCategory": "AI Framework",
-    "price": "Free",
-    "pricingDetail": "Free open source",
+    "price": "Freemium",
+    "pricingDetail": "Open-source framework free; LlamaCloud Free 10k credits/mo; pay-as-you-go (1,000 credits = $1); Enterprise custom",
     "bestFor": "Building RAG and knowledge-augmented AI applications over custom datasets",
     "tags": [
       "RAG",
@@ -20386,7 +20442,7 @@
     "languages": "5+",
     "launchYear": 2022,
     "description": "LlamaIndex is a framework specifically designed for building retrieval-augmented generation applications that connect language models to custom data sources. AI and CS students use it to build question-answering systems over document collections, personal knowledge bases, and databases. Its data connectors support hundreds of source types including Notion, PDFs, and SQL databases.",
-    "pricing_tier": "Free",
+    "pricing_tier": "Freemium",
     "difficulty": "intermediate",
     "student_friendly": true,
     "use_cases": [
@@ -20396,7 +20452,7 @@
       "Reviewing and refactoring code",
       "Generating boilerplate and project scaffolding"
     ],
-    "pricing": "Free",
+    "pricing": "Freemium",
     "student_perk": true,
     "company": "LlamaIndex",
     "review_count": 0,
@@ -20409,7 +20465,63 @@
       "Agent tools"
     ],
     "slug": "llamaindex",
-    "curation_score": 55.8
+    "curation_score": 55.8,
+    "pricing_source_url": "https://www.llamaindex.ai/pricing",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://www.llamaindex.ai/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Open Source",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "Open-source data framework for LLM apps",
+            "You pay only your own LLM/API costs"
+          ],
+          "cta_label": "Get on GitHub",
+          "cta_url": "https://www.llamaindex.ai/pricing"
+        },
+        {
+          "name": "LlamaCloud Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "10,000 credits/mo (≈ 1,000 pages)",
+            "Agentic OCR & structured extraction",
+            "1 user, 1 project"
+          ],
+          "cta_label": "Start free",
+          "cta_url": "https://www.llamaindex.ai/pricing"
+        },
+        {
+          "name": "Pay-as-you-go",
+          "price_amount": null,
+          "price_display": "Usage-based (1,000 credits = $1)",
+          "features": [
+            "LlamaParse from $0.00125/page",
+            "Scale beyond free credits"
+          ],
+          "cta_label": "View pricing",
+          "cta_url": "https://www.llamaindex.ai/pricing"
+        },
+        {
+          "name": "Enterprise",
+          "price_amount": null,
+          "price_display": "Custom",
+          "features": [
+            "Higher limits & SLAs",
+            "SSO & security",
+            "Dedicated support"
+          ],
+          "cta_label": "Contact sales",
+          "cta_url": "https://www.llamaindex.ai/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 252,
@@ -21642,7 +21754,7 @@
     "category": "Courses & Tutorials",
     "subCategory": "Online Tutoring",
     "price": "Paid",
-    "pricingDetail": "From Ã¢â€šÂ¬29/month depending on subject and level",
+    "pricingDetail": "1:1 tutoring from EUR19.99/lesson (4/6/8/12-lesson monthly packages); GoStudent Learning EUR14.90/mo",
     "bestFor": "Getting one-on-one tutoring support in specific difficult subjects",
     "tags": [
       "tutoring",
@@ -21699,7 +21811,40 @@
       "Progress tracking"
     ],
     "slug": "gostudent",
-    "curation_score": 56.2
+    "curation_score": 56.2,
+    "pricing_source_url": "https://www.gostudent.org/en-gb/prices/",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://www.gostudent.org/en-gb/prices/",
+      "currency": "EUR",
+      "tiers": [
+        {
+          "name": "1:1 Tutoring",
+          "price_amount": null,
+          "price_display": "From €19.99/lesson",
+          "features": [
+            "50-min 1:1 online lessons",
+            "Monthly packages of 4/6/8/12 lessons",
+            "Per-lesson price drops with more sessions"
+          ],
+          "cta_label": "See packages",
+          "cta_url": "https://www.gostudent.org/en-gb/prices/"
+        },
+        {
+          "name": "GoStudent Learning",
+          "price_amount": 14.9,
+          "price_display": "€14.90/month",
+          "features": [
+            "AI tutor & learning platform",
+            "First month free"
+          ],
+          "cta_label": "Try Learning",
+          "cta_url": "https://www.gostudent.org/en-gb/prices/"
+        }
+      ]
+    }
   },
   {
     "id": 277,
@@ -22888,7 +23033,7 @@
     "category": "Productivity",
     "subCategory": "Workflow Automation",
     "price": "Freemium",
-    "pricingDetail": "Free self-host; Cloud from $24/month",
+    "pricingDetail": "Community self-hosted free; Cloud Starter EUR20/mo; Pro EUR50/mo; Business EUR667/mo; Enterprise custom",
     "bestFor": "Building AI-powered automation workflows connecting all academic tools",
     "tags": [
       "automation",
@@ -22943,7 +23088,80 @@
       "Self-hosted"
     ],
     "slug": "n8n",
-    "curation_score": 55.8
+    "curation_score": 55.8,
+    "pricing_source_url": "https://n8n.io/pricing/",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://n8n.io/pricing/",
+      "currency": "EUR",
+      "tiers": [
+        {
+          "name": "Community",
+          "price_amount": 0,
+          "price_display": "Free (self-hosted)",
+          "features": [
+            "Open-source on GitHub",
+            "Unlimited workflows & users",
+            "Self-managed"
+          ],
+          "cta_label": "Get on GitHub",
+          "cta_url": "https://n8n.io/pricing/"
+        },
+        {
+          "name": "Starter",
+          "price_amount": 20,
+          "price_display": "€20/month (billed annually)",
+          "features": [
+            "2,500 executions/mo",
+            "5 concurrent executions",
+            "Unlimited users",
+            "50 AI credits"
+          ],
+          "cta_label": "Choose Starter",
+          "cta_url": "https://n8n.io/pricing/"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 50,
+          "price_display": "€50/month (billed annually)",
+          "features": [
+            "10,000 executions/mo",
+            "20 concurrent executions",
+            "3 shared projects",
+            "150 AI credits"
+          ],
+          "cta_label": "Choose Pro",
+          "cta_url": "https://n8n.io/pricing/"
+        },
+        {
+          "name": "Business",
+          "price_amount": 667,
+          "price_display": "€667/month (self-hosted, billed annually)",
+          "features": [
+            "40,000 executions/mo",
+            "SSO/SAML/LDAP",
+            "Git version control",
+            "30-day insights"
+          ],
+          "cta_label": "Choose Business",
+          "cta_url": "https://n8n.io/pricing/"
+        },
+        {
+          "name": "Enterprise",
+          "price_amount": null,
+          "price_display": "Custom",
+          "features": [
+            "Unlimited shared projects",
+            "200+ concurrent executions",
+            "Dedicated support & SLA"
+          ],
+          "cta_label": "Contact sales",
+          "cta_url": "https://n8n.io/pricing/"
+        }
+      ]
+    }
   },
   {
     "id": 300,
@@ -23234,7 +23452,7 @@
     "category": "Courses & Tutorials",
     "subCategory": "Deep Learning",
     "price": "Free",
-    "pricingDetail": "Always free",
+    "pricingDetail": "Free & open-source — free deep-learning courses and the fastai library",
     "bestFor": "Learning practical deep learning from a practitioner perspective rather than pure theory",
     "tags": [
       "deep learning",
@@ -23289,7 +23507,29 @@
       "Forums"
     ],
     "slug": "fast.ai",
-    "curation_score": 56.2
+    "curation_score": 56.2,
+    "pricing_source_url": "https://www.fast.ai",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://www.fast.ai",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "Free practical deep-learning courses",
+            "Open-source fastai library",
+            "No registration required"
+          ],
+          "cta_label": "Start learning",
+          "cta_url": "https://www.fast.ai"
+        }
+      ]
+    }
   },
   {
     "id": 315,
@@ -26123,7 +26363,7 @@
     "category": "Courses & Tutorials",
     "subCategory": "Computer Science Education",
     "price": "Free",
-    "pricingDetail": "Free on edX; certificate $199",
+    "pricingDetail": "Free — Harvard CS50 full course is free; optional verified certificate via edX (paid)",
     "bestFor": "Building the strongest possible CS foundations from Harvard's world-famous course",
     "tags": [
       "computer science",
@@ -26178,7 +26418,40 @@
       "Multiple tracks"
     ],
     "slug": "cs50",
-    "curation_score": 60.0
+    "curation_score": 60.0,
+    "pricing_source_url": "https://cs50.harvard.edu",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://cs50.harvard.edu",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "Harvard CS50 full course free",
+            "Free on edX & OpenCourseWare",
+            "Lectures, problem sets & resources"
+          ],
+          "cta_label": "Start course",
+          "cta_url": "https://cs50.harvard.edu"
+        },
+        {
+          "name": "Verified Certificate",
+          "price_amount": null,
+          "price_display": "Paid (via edX)",
+          "features": [
+            "Optional shareable certificate",
+            "Purchased through edX"
+          ],
+          "cta_label": "Get certificate",
+          "cta_url": "https://cs50.harvard.edu"
+        }
+      ]
+    }
   },
   {
     "id": 397,
@@ -26500,7 +26773,7 @@
     "category": "Productivity",
     "subCategory": "Reading Retention",
     "price": "Paid",
-    "pricingDetail": "$7.99/month; free 30-day trial",
+    "pricingDetail": "No free tier (30-day trial); Lite $5.59/mo; Full $9.99/mo (billed annually; $12.99 monthly)",
     "bestFor": "Making reading stick by reviewing highlights from books daily with spaced repetition",
     "tags": [
       "reading",
@@ -26557,7 +26830,41 @@
       "Export to Obsidian/Notion"
     ],
     "slug": "readwise",
-    "curation_score": 55.8
+    "curation_score": 55.8,
+    "pricing_source_url": "https://www.readwise.io/pricing",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://www.readwise.io/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Lite",
+          "price_amount": 5.59,
+          "price_display": "$5.59/month (billed annually)",
+          "features": [
+            "Daily Review (email & app)",
+            "Sync highlights from all sources",
+            "Browse & search your library"
+          ],
+          "cta_label": "Start trial",
+          "cta_url": "https://www.readwise.io/pricing"
+        },
+        {
+          "name": "Full",
+          "price_amount": 9.99,
+          "price_display": "$9.99/month (billed annually; $12.99 monthly)",
+          "features": [
+            "Everything in Lite",
+            "Reader read-it-later app",
+            "Early access to beta features"
+          ],
+          "cta_label": "Start trial",
+          "cta_url": "https://www.readwise.io/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 403,
@@ -30390,7 +30697,7 @@
     "category": "Coding",
     "subCategory": "Data Notebooks",
     "price": "Freemium",
-    "pricingDetail": "Free personal; Team $24/month",
+    "pricingDetail": "Community free; Professional $36/editor/mo; Team $75/editor/mo; Enterprise custom",
     "bestFor": "Building and sharing interactive data apps from Jupyter-style notebooks",
     "tags": [
       "data notebooks",
@@ -30445,7 +30752,66 @@
       "Scheduled runs"
     ],
     "slug": "hex",
-    "curation_score": 55.8
+    "curation_score": 55.8,
+    "pricing_source_url": "https://hex.tech/pricing/",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://hex.tech/pricing/",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Community",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "Connect any data source",
+            "Up to 5 notebooks",
+            "Small compute"
+          ],
+          "cta_label": "Start free",
+          "cta_url": "https://hex.tech/pricing/"
+        },
+        {
+          "name": "Professional",
+          "price_amount": 36,
+          "price_display": "$36/editor/month",
+          "features": [
+            "Unlimited notebooks",
+            "Up to 5 published apps",
+            "30-day version history"
+          ],
+          "cta_label": "Choose Professional",
+          "cta_url": "https://hex.tech/pricing/"
+        },
+        {
+          "name": "Team",
+          "price_amount": 75,
+          "price_display": "$75/editor/month",
+          "features": [
+            "Unlimited published apps",
+            "Scheduled runs & alerts",
+            "Shared components"
+          ],
+          "cta_label": "Choose Team",
+          "cta_url": "https://hex.tech/pricing/"
+        },
+        {
+          "name": "Enterprise",
+          "price_amount": null,
+          "price_display": "Custom",
+          "features": [
+            "Audit logs",
+            "OIDC SSO",
+            "HIPAA add-on",
+            "Dedicated support"
+          ],
+          "cta_label": "Contact sales",
+          "cta_url": "https://hex.tech/pricing/"
+        }
+      ]
+    }
   },
   {
     "id": 492,
@@ -32554,7 +32920,7 @@
     "category": "Research",
     "subCategory": "AI Research Assistant",
     "price": "Freemium",
-    "pricingDetail": "Free credits monthly; paid plans for unlimited searches",
+    "pricingDetail": "Free (limited searches); Pro ~$16/mo; Team $15/person/mo (billed annually)",
     "bestFor": "Finding deeply relevant papers via semantic agent search, not keyword matching",
     "tags": [
       "research",
@@ -32606,7 +32972,50 @@
       "Created by researchers for researchers"
     ],
     "is_ai_native": true,
-    "curation_score": 65.0
+    "curation_score": 65.0,
+    "pricing_source_url": "https://www.undermind.ai/",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://www.undermind.ai/",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "Limited searches/mo",
+            "Basic insights"
+          ],
+          "cta_label": "Start free",
+          "cta_url": "https://www.undermind.ai/"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 16,
+          "price_display": "$16/month",
+          "features": [
+            "More deep-research searches",
+            "Advanced discovery features"
+          ],
+          "cta_label": "Go Pro",
+          "cta_url": "https://www.undermind.ai/"
+        },
+        {
+          "name": "Team",
+          "price_amount": 15,
+          "price_display": "$15/person/month (billed annually, 5 seats)",
+          "features": [
+            "Shared workspace",
+            "Team collaboration"
+          ],
+          "cta_label": "Contact sales",
+          "cta_url": "https://www.undermind.ai/"
+        }
+      ]
+    }
   },
   {
     "id": 520,
@@ -33097,7 +33506,7 @@
     "category": "Research",
     "subCategory": "Citation & Referencing",
     "price": "Freemium",
-    "pricingDetail": "Freemium",
+    "pricingDetail": "Free Citation Generator; Plagiarism Check pay-per-use $19.95-$39.95 by document size",
     "bestFor": "APA/MLA/Harvard citations and proofreading for essays",
     "tags": [
       "citation",
@@ -33153,7 +33562,59 @@
       "AI detector"
     ],
     "slug": "scribbr",
-    "curation_score": 55.0
+    "curation_score": 55.0,
+    "pricing_source_url": "https://www.scribbr.com/plagiarism-checker/",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://www.scribbr.com/plagiarism-checker/",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Citation Generator",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "Free APA/MLA/Chicago/Harvard citations",
+            "No ads or registration"
+          ],
+          "cta_label": "Use free",
+          "cta_url": "https://www.scribbr.com/citation/generator/"
+        },
+        {
+          "name": "Plagiarism Check (Small)",
+          "price_amount": 19.95,
+          "price_display": "$19.95 per check (≤ 7,500 words)",
+          "features": [
+            "University-grade plagiarism check",
+            "Detailed similarity report"
+          ],
+          "cta_label": "Check now",
+          "cta_url": "https://www.scribbr.com/plagiarism-checker/"
+        },
+        {
+          "name": "Plagiarism Check (Regular)",
+          "price_amount": 29.95,
+          "price_display": "$29.95 per check (7,500-50,000 words)",
+          "features": [
+            "For longer papers & theses"
+          ],
+          "cta_label": "Check now",
+          "cta_url": "https://www.scribbr.com/plagiarism-checker/"
+        },
+        {
+          "name": "Plagiarism Check (Large)",
+          "price_amount": 39.95,
+          "price_display": "$39.95 per check (50,000+ words)",
+          "features": [
+            "For dissertations & books"
+          ],
+          "cta_label": "Check now",
+          "cta_url": "https://www.scribbr.com/plagiarism-checker/"
+        }
+      ]
+    }
   },
   {
     "id": 549,
@@ -33164,7 +33625,7 @@
     "category": "Research",
     "subCategory": "Plagiarism & AI Detection",
     "price": "Freemium",
-    "pricingDetail": "Freemium",
+    "pricingDetail": "Free; Essential $8.33/mo; Premium $12.99/mo; Professional $24.99/mo (billed annually); Enterprise custom",
     "bestFor": "Self-checking essays for accidental AI-detection flags",
     "tags": [
       "ai-detection",
@@ -33216,7 +33677,74 @@
       "Writing report"
     ],
     "slug": "gptzero",
-    "curation_score": 55.0
+    "curation_score": 55.0,
+    "pricing_source_url": "https://gptzero.me/pricing",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://gptzero.me/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "Limited AI detection",
+            "Basic scans"
+          ],
+          "cta_label": "Start free",
+          "cta_url": "https://gptzero.me/pricing"
+        },
+        {
+          "name": "Essential",
+          "price_amount": 8.33,
+          "price_display": "$8.33/month (billed annually; $14.99 monthly)",
+          "features": [
+            "150,000 words/mo",
+            "Advanced AI detection"
+          ],
+          "cta_label": "Choose Essential",
+          "cta_url": "https://gptzero.me/pricing"
+        },
+        {
+          "name": "Premium",
+          "price_amount": 12.99,
+          "price_display": "$12.99/month (billed annually; $23.99 monthly)",
+          "features": [
+            "300,000 words/mo",
+            "Unlimited batch uploads"
+          ],
+          "cta_label": "Choose Premium",
+          "cta_url": "https://gptzero.me/pricing"
+        },
+        {
+          "name": "Professional",
+          "price_amount": 24.99,
+          "price_display": "$24.99/month (billed annually; $45.99 monthly)",
+          "features": [
+            "500,000 words/mo",
+            "Bulk file scanning (250 files)",
+            "Team collaboration"
+          ],
+          "cta_label": "Choose Professional",
+          "cta_url": "https://gptzero.me/pricing"
+        },
+        {
+          "name": "Enterprise",
+          "price_amount": null,
+          "price_display": "Custom",
+          "features": [
+            "Custom volume",
+            "Enterprise security",
+            "Dedicated support"
+          ],
+          "cta_label": "Contact sales",
+          "cta_url": "https://gptzero.me/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 550,
@@ -33227,7 +33755,7 @@
     "category": "Research",
     "subCategory": "Plagiarism & AI Detection",
     "price": "Freemium",
-    "pricingDetail": "Freemium",
+    "pricingDetail": "Free trial; Personal $13.99/mo (100 credits ≈ 25k words/mo); Enterprise custom",
     "bestFor": "Plagiarism and AI checks before submitting assignments",
     "tags": [
       "plagiarism",
@@ -33279,7 +33807,52 @@
       "Source matching"
     ],
     "slug": "copyleaks",
-    "curation_score": 55.0
+    "curation_score": 55.0,
+    "pricing_source_url": "https://copyleaks.com/pricing",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://copyleaks.com/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free Trial",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "Limited trial credits",
+            "AI & plagiarism detection"
+          ],
+          "cta_label": "Start free",
+          "cta_url": "https://copyleaks.com/pricing"
+        },
+        {
+          "name": "Personal",
+          "price_amount": 13.99,
+          "price_display": "$13.99/month ($167.88/year)",
+          "features": [
+            "100 credits/mo (≈ 25,000 words)",
+            "AI & plagiarism detection",
+            "1 credit ≈ 250 words / 1 image"
+          ],
+          "cta_label": "Choose Personal",
+          "cta_url": "https://copyleaks.com/pricing"
+        },
+        {
+          "name": "Enterprise / Education",
+          "price_amount": null,
+          "price_display": "Custom",
+          "features": [
+            "Higher / custom credit volumes",
+            "API & integrations",
+            "Org-wide deployment"
+          ],
+          "cta_label": "Contact sales",
+          "cta_url": "https://copyleaks.com/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 551,
@@ -33290,7 +33863,7 @@
     "category": "Research",
     "subCategory": "Plagiarism & AI Detection",
     "price": "Paid",
-    "pricingDetail": "Paid",
+    "pricingDetail": "No free tier; Pay-as-you-go $30 (3,000 credits); Pro $12.95/mo; Enterprise $136.58/mo (billed annually)",
     "bestFor": "Verifying originality of long-form academic writing",
     "tags": [
       "ai-detection",
@@ -33340,7 +33913,53 @@
       "Scan history"
     ],
     "slug": "originality-ai",
-    "curation_score": 55.0
+    "curation_score": 55.0,
+    "pricing_source_url": "https://originality.ai/pricing",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://originality.ai/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Pay As You Go",
+          "price_amount": 30,
+          "price_display": "$30 one-time (3,000 credits)",
+          "features": [
+            "AI & plagiarism checker",
+            "Readability & grammar",
+            "Credits valid 2 years"
+          ],
+          "cta_label": "Buy credits",
+          "cta_url": "https://originality.ai/pricing"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 12.95,
+          "price_display": "$12.95/month (billed annually; $14.95 monthly)",
+          "features": [
+            "2,000 credits/mo",
+            "File uploads & full-site scans",
+            "Team management"
+          ],
+          "cta_label": "Go Pro",
+          "cta_url": "https://originality.ai/pricing"
+        },
+        {
+          "name": "Enterprise",
+          "price_amount": 136.58,
+          "price_display": "$136.58/month (billed annually; $179 monthly)",
+          "features": [
+            "15,000 credits/mo",
+            "API access",
+            "Dedicated CSM & priority support"
+          ],
+          "cta_label": "Contact sales",
+          "cta_url": "https://originality.ai/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 552,
@@ -33351,7 +33970,7 @@
     "category": "Productivity",
     "subCategory": "Exam & Study Prep",
     "price": "Freemium",
-    "pricingDetail": "Freemium",
+    "pricingDetail": "Free (unlimited flashcards); Premium $5/mo ($35/yr); Student Ultra $10/mo ($120/yr)",
     "bestFor": "Turning notes and PDFs into flashcards and practice tests",
     "tags": [
       "flashcards",
@@ -33405,7 +34024,52 @@
       "Spaced repetition"
     ],
     "slug": "knowt",
-    "curation_score": 55.0
+    "curation_score": 55.0,
+    "pricing_source_url": "https://knowt.com/plans",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://knowt.com/plans",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "Unlimited flashcards & quizzes",
+            "Study tracking",
+            "AI note & flashcard tools"
+          ],
+          "cta_label": "Start free",
+          "cta_url": "https://knowt.com/plans"
+        },
+        {
+          "name": "Premium",
+          "price_amount": 5,
+          "price_display": "$5/month ($35/year)",
+          "features": [
+            "Advanced learning stats",
+            "Enhanced quiz customization",
+            "Early access to AI features"
+          ],
+          "cta_label": "Go Premium",
+          "cta_url": "https://knowt.com/plans"
+        },
+        {
+          "name": "Student Ultra",
+          "price_amount": 10,
+          "price_display": "$10/month (billed annually; $19.99 monthly)",
+          "features": [
+            "Highest AI limits",
+            "All premium study tools"
+          ],
+          "cta_label": "Go Ultra",
+          "cta_url": "https://knowt.com/plans"
+        }
+      ]
+    }
   },
   {
     "id": 553,
@@ -33416,7 +34080,7 @@
     "category": "Productivity",
     "subCategory": "Exam & Study Prep",
     "price": "Freemium",
-    "pricingDetail": "Freemium",
+    "pricingDetail": "Free (Basic); Pro $9.99/mo; Ultra $29/mo",
     "bestFor": "Generating practice quizzes from notes and textbooks",
     "tags": [
       "quiz",
@@ -33468,7 +34132,52 @@
       "Export"
     ],
     "slug": "quizgecko",
-    "curation_score": 55.0
+    "curation_score": 55.0,
+    "pricing_source_url": "https://quizgecko.com/plans",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://quizgecko.com/plans",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "Create quizzes from text",
+            "Limited monthly generations"
+          ],
+          "cta_label": "Start free",
+          "cta_url": "https://quizgecko.com/plans"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 9.99,
+          "price_display": "$9.99/month",
+          "features": [
+            "Unlimited quizzes",
+            "More question types",
+            "Export options"
+          ],
+          "cta_label": "Go Pro",
+          "cta_url": "https://quizgecko.com/plans"
+        },
+        {
+          "name": "Ultra",
+          "price_amount": 29,
+          "price_display": "$29/month",
+          "features": [
+            "Most powerful AI",
+            "50 podcasts/mo",
+            "Custom prompts, 50MB files"
+          ],
+          "cta_label": "Go Ultra",
+          "cta_url": "https://quizgecko.com/plans"
+        }
+      ]
+    }
   },
   {
     "id": 554,
@@ -33479,7 +34188,7 @@
     "category": "Courses & Tutorials",
     "subCategory": "Exam & Study Prep",
     "price": "Freemium",
-    "pricingDetail": "Freemium",
+    "pricingDetail": "Free (limited); Premium ~$6.99/mo billed annually (varies by region; quarterly billing higher)",
     "bestFor": "Finding course-specific notes and past papers",
     "tags": [
       "study-notes",
@@ -33533,7 +34242,41 @@
     ],
     "slug": "studocu",
     "curation_score": 55.0,
-    "is_ai_native": true
+    "is_ai_native": true,
+    "pricing_source_url": "https://help.studocu.com/hc/en-us/articles/360054174612-How-much-does-Premium-cost",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://help.studocu.com/hc/en-us/articles/360054174612-How-much-does-Premium-cost",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "Access shared study notes",
+            "Limited unlocks",
+            "Ask AI (limited)"
+          ],
+          "cta_label": "Start free",
+          "cta_url": "https://www.studocu.com/"
+        },
+        {
+          "name": "Premium",
+          "price_amount": 6.99,
+          "price_display": "~$6.99/month (billed annually; quarterly ~$12/mo)",
+          "features": [
+            "Unlimited document unlocks",
+            "Full AI study tools",
+            "Ad-free"
+          ],
+          "cta_label": "Go Premium",
+          "cta_url": "https://www.studocu.com/"
+        }
+      ]
+    }
   },
   {
     "id": 555,
@@ -33544,7 +34287,7 @@
     "category": "Courses & Tutorials",
     "subCategory": "Exam & Study Prep",
     "price": "Freemium",
-    "pricingDetail": "Freemium",
+    "pricingDetail": "Free (10 conversations, 2 uploads); Premium $7.99/mo (billed annually; $11.99 monthly)",
     "bestFor": "An all-in-one AI tutor from your own course materials",
     "tags": [
       "ai-tutor",
@@ -33596,7 +34339,41 @@
       "Lecture upload"
     ],
     "slug": "studyfetch",
-    "curation_score": 55.0
+    "curation_score": 55.0,
+    "pricing_source_url": "https://www.studyfetch.com/",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://www.studyfetch.com/",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "10 Spark.E conversations",
+            "2 uploads",
+            "Basic study tools"
+          ],
+          "cta_label": "Start free",
+          "cta_url": "https://www.studyfetch.com/"
+        },
+        {
+          "name": "Premium",
+          "price_amount": 7.99,
+          "price_display": "$7.99/month (billed annually; $11.99 monthly)",
+          "features": [
+            "Unlimited uploads & AI tutor",
+            "Flashcards, tests & notes",
+            "5-day free trial"
+          ],
+          "cta_label": "Go Premium",
+          "cta_url": "https://www.studyfetch.com/"
+        }
+      ]
+    }
   },
   {
     "id": 558,
@@ -33607,7 +34384,7 @@
     "category": "Writing & Chat",
     "subCategory": "Academic Writing",
     "price": "Freemium",
-    "pricingDetail": "Freemium",
+    "pricingDetail": "Free (Basic); Premium $6.67/mo; Premium Plus $10.41/mo (billed annually)",
     "bestFor": "Technical and academic grammar correction",
     "tags": [
       "academic-writing",
@@ -33659,7 +34436,52 @@
       "Word add-in"
     ],
     "slug": "trinka-ai",
-    "curation_score": 55.0
+    "curation_score": 55.0,
+    "pricing_source_url": "https://www.trinka.ai/pricing",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://www.trinka.ai/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Basic",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "Grammar & style checks",
+            "Limited monthly usage"
+          ],
+          "cta_label": "Start free",
+          "cta_url": "https://www.trinka.ai/pricing"
+        },
+        {
+          "name": "Premium",
+          "price_amount": 6.67,
+          "price_display": "$6.67/month (billed annually)",
+          "features": [
+            "Unlimited grammar checks",
+            "Advanced academic writing tools",
+            "Credits for plagiarism checks"
+          ],
+          "cta_label": "Go Premium",
+          "cta_url": "https://www.trinka.ai/pricing"
+        },
+        {
+          "name": "Premium Plus",
+          "price_amount": 10.41,
+          "price_display": "$10.41/month (billed annually)",
+          "features": [
+            "Everything in Premium",
+            "Plagiarism / AI checks up to 120 pages",
+            "Higher limits"
+          ],
+          "cta_label": "Go Premium Plus",
+          "cta_url": "https://www.trinka.ai/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 559,
@@ -33670,7 +34492,7 @@
     "category": "Writing & Chat",
     "subCategory": "Academic Writing",
     "price": "Freemium",
-    "pricingDetail": "Freemium",
+    "pricingDetail": "Limited free; Essentials $10/mo; Productive $29/mo; Ultimate $79/mo (billed annually)",
     "bestFor": "Multilingual essay help and homework solving",
     "tags": [
       "essays",
@@ -33722,7 +34544,62 @@
       "Multi-language"
     ],
     "slug": "smodin",
-    "curation_score": 55.0
+    "curation_score": 55.0,
+    "pricing_source_url": "https://smodin.io/pricing",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://smodin.io/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Limited",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "3 writing credits/day",
+            "Basic tools (1,000 words / 5 entries)"
+          ],
+          "cta_label": "Start free",
+          "cta_url": "https://smodin.io/pricing"
+        },
+        {
+          "name": "Essentials",
+          "price_amount": 10,
+          "price_display": "$10/month (billed annually)",
+          "features": [
+            "100 writing credits",
+            "Unlimited writing tools"
+          ],
+          "cta_label": "Choose Essentials",
+          "cta_url": "https://smodin.io/pricing"
+        },
+        {
+          "name": "Productive",
+          "price_amount": 29,
+          "price_display": "$29/month (billed annually)",
+          "features": [
+            "500 writing credits",
+            "Long-form AI writing (up to 5,000 words)"
+          ],
+          "cta_label": "Choose Productive",
+          "cta_url": "https://smodin.io/pricing"
+        },
+        {
+          "name": "Ultimate",
+          "price_amount": 79,
+          "price_display": "$79/month (billed annually)",
+          "features": [
+            "1,500 writing credits",
+            "Up to 5 sub-accounts",
+            "All features"
+          ],
+          "cta_label": "Choose Ultimate",
+          "cta_url": "https://smodin.io/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 560,
@@ -33733,7 +34610,7 @@
     "category": "Courses & Tutorials",
     "subCategory": "Language Learning",
     "price": "Freemium",
-    "pricingDetail": "Freemium",
+    "pricingDetail": "Free; Premium $17.99/mo ($83.99/yr); Premium Plus higher tier (unlimited custom lessons)",
     "bestFor": "Practicing spoken languages with an AI tutor",
     "tags": [
       "language-learning",
@@ -33785,7 +34662,51 @@
       "Lessons"
     ],
     "slug": "speak",
-    "curation_score": 55.0
+    "curation_score": 55.0,
+    "pricing_source_url": "https://www.speak.com/pricing",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://www.speak.com/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "Limited daily lessons",
+            "AI speaking practice"
+          ],
+          "cta_label": "Start free",
+          "cta_url": "https://www.speak.com/pricing"
+        },
+        {
+          "name": "Premium",
+          "price_amount": 17.99,
+          "price_display": "$17.99/month ($83.99/year)",
+          "features": [
+            "Full course access",
+            "Unlimited AI conversation practice",
+            "Personalized feedback"
+          ],
+          "cta_label": "Go Premium",
+          "cta_url": "https://www.speak.com/pricing"
+        },
+        {
+          "name": "Premium Plus",
+          "price_amount": null,
+          "price_display": "Higher tier",
+          "features": [
+            "Everything in Premium",
+            "Unlimited custom lessons"
+          ],
+          "cta_label": "Go Premium Plus",
+          "cta_url": "https://www.speak.com/pricing"
+        }
+      ]
+    }
   },
   {
     "name": "Tiimo",
@@ -33794,7 +34715,7 @@
     "category": "Productivity",
     "subCategory": "Accessibility & Focus",
     "price": "Freemium",
-    "pricingDetail": "Freemium",
+    "pricingDetail": "Free; Premium $6/mo or $35/yr (~$2.92/mo)",
     "pricing": "Freemium",
     "pricing_tier": "Freemium",
     "bestFor": "Visual time-blocking and AI task breakdown for neurodivergent students",
@@ -33850,7 +34771,41 @@
     "curation_score": 55.0,
     "icon": "/static/icons/default.png",
     "id": 561,
-    "slug": "tiimo"
+    "slug": "tiimo",
+    "pricing_source_url": "https://www.tiimoapp.com/",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://www.tiimoapp.com/",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "Visual day planner",
+            "Selection of planning tools",
+            "Ad-free"
+          ],
+          "cta_label": "Start free",
+          "cta_url": "https://www.tiimoapp.com/"
+        },
+        {
+          "name": "Premium",
+          "price_amount": 6,
+          "price_display": "$6/month ($35/year ≈ $2.92/mo)",
+          "features": [
+            "Full planner & widgets",
+            "AI planning",
+            "Focus timers & checklists"
+          ],
+          "cta_label": "Go Premium",
+          "cta_url": "https://www.tiimoapp.com/"
+        }
+      ]
+    }
   },
   {
     "name": "Saner.ai",
@@ -34054,7 +35009,7 @@
     "category": "Productivity",
     "subCategory": "Voice Notes",
     "price": "Freemium",
-    "pricingDetail": "Freemium",
+    "pricingDetail": "Free (10 notes, 3 min each); Prime $99/year (one-time, non-recurring)",
     "pricing": "Freemium",
     "pricing_tier": "Freemium",
     "bestFor": "Speaking messy thoughts and getting structured notes or essay drafts",
@@ -34108,7 +35063,42 @@
     "curation_score": 55.0,
     "icon": "/static/icons/default.png",
     "id": 565,
-    "slug": "audiopen"
+    "slug": "audiopen",
+    "pricing_source_url": "https://www.audiopen.ai/prime",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://www.audiopen.ai/prime",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "Up to 10 saved notes",
+            "Notes up to 3 minutes",
+            "Voice-to-clean-text"
+          ],
+          "cta_label": "Start free",
+          "cta_url": "https://www.audiopen.ai/"
+        },
+        {
+          "name": "Prime",
+          "price_amount": 99,
+          "price_display": "$99/year (one-time)",
+          "features": [
+            "Unlimited notes",
+            "Longer recordings",
+            "Advanced styling & export",
+            "Non-recurring payment"
+          ],
+          "cta_label": "Get Prime",
+          "cta_url": "https://www.audiopen.ai/prime"
+        }
+      ]
+    }
   },
   {
     "name": "Wispr Flow",
@@ -34117,7 +35107,7 @@
     "category": "Productivity",
     "subCategory": "Voice Notes",
     "price": "Freemium",
-    "pricingDetail": "Freemium",
+    "pricingDetail": "Free (Basic, 2,000 words/week); Pro $12/mo (billed annually; $15 monthly)",
     "pricing": "Freemium",
     "pricing_tier": "Freemium",
     "bestFor": "Dictating notes and essays faster than typing",
@@ -34173,7 +35163,41 @@
     "curation_score": 55.0,
     "icon": "/static/icons/default.png",
     "id": 566,
-    "slug": "wispr-flow"
+    "slug": "wispr-flow",
+    "pricing_source_url": "https://wisprflow.ai/pricing",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://wisprflow.ai/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Basic",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "2,000 words/week (Mac/Windows)",
+            "Voice dictation everywhere",
+            "100+ languages"
+          ],
+          "cta_label": "Start free",
+          "cta_url": "https://wisprflow.ai/pricing"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 12,
+          "price_display": "$12/month (billed annually; $15 monthly)",
+          "features": [
+            "Unlimited words",
+            "Command Mode",
+            "Priority support"
+          ],
+          "cta_label": "Go Pro",
+          "cta_url": "https://wisprflow.ai/pricing"
+        }
+      ]
+    }
   },
   {
     "name": "TurboLearn AI",
@@ -34564,7 +35588,7 @@
     "category": "Research",
     "subCategory": "Plagiarism & AI Detection",
     "price": "Freemium",
-    "pricingDetail": "Freemium",
+    "pricingDetail": "Free (2,000-credit trial); Essential $10/mo; Advanced $16/mo; Elite $26/mo (billed annually)",
     "pricing": "Freemium",
     "pricing_tier": "Freemium",
     "bestFor": "Verifying originality before handing in academic work",
@@ -34618,7 +35642,65 @@
     "curation_score": 55.0,
     "icon": "/static/icons/default.png",
     "id": 573,
-    "slug": "winston-ai"
+    "slug": "winston-ai",
+    "pricing_source_url": "https://gowinston.ai/pricing/",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://gowinston.ai/pricing/",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "2,000 credits (14-day trial)",
+            "AI & image detection",
+            "OCR scanning"
+          ],
+          "cta_label": "Start free",
+          "cta_url": "https://gowinston.ai/pricing/"
+        },
+        {
+          "name": "Essential",
+          "price_amount": 10,
+          "price_display": "$10/month (billed annually; $18 monthly)",
+          "features": [
+            "80,000 credits/mo",
+            "Advanced AI detection",
+            "Plagiarism detection"
+          ],
+          "cta_label": "Choose Essential",
+          "cta_url": "https://gowinston.ai/pricing/"
+        },
+        {
+          "name": "Advanced",
+          "price_amount": 16,
+          "price_display": "$16/month (billed annually; $29 monthly)",
+          "features": [
+            "200,000 credits/mo",
+            "HUMN-1 website certification",
+            "Up to 5 team members"
+          ],
+          "cta_label": "Choose Advanced",
+          "cta_url": "https://gowinston.ai/pricing/"
+        },
+        {
+          "name": "Elite",
+          "price_amount": 26,
+          "price_display": "$26/month (billed annually; $49 monthly)",
+          "features": [
+            "500,000 credits/mo",
+            "Unlimited team members",
+            "HUMN-1+ certification"
+          ],
+          "cta_label": "Choose Elite",
+          "cta_url": "https://gowinston.ai/pricing/"
+        }
+      ]
+    }
   },
   {
     "name": "Writefull",
