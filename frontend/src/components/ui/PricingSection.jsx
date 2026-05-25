@@ -61,7 +61,7 @@ export default function PricingSection({ tool }) {
               </span>
             ) : null}
             <h3 className="text-base font-semibold text-ink">{tier.name}</h3>
-            <p className="mt-2 text-2xl font-bold text-ink">{tier.price_display}</p>
+            <p className="mt-2 text-xl font-bold leading-tight text-ink break-words [overflow-wrap:anywhere]">{tier.price_display}</p>
             <ul className="mt-4 space-y-2">
               {tier.features.map((feature, idx) => (
                 <li key={`${tier.name}-feature-${idx}`} className="flex items-start gap-2 text-sm text-ink-2">
