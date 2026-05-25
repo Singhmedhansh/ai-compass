@@ -19,7 +19,7 @@ from app.ml_recommender import clear_model_cache, get_similar_tools, load_model
 from app.models import Favorite, Rating, Review, ToolRating, User
 from app.rate_limit import is_rate_limited
 from app.search_utils import search_tools
-from app.tool_cache import DEFAULT_TOOLS_PATH, TOOL_CACHE, get_cached_tools, prime_tools_cache
+from app.tool_cache import DEFAULT_TOOLS_PATH, TOOL_CACHE, get_cached_tools
 
 api_bp = Blueprint("api", __name__)
 compat_bp = Blueprint("compat", __name__)  # registered at /api for backward compat
@@ -1246,7 +1246,7 @@ def retrain_model():
     if not _is_admin():
         return jsonify({"error": "Forbidden"}), 403
     try:
-        from app.tool_cache import SEARCH_INDEX, prime_tools_cache
+        from app.tool_cache import SEARCH_INDEX, refresh_tools_cache
 
         data_path = os.path.join(
             os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
@@ -1267,7 +1267,7 @@ def retrain_model():
 
         clear_model_cache()
 
-        prime_tools_cache(data_path)
+        refresh_tools_cache(data_path)
         model_status = "active" if load_model() is not None else "inactive"
         return jsonify(
             {
@@ -1287,7 +1287,11 @@ def retrain_model():
 def admin_clear_cache():
     if not _is_admin():
         return jsonify({"error": "Forbidden"}), 403
-    prime_tools_cache(DATA_PATH)
+    # Use refresh (via _refresh_catalog), NOT prime_tools_cache: prime is a
+    # no-op once the cache is warm, so it silently failed to pick up catalog
+    # changes (e.g. tools imported into the DB after startup). refresh_tools_cache
+    # unconditionally reloads from the source of truth and rebuilds the index.
+    _refresh_catalog()
     return jsonify({"success": True, "message": "Cache cleared and reloaded"})
 
 
@@ -2702,7 +2706,7 @@ def admin_catalog_import_from_json(slug: str):
     if not _is_admin():
         return jsonify({"error": "Forbidden"}), 403
     from app.catalog_store import upsert_tool
-    from app.tool_cache import _load_tools_from_disk, prime_tools_cache
+    from app.tool_cache import _load_tools_from_disk, refresh_tools_cache
 
     slug_l = str(slug or "").strip().lower()
     if not slug_l:
@@ -2722,5 +2726,7 @@ def admin_catalog_import_from_json(slug: str):
 
     # Cache invalidate so the newly-imported tool shows up immediately
     # in the public catalog without a manual /admin/clear-cache click.
-    prime_tools_cache(DATA_PATH)
+    # Must be refresh (not prime): prime no-ops on a warm cache, so the
+    # imported tool wouldn't appear until the next process restart.
+    refresh_tools_cache(DATA_PATH)
     return jsonify({"success": True, "slug": slug_l, "name": record.get("name")})
