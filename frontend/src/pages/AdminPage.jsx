@@ -159,6 +159,7 @@ function AdminPage() {
   const [newsletterStats, setNewsletterStats] = useState({ count: 0, new_today: 0, new_this_week: 0 })
   const [catalogDiff, setCatalogDiff] = useState({ db_only: [], json_only: [], matched_count: 0, db_total: 0, json_total: 0 })
   const [catalogDiffLoading, setCatalogDiffLoading] = useState(false)
+  const [cacheBusy, setCacheBusy] = useState(false)
 
   const [toolsQuery, setToolsQuery] = useState('')
   const [toolsPage, setToolsPage] = useState(1)
@@ -279,6 +280,22 @@ function AdminPage() {
       setCatalogDiffLoading(false)
     }
   }, [])
+
+  const clearCache = useCallback(async () => {
+    setCacheBusy(true)
+    try {
+      const d = await api('/api/v1/admin/clear-cache', { method: 'POST' })
+      toast.success(d.message || 'Cache cleared and reloaded')
+      // Pull fresh data into the open dashboard so what we show matches
+      // what the public site now serves.
+      reloadTools()
+      reloadCatalogDiff()
+    } catch (e) {
+      toast.error(e.message)
+    } finally {
+      setCacheBusy(false)
+    }
+  }, [reloadTools, reloadCatalogDiff])
 
   const filteredTools = useMemo(() => {
     const q = toolsQuery.trim().toLowerCase()
@@ -777,6 +794,18 @@ function AdminPage() {
                   {catalogDiffLoading ? 'Refreshing…' : 'Refresh'}
                 </button>
               </div>
+            </div>
+
+            <div className="mt-5 flex flex-col gap-3 rounded-xl border border-line bg-bg-sunk/40 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h3 className="text-sm font-semibold text-ink">Reload catalog cache</h3>
+                <p className="mt-0.5 text-xs text-muted">
+                  Forces the live worker to reload every tool from the database and rebuild the search index. Run this after syncing pricing or other changes straight to the DB so they appear on the public site immediately — no redeploy needed.
+                </p>
+              </div>
+              <button onClick={clearCache} disabled={cacheBusy} className={`${BTN_PRIMARY} shrink-0`}>
+                {cacheBusy ? 'Reloading…' : 'Clear cache'}
+              </button>
             </div>
 
             <div className="mt-6">
