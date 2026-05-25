@@ -130,6 +130,26 @@ def _esc(value) -> str:
     return html_module.escape(str(value or ''), quote=True)
 
 
+# Primary navigation landmark + internal link index, injected into the
+# crawler shell of every route. No-JS crawlers and AI/LLM bots (which don't
+# execute the SPA) get a real <nav> landmark and a crawl path to the key
+# pages; the client replaces it on mount, and the React app renders its own
+# accessible <nav>. Mirrors the live navigation, so this is progressive
+# enhancement, not cloaking.
+_SEO_NAV = (
+    '<nav aria-label="Primary"><ul>'
+    '<li><a href="/">Home</a></li>'
+    '<li><a href="/tools">All AI tools</a></li>'
+    '<li><a href="/collections">Collections</a></li>'
+    '<li><a href="/ai-tool-finder">AI tool finder</a></li>'
+    '<li><a href="/compare">Compare tools</a></li>'
+    '<li><a href="/best-ai-tools-for-students">Best AI tools for students</a></li>'
+    '<li><a href="/best-ai-tools-for-teachers">Best AI tools for teachers</a></li>'
+    '<li><a href="/best-free-ai-tools">Best free AI tools</a></li>'
+    '</ul></nav>'
+)
+
+
 def _inject_seo_root(out_html: str, seo_html: str) -> str:
     """Render real, crawlable content into the otherwise-empty React root.
 
@@ -138,6 +158,10 @@ def _inject_seo_root(out_html: str, seo_html: str) -> str:
     React's createRoot().render() replaces these children on mount, so real
     users never see it — this is the standard progressive-enhancement SSR
     shell, not cloaking (the content mirrors what the SPA renders).
+
+    The per-route content is wrapped in <nav> + <main> landmarks so no-JS
+    crawlers find the document structure they expect (the React app renders
+    its own landmarks after mount).
 
     The content is wrapped in an inline visually-hidden (clip) container so
     that during the ~1s before the JS bundle parses, the browser does NOT
@@ -151,7 +175,7 @@ def _inject_seo_root(out_html: str, seo_html: str) -> str:
         '<div data-seo-shell aria-hidden="true" style="position:absolute;'
         'width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;'
         'clip:rect(0 0 0 0);white-space:nowrap;border:0">'
-        f'{seo_html}</div>'
+        f'{_SEO_NAV}<main>{seo_html}</main></div>'
     )
     # Insert right after the opening <div id="root"> tag, so this works
     # whether the root is empty OR already contains the boot loader (#2).
