@@ -17,7 +17,8 @@ export default function HomePage() {
         <meta name="description" content="400+ free and freemium AI tools, hand-tested for students. Find the right one in 30 seconds. No login, no signup, no ranking tricks." />
         <meta property="og:title" content="Free AI Tools for Students — 400+ Hand-Tested | AI Compass" />
         <meta property="og:description" content="400+ free and freemium AI tools, hand-tested for students. Find the right one in 30 seconds. No login, no signup, no ranking tricks." />
-        <link rel="canonical" href="https://ai-compass.in/" />
+        {/* Canonical is emitted server-side (index.html default, rewritten
+            per-route by _inject_meta) to avoid a duplicate <link> tag. */}
         {/* FAQPage schema — mirrors the visible <FAQ /> section below (Google
             requires the markup to match on-page content). Organization +
             WebSite/SearchAction schema is set site-wide in index.html, so it

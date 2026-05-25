@@ -25,9 +25,11 @@
           content="400+ free and freemium AI tools, hand-tested for students. Find the right one in 30 seconds. No login, no signup, no ranking tricks." />
     <meta name="keywords"
           content="AI tools, best AI tools, free AI tools, AI for students, coding AI, writing AI, ChatGPT alternatives" />
-    <!-- No static canonical here: every page sets its own via
-         react-helmet-async, so a static tag would duplicate/conflict with
-         those (and wrongly canonicalise every SPA route to the homepage). -->
+    <!-- Default canonical. Rewritten PER-ROUTE server-side by
+         app/routes.py::_inject_meta, so no-JS crawlers get the correct
+         canonical for every URL. HomePage.jsx intentionally does NOT set a
+         canonical via Helmet, so the homepage ends up with exactly one. -->
+    <link rel="canonical" href="https://ai-compass.in/" />
 
     <!-- Structured data (JSON-LD) — lets search engines and AI assistants
          (ChatGPT, Perplexity, Google AI) understand the entity and offer a
