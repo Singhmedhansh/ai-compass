@@ -264,7 +264,7 @@ function Navbar() {
           </div>
         )}
 
-        <div className="order-2 ml-auto hidden items-center gap-2 sm:order-3 lg:flex">
+        <nav aria-label="Primary" className="order-2 ml-auto hidden items-center gap-2 sm:order-3 lg:flex">
           <Link to="/collections">
             <Button variant="ghost" size="sm" className="text-ink-2">
               Collections
@@ -491,7 +491,7 @@ function Navbar() {
               </Link>
             </>
           )}
-        </div>
+        </nav>
 
         <button
           type="button"
@@ -507,7 +507,7 @@ function Navbar() {
 
       <div id="mobile-menu" className="border-t border-line bg-bg-elev lg:hidden">
         {isMobileMenuOpen && (
-          <nav className="flex flex-col px-4 py-3">
+          <nav aria-label="Mobile" className="flex flex-col px-4 py-3">
             <Link
               to="/collections"
               onClick={() => setIsMobileMenuOpen(false)}
