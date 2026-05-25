@@ -4259,7 +4259,7 @@
     "category": "Design & Graphics",
     "subCategory": "Graphic Design",
     "price": "Freemium",
-    "pricingDetail": "Free plan; Premium $9.99/month; included with Creative Cloud",
+    "pricingDetail": "Free tier; Premium $9.99/mo ($99.99/yr); Teams $4.99/user/mo",
     "bestFor": "Quick social media graphics, flyers, and academic posters",
     "tags": [
       "design",
@@ -4316,7 +4316,53 @@
       "Brand templates"
     ],
     "slug": "adobe-express",
-    "curation_score": 63.0
+    "curation_score": 63.0,
+    "pricing_source_url": "https://www.adobe.com/express/pricing",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://www.adobe.com/express/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/month",
+          "features": [
+            "100k+ templates & basic editing",
+            "5 GB storage",
+            "Schedule to 1 social account per network"
+          ],
+          "cta_label": "Start free",
+          "cta_url": "https://www.adobe.com/express/pricing"
+        },
+        {
+          "name": "Premium",
+          "price_amount": 9.99,
+          "price_display": "$9.99/month ($99.99/year)",
+          "features": [
+            "200M+ assets & 30k+ fonts",
+            "250 generative AI credits/mo",
+            "Brand kits & 100 GB storage"
+          ],
+          "cta_label": "Upgrade",
+          "cta_url": "https://www.adobe.com/express/pricing"
+        },
+        {
+          "name": "Teams",
+          "price_amount": 4.99,
+          "price_display": "$4.99/user/month",
+          "features": [
+            "Team collaboration & admin",
+            "1 TB storage",
+            "24/7 support"
+          ],
+          "cta_label": "Buy now",
+          "cta_url": "https://www.adobe.com/express/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 42,
@@ -4592,7 +4638,7 @@
     "category": "Productivity",
     "subCategory": "AI Assistant",
     "price": "Freemium",
-    "pricingDetail": "Free consumer version; Microsoft 365 Copilot via university license",
+    "pricingDetail": "Free Copilot Chat; Copilot Pro $20/mo; Microsoft 365 Copilot $21/user/mo; Enterprise $30",
     "bestFor": "Writing and editing within Word, Excel, and PowerPoint",
     "tags": [
       "Microsoft",
@@ -4653,7 +4699,64 @@
       "Teams summaries"
     ],
     "slug": "microsoft-copilot",
-    "curation_score": 53.0
+    "curation_score": 53.0,
+    "pricing_source_url": "https://www.microsoft.com/en-us/microsoft-365-copilot/pricing",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://www.microsoft.com/en-us/microsoft-365-copilot/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/month",
+          "features": [
+            "Copilot Chat with current models",
+            "Web-grounded answers",
+            "Image generation"
+          ],
+          "cta_label": "Start free",
+          "cta_url": "https://copilot.microsoft.com"
+        },
+        {
+          "name": "Copilot Pro",
+          "price_amount": 20,
+          "price_display": "$20/month",
+          "features": [
+            "Copilot in Word, Excel, PowerPoint, Outlook",
+            "Priority model access",
+            "Higher usage limits"
+          ],
+          "cta_label": "Upgrade",
+          "cta_url": "https://www.microsoft.com/en-us/microsoft-365-copilot/pricing/individuals"
+        },
+        {
+          "name": "Microsoft 365 Copilot",
+          "price_amount": 21,
+          "price_display": "$21/user/month (annual)",
+          "features": [
+            "Copilot across M365 apps + work data",
+            "Copilot agents",
+            "Enterprise data protection"
+          ],
+          "cta_label": "Buy now",
+          "cta_url": "https://www.microsoft.com/en-us/microsoft-365-copilot/pricing"
+        },
+        {
+          "name": "Enterprise",
+          "price_amount": 30,
+          "price_display": "$30/user/month",
+          "features": [
+            "Full enterprise Copilot",
+            "Advanced admin & security controls"
+          ],
+          "cta_label": "Contact sales",
+          "cta_url": "https://www.microsoft.com/en-us/microsoft-365-copilot/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 46,
@@ -5173,7 +5276,7 @@
     "category": "Productivity",
     "subCategory": "Whiteboard & Collaboration",
     "price": "Freemium",
-    "pricingDetail": "Free 3 boards; Starter $10/month",
+    "pricingDetail": "Free tier; Starter $8; Business $16/user/mo (annual); Enterprise custom",
     "bestFor": "Group brainstorming, mind mapping, and project planning",
     "tags": [
       "collaboration",
@@ -5231,7 +5334,64 @@
       "Real-time collaboration"
     ],
     "slug": "miro-ai",
-    "curation_score": 47.0
+    "curation_score": 47.0,
+    "pricing_source_url": "https://miro.com/pricing/",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://miro.com/pricing/",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/month",
+          "features": [
+            "Unlimited members, 3 editable boards",
+            "Pre-built templates",
+            "Core integrations"
+          ],
+          "cta_label": "Start free",
+          "cta_url": "https://miro.com/pricing/"
+        },
+        {
+          "name": "Starter",
+          "price_amount": 8,
+          "price_display": "$8/user/month (annual)",
+          "features": [
+            "Unlimited boards",
+            "Miro AI features",
+            "Private boards & history"
+          ],
+          "cta_label": "Upgrade",
+          "cta_url": "https://miro.com/pricing/"
+        },
+        {
+          "name": "Business",
+          "price_amount": 16,
+          "price_display": "$16/user/month (annual)",
+          "features": [
+            "Advanced AI & tools",
+            "SSO",
+            "Unlimited guests"
+          ],
+          "cta_label": "Upgrade",
+          "cta_url": "https://miro.com/pricing/"
+        },
+        {
+          "name": "Enterprise",
+          "price_amount": null,
+          "price_display": "Contact Sales",
+          "features": [
+            "Advanced security & controls",
+            "Dedicated support"
+          ],
+          "cta_label": "Contact sales",
+          "cta_url": "https://miro.com/pricing/"
+        }
+      ]
+    }
   },
   {
     "id": 53,
@@ -6734,7 +6894,7 @@
     "category": "Productivity",
     "subCategory": "Data Visualization",
     "price": "Free",
-    "pricingDetail": "Free for public work; Tableau Desktop via university program",
+    "pricingDetail": "Free",
     "bestFor": "Creating compelling data visualizations for research and presentations",
     "tags": [
       "data visualization",
@@ -6767,7 +6927,7 @@
     "languages": "10+",
     "launchYear": 2003,
     "description": "Tableau Public is a free version of Tableau that lets students create professional interactive data visualizations and publish them online. Students in data science, business, and social science programs use it for research presentations and capstone projects. The Tableau for Students program provides the full Tableau Desktop version free with a university email.",
-    "pricing_tier": "Freemium",
+    "pricing_tier": "Free",
     "difficulty": "advanced",
     "student_friendly": true,
     "use_cases": [
@@ -6777,7 +6937,7 @@
       "Generating insights from research data",
       "Building interactive dashboards and reports"
     ],
-    "pricing": "Freemium",
+    "pricing": "Free",
     "student_perk": true,
     "company": "Salesforce",
     "review_count": 0,
@@ -6790,7 +6950,29 @@
       "Data blending"
     ],
     "slug": "tableau-public",
-    "curation_score": 63.0
+    "curation_score": 63.0,
+    "pricing_source_url": "https://public.tableau.com",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://public.tableau.com",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "Free data visualization platform",
+            "Publish interactive dashboards publicly",
+            "Connect to common file formats"
+          ],
+          "cta_label": "Get started",
+          "cta_url": "https://public.tableau.com"
+        }
+      ]
+    }
   },
   {
     "id": 73,
@@ -6933,7 +7115,7 @@
     "category": "Coding",
     "subCategory": "Cloud Notebooks",
     "price": "Freemium",
-    "pricingDetail": "Free T4 GPU; Colab Pro $11/month",
+    "pricingDetail": "Free tier; Pro $11.99/mo; Pro+ $49.99/mo; Pay As You Go $9.99/100 CU",
     "bestFor": "Running machine learning experiments and Python projects in the cloud",
     "tags": [
       "Python",
@@ -6988,7 +7170,64 @@
       "Collaborative editing"
     ],
     "slug": "google-colab",
-    "curation_score": 63.0
+    "curation_score": 63.0,
+    "pricing_source_url": "https://colab.research.google.com/signup",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://colab.research.google.com/signup",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/month",
+          "features": [
+            "Free cloud Jupyter notebooks",
+            "Limited GPU/TPU access",
+            "No setup required"
+          ],
+          "cta_label": "Start free",
+          "cta_url": "https://colab.research.google.com"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 11.99,
+          "price_display": "$11.99/month",
+          "features": [
+            "~100 compute units/month",
+            "Faster GPUs",
+            "Longer runtimes"
+          ],
+          "cta_label": "Upgrade",
+          "cta_url": "https://colab.research.google.com/signup"
+        },
+        {
+          "name": "Pro+",
+          "price_amount": 49.99,
+          "price_display": "$49.99/month",
+          "features": [
+            "~500 compute units/month",
+            "Priority GPU access",
+            "Background execution up to 24h"
+          ],
+          "cta_label": "Upgrade",
+          "cta_url": "https://colab.research.google.com/signup"
+        },
+        {
+          "name": "Pay As You Go",
+          "price_amount": 9.99,
+          "price_display": "$9.99 / 100 compute units",
+          "features": [
+            "Buy compute units without a subscription",
+            "Use as needed"
+          ],
+          "cta_label": "Buy units",
+          "cta_url": "https://colab.research.google.com/signup"
+        }
+      ]
+    }
   },
   {
     "id": 77,
@@ -6999,7 +7238,7 @@
     "category": "Productivity",
     "subCategory": "Data Science Platform",
     "price": "Free",
-    "pricingDetail": "Always free",
+    "pricingDetail": "Free",
     "bestFor": "Practicing data science with real datasets and community notebooks",
     "tags": [
       "data science",
@@ -7054,7 +7293,29 @@
       "Discussion forums"
     ],
     "slug": "kaggle",
-    "curation_score": 47.0
+    "curation_score": 47.0,
+    "pricing_source_url": "https://www.kaggle.com",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://www.kaggle.com",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "Free notebooks with GPU/TPU",
+            "Datasets & competitions",
+            "Community & courses"
+          ],
+          "cta_label": "Get started",
+          "cta_url": "https://www.kaggle.com"
+        }
+      ]
+    }
   },
   {
     "id": 78,
@@ -7617,7 +7878,7 @@
     "category": "Courses & Tutorials",
     "subCategory": "Online Learning",
     "price": "Freemium",
-    "pricingDetail": "Free audit; certificates from $49; Coursera Plus $59/month",
+    "pricingDetail": "Free course audit; Coursera Plus $59/mo or $399/yr (7-day trial)",
     "bestFor": "Learning new skills with structured university-level courses",
     "tags": [
       "courses",
@@ -7674,7 +7935,51 @@
       "Peer feedback"
     ],
     "slug": "coursera",
-    "curation_score": 45.0
+    "curation_score": 45.0,
+    "pricing_source_url": "https://www.coursera.org/courseraplus",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://www.coursera.org/courseraplus",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/month",
+          "features": [
+            "Audit many courses free",
+            "Watch lectures & readings"
+          ],
+          "cta_label": "Start free",
+          "cta_url": "https://www.coursera.org"
+        },
+        {
+          "name": "Coursera Plus Monthly",
+          "price_amount": 59,
+          "price_display": "$59/month",
+          "features": [
+            "Unlimited access to 10,000+ courses",
+            "Certificates included",
+            "7-day free trial"
+          ],
+          "cta_label": "Subscribe",
+          "cta_url": "https://www.coursera.org/courseraplus"
+        },
+        {
+          "name": "Coursera Plus Annual",
+          "price_amount": 399,
+          "price_display": "$399/year (~$33/mo)",
+          "features": [
+            "Best value",
+            "Unlimited courses & certificates"
+          ],
+          "cta_label": "Subscribe",
+          "cta_url": "https://www.coursera.org/courseraplus"
+        }
+      ]
+    }
   },
   {
     "id": 87,
@@ -7685,7 +7990,7 @@
     "category": "Courses & Tutorials",
     "subCategory": "Language Learning",
     "price": "Freemium",
-    "pricingDetail": "Free; Super $7/month",
+    "pricingDetail": "Free tier; Super $12.99/mo ($95.99/yr); Max $29.99/mo ($168/yr)",
     "bestFor": "Learning a new language or fulfilling foreign language requirements",
     "tags": [
       "language",
@@ -7741,7 +8046,53 @@
       "Leaderboards"
     ],
     "slug": "duolingo",
-    "curation_score": 45.0
+    "curation_score": 45.0,
+    "pricing_source_url": "https://www.duolingo.com",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://www.duolingo.com",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/month",
+          "features": [
+            "Full course access with ads",
+            "Limited hearts/energy",
+            "Streaks & leaderboards"
+          ],
+          "cta_label": "Start free",
+          "cta_url": "https://www.duolingo.com"
+        },
+        {
+          "name": "Super",
+          "price_amount": 12.99,
+          "price_display": "$12.99/month ($95.99/year)",
+          "features": [
+            "No ads & unlimited hearts",
+            "Personalized practice",
+            "Unlimited Legendary challenges"
+          ],
+          "cta_label": "Upgrade",
+          "cta_url": "https://www.duolingo.com"
+        },
+        {
+          "name": "Max",
+          "price_amount": 29.99,
+          "price_display": "$29.99/month ($168/year)",
+          "features": [
+            "Everything in Super",
+            "AI roleplay practice",
+            "In-depth AI feedback"
+          ],
+          "cta_label": "Upgrade",
+          "cta_url": "https://www.duolingo.com"
+        }
+      ]
+    }
   },
   {
     "id": 88,
@@ -8416,7 +8767,7 @@
     "category": "Coding",
     "subCategory": "Scientific Computing",
     "price": "Paid",
-    "pricingDetail": "Free via most engineering university licenses",
+    "pricingDetail": "Student $119/yr; Home $165/yr; Standard $860/yr (subscription, 30-day trial)",
     "bestFor": "Signal processing, control systems, and machine learning in engineering courses",
     "tags": [
       "engineering",
@@ -8472,7 +8823,52 @@
       "Signal processing"
     ],
     "slug": "matlab-ai",
-    "curation_score": 47.0
+    "curation_score": 47.0,
+    "pricing_source_url": "https://www.mathworks.com/pricing-licensing.html",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://www.mathworks.com/pricing-licensing.html",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Student",
+          "price_amount": 119,
+          "price_display": "$119/year",
+          "features": [
+            "MATLAB + Simulink + 11 toolboxes",
+            "For enrolled students",
+            "Annual subscription"
+          ],
+          "cta_label": "Buy now",
+          "cta_url": "https://www.mathworks.com/pricing-licensing.html"
+        },
+        {
+          "name": "Home",
+          "price_amount": 165,
+          "price_display": "$165/year",
+          "features": [
+            "For personal, non-commercial use",
+            "Add-on toolboxes available"
+          ],
+          "cta_label": "Buy now",
+          "cta_url": "https://www.mathworks.com/pricing-licensing.html"
+        },
+        {
+          "name": "Standard",
+          "price_amount": 860,
+          "price_display": "$860/year",
+          "features": [
+            "Commercial individual license",
+            "Full MATLAB",
+            "Annual subscription"
+          ],
+          "cta_label": "Buy now",
+          "cta_url": "https://www.mathworks.com/pricing-licensing.html"
+        }
+      ]
+    }
   },
   {
     "id": 104,
@@ -8483,7 +8879,7 @@
     "category": "Productivity",
     "subCategory": "Math Solver",
     "price": "Freemium",
-    "pricingDetail": "Free answers; $9.99/month for steps",
+    "pricingDetail": "Free tier; Premium $9.99/mo ($39.99/yr)",
     "bestFor": "Checking math homework and understanding step-by-step methods",
     "tags": [
       "math",
@@ -8540,7 +8936,41 @@
       "Multiple topics"
     ],
     "slug": "mathway",
-    "curation_score": 63.0
+    "curation_score": 63.0,
+    "pricing_source_url": "https://www.mathway.com",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://www.mathway.com",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/month",
+          "features": [
+            "Instant answers to math problems",
+            "Basic math through calculus",
+            "Ad-supported"
+          ],
+          "cta_label": "Start free",
+          "cta_url": "https://www.mathway.com"
+        },
+        {
+          "name": "Premium",
+          "price_amount": 9.99,
+          "price_display": "$9.99/month ($39.99/year)",
+          "features": [
+            "Step-by-step explanations",
+            "Ad-free",
+            "Unlimited solutions"
+          ],
+          "cta_label": "Upgrade",
+          "cta_url": "https://www.mathway.com"
+        }
+      ]
+    }
   },
   {
     "id": 109,
@@ -9004,7 +9434,7 @@
     "category": "Writing & Chat",
     "subCategory": "AI Writing Assistant",
     "price": "Freemium",
-    "pricingDetail": "Free via Google Workspace Education accounts",
+    "pricingDetail": "Free with a Google account; Google AI Pro $19.99/mo; AI Ultra $249.99/mo",
     "bestFor": "Drafting, rewriting, and summarizing within Google Docs",
     "tags": [
       "writing",
@@ -9059,7 +9489,52 @@
       "Q&A over docs"
     ],
     "slug": "gemini-in-google-docs",
-    "curation_score": 51.0
+    "curation_score": 51.0,
+    "pricing_source_url": "https://one.google.com/about/google-ai-plans/",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://one.google.com/about/google-ai-plans/",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/month",
+          "features": [
+            "Gemini help in Docs with a Google account",
+            "Basic AI writing assistance"
+          ],
+          "cta_label": "Start free",
+          "cta_url": "https://workspace.google.com/solutions/ai/"
+        },
+        {
+          "name": "Google AI Pro",
+          "price_amount": 19.99,
+          "price_display": "$19.99/month",
+          "features": [
+            "Gemini Advanced in Docs, Gmail & Slides",
+            "2 TB storage",
+            "Higher AI limits"
+          ],
+          "cta_label": "Upgrade",
+          "cta_url": "https://one.google.com/about/google-ai-plans/"
+        },
+        {
+          "name": "Google AI Ultra",
+          "price_amount": 249.99,
+          "price_display": "$249.99/month",
+          "features": [
+            "Highest AI limits",
+            "Most capable Gemini models",
+            "Premium features"
+          ],
+          "cta_label": "Upgrade",
+          "cta_url": "https://one.google.com/about/google-ai-plans/"
+        }
+      ]
+    }
   },
   {
     "id": 117,
@@ -10797,7 +11272,7 @@
     "category": "Productivity",
     "subCategory": "Interactive Learning",
     "price": "Freemium",
-    "pricingDetail": "Free; c.ai+ $9.99/month",
+    "pricingDetail": "Free tier; c.ai+ $9.99/mo ($94.99/yr)",
     "bestFor": "Practicing language conversations and interviewing historical characters",
     "tags": [
       "interactive",
@@ -10854,7 +11329,41 @@
       "Custom characters"
     ],
     "slug": "character.ai",
-    "curation_score": 63.0
+    "curation_score": 63.0,
+    "pricing_source_url": "https://character.ai/subscription/plus/pricing",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://character.ai/subscription/plus/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/month",
+          "features": [
+            "Chat with millions of characters",
+            "Create your own characters",
+            "Standard response speed"
+          ],
+          "cta_label": "Start free",
+          "cta_url": "https://character.ai"
+        },
+        {
+          "name": "c.ai+",
+          "price_amount": 9.99,
+          "price_display": "$9.99/month ($94.99/year)",
+          "features": [
+            "Faster responses & priority access",
+            "Unlimited voice calls",
+            "Early access to new features"
+          ],
+          "cta_label": "Upgrade",
+          "cta_url": "https://character.ai/subscription/plus/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 144,
@@ -19975,7 +20484,7 @@
     "category": "Writing & Chat",
     "subCategory": "Math Solver",
     "price": "Freemium",
-    "pricingDetail": "Free 1 solution/day; Pro $29.99/month",
+    "pricingDetail": "Free tier; Premium $9.99/mo ($59.99/yr)",
     "bestFor": "Getting detailed step-by-step explanations for advanced math from calculus to linear algebra",
     "tags": [
       "math",
@@ -20032,7 +20541,41 @@
       "Integral calculator"
     ],
     "slug": "symbolab",
-    "curation_score": 45.0
+    "curation_score": 45.0,
+    "pricing_source_url": "https://www.symbolab.com",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://www.symbolab.com",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/month",
+          "features": [
+            "Basic step-by-step solutions",
+            "Wide range of math solvers",
+            "Ad-supported"
+          ],
+          "cta_label": "Start free",
+          "cta_url": "https://www.symbolab.com"
+        },
+        {
+          "name": "Premium",
+          "price_amount": 9.99,
+          "price_display": "$9.99/month ($59.99/year)",
+          "features": [
+            "Full step-by-step solutions",
+            "Practice sets & quizzes",
+            "Ad-free"
+          ],
+          "cta_label": "Upgrade",
+          "cta_url": "https://www.symbolab.com/registration"
+        }
+      ]
+    }
   },
   {
     "id": 311,
@@ -22066,7 +22609,7 @@
     "category": "Coding",
     "subCategory": "IDE",
     "price": "Free",
-    "pricingDetail": "Free with student email verification",
+    "pricingDetail": "Free for verified students",
     "bestFor": "Professional IDEs like IntelliJ, PyCharm, and WebStorm for CS students",
     "tags": [
       "IDE",
@@ -22120,7 +22663,29 @@
       "DataGrip"
     ],
     "slug": "jetbrains-student-license",
-    "curation_score": 63.0
+    "curation_score": 63.0,
+    "pricing_source_url": "https://www.jetbrains.com/student/",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://www.jetbrains.com/student/",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free (Students)",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "Free JetBrains IDEs for students & teachers",
+            "All major IDEs (IntelliJ, PyCharm, more)",
+            "Renewable while enrolled"
+          ],
+          "cta_label": "Apply",
+          "cta_url": "https://www.jetbrains.com/student/"
+        }
+      ]
+    }
   },
   {
     "id": 378,
@@ -22131,7 +22696,7 @@
     "category": "Coding",
     "subCategory": "Code Editor",
     "price": "Free",
-    "pricingDetail": "Always free and open source",
+    "pricingDetail": "Free and open source",
     "bestFor": "The universal free code editor for any language with an unmatched extension ecosystem",
     "tags": [
       "code editor",
@@ -22187,7 +22752,29 @@
       "Live Share"
     ],
     "slug": "visual-studio-code",
-    "curation_score": 45.0
+    "curation_score": 45.0,
+    "pricing_source_url": "https://code.visualstudio.com",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://code.visualstudio.com",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "Free, open-source code editor",
+            "Huge extensions marketplace",
+            "Built-in Git & debugging"
+          ],
+          "cta_label": "Download",
+          "cta_url": "https://code.visualstudio.com"
+        }
+      ]
+    }
   },
   {
     "id": 379,
@@ -22381,7 +22968,7 @@
     "category": "Coding",
     "subCategory": "Interview Prep",
     "price": "Freemium",
-    "pricingDetail": "Free 500+ problems; Premium $35/month",
+    "pricingDetail": "Free tier; Premium $35/mo ($159/yr)",
     "bestFor": "Preparing for software engineering technical interviews with coding challenges",
     "tags": [
       "interview prep",
@@ -22436,7 +23023,41 @@
       "Discuss forum"
     ],
     "slug": "leetcode",
-    "curation_score": 63.0
+    "curation_score": 63.0,
+    "pricing_source_url": "https://leetcode.com/subscribe/",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://leetcode.com/subscribe/",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/month",
+          "features": [
+            "Large library of practice problems",
+            "Weekly contests",
+            "Community solutions"
+          ],
+          "cta_label": "Start free",
+          "cta_url": "https://leetcode.com"
+        },
+        {
+          "name": "Premium",
+          "price_amount": 35,
+          "price_display": "$35/month ($159/year)",
+          "features": [
+            "Premium-only problems",
+            "Company-specific question sets",
+            "Detailed solutions & debugging"
+          ],
+          "cta_label": "Upgrade",
+          "cta_url": "https://leetcode.com/subscribe/"
+        }
+      ]
+    }
   },
   {
     "id": 386,
@@ -22828,7 +23449,7 @@
     "category": "Productivity",
     "subCategory": "All-in-one Workspace",
     "price": "Freemium",
-    "pricingDetail": "Free; Plus $10/month; Education free",
+    "pricingDetail": "Free tier; Plus $10/mo; Business $20/mo; Enterprise custom",
     "bestFor": "Organizing all academic work Ã¢â‚¬â€ notes, projects, references, and databases in one place",
     "tags": [
       "notes",
@@ -22886,7 +23507,65 @@
       "Web clipper"
     ],
     "slug": "notion",
-    "curation_score": 47.0
+    "curation_score": 47.0,
+    "pricing_source_url": "https://www.notion.com/pricing",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://www.notion.com/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/month",
+          "features": [
+            "Unlimited pages for individuals",
+            "Trial AI features",
+            "Notion Calendar & Mail"
+          ],
+          "cta_label": "Start free",
+          "cta_url": "https://www.notion.com/pricing"
+        },
+        {
+          "name": "Plus",
+          "price_amount": 10,
+          "price_display": "$10/member/month",
+          "features": [
+            "Unlimited file uploads",
+            "Custom sites & forms",
+            "Slack & Drive connections"
+          ],
+          "cta_label": "Upgrade",
+          "cta_url": "https://www.notion.com/pricing"
+        },
+        {
+          "name": "Business",
+          "price_amount": 20,
+          "price_display": "$20/member/month",
+          "features": [
+            "Notion AI agent & meeting notes",
+            "Enterprise search (beta)",
+            "SAML SSO"
+          ],
+          "cta_label": "Upgrade",
+          "cta_url": "https://www.notion.com/pricing"
+        },
+        {
+          "name": "Enterprise",
+          "price_amount": null,
+          "price_display": "Contact Sales",
+          "features": [
+            "Advanced security & audit log",
+            "Zero data retention with LLMs",
+            "Customer success manager"
+          ],
+          "cta_label": "Contact sales",
+          "cta_url": "https://www.notion.com/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 401,
@@ -23373,8 +24052,8 @@
     "tagline": "Professional skills courses with certifications that display on LinkedIn",
     "category": "Courses & Tutorials",
     "subCategory": "Professional Learning",
-    "price": "Freemium",
-    "pricingDetail": "Free 1 month trial; $19.99/month; free via many libraries and universities",
+    "price": "Paid",
+    "pricingDetail": "Monthly $39.99; Annual $239.88 ($19.99/mo); 1-month free trial",
     "bestFor": "Building professional skills with certificates that automatically appear on LinkedIn",
     "tags": [
       "professional skills",
@@ -23408,7 +24087,7 @@
     "languages": "10+",
     "launchYear": 2015,
     "description": "LinkedIn Learning provides professional skills courses whose completion certificates automatically display on LinkedIn profiles, giving students immediate professional-facing credentials. Many public libraries and universities provide free access that most students are unaware of. The AI recommendation engine suggests courses aligned with stated career goals and current skill gaps.",
-    "pricing_tier": "Freemium",
+    "pricing_tier": "Paid",
     "difficulty": "beginner",
     "student_friendly": true,
     "use_cases": [
@@ -23418,7 +24097,7 @@
       "Organizing study schedules",
       "Getting step-by-step explanations of concepts"
     ],
-    "pricing": "Freemium",
+    "pricing": "Paid",
     "student_perk": true,
     "company": "LinkedIn",
     "review_count": 0,
@@ -23431,7 +24110,40 @@
       "Offline download"
     ],
     "slug": "linkedin-learning",
-    "curation_score": 65.0
+    "curation_score": 65.0,
+    "pricing_source_url": "https://www.linkedin.com/learning/",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://www.linkedin.com/learning/",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Monthly",
+          "price_amount": 39.99,
+          "price_display": "$39.99/month",
+          "features": [
+            "20,000+ expert-led courses",
+            "Certificates of completion",
+            "1-month free trial"
+          ],
+          "cta_label": "Try free",
+          "cta_url": "https://www.linkedin.com/learning/"
+        },
+        {
+          "name": "Annual",
+          "price_amount": 19.99,
+          "price_display": "$19.99/month ($239.88/year)",
+          "features": [
+            "Best value",
+            "Included with LinkedIn Premium Career"
+          ],
+          "cta_label": "Subscribe",
+          "cta_url": "https://www.linkedin.com/learning/"
+        }
+      ]
+    }
   },
   {
     "id": 415,
@@ -24077,8 +24789,8 @@
     "tagline": "Video meetings, chat, and collaboration hub included in Microsoft 365 Education",
     "category": "Productivity",
     "subCategory": "Team Communication",
-    "price": "Free",
-    "pricingDetail": "Free via Microsoft 365 Education",
+    "price": "Freemium",
+    "pricingDetail": "Free tier; Essentials $4; Business Basic $6; Business Standard $12.50/user/mo (annual)",
     "bestFor": "Online class meetings, group project coordination, and university communication",
     "tags": [
       "video meetings",
@@ -24113,7 +24825,7 @@
     "languages": "50+",
     "launchYear": 2017,
     "description": "Microsoft Teams is the default communication and collaboration hub for universities running Microsoft 365 Education, hosting class channels, online lectures, and file sharing. Students use it for professor-assigned group projects and receive assignments through connected SharePoint. The Copilot AI integration auto-generates meeting summaries and action items from online lectures.",
-    "pricing_tier": "Free",
+    "pricing_tier": "Freemium",
     "difficulty": "beginner",
     "student_friendly": true,
     "use_cases": [
@@ -24123,7 +24835,7 @@
       "Summarizing meetings and calls",
       "Reducing time on manual administrative work"
     ],
-    "pricing": "Free",
+    "pricing": "Freemium",
     "student_perk": true,
     "company": "Microsoft",
     "review_count": 0,
@@ -24136,7 +24848,65 @@
       "Copilot AI"
     ],
     "slug": "microsoft-teams",
-    "curation_score": 47.0
+    "curation_score": 47.0,
+    "pricing_source_url": "https://www.microsoft.com/en-us/microsoft-teams/compare-microsoft-teams-business-options",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://www.microsoft.com/en-us/microsoft-teams/compare-microsoft-teams-business-options",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/month",
+          "features": [
+            "Chat & 60-min group meetings",
+            "Up to 100 participants",
+            "5 GB cloud storage"
+          ],
+          "cta_label": "Start free",
+          "cta_url": "https://www.microsoft.com/en-us/microsoft-teams/free"
+        },
+        {
+          "name": "Essentials",
+          "price_amount": 4,
+          "price_display": "$4/user/month",
+          "features": [
+            "Unlimited 30-hr meetings",
+            "Up to 300 participants",
+            "10 GB storage per user"
+          ],
+          "cta_label": "Buy now",
+          "cta_url": "https://www.microsoft.com/en-us/microsoft-teams/compare-microsoft-teams-business-options"
+        },
+        {
+          "name": "Business Basic",
+          "price_amount": 6,
+          "price_display": "$6/user/month",
+          "features": [
+            "Web & mobile Office apps",
+            "1 TB storage per user",
+            "Business email"
+          ],
+          "cta_label": "Buy now",
+          "cta_url": "https://www.microsoft.com/en-us/microsoft-teams/compare-microsoft-teams-business-options"
+        },
+        {
+          "name": "Business Standard",
+          "price_amount": 12.5,
+          "price_display": "$12.50/user/month",
+          "features": [
+            "Desktop Office apps",
+            "Webinars & hosting",
+            "Bookings & Clipchamp"
+          ],
+          "cta_label": "Buy now",
+          "cta_url": "https://www.microsoft.com/en-us/microsoft-teams/compare-microsoft-teams-business-options"
+        }
+      ]
+    }
   },
   {
     "id": 440,
@@ -24528,7 +25298,7 @@
     "category": "Productivity",
     "subCategory": "Homework Help",
     "price": "Paid",
-    "pricingDetail": "$14.95/month",
+    "pricingDetail": "Chegg Study $15.95/mo; Study Pack $19.95/mo (7-day free trial)",
     "bestFor": "Getting detailed textbook solutions and expert answers for STEM homework",
     "tags": [
       "textbook solutions",
@@ -24585,7 +25355,41 @@
       "Practice problems"
     ],
     "slug": "chegg-study",
-    "curation_score": 63.0
+    "curation_score": 63.0,
+    "pricing_source_url": "https://www.chegg.com/study-pack",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://www.chegg.com/study-pack",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Chegg Study",
+          "price_amount": 15.95,
+          "price_display": "$15.95/month",
+          "features": [
+            "Step-by-step textbook solutions",
+            "Expert Q&A (up to 20/mo)",
+            "7-day free trial"
+          ],
+          "cta_label": "Try free",
+          "cta_url": "https://www.chegg.com/study-pack"
+        },
+        {
+          "name": "Study Pack",
+          "price_amount": 19.95,
+          "price_display": "$19.95/month",
+          "features": [
+            "Everything in Study",
+            "Math & writing tools",
+            "Unlimited questions"
+          ],
+          "cta_label": "Subscribe",
+          "cta_url": "https://www.chegg.com/study-pack"
+        }
+      ]
+    }
   },
   {
     "id": 450,
@@ -24595,8 +25399,8 @@
     "tagline": "Crowdsourced study documents and AI tutoring for college courses",
     "category": "Courses & Tutorials",
     "subCategory": "Study Resources",
-    "price": "Freemium",
-    "pricingDetail": "Free 40 unlocks by uploading; Premier $9.95/month",
+    "price": "Paid",
+    "pricingDetail": "Monthly $39.99; Quarterly $19.95/mo; Annual $9.95/mo ($119.40/yr)",
     "bestFor": "Finding course-specific study materials, practice exams, and past assignments",
     "tags": [
       "study materials",
@@ -24630,7 +25434,7 @@
     "languages": "5+",
     "launchYear": 2006,
     "description": "Course Hero hosts millions of course-specific study documents, practice exams, and notes uploaded by students at thousands of universities. Students find exam prep materials from previous semesters in their specific course sections. Uploading original study materials earns free document unlocks, allowing access to peer resources without subscription costs for students who contribute quality content.",
-    "pricing_tier": "Freemium",
+    "pricing_tier": "Paid",
     "difficulty": "advanced",
     "student_friendly": true,
     "use_cases": [
@@ -24640,7 +25444,7 @@
       "Organizing study schedules",
       "Getting step-by-step explanations of concepts"
     ],
-    "pricing": "Freemium",
+    "pricing": "Paid",
     "student_perk": true,
     "company": "Course Hero",
     "review_count": 0,
@@ -24653,7 +25457,51 @@
       "Literature guides"
     ],
     "slug": "course-hero",
-    "curation_score": 63.0
+    "curation_score": 63.0,
+    "pricing_source_url": "https://www.coursehero.com/plans/",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://www.coursehero.com/plans/",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Monthly",
+          "price_amount": 39.99,
+          "price_display": "$39.99/month",
+          "features": [
+            "30 document unlocks/month",
+            "10 tutor questions",
+            "Study resources & guides"
+          ],
+          "cta_label": "Subscribe",
+          "cta_url": "https://www.coursehero.com/plans/"
+        },
+        {
+          "name": "Quarterly",
+          "price_amount": 19.95,
+          "price_display": "$19.95/month ($59.85/quarter)",
+          "features": [
+            "30 unlocks/month",
+            "Better value than monthly"
+          ],
+          "cta_label": "Subscribe",
+          "cta_url": "https://www.coursehero.com/plans/"
+        },
+        {
+          "name": "Annual",
+          "price_amount": 9.95,
+          "price_display": "$9.95/month ($119.40/year)",
+          "features": [
+            "Best value",
+            "40 tutor questions"
+          ],
+          "cta_label": "Subscribe",
+          "cta_url": "https://www.coursehero.com/plans/"
+        }
+      ]
+    }
   },
   {
     "id": 452,
@@ -25369,8 +26217,8 @@
     "tagline": "AI-assisted presentation creation inside Google Slides via Gemini",
     "category": "Design & Graphics",
     "subCategory": "AI Slide Generator",
-    "price": "Free",
-    "pricingDetail": "Free with Google Workspace Education",
+    "price": "Freemium",
+    "pricingDetail": "Free with a Google account; Google AI Pro $19.99/mo; AI Ultra $249.99/mo",
     "bestFor": "Generating and improving presentation slides using Gemini AI inside Google Slides",
     "tags": [
       "Google Slides",
@@ -25402,7 +26250,7 @@
     "languages": "40+",
     "launchYear": 2023,
     "description": "Google Slides now integrates Gemini AI directly into the presentation editor, allowing students to generate slide content, speaker notes, and images from text descriptions inside the familiar interface. University students with Google Workspace Education accounts access this completely free. The AI can suggest design improvements and generate relevant images for any slide topic, accelerating the presentation creation process.",
-    "pricing_tier": "Free",
+    "pricing_tier": "Freemium",
     "difficulty": "advanced",
     "student_friendly": true,
     "use_cases": [
@@ -25412,7 +26260,7 @@
       "Designing logos and brand materials",
       "Collaborating on visual projects with teams"
     ],
-    "pricing": "Free",
+    "pricing": "Freemium",
     "student_perk": true,
     "company": "Google",
     "review_count": 0,
@@ -25425,7 +26273,50 @@
       "Image generation"
     ],
     "slug": "google-slides-ai",
-    "curation_score": 51.0
+    "curation_score": 51.0,
+    "pricing_source_url": "https://one.google.com/about/google-ai-plans/",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://one.google.com/about/google-ai-plans/",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/month",
+          "features": [
+            "Create slides free with a Google account",
+            "Basic Gemini help"
+          ],
+          "cta_label": "Start free",
+          "cta_url": "https://slides.google.com"
+        },
+        {
+          "name": "Google AI Pro",
+          "price_amount": 19.99,
+          "price_display": "$19.99/month",
+          "features": [
+            "'Help me create' visuals in Slides",
+            "Gemini Advanced across Workspace",
+            "2 TB storage"
+          ],
+          "cta_label": "Upgrade",
+          "cta_url": "https://one.google.com/about/google-ai-plans/"
+        },
+        {
+          "name": "Google AI Ultra",
+          "price_amount": 249.99,
+          "price_display": "$249.99/month",
+          "features": [
+            "Highest limits & most capable models"
+          ],
+          "cta_label": "Upgrade",
+          "cta_url": "https://one.google.com/about/google-ai-plans/"
+        }
+      ]
+    }
   },
   {
     "id": 472,
@@ -26216,8 +27107,8 @@
     "tagline": "Professional photo editing with AI denoise, masking, and generative remove",
     "category": "Image Generation",
     "subCategory": "Photo Editing",
-    "price": "Freemium",
-    "pricingDetail": "Free mobile app; Photography plan $9.99/month",
+    "price": "Paid",
+    "pricingDetail": "Lightroom $11.99/mo; Photography Plan $19.99/mo (7-day free trial)",
     "bestFor": "Editing research and project photos professionally with AI-powered tools",
     "tags": [
       "photo editing",
@@ -26252,7 +27143,7 @@
     "languages": "20+",
     "launchYear": 2007,
     "description": "Adobe Lightroom integrates AI tools including denoise, subject and background masking, and generative content removal for professional photo editing. Students photographing research specimens, field work, or project documentation use it to produce publication-quality images. The free mobile app provides access to core editing and AI masking features sufficient for most student photography needs.",
-    "pricing_tier": "Freemium",
+    "pricing_tier": "Paid",
     "difficulty": "advanced",
     "student_friendly": true,
     "use_cases": [
@@ -26262,7 +27153,7 @@
       "Producing concept art and mockups",
       "Personalizing visual content at scale"
     ],
-    "pricing": "Freemium",
+    "pricing": "Paid",
     "student_perk": true,
     "company": "Adobe",
     "review_count": 0,
@@ -26275,7 +27166,41 @@
       "Batch editing"
     ],
     "slug": "adobe-lightroom-ai",
-    "curation_score": 65.0
+    "curation_score": 65.0,
+    "pricing_source_url": "https://www.adobe.com/products/photoshop-lightroom/plans.html",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://www.adobe.com/products/photoshop-lightroom/plans.html",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Lightroom",
+          "price_amount": 11.99,
+          "price_display": "$11.99/month",
+          "features": [
+            "Lightroom on desktop, mobile & web",
+            "1 TB cloud storage",
+            "AI-powered edits & masking"
+          ],
+          "cta_label": "Start trial",
+          "cta_url": "https://www.adobe.com/products/photoshop-lightroom/plans.html"
+        },
+        {
+          "name": "Photography Plan",
+          "price_amount": 19.99,
+          "price_display": "$19.99/month",
+          "features": [
+            "Lightroom + Lightroom Classic + Photoshop",
+            "1 TB cloud storage",
+            "Generative AI features"
+          ],
+          "cta_label": "Start trial",
+          "cta_url": "https://www.adobe.com/products/photoshop-lightroom/plans.html"
+        }
+      ]
+    }
   },
   {
     "id": 493,
@@ -31021,7 +31946,7 @@
     "category": "Education",
     "subCategory": "Game-Based Learning",
     "price": "Freemium",
-    "pricingDetail": "Free basic plan for teachers; Plus at $6/month; school and district plans available",
+    "pricingDetail": "Free tier; teacher plans from $3.99/mo (annual); School & District $15-25/teacher/mo",
     "bestFor": "Teachers who want game-based formative assessment and live classroom engagement",
     "tags": [
       "education",
@@ -31077,6 +32002,63 @@
     ],
     "slug": "kahoot",
     "is_ai_native": false,
-    "curation_score": 80.0
+    "curation_score": 80.0,
+    "pricing_source_url": "https://kahoot.com/schools/plans/",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://kahoot.com/schools/plans/",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/month",
+          "features": [
+            "Create & host basic kahoots",
+            "Live & assigned games",
+            "Core question types"
+          ],
+          "cta_label": "Start free",
+          "cta_url": "https://kahoot.com"
+        },
+        {
+          "name": "Teacher plans",
+          "price_amount": 3.99,
+          "price_display": "From $3.99/teacher/month (annual)",
+          "features": [
+            "Advanced question types",
+            "Image library & reports",
+            "AI quiz generation"
+          ],
+          "cta_label": "Upgrade",
+          "cta_url": "https://kahoot.com/schools/plans/"
+        },
+        {
+          "name": "School & District Standard",
+          "price_amount": 15,
+          "price_display": "$15/teacher/month (annual, 3-license min)",
+          "features": [
+            "Up to 800 players per game",
+            "District analytics",
+            "Premium content"
+          ],
+          "cta_label": "Contact sales",
+          "cta_url": "https://kahoot.com/schools/plans/"
+        },
+        {
+          "name": "School & District Pro",
+          "price_amount": 25,
+          "price_display": "$25/teacher/month (annual)",
+          "features": [
+            "Advanced integrations",
+            "Priority support"
+          ],
+          "cta_label": "Contact sales",
+          "cta_url": "https://kahoot.com/schools/plans/"
+        }
+      ]
+    }
   }
 ]
