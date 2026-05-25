@@ -6663,8 +6663,8 @@
     "tagline": "AI-assisted assignment and exam grading platform for students and instructors",
     "category": "Courses & Tutorials",
     "subCategory": "Academic Platform",
-    "price": "Free",
-    "pricingDetail": "Free for students; instructors pay via institution",
+    "price": "Freemium",
+    "pricingDetail": "Gradescope Basic free; Institutional (AI-assisted grading) is contact-sales (now part of Turnitin)",
     "bestFor": "Submitting assignments and getting AI-graded feedback",
     "tags": [
       "grading",
@@ -6696,7 +6696,7 @@
     "languages": "5+",
     "launchYear": 2014,
     "description": "Gradescope is an AI-assisted grading platform widely adopted by universities that lets students submit homework and exams digitally and receive structured rubric-based feedback. Its AI groups similar student answers together to help instructors grade consistently. Students benefit from detailed feedback and easy regrade request submissions.",
-    "pricing_tier": "Free",
+    "pricing_tier": "Freemium",
     "difficulty": "beginner",
     "student_friendly": true,
     "use_cases": [
@@ -6706,7 +6706,7 @@
       "Organizing study schedules",
       "Getting step-by-step explanations of concepts"
     ],
-    "pricing": "Free",
+    "pricing": "Freemium",
     "student_perk": true,
     "company": "Turnitin / Gradescope",
     "review_count": 0,
@@ -6719,7 +6719,40 @@
       "Regrade requests"
     ],
     "slug": "gradescope",
-    "curation_score": 45.0
+    "curation_score": 45.0,
+    "pricing_source_url": "https://turnitin.gradescope.com/pricing",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://turnitin.gradescope.com/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Basic",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Manual grading",
+            "Core assignment features"
+          ],
+          "cta_label": "Use Basic",
+          "cta_url": "https://turnitin.gradescope.com/pricing"
+        },
+        {
+          "name": "Institutional",
+          "price_amount": null,
+          "price_display": "Contact sales",
+          "features": [
+            "AI-assisted grading",
+            "Full feature set",
+            "LMS integration"
+          ],
+          "cta_label": "Contact sales",
+          "cta_url": "https://turnitin.gradescope.com/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 64,
@@ -10959,7 +10992,7 @@
     "category": "Productivity",
     "subCategory": "Project Management",
     "price": "Freemium",
-    "pricingDetail": "Free plan; Unlimited $7/month",
+    "pricingDetail": "ClickUp: Free; Unlimited $7, Business $12/user/mo; Enterprise custom. ClickUp Brain AI add-on +$7/user/mo ($5 annual)",
     "bestFor": "Managing complex group research projects and assignment pipelines",
     "tags": [
       "project management",
@@ -11017,7 +11050,75 @@
       "Team workload view"
     ],
     "slug": "clickup-ai",
-    "curation_score": 47.0
+    "curation_score": 47.0,
+    "pricing_source_url": "https://clickup.com/pricing",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://clickup.com/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free Forever",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "Unlimited tasks",
+            "Limited features"
+          ],
+          "cta_label": "Sign up",
+          "cta_url": "https://clickup.com/pricing"
+        },
+        {
+          "name": "Unlimited",
+          "price_amount": 7,
+          "price_display": "$7/user/mo",
+          "features": [
+            "Unlimited storage",
+            "Integrations",
+            "Dashboards"
+          ],
+          "cta_label": "Choose Unlimited",
+          "cta_url": "https://clickup.com/pricing"
+        },
+        {
+          "name": "Business",
+          "price_amount": 12,
+          "price_display": "$12/user/mo",
+          "features": [
+            "Advanced automation",
+            "Advanced dashboards",
+            "Timelines"
+          ],
+          "cta_label": "Choose Business",
+          "cta_url": "https://clickup.com/pricing"
+        },
+        {
+          "name": "Enterprise",
+          "price_amount": null,
+          "price_display": "Custom",
+          "features": [
+            "SSO",
+            "Advanced permissions",
+            "White labeling"
+          ],
+          "cta_label": "Contact sales",
+          "cta_url": "https://clickup.com/pricing"
+        },
+        {
+          "name": "ClickUp Brain (AI add-on)",
+          "price_amount": 7,
+          "price_display": "+$7/user/mo (+$5 annual)",
+          "features": [
+            "AI across tasks, docs & chat",
+            "AI writing & summaries"
+          ],
+          "cta_label": "Add Brain",
+          "cta_url": "https://clickup.com/brain/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 120,
@@ -11615,8 +11716,8 @@
     "tagline": "Simplifies complex legal and policy documents into plain English",
     "category": "Research",
     "subCategory": "Document Analysis",
-    "price": "Freemium",
-    "pricingDetail": "Free limited; Pro $9/month",
+    "price": "Paid",
+    "pricingDetail": "No subscription. Pay per document by length: $19-$199 (typical 3-5 pages ~$25)",
     "bestFor": "Understanding academic policies, terms of service, and legal reading assignments",
     "tags": [
       "legal",
@@ -11648,7 +11749,7 @@
     "languages": "5+",
     "launchYear": 2023,
     "description": "Detangle AI translates complex legal documents, contracts, and policy texts into plain English summaries. Law students use it to quickly identify key clauses in case law, while all students benefit from understanding the academic policies and agreements they must sign. The PDF upload feature handles most legal document formats.",
-    "pricing_tier": "Freemium",
+    "pricing_tier": "Paid",
     "difficulty": "intermediate",
     "student_friendly": true,
     "use_cases": [
@@ -11658,7 +11759,7 @@
       "Discovering related research and citations",
       "Synthesizing findings from multiple sources"
     ],
-    "pricing": "Freemium",
+    "pricing": "Paid",
     "student_perk": true,
     "company": "Detangle AI",
     "review_count": 0,
@@ -11671,7 +11772,39 @@
       "PDF upload"
     ],
     "slug": "detangle.ai",
-    "curation_score": 51.0
+    "curation_score": 51.0,
+    "pricing_source_url": "https://detangle.ai",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://detangle.ai",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Short document",
+          "price_amount": 19,
+          "price_display": "from $19/document",
+          "features": [
+            "Up to ~5 pages (~$25)",
+            "One-time, no subscription"
+          ],
+          "cta_label": "Summarize",
+          "cta_url": "https://detangle.ai"
+        },
+        {
+          "name": "Long document",
+          "price_amount": 199,
+          "price_display": "up to $199/document",
+          "features": [
+            "Longer legal documents",
+            "Priced by length"
+          ],
+          "cta_label": "Summarize",
+          "cta_url": "https://detangle.ai"
+        }
+      ]
+    }
   },
   {
     "id": 127,
@@ -15674,7 +15807,7 @@
     "category": "Writing & Chat",
     "subCategory": "Grammar & Style",
     "price": "Freemium",
-    "pricingDetail": "Free; Premium Ã¢â€šÂ¬4.99/month",
+    "pricingDetail": "Free (Basic); Premium $4.99/mo billed annually ($24.90 monthly); Teams from ~$9.48/mo (2 users)",
     "bestFor": "Grammar and style checking in non-English academic writing",
     "tags": [
       "grammar",
@@ -15730,7 +15863,54 @@
       "Browser extension"
     ],
     "slug": "languagetool",
-    "curation_score": 47.0
+    "curation_score": 47.0,
+    "pricing_source_url": "https://languagetool.org/premium",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://languagetool.org/premium",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Basic grammar & punctuation",
+            "2,000 char limit",
+            "3 rephrases/day"
+          ],
+          "cta_label": "Use free",
+          "cta_url": "https://languagetool.org/premium"
+        },
+        {
+          "name": "Premium",
+          "price_amount": 4.99,
+          "price_display": "$4.99/mo (annual); $24.90 monthly",
+          "features": [
+            "Advanced grammar & style",
+            "150,000 char limit",
+            "Unlimited paraphrasing",
+            "Style guide"
+          ],
+          "cta_label": "Go Premium",
+          "cta_url": "https://languagetool.org/premium"
+        },
+        {
+          "name": "Teams",
+          "price_amount": null,
+          "price_display": "from ~$9.48/mo (2 users)",
+          "features": [
+            "User management",
+            "Team style guide",
+            "Team dictionary"
+          ],
+          "cta_label": "Choose Teams",
+          "cta_url": "https://languagetool.org/premium"
+        }
+      ]
+    }
   },
   {
     "id": 171,
@@ -19995,7 +20175,7 @@
     "category": "Design & Graphics",
     "subCategory": "Typography",
     "price": "Free",
-    "pricingDetail": "Free",
+    "pricingDetail": "Free AI font-pairing generator",
     "bestFor": "Finding font combinations for design and branding assignments",
     "tags": [
       "typography",
@@ -20050,7 +20230,29 @@
       "Google Fonts integration"
     ],
     "slug": "fontjoy",
-    "curation_score": 52.5
+    "curation_score": 52.5,
+    "pricing_source_url": "https://fontjoy.com",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://fontjoy.com",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "AI font pairing",
+            "Generate font combinations",
+            "No cost"
+          ],
+          "cta_label": "Generate",
+          "cta_url": "https://fontjoy.com"
+        }
+      ]
+    }
   },
   {
     "id": 222,
@@ -20287,7 +20489,7 @@
     "category": "Design & Graphics",
     "subCategory": "Product Photography",
     "price": "Freemium",
-    "pricingDetail": "Free 5 images; Pro $19/month",
+    "pricingDetail": "Free trial (20 photos); Starter $13/mo; Team $29/user/mo; Organization $83.25/user/mo (min 5)",
     "bestFor": "Creating professional product visuals for marketing and business assignments",
     "tags": [
       "product photography",
@@ -20341,7 +20543,63 @@
       "High resolution"
     ],
     "slug": "mokker-ai",
-    "curation_score": 51.0
+    "curation_score": 51.0,
+    "pricing_source_url": "https://mokker.ai/pricing",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://mokker.ai/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free trial",
+          "features": [
+            "20 photos once",
+            "Full studio access",
+            "All templates"
+          ],
+          "cta_label": "Try free",
+          "cta_url": "https://mokker.ai/pricing"
+        },
+        {
+          "name": "Starter",
+          "price_amount": 13,
+          "price_display": "$13/mo (annual up to 35% off)",
+          "features": [
+            "500 photos/mo",
+            "High-quality export",
+            "Custom prompts"
+          ],
+          "cta_label": "Choose Starter",
+          "cta_url": "https://mokker.ai/pricing"
+        },
+        {
+          "name": "Team",
+          "price_amount": 29,
+          "price_display": "$29/user/mo",
+          "features": [
+            "Unlimited photos",
+            "3 seats"
+          ],
+          "cta_label": "Choose Team",
+          "cta_url": "https://mokker.ai/pricing"
+        },
+        {
+          "name": "Organization",
+          "price_amount": 83.25,
+          "price_display": "$83.25/user/mo (min 5)",
+          "features": [
+            "Custom AI model (coming)",
+            "Priority support"
+          ],
+          "cta_label": "Contact",
+          "cta_url": "https://mokker.ai/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 225,
@@ -20599,7 +20857,7 @@
     "category": "Audio & Voice",
     "subCategory": "Music Generation",
     "price": "Freemium",
-    "pricingDetail": "Free limited; Creator $9.99/month",
+    "pricingDetail": "Free (25 song saves, 1 release); Creator $9.99/mo; Pro $29.99/mo (commercial use)",
     "bestFor": "Creating and distributing original music for music technology and media courses",
     "tags": [
       "music",
@@ -20654,7 +20912,51 @@
       "Customization"
     ],
     "slug": "boomy",
-    "curation_score": 52.5
+    "curation_score": 52.5,
+    "pricing_source_url": "https://boomy.com/pricing",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://boomy.com/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "25 song saves",
+            "1 release (up to 3 songs)"
+          ],
+          "cta_label": "Start free",
+          "cta_url": "https://boomy.com/pricing"
+        },
+        {
+          "name": "Creator",
+          "price_amount": 9.99,
+          "price_display": "$9.99/mo",
+          "features": [
+            "500 song saves",
+            "10 MP3 downloads/mo",
+            "Expedited release review"
+          ],
+          "cta_label": "Go Creator",
+          "cta_url": "https://boomy.com/pricing"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 29.99,
+          "price_display": "$29.99/mo",
+          "features": [
+            "Unlimited song saves",
+            "Commercial use (podcasts, social, ads)"
+          ],
+          "cta_label": "Go Pro",
+          "cta_url": "https://boomy.com/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 229,
@@ -20779,7 +21081,7 @@
     "category": "Video Generation",
     "subCategory": "Video AI",
     "price": "Freemium",
-    "pricingDetail": "Free tier for students and developers",
+    "pricingDetail": "Free (10 hrs indexing, no card); Developer pay-as-you-go ($0.042/min indexing, $4/1k searches); Enterprise custom",
     "bestFor": "Building apps that search and understand video content for CS projects",
     "tags": [
       "video AI",
@@ -20834,7 +21136,53 @@
       "Content classification"
     ],
     "slug": "twelve-labs",
-    "curation_score": 47.0
+    "curation_score": 47.0,
+    "pricing_source_url": "https://www.twelvelabs.io/pricing",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://www.twelvelabs.io/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "10 hrs indexing",
+            "600 min usage",
+            "100 videos",
+            "No credit card"
+          ],
+          "cta_label": "Start free",
+          "cta_url": "https://www.twelvelabs.io/pricing"
+        },
+        {
+          "name": "Developer",
+          "price_amount": null,
+          "price_display": "Pay-as-you-go",
+          "features": [
+            "$0.042/min video indexing",
+            "$4 per 1,000 searches",
+            "Unlimited usage"
+          ],
+          "cta_label": "Get API key",
+          "cta_url": "https://www.twelvelabs.io/pricing"
+        },
+        {
+          "name": "Enterprise",
+          "price_amount": null,
+          "price_display": "Custom",
+          "features": [
+            "Committed-use contracts",
+            "Volume rates"
+          ],
+          "cta_label": "Contact sales",
+          "cta_url": "https://www.twelvelabs.io/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 231,
@@ -21411,7 +21759,7 @@
     "category": "Coding",
     "subCategory": "Vector Database",
     "price": "Freemium",
-    "pricingDetail": "Free open source; Cloud Sandbox free",
+    "pricingDetail": "14-day free trial; Flex from $45/mo (pay-as-you-go); Premium from $400/mo. Usage ~$0.01/1M vector dimensions",
     "bestFor": "Building AI search and RAG applications with an open-source vector database",
     "tags": [
       "vector database",
@@ -21466,7 +21814,52 @@
       "Multi-modal"
     ],
     "slug": "weaviate",
-    "curation_score": 47.0
+    "curation_score": 47.0,
+    "pricing_source_url": "https://weaviate.io/pricing",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://weaviate.io/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free Trial",
+          "price_amount": 0,
+          "price_display": "14-day free trial",
+          "features": [
+            "Managed sandbox cluster",
+            "Shared cloud"
+          ],
+          "cta_label": "Start free",
+          "cta_url": "https://weaviate.io/pricing"
+        },
+        {
+          "name": "Flex",
+          "price_amount": 45,
+          "price_display": "from $45/mo (pay-as-you-go)",
+          "features": [
+            "No commitment",
+            "~$0.01 per 1M vector dimensions",
+            "Ship quickly"
+          ],
+          "cta_label": "Choose Flex",
+          "cta_url": "https://weaviate.io/pricing"
+        },
+        {
+          "name": "Premium",
+          "price_amount": 400,
+          "price_display": "from $400/mo",
+          "features": [
+            "Predictable prepaid pricing",
+            "Production reliability",
+            "Dedicated options"
+          ],
+          "cta_label": "Choose Premium",
+          "cta_url": "https://weaviate.io/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 237,
@@ -21728,7 +22121,7 @@
     "category": "Coding",
     "subCategory": "Data Science Library",
     "price": "Free",
-    "pricingDetail": "Free open source",
+    "pricingDetail": "Free & open source; conversational data analysis. Enterprise offering separate",
     "bestFor": "Data science students who want to query Pandas dataframes in plain English",
     "tags": [
       "Python",
@@ -21783,7 +22176,29 @@
       "Data cleaning"
     ],
     "slug": "pandas-ai",
-    "curation_score": 51.0
+    "curation_score": 51.0,
+    "pricing_source_url": "https://pandas-ai.com",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://pandas-ai.com",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free (open source)",
+          "features": [
+            "Natural-language data analysis",
+            "Open source",
+            "Self-hosted"
+          ],
+          "cta_label": "Get started",
+          "cta_url": "https://pandas-ai.com"
+        }
+      ]
+    }
   },
   {
     "id": 241,
@@ -22618,7 +23033,7 @@
     "category": "Coding",
     "subCategory": "Prompt Testing",
     "price": "Free",
-    "pricingDetail": "Free open source",
+    "pricingDetail": "Free & open source (MIT). Enterprise version available separately",
     "bestFor": "Testing and comparing different prompts for AI course projects systematically",
     "tags": [
       "prompt testing",
@@ -22674,7 +23089,29 @@
       "CI integration"
     ],
     "slug": "promptfoo",
-    "curation_score": 51.0
+    "curation_score": 51.0,
+    "pricing_source_url": "https://promptfoo.dev",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://promptfoo.dev",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free (open source)",
+          "features": [
+            "LLM evals & red-teaming",
+            "MIT licensed",
+            "Self-hosted"
+          ],
+          "cta_label": "Get started",
+          "cta_url": "https://promptfoo.dev"
+        }
+      ]
+    }
   },
   {
     "id": 255,
@@ -22685,7 +23122,7 @@
     "category": "Coding",
     "subCategory": "Document Processing",
     "price": "Free",
-    "pricingDetail": "Free and open source",
+    "pricingDetail": "Free & open source (MIT, LF AI & Data). Document parsing toolkit",
     "bestFor": "Parsing complex academic PDFs into structured markdown for RAG pipelines",
     "tags": [
       "PDF parsing",
@@ -22740,7 +23177,29 @@
       "Markdown output"
     ],
     "slug": "docling",
-    "curation_score": 51.0
+    "curation_score": 51.0,
+    "pricing_source_url": "https://github.com/DS4SD/docling",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://github.com/DS4SD/docling",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free (open source)",
+          "features": [
+            "Parse documents to Markdown/JSON",
+            "MIT licensed",
+            "Self-hosted"
+          ],
+          "cta_label": "View on GitHub",
+          "cta_url": "https://github.com/DS4SD/docling"
+        }
+      ]
+    }
   },
   {
     "id": 256,
@@ -22751,7 +23210,7 @@
     "category": "Coding",
     "subCategory": "Document Processing",
     "price": "Free",
-    "pricingDetail": "Free and open source",
+    "pricingDetail": "Free & open source; converts PDFs to Markdown. Commercial license available for some revenue cases",
     "bestFor": "Converting scanned and complex PDFs to markdown for AI pipelines",
     "tags": [
       "PDF",
@@ -22806,7 +23265,29 @@
       "Batch processing"
     ],
     "slug": "marker",
-    "curation_score": 51.0
+    "curation_score": 51.0,
+    "pricing_source_url": "https://github.com/VikParuchuri/marker",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://github.com/VikParuchuri/marker",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free (open source)",
+          "features": [
+            "PDF -> Markdown conversion",
+            "Open source",
+            "Self-hosted"
+          ],
+          "cta_label": "View on GitHub",
+          "cta_url": "https://github.com/VikParuchuri/marker"
+        }
+      ]
+    }
   },
   {
     "id": 257,
@@ -22817,7 +23298,7 @@
     "category": "Coding",
     "subCategory": "Cloud Compute",
     "price": "Freemium",
-    "pricingDetail": "Free CPU notebooks; GPU from $0.07/hr",
+    "pricingDetail": "Free ($0 + usage); Pro $8/mo; Growth $39/mo (all + instance costs). GPUs from ~$0.51/hr; A100-80G $1.15/hr (commit), H100 $2.24/hr (commit). Now part of DigitalOcean",
     "bestFor": "Running deep learning experiments with cloud GPU access for ML courses",
     "tags": [
       "GPU",
@@ -22872,7 +23353,53 @@
       "Pre-built containers"
     ],
     "slug": "paperspace-gradient",
-    "curation_score": 52.5
+    "curation_score": 52.5,
+    "pricing_source_url": "https://www.paperspace.com/pricing",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://www.paperspace.com/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0 + usage",
+          "features": [
+            "Public projects",
+            "5 GB storage",
+            "Free GPU instances (12h limit)"
+          ],
+          "cta_label": "Start free",
+          "cta_url": "https://www.paperspace.com/pricing"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 8,
+          "price_display": "$8/mo + instances",
+          "features": [
+            "Private projects",
+            "15 GB storage",
+            "Faster free GPUs"
+          ],
+          "cta_label": "Go Pro",
+          "cta_url": "https://www.paperspace.com/pricing"
+        },
+        {
+          "name": "Growth",
+          "price_amount": 39,
+          "price_display": "$39/mo + instances",
+          "features": [
+            "Team support",
+            "50 GB storage",
+            "High-end instances"
+          ],
+          "cta_label": "Go Growth",
+          "cta_url": "https://www.paperspace.com/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 258,
@@ -22995,7 +23522,7 @@
     "category": "Coding",
     "subCategory": "Serverless Compute",
     "price": "Freemium",
-    "pricingDetail": "Free $30/month credit; pay-as-you-go",
+    "pricingDetail": "Starter free ($30/mo credits); Team $250/mo + compute ($100/mo credits); Enterprise custom. GPU from ~$0.000164/s (T4) to $0.001736/s (B200)",
     "bestFor": "Running GPU workloads from a local Python script without cloud setup",
     "tags": [
       "GPU",
@@ -23050,7 +23577,55 @@
       "Web endpoints"
     ],
     "slug": "modal",
-    "curation_score": 47.0
+    "curation_score": 47.0,
+    "pricing_source_url": "https://modal.com/pricing",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://modal.com/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Starter",
+          "price_amount": 0,
+          "price_display": "$0/mo + compute",
+          "features": [
+            "$30/mo free credits",
+            "3 seats",
+            "100 containers",
+            "10 GPU concurrency"
+          ],
+          "cta_label": "Start free",
+          "cta_url": "https://modal.com/pricing"
+        },
+        {
+          "name": "Team",
+          "price_amount": 250,
+          "price_display": "$250/mo + compute",
+          "features": [
+            "$100/mo free credits",
+            "Unlimited seats",
+            "1,000 containers",
+            "50 GPU concurrency"
+          ],
+          "cta_label": "Choose Team",
+          "cta_url": "https://modal.com/pricing"
+        },
+        {
+          "name": "Enterprise",
+          "price_amount": null,
+          "price_display": "Custom",
+          "features": [
+            "Volume discounts",
+            "Higher concurrency",
+            "Dedicated support"
+          ],
+          "cta_label": "Contact sales",
+          "cta_url": "https://modal.com/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 260,
@@ -23259,7 +23834,7 @@
     "category": "Coding",
     "subCategory": "ML Versioning",
     "price": "Free",
-    "pricingDetail": "Free open source",
+    "pricingDetail": "Free & open source (Apache-2.0). DVC Studio SaaS is a separate product",
     "bestFor": "Versioning datasets and ML models in AI research projects",
     "tags": [
       "ML",
@@ -23314,7 +23889,29 @@
       "Remote storage"
     ],
     "slug": "dvc",
-    "curation_score": 52.5
+    "curation_score": 52.5,
+    "pricing_source_url": "https://dvc.org",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://dvc.org",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free (open source)",
+          "features": [
+            "Git-based data & model versioning",
+            "Apache-2.0 license",
+            "CLI & Python"
+          ],
+          "cta_label": "Get started",
+          "cta_url": "https://dvc.org"
+        }
+      ]
+    }
   },
   {
     "id": 264,
@@ -23325,7 +23922,7 @@
     "category": "Productivity",
     "subCategory": "ML Experiment Tracking",
     "price": "Freemium",
-    "pricingDetail": "Free Community; Academic plan free with university email",
+    "pricingDetail": "Free cloud ($0); Pro $19/user/mo; Enterprise custom. Opik is open source; academics get Pro free",
     "bestFor": "Tracking ML experiments and comparing model versions for AI courses",
     "tags": [
       "ML",
@@ -23380,7 +23977,54 @@
       "Artifact storage"
     ],
     "slug": "comet-ml",
-    "curation_score": 47.0
+    "curation_score": 47.0,
+    "pricing_source_url": "https://www.comet.com/site/pricing/",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://www.comet.com/site/pricing/",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "1 user",
+            "100 GB storage",
+            "Experiment tracking"
+          ],
+          "cta_label": "Start free",
+          "cta_url": "https://www.comet.com/site/pricing/"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 19,
+          "price_display": "$19/user/mo",
+          "features": [
+            "Up to 10 users",
+            "1,500 training hours",
+            "500 GB storage"
+          ],
+          "cta_label": "Go Pro",
+          "cta_url": "https://www.comet.com/site/pricing/"
+        },
+        {
+          "name": "Enterprise",
+          "price_amount": null,
+          "price_display": "Custom",
+          "features": [
+            "Unlimited users",
+            "Data drift detection",
+            "Flexible deployment",
+            "SSO"
+          ],
+          "cta_label": "Contact sales",
+          "cta_url": "https://www.comet.com/site/pricing/"
+        }
+      ]
+    }
   },
   {
     "id": 265,
@@ -23457,7 +24101,7 @@
     "category": "Research",
     "subCategory": "Data Labeling",
     "price": "Freemium",
-    "pricingDetail": "Free Starter; Academic plan free",
+    "pricingDetail": "Free (up to 30 users, 50 projects); paid Subscription is contact-sales; free for qualified education",
     "bestFor": "Creating annotated training datasets for ML course projects",
     "tags": [
       "data labeling",
@@ -23512,7 +24156,53 @@
       "Model diagnostics"
     ],
     "slug": "labelbox",
-    "curation_score": 47.0
+    "curation_score": 47.0,
+    "pricing_source_url": "https://labelbox.com/pricing/",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://labelbox.com/pricing/",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Up to 30 users",
+            "50 projects",
+            "25 ontologies",
+            "Community support"
+          ],
+          "cta_label": "Start free",
+          "cta_url": "https://labelbox.com/pricing/"
+        },
+        {
+          "name": "Subscription",
+          "price_amount": null,
+          "price_display": "Contact sales",
+          "features": [
+            "Unlimited users & projects",
+            "Labelbox Monitor",
+            "SSO",
+            "Premium support"
+          ],
+          "cta_label": "Contact sales",
+          "cta_url": "https://labelbox.com/pricing/"
+        },
+        {
+          "name": "Education",
+          "price_amount": 0,
+          "price_display": "Free for qualified institutions",
+          "features": [
+            "For students & educators"
+          ],
+          "cta_label": "Apply",
+          "cta_url": "https://labelbox.com/pricing/"
+        }
+      ]
+    }
   },
   {
     "id": 268,
@@ -24478,7 +25168,7 @@
     "category": "Productivity",
     "subCategory": "Knowledge Base",
     "price": "Freemium",
-    "pricingDetail": "Free up to 10 users; Startup $8/month",
+    "pricingDetail": "Free (up to 10 users); Startup $6.67/user/mo; Business $12.50/user/mo (annual); Enterprise custom",
     "bestFor": "Building a shared course knowledge base with classmates",
     "tags": [
       "knowledge base",
@@ -24533,7 +25223,64 @@
       "Integrations"
     ],
     "slug": "slab",
-    "curation_score": 52.5
+    "curation_score": 52.5,
+    "pricing_source_url": "https://slab.com/pricing/",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://slab.com/pricing/",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/user/mo",
+          "features": [
+            "Up to 10 users",
+            "90-day version history",
+            "10 MB attachments"
+          ],
+          "cta_label": "Get started",
+          "cta_url": "https://slab.com/pricing/"
+        },
+        {
+          "name": "Startup",
+          "price_amount": 6.67,
+          "price_display": "$6.67/user/mo (annual)",
+          "features": [
+            "Unlimited users",
+            "365-day history",
+            "25 MB attachments"
+          ],
+          "cta_label": "Choose Startup",
+          "cta_url": "https://slab.com/pricing/"
+        },
+        {
+          "name": "Business",
+          "price_amount": 12.5,
+          "price_display": "$12.50/user/mo (annual)",
+          "features": [
+            "Unlimited history",
+            "100 MB attachments",
+            "Priority support"
+          ],
+          "cta_label": "Choose Business",
+          "cta_url": "https://slab.com/pricing/"
+        },
+        {
+          "name": "Enterprise",
+          "price_amount": null,
+          "price_display": "Custom",
+          "features": [
+            "100+ users",
+            "Dedicated support"
+          ],
+          "cta_label": "Contact sales",
+          "cta_url": "https://slab.com/pricing/"
+        }
+      ]
+    }
   },
   {
     "id": 284,
@@ -24699,7 +25446,7 @@
     "category": "Writing & Chat",
     "subCategory": "Quiz Generation",
     "price": "Freemium",
-    "pricingDetail": "Free 5 quizzes; Pro $12/month",
+    "pricingDetail": "Free plan with limited generation; paid plans from $4/mo",
     "bestFor": "Creating practice quizzes from class notes or topics for self-testing",
     "tags": [
       "quizzes",
@@ -24754,7 +25501,39 @@
       "Scoring"
     ],
     "slug": "conker",
-    "curation_score": 52.5
+    "curation_score": 52.5,
+    "pricing_source_url": "https://www.conker.ai/pricing",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://www.conker.ai/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Limited quiz generation",
+            "Core question types"
+          ],
+          "cta_label": "Start free",
+          "cta_url": "https://www.conker.ai/pricing"
+        },
+        {
+          "name": "Paid",
+          "price_amount": 4,
+          "price_display": "from $4/mo",
+          "features": [
+            "More quizzes & question types",
+            "Higher usage limits"
+          ],
+          "cta_label": "Upgrade",
+          "cta_url": "https://www.conker.ai/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 288,
@@ -25243,7 +26022,7 @@
     "category": "Productivity",
     "subCategory": "Workflow Automation",
     "price": "Free",
-    "pricingDetail": "Free and open source",
+    "pricingDetail": "Free & open source AI workflow automation",
     "bestFor": "Automating repetitive academic tasks by connecting apps and AI models",
     "tags": [
       "automation",
@@ -25298,7 +26077,29 @@
       "AI steps"
     ],
     "slug": "tideflow",
-    "curation_score": 47.0
+    "curation_score": 47.0,
+    "pricing_source_url": "https://github.com/tideflow-io/tideflow",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://github.com/tideflow-io/tideflow",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free (open source)",
+          "features": [
+            "AI workflow automation",
+            "Open source",
+            "Self-hosted"
+          ],
+          "cta_label": "View on GitHub",
+          "cta_url": "https://github.com/tideflow-io/tideflow"
+        }
+      ]
+    }
   },
   {
     "id": 299,
@@ -26042,7 +26843,7 @@
     "category": "Productivity",
     "subCategory": "Task Manager",
     "price": "Freemium",
-    "pricingDetail": "Free; Premium $27.99/year",
+    "pricingDetail": "Free plan; Premium $3.99/mo or $35.99/yr",
     "bestFor": "Managing assignments, tasks, and habits across all devices with a built-in Pomodoro timer",
     "tags": [
       "tasks",
@@ -26100,7 +26901,41 @@
       "Calendar view"
     ],
     "slug": "ticktick",
-    "curation_score": 47.0
+    "curation_score": 47.0,
+    "pricing_source_url": "https://ticktick.com/upgrade",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://ticktick.com/upgrade",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Basic tasks & lists",
+            "Limited reminders & lists"
+          ],
+          "cta_label": "Sign up",
+          "cta_url": "https://ticktick.com/upgrade"
+        },
+        {
+          "name": "Premium",
+          "price_amount": 3.99,
+          "price_display": "$3.99/mo ($35.99/yr)",
+          "features": [
+            "Calendar view",
+            "Unlimited lists & tasks",
+            "Custom filters",
+            "Habit tracking"
+          ],
+          "cta_label": "Go Premium",
+          "cta_url": "https://ticktick.com/upgrade"
+        }
+      ]
+    }
   },
   {
     "id": 327,
@@ -26803,7 +27638,7 @@
     "category": "Productivity",
     "subCategory": "Video Messaging",
     "price": "Freemium",
-    "pricingDetail": "Free 25 videos; Business $12.50/month",
+    "pricingDetail": "Starter free; Business $18/user/mo; Business + AI $24/user/mo; Enterprise custom",
     "bestFor": "Recording and sharing async video explanations for group projects and professors",
     "tags": [
       "screen recording",
@@ -26861,7 +27696,67 @@
       "Comments"
     ],
     "slug": "loom",
-    "curation_score": 47.0
+    "curation_score": 47.0,
+    "pricing_source_url": "https://www.loom.com/pricing",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://www.loom.com/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Starter",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "50 workspace members",
+            "25 videos/person",
+            "5-min recordings",
+            "Up to 720p"
+          ],
+          "cta_label": "Get started",
+          "cta_url": "https://www.loom.com/pricing"
+        },
+        {
+          "name": "Business",
+          "price_amount": 18,
+          "price_display": "$18/user/mo",
+          "features": [
+            "Unlimited members & videos",
+            "Unlimited recording length",
+            "Up to 4K",
+            "Editing tools"
+          ],
+          "cta_label": "Choose Business",
+          "cta_url": "https://www.loom.com/pricing"
+        },
+        {
+          "name": "Business + AI",
+          "price_amount": 24,
+          "price_display": "$24/user/mo",
+          "features": [
+            "Everything in Business",
+            "Auto-video enhancement",
+            "AI editing tools"
+          ],
+          "cta_label": "Add AI",
+          "cta_url": "https://www.loom.com/pricing"
+        },
+        {
+          "name": "Enterprise",
+          "price_amount": null,
+          "price_display": "Custom",
+          "features": [
+            "SSO & SCIM",
+            "99.95% uptime SLA",
+            "Advanced security"
+          ],
+          "cta_label": "Contact sales",
+          "cta_url": "https://www.loom.com/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 344,
@@ -30803,7 +31698,7 @@
     "category": "Productivity",
     "subCategory": "Cloud Storage",
     "price": "Freemium",
-    "pricingDetail": "Free 10GB; Individual $10/month; Education plans available",
+    "pricingDetail": "Individual free (10 GB); Personal Pro $10/mo; Business Starter $7, Business $15, Business Plus $25/user/mo (annual); Enterprise custom",
     "bestFor": "Storing and sharing large research data files securely through university",
     "tags": [
       "cloud storage",
@@ -30861,7 +31756,84 @@
       "Version history"
     ],
     "slug": "box",
-    "curation_score": 47.0
+    "curation_score": 47.0,
+    "pricing_source_url": "https://www.box.com/pricing",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://www.box.com/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Individual (Free)",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "10 GB storage",
+            "250 MB upload limit"
+          ],
+          "cta_label": "Sign up",
+          "cta_url": "https://www.box.com/pricing"
+        },
+        {
+          "name": "Personal Pro",
+          "price_amount": 10,
+          "price_display": "$10/mo ($100/yr)",
+          "features": [
+            "100 GB storage",
+            "5 GB upload limit"
+          ],
+          "cta_label": "Buy",
+          "cta_url": "https://www.box.com/pricing"
+        },
+        {
+          "name": "Business Starter",
+          "price_amount": 7,
+          "price_display": "$7/user/mo (annual, min 3)",
+          "features": [
+            "100 GB/user",
+            "2 GB upload limit"
+          ],
+          "cta_label": "Choose",
+          "cta_url": "https://www.box.com/pricing"
+        },
+        {
+          "name": "Business",
+          "price_amount": 15,
+          "price_display": "$15/user/mo (annual)",
+          "features": [
+            "Unlimited storage",
+            "5 GB upload",
+            "Box AI"
+          ],
+          "cta_label": "Choose",
+          "cta_url": "https://www.box.com/pricing"
+        },
+        {
+          "name": "Business Plus",
+          "price_amount": 25,
+          "price_display": "$25/user/mo (annual)",
+          "features": [
+            "Advanced workflow & AI",
+            "Unlimited storage"
+          ],
+          "cta_label": "Choose",
+          "cta_url": "https://www.box.com/pricing"
+        },
+        {
+          "name": "Enterprise",
+          "price_amount": null,
+          "price_display": "Custom",
+          "features": [
+            "Advanced security & governance",
+            "Compliance tooling"
+          ],
+          "cta_label": "Contact sales",
+          "cta_url": "https://www.box.com/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 439,
@@ -32516,7 +33488,7 @@
     "category": "Writing & Chat",
     "subCategory": "Long-form Writing",
     "price": "Freemium",
-    "pricingDetail": "Free 14-day trial; Pro $16/month",
+    "pricingDetail": "Free ($0, 1,000 credits/mo); Plus $15.83/mo annual ($29.99 monthly); Pro $49.17/mo annual ($89.99 monthly)",
     "bestFor": "Screenwriting and long-form creative projects with AI assistance",
     "tags": [
       "screenwriting",
@@ -32571,7 +33543,52 @@
       "Version history"
     ],
     "slug": "squibler",
-    "curation_score": 52.5
+    "curation_score": 52.5,
+    "pricing_source_url": "https://squibler.io/pricing",
+    "pricing_verified_at": "2026-05-25",
+    "last_verified_at": "2026-05-25",
+    "pricing_tiers": {
+      "last_verified_at": "2026-05-25",
+      "source_url": "https://squibler.io/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "1,000 AI credits/mo",
+            "Test book & screenplay creation"
+          ],
+          "cta_label": "Start free",
+          "cta_url": "https://squibler.io/pricing"
+        },
+        {
+          "name": "Plus",
+          "price_amount": 15.83,
+          "price_display": "$15.83/mo (annual; $29.99 monthly)",
+          "features": [
+            "10,000 AI credits/mo",
+            "Full 200-300 page books",
+            "AI manuscript editing"
+          ],
+          "cta_label": "Go Plus",
+          "cta_url": "https://squibler.io/pricing"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 49.17,
+          "price_display": "$49.17/mo (annual; $89.99 monthly)",
+          "features": [
+            "Unlimited AI credits",
+            "Unlimited books",
+            "For pros & businesses"
+          ],
+          "cta_label": "Go Pro",
+          "cta_url": "https://squibler.io/pricing"
+        }
+      ]
+    }
   },
   {
     "id": 471,
