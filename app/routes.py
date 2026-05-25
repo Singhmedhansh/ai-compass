@@ -601,6 +601,42 @@ def robots():
     return Response(content, mimetype='text/plain')
 
 
+@main_bp.route('/llms.txt')
+def llms_txt():
+    # llms.txt (https://llmstxt.org/) — a curated, plain-text map of the site
+    # for LLMs / AI search engines, which generally don't execute the SPA's
+    # JavaScript. Points them straight at the high-value entry points.
+    content = (
+        '# AI Compass\n\n'
+        '> AI Compass is a hand-tested directory of 400+ free and freemium AI '
+        'tools for students. Find the right one in ~30 seconds — no login, no '
+        'signup, no ranking tricks.\n\n'
+        '## Key pages\n'
+        '- [Browse all AI tools](https://ai-compass.in/tools): Full catalogue of '
+        '400+ hand-tested AI tools with verified pricing.\n'
+        '- [AI Tool Finder](https://ai-compass.in/ai-tool-finder): Answer 4 '
+        'questions, get 5-6 tools picked for you.\n'
+        '- [Collections](https://ai-compass.in/collections): Curated tool bundles '
+        'by use case.\n'
+        '- [Compare tools](https://ai-compass.in/compare): Side-by-side tool '
+        'comparisons.\n\n'
+        '## Guides\n'
+        '- [Best AI Tools for Students](https://ai-compass.in/best-ai-tools-for-students)\n'
+        '- [Best AI Tools for Teachers](https://ai-compass.in/best-ai-tools-for-teachers)\n'
+        '- [Best Free AI Tools](https://ai-compass.in/best-free-ai-tools)\n'
+        '- [Best Coding Tools for Students](https://ai-compass.in/best-coding-tools-for-students)\n'
+        '- [Best Jasper Alternatives](https://ai-compass.in/best-jasper-alternatives)\n'
+        '- [Best Murf Alternatives](https://ai-compass.in/best-murf-alternatives)\n'
+        '- [Best Synthesia Alternatives](https://ai-compass.in/best-synthesia-alternatives)\n'
+        '- [Best AI Tools for Fiction Writers](https://ai-compass.in/best-ai-tools-for-fiction-writers)\n\n'
+        '## About\n'
+        '- [Contact](https://ai-compass.in/contact)\n'
+        '- [Privacy Policy](https://ai-compass.in/privacy)\n'
+        '- [Terms](https://ai-compass.in/terms)\n'
+    )
+    return Response(content, mimetype='text/plain; charset=utf-8')
+
+
 @main_bp.route('/go/<slug>')
 def outbound(slug):
     """Single tracked outbound hop for every 'Visit tool' click.

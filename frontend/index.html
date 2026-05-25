@@ -25,7 +25,9 @@
           content="400+ free and freemium AI tools, hand-tested for students. Find the right one in 30 seconds. No login, no signup, no ranking tricks." />
     <meta name="keywords"
           content="AI tools, best AI tools, free AI tools, AI for students, coding AI, writing AI, ChatGPT alternatives" />
-    <link rel="canonical" href="https://ai-compass.in" />
+    <!-- No static canonical here: every page sets its own via
+         react-helmet-async, so a static tag would duplicate/conflict with
+         those (and wrongly canonicalise every SPA route to the homepage). -->
 
     <!-- Structured data (JSON-LD) — lets search engines and AI assistants
          (ChatGPT, Perplexity, Google AI) understand the entity and offer a
