@@ -27,6 +27,42 @@
           content="AI tools, best AI tools, free AI tools, AI for students, coding AI, writing AI, ChatGPT alternatives" />
     <link rel="canonical" href="https://ai-compass.in" />
 
+    <!-- Structured data (JSON-LD) — lets search engines and AI assistants
+         (ChatGPT, Perplexity, Google AI) understand the entity and offer a
+         sitelinks search box. Lives in the static shell so non-JS crawlers
+         can read it. -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://ai-compass.in/#organization",
+            "name": "AI Compass",
+            "url": "https://ai-compass.in",
+            "logo": "https://ai-compass.in/apple-touch-icon.png",
+            "description": "AI Compass is a hand-tested directory of 400+ free and freemium AI tools for students — find the right one in 30 seconds, no login or signup required."
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://ai-compass.in/#website",
+            "url": "https://ai-compass.in",
+            "name": "AI Compass",
+            "description": "400+ free and freemium AI tools, hand-tested for students.",
+            "publisher": { "@id": "https://ai-compass.in/#organization" },
+            "potentialAction": {
+              "@type": "SearchAction",
+              "target": {
+                "@type": "EntryPoint",
+                "urlTemplate": "https://ai-compass.in/tools?q={search_term_string}"
+              },
+              "query-input": "required name=search_term_string"
+            }
+          }
+        ]
+      }
+    </script>
+
     <!-- Open Graph (Facebook / LinkedIn) -->
     <meta property="og:type"        content="website" />
     <meta property="og:url"         content="https://ai-compass.in" />
