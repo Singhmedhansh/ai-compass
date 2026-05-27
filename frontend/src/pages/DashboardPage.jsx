@@ -437,7 +437,13 @@ function DashboardPage() {
             </div>
           )}
 
-          <section className="rounded-2xl border border-line bg-bg-elev/80 p-4 shadow-sm sm:p-5">
+          <MotionSection
+            variants={fadeUp}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, margin: '-10% 0px' }}
+            className="rounded-2xl border border-line bg-bg-elev/80 p-4 shadow-sm sm:p-5"
+          >
             <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
               <div>
                 <h2 className="text-xl font-bold text-ink">Recommended for You</h2>
@@ -462,9 +468,15 @@ function DashboardPage() {
                 No recommendations yet.
               </div>
             )}
-          </section>
+          </MotionSection>
 
-          <section className="rounded-2xl border border-line bg-bg-elev/80 p-4 shadow-sm sm:p-5">
+          <MotionSection
+            variants={fadeUp}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, margin: '-10% 0px' }}
+            className="rounded-2xl border border-line bg-bg-elev/80 p-4 shadow-sm sm:p-5"
+          >
             <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
               <div>
                 <h2 className="text-xl font-bold text-ink">My Favorites</h2>
@@ -489,9 +501,14 @@ function DashboardPage() {
                 ))}
               </div>
             )}
-          </section>
+          </MotionSection>
 
-          <section>
+          <MotionSection
+            variants={fadeUp}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, margin: '-10% 0px' }}
+          >
             <h2 className="text-xl font-bold text-ink">My AI Stack</h2>
 
             {!savedStack ? (
@@ -617,9 +634,14 @@ function DashboardPage() {
                 </div>
               </div>
             )}
-          </section>
+          </MotionSection>
 
-          <section>
+          <MotionSection
+            variants={fadeUp}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, margin: '-10% 0px' }}
+          >
             <h2 className="text-xl font-bold text-ink">Recently Viewed</h2>
 
             {recentlyViewedTools.length === 0 ? (
@@ -633,7 +655,7 @@ function DashboardPage() {
                 ))}
               </div>
             )}
-          </section>
+          </MotionSection>
         </div>
       </div>
     </div>

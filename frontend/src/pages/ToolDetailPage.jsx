@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { motion } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import { BadgeCheck, Heart, Star } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet-async'
@@ -478,7 +478,18 @@ function ToolDetailPage() {
                     <Button className="w-full">Visit Tool</Button>
                   </a>
                   <Button variant="ghost" className="w-full gap-2" onClick={handleFavoriteToggle}>
-                    <Heart className={clsx('h-4 w-4', isFavorite ? 'fill-danger text-danger' : 'text-muted')} />
+                    <AnimatePresence mode="wait" initial={false}>
+                      <motion.span
+                        key={isFavorite ? 'fav-on' : 'fav-off'}
+                        initial={{ opacity: 0, scale: 0.7, rotate: -12 }}
+                        animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                        exit={{ opacity: 0, scale: 0.8, rotate: 12 }}
+                        transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                        className="flex items-center justify-center"
+                      >
+                        <Heart className={clsx('h-4 w-4', isFavorite ? 'fill-danger text-danger' : 'text-muted')} />
+                      </motion.span>
+                    </AnimatePresence>
                     {isFavorite ? 'Saved to Favorites' : 'Save to Favorites'}
                   </Button>
                 </div>

@@ -19,7 +19,7 @@ from app.ml_recommender import clear_model_cache, get_similar_tools, load_model
 from app.models import Favorite, Rating, Review, ToolRating, User
 from app.rate_limit import is_rate_limited
 from app.search_utils import search_tools
-from app.tool_cache import DEFAULT_TOOLS_PATH, TOOL_CACHE, get_cached_tools
+from app.tool_cache import DEFAULT_TOOLS_PATH, TOOL_CACHE, get_cached_tools, get_visible_tools
 
 api_bp = Blueprint("api", __name__)
 compat_bp = Blueprint("compat", __name__)  # registered at /api for backward compat
@@ -655,14 +655,99 @@ def _rank_finder_tools(tools: list[dict], goal, budget: str, platform, level: st
     return results
 
 
+# Fields the directory/list cards actually render (mirrors mapTool in
+# frontend/src/pages/DirectoryPage.jsx). Requesting ?fields=card drops the
+# heavy per-tool payload — pricing_tiers, features, use_cases, strengths,
+# tags, platforms, long description — which the list view never shows. This
+# cuts /api/v1/tools from ~1MB to a few hundred KB (faster transfer, parse,
+# and server serialize/compress). The full payload stays the default for
+# the admin panel and dashboard.
+_CARD_FIELDS = (
+    "slug", "name", "shortDescription", "summary", "category", "subCategory",
+    "rating", "averageRating", "average_rating",
+    "review_count", "reviewCount", "reviews", "total_reviews",
+    "pricing", "pricingType", "pricing_type", "pricing_tier",
+    "createdAt", "created_at", "publishedAt", "published_at",
+    "logo", "emoji", "icon", "logo_url", "logoUrl", "logo_emoji",
+    "url", "website", "link", "accent_color", "tagline",
+    "featured", "student_friendly", "trending",
+    "curation_score", "popularity_score",
+)
+
+
+def _card_projection(tool: dict) -> dict:
+    out = {k: tool[k] for k in _CARD_FIELDS if k in tool}
+    desc = tool.get("description")
+    if isinstance(desc, str) and len(desc) > 240:
+        desc = desc[:237].rstrip() + "…"
+    if desc:
+        out["description"] = desc
+    return out
+
+
+def _summary_score(tool: dict) -> float:
+    for key in ("curation_score", "popularity_score", "rating", "averageRating", "average_rating"):
+        value = tool.get(key)
+        if value is None:
+            continue
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            continue
+    return float("-inf")
+
+
+def _rank_summary_tools(tools: list[dict], limit: int = 6) -> list[dict]:
+    ordered = sorted(
+        tools,
+        key=lambda tool: (_summary_score(tool), 1 if tool.get("featured") else 0),
+        reverse=True,
+    )
+    return [_card_projection(tool) for tool in ordered[:limit]]
+
+
+def _directory_summary_payload(tools: list[dict]) -> dict:
+    counts = Counter()
+    for tool in tools:
+        category = str(tool.get("category") or "").strip() or "Uncategorized"
+        counts[category] += 1
+
+    sections = []
+    for canonical, total in sorted(counts.items(), key=lambda item: (-item[1], item[0].lower())):
+        if total < 6:
+            continue
+        category_tools = [tool for tool in tools if str(tool.get("category") or "").strip() == canonical]
+        sections.append({
+            "canonical": canonical,
+            "slug": re.sub(r"[^a-z0-9]+", "-", canonical.lower()).strip("-"),
+            "total": total,
+            "top": _rank_summary_tools(category_tools, 6),
+        })
+
+    featured_tools = [tool for tool in tools if tool.get("featured")]
+    student_tools = featured_tools if len(featured_tools) >= 6 else [tool for tool in tools if tool.get("student_friendly")]
+
+    return {
+        "sections": sections,
+        "studentTop": _rank_summary_tools(student_tools, 6),
+        "total": len(tools),
+        "results": [],
+        "fallback": not bool(tools),
+    }
+
+
 @api_bp.get("/tools")
 def list_tools():
-    from app.tool_cache import get_visible_tools
     from flask import make_response
     try:
-        tools = get_visible_tools()
+        tools = get_visible_tools(DATA_PATH)
     except Exception:
         tools = []
+    fields = request.args.get("fields")
+    if fields == "summary":
+        return jsonify(_directory_summary_payload(tools))
+    if fields == "card":
+        tools = [_card_projection(t) for t in tools]
     response = make_response(jsonify({"results": tools, "total": len(tools), "fallback": not bool(tools)}))
     # 60 seconds is enough to absorb back-to-back navigations on a single
     # session without making editorial edits invisible for an hour, which
@@ -681,7 +766,6 @@ def get_public_stats():
     # instead of a hardcoded number that drifts every time the catalog changes.
     # Counts only visible tools so it always matches what the catalog displays
     # (a hidden tool is neither shown nor counted).
-    from app.tool_cache import get_visible_tools
     return jsonify({"total_tools": len(get_visible_tools(DATA_PATH))})
 
 

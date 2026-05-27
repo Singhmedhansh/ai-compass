@@ -7,7 +7,6 @@ import { Button, Dropdown, SearchInput, SkeletonCard, WordReveal } from '../comp
 import CategorySection from '../components/tools/CategorySection'
 import FlatToolGrid from '../components/tools/FlatToolGrid'
 import ErrorState from '../components/ErrorState'
-import { useCatalogStats } from '../hooks/useCatalogStats'
 import { drawerSlideUp, frostedDropdown, sectionReveal } from '../lib/motion'
 import { inferErrorVariant } from '../utils/errorState'
 
@@ -127,17 +126,50 @@ function getTrendingScore(tool) {
   return ratingWeight + reviewWeight + freshnessBonus
 }
 
+function buildDirectorySummary(tools) {
+  const counts = new Map()
+
+  for (const tool of tools) {
+    const category = (tool.category || 'Uncategorized').trim() || 'Uncategorized'
+    counts.set(category, (counts.get(category) || 0) + 1)
+  }
+
+  const sections = [...counts.entries()]
+    .filter(([, total]) => total >= HUB_MIN_PER_SECTION)
+    .sort((a, b) => {
+      const diff = b[1] - a[1]
+      if (diff !== 0) return diff
+      return a[0].localeCompare(b[0])
+    })
+    .map(([canonical, total]) => ({
+      canonical,
+      slug: categorySlug(canonical),
+      total,
+      top: pickTopTools(tools, canonical, 6),
+    }))
+
+  const featuredTools = rankTools(tools.filter((tool) => tool.featured), 6)
+  const studentTop = featuredTools.length >= 6
+    ? featuredTools
+    : rankTools(tools.filter((tool) => tool.student_friendly), 6)
+
+  return {
+    sections,
+    studentTop,
+    total: tools.length,
+  }
+}
+
 
 function DirectoryPage() {
   const [searchParams, setSearchParams] = useSearchParams()
-  const { totalTools } = useCatalogStats()
-  const displayCount = totalTools ?? FALLBACK_TOOL_COUNT
   const initialCategory = searchParams.get('category') || 'All'
   const initialQuery = searchParams.get('q') || ''
   const queryFromParams = searchParams.get('q') || ''
   const categoryFromParams = searchParams.get('category') || 'All'
 
   const [tools, setTools] = useState([])
+  const [directorySummary, setDirectorySummary] = useState(null)
   const [searchMeta, setSearchMeta] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   // error is null when fine, otherwise one of 'offline' | 'server' (see
@@ -145,6 +177,7 @@ function DirectoryPage() {
   // useEffect re-runs without us having to factor the fetch out.
   const [error, setError] = useState(null)
   const [retryNonce, setRetryNonce] = useState(0)
+  const [catalogCount, setCatalogCount] = useState(null)
   const [category, setCategory] = useState(
     CATEGORY_OPTIONS.find((item) => item.toLowerCase() === initialCategory.toLowerCase()) || 'All',
   )
@@ -156,6 +189,8 @@ function DirectoryPage() {
   const triggerRef = useRef(null)
   const panelRef = useRef(null)
   const hasSearchQuery = queryFromParams.trim().length > 0
+  const isRootHub = !hasSearchQuery && category === 'All'
+  const displayCount = catalogCount ?? FALLBACK_TOOL_COUNT
 
   // Tracks the query value WE last wrote to the URL, so the sync effect below can
   // tell an external URL change (navbar search, back/forward, deep link) apart
@@ -222,6 +257,7 @@ function DirectoryPage() {
     const normalizedCategory = category?.trim() || 'All'
     const canonicalCategory = toCanonicalCategory(normalizedCategory)
     const isRemoteSearch = Boolean(normalizedQuery)
+    const shouldLoadSummary = !isRemoteSearch && normalizedCategory === 'All' && !showAllOpened
 
     // WHY 300ms: hit the backend after the user stops typing for one quarter
     // second — short enough that the page feels live, long enough that a
@@ -239,7 +275,9 @@ function DirectoryPage() {
               q: normalizedQuery,
               ...(canonicalCategory !== 'All' ? { category: canonicalCategory } : {}),
             }).toString()}`
-          : `${API}/api/v1/tools`
+          : shouldLoadSummary
+            ? `${API}/api/v1/tools?fields=summary`
+            : `${API}/api/v1/tools?fields=card`
 
         const response = await fetch(endpoint, { signal: controller.signal })
         clearTimeout(abortTimeout)
@@ -252,7 +290,9 @@ function DirectoryPage() {
           return
         }
 
-        setTools((data.results || data || []).map(mapTool))
+        const payload = Array.isArray(data) ? data : (data.results || [])
+        const mappedTools = payload.map(mapTool)
+
         setSearchMeta(
           isRemoteSearch
             ? {
@@ -263,6 +303,32 @@ function DirectoryPage() {
               }
             : null,
         )
+
+        if (shouldLoadSummary && !Array.isArray(data)) {
+          setDirectorySummary({
+            total: typeof data.total === 'number' ? data.total : mappedTools.length,
+            studentTop: (data.studentTop || []).map(mapTool),
+            sections: (data.sections || []).map((section) => ({
+              ...section,
+              top: (section.top || []).map(mapTool),
+            })),
+          })
+          setCatalogCount(typeof data.total === 'number' ? data.total : mappedTools.length)
+          setTools([])
+          return
+        }
+
+        if (shouldLoadSummary && Array.isArray(data)) {
+          const summary = buildDirectorySummary(mappedTools)
+          setDirectorySummary(summary)
+          setCatalogCount(summary.total)
+          setTools([])
+          return
+        }
+
+        setDirectorySummary(null)
+        setTools(mappedTools)
+        setCatalogCount(typeof data.total === 'number' ? data.total : mappedTools.length)
       } catch (err) {
         if (requestId !== latestRequestIdRef.current || controller.signal.aborted) {
           return
@@ -288,7 +354,7 @@ function DirectoryPage() {
       clearTimeout(debounceTimer)
       controller.abort()
     }
-  }, [queryFromParams, category, retryNonce])
+  }, [queryFromParams, category, retryNonce, showAllOpened])
 
   const filteredTools = useMemo(() => {
     const normalizedSearch = queryFromParams.trim().toLowerCase()
@@ -347,10 +413,11 @@ function DirectoryPage() {
     return sorted
   }, [category, queryFromParams, hasSearchQuery, sortBy, tools])
 
-  // Sections are derived from the live catalog, not a hardcoded list: group
-  // by category, keep those with enough tools, order by size. Self-corrects
-  // when the DB taxonomy drifts; small categories stay in the disclosure.
   const hubSections = useMemo(() => {
+    if (directorySummary?.sections?.length) {
+      return directorySummary.sections
+    }
+
     const counts = new Map()
     for (const t of tools) {
       const cat = t.category
@@ -365,15 +432,17 @@ function DirectoryPage() {
         total,
         top: pickTopTools(tools, canonical, 6),
       }))
-  }, [tools])
+  }, [directorySummary, tools])
 
-  // Strip = featured tools by curation_score; fall back to the broader
-  // student_friendly cut only if featured can't fill 6.
   const studentTop = useMemo(() => {
+    if (directorySummary?.studentTop?.length) {
+      return directorySummary.studentTop
+    }
+
     const featured = rankTools(tools.filter((t) => t.featured), 6)
     if (featured.length >= 6) return featured
     return rankTools(tools.filter((t) => t.student_friendly), 6)
-  }, [tools])
+  }, [directorySummary, tools])
 
   const handleReset = () => {
     setSortBy('Trending')

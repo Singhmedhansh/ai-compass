@@ -1,14 +1,18 @@
 import { ChevronDown, LayoutDashboard, LogOut, Menu, Moon, Shield, Sparkles, Sun, UserCircle2, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { AnimatePresence, motion } from 'framer-motion'
 
 import Button from './Button'
 import CompassMark from './CompassMark'
 import SearchInput from './SearchInput'
 import useClickOutside from '../../hooks/useClickOutside'
 
+const MotionDiv = motion.div
+
 const STORAGE_KEY = 'ai-compass-theme'
 const ADMIN_EMAILS = ['singhmedhansh07@gmail.com']
+const dropdownTransition = { duration: 0.2, ease: [0.22, 1, 0.36, 1] }
 
 function getInitialTheme() {
   if (typeof window === 'undefined') {
@@ -282,11 +286,17 @@ function Navbar() {
               <ChevronDown className="h-4 w-4 ml-1 transition-transform" style={{ transform: isGuidesMenuOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
             </Button>
 
-            {isGuidesMenuOpen ? (
-              <div
+            <AnimatePresence initial={false}>
+              {isGuidesMenuOpen ? (
+              <MotionDiv
+                key="guides-menu"
                 role="menu"
                 aria-label="Guides menu"
-                className="absolute left-0 mt-1 w-56 overflow-hidden rounded-xl border border-line bg-bg-elev shadow-lg"
+                initial={{ opacity: 0, y: -6, scale: 0.97 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -4, scale: 0.98 }}
+                transition={dropdownTransition}
+                className="absolute left-0 mt-1 w-56 origin-top-left overflow-hidden rounded-xl border border-line bg-bg-elev shadow-lg"
               >
                 <Link
                   to="/best-ai-tools-for-students"
@@ -344,8 +354,9 @@ function Navbar() {
                 >
                   Best Synthesia Alternatives
                 </Link>
-              </div>
-            ) : null}
+              </MotionDiv>
+              ) : null}
+            </AnimatePresence>
           </div>
 
           {isAdmin ? (
@@ -360,7 +371,18 @@ function Navbar() {
             className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-line-strong bg-bg-elev text-ink-2 transition-colors hover:bg-bg-sunk focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
           >
-            {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.span
+                key={isDark ? 'sun' : 'moon'}
+                initial={{ opacity: 0, scale: 0.7, rotate: -30 }}
+                animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                exit={{ opacity: 0, scale: 0.7, rotate: 30 }}
+                transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                className="flex items-center justify-center"
+              >
+                {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              </motion.span>
+            </AnimatePresence>
           </button>
 
           {user && isAuthenticated ? (
@@ -395,11 +417,17 @@ function Navbar() {
                 <ChevronDown className="h-4 w-4 text-muted" />
               </button>
 
-              {isProfileMenuOpen ? (
-                <div
+              <AnimatePresence initial={false}>
+                {isProfileMenuOpen ? (
+                <MotionDiv
+                  key="profile-menu"
                   role="menu"
                   aria-label="Profile menu"
-                  className="absolute right-0 mt-2 w-64 overflow-hidden rounded-2xl border border-line bg-bg-elev p-2 shadow-2xl"
+                  initial={{ opacity: 0, y: -6, scale: 0.97 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -4, scale: 0.98 }}
+                  transition={dropdownTransition}
+                  className="absolute right-0 mt-2 w-64 origin-top-right overflow-hidden rounded-2xl border border-line bg-bg-elev p-2 shadow-2xl"
                 >
                   <div className="px-3 py-2">
                     <p className="truncate text-sm font-semibold text-ink">{user?.name || 'My account'}</p>
@@ -473,8 +501,9 @@ function Navbar() {
                     <LogOut className="h-4 w-4" />
                     Logout
                   </button>
-                </div>
-              ) : null}
+                </MotionDiv>
+                ) : null}
+              </AnimatePresence>
             </div>
           ) : (
             <>
@@ -506,159 +535,170 @@ function Navbar() {
       </div>
 
       <div id="mobile-menu" className="border-t border-line bg-bg-elev lg:hidden">
-        {isMobileMenuOpen && (
-          <nav aria-label="Mobile" className="flex flex-col px-4 py-3">
-            <Link
-              to="/collections"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
+        <AnimatePresence initial={false} mode="wait">
+          {isMobileMenuOpen && (
+            <MotionDiv
+              key="mobile-menu"
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+              className="overflow-hidden"
             >
-              Collections
-            </Link>
-            <Link
-              to="/best-ai-tools-for-students"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
-            >
-              Best AI Tools for Students
-            </Link>
-            <Link
-              to="/best-ai-tools-for-teachers"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
-            >
-              Best AI Tools for Teachers
-            </Link>
-            <Link
-              to="/best-free-ai-tools"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
-            >
-              Best Free AI Tools
-            </Link>
-            <Link
-              to="/best-coding-tools-for-students"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
-            >
-              Best Coding Tools for Students
-            </Link>
-            <Link
-              to="/best-jasper-alternatives"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
-            >
-              Best Jasper Alternatives
-            </Link>
-            <Link
-              to="/best-murf-alternatives"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
-            >
-              Best Murf Alternatives
-            </Link>
-            <Link
-              to="/best-synthesia-alternatives"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
-            >
-              Best Synthesia Alternatives
-            </Link>
-            {isAdmin ? (
-              <Link
-                to="/admin"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="block rounded-lg px-3 py-2.5 text-sm font-medium text-muted hover:bg-bg-sunk"
-              >
-                Admin
-              </Link>
-            ) : null}
-
-            <div className="my-2 border-t border-line" />
-
-            <button
-              type="button"
-              onClick={toggleDarkMode}
-              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
-            >
-              {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-              {isDark ? 'Light mode' : 'Dark mode'}
-            </button>
-
-            <div className="my-2 border-t border-line" />
-
-            {user && isAuthenticated ? (
-              <>
-                <div className="px-3 py-2">
-                  <p className="truncate text-sm font-semibold text-ink">{user?.name || 'User'}</p>
-                  <p className="truncate text-xs text-muted">{user?.email}</p>
-                </div>
+              <nav aria-label="Mobile" className="flex flex-col px-4 py-3">
                 <Link
-                  to="/dashboard"
+                  to="/collections"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
+                  className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
                 >
-                  <LayoutDashboard className="h-4 w-4" />
-                  My Dashboard
+                  Collections
                 </Link>
                 <Link
-                  to="/profile"
+                  to="/best-ai-tools-for-students"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
+                  className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
                 >
-                  <UserCircle2 className="h-4 w-4" />
-                  Profile &amp; Settings
+                  Best AI Tools for Students
                 </Link>
                 <Link
-                  to="/ai-tool-finder"
+                  to="/best-ai-tools-for-teachers"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
+                  className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
                 >
-                  <Sparkles className="h-4 w-4" />
-                  My AI Stack
+                  Best AI Tools for Teachers
+                </Link>
+                <Link
+                  to="/best-free-ai-tools"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
+                >
+                  Best Free AI Tools
+                </Link>
+                <Link
+                  to="/best-coding-tools-for-students"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
+                >
+                  Best Coding Tools for Students
+                </Link>
+                <Link
+                  to="/best-jasper-alternatives"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
+                >
+                  Best Jasper Alternatives
+                </Link>
+                <Link
+                  to="/best-murf-alternatives"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
+                >
+                  Best Murf Alternatives
+                </Link>
+                <Link
+                  to="/best-synthesia-alternatives"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
+                >
+                  Best Synthesia Alternatives
                 </Link>
                 {isAdmin ? (
                   <Link
                     to="/admin"
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
+                    className="block rounded-lg px-3 py-2.5 text-sm font-medium text-muted hover:bg-bg-sunk"
                   >
-                    <Shield className="h-4 w-4" />
-                    Admin Panel
+                    Admin
                   </Link>
                 ) : null}
+
+                <div className="my-2 border-t border-line" />
+
                 <button
                   type="button"
-                  onClick={() => {
-                    handleLogout()
-                    setIsMobileMenuOpen(false)
-                  }}
-                  className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold text-danger hover:bg-danger-soft"
+                  onClick={toggleDarkMode}
+                  className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
                 >
-                  <LogOut className="h-4 w-4" />
-                  Logout
+                  {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                  {isDark ? 'Light mode' : 'Dark mode'}
                 </button>
-              </>
-            ) : (
-              <>
-                <Link
-                  to="/login"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
-                >
-                  Login
-                </Link>
-                <Link
-                  to="/register"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink hover:bg-bg-sunk"
-                >
-                  Register
-                </Link>
-              </>
-            )}
-          </nav>
-        )}
+
+                <div className="my-2 border-t border-line" />
+
+                {user && isAuthenticated ? (
+                  <>
+                    <div className="px-3 py-2">
+                      <p className="truncate text-sm font-semibold text-ink">{user?.name || 'User'}</p>
+                      <p className="truncate text-xs text-muted">{user?.email}</p>
+                    </div>
+                    <Link
+                      to="/dashboard"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
+                    >
+                      <LayoutDashboard className="h-4 w-4" />
+                      My Dashboard
+                    </Link>
+                    <Link
+                      to="/profile"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
+                    >
+                      <UserCircle2 className="h-4 w-4" />
+                      Profile &amp; Settings
+                    </Link>
+                    <Link
+                      to="/ai-tool-finder"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
+                    >
+                      <Sparkles className="h-4 w-4" />
+                      My AI Stack
+                    </Link>
+                    {isAdmin ? (
+                      <Link
+                        to="/admin"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
+                      >
+                        <Shield className="h-4 w-4" />
+                        Admin Panel
+                      </Link>
+                    ) : null}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleLogout()
+                        setIsMobileMenuOpen(false)
+                      }}
+                      className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold text-danger hover:bg-danger-soft"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      Logout
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      to="/login"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
+                    >
+                      Login
+                    </Link>
+                    <Link
+                      to="/register"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink hover:bg-bg-sunk"
+                    >
+                      Register
+                    </Link>
+                  </>
+                )}
+              </nav>
+            </MotionDiv>
+          )}
+        </AnimatePresence>
       </div>
     </header>
   )

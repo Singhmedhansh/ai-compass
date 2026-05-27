@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import { Eye, EyeOff, Link2, Pencil, Plus, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -100,10 +100,18 @@ function ToolForm({ initial, isNew, onClose, onSaved }) {
   )
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+    <MotionDiv
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.18 }}
+    >
       <MotionDiv
-        initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.2 }}
+        initial={{ opacity: 0, scale: 0.96, y: 12 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.98, y: 10 }}
+        transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
         className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-line bg-bg-elev p-6 shadow-2xl"
       >
         <h3 className="text-xl font-semibold text-ink">{isNew ? 'Add New Tool' : `Edit: ${form.name}`}</h3>
@@ -135,7 +143,7 @@ function ToolForm({ initial, isNew, onClose, onSaved }) {
           </button>
         </div>
       </MotionDiv>
-    </div>
+    </MotionDiv>
   )
 }
 
@@ -1020,7 +1028,9 @@ function AdminPage() {
         )}
       </MotionDiv>
 
-      {editing && <ToolForm initial={editing.tool} isNew={editing.isNew} onClose={() => setEditing(null)} onSaved={reloadTools} />}
+      <AnimatePresence>
+        {editing && <ToolForm initial={editing.tool} isNew={editing.isNew} onClose={() => setEditing(null)} onSaved={reloadTools} />}
+      </AnimatePresence>
     </div>
   )
 }

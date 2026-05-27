@@ -1,11 +1,14 @@
 import { Eye, EyeOff } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { motion, useAnimationControls } from 'framer-motion'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import AuthLayout from '../components/auth/AuthLayout'
 import SocialAuthButtons from '../components/auth/SocialAuthButtons'
 import Button from '../components/ui/Button'
+
+const MotionForm = motion.form
 
 function LoginPage() {
   const navigate = useNavigate()
@@ -16,8 +19,21 @@ function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const shakeControls = useAnimationControls()
 
   const successMessage = location.state?.message || ''
+
+  useEffect(() => {
+    if (!error) {
+      shakeControls.set({ x: 0 })
+      return
+    }
+
+    shakeControls.start({
+      x: [0, -6, 6, -4, 4, 0],
+      transition: { duration: 0.28, ease: 'easeInOut' },
+    })
+  }, [error, shakeControls])
 
   async function handleSubmit(event) {
     event.preventDefault()
@@ -80,7 +96,7 @@ function LoginPage() {
         </p>
       ) : null}
 
-      <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
+      <MotionForm className="mt-6 space-y-4" onSubmit={handleSubmit} animate={shakeControls} noValidate>
         <div>
           <label htmlFor="login-email" className="mb-1.5 block text-sm font-medium text-ink-2">
             Email
@@ -92,7 +108,7 @@ function LoginPage() {
             onChange={(e) => setEmail(e.target.value)}
             required
             autoComplete="email"
-            className="w-full rounded-lg border border-line bg-bg-elev px-3 py-2 text-sm text-ink placeholder:text-muted-2 transition-colors focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent"
+            className={`w-full rounded-lg border bg-bg-elev px-3 py-2 text-sm text-ink placeholder:text-muted-2 transition-colors focus:outline-none focus:ring-2 ${error ? 'border-danger focus:border-danger focus:ring-danger' : 'border-line focus:border-accent focus:ring-accent'}`}
             placeholder="you@example.com"
           />
         </div>
@@ -109,7 +125,7 @@ function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               required
               autoComplete="current-password"
-              className="w-full rounded-lg border border-line bg-bg-elev px-3 py-2 pr-10 text-sm text-ink placeholder:text-muted-2 transition-colors focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent"
+              className={`w-full rounded-lg border bg-bg-elev px-3 py-2 pr-10 text-sm text-ink placeholder:text-muted-2 transition-colors focus:outline-none focus:ring-2 ${error ? 'border-danger focus:border-danger focus:ring-danger' : 'border-line focus:border-accent focus:ring-accent'}`}
               placeholder="Enter your password"
             />
             <button
@@ -132,7 +148,7 @@ function LoginPage() {
             {error}
           </p>
         ) : null}
-      </form>
+      </MotionForm>
 
       <div className="relative my-4">
         <div className="absolute inset-0 flex items-center">

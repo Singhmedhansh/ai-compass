@@ -1,7 +1,10 @@
 import clsx from 'clsx'
 import { Check, Plus } from 'lucide-react'
+import { AnimatePresence, motion } from 'framer-motion'
 
 import useCompare from '../../hooks/useCompare'
+
+const IconWrap = motion.span
 
 export default function CompareToggleButton({ slug, toolName }) {
   const { isSelected, toggle, isAtMax } = useCompare()
@@ -43,7 +46,19 @@ export default function CompareToggleButton({ slug, toolName }) {
         disabled && !selected && 'cursor-not-allowed opacity-50 hover:border-line hover:text-muted',
       )}
     >
-      {selected ? <Check className="h-4 w-4" aria-hidden="true" /> : <Plus className="h-4 w-4" aria-hidden="true" />}
+      <AnimatePresence mode="wait" initial={false}>
+        <IconWrap
+          key={selected ? 'check' : 'plus'}
+          initial={{ opacity: 0, scale: 0.7, rotate: -18 }}
+          animate={{ opacity: 1, scale: 1, rotate: 0 }}
+          exit={{ opacity: 0, scale: 0.8, rotate: 18 }}
+          transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
+          className="flex items-center justify-center"
+          aria-hidden="true"
+        >
+          {selected ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+        </IconWrap>
+      </AnimatePresence>
     </button>
   )
 }

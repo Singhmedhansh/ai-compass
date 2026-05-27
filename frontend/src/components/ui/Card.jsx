@@ -1,13 +1,14 @@
 import clsx from 'clsx'
 import { motion } from 'framer-motion'
 import { Star } from 'lucide-react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import Badge from './Badge'
 import CompareToggleButton from './CompareToggleButton'
 import ToolLogo from './ToolLogo'
 
-const MotionButton = motion.div
+const MotionButton = motion.button
 
 const pricingClasses = {
   free: 'bg-accent-soft text-accent-ink',
@@ -27,6 +28,7 @@ function slugify(value = '') {
 
 function Card({ tool = {} }) {
   const navigate = useNavigate()
+  const [isHovered, setIsHovered] = useState(false)
 
   const name = tool.name || 'Unknown Tool'
   const description = tool.shortDescription || tool.description || 'No description available.'
@@ -53,11 +55,17 @@ function Card({ tool = {} }) {
 
   return (
     <MotionButton
+      layout
       onClick={() => navigate(`/tools/${slug}`)}
+      onHoverStart={() => setIsHovered(true)}
+      onHoverEnd={() => setIsHovered(false)}
+      onFocus={() => setIsHovered(true)}
+      onBlur={() => setIsHovered(false)}
       whileHover={{ y: -4, boxShadow: 'var(--shadow-lg)' }}
       whileTap={{ scale: 0.98 }}
+      animate={{ minHeight: isHovered ? 248 : 224 }}
       transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-      className="group relative flex w-full flex-col gap-4 rounded-2xl border border-line bg-bg-elev p-4 text-left shadow-sm transition-all hover:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+      className="group relative flex w-full flex-col gap-4 overflow-hidden rounded-2xl border border-line bg-bg-elev p-4 text-left shadow-sm transition-all hover:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
     >
       <div className="absolute right-2 top-2 z-10">
         <CompareToggleButton slug={slug} toolName={name} />
@@ -74,7 +82,7 @@ function Card({ tool = {} }) {
             className="mt-1 overflow-hidden text-sm text-muted"
             style={{
               display: '-webkit-box',
-              WebkitLineClamp: 2,
+              WebkitLineClamp: isHovered ? 3 : 2,
               WebkitBoxOrient: 'vertical',
             }}
           >

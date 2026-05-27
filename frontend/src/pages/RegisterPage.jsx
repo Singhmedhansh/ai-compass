@@ -1,9 +1,12 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { motion, useAnimationControls } from 'framer-motion'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 import AuthLayout from '../components/auth/AuthLayout'
 import SocialAuthButtons from '../components/auth/SocialAuthButtons'
 import Button from '../components/ui/Button'
+
+const MotionForm = motion.form
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -17,6 +20,7 @@ function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [serverError, setServerError] = useState('')
+  const shakeControls = useAnimationControls()
 
   // Errors are computed eagerly but only surfaced once a field has been
   // blurred or the form submitted. Without this gate the "Full name is
@@ -56,6 +60,18 @@ function RegisterPage() {
 
   const hasErrors = Object.values(fieldErrors).some(Boolean)
 
+  useEffect(() => {
+    if (!serverError) {
+      shakeControls.set({ x: 0 })
+      return
+    }
+
+    shakeControls.start({
+      x: [0, -6, 6, -4, 4, 0],
+      transition: { duration: 0.28, ease: 'easeInOut' },
+    })
+  }, [serverError, shakeControls])
+
   // Only show a field's error after the user has interacted with it
   // (blur) or attempted to submit — never on a pristine page load.
   const errorFor = (field) =>
@@ -67,6 +83,10 @@ function RegisterPage() {
     setSubmitted(true)
 
     if (hasErrors || !email || !password || !confirmPassword || !fullName.trim()) {
+      shakeControls.start({
+        x: [0, -6, 6, -4, 4, 0],
+        transition: { duration: 0.28, ease: 'easeInOut' },
+      })
       setServerError('Please fix validation errors before submitting.')
       return
     }
@@ -122,7 +142,7 @@ function RegisterPage() {
       title="Create your account"
       subtitle="Join AI Compass and save your favorite tools."
     >
-      <form className="mt-6 space-y-4" onSubmit={handleSubmit} noValidate>
+      <MotionForm className="mt-6 space-y-4" onSubmit={handleSubmit} noValidate animate={shakeControls}>
         <div>
           <label htmlFor="register-name" className="mb-1.5 block text-sm font-medium text-ink-2">
             Full name
@@ -135,7 +155,7 @@ function RegisterPage() {
             onBlur={() => markTouched('fullName')}
             required
             autoComplete="name"
-            className={inputClass}
+            className={`${inputClass} ${errorFor('fullName') ? 'border-danger focus:border-danger focus:ring-danger' : ''}`}
             placeholder="Jane Doe"
           />
           {errorFor('fullName') ? (
@@ -155,7 +175,7 @@ function RegisterPage() {
             onBlur={() => markTouched('email')}
             required
             autoComplete="email"
-            className={inputClass}
+            className={`${inputClass} ${errorFor('email') ? 'border-danger focus:border-danger focus:ring-danger' : ''}`}
             placeholder="you@example.com"
           />
           {errorFor('email') ? (
@@ -176,7 +196,7 @@ function RegisterPage() {
             required
             minLength={8}
             autoComplete="new-password"
-            className={inputClass}
+            className={`${inputClass} ${errorFor('password') ? 'border-danger focus:border-danger focus:ring-danger' : ''}`}
             placeholder="At least 8 characters"
           />
           {errorFor('password') ? (
@@ -196,7 +216,7 @@ function RegisterPage() {
             onBlur={() => markTouched('confirmPassword')}
             required
             autoComplete="new-password"
-            className={inputClass}
+            className={`${inputClass} ${errorFor('confirmPassword') ? 'border-danger focus:border-danger focus:ring-danger' : ''}`}
             placeholder="Re-enter your password"
           />
           {errorFor('confirmPassword') ? (
@@ -209,7 +229,7 @@ function RegisterPage() {
         </Button>
 
         {serverError ? <p className="text-sm text-danger">{serverError}</p> : null}
-      </form>
+      </MotionForm>
 
       <div className="relative my-4">
         <div className="absolute inset-0 flex items-center">
