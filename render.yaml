@@ -4,6 +4,7 @@ services:
     runtime: python
     buildCommand: "./build.sh"
     startCommand: "gunicorn wsgi:app --bind 0.0.0.0:$PORT --workers 1 --timeout 120 --keep-alive 5 --log-level info"
+    healthCheckPath: /healthz
     envVars:
       - key: APP_ENV
         value: production
