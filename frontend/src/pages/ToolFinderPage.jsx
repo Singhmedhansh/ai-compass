@@ -392,7 +392,22 @@ function PreviewCard({ tool, rank }) {
   const tierBits = [tool.pricing, tool.platformLabel].filter(Boolean).join(' · ')
 
   return (
-    <div className="relative grid grid-cols-[36px_1fr_auto] items-start gap-3 rounded-xl border border-line bg-bg-elev p-3">
+    <div
+      className="relative grid grid-cols-[36px_1fr_auto] items-start gap-3 rounded-xl border border-line bg-bg-elev p-3 hover:border-accent/40 transition-colors cursor-pointer"
+      onClick={() => {
+        try {
+          window.posthog?.capture?.('tool_card_clicked', {
+            tool_name: tool.name,
+            tool_slug: tool.slug,
+            category: tool.category,
+            rank: rank,
+            source: 'wizard_result',
+          })
+        } catch (e) {
+          /* noop */
+        }
+      }}
+    >
       <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg bg-bg-sunk" aria-hidden="true">
         <ToolLogo tool={tool} size={32} />
       </div>
@@ -405,8 +420,22 @@ function PreviewCard({ tool, rank }) {
           <span className="mr-1.5 not-italic text-[11px] font-semibold uppercase tracking-wide text-accent-ink">why</span>
           {tool.reason}
         </p>
+        <div className="mt-2 flex justify-end">
+          {getToolUrl(tool) ? (
+            <a
+              href={getToolUrl(tool)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-accent text-xs font-medium hover:translate-x-1 transition-transform inline-block"
+            >
+              Explore →
+            </a>
+          ) : null}
+        </div>
       </div>
       <span className="font-mono text-xs text-muted-2">#{rank}</span>
+
+      
     </div>
   )
 }
