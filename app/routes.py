@@ -5,7 +5,9 @@ import re
 from datetime import datetime, timezone
 from xml.sax.saxutils import escape
 
-from flask import Blueprint, Response, current_app, jsonify, redirect, send_from_directory
+import requests
+
+from flask import Blueprint, Response, current_app, jsonify, redirect, request, send_from_directory
 from sqlalchemy import text
 
 from app import db
@@ -79,6 +81,66 @@ _KNOWN_SPA_ROUTES: set[str] = {
 }
 
 _INDEX_HTML_CACHE = None
+POSTHOG_API_BASE = os.environ.get('POSTHOG_API_BASE', 'https://us.i.posthog.com').rstrip('/')
+POSTHOG_ASSETS_BASE = os.environ.get('POSTHOG_ASSETS_BASE', 'https://us-assets.i.posthog.com').rstrip('/')
+
+
+def _proxy_posthog_request(path: str) -> Response:
+    target_base = POSTHOG_ASSETS_BASE if path == 'static/array.js' else POSTHOG_API_BASE
+    upstream_url = f'{target_base}/{path}' if path else target_base
+
+    excluded_headers = {
+        'host',
+        'content-length',
+        'connection',
+        'keep-alive',
+        'proxy-authenticate',
+        'proxy-authorization',
+        'te',
+        'trailers',
+        'transfer-encoding',
+        'upgrade',
+    }
+    headers = {
+        key: value
+        for key, value in request.headers.items()
+        if key.lower() not in excluded_headers
+    }
+
+    try:
+        upstream = requests.request(
+            method=request.method,
+            url=upstream_url,
+            params=request.args,
+            data=request.get_data(),
+            headers=headers,
+            cookies=request.cookies,
+            allow_redirects=False,
+            timeout=30,
+        )
+    except requests.RequestException as exc:
+        current_app.logger.exception('PostHog proxy failed for %s', upstream_url)
+        return Response(f'PostHog proxy request failed: {exc}', status=502)
+
+    excluded_response_headers = {
+        'content-encoding',
+        'content-length',
+        'transfer-encoding',
+        'connection',
+    }
+    response_headers = [
+        (key, value)
+        for key, value in upstream.headers.items()
+        if key.lower() not in excluded_response_headers
+    ]
+
+    return Response(upstream.content, status=upstream.status_code, headers=response_headers)
+
+
+@main_bp.route('/ingest', defaults={'path': ''}, methods=['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'])
+@main_bp.route('/ingest/<path:path>', methods=['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'])
+def ingest_proxy(path: str):
+    return _proxy_posthog_request(path)
 
 
 def _get_base_index_html():
