@@ -53,5 +53,15 @@ data/tools_audit_proposal.json
 # Local dev runtime state
 data/stacks/
 
+# Generated test / coverage artifacts
+.coverage
+coverage.xml
+tests-d4/
+
+# Generated backup / export bundles
+data/tools.json.bak*
+logo-extracted/
+peerlist-assets/
+
 # Local PR draft files
 PR_DESCRIPTION*.md
