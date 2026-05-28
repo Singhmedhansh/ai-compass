@@ -185,6 +185,10 @@ function asList(value) {
   return value ? [value] : []
 }
 
+function normalizeOptionalText(value) {
+  return typeof value === 'string' ? value.trim() : ''
+}
+
 function joinPretty(items) {
   if (items.length === 0) return ''
   if (items.length === 1) return items[0]
@@ -223,7 +227,7 @@ function buildPersona(answers) {
   return clauses.length > 0 ? `${lead} ${clauses.join(', ')}:` : `${lead}:`
 }
 
-function QuestionRow({ index, question, answer, isActive, onActivate, onSelect, onTextChange, onNext }) {
+function QuestionRow({ index, question, answer, isActive, onActivate, onSelect, onTextChange, onNext, textInputRef }) {
   const indexLabel = String(index).padStart(2, '0')
   const isMulti = Boolean(question.multiSelect)
   const isAnswered = isMulti
@@ -298,10 +302,11 @@ function QuestionRow({ index, question, answer, isActive, onActivate, onSelect, 
                 <p className="text-sm text-muted">{question.activeHelper}</p>
                 <input
                   type="text"
+                  ref={textInputRef}
                   className="w-full rounded-lg border border-line bg-bg-elev px-3 py-2 text-ink placeholder:text-muted-2 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
                   placeholder="e.g. building a frontend web application, formatting research citations... or skip ahead"
                   value={answer || ''}
-                  onChange={(e) => onTextChange(e.target.value)}
+                  onChange={(e) => onTextChange(e?.target?.value ?? '')}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       e.preventDefault()
@@ -497,6 +502,7 @@ function ToolFinderPage() {
   const [pendingCompletion, setPendingCompletion] = useState(null)
   const wizardStartedRef = useRef(false)
   const wizardCompletedRef = useRef(false)
+  const useCaseInputRef = useRef(null)
 
   useEffect(() => {
     const onResize = () => {
@@ -581,7 +587,10 @@ function ToolFinderPage() {
   }
 
   const writeAnswer = (key, value) => {
-    setAnswers((previous) => ({ ...previous, [key]: value }))
+    setAnswers((previous) => ({
+      ...previous,
+      [key]: key === 'use_case' ? normalizeOptionalText(value) : value,
+    }))
   }
 
   const trackStepCompletion = (question, answerSelected) => {
@@ -623,10 +632,20 @@ function ToolFinderPage() {
   }
 
   const handleQuestionContinue = (question) => {
-    const selectedAnswer = question.type === 'text'
-      ? (answers[question.id] || '')
-      : answers[question.id]
-    goToQuestionAfter(question, selectedAnswer, answers)
+    try {
+      const selectedAnswer = question.type === 'text'
+        ? normalizeOptionalText(useCaseInputRef.current?.value ?? answers?.[question.id] ?? '')
+        : answers?.[question.id]
+
+      goToQuestionAfter(question, selectedAnswer ?? (question.type === 'text' ? '' : selectedAnswer), answers)
+    } catch (error) {
+      console.error('Wizard Step 2 transition failed:', {
+        error,
+        message: error?.message,
+        stack: error?.stack,
+      })
+      toast.error('Could not continue. Please try again.')
+    }
   }
 
   const handleRestart = () => {
@@ -814,6 +833,7 @@ function ToolFinderPage() {
                   onSelect={(value) => handleQuestionSelect(question, value)}
                   onTextChange={(value) => writeAnswer(question.id, value)}
                   onNext={() => handleQuestionContinue(question)}
+                  textInputRef={question.id === 'use_case' ? useCaseInputRef : undefined}
                 />
               ))
             )}
