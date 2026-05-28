@@ -18,7 +18,7 @@ from app import bcrypt, csrf, db
 from app.ml_recommender import clear_model_cache, get_similar_tools, load_model
 from app.models import Favorite, Rating, Review, ToolRating, User
 from app.rate_limit import is_rate_limited
-from app.search_utils import search_tools
+from app.search_utils import search_tools, weighted_search
 from app.tool_cache import DEFAULT_TOOLS_PATH, TOOL_CACHE, get_cached_tools, get_visible_tools
 
 api_bp = Blueprint("api", __name__)
@@ -98,6 +98,65 @@ def _tool_slug(tool: dict) -> str:
 
 def _load_tools() -> list[dict]:
     return get_cached_tools(DATA_PATH)
+
+
+def _search_catalog_tools(raw_query: str, category: str, pricing: str, student_only: bool, trending_only: bool, sort_by: str) -> dict:
+    if not raw_query:
+        return search_tools(
+            raw_query=raw_query,
+            category_filter=category,
+            pricing_filter_ui=pricing,
+            student_only=student_only,
+            trending_only=trending_only,
+            sort_by=sort_by,
+        )
+
+    try:
+        tools = get_visible_tools(DATA_PATH)
+    except Exception:
+        tools = []
+
+    selected_category = None if category in ("All", "", None) else category
+    selected_pricing = None if pricing in ("All", "", None) else pricing.lower()
+
+    filtered_tools: list[dict] = []
+    for tool in tools:
+        tool_pricing = str(tool.get("pricing", "freemium")).lower()
+        if selected_pricing and tool_pricing != selected_pricing:
+            continue
+        if selected_category and tool.get("category") != selected_category:
+            continue
+        if student_only and not (tool.get("student_perk") or tool.get("studentPerk")):
+            continue
+        if trending_only and not tool.get("trending"):
+            continue
+        filtered_tools.append(tool)
+
+    results = weighted_search(
+        raw_query,
+        filtered_tools,
+        category_filter=category,
+        pricing_filter_ui=pricing,
+        student_only=student_only,
+        trending_only=trending_only,
+        sort_by=sort_by,
+    )
+
+    if sort_by == "Rating":
+        results.sort(key=lambda x: float(x.get("rating", 0)), reverse=True)
+    elif sort_by == "Reviews":
+        results.sort(key=lambda x: int(x.get("review_count", 0)), reverse=True)
+    elif sort_by == "Trending":
+        results.sort(key=lambda x: (bool(x.get("trending", False)), float(x.get("rating", 0))), reverse=True)
+    else:
+        results.sort(key=lambda x: x.get("relevance_score", 0), reverse=True)
+
+    return {
+        "results": results,
+        "fallback": False,
+        "fuzzy_matched": False,
+        "total": len(results),
+    }
 
 
 @api_bp.get("/suggestions")
@@ -1167,13 +1226,13 @@ def api_search():
     trending    = request.args.get('trending_only', 'false') == 'true'
     sort_by     = request.args.get('sort', 'Relevance')
 
-    output = search_tools(
+    output = _search_catalog_tools(
         raw_query=raw_query,
-        category_filter=category,
-        pricing_filter_ui=pricing,
+        category=category,
+        pricing=pricing,
         student_only=student,
         trending_only=trending,
-        sort_by=sort_by
+        sort_by=sort_by,
     )
     return jsonify(output)
 
@@ -1959,13 +2018,13 @@ def compat_search():
     trending    = request.args.get('trending_only', 'false') == 'true'
     sort_by     = request.args.get('sort', 'Relevance')
 
-    output = search_tools(
+    output = _search_catalog_tools(
         raw_query=raw_query,
-        category_filter=category,
-        pricing_filter_ui=pricing,
+        category=category,
+        pricing=pricing,
         student_only=student,
         trending_only=trending,
-        sort_by=sort_by
+        sort_by=sort_by,
     )
     return jsonify(output)
 

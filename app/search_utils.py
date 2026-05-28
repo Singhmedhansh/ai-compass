@@ -1,4 +1,5 @@
 import sys
+import re
 
 # WHY: semantic path only kicks in for relevance-sorted queries with this much
 # cosine confidence; below this we treat the model as having no opinion and let
@@ -77,6 +78,12 @@ TOOL_CONTEXT_BOOSTS = {
     "elevenlabs": ["voice", "audio", "tts", "podcast"],
 }
 
+WEIGHTED_SEARCH_STOPWORDS = {
+    "a", "an", "the", "for", "and", "or", "to", "in", "of", "is",
+    "with", "that", "it", "me", "my", "i", "can", "how", "do",
+    "make", "create", "build", "use", "using", "get",
+}
+
 def parse_intent(raw_query):
     """
     Tokenizes query, strips stopwords, resolves pricing/category/boost intents.
@@ -102,6 +109,30 @@ def parse_intent(raw_query):
                 boosts["_tag_" + intent["boost_tag"]] = intent["boost"]
 
     return tokens, pricing_filter, category_hint, boosts
+
+
+def _weighted_search_tokens(raw_query):
+    query = (raw_query or "").lower()
+    return [
+        token
+        for token in re.split(r"[\W_]+", query)
+        if token and token not in WEIGHTED_SEARCH_STOPWORDS
+    ]
+
+
+def _tool_slug_value(tool):
+    slug = str(tool.get("slug") or "").strip().lower()
+    if slug:
+        return slug
+    name = str(tool.get("name") or "").strip().lower()
+    return re.sub(r"[^a-z0-9]+", "-", name).strip("-")
+
+
+def _normalized_list_field(value):
+    if isinstance(value, list):
+        return [str(item).strip().lower() for item in value if str(item).strip()]
+    text = str(value or "").strip().lower()
+    return [text] if text else []
 
 def score_token_against_tool(token, tool_index):
     """Score a single token against a pre-built tool index entry."""
@@ -149,6 +180,65 @@ def score_token_against_tool(token, tool_index):
             score += 30
 
     return score
+
+
+def weighted_search(query: str, tools: list) -> list:
+    STOPWORDS = {
+        'a','an','the','for','and','or','to','in','of',
+        'is','with','that','it','me','my','i','can','how',
+        'do','make','create','build','use','using','get',
+        'need','want','help','some','any','best','good',
+        'new','free','tool','tools','ai'
+    }
+
+    tokens = [
+        t.lower().strip('.,!?')
+        for t in re.split(r'[\s\-_/]+', query)
+        if t.lower().strip('.,!?') not in STOPWORDS
+        and len(t) > 1
+    ]
+
+    if not tokens:
+        return tools
+
+    scored = []
+    for tool in tools:
+        score = 0
+        name = (tool.get('name') or '').lower()
+        category = (tool.get('category') or '').lower()
+        description = (tool.get('description') or '').lower()
+        tags = [t.lower() for t in (tool.get('tags') or [])]
+        use_cases = [u.lower() for u in (tool.get('use_cases') or [])]
+
+        for token in tokens:
+            if token in category:
+                score += 100
+
+            for tag in tags:
+                if token in tag:
+                    score += 50
+
+            for uc in use_cases:
+                if token in uc:
+                    score += 20
+
+            if token in name:
+                score += 30
+
+            if token in description:
+                score += 1
+
+        full_query = query.lower().strip()
+        if full_query in name:
+            score += 80
+        if any(full_query in tag for tag in tags):
+            score += 60
+
+        if score > 0:
+            scored.append({**tool, 'relevance_score': score})
+
+    scored.sort(key=lambda x: x['relevance_score'], reverse=True)
+    return scored
 
 def search_tools(raw_query, category_filter="All", pricing_filter_ui="All",
                  student_only=False, trending_only=False, sort_by="Relevance", limit=50):
