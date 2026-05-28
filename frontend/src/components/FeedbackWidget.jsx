@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { MessageSquare, X, Send, CheckCircle2 } from 'lucide-react'
 import { AnimatePresence, motion } from 'framer-motion'
 
 // ESLint in this repo doesn't recognise JSX namespaced tags (<MotionDiv>)
 // as usage, so we alias to constants. Same pattern as BestJasperAlternatives.
 const MotionDiv = motion.div
+const MotionButton = motion.button
 
 // Floating feedback widget rendered on every page (mounted in App.jsx
 // outside <Routes> so it persists across navigation). Click the FAB to
@@ -19,6 +21,8 @@ const STORAGE_KEY = 'ai-compass-feedback-submitted-at'
 const RESHOW_AFTER_MS = 1000 * 60 * 60 * 24 // 24h after a submit, button quietens
 
 export default function FeedbackWidget() {
+  const location = useLocation()
+  const isWizardPage = location.pathname === '/ai-tool-finder'
   const [open, setOpen] = useState(false)
   const [message, setMessage] = useState('')
   const [email, setEmail] = useState('')
@@ -99,16 +103,19 @@ export default function FeedbackWidget() {
   return (
     <>
       {/* Floating button — always visible bottom-right */}
-      <button
+      <MotionButton
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Send feedback"
-        className={`fixed bottom-5 right-5 z-50 flex items-center gap-2 rounded-full bg-accent px-4 py-3 text-sm font-medium text-white shadow-lg transition-all hover:scale-105 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 ${recentlySubmitted ? 'opacity-70' : ''}`}
+        initial={{ opacity: 0, y: 10, scale: 0.96 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.22, ease: 'easeOut' }}
+        className={`fixed bottom-5 ${isWizardPage ? 'left-5 right-auto' : 'right-5'} z-50 flex items-center gap-2 rounded-full bg-accent px-4 py-3 text-sm font-medium text-white shadow-lg transition-all hover:scale-105 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 ${isWizardPage ? 'text-xs px-3 py-2 sm:text-sm sm:px-4 sm:py-3' : ''} ${recentlySubmitted ? 'opacity-70' : ''}`}
         style={{ boxShadow: '0 6px 24px rgba(47, 179, 137, 0.35)' }}
       >
         <MessageSquare className="h-4 w-4" />
         <span className="hidden sm:inline">Feedback</span>
-      </button>
+      </MotionButton>
 
       <AnimatePresence>
         {open && (
@@ -133,7 +140,7 @@ export default function FeedbackWidget() {
               role="dialog"
               aria-modal="true"
               aria-labelledby="feedback-title"
-              className="fixed bottom-20 right-5 z-[70] w-[calc(100vw-2.5rem)] max-w-sm rounded-2xl border border-line bg-bg-elev p-5 shadow-2xl sm:right-5"
+              className={`fixed bottom-20 ${isWizardPage ? 'left-5 right-auto' : 'right-5'} z-[70] w-[calc(100vw-2.5rem)] max-w-sm rounded-2xl border border-line bg-bg-elev p-5 shadow-2xl ${isWizardPage ? '' : 'sm:right-5'}`}
             >
               <div className="mb-3 flex items-start justify-between gap-3">
                 <div>
