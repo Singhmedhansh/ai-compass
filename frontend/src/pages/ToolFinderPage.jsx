@@ -1,5 +1,5 @@
 import { Check, RotateCcw, Save } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { useNavigate } from 'react-router-dom'
 
@@ -124,6 +124,26 @@ const PLATFORM_CLAUSE = {
   desktop: 'working from a desktop app',
   mobile: 'working from mobile',
   api: 'working through API or code',
+}
+
+const posthog = typeof window !== 'undefined' ? window.posthog : undefined
+
+function captureWizardEvent(event, properties) {
+  try {
+    posthog?.capture?.(event, properties)
+  } catch {
+    /* telemetry must never break the wizard */
+  }
+}
+
+function snapshotAnswers(answers) {
+  return {
+    goal: Array.isArray(answers.goal) ? [...answers.goal] : answers.goal,
+    use_case: answers.use_case || '',
+    budget: answers.budget || '',
+    platform: Array.isArray(answers.platform) ? [...answers.platform] : answers.platform,
+    level: answers.level || '',
+  }
 }
 
 function normalizeTool(rawTool) {
@@ -463,7 +483,8 @@ function LivePreview({ answers, results, loading, error, canSeeResults, onSeeRes
 
 function ToolFinderPage() {
   const navigate = useNavigate()
-  const [activeQuestion, setActiveQuestion] = useState('goal')
+  const [hasStarted, setHasStarted] = useState(false)
+  const [activeQuestion, setActiveQuestion] = useState(null)
   const [viewMode, setViewMode] = useState('wizard')
   const [answers, setAnswers] = useState({ goal: [], use_case: '', budget: '', platform: [], level: '' })
   const [results, setResults] = useState([])
@@ -471,6 +492,9 @@ function ToolFinderPage() {
   const [savingStack, setSavingStack] = useState(false)
   const [error, setError] = useState('')
   const [aspectBucket, setAspectBucket] = useState(getAspectBucket)
+  const [pendingCompletion, setPendingCompletion] = useState(null)
+  const wizardStartedRef = useRef(false)
+  const wizardCompletedRef = useRef(false)
 
   useEffect(() => {
     const onResize = () => {
@@ -546,16 +570,36 @@ function ToolFinderPage() {
     && Boolean(answers.level)
   )
 
+  const handleStartWizard = () => {
+    if (wizardStartedRef.current) return
+    wizardStartedRef.current = true
+    captureWizardEvent('wizard_started')
+    setHasStarted(true)
+    setActiveQuestion('goal')
+  }
+
   const writeAnswer = (key, value) => {
     setAnswers((previous) => ({ ...previous, [key]: value }))
   }
 
+  const trackStepCompletion = (question, answerSelected) => {
+    captureWizardEvent('wizard_step_completed', {
+      step_number: QUESTION_FLOW.indexOf(question.id) + 1,
+      question_title: question.activeHeading,
+      answer_selected: answerSelected,
+    })
+  }
+
   // Move focus to the next unanswered question (or finish). Guarded so a
   // late auto-advance can't yank the user if they've already moved on.
-  const goToQuestionAfter = (questionId) => {
-    const i = QUESTION_FLOW.indexOf(questionId)
+  const goToQuestionAfter = (question, answerSelected, nextAnswers = answers) => {
+    const i = QUESTION_FLOW.indexOf(question.id)
     const next = QUESTIONS[i + 1]
-    setActiveQuestion((prev) => (prev === questionId ? (next ? next.id : null) : prev))
+    trackStepCompletion(question, answerSelected)
+    if (!next) {
+      setPendingCompletion({ answers: snapshotAnswers(nextAnswers) })
+    }
+    setActiveQuestion((prev) => (prev === question.id ? (next ? next.id : null) : prev))
   }
 
   const handleQuestionSelect = (question, value) => {
@@ -571,17 +615,42 @@ function ToolFinderPage() {
       return
     }
     // Single-select: record, let the highlight register, then auto-advance.
+    const nextAnswers = { ...answers, [question.id]: value }
     writeAnswer(question.id, value)
-    window.setTimeout(() => goToQuestionAfter(question.id), 280)
+    window.setTimeout(() => goToQuestionAfter(question, value, nextAnswers), 280)
+  }
+
+  const handleQuestionContinue = (question) => {
+    const selectedAnswer = question.type === 'text'
+      ? (answers[question.id] || '')
+      : answers[question.id]
+    goToQuestionAfter(question, selectedAnswer, answers)
   }
 
   const handleRestart = () => {
+    wizardStartedRef.current = false
+    wizardCompletedRef.current = false
     setAnswers({ goal: [], use_case: '', budget: '', platform: [], level: '' })
     setResults([])
     setError('')
-    setActiveQuestion('goal')
+    setPendingCompletion(null)
+    setHasStarted(false)
+    setActiveQuestion(null)
     setViewMode('wizard')
   }
+
+  useEffect(() => {
+    if (!pendingCompletion || loadingResults || results.length === 0 || wizardCompletedRef.current) {
+      return
+    }
+
+    wizardCompletedRef.current = true
+    captureWizardEvent('wizard_completed', {
+      total_steps: TOTAL_QUESTIONS,
+      answers: pendingCompletion.answers,
+    })
+    setPendingCompletion(null)
+  }, [loadingResults, pendingCompletion, results.length])
 
   const handleSaveStack = async () => {
     if (!user) {
@@ -720,21 +789,34 @@ function ToolFinderPage() {
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-[1fr_1.2fr] md:gap-8">
           <div className="flex flex-col gap-3">
-            {QUESTIONS.map((question, idx) => (
-              <QuestionRow
-                key={question.id}
-                index={idx + 1}
-                question={question}
-                answer={answers[question.id]}
-                isActive={activeQuestion === question.id}
-                onActivate={() => setActiveQuestion(question.id)}
-                onSelect={(value) => handleQuestionSelect(question, value)}
-                onTextChange={(value) => writeAnswer(question.id, value)}
-                onNext={() => goToQuestionAfter(question.id)}
-              />
-            ))}
+            {!hasStarted ? (
+              <div className="rounded-2xl border border-accent/40 bg-accent-soft/40 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted">Wizard</p>
+                <p className="mt-1 text-sm font-semibold text-ink">Start the tool finder</p>
+                <p className="mt-1 text-sm text-muted">
+                  Click begin to answer five quick questions and unlock your recommendations.
+                </p>
+                <Button variant="primary" size="sm" className="mt-3" onClick={handleStartWizard}>
+                  Begin wizard
+                </Button>
+              </div>
+            ) : (
+              QUESTIONS.map((question, idx) => (
+                <QuestionRow
+                  key={question.id}
+                  index={idx + 1}
+                  question={question}
+                  answer={answers[question.id]}
+                  isActive={activeQuestion === question.id}
+                  onActivate={() => setActiveQuestion(question.id)}
+                  onSelect={(value) => handleQuestionSelect(question, value)}
+                  onTextChange={(value) => writeAnswer(question.id, value)}
+                  onNext={() => handleQuestionContinue(question)}
+                />
+              ))
+            )}
 
-            {!activeQuestion ? (
+            {hasStarted && !activeQuestion ? (
               <div className="rounded-2xl border border-accent/40 bg-accent-soft/40 p-4">
                 <p className="text-sm font-semibold text-ink">You&apos;re all set ✓</p>
                 <p className="mt-0.5 text-sm text-muted">
