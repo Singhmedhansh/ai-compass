@@ -65,7 +65,7 @@ const QUESTIONS = [
     id: 'use_case',
     label: 'Specifics',
     activeHeading: 'What specifically do you want to do?',
-    activeHelper: 'Be specific — "write essays" beats "writing".',
+    activeHelper: 'Optional — describe your goal, or press Continue to skip this step.',
     type: 'text',
   },
   {
@@ -299,7 +299,7 @@ function QuestionRow({ index, question, answer, isActive, onActivate, onSelect, 
                 <input
                   type="text"
                   className="w-full rounded-lg border border-line bg-bg-elev px-3 py-2 text-ink placeholder:text-muted-2 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
-                  placeholder='e.g. write essays, build a web app, edit YouTube videos…'
+                  placeholder="e.g. building a frontend web application, formatting research citations... or skip ahead"
                   value={answer || ''}
                   onChange={(e) => onTextChange(e.target.value)}
                   onKeyDown={(e) => {
@@ -313,7 +313,9 @@ function QuestionRow({ index, question, answer, isActive, onActivate, onSelect, 
                   autoFocus
                 />
                 <div className="flex items-center justify-between gap-3">
-                  <span className="text-xs text-muted-2">Optional — press Enter or Continue to skip</span>
+                  <span className="text-xs text-muted-2 transition-colors hover:text-muted">
+                    Press Continue to skip this step
+                  </span>
                   <Button variant="primary" size="sm" onClick={onNext}>
                     Continue →
                   </Button>
