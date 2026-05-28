@@ -130,9 +130,12 @@ const posthog = typeof window !== 'undefined' ? window.posthog : undefined
 
 function captureWizardEvent(event, properties) {
   try {
+    // Debug log to confirm the wizard event fires locally
+    try { console.debug && console.debug('captureWizardEvent', event, properties) } catch {}
     posthog?.capture?.(event, properties)
-  } catch {
+  } catch (err) {
     /* telemetry must never break the wizard */
+    try { console.warn && console.warn('captureWizardEvent error', err && err.message) } catch {}
   }
 }
 

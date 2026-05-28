@@ -160,6 +160,48 @@
         console.warn('PostHog init skipped:', e && e.message);
       }
     </script>
+
+    <!-- PostHog fallback: if the proxied /ingest asset fails to load
+         (common in preview environments), attempt to load the upstream
+         assets and init PostHog directly so surveys/toolbar can appear
+         for testing. This only runs if the initial init did not attach
+         the expected stub (__SV). -->
+    <script>
+      (function(){
+        try {
+          setTimeout(function(){
+            if (typeof window.posthog === 'undefined' || !window.posthog.__SV) {
+              console.info('PostHog probe: attempting fallback asset load')
+              var s = document.createElement('script')
+              s.type = 'text/javascript'
+              s.async = true
+              s.crossOrigin = 'anonymous'
+              s.src = 'https://us-assets.i.posthog.com/static/array.js'
+              s.onload = function(){
+                try {
+                  // Direct-init using upstream host
+                  posthog && posthog.init && posthog.init('phc_kMaYwCVYoqvo2DdSSYeJa9TqYFyarnSSLwJn4NhpCGmU', {
+                    api_host: 'https://us.i.posthog.com',
+                    ui_host: 'https://us.posthog.com',
+                    defaults: '2026-01-30',
+                    person_profiles: 'identified_only',
+                    persistence: 'memory',
+                    capture_pageview: true,
+                    capture_pageleave: true,
+                    session_recording: { maskAllInputs: false },
+                  })
+                  console.info('PostHog fallback init attempted')
+                } catch (err) {
+                  console.warn('PostHog fallback init failed', err && err.message)
+                }
+              }
+              s.onerror = function(){ console.warn('PostHog fallback asset failed to load') }
+              document.head.appendChild(s)
+            }
+          }, 1500)
+        } catch (e) { console.warn('PostHog fallback probe error', e && e.message) }
+      })()
+    </script>
     <!-- Critical CSS for the boot loader: shown until the JS bundle parses
          and React mounts (createRoot replaces #root children, removing it).
          Inline because the app stylesheet hasn't loaded at this point. -->
