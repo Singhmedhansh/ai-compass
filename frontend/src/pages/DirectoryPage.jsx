@@ -2,7 +2,7 @@ import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { useSearchParams } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
-import { ChevronDown, SearchX } from 'lucide-react'
+import { ArrowRight, ChevronDown, GraduationCap, SearchX, Sparkles } from 'lucide-react'
 import { Button, Dropdown, SearchInput, SkeletonCard, WordReveal } from '../components/ui'
 import CategorySection from '../components/tools/CategorySection'
 import FlatToolGrid from '../components/tools/FlatToolGrid'
@@ -217,9 +217,10 @@ function DirectoryPage() {
     }
   }, [queryFromParams, categoryFromParams, category])
 
-  const updateUrlParams = (nextCategory, nextQuery) => {
+  const updateUrlParams = (nextCategory, nextQuery, nextTags = null) => {
     const nextParams = new URLSearchParams(searchParams)
     const query = (nextQuery || '').trim()
+    const tags = (nextTags || '').trim()
 
     if (nextCategory && nextCategory !== 'All') {
       nextParams.set('category', nextCategory)
@@ -231,6 +232,12 @@ function DirectoryPage() {
       nextParams.set('q', query)
     } else {
       nextParams.delete('q')
+    }
+
+    if (tags) {
+      nextParams.set('tags', tags)
+    } else {
+      nextParams.delete('tags')
     }
 
     // Record what we pushed so the sync effect treats this as our own write,
@@ -249,6 +256,20 @@ function DirectoryPage() {
     updateUrlParams(value, searchQuery)
   }
 
+  const launchAcademicPlanners = () => {
+    const nextQuery = 'productivity'
+    setCategory('All')
+    setSearchQuery(nextQuery)
+    updateUrlParams('All', nextQuery)
+  }
+
+  const connectCivilServiceUtilities = () => {
+    const nextQuery = 'exam prep'
+    setCategory('All')
+    setSearchQuery(nextQuery)
+    updateUrlParams('All', nextQuery, 'exam,test prep')
+  }
+
   useEffect(() => {
     const controller = new AbortController()
     const requestId = ++latestRequestIdRef.current
@@ -256,7 +277,9 @@ function DirectoryPage() {
     const normalizedQuery = queryFromParams.trim()
     const normalizedCategory = category?.trim() || 'All'
     const canonicalCategory = toCanonicalCategory(normalizedCategory)
+    const normalizedTags = (searchParams.get('tags') || '').trim()
     const isRemoteSearch = Boolean(normalizedQuery)
+    const isTaggedSearch = Boolean(normalizedTags)
     const shouldLoadSummary = !isRemoteSearch && normalizedCategory === 'All' && !showAllOpened
 
     // WHY 300ms: hit the backend after the user stops typing for one quarter
@@ -270,7 +293,11 @@ function DirectoryPage() {
       setError(null)
       try {
         const abortTimeout = setTimeout(() => controller.abort(), 15000)
-        const endpoint = isRemoteSearch
+        const endpoint = isTaggedSearch
+          ? `${API}/api/v1/tools/by-tags?${new URLSearchParams({
+              tags: normalizedTags,
+            }).toString()}`
+          : isRemoteSearch
           ? `${API}/api/v1/search?${new URLSearchParams({
               q: normalizedQuery,
               ...(canonicalCategory !== 'All' ? { category: canonicalCategory } : {}),
@@ -294,11 +321,12 @@ function DirectoryPage() {
         const mappedTools = payload.map(mapTool)
 
         setSearchMeta(
-          isRemoteSearch
+          isRemoteSearch && !isTaggedSearch
             ? {
                 fuzzy_matched: Boolean(data.fuzzy_matched),
                 suggested_query: data.suggested_query || null,
                 fallback: Boolean(data.fallback),
+                fallback_detected: Boolean(data.fallback_detected),
                 original_query: data.original_query || normalizedQuery,
               }
             : null,
@@ -354,7 +382,7 @@ function DirectoryPage() {
       clearTimeout(debounceTimer)
       controller.abort()
     }
-  }, [queryFromParams, category, retryNonce, showAllOpened])
+  }, [queryFromParams, category, retryNonce, searchParams, showAllOpened])
 
   const filteredTools = useMemo(() => {
     const normalizedSearch = queryFromParams.trim().toLowerCase()
@@ -425,6 +453,13 @@ function DirectoryPage() {
     }
     return [...counts.entries()]
       .filter(([, n]) => n >= HUB_MIN_PER_SECTION)
+
+      const zeroResultsFallbackActive = Boolean(
+        !isLoading &&
+        !error &&
+        searchMeta?.fallback_detected &&
+        filteredTools.length === 0,
+      )
       .sort((a, b) => b[1] - a[1])
       .map(([canonical, total]) => ({
         canonical,
@@ -698,6 +733,86 @@ function DirectoryPage() {
             </div>
           )}
 
+          {zeroResultsFallbackActive && (
+            <motion.section
+              variants={sectionReveal}
+              initial="initial"
+              animate="animate"
+              className="relative overflow-hidden rounded-[28px] border border-white/10 bg-slate-950 px-6 py-12 text-white shadow-[0_32px_120px_rgba(15,23,42,0.45)] sm:px-8 lg:px-10"
+            >
+              <div
+                className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(56,189,248,0.2),transparent_52%),radial-gradient(circle_at_bottom_right,rgba(16,185,129,0.12),transparent_35%)]"
+                aria-hidden="true"
+              />
+              <div className="relative mx-auto max-w-4xl">
+                <div className="mx-auto max-w-2xl text-center">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.22em] text-slate-300">
+                    <Sparkles className="h-3.5 w-3.5 text-cyan-300" />
+                    Smart zero-results fallback
+                  </div>
+                  <h2 className="mt-5 text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+                    Looking for an Exam Strategy or Study Roadmap?
+                  </h2>
+                  <p className="mt-3 text-sm leading-6 text-slate-300 sm:text-base">
+                    Your search did not map cleanly to a direct tool. Switch into a planning path or jump straight to civil service prep utilities.
+                  </p>
+                </div>
+
+                <div className="mt-8 grid gap-4 md:grid-cols-2">
+                  <button
+                    type="button"
+                    onClick={launchAcademicPlanners}
+                    className="group flex h-full flex-col justify-between rounded-3xl border border-white/10 bg-white/6 p-5 text-left transition duration-200 hover:-translate-y-0.5 hover:border-cyan-300/40 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
+                  >
+                    <div>
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-200/80">Card A</p>
+                          <h3 className="mt-2 text-xl font-semibold text-white">Launch AI Academic Planners</h3>
+                        </div>
+                        <span className="rounded-full border border-white/10 bg-white/5 p-2 text-cyan-200 transition group-hover:border-cyan-300/40 group-hover:bg-cyan-400/10">
+                          <ArrowRight className="h-4 w-4" />
+                        </span>
+                      </div>
+                      <p className="mt-4 text-sm leading-6 text-slate-300">
+                        Refresh the search matrix with optimized Productivity and Research keywords to surface planning, notes, and workflow utilities.
+                      </p>
+                    </div>
+                    <div className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-cyan-200">
+                      <GraduationCap className="h-4 w-4" />
+                      Re-run with study-planning intent
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={connectCivilServiceUtilities}
+                    className="group flex h-full flex-col justify-between rounded-3xl border border-white/10 bg-white/6 p-5 text-left transition duration-200 hover:-translate-y-0.5 hover:border-emerald-300/40 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300"
+                  >
+                    <div>
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-200/80">Card B</p>
+                          <h3 className="mt-2 text-xl font-semibold text-white">Connect to Civil Service Utilities</h3>
+                        </div>
+                        <span className="rounded-full border border-white/10 bg-white/5 p-2 text-emerald-200 transition group-hover:border-emerald-300/40 group-hover:bg-emerald-400/10">
+                          <ArrowRight className="h-4 w-4" />
+                        </span>
+                      </div>
+                      <p className="mt-4 text-sm leading-6 text-slate-300">
+                        Dynamically query the catalog for tools tagged around exam and test-prep workflows, then surface the most relevant study companions.
+                      </p>
+                    </div>
+                    <div className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-emerald-200">
+                      <SearchX className="h-4 w-4" />
+                      Pull exam and test-prep tools
+                    </div>
+                  </button>
+                </div>
+              </div>
+            </motion.section>
+          )}
+
           {!error && isLoading && (
             <div className="tools-grid grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {Array.from({ length: 6 }).map((_, i) => (
@@ -713,7 +828,7 @@ function DirectoryPage() {
             />
           )}
 
-          {!isLoading && !error && filteredTools.length === 0 && (
+          {!isLoading && !error && filteredTools.length === 0 && !zeroResultsFallbackActive && (
             <section
               role="status"
               aria-live="polite"

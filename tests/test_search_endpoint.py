@@ -111,14 +111,28 @@ def test_exact_match_no_fuzzy_flag(client):
     assert data.get('fuzzy_matched') is False
 
 
-def test_nonsense_falls_through_to_trending(client):
-    """Nonsense query falls through past fuzzy to the trending fallback."""
-    response = client.get('/api/v1/search?q=xxxqqqzzzfffggghhh')
+def test_nonsense_query_sets_zero_results_fallback(client):
+    """Zero-result queries should return the smart fallback metadata."""
+    response = client.get('/api/v1/search?q=is+it+possible+to+clear+mppsc+exam+in+2027')
     assert response.status_code == 200
     data = response.get_json()
-    assert data.get('fallback') is True
+    assert data.get('results', []) == []
+    assert data.get('fallback_detected') is True
+    assert data.get('original_query') == 'is it possible to clear mppsc exam in 2027'
+    assert data.get('total') == 0
     assert data.get('fuzzy_matched') is False
-    assert len(data.get('results', [])) > 0  # trending fills slots
+
+
+def test_tag_search_returns_exam_prep_tools(client):
+    """The tag search endpoint should return civil-service / exam-prep tools."""
+    response = client.get('/api/v1/tools/by-tags?tags=exam,test prep')
+    assert response.status_code == 200
+    data = response.get_json()
+    results = data.get('results', [])
+    assert isinstance(results, list)
+    assert len(results) > 0
+    assert data.get('total') == len(results)
+    assert data.get('fallback_detected') is False
 
 
 def test_fuzzy_short_query_returns_no_garbage(client):

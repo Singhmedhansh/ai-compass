@@ -1,6 +1,7 @@
 import json
 import os
 import re
+from difflib import SequenceMatcher
 import subprocess
 import sys
 import time
@@ -15,7 +16,7 @@ from sqlalchemy import func
 from html import escape as html_escape
 
 from app import bcrypt, csrf, db
-from app.ml_recommender import clear_model_cache, get_similar_tools, load_model
+from app.ml_recommender import clear_model_cache, detect_intent, get_similar_tools, load_model, rerank_by_category
 from app.models import Favorite, Rating, Review, ToolRating, User
 from app.rate_limit import is_rate_limited
 from app.search_utils import search_tools, weighted_search
@@ -100,6 +101,77 @@ def _load_tools() -> list[dict]:
     return get_cached_tools(DATA_PATH)
 
 
+def _normalize_search_terms(raw_value: str) -> list[str]:
+    terms: list[str] = []
+    for part in re.split(r"[\n,;|]+", raw_value or ""):
+        normalized = re.sub(r"\s+", " ", part).strip().lower()
+        if normalized:
+            terms.append(normalized)
+    return terms
+
+
+def _tool_matches_search_terms(tool: dict, terms: list[str]) -> bool:
+    if not terms:
+        return False
+
+    searchable_parts = [
+        tool.get("name"),
+        tool.get("description"),
+        tool.get("summary"),
+        tool.get("shortDescription"),
+        tool.get("category"),
+        tool.get("subCategory"),
+        tool.get("tagline"),
+        " ".join(str(tag) for tag in (tool.get("tags") or [])),
+        " ".join(str(item) for item in (tool.get("use_cases") or [])),
+    ]
+    searchable_blob = " ".join(str(part).lower() for part in searchable_parts if part)
+    return any(term in searchable_blob for term in terms)
+
+
+QUESTION_INTENT_RE = re.compile(
+    r"\b(is it possible|can i|should i|how to|how do i|what is the best way|is there a way)\b",
+    re.IGNORECASE,
+)
+
+
+def _looks_like_question_intent(raw_query: str) -> bool:
+    return bool(QUESTION_INTENT_RE.search(raw_query or ""))
+
+
+def _local_fuzzy_search(raw_query: str, limit: int = 10, threshold: float = 0.72) -> list[dict]:
+    query = str(raw_query or "").strip().lower()
+    if len(query) < 2:
+        return []
+
+    try:
+        tools = get_visible_tools(DATA_PATH)
+    except Exception:
+        tools = []
+
+    ranked: list[tuple[float, dict]] = []
+    for tool in tools:
+        if tool.get("hidden"):
+            continue
+
+        name = str(tool.get("name") or "").strip().lower()
+        slug = str(tool.get("slug") or "").strip().lower().replace("-", " ")
+        candidates = [candidate for candidate in (name, slug) if candidate]
+        if not candidates:
+            continue
+
+        best_score = max(SequenceMatcher(None, query, candidate).ratio() for candidate in candidates)
+        if best_score >= threshold:
+            ranked.append((best_score, tool))
+
+    ranked.sort(
+        key=lambda item: (item[0], _summary_score(item[1]), 1 if item[1].get("featured") else 0),
+        reverse=True,
+    )
+
+    return [{**tool, "_score": round(score * 100, 2), "_match_type": "fuzzy"} for score, tool in ranked[:limit]]
+
+
 def _search_catalog_tools(raw_query: str, category: str, pricing: str, student_only: bool, trending_only: bool, sort_by: str) -> dict:
     if not raw_query:
         return search_tools(
@@ -135,12 +207,64 @@ def _search_catalog_tools(raw_query: str, category: str, pricing: str, student_o
     results = weighted_search(
         raw_query,
         filtered_tools,
-        category_filter=category,
-        pricing_filter_ui=pricing,
-        student_only=student_only,
-        trending_only=trending_only,
-        sort_by=sort_by,
     )
+
+    if raw_query and not (selected_category or selected_pricing or student_only or trending_only) and _looks_like_question_intent(raw_query):
+        fuzzy_results = _local_fuzzy_search(raw_query, limit=50, threshold=0.72)
+        if fuzzy_results:
+            intent_rule = detect_intent(raw_query)
+            if intent_rule:
+                fuzzy_results = rerank_by_category(fuzzy_results, intent_rule)
+            if sort_by == "Rating":
+                fuzzy_results.sort(key=lambda x: float(x.get("rating", 0)), reverse=True)
+            elif sort_by == "Reviews":
+                fuzzy_results.sort(key=lambda x: int(x.get("review_count", 0)), reverse=True)
+            elif sort_by == "Trending":
+                fuzzy_results.sort(key=lambda x: (bool(x.get("trending", False)), float(x.get("rating", 0))), reverse=True)
+            else:
+                fuzzy_results.sort(key=lambda x: x.get("_score", 0), reverse=True)
+
+            return {
+                "results": fuzzy_results,
+                "fallback": False,
+                "fuzzy_matched": True,
+                "suggested_query": fuzzy_results[0].get("name"),
+                "original_query": raw_query,
+                "total": len(fuzzy_results),
+            }
+
+        return {
+            "results": [],
+            "fallback": False,
+            "fuzzy_matched": False,
+            "fallback_detected": True,
+            "original_query": raw_query,
+            "total": 0,
+        }
+
+    if not results and raw_query and not (selected_category or selected_pricing or student_only or trending_only):
+        fuzzy_results = _local_fuzzy_search(raw_query, limit=50, threshold=0.72)
+        if fuzzy_results:
+            intent_rule = detect_intent(raw_query)
+            if intent_rule:
+                fuzzy_results = rerank_by_category(fuzzy_results, intent_rule)
+            if sort_by == "Rating":
+                fuzzy_results.sort(key=lambda x: float(x.get("rating", 0)), reverse=True)
+            elif sort_by == "Reviews":
+                fuzzy_results.sort(key=lambda x: int(x.get("review_count", 0)), reverse=True)
+            elif sort_by == "Trending":
+                fuzzy_results.sort(key=lambda x: (bool(x.get("trending", False)), float(x.get("rating", 0))), reverse=True)
+            else:
+                fuzzy_results.sort(key=lambda x: x.get("_score", 0), reverse=True)
+
+            return {
+                "results": fuzzy_results,
+                "fallback": False,
+                "fuzzy_matched": True,
+                "suggested_query": fuzzy_results[0].get("name"),
+                "original_query": raw_query,
+                "total": len(fuzzy_results),
+            }
 
     if sort_by == "Rating":
         results.sort(key=lambda x: float(x.get("rating", 0)), reverse=True)
@@ -151,12 +275,47 @@ def _search_catalog_tools(raw_query: str, category: str, pricing: str, student_o
     else:
         results.sort(key=lambda x: x.get("relevance_score", 0), reverse=True)
 
-    return {
+    response = {
         "results": results,
         "fallback": False,
         "fuzzy_matched": False,
         "total": len(results),
     }
+    if not results and not (selected_category or selected_pricing or student_only or trending_only):
+        response["fallback_detected"] = True
+        response["original_query"] = raw_query
+    return response
+
+
+@api_bp.get("/tools/by-tags")
+def tools_by_tags():
+    raw_tags = request.args.get("tags", "").strip()
+    terms = _normalize_search_terms(raw_tags)
+
+    try:
+        tools = get_visible_tools(DATA_PATH)
+    except Exception:
+        tools = []
+
+    matched_tools: list[dict] = []
+    for tool in tools:
+        if _tool_matches_search_terms(tool, terms):
+            matched_tools.append(tool)
+
+    matched_tools.sort(
+        key=lambda tool: (_summary_score(tool), 1 if tool.get("featured") else 0),
+        reverse=True,
+    )
+
+    payload = {
+        "results": [_card_projection(tool) for tool in matched_tools],
+        "total": len(matched_tools),
+        "fallback": False,
+        "fallback_detected": not bool(matched_tools),
+        "original_query": raw_tags,
+        "query_tags": terms,
+    }
+    return jsonify(payload)
 
 
 @api_bp.get("/suggestions")
