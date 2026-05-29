@@ -9,6 +9,12 @@ from flask_login import login_user
 from app import db
 from app.models import User
 
+# Optional Sentry SDK — best-effort import so missing SDK doesn't break auth
+try:
+    import sentry_sdk
+except Exception:
+    sentry_sdk = None
+
 oauth_bp = Blueprint("oauth", __name__)
 oauth = OAuth()
 
@@ -253,6 +259,15 @@ def google_callback():
             user.oauth_picture_url = picture
             db.session.commit()
 
+        # Attach Sentry user & tags (best-effort; non-blocking)
+        try:
+            if sentry_sdk is not None:
+                sentry_sdk.set_user({"id": str(user.id), "email": user.email})
+                sentry_sdk.set_tag("auth_method", "oauth")
+                sentry_sdk.set_tag("oauth_provider", "google")
+        except Exception:
+            pass
+
         return _spa_success_redirect(user, name, picture)
     except Exception:
 
@@ -302,6 +317,15 @@ def github_callback():
         if avatar_url and avatar_url != (user.oauth_picture_url or ""):
             user.oauth_picture_url = avatar_url
             db.session.commit()
+
+        # Attach Sentry user & tags (best-effort; non-blocking)
+        try:
+            if sentry_sdk is not None:
+                sentry_sdk.set_user({"id": str(user.id), "email": user.email})
+                sentry_sdk.set_tag("auth_method", "oauth")
+                sentry_sdk.set_tag("oauth_provider", "github")
+        except Exception:
+            pass
 
         return _spa_success_redirect(user, display_name, avatar_url)
     except Exception:
