@@ -1,6 +1,7 @@
 import './index.css'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { ClerkProvider } from '@clerk/clerk-react'
 import { HelmetProvider } from 'react-helmet-async'
 import { Toaster } from 'sonner'
 import App from './App.jsx'
@@ -52,6 +53,7 @@ window.addEventListener('unhandledrejection', (event) => {
 // ---------------------------------------------------------------------------
 
 const originalFetch = window.fetch.bind(window)
+const PUBLISHABLE_KEY = "pk_test_aG9uZXN0LW1vbGx5LTM0LmNsZXJrLmFjY291bnRzLmRldiQ"
 
 window.fetch = (input, init) => {
   if (typeof input === 'string') {
@@ -95,24 +97,26 @@ window.addEventListener('resize', applyAspectRatioFlag)
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <HelmetProvider>
-      <Toaster
-        position="top-right"
-        closeButton
-        toastOptions={{
-          style: {
-            background: 'var(--bg-elev)',
-            color: 'var(--ink)',
-            border: '1px solid var(--line)',
-            boxShadow: 'var(--shadow-lg, 0 8px 24px rgba(0,0,0,0.12))',
-          },
-          classNames: {
-            closeButton:
-              'border border-line bg-bg-elev text-ink-2 hover:bg-bg-sunk',
-          },
-        }}
-      />
-      <App />
-    </HelmetProvider>
+    <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
+      <HelmetProvider>
+        <Toaster
+          position="top-right"
+          closeButton
+          toastOptions={{
+            style: {
+              background: 'var(--bg-elev)',
+              color: 'var(--ink)',
+              border: '1px solid var(--line)',
+              boxShadow: 'var(--shadow-lg, 0 8px 24px rgba(0,0,0,0.12))',
+            },
+            classNames: {
+              closeButton:
+                'border border-line bg-bg-elev text-ink-2 hover:bg-bg-sunk',
+            },
+          }}
+        />
+        <App />
+      </HelmetProvider>
+    </ClerkProvider>
   </StrictMode>,
 )
