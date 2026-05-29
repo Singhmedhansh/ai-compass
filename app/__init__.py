@@ -30,10 +30,21 @@ except ImportError:
 # --- Sentry initialization (safe import) ---
 try:
     import sentry_sdk
+    # Prefer the Flask integration when available so Sentry attaches
+    # request and transaction context automatically.
+    try:
+        from sentry_sdk.integrations.flask import FlaskIntegration
+        integrations = [FlaskIntegration()]
+    except Exception:
+        integrations = []
+
     sentry_sdk.init(
         dsn=os.getenv("SENTRY_DSN"),
+        integrations=integrations,
         traces_sample_rate=float(os.getenv("SENTRY_TRACES_SAMPLE_RATE", "0.01")),
         environment=os.getenv("APP_ENV", "development"),
+        send_default_pii=os.getenv("SENTRY_SEND_PII", "false").lower() in ("1", "true", "yes"),
+        release=os.getenv("SENTRY_RELEASE"),
     )
 except ImportError:
     sentry_sdk = None
@@ -378,7 +389,12 @@ def create_app(config: dict | None = None) -> Flask:
         if request_host in {"localhost", "127.0.0.1"}:
             return None
 
-        if not (request_host.endswith(".onrender.com") or request_host == f"www.{canonical_host}"):
+        # Allow Render probe hostnames and the www subdomain to pass
+        # through without a canonical redirect. Previously this logic
+        # returned early for the opposite condition which caused the
+        # platform's port-scan to receive a 3XX redirect and report
+        # "No open HTTP ports". Accept any *.onrender.com host here.
+        if request_host.endswith(".onrender.com") or request_host == f"www.{canonical_host}":
             return None
 
         query = f"?{request.query_string.decode('utf-8')}" if request.query_string else ""
