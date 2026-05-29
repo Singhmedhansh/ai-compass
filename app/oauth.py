@@ -9,12 +9,6 @@ from flask_login import login_user
 from app import db
 from app.models import User
 
-# Optional Sentry SDK — best-effort import so missing SDK doesn't break auth
-try:
-    import sentry_sdk
-except Exception:
-    sentry_sdk = None
-
 oauth_bp = Blueprint("oauth", __name__)
 oauth = OAuth()
 
@@ -122,23 +116,40 @@ def _provider_redirect_uri(callback_endpoint: str, prod_path: str) -> str:
     return url_for(callback_endpoint, _external=True)
 
 
-def _spa_success_redirect(user, name: str, picture: str):
-    """Single source of truth for a successful OAuth login: sign the
-    user in, mark onboarding done, and hand back to the SPA's
-    /auth/callback (the React app reads these query params into
-    localStorage). Every provider funnels through here so they behave
-    identically."""
+def _spa_success_redirect(user, provider_name: str, name: str | None = None, picture: str | None = None):
+    """Centralized success handler for OAuth providers.
+
+    Performs the app login, marks onboarding, commits DB changes,
+    attaches Sentry telemetry (best-effort) and returns the SPA
+    redirect. All Sentry calls are defensive and non-blocking.
+    """
     _clear_stale_login_flash_errors()
     login_user(user, remember=True)
     user.first_login = False
     user.onboarding_completed = True
     db.session.commit()
 
+    # Best-effort Sentry telemetry: non-blocking and defensive
+    try:
+        # import inside the try to avoid hard dependency and keep this
+        # function robust even if sentry-sdk isn't installed.
+        import sentry_sdk
+
+        try:
+            sentry_sdk.set_user({"id": str(user.id), "email": user.email})
+            sentry_sdk.set_tag("auth_method", "oauth")
+            sentry_sdk.set_tag("oauth_provider", provider_name)
+        except Exception:
+            # keep telemetry best-effort — do not interfere with auth flow
+            pass
+    except Exception:
+        pass
+
     params = urlencode({
-        "name": user.display_name or name or "",
+        "name": user.display_name or (name or "") or "",
         "email": user.email,
         "id": user.id,
-        "picture": user.oauth_picture_url or picture or "",
+        "picture": user.oauth_picture_url or (picture or "") or "",
     })
     return redirect(f"{_frontend_base_url()}/auth/callback?{params}")
 
@@ -259,16 +270,7 @@ def google_callback():
             user.oauth_picture_url = picture
             db.session.commit()
 
-        # Attach Sentry user & tags (best-effort; non-blocking)
-        try:
-            if sentry_sdk is not None:
-                sentry_sdk.set_user({"id": str(user.id), "email": user.email})
-                sentry_sdk.set_tag("auth_method", "oauth")
-                sentry_sdk.set_tag("oauth_provider", "google")
-        except Exception:
-            pass
-
-        return _spa_success_redirect(user, name, picture)
+        return _spa_success_redirect(user, "google", name, picture)
     except Exception:
 
         frontend_url = _frontend_base_url()
@@ -318,16 +320,7 @@ def github_callback():
             user.oauth_picture_url = avatar_url
             db.session.commit()
 
-        # Attach Sentry user & tags (best-effort; non-blocking)
-        try:
-            if sentry_sdk is not None:
-                sentry_sdk.set_user({"id": str(user.id), "email": user.email})
-                sentry_sdk.set_tag("auth_method", "oauth")
-                sentry_sdk.set_tag("oauth_provider", "github")
-        except Exception:
-            pass
-
-        return _spa_success_redirect(user, display_name, avatar_url)
+        return _spa_success_redirect(user, "github", display_name, avatar_url)
     except Exception:
         current_app.logger.exception("GitHub OAuth callback failed")
         return redirect(f"{frontend_url}/login?error=github_failed")
@@ -389,7 +382,7 @@ def linkedin_callback():
         dbg["stage"] = "success_redirect"
         dbg["user_id"] = user.id
         _save_linkedin_debug(dbg)
-        return _spa_success_redirect(user, name, picture)
+        return _spa_success_redirect(user, "linkedin", name, picture)
     except Exception as exc:
         current_app.logger.exception("LinkedIn OAuth callback failed")
         dbg["stage"] = dbg.get("stage", "?") + ":exception"
