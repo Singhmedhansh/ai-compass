@@ -1979,6 +1979,15 @@ def auth_login():
             return jsonify({"error": "Invalid credentials"}), 401
 
         login_user(user, remember=True)
+        # Attach Sentry user context if available
+        try:
+            import sentry_sdk as _sentry
+            try:
+                _sentry.set_user({"id": str(user.id), "email": user.email, "username": user.display_name})
+            except Exception:
+                pass
+        except Exception:
+            pass
         return jsonify(_serialize_user(user))
     except Exception as e:
         current_app.logger.exception("/auth/login failed: %s", e)
@@ -1990,6 +1999,16 @@ def auth_login():
 def auth_logout():
     """Explicit logout — clears the server session AND the Flask-Login
     remember cookie so the user stays logged out until they sign in again."""
+    # Clear Sentry user context (best-effort) then logout
+    try:
+        import sentry_sdk as _sentry
+        try:
+            _sentry.set_user(None)
+        except Exception:
+            pass
+    except Exception:
+        pass
+
     try:
         logout_user()
     except Exception:

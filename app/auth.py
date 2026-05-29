@@ -2,6 +2,12 @@ from flask import Blueprint, current_app, flash, redirect, request, session, url
 from flask_login import current_user, login_required, login_user, logout_user
 import json
 
+# Safe optional import for Sentry
+try:
+    import sentry_sdk
+except Exception:
+    sentry_sdk = None
+
 from app import bcrypt, db
 from app.models import User
 from app.rate_limit import is_rate_limited
@@ -115,6 +121,12 @@ def register():
 
         _clear_stale_login_flash_errors()
         login_user(user, remember=True)
+        # Attach user context to Sentry (best-effort)
+        try:
+            if sentry_sdk is not None:
+                sentry_sdk.set_user({"id": str(user.id), "email": user.email, "username": user.display_name})
+        except Exception:
+            pass
         flash("Welcome to AI Compass.", "success")
         if _requires_onboarding(user):
             return redirect("/profile")
@@ -157,6 +169,11 @@ def login():
                 db.session.commit()
                 _clear_stale_login_flash_errors()
                 login_user(user, remember=True)
+                try:
+                    if sentry_sdk is not None:
+                        sentry_sdk.set_user({"id": str(user.id), "email": user.email, "username": user.display_name})
+                except Exception:
+                    pass
                 flash("Admin login detected. Use the Admin Panel button from the dashboard.", "success")
                 next_url = request.args.get("next")
                 if _requires_onboarding(user):
@@ -167,6 +184,11 @@ def login():
                 _sync_admin_flag(user)
                 _clear_stale_login_flash_errors()
                 login_user(user, remember=True)
+                try:
+                    if sentry_sdk is not None:
+                        sentry_sdk.set_user({"id": str(user.id), "email": user.email, "username": user.display_name})
+                except Exception:
+                    pass
                 flash("You are now logged in.", "success")
                 next_url = request.args.get("next")
                 if _requires_onboarding(user):
@@ -185,6 +207,13 @@ def login():
 @auth_bp.route("/logout")
 @login_required
 def logout():
+    # Clear Sentry user context on logout (best-effort)
+    try:
+        if sentry_sdk is not None:
+            sentry_sdk.set_user(None)
+    except Exception:
+        pass
+
     logout_user()
     flash("Logged out successfully.", "info")
     return redirect(url_for("main.index"))
