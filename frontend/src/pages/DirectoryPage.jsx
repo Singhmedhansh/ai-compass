@@ -520,7 +520,8 @@ function DirectoryPage() {
 
     const featured = rankTools(tools.filter((t) => t.featured), 6)
     if (featured.length >= 6) return featured
-    return rankTools(tools.filter((t) => t.student_friendly), 6)
+    const studentFriendly = rankTools(tools.filter((t) => t.student_friendly), 6)
+    return studentFriendly.length > 0 ? studentFriendly : STUDENT_TOP_FALLBACK
   }, [directorySummary, tools])
 
   const handleReset = () => {
