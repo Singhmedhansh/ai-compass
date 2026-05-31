@@ -13,6 +13,54 @@ import { inferErrorVariant } from '../utils/errorState'
 // Static fallback covers the ~100ms before /api/v1/stats responds — kept close to the live count so the meta never reads as broken.
 const FALLBACK_TOOL_COUNT = 400
 
+const STUDENT_TOP_FALLBACK = [
+  {
+    slug: 'chatgpt',
+    name: 'ChatGPT',
+    tagline: 'Fast all-rounder for writing, coding, and brainstorming',
+    pricing: 'Free',
+    student_friendly: true,
+    featured: true,
+  },
+  {
+    slug: 'claude',
+    name: 'Claude',
+    tagline: 'Strong for long documents and careful reasoning',
+    pricing: 'Free',
+    student_friendly: true,
+    featured: true,
+  },
+  {
+    slug: 'github-copilot',
+    name: 'GitHub Copilot',
+    tagline: 'Inline coding help for students in VS Code',
+    pricing: 'Free',
+    student_friendly: true,
+    featured: true,
+  },
+  {
+    slug: 'perplexity-ai',
+    name: 'Perplexity',
+    tagline: 'Research with citations and quick source finding',
+    pricing: 'Free',
+    student_friendly: true,
+  },
+  {
+    slug: 'notion-ai',
+    name: 'Notion AI',
+    tagline: 'Notes, planning, and study guides in one workspace',
+    pricing: 'Free',
+    student_friendly: true,
+  },
+  {
+    slug: 'grammarly',
+    name: 'Grammarly',
+    tagline: 'Last-pass writing polish for essays and emails',
+    pricing: 'Free',
+    student_friendly: true,
+  },
+]
+
 const MotionDiv = motion.div
 
 // Minimum tools for a category to earn its own hub section. Below this,
@@ -155,7 +203,7 @@ function buildDirectorySummary(tools) {
 
   return {
     sections,
-    studentTop,
+    studentTop: studentTop.length > 0 ? studentTop : STUDENT_TOP_FALLBACK,
     total: tools.length,
   }
 }
@@ -190,7 +238,10 @@ function DirectoryPage() {
   const panelRef = useRef(null)
   const hasSearchQuery = queryFromParams.trim().length > 0
   const isRootHub = !hasSearchQuery && category === 'All'
-  const displayCount = catalogCount ?? FALLBACK_TOOL_COUNT
+  const displayCount = catalogCount && catalogCount > 0 ? catalogCount : FALLBACK_TOOL_COUNT
+  const hubToolCount = directorySummary?.total && directorySummary.total > 0
+    ? directorySummary.total
+    : displayCount
 
   // Tracks the query value WE last wrote to the URL, so the sync effect below can
   // tell an external URL change (navbar search, back/forward, deep link) apart
@@ -453,13 +504,6 @@ function DirectoryPage() {
     }
     return [...counts.entries()]
       .filter(([, n]) => n >= HUB_MIN_PER_SECTION)
-
-      const zeroResultsFallbackActive = Boolean(
-        !isLoading &&
-        !error &&
-        searchMeta?.fallback_detected &&
-        filteredTools.length === 0,
-      )
       .sort((a, b) => b[1] - a[1])
       .map(([canonical, total]) => ({
         canonical,
@@ -527,6 +571,12 @@ function DirectoryPage() {
   const trimmedSearchTerm = queryFromParams.trim()
   const hasFilter = category !== 'All'
   const viewMode = hasSearchQuery ? 'search' : hasFilter ? 'filter' : 'hub'
+  const zeroResultsFallbackActive = Boolean(
+    !isLoading &&
+    !error &&
+    searchMeta?.fallback_detected &&
+    filteredTools.length === 0,
+  )
 
   const scrollToCategory = (slug) => {
     document
@@ -565,7 +615,7 @@ function DirectoryPage() {
       <section className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-3xl font-bold tracking-tight text-ink sm:text-4xl"><WordReveal>AI Tools Directory</WordReveal></h1>
         <span className="text-sm font-medium tabular-nums text-muted">
-          {isLoading ? 'Loading...' : `${filteredTools.length} tools`}
+          {isLoading ? 'Loading...' : `${isRootHub ? hubToolCount : filteredTools.length} tools`}
         </span>
         {/* Mobile Filters Button */}
         <button
@@ -879,8 +929,8 @@ function DirectoryPage() {
               if (e.currentTarget.open) setShowAllOpened(true)
             }}
           >
-            <summary className="flex cursor-pointer select-none items-center justify-between px-5 py-4 text-sm font-semibold text-ink-2 marker:content-none [&::-webkit-details-marker]:hidden">
-              Show all {filteredTools.length} tools
+              <summary className="flex cursor-pointer select-none items-center justify-between px-5 py-4 text-sm font-semibold text-ink-2 marker:content-none [&::-webkit-details-marker]:hidden">
+              Show all {isRootHub ? hubToolCount : filteredTools.length} tools
               <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" />
             </summary>
             <div className="px-5 pb-6 pt-2">
