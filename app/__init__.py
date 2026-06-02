@@ -64,10 +64,13 @@ except ImportError:
     Compress = None
 
 
+from flask_caching import Cache
+
 db = SQLAlchemy()
 login_manager = LoginManager()
 bcrypt = Bcrypt()
 csrf = CSRFProtect()
+cache = Cache()
 
 
 def _load_local_dotenv(project_root: str) -> None:
@@ -221,6 +224,10 @@ def create_app(config: dict | None = None) -> Flask:
     login_manager.init_app(app)
     bcrypt.init_app(app)
     csrf.init_app(app)
+    
+    app.config.setdefault("CACHE_TYPE", "SimpleCache")
+    app.config.setdefault("CACHE_DEFAULT_TIMEOUT", 300)
+    cache.init_app(app)
 
     # Security headers via Talisman. HSTS, X-Frame-Options, X-Content-Type-
     # Options, Referrer-Policy, Permissions-Policy all get set automatically.

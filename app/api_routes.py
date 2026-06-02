@@ -12,10 +12,11 @@ import requests
 from flask import Blueprint, current_app, jsonify, request
 from flask_login import current_user, login_required, login_user, logout_user
 from sqlalchemy import func
+from sqlalchemy.orm import joinedload
 
 from html import escape as html_escape
 
-from app import bcrypt, csrf, db
+from app import bcrypt, cache, csrf, db
 from app.ml_recommender import clear_model_cache, detect_intent, get_similar_tools, load_model, rerank_by_category
 from app.models import Favorite, Rating, Review, ToolRating, User
 from app.rate_limit import is_rate_limited
@@ -955,6 +956,7 @@ def _directory_summary_payload(tools: list[dict]) -> dict:
 
 
 @api_bp.get("/tools")
+@cache.cached(timeout=60, query_string=True)
 def list_tools():
     from flask import make_response
     try:
@@ -1149,9 +1151,13 @@ def get_tool_reviews(slug: str):
     try:
         t0 = time.time()
         current_app.logger.info(f"[PERF] reviews start: {slug}")
-        reviews = Review.query.filter_by(
-            tool_slug=slug, is_hidden=False
-        ).order_by(Review.created_at.desc()).limit(50).all()
+        reviews = (
+            Review.query.options(joinedload(Review.user))
+            .filter_by(tool_slug=slug, is_hidden=False)
+            .order_by(Review.created_at.desc())
+            .limit(50)
+            .all()
+        )
         payload = {
             "reviews": [{
                 "id": r.id,
@@ -2208,6 +2214,7 @@ def compat_search():
 
 
 @compat_bp.get("/tools")
+@cache.cached(timeout=60, query_string=True)
 def list_all_tools_compat():
     """Compat alias at /api/tools."""
     from app.tool_cache import get_cached_tools
