@@ -4,7 +4,7 @@ import { Helmet } from 'react-helmet-async'
 import { motion } from 'framer-motion'
 import { ArrowUpRight } from 'lucide-react'
 
-import { WordReveal } from '../components/ui'
+import { SEO, WordReveal } from '../components/ui'
 import ErrorState from '../components/ErrorState'
 import { useCatalogStats } from '../hooks/useCatalogStats'
 import { sectionReveal, staggerParent, staggerChild } from '../lib/motion'
@@ -208,14 +208,13 @@ export default function AlternativesPage() {
 
   return (
     <>
+      <SEO
+        title={`Top ${tool.name} Alternatives in 2026`}
+        description={pageDescription}
+        path={`/alternatives/${tool.slug}`}
+      />
       <Helmet>
-        <title>{pageTitle}</title>
-        <meta name="description" content={pageDescription} />
         <link rel="canonical" href={canonical} />
-        <meta property="og:title" content={pageTitle} />
-        <meta property="og:description" content={pageDescription} />
-        <meta property="og:url" content={canonical} />
-        <meta property="og:type" content="article" />
         {/* Article wrapper so this page is eligible for top-stories /
             article rich results, matching what the listicles emit. */}
         <script type="application/ld+json">{JSON.stringify({

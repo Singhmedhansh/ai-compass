@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { AnimatePresence, MotionConfig } from 'framer-motion'
+import { HelmetProvider } from 'react-helmet-async'
 
 import ErrorBoundary from './components/ErrorBoundary'
 import FeedbackWidget from './components/FeedbackWidget'
@@ -11,6 +12,7 @@ import CompareTray from './components/ui/CompareTray'
 import CompassLoader from './components/ui/CompassLoader'
 import Navbar from './components/ui/Navbar'
 import ScrollProgress from './components/ui/ScrollProgress'
+import CookieConsent from './components/ui/CookieConsent'
 // HomePage stays eager — it's the most common first paint
 import HomePage from './pages/HomePage'
 
@@ -104,27 +106,30 @@ function AnimatedRoutes() {
 
 export default function App() {
   return (
-    <MotionConfig reducedMotion="user">
-      <BrowserRouter>
-        <ScrollToTop />
-        <ScrollProgress />
-        <div className="min-h-screen flex flex-col bg-bg text-ink">
-          <a
-            href="#main-content"
-            className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-accent focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-bg focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-accent"
-          >
-            Skip to main content
-          </a>
-          <Navbar />
-          <main id="main-content" tabIndex={-1} className="flex-1 outline-none">
-            <AnimatedRoutes />
-          </main>
-          <Footer />
-          <CompareTray />
-          <FeedbackWidget />
-          <OfflineBanner />
-        </div>
-      </BrowserRouter>
-    </MotionConfig>
+    <HelmetProvider>
+      <MotionConfig reducedMotion="user">
+        <BrowserRouter>
+          <ScrollToTop />
+          <ScrollProgress />
+          <div className="min-h-screen flex flex-col bg-bg text-ink">
+            <a
+              href="#main-content"
+              className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-accent focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-bg focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-accent"
+            >
+              Skip to main content
+            </a>
+            <Navbar />
+            <main id="main-content" tabIndex={-1} className="flex-1 outline-none">
+              <AnimatedRoutes />
+            </main>
+            <Footer />
+            <CompareTray />
+            <FeedbackWidget />
+            <OfflineBanner />
+            <CookieConsent />
+          </div>
+        </BrowserRouter>
+      </MotionConfig>
+    </HelmetProvider>
   )
 }

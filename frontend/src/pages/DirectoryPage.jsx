@@ -3,7 +3,7 @@ import { Helmet } from 'react-helmet-async'
 import { useSearchParams } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ArrowRight, ChevronDown, GraduationCap, SearchX, Sparkles } from 'lucide-react'
-import { Button, Dropdown, SearchInput, SkeletonCard, WordReveal } from '../components/ui'
+import { Button, Dropdown, SearchInput, SEO, SkeletonCard, WordReveal } from '../components/ui'
 import CategorySection from '../components/tools/CategorySection'
 import FlatToolGrid from '../components/tools/FlatToolGrid'
 import ErrorState from '../components/ErrorState'
@@ -608,10 +608,11 @@ function DirectoryPage() {
     <div
       className="container main-content mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8"
     >
-      <Helmet>
-        <title>AI Tools Directory — AI Compass</title>
-        <meta name="description" content={`Browse ${displayCount} curated AI tools by category, rating, and pricing. Find the right tool for writing, coding, research, and more.`} />
-      </Helmet>
+      <SEO
+        title="AI Tools Directory"
+        description={`Browse ${displayCount} curated AI tools by category, rating, and pricing. Find the right tool for writing, coding, research, and more.`}
+        path="/tools"
+      />
       <MotionDiv variants={sectionReveal} initial="initial" animate="animate">
       <section className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-3xl font-bold tracking-tight text-ink sm:text-4xl"><WordReveal>AI Tools Directory</WordReveal></h1>
