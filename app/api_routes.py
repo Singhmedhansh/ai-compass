@@ -1337,7 +1337,13 @@ def submit_tool():
                 # your own Resend account email — fine for founder-only
                 # notifications). Override via RESEND_FROM env once the
                 # ai-compass.in domain is verified in Resend.
-                from_address = os.environ.get("RESEND_FROM") or "AI Compass <no-reply@ai-compass.in>"
+                canonical = os.environ.get("CANONICAL_HOST", "ai-compass.in").strip().lower()
+                if not canonical or canonical in {"localhost", "127.0.0.1"}:
+                    default_sender = "AI Compass <onboarding@resend.dev>"
+                else:
+                    default_sender = f"AI Compass <no-reply@{canonical}>"
+
+                from_address = os.environ.get("RESEND_FROM", default_sender)
 
                 resend_response = requests.post(
                     "https://api.resend.com/emails",

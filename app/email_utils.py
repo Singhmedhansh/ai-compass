@@ -60,7 +60,13 @@ def _send_via_resend(to: str, subject: str, html: str, text: str | None) -> bool
             log.warning("RESEND_API_KEY is empty/missing")
             return False
 
-        sender = os.environ.get("RESEND_FROM") or "AI Compass <no-reply@ai-compass.in>"
+        canonical = os.environ.get("CANONICAL_HOST", "ai-compass.in").strip().lower()
+        if not canonical or canonical in {"localhost", "127.0.0.1"}:
+            default_sender = "AI Compass <onboarding@resend.dev>"
+        else:
+            default_sender = f"AI Compass <no-reply@{canonical}>"
+
+        sender = os.environ.get("RESEND_FROM", default_sender)
         r = requests.post(
             "https://api.resend.com/emails",
             headers={
