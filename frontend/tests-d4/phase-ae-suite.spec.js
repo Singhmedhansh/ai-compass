@@ -1,4 +1,4 @@
-import { test } from '@playwright/test'
+import { test, expect } from '@playwright/test'
 
 // =============================================================================
 // FIXTURES — backend response shapes
@@ -393,5 +393,27 @@ test.describe('extra:profile', () => {
     await continueBtn.click()
     await page.waitForTimeout(300)
     await capture(page, 'profile-delete-modal-step2')
+  })
+})
+
+// =============================================================================
+// NATIVE RESET PASSWORD & EMAIL VERIFICATION LIFECYCLE TESTS
+// =============================================================================
+
+test.describe('extra:auth-links', () => {
+  const COMBO = { width: 1440, height: 900, theme: 'dark' }
+
+  test('login-page-has-forgot-password-link', async ({ page }) => {
+    await page.setViewportSize({ width: COMBO.width, height: COMBO.height })
+    await setupTheme(page, COMBO.theme)
+    await mockBackend(page)
+    await page.goto('/login', { waitUntil: 'load' })
+    await page.waitForTimeout(400)
+    await ensureThemeApplied(page, COMBO.theme)
+
+    // Verify presence of the Forgot password? link
+    const forgotPasswordLink = page.getByRole('link', { name: /Forgot password\?/i })
+    await expect(forgotPasswordLink).toBeVisible()
+    await expect(forgotPasswordLink).toHaveAttribute('href', '/forgot-password')
   })
 })
