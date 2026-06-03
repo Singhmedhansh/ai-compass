@@ -52,11 +52,15 @@ def email_enabled() -> bool:
 
 def _send_via_resend(to: str, subject: str, html: str, text: str | None) -> bool:
     """HTTPS send via Resend (port 443 — works where SMTP is blocked)."""
-    import requests
-
-    api_key = os.environ["RESEND_API_KEY"]
-    sender = os.environ.get("RESEND_FROM", "AI Compass <onboarding@resend.dev>")
     try:
+        import requests
+
+        api_key = os.environ.get("RESEND_API_KEY")
+        if not api_key:
+            log.warning("RESEND_API_KEY is empty/missing")
+            return False
+
+        sender = os.environ.get("RESEND_FROM", "AI Compass <onboarding@resend.dev>")
         r = requests.post(
             "https://api.resend.com/emails",
             headers={

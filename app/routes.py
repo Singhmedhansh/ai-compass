@@ -46,6 +46,8 @@ _ROUTE_META = {
     'best-murf-alternatives': ('10 Best Murf AI Alternatives in 2026 — AI Compass', "Murf is no longer the voice-quality leader. These 10 alternatives — led by ElevenLabs — have better voices, usable free tiers, and pricing that doesn't feel like a 2022 SaaS quote."),
     'best-synthesia-alternatives': ('10 Best Synthesia Alternatives in 2026 — AI Compass', "Synthesia is $22+/mo for AI avatar videos most creators don't need. These 10 alternatives — led by Pictory — split into cheaper avatar tools and 'AI video without avatars' for explainers, training, and social shorts."),
     'best-ai-tools-for-fiction-writers': ('10 Best AI Tools for Fiction Writers in 2026 — AI Compass', 'The 10 best AI tools for fiction writers, novelists, and screenwriters — Sudowrite, NovelAI, Squibler, Claude, and more. Hand-tested for prose voice, worldbuilding, and revision.'),
+    'forgot-password': ('Recover Password — AI Compass', 'Retrieve your account by resetting your password.'),
+    'reset-password': ('Reset Password — AI Compass', 'Enter a new password for your account.'),
 }
 
 # Routes the React SPA actually renders. Anything not in this set (and
@@ -78,6 +80,8 @@ _KNOWN_SPA_ROUTES: set[str] = {
     'best-synthesia-alternatives',
     'best-ai-tools-for-fiction-writers',
     'auth/callback',
+    'forgot-password',
+    'reset-password',
 }
 
 _INDEX_HTML_CACHE = None

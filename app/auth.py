@@ -248,7 +248,12 @@ def forgot_password():
     if not email:
         return jsonify({"error": "Email is required."}), 400
 
-    user = User.query.filter_by(email=email).first()
+    try:
+        user = User.query.filter_by(email=email).first()
+    except Exception as db_err:
+        current_app.logger.exception("Failed to query database in forgot_password: %s", db_err)
+        user = None
+
     if user:
         try:
             hash_part = user.password_hash[-10:] if user.password_hash else ""
@@ -290,7 +295,12 @@ def reset_password():
     email = data.get("email")
     hash_part = data.get("hash_part")
 
-    user = User.query.filter_by(email=email).first()
+    try:
+        user = User.query.filter_by(email=email).first()
+    except Exception as db_err:
+        current_app.logger.exception("Failed to query database in reset_password: %s", db_err)
+        return jsonify({"error": "Database error. Please try again later."}), 500
+
     if not user:
         return jsonify({"error": "User not found."}), 404
 
