@@ -699,6 +699,12 @@ function ToolFinderPage() {
     return () => window.removeEventListener('resize', onResize)
   }, [])
 
+  useEffect(() => {
+    if (window.posthog) {
+      window.posthog.capture('$pageview')
+    }
+  }, [])
+
   // Safely clear use_case if it's no longer mapped to the selected goals
   useEffect(() => {
     if (!answers.goal || answers.goal.length === 0) {
