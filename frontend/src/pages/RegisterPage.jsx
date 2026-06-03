@@ -106,14 +106,14 @@ function RegisterPage() {
         }),
       })
 
-      const text = await response.text()
+      const payload = await response.json().catch(() => ({}))
 
       if (!response.ok) {
         console.error('Register request failed', {
           status: response.status,
-          body: text,
+          payload,
         })
-        setServerError(text || 'Unable to create account.')
+        setServerError(payload.error || 'Unable to create account.')
         return
       }
 
