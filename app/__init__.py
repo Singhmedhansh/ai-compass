@@ -467,6 +467,16 @@ def create_app(config: dict | None = None) -> Flask:
                 except Exception as e:
                     print(f"[WARMUP] db.create_all() error: {e}")
 
+                # Raw SQL Fallback: Guarantee that the is_verified column exists in the users table
+                try:
+                    from sqlalchemy import text
+                    db.session.execute(text("ALTER TABLE users ADD COLUMN is_verified BOOLEAN NOT NULL DEFAULT FALSE;"))
+                    db.session.commit()
+                    print("[WARMUP] Successfully added is_verified column to users table via raw SQL fallback.")
+                except Exception as alter_err:
+                    db.session.rollback()
+                    print(f"[WARMUP] Alter table users check/addition completed: {alter_err}")
+
                 # One-time import of tools.json into the durable DB
                 # catalog. Idempotent — no-ops once seeded. If this
                 # fails, the cache will fall back to tools.json.

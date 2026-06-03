@@ -2075,7 +2075,8 @@ def auth_register():
         return jsonify({"message": "Registration successful! Please check your email to verify your account."}), 201
     except Exception as exc:
         db.session.rollback()
-        return jsonify({"error": str(exc)}), 500
+        current_app.logger.exception("Registration failed due to server error: %s", exc)
+        return jsonify({"error": "An unexpected error occurred. Please try again later."}), 500
 
 
 @csrf.exempt
