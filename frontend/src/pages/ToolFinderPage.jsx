@@ -332,7 +332,7 @@ function QuestionRow({ index, question, answer, isActive, onActivate, onSelect, 
             ) : (
               <div className="flex flex-col gap-3">
                 <p className="text-sm text-muted">{question.activeHelper}</p>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex max-w-full gap-2 overflow-x-auto pb-1.5 scrollbar-none sm:flex-wrap sm:overflow-visible">
                   {question.options.map((opt) => {
                     const selected = isMulti
                       ? Array.isArray(answer) && answer.includes(opt.id)
@@ -342,7 +342,7 @@ function QuestionRow({ index, question, answer, isActive, onActivate, onSelect, 
                         key={opt.id}
                         type="button"
                         onClick={() => onSelect(opt.id)}
-                        className={`rounded-full border px-3 py-1.5 text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+                        className={`shrink-0 rounded-full border px-3 py-1.5 text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
                           selected
                             ? 'border-accent bg-accent-soft text-accent-ink'
                             : 'border-line bg-bg-elev text-ink hover:border-accent'

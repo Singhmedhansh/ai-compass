@@ -287,6 +287,9 @@ test.describe('extra:wizard', () => {
 
   test('wizard-one-answer', async ({ page }) => {
     await arrive(page)
+    // Click Begin wizard to start the questions
+    await page.getByRole('button', { name: /Begin wizard/i }).click()
+    await page.waitForTimeout(150)
     // Goal row is active by default; click "Coding" chip
     await page.getByRole('button', { name: 'Coding', exact: true }).click()
     // Wait past 250ms debounce + render
@@ -296,6 +299,9 @@ test.describe('extra:wizard', () => {
 
   test('wizard-all-answered', async ({ page }) => {
     await arrive(page)
+    // Click Begin wizard to start the questions
+    await page.getByRole('button', { name: /Begin wizard/i }).click()
+    await page.waitForTimeout(150)
     // Q1 Goal: Coding
     await page.getByRole('button', { name: 'Coding', exact: true }).click()
     await page.waitForTimeout(150)
@@ -333,6 +339,9 @@ test.describe('extra:wizard', () => {
 
   test('wizard-results-view', async ({ page }) => {
     await arrive(page)
+    // Click Begin wizard to start the questions
+    await page.getByRole('button', { name: /Begin wizard/i }).click()
+    await page.waitForTimeout(150)
     // Set up minimum gate: goal + level
     await page.getByRole('button', { name: 'Coding', exact: true }).click()
     await page.waitForTimeout(150)

@@ -193,7 +193,7 @@ export default function WizardDemo() {
         aria-pressed={active}
         disabled={!interactive}
         className={[
-          'rounded-full border px-2.5 py-1.5 text-xs transition-all duration-200',
+          'shrink-0 whitespace-nowrap rounded-full border px-2.5 py-1.5 text-xs transition-all duration-200',
           active
             ? 'border-accent bg-accent text-white'
             : 'border-line bg-bg text-muted',
@@ -293,7 +293,7 @@ export default function WizardDemo() {
                     </span>
                   </div>
                 </div>
-                <div className="mt-3 ml-[34px] flex flex-wrap gap-1.5">
+                <div className="mt-3 ml-[34px] flex max-w-full gap-1.5 overflow-x-auto pb-1.5 scrollbar-none sm:flex-wrap sm:overflow-visible">
                   {USE_CASES.map((v) => (
                     <Chip key={v} group="use" value={v} current={useCase} onPick={setUseCase} />
                   ))}
@@ -334,7 +334,7 @@ export default function WizardDemo() {
                     </span>
                   </div>
                 </div>
-                <div className="mt-3 ml-[34px] flex flex-wrap gap-1.5">
+                <div className="mt-3 ml-[34px] flex max-w-full gap-1.5 overflow-x-auto pb-1.5 scrollbar-none sm:flex-wrap sm:overflow-visible">
                   {BUDGETS.map((v) => (
                     <Chip key={v} group="budget" value={v} current={budget} onPick={setBudget} />
                   ))}
