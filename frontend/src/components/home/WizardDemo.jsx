@@ -312,7 +312,7 @@ export default function WizardDemo() {
                           <path d="M3.5 7.2 6 9.5l4.5-5" />
                         </svg>
                       </span>
-                      {SPECIFIC[useCase]}
+                      {SPECIFIC[useCase] || ''}
                     </span>
                   </div>
                 </div>
@@ -379,7 +379,7 @@ export default function WizardDemo() {
 
               <p className="mb-[18px] rounded-lg border border-dashed border-line-strong bg-bg-elev px-3 py-2.5 text-[13px] text-ink-2">
                 For a <b className="font-medium text-ink">{useCaseRole(useCase)}</b> who wants to{' '}
-                <b className="font-medium text-ink">{SPECIFIC[useCase].toLowerCase()}</b>,{' '}
+                <b className="font-medium text-ink">{(SPECIFIC[useCase] || '').toLowerCase()}</b>,{' '}
                 <b className="font-medium text-ink">{budgetPhrase(budget)}</b>:
               </p>
 

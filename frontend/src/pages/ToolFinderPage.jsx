@@ -32,6 +32,45 @@ const GOAL_OPTIONS = [
   { id: 'productivity', label: 'Productivity' },
 ]
 
+const SUB_CATEGORIES = {
+  learning: [
+    { id: 'exam-prep', label: 'Exam prep', desc: 'Prepare for exams, generate quiz questions.', icon: '🎓', primary: true },
+    { id: 'study-guides', label: 'Study guides', desc: 'Summarize topics and create study guides.', icon: '📝', primary: true },
+    { id: 'math-science', label: 'Math & Science', desc: 'Solve equations and explain complex concepts.', icon: '🔬', primary: false },
+    { id: 'language-learning', label: 'Language learning', desc: 'Practice speaking and translate texts.', icon: '🌐', primary: false },
+  ],
+  coding: [
+    { id: 'build-app', label: 'Build a web app', desc: 'Generate boilerplate and build app features.', icon: '💻', primary: true },
+    { id: 'debugging', label: 'Debugging', desc: 'Find errors and explain broken code.', icon: '🐛', primary: true },
+    { id: 'learning-code', label: 'Learning to code', desc: 'Explain syntax and teach coding concepts.', icon: '📘', primary: false },
+    { id: 'api-integration', label: 'API Integration', desc: 'Connect services and write API clients.', icon: '🔌', primary: false },
+  ],
+  writing: [
+    { id: 'write-essays', label: 'Write essays', desc: 'Draft outlines, thesis statements, and paragraphs.', icon: '✍️', primary: true },
+    { id: 'copywriting', label: 'Copywriting', desc: 'Generate marketing copies and social posts.', icon: '📢', primary: true },
+    { id: 'grammar-editor', label: 'Grammar & Editing', desc: 'Check spelling and improve writing style.', icon: '🔍', primary: false },
+    { id: 'translation', label: 'Translation', desc: 'Translate text between multiple languages.', icon: '💬', primary: false },
+  ],
+  research: [
+    { id: 'review-papers', label: 'Review papers', desc: 'Summarize academic articles and PDFs.', icon: '📚', primary: true },
+    { id: 'literature-search', label: 'Literature search', desc: 'Find academic papers and sources.', icon: '🕵️', primary: true },
+    { id: 'data-analysis', label: 'Data analysis', desc: 'Extract info and compile data tables.', icon: '📊', primary: false },
+    { id: 'citation-maker', label: 'Citations', desc: 'Format APA, MLA, and other citations.', icon: '🔖', primary: false },
+  ],
+  creating: [
+    { id: 'image-generation', label: 'Image generation', desc: 'Create visuals from text descriptions.', icon: '🎨', primary: true },
+    { id: 'video-editing', label: 'Video generation', desc: 'Generate clips and edit videos.', icon: '🎬', primary: true },
+    { id: 'audio-voice', label: 'Audio & Voice', desc: 'TTS, music, and voice voiceovers.', icon: '🎙️', primary: false },
+    { id: 'presentation-slides', label: 'Slides & Decks', desc: 'Create presentation slides and layouts.', icon: '📊', primary: false },
+  ],
+  productivity: [
+    { id: 'task-management', label: 'Task management', desc: 'Track tasks, schedules, and workflows.', icon: '📅', primary: true },
+    { id: 'note-taking', label: 'Note-taking', desc: 'Organize notes and document info.', icon: '📓', primary: true },
+    { id: 'meeting-summaries', label: 'Meeting summaries', desc: 'Transcribe and summarize audio.', icon: '🗣️', primary: false },
+    { id: 'automation-zapier', label: 'Workflow automation', desc: 'Connect apps and automate tasks.', icon: '🤖', primary: false },
+  ],
+}
+
 const BUDGET_OPTIONS = [
   { id: 'free', label: 'Free only' },
   { id: 'freemium', label: 'Freemium' },
@@ -230,7 +269,7 @@ function buildPersona(answers) {
   return clauses.length > 0 ? `${lead} ${clauses.join(', ')}:` : `${lead}:`
 }
 
-function QuestionRow({ index, question, answer, isActive, onActivate, onSelect, onTextChange, onNext, textInputRef }) {
+function QuestionRow({ index, question, answer, isActive, onActivate, onSelect, onTextChange, onNext, textInputRef, selectedGoals }) {
   const indexLabel = String(index).padStart(2, '0')
   const isMulti = Boolean(question.multiSelect)
   const isAnswered = isMulti
@@ -294,13 +333,127 @@ function QuestionRow({ index, question, answer, isActive, onActivate, onSelect, 
     </div>
   )
 
+  // Sub-categories progressive disclosure logic
+  const goals = selectedGoals || []
+  const allSubs = Array.isArray(goals) ? goals.flatMap(g => SUB_CATEGORIES[g] || []) : []
+  const primarySubs = allSubs.filter(sub => sub.primary)
+  const nicheSubs = allSubs.filter(sub => !sub.primary)
+
+  const isNicheOrCustom = answer && !primarySubs.some(sub => sub.label === answer)
+  const [showOther, setShowOther] = useState(Boolean(isNicheOrCustom))
+
   return (
     <div className={wrapperClasses}>
       {isActive ? (
         <>
           {header}
           <div className="px-4 pb-4 pl-12">
-            {question.type === 'text' ? (
+            {question.id === 'use_case' ? (
+              <div className="flex flex-col gap-3">
+                <p className="text-sm text-muted">{question.activeHelper}</p>
+                
+                {/* Visual grid of primary subcategories */}
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 mt-2">
+                  {primarySubs.map((sub) => {
+                    const isSelected = answer === sub.label
+                    return (
+                      <button
+                        key={sub.id}
+                        type="button"
+                        onClick={() => onTextChange(sub.label)}
+                        className={`flex items-start gap-3 rounded-xl border p-3.5 text-left transition-colors focus:outline-none focus:ring-2 focus:ring-accent ${
+                          isSelected
+                            ? 'border-accent bg-accent-soft/30 text-ink ring-1 ring-accent'
+                            : 'border-line bg-bg hover:border-line-strong text-ink'
+                        }`}
+                      >
+                        <span className="text-xl" aria-hidden="true">{sub.icon}</span>
+                        <div className="flex flex-col gap-0.5 min-w-0">
+                          <span className="text-sm font-semibold text-ink">{sub.label}</span>
+                          <span className="text-xs text-muted-2 leading-snug">{sub.desc}</span>
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+
+                {/* Progressive disclosure toggle */}
+                {nicheSubs.length > 0 || true ? (
+                  <div className="mt-1">
+                    <button
+                      type="button"
+                      onClick={() => setShowOther(!showOther)}
+                      className="text-xs font-semibold text-accent hover:underline flex items-center gap-1"
+                    >
+                      {showOther ? 'Hide custom / other options' : 'Other options...'}
+                    </button>
+                  </div>
+                ) : null}
+
+                {/* Niche grid & custom text input shown behind the toggle */}
+                {showOther && (
+                  <div className="mt-2 space-y-4 pt-3 border-t border-dashed border-line animate-in fade-in duration-200">
+                    {nicheSubs.length > 0 && (
+                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        {nicheSubs.map((sub) => {
+                          const isSelected = answer === sub.label
+                          return (
+                            <button
+                              key={sub.id}
+                              type="button"
+                              onClick={() => onTextChange(sub.label)}
+                              className={`flex items-start gap-3 rounded-xl border p-3.5 text-left transition-colors focus:outline-none focus:ring-2 focus:ring-accent ${
+                                isSelected
+                                  ? 'border-accent bg-accent-soft/30 text-ink ring-1 ring-accent'
+                                  : 'border-line bg-bg hover:border-line-strong text-ink'
+                              }`}
+                            >
+                              <span className="text-xl" aria-hidden="true">{sub.icon}</span>
+                              <div className="flex flex-col gap-0.5 min-w-0">
+                                <span className="text-sm font-semibold text-ink">{sub.label}</span>
+                                <span className="text-xs text-muted-2 leading-snug">{sub.desc}</span>
+                              </div>
+                            </button>
+                          )
+                        })}
+                      </div>
+                    )}
+
+                    <div className="flex flex-col gap-2">
+                      <label htmlFor="custom-use-case" className="text-xs font-medium text-muted">
+                        Or specify your own custom specifics:
+                      </label>
+                      <input
+                        id="custom-use-case"
+                        type="text"
+                        ref={textInputRef}
+                        className="w-full rounded-lg border border-line bg-bg-elev px-3 py-2 text-ink placeholder:text-muted-2 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+                        placeholder="e.g. build a specific API client, translate research documents..."
+                        value={(!allSubs.some(s => s.label === answer) && answer) || ''}
+                        onChange={(e) => onTextChange(e?.target?.value ?? '')}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault()
+                            onNext()
+                          }
+                        }}
+                        maxLength={120}
+                        style={{ fontSize: 16 }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between gap-3 mt-2">
+                  <span className="text-xs text-muted-2">
+                    Press Continue to proceed or skip
+                  </span>
+                  <Button variant="primary" size="sm" onClick={onNext}>
+                    Continue →
+                  </Button>
+                </div>
+              </div>
+            ) : question.type === 'text' ? (
               <div className="flex flex-col gap-3">
                 <p className="text-sm text-muted">{question.activeHelper}</p>
                 <input
@@ -545,6 +698,23 @@ function ToolFinderPage() {
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
   }, [])
+
+  // Safely clear use_case if it's no longer mapped to the selected goals
+  useEffect(() => {
+    if (!answers.goal || answers.goal.length === 0) {
+      if (answers.use_case) {
+        setAnswers(prev => ({ ...prev, use_case: '' }))
+      }
+      return
+    }
+
+    const validSubLabels = answers.goal.flatMap(g => SUB_CATEGORIES[g] || []).map(sub => sub.label)
+    const allSubCategoryLabels = Object.values(SUB_CATEGORIES).flatMap(subs => subs).map(sub => sub.label)
+
+    if (answers.use_case && allSubCategoryLabels.includes(answers.use_case) && !validSubLabels.includes(answers.use_case)) {
+      setAnswers(prev => ({ ...prev, use_case: '' }))
+    }
+  }, [answers.goal])
 
   let user = null
   try {
@@ -844,6 +1014,9 @@ function ToolFinderPage() {
           <div className="flex flex-col gap-3">
             {!hasStarted ? (
               <div className="rounded-2xl border border-accent/40 bg-accent-soft/40 p-4">
+                <div className="mb-3 rounded-lg bg-accent px-3 py-2 text-center text-xs font-semibold text-bg">
+                  ⚡ Find your ideal student AI stack in under 60 seconds. No login required.
+                </div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-muted">Wizard</p>
                 <p className="mt-1 text-sm font-semibold text-ink">Start the tool finder</p>
                 <p className="mt-1 text-sm text-muted">
@@ -866,6 +1039,7 @@ function ToolFinderPage() {
                   onTextChange={(value) => writeAnswer(question.id, value)}
                   onNext={() => handleQuestionContinue(question)}
                   textInputRef={question.id === 'use_case' ? useCaseInputRef : undefined}
+                  selectedGoals={answers.goal}
                 />
               ))
             )}
