@@ -8,7 +8,7 @@ import Badge from './Badge'
 import CompareToggleButton from './CompareToggleButton'
 import ToolLogo from './ToolLogo'
 
-const MotionButton = motion.button
+const MotionCard = motion.div
 
 const pricingClasses = {
   free: 'bg-accent-soft text-accent-ink',
@@ -53,10 +53,25 @@ function Card({ tool = {} }) {
     )
   })
 
+  const handleKeyDown = (event) => {
+    if (event.target !== event.currentTarget) {
+      return
+    }
+    if (event.key === 'Enter' || event.key === ' ') {
+      if (event.key === ' ') {
+        event.preventDefault()
+      }
+      navigate(`/tools/${slug}`)
+    }
+  }
+
   return (
-    <MotionButton
+    <MotionCard
       layout
+      role="button"
+      tabIndex={0}
       onClick={() => navigate(`/tools/${slug}`)}
+      onKeyDown={handleKeyDown}
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
       onFocus={() => setIsHovered(true)}
@@ -65,9 +80,9 @@ function Card({ tool = {} }) {
       whileTap={{ scale: 0.98 }}
       animate={{ minHeight: isHovered ? 248 : 224 }}
       transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-      className="group relative flex w-full flex-col gap-4 overflow-hidden rounded-2xl border border-line bg-bg-elev p-4 text-left shadow-sm transition-all hover:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+      className="group relative flex w-full flex-col gap-4 overflow-hidden rounded-2xl border border-line bg-bg-elev p-4 text-left shadow-sm cursor-pointer transition-all hover:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
     >
-      <div className="absolute right-2 top-2 z-10">
+      <div className="absolute right-2 top-2 z-10" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
         <CompareToggleButton slug={slug} toolName={name} />
       </div>
 
@@ -117,7 +132,7 @@ function Card({ tool = {} }) {
           {tool.pricing || 'Free'}
         </span>
       </div>
-    </MotionButton>
+    </MotionCard>
   )
 }
 
