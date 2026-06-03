@@ -233,6 +233,7 @@ function DirectoryPage() {
   const [searchQuery, setSearchQuery] = useState(initialQuery)
   const [showMobileFilters, setShowMobileFilters] = useState(false)
   const [showAllOpened, setShowAllOpened] = useState(false)
+  const [zeroResultsFallbackActive, setZeroResultsFallbackActive] = useState(false)
   const latestRequestIdRef = useRef(0)
   const triggerRef = useRef(null)
   const panelRef = useRef(null)
@@ -572,12 +573,16 @@ function DirectoryPage() {
   const trimmedSearchTerm = queryFromParams.trim()
   const hasFilter = category !== 'All'
   const viewMode = hasSearchQuery ? 'search' : hasFilter ? 'filter' : 'hub'
-  const zeroResultsFallbackActive = Boolean(
-    !isLoading &&
-    !error &&
-    searchMeta?.fallback_detected &&
-    filteredTools.length === 0,
-  )
+  useEffect(() => {
+    setZeroResultsFallbackActive(
+      Boolean(
+        !isLoading &&
+        !error &&
+        searchMeta?.fallback_detected &&
+        filteredTools.length === 0,
+      ),
+    )
+  }, [isLoading, error, searchMeta, filteredTools])
 
   const scrollToCategory = (slug) => {
     document
