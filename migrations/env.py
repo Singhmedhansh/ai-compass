@@ -86,7 +86,17 @@ def run_migrations_online():
     def process_revision_directives(context, revision, directives):
         if getattr(config.cmd_opts, 'autogenerate', False):
             script = directives[0]
-            if script.upgrade_ops.is_empty():
+            # Use hasattr check to avoid evaluating script.upgrade_ops which throws ValueError when list has multiple entries
+            has_changes = False
+            if hasattr(script, 'upgrade_ops_list'):
+                for upgrade_ops in script.upgrade_ops_list:
+                    if not upgrade_ops.is_empty():
+                        has_changes = True
+                        break
+            else:
+                if not script.upgrade_ops.is_empty():
+                    has_changes = True
+            if not has_changes:
                 directives[:] = []
                 logger.info('No changes in schema detected.')
 

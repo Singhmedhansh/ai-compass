@@ -1984,6 +1984,9 @@ def auth_login():
         if not password_ok:
             return jsonify({"error": "Invalid credentials"}), 401
 
+        if not user.is_verified:
+            return jsonify({"error": "Please verify your email address before logging in."}), 401
+
         login_user(user, remember=True)
         # Attach Sentry user context if available
         try:
@@ -2042,11 +2045,28 @@ def auth_register():
             return jsonify({"error": "Email already exists"}), 400
 
         password_hash = bcrypt.generate_password_hash(password).decode("utf-8")
-        user = User(email=email, password_hash=password_hash, display_name=name)
+        user = User(email=email, password_hash=password_hash, display_name=name, is_verified=False)
         db.session.add(user)
         db.session.commit()
 
-        return jsonify({"message": "Account created successfully"}), 201
+        # Send verification email via Resend
+        try:
+            from itsdangerous import URLSafeTimedSerializer
+            from app.email_utils import send_email
+            serializer = URLSafeTimedSerializer(current_app.config["SECRET_KEY"], salt="email-verification-salt")
+            token = serializer.dumps(email)
+            verification_link = f"{request.url_root}api/auth/verify-email/{token}"
+            subject = "AI Compass - Verify Email"
+            html = f"""
+            <p>Hello {name},</p>
+            <p>Thank you for registering. Please click the link below to verify your email address:</p>
+            <p><a href="{verification_link}">Verify Email</a></p>
+            """
+            send_email(email, subject, html)
+        except Exception:
+            current_app.logger.exception("Failed to send verification email")
+
+        return jsonify({"message": "Registration successful! Please check your email to verify your account."}), 201
     except Exception as exc:
         db.session.rollback()
         return jsonify({"error": str(exc)}), 500

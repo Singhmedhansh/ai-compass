@@ -35,6 +35,30 @@ function LoginPage() {
     })
   }, [error, shakeControls])
 
+  useEffect(() => {
+    const queryParams = new URLSearchParams(location.search)
+    if (queryParams.get('verified') === 'true') {
+      toast.success('Email verified successfully! You can now sign in.', {
+        duration: 5000,
+      })
+      navigate('/login', { replace: true })
+    } else if (queryParams.get('error')) {
+      const errorMsg = queryParams.get('error')
+      let friendlyMsg = 'Verification failed.'
+      if (errorMsg === 'invalid-or-expired-verification-token') {
+        friendlyMsg = 'The verification link is invalid or has expired.'
+      } else if (errorMsg === 'user-not-found') {
+        friendlyMsg = 'User not found.'
+      } else if (errorMsg === 'database-error') {
+        friendlyMsg = 'A database error occurred during verification.'
+      }
+      toast.error(friendlyMsg, {
+        duration: 5000,
+      })
+      navigate('/login', { replace: true })
+    }
+  }, [location.search, navigate])
+
   async function handleSubmit(event) {
     event.preventDefault()
     setError('')
@@ -114,9 +138,14 @@ function LoginPage() {
         </div>
 
         <div>
-          <label htmlFor="login-password" className="mb-1.5 block text-sm font-medium text-ink-2">
-            Password
-          </label>
+          <div className="flex justify-between items-center mb-1.5">
+            <label htmlFor="login-password" className="block text-sm font-medium text-ink-2">
+              Password
+            </label>
+            <Link to="/forgot-password" className="text-xs text-accent hover:underline">
+              Forgot password?
+            </Link>
+          </div>
           <div className="relative">
             <input
               id="login-password"

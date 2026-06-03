@@ -25,6 +25,7 @@ class User(UserMixin, db.Model):
     goals = db.Column(db.Text, nullable=True)
     theme_preference = db.Column(db.String(20), nullable=True)
     notifications_enabled = db.Column(db.Boolean, nullable=False, default=True)
+    is_verified = db.Column(db.Boolean, nullable=False, default=False, server_default="0")
     created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
 
     favorites = db.relationship("Favorite", back_populates="user", cascade="all, delete-orphan")

@@ -157,7 +157,7 @@ def create_app(config: dict | None = None) -> Flask:
     app.config["REMEMBER_COOKIE_DURATION"] = timedelta(days=30)
     app.config["REMEMBER_COOKIE_SAMESITE"] = "Lax"
     app.config["REMEMBER_COOKIE_HTTPONLY"] = True
-    configured_frontend_url = os.getenv("FRONTEND_URL", "").strip()
+    configured_frontend_url = (app.config.get("FRONTEND_URL") or os.getenv("FRONTEND_URL") or "").strip()
     default_frontend_url = "https://ai-compass.in" if is_production else "http://localhost:5173"
     frontend_url = (configured_frontend_url or default_frontend_url).rstrip("/")
     app.config["FRONTEND_URL"] = frontend_url
@@ -221,6 +221,8 @@ def create_app(config: dict | None = None) -> Flask:
         Session(app)
 
     db.init_app(app)
+    from flask_migrate import Migrate
+    Migrate(app, db)
     login_manager.init_app(app)
     bcrypt.init_app(app)
     csrf.init_app(app)
@@ -396,12 +398,11 @@ def create_app(config: dict | None = None) -> Flask:
         if request_host in {"localhost", "127.0.0.1"}:
             return None
 
-        # Allow Render probe hostnames and the www subdomain to pass
-        # through without a canonical redirect. Previously this logic
-        # returned early for the opposite condition which caused the
-        # platform's port-scan to receive a 3XX redirect and report
-        # "No open HTTP ports". Accept any *.onrender.com host here.
-        if request_host.endswith(".onrender.com") or request_host == f"www.{canonical_host}":
+        # Allow Render probe hostnames, www subdomain, and container IP addresses to pass
+        # through without a canonical redirect.
+        import re
+        is_ip = bool(re.match(r"^(\d{1,3}\.){3}\d{1,3}$", request_host))
+        if is_ip or request_host == f"www.{canonical_host}":
             return None
 
         query = f"?{request.query_string.decode('utf-8')}" if request.query_string else ""

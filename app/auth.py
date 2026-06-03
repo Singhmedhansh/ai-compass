@@ -1,6 +1,8 @@
-from flask import Blueprint, current_app, flash, redirect, request, session, url_for
+from flask import Blueprint, current_app, flash, redirect, request, session, url_for, jsonify
 from flask_login import current_user, login_required, login_user, logout_user
 import json
+import os
+from itsdangerous import URLSafeTimedSerializer
 
 # Safe optional import for Sentry
 try:
@@ -8,12 +10,21 @@ try:
 except Exception:
     sentry_sdk = None
 
-from app import bcrypt, db
+from app import bcrypt, db, csrf
 from app.models import User
 from app.rate_limit import is_rate_limited
-
+from app.oauth import _frontend_base_url
+from app.email_utils import send_email
 
 auth_bp = Blueprint("auth", __name__)
+
+
+def get_verify_serializer():
+    return URLSafeTimedSerializer(current_app.config["SECRET_KEY"], salt="email-verification-salt")
+
+
+def get_reset_serializer():
+    return URLSafeTimedSerializer(current_app.config["SECRET_KEY"], salt="password-reset-salt")
 
 
 def _verify_password_hash(password_hash, password):
@@ -115,22 +126,27 @@ def register():
             return redirect('/')
 
         password_hash = bcrypt.generate_password_hash(password).decode("utf-8")
-        user = User(email=email, password_hash=password_hash, display_name=name, is_admin=False)
+        user = User(email=email, password_hash=password_hash, display_name=name, is_admin=False, is_verified=False)
         db.session.add(user)
         db.session.commit()
 
-        _clear_stale_login_flash_errors()
-        login_user(user, remember=True)
-        # Attach user context to Sentry (best-effort)
+        # Send verification email
         try:
-            if sentry_sdk is not None:
-                sentry_sdk.set_user({"id": str(user.id), "email": user.email, "username": user.display_name})
+            token = get_verify_serializer().dumps(email)
+            verification_link = f"{request.url_root}api/auth/verify-email/{token}"
+            subject = "AI Compass - Verify Email"
+            html = f"""
+            <p>Hello {name},</p>
+            <p>Thank you for registering. Please click the link below to verify your email address:</p>
+            <p><a href="{verification_link}">Verify Email</a></p>
+            """
+            send_email(email, subject, html)
         except Exception:
-            pass
-        flash("Welcome to AI Compass.", "success")
-        if _requires_onboarding(user):
-            return redirect("/profile")
-        return redirect("/dashboard")
+            current_app.logger.exception("Failed to send verification email")
+
+        _clear_stale_login_flash_errors()
+        flash("Registration successful! Please check your email to verify your account.", "success")
+        return redirect('/')
 
     return redirect('/')
 
@@ -159,10 +175,11 @@ def login():
                     return redirect('/')
 
                 if user is None:
-                    user = User(email=email, password_hash=admin_password_hash, is_admin=True)
+                    user = User(email=email, password_hash=admin_password_hash, is_admin=True, is_verified=True)
                     db.session.add(user)
                 else:
                     user.is_admin = True
+                    user.is_verified = True
                     if not user.password_hash:
                         user.password_hash = admin_password_hash
 
@@ -181,6 +198,9 @@ def login():
                 return redirect(next_url or "/dashboard")
 
             if user and _verify_password_hash(user.password_hash, password):
+                if not user.is_verified:
+                    flash("Please verify your email address before logging in.", "error")
+                    return redirect('/')
                 _sync_admin_flag(user)
                 _clear_stale_login_flash_errors()
                 login_user(user, remember=True)
@@ -217,3 +237,93 @@ def logout():
     logout_user()
     flash("Logged out successfully.", "info")
     return redirect(url_for("main.index"))
+
+
+@auth_bp.route("/api/auth/forgot-password", methods=["POST"])
+@csrf.exempt
+def forgot_password():
+    payload = request.get_json(silent=True) or {}
+    email = str(payload.get("email") or "").strip().lower()
+
+    if not email:
+        return jsonify({"error": "Email is required."}), 400
+
+    user = User.query.filter_by(email=email).first()
+    if user:
+        try:
+            hash_part = user.password_hash[-10:] if user.password_hash else ""
+            token = get_reset_serializer().dumps({"email": email, "hash_part": hash_part})
+            reset_link = f"{_frontend_base_url()}/reset-password?token={token}"
+            subject = "AI Compass - Password Recovery"
+            html = f"""
+            <p>Hello,</p>
+            <p>We received a request to reset your password. Click the link below to choose a new password (valid for 2 hours):</p>
+            <p><a href="{reset_link}">Reset Password</a></p>
+            <p>If you did not request this, please ignore this email.</p>
+            """
+            send_email(email, subject, html)
+        except Exception:
+            current_app.logger.exception("Failed to send recovery email")
+
+    # Always return success to prevent email enumeration attacks
+    return jsonify({"message": "If the account exists, a recovery email has been sent."}), 200
+
+
+@auth_bp.route("/api/auth/reset-password", methods=["POST"])
+@csrf.exempt
+def reset_password():
+    payload = request.get_json(silent=True) or {}
+    token = payload.get("token")
+    new_password = str(payload.get("new_password") or "")
+
+    if not token or not new_password:
+        return jsonify({"error": "Token and new password are required."}), 400
+
+    if len(new_password) < 8:
+        return jsonify({"error": "Password must be at least 8 characters."}), 400
+
+    try:
+        data = get_reset_serializer().loads(token, max_age=7200) # 2 hours
+    except Exception:
+        return jsonify({"error": "The password reset link is invalid or has expired."}), 400
+
+    email = data.get("email")
+    hash_part = data.get("hash_part")
+
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        return jsonify({"error": "User not found."}), 404
+
+    current_hash_part = user.password_hash[-10:] if user.password_hash else ""
+    if current_hash_part != hash_part:
+        return jsonify({"error": "This link has already been used or is invalid."}), 400
+
+    try:
+        user.password_hash = bcrypt.generate_password_hash(new_password).decode("utf-8")
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+    return jsonify({"message": "Password updated successfully."}), 200
+
+
+@auth_bp.route("/api/auth/verify-email/<token>", methods=["GET"])
+def verify_email(token):
+    try:
+        email = get_verify_serializer().loads(token, max_age=86400) # 24 hours
+    except Exception:
+        return redirect(f"{_frontend_base_url()}/login?error=invalid-or-expired-verification-token")
+
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        return redirect(f"{_frontend_base_url()}/login?error=user-not-found")
+
+    try:
+        user.is_verified = True
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        return redirect(f"{_frontend_base_url()}/login?error=database-error")
+
+    return redirect(f"{_frontend_base_url()}/login?verified=true")
