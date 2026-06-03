@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect } from 'react'
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, useLocation, useNavigate } from 'react-router-dom'
 import { AnimatePresence, MotionConfig } from 'framer-motion'
 import { HelmetProvider } from 'react-helmet-async'
 
@@ -30,6 +30,7 @@ const LoginPage = lazy(() => import('./pages/LoginPage'))
 const RegisterPage = lazy(() => import('./pages/RegisterPage'))
 const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'))
 const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'))
+const VerificationPendingPage = lazy(() => import('./pages/VerificationPendingPage'))
 const ClerkTestPage = lazy(() => import('./pages/ClerkTestPage'))
 const AdminPage = lazy(() => import('./pages/AdminPage'))
 const AuthCallbackPage = lazy(() => import('./pages/AuthCallbackPage'))
@@ -60,6 +61,19 @@ function RouteFallback() {
 
 function AnimatedRoutes() {
   const location = useLocation()
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    try {
+      const storedUser = JSON.parse(localStorage.getItem('user') || 'null')
+      if (storedUser && storedUser.is_verified === false && location.pathname !== '/verify-email-pending') {
+        navigate('/verify-email-pending', { replace: true })
+      }
+    } catch (e) {
+      // ignore
+    }
+  }, [location.pathname, navigate])
+
   return (
     <AnimatePresence mode="wait" initial={false}>
       <RouteTransition key={location.pathname}>
@@ -84,6 +98,7 @@ function AnimatedRoutes() {
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/verify-email-pending" element={<VerificationPendingPage />} />
             <Route path="/clerk-test" element={<ClerkTestPage />} />
             <Route path="/admin" element={<AdminPage />} />
             <Route path="/submit" element={<SubmitPage />} />

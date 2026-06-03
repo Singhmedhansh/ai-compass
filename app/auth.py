@@ -198,9 +198,7 @@ def login():
                 return redirect(next_url or "/dashboard")
 
             if user and _verify_password_hash(user.password_hash, password):
-                if not user.is_verified:
-                    flash("Please verify your email address before logging in.", "error")
-                    return redirect('/')
+
                 _sync_admin_flag(user)
                 _clear_stale_login_flash_errors()
                 login_user(user, remember=True)
@@ -337,3 +335,40 @@ def verify_email(token):
         return redirect(f"{_frontend_base_url()}/login?error=database-error")
 
     return redirect(f"{_frontend_base_url()}/login?verified=true")
+
+
+@auth_bp.route("/api/auth/resend-verification", methods=["POST"])
+@csrf.exempt
+def resend_verification():
+    payload = request.get_json(silent=True) or {}
+    email = str(payload.get("email") or "").strip().lower()
+
+    if not email and current_user.is_authenticated:
+        email = current_user.email
+
+    if not email:
+        return jsonify({"error": "Email is required."}), 400
+
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        return jsonify({"error": "User not found."}), 404
+
+    if user.is_verified:
+        return jsonify({"message": "Account is already verified."}), 200
+
+    try:
+        token = get_verify_serializer().dumps(email)
+        verification_link = f"{request.url_root}api/auth/verify-email/{token}"
+        subject = "AI Compass - Verify Email"
+        name = user.display_name or "User"
+        html = f"""
+        <p>Hello {name},</p>
+        <p>Please click the link below to verify your email address:</p>
+        <p><a href="{verification_link}">Verify Email</a></p>
+        """
+        send_email(email, subject, html)
+    except Exception:
+        current_app.logger.exception("Failed to resend verification email")
+        return jsonify({"error": "Failed to send email. Please try again later."}), 500
+
+    return jsonify({"message": "Verification link has been resent."}), 200

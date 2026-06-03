@@ -430,6 +430,7 @@ def _serialize_user(user: User) -> dict:
         "created_at": user.created_at.isoformat() if user.created_at else None,
         "member_since": member_since,
         "is_admin": is_admin,
+        "is_verified": bool(getattr(user, "is_verified", False)),
     }
 
 
@@ -1990,8 +1991,6 @@ def auth_login():
         if not password_ok:
             return jsonify({"error": "Invalid credentials"}), 401
 
-        if not user.is_verified:
-            return jsonify({"error": "Please verify your email address before logging in."}), 401
 
         login_user(user, remember=True)
         # Attach Sentry user context if available
