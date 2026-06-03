@@ -60,7 +60,7 @@ def _send_via_resend(to: str, subject: str, html: str, text: str | None) -> bool
             log.warning("RESEND_API_KEY is empty/missing")
             return False
 
-        sender = os.environ.get("RESEND_FROM", "AI Compass <onboarding@resend.dev>")
+        sender = os.environ.get("RESEND_FROM") or "AI Compass <no-reply@ai-compass.in>"
         r = requests.post(
             "https://api.resend.com/emails",
             headers={
