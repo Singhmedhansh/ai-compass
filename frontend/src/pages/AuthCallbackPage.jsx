@@ -34,6 +34,12 @@ export default function AuthCallbackPage() {
         picture: params.picture || ''
       }
       localStorage.setItem('user', JSON.stringify(user))
+      if (window.posthog && user) {
+        window.posthog.identify(user.id, {
+          email: user.email,
+          is_verified: user.is_verified || false
+        });
+      }
       window.dispatchEvent(new Event('userLoggedIn'))
       toast.success(`Welcome back, ${params.name.split(' ')[0]}! 👋`)
       navigate('/dashboard', { replace: true })

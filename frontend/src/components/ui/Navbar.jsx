@@ -166,6 +166,9 @@ function Navbar() {
 
         if (!response.ok) {
           localStorage.removeItem('user')
+          if (window.posthog) {
+            window.posthog.reset();
+          }
           if (active) {
             setUser(null)
             setIsAuthenticated(false)
@@ -179,6 +182,12 @@ function Navbar() {
           ...fullUser,
         }
         localStorage.setItem('user', JSON.stringify(mergedUser))
+        if (window.posthog && mergedUser) {
+          window.posthog.identify(mergedUser.id, {
+            email: mergedUser.email,
+            is_verified: mergedUser.is_verified
+          });
+        }
 
         if (active) {
           setUser(mergedUser)
@@ -188,6 +197,12 @@ function Navbar() {
         if (active) {
           setUser(storedUser)
           setIsAuthenticated(Boolean(storedUser))
+        }
+        if (window.posthog && storedUser) {
+          window.posthog.identify(storedUser.id, {
+            email: storedUser.email,
+            is_verified: storedUser.is_verified
+          });
         }
       }
     }
@@ -228,6 +243,9 @@ function Navbar() {
       // best-effort — still clear client state below
     }
     localStorage.removeItem('user')
+    if (window.posthog) {
+      window.posthog.reset();
+    }
     setUser(null)
     setIsAuthenticated(false)
     window.dispatchEvent(new Event('userLoggedIn'))

@@ -49,6 +49,9 @@ export default function VerificationPendingPage() {
     } catch {
       // ignore
     }
+    if (window.posthog) {
+      window.posthog.reset()
+    }
     localStorage.removeItem('user')
     window.dispatchEvent(new Event('userLoggedIn'))
     toast.success('Logged out successfully.')

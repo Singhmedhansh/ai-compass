@@ -78,6 +78,12 @@ function LoginPage() {
       }
 
       localStorage.setItem('user', JSON.stringify(payload))
+      if (window.posthog && payload) {
+        window.posthog.identify(payload.id, {
+          email: payload.email,
+          is_verified: payload.is_verified
+        });
+      }
       window.dispatchEvent(new Event('userLoggedIn'))
 
       const firstName = (payload.name || 'there').split(' ')[0]
