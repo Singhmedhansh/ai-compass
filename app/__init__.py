@@ -244,8 +244,8 @@ def create_app(config: dict | None = None) -> Flask:
     # cloudflareinsights is listed defensively in case CF Web Analytics is on.
     csp = {
         "default-src": "'self'",
-        "script-src": "'self' 'unsafe-inline' https://us-assets.i.posthog.com https://us.i.posthog.com https://static.cloudflareinsights.com",
-        "style-src": "'self' 'unsafe-inline' https://fonts.googleapis.com",
+        "script-src": "'self' https://us-assets.i.posthog.com https://us.i.posthog.com https://static.cloudflareinsights.com",
+        "style-src": "'self' https://fonts.googleapis.com",
         "font-src": "'self' https://fonts.gstatic.com data:",
         "img-src": "'self' data: https:",
         "connect-src": "'self' https://us.i.posthog.com https://us-assets.i.posthog.com https://cloudflareinsights.com",
@@ -276,6 +276,7 @@ def create_app(config: dict | None = None) -> Flask:
             frame_options="SAMEORIGIN",
             referrer_policy="strict-origin-when-cross-origin",
             content_security_policy=csp,
+            content_security_policy_nonce_in=['script-src', 'style-src'],
             permissions_policy={
                 "geolocation": "()",
                 "microphone": "()",
@@ -408,6 +409,22 @@ def create_app(config: dict | None = None) -> Flask:
         query = f"?{request.query_string.decode('utf-8')}" if request.query_string else ""
         return redirect(f"https://{canonical_host}{request.path}{query}", code=308)
 
+    @app.before_request
+    def setup_nonce():
+        import secrets
+        from flask import g, request
+        # Populate g.csp_nonce using request's talisman csp_nonce or a secure fallback.
+        g.csp_nonce = getattr(request, 'csp_nonce', None) or secrets.token_hex(16)
+
+    @app.before_request
+    def gate_options():
+        from flask import request
+        if request.method == 'OPTIONS':
+            origin = request.headers.get('Origin')
+            acrm = request.headers.get('Access-Control-Request-Method')
+            if not origin or not acrm:
+                return 'Method Not Allowed', 405
+
     @app.after_request
     def add_cors(response):
         origin = request.headers.get('Origin', '')
@@ -430,6 +447,12 @@ def create_app(config: dict | None = None) -> Flask:
             response.headers['Access-Control-Allow-Credentials'] = 'true'
             response.headers['Access-Control-Allow-Methods'] = 'GET,POST,PUT,DELETE,OPTIONS'
             response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization,X-CSRFToken'
+
+        # Disable information fingerprinting by stripping platform headers
+        response.headers.pop('X-Powered-By', None)
+        response.headers.pop('X-Runtime', None)
+        response.headers.pop('X-Version', None)
+        response.headers['Server'] = 'SecureServer'  # Completely overwrite verbose Server signatures
         return response
 
     # ── Defer ALL DB-touching startup to a background thread ─────────────

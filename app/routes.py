@@ -735,6 +735,19 @@ def robots():
     return Response(content, mimetype='text/plain')
 
 
+@main_bp.route('/.well-known/security.txt')
+@main_bp.route('/security.txt')
+def security_txt():
+    # RFC 9116 standard security.txt
+    content = (
+        "Contact: mailto:singhmedhansh07@gmail.com\n"
+        "Expires: 2027-06-01T00:00:00.000Z\n"
+        "Policy: https://ai-compass.in/privacy\n"
+        "Preferred-Languages: en\n"
+    )
+    return Response(content, mimetype='text/plain; charset=utf-8')
+
+
 @main_bp.route('/llms.txt')
 def llms_txt():
     # llms.txt (https://llmstxt.org/) — a curated, plain-text map of the site
@@ -1102,6 +1115,11 @@ def serve_react(path):
     result = _meta_for_request_path(path)
     if result is not None:
         html, status = result
+        from flask import g
+        nonce = g.get('csp_nonce', '')
+        if nonce:
+            html = re.sub(r'<script(?![^>]*nonce=)', f'<script nonce="{nonce}"', html, flags=re.IGNORECASE)
+            html = re.sub(r'<style(?![^>]*nonce=)', f'<style nonce="{nonce}"', html, flags=re.IGNORECASE)
         return Response(html, mimetype='text/html', status=status)
 
     return '<h2>Run: cd frontend && npm run build</h2>', 404
