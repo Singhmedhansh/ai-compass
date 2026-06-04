@@ -11,11 +11,27 @@ export default function SEO({ title, description, path, image }) {
   const seoUrl = path ? `${baseDomain}${path}` : baseDomain
   const seoImage = image || defaultImage
 
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'WebApplication',
+    'name': 'AI Compass',
+    'applicationCategory': 'EducationalApplication',
+    'operatingSystem': 'All',
+    'description': seoDescription,
+    'url': seoUrl,
+    'image': seoImage
+  }
+
   return (
     <Helmet>
       {/* Standard HTML Elements */}
       <title>{seoTitle}</title>
       <meta name="description" content={seoDescription} />
+
+      {/* Structured JSON-LD Data for AEO */}
+      <script type="application/ld+json">
+        {JSON.stringify(jsonLd)}
+      </script>
 
       {/* Open Graph Meta Tags */}
       <meta property="og:title" content={seoTitle} />
