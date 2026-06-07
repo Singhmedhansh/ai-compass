@@ -1275,6 +1275,7 @@ function ToolFinderPage() {
             onSeeResults={() => setViewMode('results')}
           />
         </div>
+        )}
       </section>
     </div>
   )
