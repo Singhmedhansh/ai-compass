@@ -1,4 +1,4 @@
-import { Check, RotateCcw, Save, Code, GraduationCap, PenTool, Mic, Briefcase, Layout, BarChart, Zap, BookOpen, Terminal, Globe, Wand2, Star } from 'lucide-react'
+import { Check, RotateCcw, Save, Code, GraduationCap, PenTool, Mic, Briefcase, Layout, BarChart, Zap, BookOpen, Terminal, Globe, Wand2, Star, SlidersHorizontal } from 'lucide-react'
 import { useEffect, useRef, useState, useMemo } from 'react'
 import { toast } from 'sonner'
 import { useNavigate } from 'react-router-dom'
@@ -1130,6 +1130,18 @@ function ToolFinderPage() {
               <Button variant="secondary" size="sm" onClick={handleRestart}>
                 <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
                 Start over
+              </Button>
+
+              <Button 
+                variant="secondary" 
+                size="sm" 
+                onClick={() => {
+                  setViewMode('wizard')
+                  setActiveQuestion(null)
+                }}
+              >
+                <SlidersHorizontal className="mr-1.5 h-3.5 w-3.5" />
+                Refine answers
               </Button>
 
               <Button
