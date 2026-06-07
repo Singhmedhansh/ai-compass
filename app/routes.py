@@ -864,8 +864,9 @@ def _fetch_icon_bytes(domain: str) -> bytes | None:
     import urllib.request
 
     for url in (
+        f"https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://{domain}&size=128",
+        f"https://www.google.com/s2/favicons?domain={domain}&sz=128",
         f"https://icons.duckduckgo.com/ip3/{domain}.ico",
-        f"https://www.google.com/s2/favicons?domain={domain}&sz=64",
     ):
         try:
             req = urllib.request.Request(url, headers={"User-Agent": _ICON_UA})

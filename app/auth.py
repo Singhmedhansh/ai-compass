@@ -22,6 +22,151 @@ auth_bp = Blueprint("auth", __name__)
 def get_verify_serializer():
     return URLSafeTimedSerializer(current_app.config["SECRET_KEY"], salt="email-verification-salt")
 
+def get_verification_email_html(name, verification_link):
+    return f"""<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Welcome to AI Compass</title>
+    <style>
+      body {{
+        margin: 0;
+        padding: 0;
+        background-color: #050505 !important;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }}
+      table {{ border-spacing: 0; width: 100%; }}
+      td {{ padding: 0; }}
+
+      .wrapper {{
+        background-color: #050505;
+        padding: 40px 20px;
+      }}
+
+      .main-card {{
+        max-width: 560px;
+        margin: 0 auto;
+        background-color: #0b0b0b !important;
+        border: 1px solid #1f1f1f !important;
+        border-radius: 16px !important;
+        overflow: hidden;
+      }}
+
+      .header-brand {{
+        padding: 32px 32px 16px 32px;
+        font-size: 18px;
+        font-weight: 800;
+        color: #ffffff !important;
+        letter-spacing: -0.03em;
+        text-align: center;
+      }}
+
+      .header-brand span {{
+        background: linear-gradient(to right, #4ade80, #2dd4bf);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }}
+
+      .hero-image {{
+        width: 100%;
+        height: 180px;
+        background: linear-gradient(135deg, #1f1f1f 0%, #050505 100%);
+        border-bottom: 1px solid #1f1f1f;
+        text-align: center;
+      }}
+
+      .content {{
+        padding: 40px 32px;
+        color: #e5e5e5;
+      }}
+
+      h1 {{
+        margin: 0 0 16px 0;
+        font-size: 24px;
+        font-weight: 700;
+        color: #ffffff !important;
+        letter-spacing: -0.02em;
+      }}
+
+      p {{
+        margin: 0 0 24px 0;
+        font-size: 16px;
+        line-height: 1.6;
+        color: #a3a3a3;
+      }}
+
+      .btn-container {{
+        text-align: center;
+        margin: 32px 0;
+      }}
+
+      .btn {{
+        display: inline-block;
+        padding: 14px 28px;
+        background: linear-gradient(to right, #10b981, #14b8a6) !important;
+        color: #ffffff !important;
+        font-size: 16px;
+        font-weight: 600;
+        text-decoration: none;
+        border-radius: 8px;
+        box-shadow: 0 4px 14px rgba(16, 185, 129, 0.2);
+      }}
+
+      .footer {{
+        padding: 24px 32px;
+        background-color: #050505;
+        border-top: 1px solid #1f1f1f;
+        text-align: center;
+      }}
+
+      .footer p {{
+        margin: 0;
+        font-size: 13px;
+        color: #525252;
+      }}
+
+      .footer a {{
+        color: #10b981 !important;
+        text-decoration: none;
+      }}
+    </style>
+  </head>
+  <body>
+    <center class="wrapper">
+      <table class="main-card" role="presentation">
+        <tr>
+          <td class="header-brand">
+            AI <span>Compass</span>
+          </td>
+        </tr>
+        <tr>
+          <td class="content">
+            <h1>Verify your email address</h1>
+            <p>
+              Hi {name},<br><br>
+              Welcome to AI Compass! We're excited to help you find the best AI tools for your workflow. To get started and secure your account, please verify your email address by clicking the button below.
+            </p>
+            <div class="btn-container">
+              <a href="{verification_link}" class="btn">Verify Email</a>
+            </div>
+            <p style="font-size: 14px; margin-bottom: 0;">
+              If you didn't create an account, you can safely ignore this email.
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td class="footer">
+            <p>AI Compass &copy; 2026. All rights reserved.</p>
+            <p style="margin-top: 8px;">Designed and Developed by Medhansh Pratap Singh</p>
+          </td>
+        </tr>
+      </table>
+    </center>
+  </body>
+</html>"""
+
 
 def get_reset_serializer():
     return URLSafeTimedSerializer(current_app.config["SECRET_KEY"], salt="password-reset-salt")
@@ -135,11 +280,7 @@ def register():
             token = get_verify_serializer().dumps(email)
             verification_link = f"{request.url_root}api/auth/verify-email/{token}"
             subject = "AI Compass - Verify Email"
-            html = f"""
-            <p>Hello {name},</p>
-            <p>Thank you for registering. Please click the link below to verify your email address:</p>
-            <p><a href="{verification_link}">Verify Email</a></p>
-            """
+            html = get_verification_email_html(name, verification_link)
             send_email(email, subject, html)
         except Exception:
             current_app.logger.exception("Failed to send verification email")
@@ -361,11 +502,7 @@ def resend_verification():
         verification_link = f"{request.url_root}api/auth/verify-email/{token}"
         subject = "AI Compass - Verify Email"
         name = user.display_name or "User"
-        html = f"""
-        <p>Hello {name},</p>
-        <p>Please click the link below to verify your email address:</p>
-        <p><a href="{verification_link}">Verify Email</a></p>
-        """
+        html = get_verification_email_html(name, verification_link)
         send_email(email, subject, html)
     except Exception:
         current_app.logger.exception("Failed to resend verification email")

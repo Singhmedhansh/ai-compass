@@ -5,8 +5,27 @@ import { useNavigate } from 'react-router-dom'
 
 import Badge from '../components/ui/Badge'
 import Button from '../components/ui/Button'
-import { ToolLogo, WordReveal } from '../components/ui'
+import { ToolLogo, WordReveal, Dropdown } from '../components/ui'
 import { outboundUrl, OUTBOUND_REL } from '../utils/outbound'
+
+const PREDEFINED_STACKS = [
+  { id: 'custom', label: 'Custom (Start from scratch)', answers: null },
+  { 
+    id: 'coding', 
+    label: 'Coding & Dev Stack', 
+    answers: { goal: ['coding'], use_case: 'build-app', budget: 'any', platform: ['web', 'desktop'], level: 'intermediate' } 
+  },
+  { 
+    id: 'student', 
+    label: 'Ultimate Student Stack', 
+    answers: { goal: ['learning', 'research', 'writing'], use_case: 'study-guides', budget: 'free', platform: ['web', 'mobile'], level: 'beginner' } 
+  },
+  { 
+    id: 'creator', 
+    label: 'Content Creator Stack', 
+    answers: { goal: ['creating'], use_case: 'video-editing', budget: 'any', platform: ['web', 'desktop'], level: 'intermediate' } 
+  }
+]
 
 function getAspectBucket() {
   if (typeof window === 'undefined') {
@@ -678,6 +697,7 @@ function ToolFinderPage() {
   const [hasStarted, setHasStarted] = useState(false)
   const [activeQuestion, setActiveQuestion] = useState(null)
   const [viewMode, setViewMode] = useState('wizard')
+  const [selectedStackId, setSelectedStackId] = useState('custom')
   const [answers, setAnswers] = useState({ goal: [], use_case: '', budget: '', platform: [], level: '' })
   const [results, setResults] = useState([])
   const [loadingResults, setLoadingResults] = useState(false)
@@ -859,6 +879,7 @@ function ToolFinderPage() {
   const handleRestart = () => {
     wizardStartedRef.current = false
     wizardCompletedRef.current = false
+    setSelectedStackId('custom')
     setAnswers({ goal: [], use_case: '', budget: '', platform: [], level: '' })
     setResults([])
     setError('')
@@ -866,6 +887,21 @@ function ToolFinderPage() {
     setHasStarted(false)
     setActiveQuestion(null)
     setViewMode('wizard')
+  }
+
+  const handlePredefinedStack = (stackId) => {
+    setSelectedStackId(stackId)
+    if (stackId === 'custom') {
+      handleRestart()
+      return
+    }
+    const stack = PREDEFINED_STACKS.find((s) => s.id === stackId)
+    if (stack && stack.answers) {
+      wizardStartedRef.current = true
+      setHasStarted(true)
+      setAnswers(stack.answers)
+      setActiveQuestion(null)
+    }
   }
 
   useEffect(() => {
@@ -1008,12 +1044,22 @@ function ToolFinderPage() {
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
       <section className="rounded-3xl border border-line bg-bg-elev p-6 shadow-sm sm:p-8">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold tracking-tight text-ink sm:text-4xl"><WordReveal>AI Tool Finder Wizard</WordReveal></h1>
-          <p className="mt-2 text-sm text-muted sm:text-base">
-            Answer {TOTAL_QUESTIONS} quick questions — pick an option and we&apos;ll move you
-            to the next automatically. Your matches build live on the right as you go.
-          </p>
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-ink sm:text-4xl"><WordReveal>AI Tool Finder Wizard</WordReveal></h1>
+            <p className="mt-2 text-sm text-muted sm:text-base">
+              Answer {TOTAL_QUESTIONS} quick questions — pick an option and we&apos;ll move you
+              to the next automatically. Your matches build live on the right as you go.
+            </p>
+          </div>
+          <div className="sm:w-[260px] shrink-0">
+            <Dropdown
+              label="Or pick a stack"
+              value={selectedStackId}
+              options={PREDEFINED_STACKS.map(s => ({ value: s.id, label: s.label }))}
+              onChange={handlePredefinedStack}
+            />
+          </div>
         </div>
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-[1fr_1.2fr] md:gap-8">

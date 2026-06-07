@@ -433,14 +433,14 @@ export default function AlternativesPage() {
               Looking for something different?
             </h2>
             <p className="mt-3 text-muted">
-              Take our 30-second quiz to find the right AI tool for your specific needs, or browse the full catalog of {catalogCount} hand-curated tools.
+              Use our 30-second wizard to find the right AI tool for your specific needs, or browse the full catalog of {catalogCount} hand-curated tools.
             </p>
             <div className="mt-6 flex flex-wrap justify-center gap-3">
               <Link
                 to="/ai-tool-finder"
                 className="inline-flex items-center gap-2 rounded-full bg-ink px-5 py-2.5 text-sm font-medium text-bg hover:bg-ink-2"
               >
-                Take the quiz
+                Use the wizard
                 <ArrowUpRight className="h-4 w-4" />
               </Link>
               <Link

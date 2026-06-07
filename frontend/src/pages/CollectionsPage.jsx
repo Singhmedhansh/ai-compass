@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, Zap, GraduationCap, Terminal, PenTool, Microscope, Flame, Award } from 'lucide-react'
 import { Helmet } from 'react-helmet-async'
 import { Link } from 'react-router-dom'
 
@@ -16,43 +16,43 @@ const MotionLink = motion(Link)
 const COLLECTIONS = [
   {
     slug: 'best-free-tools',
-    emoji: '🆓',
+    Icon: Zap,
     title: 'Best Free Tools',
     description: 'Top free AI tools for everyday workflows.',
   },
   {
     slug: 'best-for-students',
-    emoji: '🎓',
+    Icon: GraduationCap,
     title: 'Best for Students',
     description: 'Student-friendly tools for study, writing, and projects.',
   },
   {
     slug: 'best-for-coding',
-    emoji: '💻',
+    Icon: Terminal,
     title: 'Best for Coding',
     description: 'High-impact coding assistants and developer tools.',
   },
   {
     slug: 'best-for-writing',
-    emoji: '✍️',
+    Icon: PenTool,
     title: 'Best for Writing',
     description: 'AI tools for writing, editing, and documentation.',
   },
   {
     slug: 'best-for-research',
-    emoji: '🔬',
+    Icon: Microscope,
     title: 'Best for Research',
     description: 'Research-focused tools for summaries and insight extraction.',
   },
   {
     slug: 'trending',
-    emoji: '🔥',
+    Icon: Flame,
     title: 'Trending Now',
     description: 'The fastest-rising AI tools right now.',
   },
   {
     slug: 'top-rated',
-    emoji: '⭐',
+    Icon: Award,
     title: 'Top Rated',
     description: 'The highest-rated tools by users and quality signals.',
   },
@@ -149,10 +149,10 @@ function CollectionsPage() {
           >
             <div className="flex items-start justify-between gap-4">
               <div
-                className="flex h-12 w-12 items-center justify-center rounded-xl bg-accent-soft text-2xl"
+                className="flex h-12 w-12 items-center justify-center rounded-xl bg-accent-soft text-accent"
                 aria-hidden="true"
               >
-                {collection.emoji}
+                <collection.Icon className="h-6 w-6" />
               </div>
               <span className="shrink-0 rounded-full bg-bg-sunk px-3 py-1 text-xs font-semibold text-ink-2">
                 {counts[collection.slug] ?? 0}

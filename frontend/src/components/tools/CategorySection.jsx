@@ -27,7 +27,7 @@ function CategorySection({ id, title, tools, seeAllHref, seeAllLabel, emphasis =
         <div className="flex flex-wrap items-center gap-2.5">
           <h2 className="text-xl font-bold tracking-tight text-ink">{title}</h2>
           {emphasis && (
-            <span className="rounded-full bg-accent px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-bg">
+            <span className="rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 px-3 py-0.5 text-[11px] font-extrabold uppercase tracking-widest text-white shadow-sm ring-1 ring-inset ring-white/20">
               Editor&apos;s picks
             </span>
           )}
