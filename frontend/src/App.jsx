@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect } from 'react'
-import { BrowserRouter, Routes, Route, useLocation, useNavigate, Outlet } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, useLocation, useNavigate, useOutlet } from 'react-router-dom'
 import { AnimatePresence, MotionConfig } from 'framer-motion'
 import { HelmetProvider } from 'react-helmet-async'
 
@@ -61,14 +61,18 @@ function RouteFallback() {
 
 function TransitionLayout() {
   const location = useLocation()
+  const currentOutlet = useOutlet()
+  
   return (
-    <RouteTransition>
-      <ErrorBoundary key={location.pathname}>
-        <Suspense fallback={<RouteFallback />}>
-          <Outlet />
-        </Suspense>
-      </ErrorBoundary>
-    </RouteTransition>
+    <AnimatePresence mode="wait" initial={false}>
+      <RouteTransition key={location.pathname}>
+        <ErrorBoundary key={location.pathname}>
+          <Suspense fallback={<RouteFallback />}>
+            {currentOutlet}
+          </Suspense>
+        </ErrorBoundary>
+      </RouteTransition>
+    </AnimatePresence>
   )
 }
 
@@ -88,9 +92,8 @@ function AnimatedRoutes() {
   }, [location.pathname, navigate])
 
   return (
-    <AnimatePresence mode="wait" initial={false}>
-      <Routes location={location} key={location.pathname}>
-        <Route element={<TransitionLayout />}>
+    <Routes location={location}>
+      <Route element={<TransitionLayout />}>
           <Route path="/auth/callback" element={<AuthCallbackPage />} />
             <Route path="/" element={<HomePage />} />
             <Route path="/tools" element={<DirectoryPage />} />
@@ -126,9 +129,8 @@ function AnimatedRoutes() {
             <Route path="/best-synthesia-alternatives" element={<BestSynthesiaAlternatives />} />
             <Route path="/best-ai-tools-for-fiction-writers" element={<BestAIToolsForFictionWriters />} />
             <Route path="*" element={<NotFoundPage />} />
-          </Route>
-        </Routes>
-    </AnimatePresence>
+        </Route>
+    </Routes>
   )
 }
 
