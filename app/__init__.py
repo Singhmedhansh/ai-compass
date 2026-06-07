@@ -403,7 +403,7 @@ def create_app(config: dict | None = None) -> Flask:
         # through without a canonical redirect.
         import re
         is_ip = bool(re.match(r"^(\d{1,3}\.){3}\d{1,3}$", request_host))
-        if is_ip or request_host == f"www.{canonical_host}":
+        if is_ip or request_host == f"www.{canonical_host}" or request_host.endswith(".onrender.com"):
             return None
 
         query = f"?{request.query_string.decode('utf-8')}" if request.query_string else ""
@@ -480,25 +480,25 @@ def create_app(config: dict | None = None) -> Flask:
                 try:
                     from flask_migrate import upgrade as db_upgrade
                     db_upgrade()
-                    print("[WARMUP] flask db upgrade done")
+                    print("[WARMUP] flask db upgrade done", flush=True)
                 except Exception as e:
-                    print(f"[WARMUP] migrate skipped: {e}")
+                    print(f"[WARMUP] migrate skipped: {e}", flush=True)
 
                 try:
                     db.create_all()
-                    print("[WARMUP] db.create_all() done")
+                    print("[WARMUP] db.create_all() done", flush=True)
                 except Exception as e:
-                    print(f"[WARMUP] db.create_all() error: {e}")
+                    print(f"[WARMUP] db.create_all() error: {e}", flush=True)
 
                 # Raw SQL Fallback: Guarantee that the is_verified column exists in the users table
                 try:
                     from sqlalchemy import text
                     db.session.execute(text("ALTER TABLE users ADD COLUMN is_verified BOOLEAN NOT NULL DEFAULT FALSE;"))
                     db.session.commit()
-                    print("[WARMUP] Successfully added is_verified column to users table via raw SQL fallback.")
+                    print("[WARMUP] Successfully added is_verified column to users table via raw SQL fallback.", flush=True)
                 except Exception as alter_err:
                     db.session.rollback()
-                    print(f"[WARMUP] Alter table users check/addition completed: {alter_err}")
+                    print(f"[WARMUP] Alter table users check/addition completed: {alter_err}", flush=True)
 
                 # One-time import of tools.json into the durable DB
                 # catalog. Idempotent — no-ops once seeded. If this
@@ -506,9 +506,9 @@ def create_app(config: dict | None = None) -> Flask:
                 try:
                     from app.catalog_store import seed_from_json_if_empty
                     seeded = seed_from_json_if_empty()
-                    print(f"[WARMUP] catalog seed: {seeded} rows inserted")
+                    print(f"[WARMUP] catalog seed: {seeded} rows inserted", flush=True)
                 except Exception as e:
-                    print(f"[WARMUP] catalog seed skipped: {e}")
+                    print(f"[WARMUP] catalog seed skipped: {e}", flush=True)
 
                 # SECRET_KEY rotation when no env var is set. Only runs
                 # in the rare config where SECRET_KEY isn't provided by
@@ -526,30 +526,30 @@ def create_app(config: dict | None = None) -> Flask:
                             row = AppSetting(key="secret_key", value=_secrets.token_hex(32))
                             db.session.add(row)
                             db.session.commit()
-                            print("[WARMUP] generated & persisted a new SECRET_KEY")
+                            print("[WARMUP] generated & persisted a new SECRET_KEY", flush=True)
                         app.config["SECRET_KEY"] = row.value
                         app.secret_key = row.value
                     except Exception as e:
                         db.session.rollback()
-                        print(f"[WARMUP] DB SECRET_KEY unavailable, using fallback: {e}")
+                        print(f"[WARMUP] DB SECRET_KEY unavailable, using fallback: {e}", flush=True)
 
-                print(f"[WARMUP] cwd: {os.getcwd()}")
+                print(f"[WARMUP] cwd: {os.getcwd()}", flush=True)
 
                 # Phase 2 — cache priming. Reads from DB so has to wait
                 # for the DB to be reachable.
                 try:
-                    print("[WARMUP] Loading tools...")
+                    print("[WARMUP] Loading tools...", flush=True)
                     prime_tools_cache(DEFAULT_TOOLS_PATH)
-                    print(f"[WARMUP] Loaded {len(get_cached_tools())} tools")
+                    print(f"[WARMUP] Loaded {len(get_cached_tools())} tools", flush=True)
                 except Exception as exc:  # noqa: BLE001
-                    print(f"[WARMUP] Tools prime skipped: {exc}")
+                    print(f"[WARMUP] Tools prime skipped: {exc}", flush=True)
 
                 try:
                     from app.ml_recommender import load_model as _load_recommender_model
                     _load_recommender_model()
-                    print("[WARMUP] Recommender model loaded")
+                    print("[WARMUP] Recommender model loaded", flush=True)
                 except Exception as exc:  # noqa: BLE001
-                    print(f"[WARMUP] Recommender preload skipped: {exc}")
+                    print(f"[WARMUP] Recommender preload skipped: {exc}", flush=True)
 
                 # Train the recommender on first boot if the .pkl is
                 # missing. Subprocess can take up to 120s, so it
@@ -557,7 +557,7 @@ def create_app(config: dict | None = None) -> Flask:
                 try:
                     model_path = os.path.join(project_root, 'data', 'recommendation_model.pkl')
                     if not os.path.exists(model_path):
-                        print("[WARMUP] Training ML model on first startup...")
+                        print("[WARMUP] Training ML model on first startup...", flush=True)
                         train_script = os.path.join(project_root, 'scripts', 'train_model.py')
                         if os.path.exists(train_script):
                             import subprocess
@@ -566,11 +566,11 @@ def create_app(config: dict | None = None) -> Flask:
                                 capture_output=True, text=True, cwd=project_root, timeout=120
                             )
                             if result.returncode == 0:
-                                print("[WARMUP] ML model trained successfully")
+                                print("[WARMUP] ML model trained successfully", flush=True)
                             else:
-                                print("[WARMUP] ML model training failed:", result.stderr[:500])
+                                print("[WARMUP] ML model training failed:", result.stderr[:500], flush=True)
                 except Exception as exc:  # noqa: BLE001
-                    print(f"[WARMUP] ML model auto-train skipped: {exc}")
+                    print(f"[WARMUP] ML model auto-train skipped: {exc}", flush=True)
 
         threading.Thread(target=_warm_up, name="warmup", daemon=True).start()
 
