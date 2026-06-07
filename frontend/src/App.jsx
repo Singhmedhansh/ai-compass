@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect } from 'react'
-import { BrowserRouter, Routes, Route, useLocation, useNavigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, useLocation, useNavigate, Outlet } from 'react-router-dom'
 import { AnimatePresence, MotionConfig } from 'framer-motion'
 import { HelmetProvider } from 'react-helmet-async'
 
@@ -59,6 +59,19 @@ function RouteFallback() {
   return <CompassLoader full size={64} />
 }
 
+function TransitionLayout() {
+  const location = useLocation()
+  return (
+    <RouteTransition>
+      <ErrorBoundary key={location.pathname}>
+        <Suspense fallback={<RouteFallback />}>
+          <Outlet />
+        </Suspense>
+      </ErrorBoundary>
+    </RouteTransition>
+  )
+}
+
 function AnimatedRoutes() {
   const location = useLocation()
   const navigate = useNavigate()
@@ -76,11 +89,9 @@ function AnimatedRoutes() {
 
   return (
     <AnimatePresence mode="wait" initial={false}>
-      <RouteTransition key={location.pathname}>
-        <ErrorBoundary key={location.pathname}>
-        <Suspense fallback={<RouteFallback />}>
-          <Routes location={location}>
-            <Route path="/auth/callback" element={<AuthCallbackPage />} />
+      <Routes location={location} key={location.pathname}>
+        <Route element={<TransitionLayout />}>
+          <Route path="/auth/callback" element={<AuthCallbackPage />} />
             <Route path="/" element={<HomePage />} />
             <Route path="/tools" element={<DirectoryPage />} />
             <Route path="/tools/:slug" element={<ToolDetailPage />} />
@@ -115,10 +126,8 @@ function AnimatedRoutes() {
             <Route path="/best-synthesia-alternatives" element={<BestSynthesiaAlternatives />} />
             <Route path="/best-ai-tools-for-fiction-writers" element={<BestAIToolsForFictionWriters />} />
             <Route path="*" element={<NotFoundPage />} />
-          </Routes>
-        </Suspense>
-        </ErrorBoundary>
-      </RouteTransition>
+          </Route>
+        </Routes>
     </AnimatePresence>
   )
 }
