@@ -1,7 +1,8 @@
-import { Check, RotateCcw, Save } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { Check, RotateCcw, Save, Code, GraduationCap, PenTool, Mic, Briefcase, Layout, BarChart, Zap, BookOpen, Terminal, Globe, Wand2, Star } from 'lucide-react'
+import { useEffect, useRef, useState, useMemo } from 'react'
 import { toast } from 'sonner'
 import { useNavigate } from 'react-router-dom'
+import { motion, AnimatePresence } from 'framer-motion'
 
 import Badge from '../components/ui/Badge'
 import Button from '../components/ui/Button'
@@ -9,23 +10,178 @@ import { ToolLogo, WordReveal, Dropdown } from '../components/ui'
 import { outboundUrl, OUTBOUND_REL } from '../utils/outbound'
 
 const PREDEFINED_STACKS = [
-  { id: 'custom', label: 'Custom (Start from scratch)', answers: null },
-  { 
-    id: 'coding', 
-    label: 'Coding & Dev Stack', 
-    answers: { goal: ['coding'], use_case: 'build-app', budget: 'any', platform: ['web', 'desktop'], level: 'intermediate' } 
-  },
+  { id: 'custom', label: 'Custom (Start from scratch)', category: 'All', description: 'Answer a few questions to find the perfect tools.', icon: Wand2, answers: null },
   { 
     id: 'student', 
     label: 'Ultimate Student Stack', 
+    category: 'Student',
+    description: 'Ace your exams & write better papers.',
+    icon: GraduationCap,
     answers: { goal: ['learning', 'research', 'writing'], use_case: 'study-guides', budget: 'free', platform: ['web', 'mobile'], level: 'beginner' } 
+  },
+  { 
+    id: 'coding', 
+    label: 'Coding & Dev Stack', 
+    category: 'Developer',
+    description: 'Build apps and squash bugs faster.',
+    icon: Code,
+    answers: { goal: ['coding'], use_case: 'build-app', budget: 'any', platform: ['web', 'desktop'], level: 'intermediate' } 
   },
   { 
     id: 'creator', 
     label: 'Content Creator Stack', 
+    category: 'Creator',
+    description: 'Edit videos and generate stunning images.',
+    icon: Star,
     answers: { goal: ['creating'], use_case: 'video-editing', budget: 'any', platform: ['web', 'desktop'], level: 'intermediate' } 
+  },
+  {
+    id: 'writer',
+    label: 'Novelist & Writer Stack',
+    category: 'Professional',
+    description: 'Draft, format, and edit long-form content.',
+    icon: PenTool,
+    answers: { goal: ['writing'], use_case: 'write-essays', budget: 'freemium', platform: ['web', 'desktop'], level: 'intermediate' }
+  },
+  {
+    id: 'research',
+    label: 'Academic Researcher',
+    category: 'Professional',
+    description: 'Literature search and citation management.',
+    icon: BookOpen,
+    answers: { goal: ['research'], use_case: 'literature-search', budget: 'any', platform: ['web', 'desktop'], level: 'advanced' }
+  },
+  {
+    id: 'productivity',
+    label: 'Productivity Ninja',
+    category: 'Professional',
+    description: 'Manage tasks and automate your workflow.',
+    icon: Zap,
+    answers: { goal: ['productivity'], use_case: 'task-management', budget: 'freemium', platform: ['web', 'mobile'], level: 'intermediate' }
+  },
+  {
+    id: 'marketing',
+    label: 'Marketer & Copywriter',
+    category: 'Creator',
+    description: 'Generate marketing copy & social posts.',
+    icon: Briefcase,
+    answers: { goal: ['writing', 'creating'], use_case: 'copywriting', budget: 'any', platform: ['web'], level: 'intermediate' }
+  },
+  {
+    id: 'design',
+    label: 'Visual Designer Stack',
+    category: 'Creator',
+    description: 'Text-to-image and beautiful presentation slides.',
+    icon: Layout,
+    answers: { goal: ['creating'], use_case: 'image-generation', budget: 'any', platform: ['web', 'desktop'], level: 'advanced' }
+  },
+  {
+    id: 'language',
+    label: 'Language Learner',
+    category: 'Student',
+    description: 'Practice speaking and translate texts seamlessly.',
+    icon: Globe,
+    answers: { goal: ['learning'], use_case: 'language-learning', budget: 'free', platform: ['mobile', 'web'], level: 'beginner' }
+  },
+  {
+    id: 'startup',
+    label: 'Startup Founder Stack',
+    category: 'Developer',
+    description: 'Rapid prototyping and connecting APIs.',
+    icon: Terminal,
+    answers: { goal: ['productivity', 'coding'], use_case: 'automation-zapier', budget: 'freemium', platform: ['web'], level: 'intermediate' }
+  },
+  {
+    id: 'audio',
+    label: 'Podcaster & Audio Stack',
+    category: 'Creator',
+    description: 'Generate voiceovers and edit audio tracks.',
+    icon: Mic,
+    answers: { goal: ['creating'], use_case: 'audio-voice', budget: 'any', platform: ['desktop', 'web'], level: 'intermediate' }
+  },
+  {
+    id: 'data',
+    label: 'Data Analyst Stack',
+    category: 'Professional',
+    description: 'Extract info and compile data tables.',
+    icon: BarChart,
+    answers: { goal: ['research', 'coding'], use_case: 'data-analysis', budget: 'any', platform: ['desktop', 'web'], level: 'advanced' }
   }
 ]
+
+function TemplateGallery({ onSelect }) {
+  const [activeFilter, setActiveFilter] = useState('All')
+  const categories = ['All', 'Student', 'Creator', 'Developer', 'Professional']
+
+  const filteredStacks = useMemo(() => {
+    if (activeFilter === 'All') return PREDEFINED_STACKS
+    return PREDEFINED_STACKS.filter(s => s.category === activeFilter || s.id === 'custom')
+  }, [activeFilter])
+
+  return (
+    <div className="w-full flex flex-col items-center animate-in fade-in duration-500">
+      <div className="mb-8 flex flex-wrap justify-center gap-2">
+        {categories.map((cat) => (
+          <button
+            key={cat}
+            onClick={() => setActiveFilter(cat)}
+            className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+              activeFilter === cat 
+                ? 'bg-ink text-bg shadow-sm' 
+                : 'bg-bg-elev text-ink-2 hover:bg-bg-sunk ring-1 ring-inset ring-line'
+            }`}
+          >
+            {cat}
+          </button>
+        ))}
+      </div>
+      
+      <motion.div 
+        layout 
+        className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+      >
+        <AnimatePresence>
+          {filteredStacks.map((stack) => {
+            const Icon = stack.icon
+            const isCustom = stack.id === 'custom'
+            
+            return (
+              <motion.button
+                layout
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                key={stack.id}
+                onClick={() => onSelect(stack.id)}
+                className={`group relative flex h-full flex-col items-start gap-3 rounded-2xl p-5 text-left transition-all outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+                  isCustom 
+                    ? 'border-2 border-dashed border-accent bg-accent-soft/20 shadow-sm hover:border-accent hover:bg-accent-soft/40 hover:shadow-accent/20' 
+                    : 'border border-line bg-bg-elev shadow-sm hover:border-accent/50 hover:shadow-md'
+                }`}
+              >
+                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-colors ${
+                  isCustom ? 'bg-accent text-bg shadow-sm' : 'bg-bg-sunk text-ink group-hover:bg-accent-soft group-hover:text-accent-ink'
+                }`}>
+                  <Icon className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className={`text-base font-semibold ${isCustom ? 'text-accent-ink' : 'text-ink'}`}>
+                    {stack.label}
+                  </h3>
+                  <p className="mt-1 text-xs text-muted leading-relaxed line-clamp-2">
+                    {stack.description}
+                  </p>
+                </div>
+              </motion.button>
+            )
+          })}
+        </AnimatePresence>
+      </motion.div>
+    </div>
+  )
+}
 
 function getAspectBucket() {
   if (typeof window === 'undefined') {
@@ -893,6 +1049,8 @@ function ToolFinderPage() {
     setSelectedStackId(stackId)
     if (stackId === 'custom') {
       handleRestart()
+      setHasStarted(true)
+      setActiveQuestion('goal')
       return
     }
     const stack = PREDEFINED_STACKS.find((s) => s.id === stackId)
@@ -901,6 +1059,10 @@ function ToolFinderPage() {
       setHasStarted(true)
       setAnswers(stack.answers)
       setActiveQuestion(null)
+      // Instant gratification: pre-fill the wizard and switch to results immediately
+      setTimeout(() => {
+        setViewMode('results')
+      }, 300)
     }
   }
 
@@ -1046,40 +1208,28 @@ function ToolFinderPage() {
       <section className="rounded-3xl border border-line bg-bg-elev p-6 shadow-sm sm:p-8">
         <div className="mb-6 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-ink sm:text-4xl"><WordReveal>AI Tool Finder Wizard</WordReveal></h1>
+            <h1 className="text-3xl font-bold tracking-tight text-ink sm:text-4xl"><WordReveal>AI Tool Finder</WordReveal></h1>
             <p className="mt-2 text-sm text-muted sm:text-base">
-              Answer {TOTAL_QUESTIONS} quick questions — pick an option and we&apos;ll move you
-              to the next automatically. Your matches build live on the right as you go.
+              {hasStarted 
+                ? `Answer ${TOTAL_QUESTIONS} quick questions — pick an option and we'll move you to the next automatically.`
+                : "Choose a template to instantly discover tools, or start from scratch."}
             </p>
           </div>
-          <div className="sm:w-[260px] shrink-0">
-            <Dropdown
-              label="Or pick a stack"
-              value={selectedStackId}
-              options={PREDEFINED_STACKS.map(s => ({ value: s.id, label: s.label }))}
-              onChange={handlePredefinedStack}
-            />
-          </div>
+          {hasStarted && (
+            <div className="sm:w-[260px] shrink-0 flex justify-end">
+              <Button variant="secondary" onClick={handleRestart} size="sm">
+                <RotateCcw className="mr-2 h-4 w-4" /> Start Over
+              </Button>
+            </div>
+          )}
         </div>
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-[1fr_1.2fr] md:gap-8">
-          <div className="flex flex-col gap-3">
-            {!hasStarted ? (
-              <div className="rounded-2xl border border-accent/40 bg-accent-soft/40 p-4">
-                <div className="mb-3 rounded-lg bg-accent px-3 py-2 text-center text-xs font-semibold text-bg">
-                  ⚡ Find your ideal student AI stack in under 60 seconds. No login required.
-                </div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-muted">Wizard</p>
-                <p className="mt-1 text-sm font-semibold text-ink">Start the tool finder</p>
-                <p className="mt-1 text-sm text-muted">
-                  Click begin to answer five quick questions and unlock your recommendations.
-                </p>
-                <Button variant="primary" size="sm" className="mt-3" onClick={handleStartWizard}>
-                  Begin wizard
-                </Button>
-              </div>
-            ) : (
-              QUESTIONS.map((question, idx) => (
+        {!hasStarted ? (
+          <TemplateGallery onSelect={handlePredefinedStack} />
+        ) : (
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-[1fr_1.2fr] md:gap-8">
+            <div className="flex flex-col gap-3">
+              {QUESTIONS.map((question, idx) => (
                 <QuestionRow
                   key={question.id}
                   index={idx + 1}
@@ -1093,8 +1243,7 @@ function ToolFinderPage() {
                   textInputRef={question.id === 'use_case' ? useCaseInputRef : undefined}
                   selectedGoals={answers.goal}
                 />
-              ))
-            )}
+              ))}
 
             {hasStarted && !activeQuestion ? (
               <div className="rounded-2xl border border-accent/40 bg-accent-soft/40 p-4">
