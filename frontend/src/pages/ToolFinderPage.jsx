@@ -985,30 +985,62 @@ function ResultCard({ tool, index, navigate }) {
       {showBreakdown && (
         <div 
           onClick={(e) => e.stopPropagation()} 
-          className="mt-3 rounded-xl bg-bg-sunk/60 p-3 text-xs space-y-1.5 text-ink-2 border border-line/30"
+          className="mt-3 rounded-xl bg-bg-sunk/45 p-3 border border-line/25 text-[11px] leading-relaxed text-ink-2"
         >
-          <div className="flex items-center justify-between">
-            <span className="text-muted">Goal Alignment</span>
-            <span className="font-semibold text-accent-ink">{breakdown.category ? '✓ Category match' : '—'}</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-muted">Pricing Plan</span>
-            <span className="font-semibold text-accent-ink">{breakdown.budget ? '✓ Budget match' : '—'}</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-muted">Operating Systems</span>
-            <span className="font-semibold text-accent-ink">{breakdown.platform ? '✓ OS compatibility' : '—'}</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-muted">Tech Difficulty</span>
-            <span className="font-semibold text-accent-ink">{breakdown.experience ? '✓ Calibrated level' : '—'}</span>
-          </div>
-          {breakdown.use_case && (
-            <div className="flex items-center justify-between">
-              <span className="text-muted">Custom Use-Case</span>
-              <span className="font-semibold text-accent-ink">✓ Targeted task fit</span>
+          <div className="mb-2 font-semibold uppercase tracking-wider text-[9px] text-muted-2">Fit Analysis</div>
+          <div className="grid grid-cols-2 gap-x-3 gap-y-2">
+            <div className="flex items-center gap-2">
+              <span className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[9px] font-bold ${breakdown.category ? 'bg-accent-soft text-accent-ink' : 'bg-bg-elev text-muted-2'}`}>
+                {breakdown.category ? '✓' : '—'}
+              </span>
+              <div className="min-w-0">
+                <p className="font-medium text-ink truncate">Goal Alignment</p>
+                <p className="text-[10px] text-muted truncate">{breakdown.category ? 'Category match' : 'No match'}</p>
+              </div>
             </div>
-          )}
+
+            <div className="flex items-center gap-2">
+              <span className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[9px] font-bold ${breakdown.budget ? 'bg-accent-soft text-accent-ink' : 'bg-bg-elev text-muted-2'}`}>
+                {breakdown.budget ? '✓' : '—'}
+              </span>
+              <div className="min-w-0">
+                <p className="font-medium text-ink truncate">Pricing Plan</p>
+                <p className="text-[10px] text-muted truncate">{breakdown.budget ? 'Budget match' : 'No match'}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[9px] font-bold ${breakdown.platform ? 'bg-accent-soft text-accent-ink' : 'bg-bg-elev text-muted-2'}`}>
+                {breakdown.platform ? '✓' : '—'}
+              </span>
+              <div className="min-w-0">
+                <p className="font-medium text-ink truncate">Platforms</p>
+                <p className="text-[10px] text-muted truncate">{breakdown.platform ? 'OS compatible' : 'Incompatible'}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[9px] font-bold ${breakdown.experience ? 'bg-accent-soft text-accent-ink' : 'bg-bg-elev text-muted-2'}`}>
+                {breakdown.experience ? '✓' : '—'}
+              </span>
+              <div className="min-w-0">
+                <p className="font-medium text-ink truncate">Tech Difficulty</p>
+                <p className="text-[10px] text-muted truncate">{breakdown.experience ? 'Calibrated level' : 'Uncalibrated'}</p>
+              </div>
+            </div>
+
+            {breakdown.use_case && (
+              <div className="col-span-2 flex items-center gap-2 border-t border-line/20 pt-2 mt-1">
+                <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-accent-soft text-[9px] font-bold text-accent-ink">
+                  ✓
+                </span>
+                <div className="min-w-0">
+                  <p className="font-medium text-ink truncate">Custom Use-Case</p>
+                  <p className="text-[10px] text-muted truncate">Targeted task fit</p>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </article>
