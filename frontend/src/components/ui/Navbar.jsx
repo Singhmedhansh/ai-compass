@@ -490,7 +490,7 @@ function Navbar() {
                     role="menuitem"
                   >
                     <Sparkles className="h-4 w-4" />
-                    My AI Stack
+                    AI Stack Architect
                   </button>
 
                   {isAdmin ? (
@@ -671,7 +671,7 @@ function Navbar() {
                       className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
                     >
                       <Sparkles className="h-4 w-4" />
-                      My AI Stack
+                      AI Stack Architect
                     </Link>
                     {isAdmin ? (
                       <Link

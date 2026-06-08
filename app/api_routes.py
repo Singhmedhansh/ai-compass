@@ -761,7 +761,19 @@ def _build_finder_reason(tool: dict, use_case: str, normalized_budget: str) -> s
     return base
 
 
-def _finder_tool_score(tool: dict, goal, budget: str, platform, level: str, use_case: str) -> float:
+SYNONYM_MAP = {
+    "essay": ["writing", "academic writing", "essay", "paper", "literature review", "thesis", "citations"],
+    "blog": ["writing", "blog", "content", "seo", "article", "copywriting"],
+    "code": ["coding", "programming", "software", "development", "debugging", "developer", "ide"],
+    "develop": ["coding", "programming", "software", "development", "debugging", "developer", "ide"],
+    "video": ["video editing", "subtitle", "transcribe", "film", "animation", "video generation"],
+    "design": ["presentation", "slideshow", "design", "graphics", "ui", "ux", "logo", "figma"],
+    "ui": ["presentation", "slideshow", "design", "graphics", "ui", "ux", "logo", "figma"],
+    "notes": ["notetaking", "summarize", "summarization", "organization", "notebook", "notes"],
+    "study": ["research", "homework", "exam", "quiz", "academic", "study"],
+}
+
+def _finder_tool_score(tool: dict, goal, budget: str, platform, level: str, use_case: str) -> tuple[float, dict]:
     goals = _as_choice_list(goal)
     platforms = _as_choice_list(platform)
 
@@ -769,16 +781,26 @@ def _finder_tool_score(tool: dict, goal, budget: str, platform, level: str, use_
     allowed_categories = set()
     for g in goals:
         allowed_categories.update(FINDER_GOAL_CATEGORY_MAP.get(g, []))
+
+    breakdown = {
+        "category": False,
+        "budget": False,
+        "platform": False,
+        "experience": False,
+        "use_case": False
+    }
+
     if allowed_categories and category not in allowed_categories:
-        return 0.0
+        return 0.0, breakdown
 
     if goals and not any(_tool_passes_category_keyword_veto(tool, g) for g in goals):
-        return 0.0
+        return 0.0, breakdown
 
     score = 35.0
 
     if category in allowed_categories:
         score += 45.0
+        breakdown["category"] = True
 
     tool_text = " ".join(
         [
@@ -790,11 +812,31 @@ def _finder_tool_score(tool: dict, goal, budget: str, platform, level: str, use_
     ).lower()
 
     if use_case:
-        use_case_tokens = [token for token in re.split(r"[^a-z0-9]+", use_case.lower()) if token]
-        if use_case.lower() in tool_text:
+        use_case_lower = use_case.lower().strip()
+        use_case_tokens = [token for token in re.split(r"[^a-z0-9]+", use_case_lower) if token]
+        
+        matched_use_case = False
+        if use_case_lower in tool_text:
             score += 28.0
+            matched_use_case = True
         elif any(token in tool_text for token in use_case_tokens):
             score += 14.0
+            matched_use_case = True
+            
+        synonym_boosted = False
+        for token in use_case_tokens:
+            if token in SYNONYM_MAP:
+                for syn in SYNONYM_MAP[token]:
+                    if syn in tool_text:
+                        score += 10.0
+                        synonym_boosted = True
+                        matched_use_case = True
+                        break
+                if synonym_boosted:
+                    break
+        
+        if matched_use_case:
+            breakdown["use_case"] = True
 
     normalized_budget = _normalize_budget_choice(budget)
     pricing = _pricing_value(tool)
@@ -809,7 +851,10 @@ def _finder_tool_score(tool: dict, goal, budget: str, platform, level: str, use_
         ("paid", "freemium"): 10.0,
         ("paid", "paid"): 14.0,
     }
-    score += pricing_bonus.get((normalized_budget, pricing), 0.0)
+    bonus = pricing_bonus.get((normalized_budget, pricing), 0.0)
+    score += bonus
+    if bonus >= 0:
+        breakdown["budget"] = True
 
     tool_platforms = [str(platform_value).lower() for platform_value in (tool.get("platforms") or [])]
     platform_hits = {
@@ -827,17 +872,25 @@ def _finder_tool_score(tool: dict, goal, budget: str, platform, level: str, use_
                 break
         if matched_platform:
             score += 18.0
+            breakdown["platform"] = True
         else:
-            # Penalize explicit platform mismatch so recommendations change per selection.
             score -= 14.0
+    else:
+        breakdown["platform"] = True
 
     tool_tags = [str(tag).lower() for tag in (tool.get("tags") or [])]
     if level in ("beginner", "novice"):
         if any(tag in tool_tags for tag in ["beginner-friendly", "no-code", "easy"]):
             score += 18.0
+            breakdown["experience"] = True
+        elif not any(tag in tool_tags for tag in ["advanced", "developer"]):
+            breakdown["experience"] = True
     elif level in ("advanced", "expert"):
         if any(tag in tool_tags for tag in ["api", "open-source", "advanced", "developer"]):
             score += 18.0
+            breakdown["experience"] = True
+    else:
+        breakdown["experience"] = True
 
     score += _rating_value(tool) * 4.0
 
@@ -857,7 +910,7 @@ def _finder_tool_score(tool: dict, goal, budget: str, platform, level: str, use_
     elif review_count >= 1000:
         score += 3.0
 
-    return score
+    return score, breakdown
 
 
 def _rank_finder_tools(tools: list[dict], goal, budget: str, platform, level: str, use_case: str, limit: int = 6) -> list[dict]:
@@ -866,9 +919,9 @@ def _rank_finder_tools(tools: list[dict], goal, budget: str, platform, level: st
     scored = []
 
     for tool in tools:
-        score = _finder_tool_score(tool, goal, budget, platform, level, use_case)
+        score, breakdown = _finder_tool_score(tool, goal, budget, platform, level, use_case)
         if score > 0:
-            scored.append((tool, score))
+            scored.append((tool, score, breakdown))
 
     scored.sort(key=lambda item: item[1], reverse=True)
 
@@ -878,11 +931,15 @@ def _rank_finder_tools(tools: list[dict], goal, budget: str, platform, level: st
         scored = platform_matched + leftovers
 
     results = []
-    for tool, score in scored[:limit]:
+    for tool, score, breakdown in scored[:limit]:
+        # Clamped confidence percentage between 70% and 99%
+        confidence = int(70.0 + min(max((score / 130.0) * 29.0, 0.0), 29.0))
         results.append(
             {
                 **tool,
                 "match_score": round(score, 2),
+                "match_confidence": confidence,
+                "match_breakdown": breakdown,
                 "reason": _build_finder_reason(tool, use_case, normalized_budget),
             }
         )

@@ -63,7 +63,7 @@ function PeerlistBadge() {
 }
 
 const PRODUCT_LINKS = [
-  { label: 'Wizard', to: '/ai-tool-finder' },
+  { label: 'AI Stack Architect', to: '/ai-tool-finder' },
   { label: 'Catalog', to: '/tools' },
   { label: 'Collections', to: '/collections' },
   { label: 'Submit a tool', to: '/submit' },

@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 
 import Badge from '../components/ui/Badge'
 import Button from '../components/ui/Button'
-import { ToolLogo, WordReveal, Dropdown } from '../components/ui'
+import { ToolLogo, WordReveal, Dropdown, SEO } from '../components/ui'
 import { outboundUrl, OUTBOUND_REL } from '../utils/outbound'
 
 const PREDEFINED_STACKS = [
@@ -809,11 +809,15 @@ function QuestionRow({ index, question, answer, isActive, onActivate, onSelect, 
 
 function PreviewCard({ tool, rank }) {
   const navigate = useNavigate()
+  const [showBreakdown, setShowBreakdown] = useState(false)
   const tierBits = [tool.pricing, tool.platformLabel].filter(Boolean).join(' · ')
+
+  const breakdown = tool.match_breakdown || { category: true, budget: true, platform: true, experience: true }
+  const confidence = tool.match_confidence || 85
 
   return (
     <div
-      className="relative grid grid-cols-[36px_1fr_auto] items-start gap-3 rounded-xl border border-line bg-bg-elev p-3 hover:border-accent/40 transition-colors cursor-pointer"
+      className="relative flex flex-col gap-2 rounded-xl border border-line bg-bg-elev p-3 hover:border-accent/40 transition-colors cursor-pointer"
       onClick={() => {
         try {
           window.posthog?.capture?.('tool_card_clicked', {
@@ -829,34 +833,185 @@ function PreviewCard({ tool, rank }) {
         navigate(`/tools/${tool.slug || ''}`)
       }}
     >
-      <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg bg-bg-sunk" aria-hidden="true">
-        <ToolLogo tool={tool} size={32} />
-      </div>
-      <div className="min-w-0">
-        <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 text-sm">
-          <span className="truncate font-semibold text-ink">{tool.name}</span>
-          {tierBits ? <span className="truncate text-xs font-normal text-muted">{tierBits}</span> : null}
+      <div className="grid grid-cols-[36px_1fr_auto] items-start gap-3 w-full">
+        <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg bg-bg-sunk" aria-hidden="true">
+          <ToolLogo tool={tool} size={32} />
         </div>
-        <p className="mt-1 text-sm italic leading-snug text-muted">
-          <span className="mr-1.5 not-italic text-[11px] font-semibold uppercase tracking-wide text-accent-ink">why</span>
-          {tool.reason || tool._reason}
-        </p>
-        <div className="mt-2 flex justify-end">
-          {getToolUrl(tool) ? (
-            <a
-              href={getToolUrl(tool)}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
-              className="text-accent text-xs font-medium hover:translate-x-1 transition-transform inline-block"
-            >
-              Explore →
-            </a>
-          ) : null}
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 text-sm">
+            <span className="truncate font-semibold text-ink">{tool.name}</span>
+            {tierBits ? <span className="truncate text-xs font-normal text-muted">{tierBits}</span> : null}
+          </div>
+          <p className="mt-1 text-sm italic leading-snug text-muted">
+            <span className="mr-1.5 not-italic text-[11px] font-semibold uppercase tracking-wide text-accent-ink">why</span>
+            {tool.reason || tool._reason}
+          </p>
+        </div>
+        <div className="flex flex-col items-end gap-1">
+          <span className="font-mono text-xs text-muted-2">#{rank}</span>
+          <span className="rounded bg-accent-soft px-1.5 py-0.5 text-[10px] font-bold text-accent-ink shrink-0">
+            {confidence}% Match
+          </span>
         </div>
       </div>
-      <span className="font-mono text-xs text-muted-2">#{rank}</span>
+
+      <div className="flex items-center justify-between mt-1 pt-2 border-t border-line/40 w-full text-[11px] text-muted-2">
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation()
+            setShowBreakdown(prev => !prev)
+          }}
+          className="hover:text-accent font-semibold transition"
+        >
+          {showBreakdown ? 'Hide details' : 'Why it matches →'}
+        </button>
+
+        {getToolUrl(tool) ? (
+          <a
+            href={getToolUrl(tool)}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="text-accent font-medium hover:translate-x-0.5 transition-transform"
+          >
+            Explore →
+          </a>
+        ) : null}
+      </div>
+
+      {showBreakdown && (
+        <div 
+          onClick={(e) => e.stopPropagation()} 
+          className="mt-1.5 rounded-lg bg-bg-sunk/60 p-2.5 text-[11px] space-y-1 text-ink-2 border border-line/30"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-muted">Goal Alignment</span>
+            <span className="font-medium text-accent-ink">{breakdown.category ? '✓ category match' : '—'}</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-muted">Budget Fit</span>
+            <span className="font-medium text-accent-ink">{breakdown.budget ? '✓ pricing match' : '—'}</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-muted">Platforms Supported</span>
+            <span className="font-medium text-accent-ink">{breakdown.platform ? '✓ OS compatibility' : '—'}</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-muted">Tech Difficulty</span>
+            <span className="font-medium text-accent-ink">{breakdown.experience ? '✓ calibrated level' : '—'}</span>
+          </div>
+          {breakdown.use_case && (
+            <div className="flex items-center justify-between">
+              <span className="text-muted">Specific Task</span>
+              <span className="font-medium text-accent-ink">✓ targeted fit</span>
+            </div>
+          )}
+        </div>
+      )}
     </div>
+  )
+}
+
+function ResultCard({ tool, index, navigate }) {
+  const [showBreakdown, setShowBreakdown] = useState(false)
+  const isTopMatch = index === 0
+  const tierBits = [tool.pricing, tool.platformLabel].filter(Boolean).join(' · ')
+  const breakdown = tool.match_breakdown || { category: true, budget: true, platform: true, experience: true }
+  const confidence = tool.match_confidence || 85
+
+  return (
+    <article
+      onClick={() => navigate(`/tools/${tool.slug || ''}`)}
+      className="group relative flex h-full min-w-0 flex-col rounded-2xl border border-line bg-bg-elev p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:border-accent hover:shadow-md cursor-pointer"
+    >
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex items-start gap-3">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-bg-sunk" aria-hidden="true">
+            <ToolLogo tool={tool} size={36} />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <h3 className="truncate text-sm font-semibold text-ink">{tool.name}</h3>
+              {isTopMatch && (
+                <span className="shrink-0 rounded-full bg-accent-soft px-2 py-0.5 text-[10px] font-semibold text-accent-ink">★ Best</span>
+              )}
+            </div>
+            <p className="mt-0.5 truncate text-xs text-muted">{tool.category || 'General'}</p>
+          </div>
+        </div>
+
+        <span className="rounded-full bg-accent-soft px-2.5 py-0.5 text-xs font-bold text-accent-ink shrink-0">
+          {confidence}% Match
+        </span>
+      </div>
+
+      <p className="mt-3 line-clamp-2 text-xs italic leading-snug text-muted">✨ {tool.reason || tool._reason}</p>
+      <p className="mt-2 line-clamp-2 text-sm leading-snug text-ink-2">{tool.description}</p>
+
+      <div className="mt-3 flex flex-wrap gap-1.5">
+        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${getPricingPillClass(tool.pricing)}`}>
+          {String(tool.pricing || 'Free').toUpperCase()}
+        </span>
+        <span className="inline-flex items-center rounded-full bg-bg-sunk px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-ink-2 ring-1 ring-inset ring-line">
+          {String(tool.platformLabel || 'Web').toUpperCase()}
+        </span>
+      </div>
+
+      {/* Breakdown trigger */}
+      <div className="flex items-center justify-between mt-auto pt-4 border-t border-line/45 w-full text-xs text-muted-2">
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation()
+            setShowBreakdown(prev => !prev)
+          }}
+          className="hover:text-accent font-semibold transition"
+        >
+          {showBreakdown ? 'Hide details' : 'Why this fits →'}
+        </button>
+
+        <a
+          href={getToolUrl(tool)}
+          target="_blank"
+          rel={OUTBOUND_REL}
+          onClick={(e) => e.stopPropagation()}
+          className="inline-flex items-center gap-1 text-accent font-semibold hover:opacity-85 transition-opacity"
+        >
+          Visit Tool
+        </a>
+      </div>
+
+      {showBreakdown && (
+        <div 
+          onClick={(e) => e.stopPropagation()} 
+          className="mt-3 rounded-xl bg-bg-sunk/60 p-3 text-xs space-y-1.5 text-ink-2 border border-line/30"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-muted">Goal Alignment</span>
+            <span className="font-semibold text-accent-ink">{breakdown.category ? '✓ Category match' : '—'}</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-muted">Pricing Plan</span>
+            <span className="font-semibold text-accent-ink">{breakdown.budget ? '✓ Budget match' : '—'}</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-muted">Operating Systems</span>
+            <span className="font-semibold text-accent-ink">{breakdown.platform ? '✓ OS compatibility' : '—'}</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-muted">Tech Difficulty</span>
+            <span className="font-semibold text-accent-ink">{breakdown.experience ? '✓ Calibrated level' : '—'}</span>
+          </div>
+          {breakdown.use_case && (
+            <div className="flex items-center justify-between">
+              <span className="text-muted">Custom Use-Case</span>
+              <span className="font-semibold text-accent-ink">✓ Targeted task fit</span>
+            </div>
+          )}
+        </div>
+      )}
+    </article>
   )
 }
 
@@ -1247,55 +1402,14 @@ function ToolFinderPage() {
           </div>
 
           <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {results.map((tool, index) => {
-              const toolKey = tool.slug || tool.name || `${tool.name}-${index}`
-              const isTopMatch = index === 0
-
-              return (
-                <article
-                  key={toolKey}
-                  onClick={() => navigate(`/tools/${tool.slug || ''}`)}
-                  className="group relative flex h-full min-w-0 flex-col rounded-2xl border border-line bg-bg-elev p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:border-accent hover:shadow-md cursor-pointer"
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-bg-sunk" aria-hidden="true">
-                      <ToolLogo tool={tool} size={36} />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <h3 className="truncate text-sm font-semibold text-ink">{tool.name}</h3>
-                        {isTopMatch && (
-                          <span className="shrink-0 rounded-full bg-accent-soft px-2 py-0.5 text-[10px] font-semibold text-accent-ink">★ Best</span>
-                        )}
-                      </div>
-                      <p className="mt-0.5 truncate text-xs text-muted">{tool.category || 'General'}</p>
-                    </div>
-                  </div>
-
-                  <p className="mt-3 line-clamp-2 text-xs italic leading-snug text-muted">✨ {tool.reason || tool._reason}</p>
-                  <p className="mt-2 line-clamp-2 text-sm leading-snug text-ink-2">{tool.description}</p>
-
-                  <div className="mt-3 flex flex-wrap gap-1.5">
-                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${getPricingPillClass(tool.pricing)}`}>
-                      {String(tool.pricing || 'Free').toUpperCase()}
-                    </span>
-                    <span className="inline-flex items-center rounded-full bg-bg-sunk px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-ink-2 ring-1 ring-inset ring-line">
-                      {String(tool.platformLabel || 'Web').toUpperCase()}
-                    </span>
-                  </div>
-
-                  <a
-                    href={getToolUrl(tool)}
-                    target="_blank"
-                    rel={OUTBOUND_REL}
-                    onClick={(e) => e.stopPropagation()}
-                    className="mt-4 inline-flex h-9 w-full items-center justify-center gap-2 rounded-lg bg-accent px-4 text-xs font-semibold text-bg transition-opacity hover:opacity-90"
-                  >
-                    Visit Tool
-                  </a>
-                </article>
-              )
-            })}
+            {results.map((tool, index) => (
+              <ResultCard
+                key={tool.slug || tool.name || index}
+                tool={tool}
+                index={index}
+                navigate={navigate}
+              />
+            ))}
           </div>
         </section>
       </div>
@@ -1304,14 +1418,18 @@ function ToolFinderPage() {
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+      <SEO
+        title="AI Stack Architect | AI Compass"
+        description="Design your custom AI stack. Answer a few questions to get hand-picked, verified tools matching your exact major, budget, and platforms."
+      />
       <section className="rounded-3xl border border-line bg-bg-elev p-6 shadow-sm sm:p-8">
         <div className="mb-6 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-ink sm:text-4xl"><WordReveal>AI Tool Finder</WordReveal></h1>
+            <h1 className="text-3xl font-bold tracking-tight text-ink sm:text-4xl"><WordReveal>AI Stack Architect</WordReveal></h1>
             <p className="mt-2 text-sm text-muted sm:text-base">
               {hasStarted 
                 ? `Answer ${TOTAL_QUESTIONS} quick questions — pick an option and we'll move you to the next automatically.`
-                : "Choose a template to instantly discover tools, or start from scratch."}
+                : "Choose a template stack to instantly discover tools, or build your own custom stack."}
             </p>
           </div>
           {hasStarted && (

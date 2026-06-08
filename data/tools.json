@@ -36425,7 +36425,8 @@
           "cta_url": "https://geminicli.com/docs/resources/quota-and-pricing/"
         }
       ]
-    }
+    },
+    "strengths": []
   },
   {
     "name": "OpenAI Codex",
@@ -36509,7 +36510,8 @@
           "cta_url": "https://developers.openai.com/codex/pricing"
         }
       ]
-    }
+    },
+    "strengths": []
   },
   {
     "name": "Rocket.new",
@@ -36594,7 +36596,8 @@
           "cta_url": "https://rocket.new/pricing"
         }
       ]
-    }
+    },
+    "strengths": []
   },
   {
     "name": "Kiro",
@@ -36682,7 +36685,8 @@
           "cta_url": "https://kiro.dev/pricing/"
         }
       ]
-    }
+    },
+    "strengths": []
   },
   {
     "name": "Emergent",
@@ -36766,7 +36770,8 @@
           "cta_url": "https://emergent.sh/pricing"
         }
       ]
-    }
+    },
+    "strengths": []
   },
   {
     "name": "Antigravity",
@@ -36840,7 +36845,8 @@
           "cta_url": "https://antigravity.google/pricing"
         }
       ]
-    }
+    },
+    "strengths": []
   },
   {
     "name": "Hostinger Horizons",
@@ -36929,7 +36935,8 @@
           "cta_url": "https://www.hostinger.com/horizons"
         }
       ]
-    }
+    },
+    "strengths": []
   },
   {
     "name": "Claude Code",
@@ -37016,7 +37023,8 @@
           "cta_url": "https://www.anthropic.com/claude-code"
         }
       ]
-    }
+    },
+    "strengths": []
   },
   {
     "id": 501,
@@ -38571,7 +38579,10 @@
           "cta_url": "https://stitch.withgoogle.com"
         }
       ]
-    }
+    },
+    "featured": false,
+    "logo_emoji": "🤖",
+    "strengths": []
   },
   {
     "id": 521,
@@ -38632,7 +38643,10 @@
           "cta_url": "https://aistudio.google.com"
         }
       ]
-    }
+    },
+    "featured": false,
+    "logo_emoji": "🤖",
+    "strengths": []
   },
   {
     "id": 522,
@@ -38727,7 +38741,10 @@
           "cta_url": "https://uizard.io/pricing/"
         }
       ]
-    }
+    },
+    "featured": false,
+    "logo_emoji": "🤖",
+    "strengths": []
   },
   {
     "id": 523,
@@ -38821,7 +38838,10 @@
           "cta_url": "https://www.visily.ai/pricing/"
         }
       ]
-    }
+    },
+    "featured": false,
+    "logo_emoji": "🤖",
+    "strengths": []
   },
   {
     "id": 524,
@@ -38915,7 +38935,10 @@
           "cta_url": "https://www.magicpatterns.com/pricing"
         }
       ]
-    }
+    },
+    "featured": false,
+    "logo_emoji": "🤖",
+    "strengths": []
   },
   {
     "id": 525,
@@ -38998,7 +39021,10 @@
           "cta_url": "https://www.subframe.com/"
         }
       ]
-    }
+    },
+    "featured": false,
+    "logo_emoji": "🤖",
+    "strengths": []
   },
   {
     "id": 526,
@@ -39093,7 +39119,10 @@
           "cta_url": "https://www.animaapp.com/pricing"
         }
       ]
-    }
+    },
+    "featured": false,
+    "logo_emoji": "🤖",
+    "strengths": []
   },
   {
     "id": 527,
@@ -39189,7 +39218,10 @@
           "cta_url": "https://www.builder.io/m/pricing"
         }
       ]
-    }
+    },
+    "featured": false,
+    "logo_emoji": "🤖",
+    "strengths": []
   },
   {
     "id": 528,
@@ -39255,7 +39287,10 @@
           "cta_url": "https://polymet.ai/"
         }
       ]
-    }
+    },
+    "featured": false,
+    "logo_emoji": "🤖",
+    "strengths": []
   },
   {
     "id": 529,
@@ -39326,7 +39361,10 @@
           "cta_url": "https://aws.amazon.com/q/developer/pricing/"
         }
       ]
-    }
+    },
+    "featured": false,
+    "logo_emoji": "🤖",
+    "strengths": []
   },
   {
     "id": 530,
@@ -39385,7 +39423,10 @@
           "cta_url": "https://github.com/RooVetGit/Roo-Code"
         }
       ]
-    }
+    },
+    "featured": false,
+    "logo_emoji": "🤖",
+    "strengths": []
   },
   {
     "id": 532,
@@ -39467,7 +39508,10 @@
           "cta_url": "https://www.tempo.new"
         }
       ]
-    }
+    },
+    "featured": false,
+    "logo_emoji": "🤖",
+    "strengths": []
   },
   {
     "id": 545,
@@ -39523,7 +39567,7 @@
     "difficulty": "Beginner",
     "review_count_display": "",
     "company": "Scribbr",
-    "logo_emoji": "",
+    "logo_emoji": "🤖",
     "pricing_tier": "Freemium",
     "popularity_score": 0,
     "pricing": "Freemium",
@@ -39638,7 +39682,7 @@
     "difficulty": "Beginner",
     "review_count_display": "",
     "company": "GPTZero",
-    "logo_emoji": "",
+    "logo_emoji": "🤖",
     "pricing_tier": "Freemium",
     "popularity_score": 0,
     "pricing": "Freemium",
@@ -39768,7 +39812,7 @@
     "difficulty": "Beginner",
     "review_count_display": "",
     "company": "Copyleaks",
-    "logo_emoji": "",
+    "logo_emoji": "🤖",
     "pricing_tier": "Freemium",
     "popularity_score": 0,
     "pricing": "Freemium",
@@ -39874,7 +39918,7 @@
     "difficulty": "Beginner",
     "review_count_display": "",
     "company": "Originality.AI",
-    "logo_emoji": "",
+    "logo_emoji": "🤖",
     "pricing_tier": "Paid",
     "popularity_score": 0,
     "pricing": "Paid",
@@ -39985,7 +40029,7 @@
     "difficulty": "Beginner",
     "review_count_display": "",
     "company": "Knowt",
-    "logo_emoji": "",
+    "logo_emoji": "🤖",
     "pricing_tier": "Freemium",
     "popularity_score": 0,
     "pricing": "Freemium",
@@ -40093,7 +40137,7 @@
     "difficulty": "Beginner",
     "review_count_display": "",
     "company": "Quizgecko",
-    "logo_emoji": "",
+    "logo_emoji": "🤖",
     "pricing_tier": "Freemium",
     "popularity_score": 0,
     "pricing": "Freemium",
@@ -40202,7 +40246,7 @@
     "difficulty": "Beginner",
     "review_count_display": "",
     "company": "StuDocu",
-    "logo_emoji": "",
+    "logo_emoji": "🤖",
     "pricing_tier": "Freemium",
     "popularity_score": 0,
     "pricing": "Freemium",
@@ -40300,7 +40344,7 @@
     "difficulty": "Beginner",
     "review_count_display": "",
     "company": "StudyFetch",
-    "logo_emoji": "",
+    "logo_emoji": "🤖",
     "pricing_tier": "Freemium",
     "popularity_score": 0,
     "pricing": "Freemium",
@@ -40397,7 +40441,7 @@
     "difficulty": "Beginner",
     "review_count_display": "",
     "company": "Trinka",
-    "logo_emoji": "",
+    "logo_emoji": "🤖",
     "pricing_tier": "Freemium",
     "popularity_score": 0,
     "pricing": "Freemium",
@@ -40505,7 +40549,7 @@
     "difficulty": "Beginner",
     "review_count_display": "",
     "company": "Smodin",
-    "logo_emoji": "",
+    "logo_emoji": "🤖",
     "pricing_tier": "Freemium",
     "popularity_score": 0,
     "pricing": "Freemium",
@@ -40623,7 +40667,7 @@
     "difficulty": "Beginner",
     "review_count_display": "",
     "company": "Speak",
-    "logo_emoji": "",
+    "logo_emoji": "🤖",
     "pricing_tier": "Freemium",
     "popularity_score": 0,
     "pricing": "Freemium",
@@ -40738,7 +40782,7 @@
     "student_friendly": true,
     "is_ai_native": true,
     "uniHack": "",
-    "logo_emoji": "",
+    "logo_emoji": "🤖",
     "popularity_score": 0,
     "curation_score": 55.0,
     "icon": "/static/icons/default.png",
@@ -40837,7 +40881,7 @@
     "student_friendly": true,
     "is_ai_native": true,
     "uniHack": "",
-    "logo_emoji": "",
+    "logo_emoji": "🤖",
     "popularity_score": 0,
     "curation_score": 55.0,
     "icon": "/static/icons/default.png",
@@ -40948,7 +40992,7 @@
     "student_friendly": true,
     "is_ai_native": true,
     "uniHack": "",
-    "logo_emoji": "",
+    "logo_emoji": "🤖",
     "popularity_score": 0,
     "curation_score": 55.0,
     "icon": "/static/icons/default.png",
@@ -41046,7 +41090,7 @@
     "student_friendly": true,
     "is_ai_native": true,
     "uniHack": "",
-    "logo_emoji": "",
+    "logo_emoji": "🤖",
     "popularity_score": 0,
     "curation_score": 55.0,
     "icon": "/static/icons/default.png",
@@ -41131,7 +41175,7 @@
     "student_friendly": true,
     "is_ai_native": true,
     "uniHack": "",
-    "logo_emoji": "",
+    "logo_emoji": "🤖",
     "popularity_score": 0,
     "curation_score": 55.0,
     "icon": "/static/icons/default.png",
@@ -41231,7 +41275,7 @@
     "student_friendly": true,
     "is_ai_native": true,
     "uniHack": "",
-    "logo_emoji": "",
+    "logo_emoji": "🤖",
     "popularity_score": 0,
     "curation_score": 55.0,
     "icon": "/static/icons/default.png",
@@ -41330,7 +41374,7 @@
     "student_friendly": true,
     "is_ai_native": true,
     "uniHack": "",
-    "logo_emoji": "",
+    "logo_emoji": "🤖",
     "popularity_score": 0,
     "curation_score": 55.0,
     "icon": "/static/icons/default.png",
@@ -41439,7 +41483,7 @@
     "student_friendly": true,
     "is_ai_native": true,
     "uniHack": "",
-    "logo_emoji": "",
+    "logo_emoji": "🤖",
     "popularity_score": 0,
     "curation_score": 55.0,
     "icon": "/static/icons/default.png",
@@ -41549,7 +41593,7 @@
     "student_friendly": true,
     "is_ai_native": true,
     "uniHack": "",
-    "logo_emoji": "",
+    "logo_emoji": "🤖",
     "popularity_score": 0,
     "curation_score": 55.0,
     "icon": "/static/icons/default.png",
@@ -41658,7 +41702,7 @@
     "student_friendly": true,
     "is_ai_native": true,
     "uniHack": "",
-    "logo_emoji": "",
+    "logo_emoji": "🤖",
     "popularity_score": 0,
     "curation_score": 55.0,
     "icon": "/static/icons/default.png",
@@ -41764,7 +41808,7 @@
     "student_friendly": true,
     "is_ai_native": true,
     "uniHack": "",
-    "logo_emoji": "",
+    "logo_emoji": "🤖",
     "popularity_score": 0,
     "curation_score": 55.0,
     "icon": "/static/icons/default.png",
@@ -41859,7 +41903,7 @@
     "student_friendly": true,
     "is_ai_native": true,
     "uniHack": "",
-    "logo_emoji": "",
+    "logo_emoji": "🤖",
     "popularity_score": 0,
     "curation_score": 55.0,
     "icon": "/static/icons/default.png",
@@ -41966,7 +42010,7 @@
     "student_friendly": true,
     "is_ai_native": true,
     "uniHack": "",
-    "logo_emoji": "",
+    "logo_emoji": "🤖",
     "popularity_score": 0,
     "curation_score": 55.0,
     "icon": "/static/icons/default.png",
@@ -42087,7 +42131,7 @@
     "student_friendly": true,
     "is_ai_native": true,
     "uniHack": "",
-    "logo_emoji": "",
+    "logo_emoji": "🤖",
     "popularity_score": 0,
     "curation_score": 55.0,
     "icon": "/static/icons/default.png",
@@ -42196,7 +42240,7 @@
     "student_friendly": true,
     "is_ai_native": true,
     "uniHack": "",
-    "logo_emoji": "",
+    "logo_emoji": "🤖",
     "popularity_score": 0,
     "curation_score": 55.0,
     "icon": "/static/icons/default.png",
@@ -42304,7 +42348,7 @@
     "student_friendly": true,
     "is_ai_native": true,
     "uniHack": "",
-    "logo_emoji": "",
+    "logo_emoji": "🤖",
     "popularity_score": 0,
     "curation_score": 55.0,
     "icon": "/static/icons/default.png",
@@ -42413,7 +42457,7 @@
     "student_friendly": true,
     "is_ai_native": true,
     "uniHack": "",
-    "logo_emoji": "",
+    "logo_emoji": "🤖",
     "popularity_score": 0,
     "curation_score": 55.0,
     "icon": "/static/icons/default.png",
@@ -42510,7 +42554,7 @@
     "student_friendly": true,
     "is_ai_native": true,
     "uniHack": "",
-    "logo_emoji": "",
+    "logo_emoji": "🤖",
     "popularity_score": 0,
     "curation_score": 55.0,
     "icon": "/static/icons/default.png",
@@ -42606,7 +42650,7 @@
     "student_friendly": true,
     "is_ai_native": true,
     "uniHack": "",
-    "logo_emoji": "",
+    "logo_emoji": "🤖",
     "popularity_score": 0,
     "curation_score": 55.0,
     "icon": "/static/icons/default.png",
@@ -42713,7 +42757,7 @@
     "student_friendly": true,
     "is_ai_native": true,
     "uniHack": "",
-    "logo_emoji": "",
+    "logo_emoji": "🤖",
     "popularity_score": 0,
     "curation_score": 55.0,
     "icon": "/static/icons/default.png",
@@ -42822,7 +42866,7 @@
     "student_friendly": true,
     "is_ai_native": true,
     "uniHack": "",
-    "logo_emoji": "",
+    "logo_emoji": "🤖",
     "popularity_score": 0,
     "curation_score": 55.0,
     "icon": "/static/icons/default.png",
@@ -42909,7 +42953,7 @@
     "student_friendly": true,
     "is_ai_native": true,
     "uniHack": "",
-    "logo_emoji": "",
+    "logo_emoji": "🤖",
     "popularity_score": 0,
     "curation_score": 55.0,
     "icon": "/static/icons/default.png",

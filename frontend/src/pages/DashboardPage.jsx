@@ -334,7 +334,7 @@ function DashboardPage() {
               className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-medium text-ink-2 transition hover:bg-bg-sunk"
             >
               <Wand2 className="h-4 w-4" />
-              Tool Finder
+              AI Stack Architect
             </button>
             <button
               type="button"
@@ -442,7 +442,7 @@ function DashboardPage() {
             >
               <span className="flex items-center gap-2 text-sm font-semibold text-ink">
                 <Sparkles className="h-4 w-4 text-accent" />
-                Find My AI Stack
+                AI Stack Architect
               </span>
             </button>
 
@@ -548,13 +548,13 @@ function DashboardPage() {
             whileInView="show"
             viewport={{ once: true, margin: '-10% 0px' }}
           >
-            <h2 className="text-xl font-bold text-ink">My AI Stack</h2>
+            <h2 className="text-xl font-bold text-ink">AI Stack Architect</h2>
 
             {!savedStack ? (
               <div className="mt-4 rounded-xl border border-dashed border-line-strong bg-bg-sunk p-6 text-center">
                 <p className="text-sm text-muted">No stack saved yet</p>
                 <Button className="mt-4" onClick={() => navigate('/ai-tool-finder')}>
-                  Build My Stack
+                  Launch AI Stack Architect
                 </Button>
               </div>
             ) : (
