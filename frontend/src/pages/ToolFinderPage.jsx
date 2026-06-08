@@ -1,4 +1,4 @@
-import { Check, RotateCcw, Save, Code, GraduationCap, PenTool, Mic, Briefcase, Layout, BarChart, Zap, BookOpen, Terminal, Globe, Wand2, Star, SlidersHorizontal } from 'lucide-react'
+import { Check, RotateCcw, Save, Code, GraduationCap, PenTool, Mic, Briefcase, Layout, BarChart, Zap, BookOpen, Terminal, Globe, Wand2, Star, SlidersHorizontal, Bug, Search, MessageSquare, Bookmark, Palette, Film, Calendar, FileText, Megaphone, Plug, Bot, FlaskConical } from 'lucide-react'
 import { useEffect, useRef, useState, useMemo } from 'react'
 import { toast } from 'sonner'
 import { useNavigate } from 'react-router-dom'
@@ -183,6 +183,33 @@ function TemplateGallery({ onSelect }) {
   )
 }
 
+function WizardProgress({ answers }) {
+  const steps = QUESTIONS.map((q) => {
+    const answer = answers[q.id]
+    const isAnswered = Array.isArray(answer) ? answer.length > 0 : Boolean(answer)
+    return { label: q.label, isAnswered }
+  })
+  const answeredCount = steps.filter((s) => s.isAnswered).length
+
+  return (
+    <div className="mb-6">
+      <div className="mb-2 flex items-center justify-between">
+        <span className="text-xs font-medium text-muted">{answeredCount} of {TOTAL_QUESTIONS} answered</span>
+        <span className="text-xs font-semibold text-accent-ink">{Math.round((answeredCount / TOTAL_QUESTIONS) * 100)}%</span>
+      </div>
+      <div className="flex gap-1.5">
+        {steps.map((step, i) => (
+          <div
+            key={i}
+            title={step.label}
+            className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${step.isAnswered ? 'bg-accent' : 'bg-line-strong'}`}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function getAspectBucket() {
   if (typeof window === 'undefined') {
     return 'landscape'
@@ -199,50 +226,50 @@ function getAspectBucket() {
 }
 
 const GOAL_OPTIONS = [
-  { id: 'learning', label: 'Learning' },
-  { id: 'coding', label: 'Coding' },
-  { id: 'writing', label: 'Writing' },
-  { id: 'research', label: 'Research' },
-  { id: 'creating', label: 'Creating' },
-  { id: 'productivity', label: 'Productivity' },
+  { id: 'learning', label: 'Learning', icon: GraduationCap, desc: 'Study, exam prep, and new skills' },
+  { id: 'coding', label: 'Coding', icon: Code, desc: 'Build apps, debug, and write scripts' },
+  { id: 'writing', label: 'Writing', icon: PenTool, desc: 'Essays, copy, editing, and grammar' },
+  { id: 'research', label: 'Research', icon: BookOpen, desc: 'Papers, citations, and literature search' },
+  { id: 'creating', label: 'Creating', icon: Palette, desc: 'Images, video, audio, and slides' },
+  { id: 'productivity', label: 'Productivity', icon: Zap, desc: 'Tasks, notes, meetings, and automation' },
 ]
 
 const SUB_CATEGORIES = {
   learning: [
-    { id: 'exam-prep', label: 'Exam prep', desc: 'Prepare for exams, generate quiz questions.', icon: '🎓', primary: true },
-    { id: 'study-guides', label: 'Study guides', desc: 'Summarize topics and create study guides.', icon: '📝', primary: true },
-    { id: 'math-science', label: 'Math & Science', desc: 'Solve equations and explain complex concepts.', icon: '🔬', primary: false },
-    { id: 'language-learning', label: 'Language learning', desc: 'Practice speaking and translate texts.', icon: '🌐', primary: false },
+    { id: 'exam-prep', label: 'Exam prep', desc: 'Prepare for exams, generate quiz questions.', icon: GraduationCap, primary: true },
+    { id: 'study-guides', label: 'Study guides', desc: 'Summarize topics and create study guides.', icon: FileText, primary: true },
+    { id: 'math-science', label: 'Math & Science', desc: 'Solve equations and explain complex concepts.', icon: FlaskConical, primary: false },
+    { id: 'language-learning', label: 'Language learning', desc: 'Practice speaking and translate texts.', icon: Globe, primary: false },
   ],
   coding: [
-    { id: 'build-app', label: 'Build a web app', desc: 'Generate boilerplate and build app features.', icon: '💻', primary: true },
-    { id: 'debugging', label: 'Debugging', desc: 'Find errors and explain broken code.', icon: '🐛', primary: true },
-    { id: 'learning-code', label: 'Learning to code', desc: 'Explain syntax and teach coding concepts.', icon: '📘', primary: false },
-    { id: 'api-integration', label: 'API Integration', desc: 'Connect services and write API clients.', icon: '🔌', primary: false },
+    { id: 'build-app', label: 'Build a web app', desc: 'Generate boilerplate and build app features.', icon: Code, primary: true },
+    { id: 'debugging', label: 'Debugging', desc: 'Find errors and explain broken code.', icon: Bug, primary: true },
+    { id: 'learning-code', label: 'Learning to code', desc: 'Explain syntax and teach coding concepts.', icon: BookOpen, primary: false },
+    { id: 'api-integration', label: 'API Integration', desc: 'Connect services and write API clients.', icon: Plug, primary: false },
   ],
   writing: [
-    { id: 'write-essays', label: 'Write essays', desc: 'Draft outlines, thesis statements, and paragraphs.', icon: '✍️', primary: true },
-    { id: 'copywriting', label: 'Copywriting', desc: 'Generate marketing copies and social posts.', icon: '📢', primary: true },
-    { id: 'grammar-editor', label: 'Grammar & Editing', desc: 'Check spelling and improve writing style.', icon: '🔍', primary: false },
-    { id: 'translation', label: 'Translation', desc: 'Translate text between multiple languages.', icon: '💬', primary: false },
+    { id: 'write-essays', label: 'Write essays', desc: 'Draft outlines, thesis statements, and paragraphs.', icon: PenTool, primary: true },
+    { id: 'copywriting', label: 'Copywriting', desc: 'Generate marketing copies and social posts.', icon: Megaphone, primary: true },
+    { id: 'grammar-editor', label: 'Grammar & Editing', desc: 'Check spelling and improve writing style.', icon: Search, primary: false },
+    { id: 'translation', label: 'Translation', desc: 'Translate text between multiple languages.', icon: MessageSquare, primary: false },
   ],
   research: [
-    { id: 'review-papers', label: 'Review papers', desc: 'Summarize academic articles and PDFs.', icon: '📚', primary: true },
-    { id: 'literature-search', label: 'Literature search', desc: 'Find academic papers and sources.', icon: '🕵️', primary: true },
-    { id: 'data-analysis', label: 'Data analysis', desc: 'Extract info and compile data tables.', icon: '📊', primary: false },
-    { id: 'citation-maker', label: 'Citations', desc: 'Format APA, MLA, and other citations.', icon: '🔖', primary: false },
+    { id: 'review-papers', label: 'Review papers', desc: 'Summarize academic articles and PDFs.', icon: BookOpen, primary: true },
+    { id: 'literature-search', label: 'Literature search', desc: 'Find academic papers and sources.', icon: Search, primary: true },
+    { id: 'data-analysis', label: 'Data analysis', desc: 'Extract info and compile data tables.', icon: BarChart, primary: false },
+    { id: 'citation-maker', label: 'Citations', desc: 'Format APA, MLA, and other citations.', icon: Bookmark, primary: false },
   ],
   creating: [
-    { id: 'image-generation', label: 'Image generation', desc: 'Create visuals from text descriptions.', icon: '🎨', primary: true },
-    { id: 'video-editing', label: 'Video generation', desc: 'Generate clips and edit videos.', icon: '🎬', primary: true },
-    { id: 'audio-voice', label: 'Audio & Voice', desc: 'TTS, music, and voice voiceovers.', icon: '🎙️', primary: false },
-    { id: 'presentation-slides', label: 'Slides & Decks', desc: 'Create presentation slides and layouts.', icon: '📊', primary: false },
+    { id: 'image-generation', label: 'Image generation', desc: 'Create visuals from text descriptions.', icon: Palette, primary: true },
+    { id: 'video-editing', label: 'Video generation', desc: 'Generate clips and edit videos.', icon: Film, primary: true },
+    { id: 'audio-voice', label: 'Audio & Voice', desc: 'TTS, music, and voice voiceovers.', icon: Mic, primary: false },
+    { id: 'presentation-slides', label: 'Slides & Decks', desc: 'Create presentation slides and layouts.', icon: Layout, primary: false },
   ],
   productivity: [
-    { id: 'task-management', label: 'Task management', desc: 'Track tasks, schedules, and workflows.', icon: '📅', primary: true },
-    { id: 'note-taking', label: 'Note-taking', desc: 'Organize notes and document info.', icon: '📓', primary: true },
-    { id: 'meeting-summaries', label: 'Meeting summaries', desc: 'Transcribe and summarize audio.', icon: '🗣️', primary: false },
-    { id: 'automation-zapier', label: 'Workflow automation', desc: 'Connect apps and automate tasks.', icon: '🤖', primary: false },
+    { id: 'task-management', label: 'Task management', desc: 'Track tasks, schedules, and workflows.', icon: Calendar, primary: true },
+    { id: 'note-taking', label: 'Note-taking', desc: 'Organize notes and document info.', icon: FileText, primary: true },
+    { id: 'meeting-summaries', label: 'Meeting summaries', desc: 'Transcribe and summarize audio.', icon: Mic, primary: false },
+    { id: 'automation-zapier', label: 'Workflow automation', desc: 'Connect apps and automate tasks.', icon: Bot, primary: false },
   ],
 }
 
@@ -526,106 +553,122 @@ function QuestionRow({ index, question, answer, isActive, onActivate, onSelect, 
             {question.id === 'use_case' ? (
               <div className="flex flex-col gap-3">
                 <p className="text-sm text-muted">{question.activeHelper}</p>
-                
-                {/* Visual grid of primary subcategories */}
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 mt-2">
-                  {primarySubs.map((sub) => {
-                    const isSelected = answer === sub.label
-                    return (
-                      <button
-                        key={sub.id}
-                        type="button"
-                        onClick={() => onTextChange(sub.label)}
-                        className={`flex items-start gap-3 rounded-xl border p-3.5 text-left transition-colors focus:outline-none focus:ring-2 focus:ring-accent ${
-                          isSelected
-                            ? 'border-accent bg-accent-soft/30 text-ink ring-1 ring-accent'
-                            : 'border-line bg-bg hover:border-line-strong text-ink'
-                        }`}
-                      >
-                        <span className="text-xl" aria-hidden="true">{sub.icon}</span>
-                        <div className="flex flex-col gap-0.5 min-w-0">
-                          <span className="text-sm font-semibold text-ink">{sub.label}</span>
-                          <span className="text-xs text-muted-2 leading-snug">{sub.desc}</span>
+
+                {goals.length === 0 ? (
+                  <p className="rounded-lg border border-line bg-bg-sunk px-3 py-2.5 text-sm text-muted">
+                    Go back and select a goal first — relevant options will appear here.
+                  </p>
+                ) : (
+                  <>
+                    {/* Primary sub-category cards */}
+                    <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 mt-1">
+                      {primarySubs.map((sub) => {
+                        const SubIcon = sub.icon
+                        const isSelected = answer === sub.label
+                        return (
+                          <button
+                            key={sub.id}
+                            type="button"
+                            onClick={() => {
+                              onTextChange(sub.label)
+                              window.setTimeout(() => onNext(), 280)
+                            }}
+                            className={`flex items-center gap-3 rounded-xl border p-3.5 text-left transition-all focus:outline-none focus:ring-2 focus:ring-accent ${
+                              isSelected
+                                ? 'border-accent bg-accent-soft/30 ring-1 ring-accent'
+                                : 'border-line bg-bg hover:border-accent/40 hover:shadow-sm'
+                            }`}
+                          >
+                            <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors ${
+                              isSelected ? 'bg-accent text-bg' : 'bg-bg-sunk text-muted group-hover:bg-accent-soft'
+                            }`}>
+                              <SubIcon className="h-4 w-4" aria-hidden="true" />
+                            </div>
+                            <div className="min-w-0">
+                              <span className="block text-sm font-semibold text-ink">{sub.label}</span>
+                              <span className="block text-xs text-muted-2 leading-snug">{sub.desc}</span>
+                            </div>
+                          </button>
+                        )
+                      })}
+                    </div>
+
+                    {/* Progressive disclosure */}
+                    {(nicheSubs.length > 0 || true) ? (
+                      <div className="mt-0.5">
+                        <button
+                          type="button"
+                          onClick={() => setShowOther(!showOther)}
+                          className="text-xs font-semibold text-accent hover:underline flex items-center gap-1"
+                        >
+                          {showOther ? 'Hide other options' : 'Other options...'}
+                        </button>
+                      </div>
+                    ) : null}
+
+                    {showOther && (
+                      <div className="mt-2 space-y-3 pt-3 border-t border-dashed border-line animate-in fade-in duration-200">
+                        {nicheSubs.length > 0 && (
+                          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+                            {nicheSubs.map((sub) => {
+                              const SubIcon = sub.icon
+                              const isSelected = answer === sub.label
+                              return (
+                                <button
+                                  key={sub.id}
+                                  type="button"
+                                  onClick={() => {
+                                    onTextChange(sub.label)
+                                    window.setTimeout(() => onNext(), 280)
+                                  }}
+                                  className={`flex items-center gap-3 rounded-xl border p-3.5 text-left transition-all focus:outline-none focus:ring-2 focus:ring-accent ${
+                                    isSelected
+                                      ? 'border-accent bg-accent-soft/30 ring-1 ring-accent'
+                                      : 'border-line bg-bg hover:border-accent/40'
+                                  }`}
+                                >
+                                  <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors ${
+                                    isSelected ? 'bg-accent text-bg' : 'bg-bg-sunk text-muted'
+                                  }`}>
+                                    <SubIcon className="h-4 w-4" aria-hidden="true" />
+                                  </div>
+                                  <div className="min-w-0">
+                                    <span className="block text-sm font-semibold text-ink">{sub.label}</span>
+                                    <span className="block text-xs text-muted-2 leading-snug">{sub.desc}</span>
+                                  </div>
+                                </button>
+                              )
+                            })}
+                          </div>
+                        )}
+
+                        <div className="flex flex-col gap-2">
+                          <label htmlFor="custom-use-case" className="text-xs font-medium text-muted">
+                            Describe your own specifics:
+                          </label>
+                          <input
+                            id="custom-use-case"
+                            type="text"
+                            ref={textInputRef}
+                            className="w-full rounded-lg border border-line bg-bg-elev px-3 py-2 text-ink placeholder:text-muted-2 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+                            placeholder="e.g. build a specific API client, translate research documents..."
+                            value={(!allSubs.some(s => s.label === answer) && answer) || ''}
+                            onChange={(e) => onTextChange(e?.target?.value ?? '')}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') { e.preventDefault(); onNext() }
+                            }}
+                            maxLength={120}
+                            style={{ fontSize: 16 }}
+                          />
                         </div>
-                      </button>
-                    )
-                  })}
-                </div>
-
-                {/* Progressive disclosure toggle */}
-                {nicheSubs.length > 0 || true ? (
-                  <div className="mt-1">
-                    <button
-                      type="button"
-                      onClick={() => setShowOther(!showOther)}
-                      className="text-xs font-semibold text-accent hover:underline flex items-center gap-1"
-                    >
-                      {showOther ? 'Hide custom / other options' : 'Other options...'}
-                    </button>
-                  </div>
-                ) : null}
-
-                {/* Niche grid & custom text input shown behind the toggle */}
-                {showOther && (
-                  <div className="mt-2 space-y-4 pt-3 border-t border-dashed border-line animate-in fade-in duration-200">
-                    {nicheSubs.length > 0 && (
-                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                        {nicheSubs.map((sub) => {
-                          const isSelected = answer === sub.label
-                          return (
-                            <button
-                              key={sub.id}
-                              type="button"
-                              onClick={() => onTextChange(sub.label)}
-                              className={`flex items-start gap-3 rounded-xl border p-3.5 text-left transition-colors focus:outline-none focus:ring-2 focus:ring-accent ${
-                                isSelected
-                                  ? 'border-accent bg-accent-soft/30 text-ink ring-1 ring-accent'
-                                  : 'border-line bg-bg hover:border-line-strong text-ink'
-                              }`}
-                            >
-                              <span className="text-xl" aria-hidden="true">{sub.icon}</span>
-                              <div className="flex flex-col gap-0.5 min-w-0">
-                                <span className="text-sm font-semibold text-ink">{sub.label}</span>
-                                <span className="text-xs text-muted-2 leading-snug">{sub.desc}</span>
-                              </div>
-                            </button>
-                          )
-                        })}
                       </div>
                     )}
-
-                    <div className="flex flex-col gap-2">
-                      <label htmlFor="custom-use-case" className="text-xs font-medium text-muted">
-                        Or specify your own custom specifics:
-                      </label>
-                      <input
-                        id="custom-use-case"
-                        type="text"
-                        ref={textInputRef}
-                        className="w-full rounded-lg border border-line bg-bg-elev px-3 py-2 text-ink placeholder:text-muted-2 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
-                        placeholder="e.g. build a specific API client, translate research documents..."
-                        value={(!allSubs.some(s => s.label === answer) && answer) || ''}
-                        onChange={(e) => onTextChange(e?.target?.value ?? '')}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault()
-                            onNext()
-                          }
-                        }}
-                        maxLength={120}
-                        style={{ fontSize: 16 }}
-                      />
-                    </div>
-                  </div>
+                  </>
                 )}
 
                 <div className="flex items-center justify-between gap-3 mt-2">
-                  <span className="text-xs text-muted-2">
-                    Press Continue to proceed or skip
-                  </span>
-                  <Button variant="primary" size="sm" onClick={onNext}>
-                    Continue →
-                  </Button>
+                  <span className="text-xs text-muted-2">Select a category above or press Continue to skip</span>
+                  <Button variant="primary" size="sm" onClick={onNext}>Continue</Button>
                 </div>
               </div>
             ) : question.type === 'text' ? (
@@ -660,27 +703,72 @@ function QuestionRow({ index, question, answer, isActive, onActivate, onSelect, 
             ) : (
               <div className="flex flex-col gap-3">
                 <p className="text-sm text-muted">{question.activeHelper}</p>
-                <div className="flex max-w-full gap-2 overflow-x-auto pb-1.5 scrollbar-none sm:flex-wrap sm:overflow-visible">
-                  {question.options.map((opt) => {
-                    const selected = isMulti
-                      ? Array.isArray(answer) && answer.includes(opt.id)
-                      : answer === opt.id
-                    return (
-                      <button
-                        key={opt.id}
-                        type="button"
-                        onClick={() => onSelect(opt.id)}
-                        className={`shrink-0 rounded-full border px-3 py-1.5 text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
-                          selected
-                            ? 'border-accent bg-accent-soft text-accent-ink'
-                            : 'border-line bg-bg-elev text-ink hover:border-accent'
-                        }`}
-                      >
-                        {opt.label}
-                      </button>
-                    )
-                  })}
-                </div>
+
+                {question.id === 'goal' ? (
+                  // Goal — visual icon cards in a 2×3 grid
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 mt-1">
+                    {question.options.map((opt) => {
+                      const GoalIcon = opt.icon
+                      const selected = Array.isArray(answer) && answer.includes(opt.id)
+                      return (
+                        <button
+                          key={opt.id}
+                          type="button"
+                          onClick={() => onSelect(opt.id)}
+                          className={`group relative flex flex-col gap-2.5 rounded-xl border p-4 text-left transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+                            selected
+                              ? 'border-accent bg-accent-soft/20 shadow-sm ring-1 ring-accent'
+                              : 'border-line bg-bg hover:border-accent/40 hover:shadow-sm'
+                          }`}
+                        >
+                          {selected && (
+                            <span className="absolute top-3 right-3 flex h-4 w-4 items-center justify-center rounded-full bg-accent">
+                              <Check className="h-2.5 w-2.5 text-bg" />
+                            </span>
+                          )}
+                          <div className={`flex h-9 w-9 items-center justify-center rounded-lg transition-colors ${
+                            selected
+                              ? 'bg-accent text-bg'
+                              : 'bg-bg-sunk text-muted group-hover:bg-accent-soft group-hover:text-accent-ink'
+                          }`}>
+                            <GoalIcon className="h-4 w-4" />
+                          </div>
+                          <div>
+                            <span className={`block text-sm font-semibold ${
+                              selected ? 'text-accent-ink' : 'text-ink'
+                            }`}>{opt.label}</span>
+                            <span className="mt-0.5 block text-[11px] leading-snug text-muted">{opt.desc}</span>
+                          </div>
+                        </button>
+                      )
+                    })}
+                  </div>
+                ) : (
+                  // Budget, Platform, Level — horizontal pill chips
+                  <div className="flex max-w-full gap-2 overflow-x-auto pb-1.5 scrollbar-none sm:flex-wrap sm:overflow-visible">
+                    {question.options.map((opt) => {
+                      const selected = isMulti
+                        ? Array.isArray(answer) && answer.includes(opt.id)
+                        : answer === opt.id
+                      return (
+                        <button
+                          key={opt.id}
+                          type="button"
+                          onClick={() => onSelect(opt.id)}
+                          className={`shrink-0 rounded-full border px-3 py-1.5 text-sm transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+                            selected
+                              ? 'border-accent bg-accent-soft text-accent-ink scale-105'
+                              : 'border-line bg-bg-elev text-ink hover:border-accent'
+                          }`}
+                          style={selected ? { animation: 'wf-select-pulse 0.2s ease-out' } : undefined}
+                        >
+                          {opt.label}
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
+
                 {isMulti ? (
                   <div className="flex items-center justify-between gap-3 pt-1">
                     <span className="text-xs text-muted-2">
@@ -694,12 +782,12 @@ function QuestionRow({ index, question, answer, isActive, onActivate, onSelect, 
                       onClick={onNext}
                       disabled={selectedCount === 0}
                     >
-                      Continue →
+                      Continue
                     </Button>
                   </div>
                 ) : (
                   <p className="pt-0.5 text-xs text-muted-2">
-                    Pick one — we&apos;ll jump to the next question automatically.
+                    Pick one — we&apos;ll move to the next question automatically.
                   </p>
                 )}
               </div>
@@ -1239,7 +1327,16 @@ function ToolFinderPage() {
         {!hasStarted ? (
           <TemplateGallery onSelect={handlePredefinedStack} />
         ) : (
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-[1fr_1.2fr] md:gap-8">
+          <>
+            <style>{`
+              @keyframes wf-select-pulse {
+                0%   { transform: scale(1); }
+                50%  { transform: scale(1.06); }
+                100% { transform: scale(1.05); }
+              }
+            `}</style>
+            <WizardProgress answers={answers} />
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-[1fr_1.2fr] md:gap-8">
             <div className="flex flex-col gap-3">
               {QUESTIONS.map((question, idx) => (
                 <QuestionRow
@@ -1287,7 +1384,9 @@ function ToolFinderPage() {
             onSeeResults={() => setViewMode('results')}
           />
         </div>
+          </>
         )}
+
       </section>
     </div>
   )
