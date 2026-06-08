@@ -26,9 +26,12 @@ function slugify(value = '') {
     .replace(/\s+/g, '-')
 }
 
-function Card({ tool = {} }) {
+function Card({ tool = {}, layoutType = 'standard' }) {
   const navigate = useNavigate()
   const [isHovered, setIsHovered] = useState(false)
+
+  const isLarge = layoutType === 'large'
+  const isWide = layoutType === 'wide'
 
   const name = tool.name || 'Unknown Tool'
   const description = tool.shortDescription || tool.description || 'No description available.'
@@ -78,26 +81,30 @@ function Card({ tool = {} }) {
       onBlur={() => setIsHovered(false)}
       whileHover={{ y: -4, boxShadow: 'var(--shadow-lg)' }}
       whileTap={{ scale: 0.98 }}
-      animate={{ minHeight: isHovered ? 248 : 224 }}
+      whileTap={{ scale: 0.98 }}
+      animate={{ minHeight: isHovered ? (isLarge ? 480 : 248) : (isLarge ? 450 : 224) }}
       transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-      className="group relative flex w-full flex-col gap-4 overflow-hidden rounded-2xl border border-line bg-bg-elev p-4 text-left shadow-sm cursor-pointer transition-all hover:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+      className={clsx(
+        "group relative flex w-full flex-col gap-4 overflow-hidden rounded-2xl border border-line bg-bg-elev text-left shadow-sm cursor-pointer transition-all hover:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg",
+        isLarge ? "p-6" : "p-4"
+      )}
     >
       <div className="absolute right-2 top-2 z-10" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
         <CompareToggleButton slug={slug} toolName={name} />
       </div>
 
-      <div className="flex items-start gap-3">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden" aria-hidden="true">
-          <ToolLogo tool={tool} size={48} />
+      <div className={clsx("flex items-start gap-3", isLarge ? "flex-col items-center text-center mt-2" : "")}>
+        <div className={clsx("flex shrink-0 items-center justify-center overflow-hidden", isLarge ? "h-20 w-20" : "h-12 w-12")} aria-hidden="true">
+          <ToolLogo tool={tool} size={isLarge ? 80 : 48} />
         </div>
 
-        <div className="min-w-0 flex-1">
-          <h3 className="truncate text-base font-semibold text-ink">{name}</h3>
+        <div className={clsx("min-w-0 flex-1", isLarge ? "mt-4 w-full" : "")}>
+          <h3 className={clsx("truncate font-semibold text-ink", isLarge ? "text-xl" : "text-base")}>{name}</h3>
           <p
-            className="mt-1 overflow-hidden text-sm text-muted"
+            className={clsx("mt-1 overflow-hidden text-muted", isLarge ? "text-base" : "text-sm")}
             style={{
               display: '-webkit-box',
-              WebkitLineClamp: isHovered ? 3 : 2,
+              WebkitLineClamp: isHovered ? (isLarge ? 6 : 3) : (isLarge ? 4 : 2),
               WebkitBoxOrient: 'vertical',
             }}
           >
@@ -106,7 +113,7 @@ function Card({ tool = {} }) {
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-3">
+      <div className={clsx("flex items-center justify-between gap-3 mt-auto", isLarge ? "flex-wrap justify-center pt-4 border-t border-line" : "")}>
         <Badge label={category} variant={category} />
 
         {hasRealRating ? (
