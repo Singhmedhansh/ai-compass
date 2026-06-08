@@ -1,6 +1,8 @@
-import { SignIn, useUser } from '@clerk/clerk-react'
+import { ClerkProvider, SignIn, useUser } from '@clerk/clerk-react'
 
-export default function ClerkTestPage() {
+const PUBLISHABLE_KEY = "pk_test_aG9uZXN0LW1vbGx5LTM0LmNsZXJrLmFjY291bnRzLmRldiQ"
+
+function ClerkTestContent() {
   const { isLoaded, isSignedIn, user } = useUser()
 
   if (!isLoaded) {
@@ -24,5 +26,13 @@ export default function ClerkTestPage() {
         <SignIn />
       )}
     </div>
+  )
+}
+
+export default function ClerkTestPage() {
+  return (
+    <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
+      <ClerkTestContent />
+    </ClerkProvider>
   )
 }

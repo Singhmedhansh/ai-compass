@@ -87,12 +87,6 @@ export default function FeedbackWidget() {
       // Reset form for next time
       setMessage('')
       setEmail('')
-      // Auto-close after a moment so the success state is visible
-      setTimeout(() => {
-        setOpen(false)
-        // Reset submitted state after the close animation
-        setTimeout(() => setSubmitted(false), 400)
-      }, 1800)
     } catch (err) {
       setError(err.message || 'Could not send feedback. Please try again.')
     } finally {
@@ -165,9 +159,18 @@ export default function FeedbackWidget() {
                 <div className="flex flex-col items-center gap-2 py-6 text-center">
                   <CheckCircle2 className="h-10 w-10 text-accent" />
                   <p className="text-sm font-medium text-ink">Got it — thank you.</p>
-                  <p className="text-xs text-muted">
-                    {email ? 'I&apos;ll reply if a response makes sense.' : 'No reply expected — appreciated all the same.'}
+                  <p className="text-xs text-muted mb-4">
+                    {email ? 'I\'ll reply if a response makes sense.' : 'No reply expected — appreciated all the same.'}
                   </p>
+                  <button
+                    onClick={() => {
+                      setOpen(false)
+                      setTimeout(() => setSubmitted(false), 400)
+                    }}
+                    className="mt-2 rounded-full bg-bg-sunk px-6 py-2 text-sm font-medium text-ink transition-colors hover:bg-line"
+                  >
+                    Close
+                  </button>
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="flex flex-col gap-3">

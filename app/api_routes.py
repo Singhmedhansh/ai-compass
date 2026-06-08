@@ -140,6 +140,21 @@ def _looks_like_question_intent(raw_query: str) -> bool:
     return bool(QUESTION_INTENT_RE.search(raw_query or ""))
 
 
+def _safe_float(v):
+    try:
+        if v in (None, "", "N/A"): return 0.0
+        return float(v)
+    except (ValueError, TypeError):
+        return 0.0
+
+def _safe_int(v):
+    try:
+        if v in (None, "", "N/A"): return 0
+        return int(v)
+    except (ValueError, TypeError):
+        return 0
+
+
 def _local_fuzzy_search(raw_query: str, limit: int = 10, threshold: float = 0.72) -> list[dict]:
     query = str(raw_query or "").strip().lower()
     if len(query) < 2:
@@ -217,11 +232,11 @@ def _search_catalog_tools(raw_query: str, category: str, pricing: str, student_o
             if intent_rule:
                 fuzzy_results = rerank_by_category(fuzzy_results, intent_rule)
             if sort_by == "Rating":
-                fuzzy_results.sort(key=lambda x: float(x.get("rating", 0)), reverse=True)
+                fuzzy_results.sort(key=lambda x: _safe_float(x.get("rating", 0)), reverse=True)
             elif sort_by == "Reviews":
-                fuzzy_results.sort(key=lambda x: int(x.get("review_count", 0)), reverse=True)
+                fuzzy_results.sort(key=lambda x: _safe_int(x.get("review_count", 0)), reverse=True)
             elif sort_by == "Trending":
-                fuzzy_results.sort(key=lambda x: (bool(x.get("trending", False)), float(x.get("rating", 0))), reverse=True)
+                fuzzy_results.sort(key=lambda x: (bool(x.get("trending", False)), _safe_float(x.get("rating", 0))), reverse=True)
             else:
                 fuzzy_results.sort(key=lambda x: x.get("_score", 0), reverse=True)
 
@@ -250,11 +265,11 @@ def _search_catalog_tools(raw_query: str, category: str, pricing: str, student_o
             if intent_rule:
                 fuzzy_results = rerank_by_category(fuzzy_results, intent_rule)
             if sort_by == "Rating":
-                fuzzy_results.sort(key=lambda x: float(x.get("rating", 0)), reverse=True)
+                fuzzy_results.sort(key=lambda x: _safe_float(x.get("rating", 0)), reverse=True)
             elif sort_by == "Reviews":
-                fuzzy_results.sort(key=lambda x: int(x.get("review_count", 0)), reverse=True)
+                fuzzy_results.sort(key=lambda x: _safe_int(x.get("review_count", 0)), reverse=True)
             elif sort_by == "Trending":
-                fuzzy_results.sort(key=lambda x: (bool(x.get("trending", False)), float(x.get("rating", 0))), reverse=True)
+                fuzzy_results.sort(key=lambda x: (bool(x.get("trending", False)), _safe_float(x.get("rating", 0))), reverse=True)
             else:
                 fuzzy_results.sort(key=lambda x: x.get("_score", 0), reverse=True)
 
@@ -268,11 +283,11 @@ def _search_catalog_tools(raw_query: str, category: str, pricing: str, student_o
             }
 
     if sort_by == "Rating":
-        results.sort(key=lambda x: float(x.get("rating", 0)), reverse=True)
+        results.sort(key=lambda x: _safe_float(x.get("rating", 0)), reverse=True)
     elif sort_by == "Reviews":
-        results.sort(key=lambda x: int(x.get("review_count", 0)), reverse=True)
+        results.sort(key=lambda x: _safe_int(x.get("review_count", 0)), reverse=True)
     elif sort_by == "Trending":
-        results.sort(key=lambda x: (bool(x.get("trending", False)), float(x.get("rating", 0))), reverse=True)
+        results.sort(key=lambda x: (bool(x.get("trending", False)), _safe_float(x.get("rating", 0))), reverse=True)
     else:
         results.sort(key=lambda x: x.get("relevance_score", 0), reverse=True)
 
@@ -2068,8 +2083,10 @@ def auth_register():
             <p><a href="{verification_link}">Verify Email</a></p>
             """
             send_email(email, subject, html)
-        except Exception:
+        except Exception as email_exc:
             current_app.logger.exception("Failed to send verification email")
+            db.session.rollback()
+            return jsonify({"error": "Unable to send verification email. Please try again later."}), 500
 
         return jsonify({"message": "Registration successful! Please check your email to verify your account."}), 201
     except Exception as exc:

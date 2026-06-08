@@ -1,7 +1,6 @@
 import './index.css'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { ClerkProvider } from '@clerk/clerk-react'
 import { HelmetProvider } from 'react-helmet-async'
 import { Toaster } from 'sonner'
 import 'sonner/dist/styles.css'
@@ -54,7 +53,6 @@ window.addEventListener('unhandledrejection', (event) => {
 // ---------------------------------------------------------------------------
 
 const originalFetch = window.fetch.bind(window)
-const PUBLISHABLE_KEY = "pk_test_aG9uZXN0LW1vbGx5LTM0LmNsZXJrLmFjY291bnRzLmRldiQ"
 
 window.fetch = (input, init) => {
   if (typeof input === 'string') {
@@ -98,21 +96,19 @@ window.addEventListener('resize', applyAspectRatioFlag)
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
-      <HelmetProvider>
-        <Toaster
-          position="bottom-left"
-          richColors
-          closeButton
-          theme="dark"
-          toastOptions={{
-            classNames: {
-              toast: 'font-medium',
-            },
-          }}
-        />
-        <App />
-      </HelmetProvider>
-    </ClerkProvider>
+    <HelmetProvider>
+      <Toaster
+        position="bottom-left"
+        richColors
+        closeButton
+        theme="dark"
+        toastOptions={{
+          classNames: {
+            toast: 'font-medium',
+          },
+        }}
+      />
+      <App />
+    </HelmetProvider>
   </StrictMode>,
 )

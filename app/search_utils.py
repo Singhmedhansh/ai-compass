@@ -1,6 +1,20 @@
 import sys
 import re
 
+def _safe_float(v):
+    try:
+        if v in (None, "", "N/A"): return 0.0
+        return float(v)
+    except (ValueError, TypeError):
+        return 0.0
+
+def _safe_int(v):
+    try:
+        if v in (None, "", "N/A"): return 0
+        return int(v)
+    except (ValueError, TypeError):
+        return 0
+
 # WHY: semantic path only kicks in for relevance-sorted queries with this much
 # cosine confidence; below this we treat the model as having no opinion and let
 # the keyword scorer run as before.
@@ -453,11 +467,11 @@ def search_tools(raw_query, category_filter="All", pricing_filter_ui="All",
 
     # ── SORT ────────────────────────────────────────────────
     if sort_by == "Rating":
-        results.sort(key=lambda x: float(x.get("rating", 0)), reverse=True)
+        results.sort(key=lambda x: _safe_float(x.get("rating", 0)), reverse=True)
     elif sort_by == "Reviews":
-        results.sort(key=lambda x: int(x.get("review_count", 0)), reverse=True)
+        results.sort(key=lambda x: _safe_int(x.get("review_count", 0)), reverse=True)
     elif sort_by == "Trending":
-        results.sort(key=lambda x: (bool(x.get("trending", False)), float(x.get("rating", 0))), reverse=True)
+        results.sort(key=lambda x: (bool(x.get("trending", False)), _safe_float(x.get("rating", 0))), reverse=True)
     else:  # Relevance (default)
         results.sort(key=lambda x: x["_score"], reverse=True)
 
