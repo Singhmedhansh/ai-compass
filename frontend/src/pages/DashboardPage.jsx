@@ -47,6 +47,7 @@ function normalizeTool(rawTool) {
     category: rawTool?.category || 'General',
     rating: Number(rawTool?.rating || rawTool?.averageRating || rawTool?.average_rating || 0),
     pricing: rawTool?.pricing || rawTool?.price || rawTool?.pricingType || rawTool?.pricing_type || 'Free',
+    pricing_tiers: rawTool?.pricing_tiers || null,
     url: resolvedUrl,
     website: rawTool?.website || resolvedUrl,
     link: rawTool?.link || resolvedUrl,
@@ -100,6 +101,7 @@ function DashboardPage() {
   const [stackBusy, setStackBusy] = useState(false)
   const [recentlyViewedTools, setRecentlyViewedTools] = useState([])
   const [recentlyViewedSlugs, setRecentlyViewedSlugs] = useState(() => readRecentlyViewedSlugs())
+  const [allTools, setAllTools] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -144,15 +146,23 @@ function DashboardPage() {
 
         const userIdForStack = mergedUser?.id || storedUser?.id || ''
 
-        const [recommendationsResponse, favoritesResponse, stackResponse] = await Promise.all([
+        const [recommendationsResponse, favoritesResponse, stackResponse, toolsResponse] = await Promise.all([
           fetch('/api/v1/recommendations', { signal: controller.signal }),
           fetch('/api/v1/favorites', { signal: controller.signal }),
           fetch(`/api/v1/stack?user_id=${encodeURIComponent(userIdForStack)}`, { signal: controller.signal }),
+          fetch('/api/v1/tools', { signal: controller.signal })
         ])
 
         const recommendationsPayload = recommendationsResponse.ok ? await recommendationsResponse.json() : []
         const favoritesPayload = favoritesResponse.ok ? await favoritesResponse.json() : []
         const stackPayload = stackResponse.ok ? await stackResponse.json() : { stack: null }
+        
+        const allToolsPayload = toolsResponse.ok ? await toolsResponse.json() : []
+        const rawTools = Array.isArray(allToolsPayload)
+          ? allToolsPayload
+          : allToolsPayload?.results || allToolsPayload?.tools || []
+        const normalizedAllTools = rawTools.map(normalizeTool)
+        setAllTools(normalizedAllTools)
 
         const normalizedRecommendations = Array.isArray(recommendationsPayload)
           ? recommendationsPayload.map(normalizeTool).slice(0, 6)
@@ -167,27 +177,15 @@ function DashboardPage() {
         const recentSlugs = readRecentlyViewedSlugs()
         setRecentlyViewedSlugs(recentSlugs)
 
+        const toolBySlug = new Map(normalizedAllTools.map((tool) => [String(tool.slug || '').toLowerCase(), tool]))
+
         if (recentSlugs.length > 0) {
-          const toolsResponse = await fetch('/api/v1/tools', { signal: controller.signal })
-          if (toolsResponse.ok) {
-            const allToolsPayload = await toolsResponse.json()
-            // /api/v1/tools returns { results: [...] } — the old code only
-            // accepted a bare array, so Recently Viewed was always empty.
-            const rawTools = Array.isArray(allToolsPayload)
-              ? allToolsPayload
-              : allToolsPayload?.results || allToolsPayload?.tools || []
-            const allTools = rawTools.map(normalizeTool)
-            const toolBySlug = new Map(allTools.map((tool) => [String(tool.slug || '').toLowerCase(), tool]))
+          const recentTools = recentSlugs
+            .map((slug) => toolBySlug.get(slug))
+            .filter(Boolean)
+            .slice(0, 4)
 
-            const recentTools = recentSlugs
-              .map((slug) => toolBySlug.get(slug))
-              .filter(Boolean)
-              .slice(0, 4)
-
-            setRecentlyViewedTools(recentTools)
-          } else {
-            setRecentlyViewedTools([])
-          }
+          setRecentlyViewedTools(recentTools)
         } else {
           setRecentlyViewedTools([])
         }
@@ -219,6 +217,24 @@ function DashboardPage() {
     }
     return categories.size
   }, [favorites, recommendations, recentlyViewedTools])
+
+  const stackCost = useMemo(() => {
+    if (!savedStack?.tools || allTools.length === 0) return 0
+    let total = 0
+    for (const toolName of savedStack.tools) {
+      const tool = allTools.find((t) => String(t.name).toLowerCase() === String(toolName).toLowerCase())
+      if (tool && tool.pricing_tiers && tool.pricing_tiers.tiers) {
+        const paidTiers = tool.pricing_tiers.tiers.filter((t) => typeof t.price_amount === 'number' && t.price_amount > 0)
+        if (paidTiers.length > 0) {
+          total += Math.min(...paidTiers.map((t) => t.price_amount))
+        }
+      }
+    }
+    return total
+  }, [savedStack?.tools, allTools])
+
+  const recommendationsTitle = savedStack?.goal ? `Trending for ${toProperCase(savedStack.goal)}` : 'Recommended for You'
+  const recommendationsSubtitle = savedStack?.goal ? 'Based on your saved stack' : 'Based on your interests'
 
   const startEditStack = () => {
     setDraftTools(Array.isArray(savedStack?.tools) ? [...savedStack.tools] : [])
@@ -282,12 +298,12 @@ function DashboardPage() {
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[16rem_minmax(0,1fr)]">
-        <aside className="rounded-2xl border border-line bg-bg-elev p-4 text-ink shadow-sm lg:sticky lg:top-24 lg:h-fit">
-          <p className="px-2 text-xs font-semibold uppercase tracking-wide text-muted">Dashboard</p>
+        <aside className="py-2 text-ink lg:sticky lg:top-24 lg:h-fit">
+          <p className="px-3 text-xs font-semibold uppercase tracking-wide text-muted">Dashboard</p>
           <nav className="mt-3 space-y-1">
             <button
               type="button"
-              className="flex w-full items-center gap-2 rounded-xl bg-accent-soft px-3 py-2 text-left text-sm font-semibold text-accent-ink"
+              className="flex w-full items-center gap-2 rounded-xl bg-bg-sunk px-3 py-2 text-left text-sm font-semibold text-ink"
             >
               <Home className="h-4 w-4" />
               Overview
@@ -324,7 +340,7 @@ function DashboardPage() {
             variants={fadeUp}
             initial="hidden"
             animate="show"
-            className="rounded-2xl border border-line bg-bg-elev p-6 shadow-sm"
+            className="rounded-xl border border-line bg-bg-elev p-6 shadow-sm"
           >
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
@@ -380,10 +396,9 @@ function DashboardPage() {
               <motion.div
                 key={item.key}
                 variants={fadeUp}
-                whileHover={{ y: -3 }}
-                className="rounded-2xl border border-line bg-bg-elev p-4 shadow-sm transition-shadow hover:shadow-md"
+                className="rounded-xl border border-line bg-bg-elev p-5 shadow-sm transition hover:border-line-strong"
               >
-                <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-lg bg-accent-soft text-accent">
+                <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-bg-sunk text-ink">
                   {item.icon}
                 </div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-muted">{item.label}</p>
@@ -396,14 +411,14 @@ function DashboardPage() {
             ))}
           </motion.section>
 
-          <section className="grid grid-cols-1 gap-3 md:grid-cols-3">
+          <section className="grid grid-cols-1 gap-4 md:grid-cols-3">
             <button
               type="button"
               onClick={() => navigate('/tools')}
-              className="flex items-center justify-between rounded-xl border border-accent bg-accent-soft px-4 py-3 text-left transition hover:bg-accent-soft/80"
+              className="flex items-center justify-between rounded-xl border border-line bg-bg-elev px-4 py-3.5 text-left shadow-sm transition hover:border-line-strong hover:bg-bg-elev/80"
             >
-              <span className="flex items-center gap-2 text-sm font-semibold text-accent-ink">
-                <Grid3X3 className="h-4 w-4" />
+              <span className="flex items-center gap-2 text-sm font-semibold text-ink">
+                <Grid3X3 className="h-4 w-4 text-muted" />
                 Browse Tools
               </span>
             </button>
@@ -411,10 +426,10 @@ function DashboardPage() {
             <button
               type="button"
               onClick={() => navigate('/ai-tool-finder')}
-              className="flex items-center justify-between rounded-xl border border-accent bg-accent-soft px-4 py-3 text-left transition hover:bg-accent-soft/80"
+              className="flex items-center justify-between rounded-xl border border-line bg-bg-elev px-4 py-3.5 text-left shadow-sm transition hover:border-line-strong hover:bg-bg-elev/80"
             >
-              <span className="flex items-center gap-2 text-sm font-semibold text-accent-ink">
-                <Sparkles className="h-4 w-4" />
+              <span className="flex items-center gap-2 text-sm font-semibold text-ink">
+                <Sparkles className="h-4 w-4 text-accent" />
                 Find My AI Stack
               </span>
             </button>
@@ -422,10 +437,10 @@ function DashboardPage() {
             <button
               type="button"
               onClick={() => navigate('/submit')}
-              className="flex items-center justify-between rounded-xl border border-accent bg-accent-soft px-4 py-3 text-left transition hover:bg-accent-soft/80"
+              className="flex items-center justify-between rounded-xl border border-line bg-bg-elev px-4 py-3.5 text-left shadow-sm transition hover:border-line-strong hover:bg-bg-elev/80"
             >
-              <span className="flex items-center gap-2 text-sm font-semibold text-accent-ink">
-                <Wand2 className="h-4 w-4" />
+              <span className="flex items-center gap-2 text-sm font-semibold text-ink">
+                <Wand2 className="h-4 w-4 text-muted" />
                 Submit a Tool
               </span>
             </button>
@@ -442,18 +457,18 @@ function DashboardPage() {
             initial="hidden"
             whileInView="show"
             viewport={{ once: true, margin: '-10% 0px' }}
-            className="rounded-2xl border border-line bg-bg-elev/80 p-4 shadow-sm sm:p-5"
+            className="rounded-xl border border-line bg-bg-elev p-5 shadow-sm"
           >
             <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
               <div>
-                <h2 className="text-xl font-bold text-ink">Recommended for You</h2>
-                <p className="text-sm text-muted">Based on your interests</p>
+                <h2 className="text-xl font-bold text-ink">{recommendationsTitle}</h2>
+                <p className="text-sm text-muted">{recommendationsSubtitle}</p>
               </div>
               <div className="flex items-center gap-2">
-                <span className="rounded-full border border-accent bg-accent-soft px-2.5 py-1 text-xs font-semibold text-accent-ink">
+                <span className="rounded-full bg-bg-sunk px-2.5 py-1 text-xs font-semibold text-ink-2">
                   {recommendations.length} picks
                 </span>
-                <Sparkles className="h-5 w-5 text-accent" />
+                <Sparkles className="h-4 w-4 text-accent" />
               </div>
             </div>
 
@@ -475,20 +490,32 @@ function DashboardPage() {
             initial="hidden"
             whileInView="show"
             viewport={{ once: true, margin: '-10% 0px' }}
-            className="rounded-2xl border border-line bg-bg-elev/80 p-4 shadow-sm sm:p-5"
+            className="rounded-xl border border-line bg-bg-elev p-5 shadow-sm"
           >
             <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
               <div>
                 <h2 className="text-xl font-bold text-ink">My Favorites</h2>
                 <p className="text-sm text-muted">Tools you saved for quick access</p>
               </div>
-              <span className="rounded-full border border-accent bg-accent-soft px-2.5 py-1 text-xs font-semibold text-accent-ink">
-                {favorites.length} saved
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="rounded-full bg-bg-sunk px-2.5 py-1 text-xs font-semibold text-ink-2">
+                  {favorites.length} saved
+                </span>
+                {favorites.length > 0 && (
+                  <Button 
+                    variant="secondary" 
+                    size="sm" 
+                    className="h-7 px-2.5 py-0 text-xs"
+                    onClick={() => navigate('/compare')}
+                  >
+                    Compare Tools
+                  </Button>
+                )}
+              </div>
             </div>
 
             {favorites.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-line-strong bg-bg-sunk p-6 text-center">
+              <div className="rounded-xl border border-dashed border-line-strong bg-bg-sunk p-6 text-center">
                 <p className="text-sm text-muted">No favorites yet</p>
                 <Button className="mt-4" onClick={() => navigate('/tools')}>
                   Explore Tools
@@ -512,14 +539,14 @@ function DashboardPage() {
             <h2 className="text-xl font-bold text-ink">My AI Stack</h2>
 
             {!savedStack ? (
-              <div className="mt-3 rounded-2xl border border-dashed border-line-strong bg-bg-sunk p-6 text-center">
+              <div className="mt-4 rounded-xl border border-dashed border-line-strong bg-bg-sunk p-6 text-center">
                 <p className="text-sm text-muted">No stack saved yet</p>
                 <Button className="mt-4" onClick={() => navigate('/ai-tool-finder')}>
                   Build My Stack
                 </Button>
               </div>
             ) : (
-              <div className="mt-3 rounded-2xl border border-line bg-gradient-to-br from-bg-elev to-accent-soft p-5 shadow-sm">
+              <div className="mt-4 rounded-xl border border-line bg-bg-elev p-6 shadow-sm">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <p className="text-sm font-semibold text-ink">Saved preferences</p>
@@ -573,22 +600,26 @@ function DashboardPage() {
                   </div>
                 </div>
 
-                <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
-                  <div className="rounded-xl border border-line/80 bg-bg-elev/70 px-3 py-2">
+                <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
+                  <div className="rounded-lg border border-line/80 bg-bg-sunk px-3 py-2">
                     <p className="text-[11px] font-semibold uppercase tracking-wide text-muted">Goal</p>
                     <p className="mt-1 text-sm font-semibold text-ink">{toProperCase(savedStack.goal || 'N/A')}</p>
                   </div>
-                  <div className="rounded-xl border border-line/80 bg-bg-elev/70 px-3 py-2">
+                  <div className="rounded-lg border border-line/80 bg-bg-sunk px-3 py-2">
                     <p className="text-[11px] font-semibold uppercase tracking-wide text-muted">Budget</p>
                     <p className="mt-1 text-sm font-semibold text-ink">{toProperCase(savedStack.budget || 'N/A')}</p>
                   </div>
-                  <div className="rounded-xl border border-line/80 bg-bg-elev/70 px-3 py-2">
+                  <div className="rounded-lg border border-line/80 bg-bg-sunk px-3 py-2">
                     <p className="text-[11px] font-semibold uppercase tracking-wide text-muted">Level</p>
                     <p className="mt-1 text-sm font-semibold text-ink">{toProperCase(savedStack.level || 'N/A')}</p>
                   </div>
-                  <div className="rounded-xl border border-accent/80 bg-accent-soft px-3 py-2">
-                    <p className="text-[11px] font-semibold uppercase tracking-wide text-accent-ink">Saved Tools</p>
-                    <p className="mt-1 text-sm font-semibold text-accent-ink">{editingStack ? draftTools.length : (Array.isArray(savedStack.tools) ? savedStack.tools.length : 0)}</p>
+                  <div className="rounded-lg border border-line/80 bg-bg-sunk px-3 py-2">
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-muted">Est. Pro Cost</p>
+                    <p className="mt-1 text-sm font-semibold text-ink">${stackCost}/mo</p>
+                  </div>
+                  <div className="rounded-lg border border-line/80 bg-bg-sunk px-3 py-2">
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-muted">Saved Tools</p>
+                    <p className="mt-1 text-sm font-semibold text-ink">{editingStack ? draftTools.length : (Array.isArray(savedStack.tools) ? savedStack.tools.length : 0)}</p>
                   </div>
                 </div>
 
@@ -602,14 +633,14 @@ function DashboardPage() {
                         draftTools.map((toolName, index) => (
                           <span
                             key={`draft-tool-${index}`}
-                            className="inline-flex items-center gap-1.5 rounded-full border border-line/80 bg-bg-elev px-3 py-1.5 text-xs font-medium text-ink-2 shadow-sm"
+                            className="inline-flex items-center gap-1.5 rounded-md border border-line bg-bg-sunk px-3 py-1.5 text-sm font-medium text-ink shadow-sm"
                           >
                             {toolName}
                             <button
                               type="button"
                               aria-label={`Remove ${toolName}`}
                               onClick={() => setDraftTools((d) => d.filter((_, i) => i !== index))}
-                              className="text-muted transition hover:text-danger"
+                              className="text-muted transition hover:text-danger ml-1"
                             >
                               ×
                             </button>
@@ -622,7 +653,7 @@ function DashboardPage() {
                       savedStack.tools.map((toolName, index) => (
                         <span
                           key={`saved-stack-tool-${index}`}
-                          className="rounded-full border border-line/80 bg-bg-elev px-3 py-1.5 text-xs font-medium text-ink-2 shadow-sm"
+                          className="rounded-md border border-line bg-bg-sunk px-3 py-1.5 text-sm font-medium text-ink shadow-sm"
                         >
                           {toolName}
                         </span>
