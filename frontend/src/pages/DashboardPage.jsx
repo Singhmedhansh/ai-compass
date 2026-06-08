@@ -600,66 +600,70 @@ function DashboardPage() {
                   </div>
                 </div>
 
-                <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
-                  <div className="rounded-lg border border-line/80 bg-bg-sunk px-3 py-2">
+                <div className="mt-5 grid grid-cols-2 gap-y-4 sm:grid-cols-3 lg:grid-cols-5">
+                  <div className="border-l-2 border-accent pl-3 first:border-l-0 first:pl-0">
                     <p className="text-[11px] font-semibold uppercase tracking-wide text-muted">Goal</p>
-                    <p className="mt-1 text-sm font-semibold text-ink">{toProperCase(savedStack.goal || 'N/A')}</p>
+                    <p className="mt-1 text-sm font-bold text-ink">{toProperCase(savedStack.goal || 'N/A')}</p>
                   </div>
-                  <div className="rounded-lg border border-line/80 bg-bg-sunk px-3 py-2">
+                  <div className="border-l-2 border-line pl-3">
                     <p className="text-[11px] font-semibold uppercase tracking-wide text-muted">Budget</p>
-                    <p className="mt-1 text-sm font-semibold text-ink">{toProperCase(savedStack.budget || 'N/A')}</p>
+                    <p className="mt-1 text-sm font-bold text-ink">{toProperCase(savedStack.budget || 'N/A')}</p>
                   </div>
-                  <div className="rounded-lg border border-line/80 bg-bg-sunk px-3 py-2">
+                  <div className="border-l-2 border-line pl-3">
                     <p className="text-[11px] font-semibold uppercase tracking-wide text-muted">Level</p>
-                    <p className="mt-1 text-sm font-semibold text-ink">{toProperCase(savedStack.level || 'N/A')}</p>
+                    <p className="mt-1 text-sm font-bold text-ink">{toProperCase(savedStack.level || 'N/A')}</p>
                   </div>
-                  <div className="rounded-lg border border-line/80 bg-bg-sunk px-3 py-2">
+                  <div className="border-l-2 border-line pl-3">
                     <p className="text-[11px] font-semibold uppercase tracking-wide text-muted">Est. Pro Cost</p>
-                    <p className="mt-1 text-sm font-semibold text-ink">${stackCost}/mo</p>
+                    <p className="mt-1 text-sm font-bold text-ink">${stackCost}/mo</p>
                   </div>
-                  <div className="rounded-lg border border-line/80 bg-bg-sunk px-3 py-2">
+                  <div className="border-l-2 border-line pl-3">
                     <p className="text-[11px] font-semibold uppercase tracking-wide text-muted">Saved Tools</p>
-                    <p className="mt-1 text-sm font-semibold text-ink">{editingStack ? draftTools.length : (Array.isArray(savedStack.tools) ? savedStack.tools.length : 0)}</p>
+                    <p className="mt-1 text-sm font-bold text-ink">{editingStack ? draftTools.length : (Array.isArray(savedStack.tools) ? savedStack.tools.length : 0)}</p>
                   </div>
                 </div>
 
-                <div className="mt-5">
-                  <p className="text-sm font-semibold text-ink">
-                    {editingStack ? 'Edit tools — tap × to remove' : 'Saved tools'}
-                  </p>
+                <div className="mt-6 border-t border-line pt-5">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-muted">Saved tools</p>
                   <div className="mt-2 flex flex-wrap gap-2">
                     {editingStack ? (
                       draftTools.length > 0 ? (
-                        draftTools.map((toolName, index) => (
-                          <span
-                            key={`draft-tool-${index}`}
-                            className="inline-flex items-center gap-1.5 rounded-md border border-line bg-bg-sunk px-3 py-1.5 text-sm font-medium text-ink shadow-sm"
-                          >
-                            {toolName}
-                            <button
-                              type="button"
-                              aria-label={`Remove ${toolName}`}
-                              onClick={() => setDraftTools((d) => d.filter((_, i) => i !== index))}
-                              className="text-muted transition hover:text-danger ml-1"
+                        draftTools.map((toolSlug, index) => {
+                          const tool = allTools.find((t) => String(t.slug || t.name).toLowerCase() === String(toolSlug).toLowerCase())
+                          return (
+                            <span
+                              key={`draft-tool-${index}`}
+                              className="inline-flex items-center gap-1.5 rounded-md border border-line bg-bg-sunk px-3 py-1.5 text-sm font-medium text-ink shadow-sm"
                             >
-                              ×
-                            </button>
-                          </span>
-                        ))
+                              {tool ? tool.name : toolSlug}
+                              <button
+                                type="button"
+                                aria-label={`Remove ${tool ? tool.name : toolSlug}`}
+                                onClick={() => setDraftTools((d) => d.filter((_, i) => i !== index))}
+                                className="ml-1 text-muted transition hover:text-danger"
+                              >
+                                ×
+                              </button>
+                            </span>
+                          )
+                        })
                       ) : (
                         <p className="text-sm text-muted">No tools — Cancel, or Clear the stack.</p>
                       )
                     ) : Array.isArray(savedStack.tools) && savedStack.tools.length > 0 ? (
-                      savedStack.tools.map((toolName, index) => (
-                        <span
-                          key={`saved-stack-tool-${index}`}
-                          className="rounded-md border border-line bg-bg-sunk px-3 py-1.5 text-sm font-medium text-ink shadow-sm"
-                        >
-                          {toolName}
-                        </span>
-                      ))
+                      savedStack.tools.map((toolSlug, index) => {
+                        const tool = allTools.find((t) => String(t.slug || t.name).toLowerCase() === String(toolSlug).toLowerCase())
+                        return (
+                          <span
+                            key={`saved-stack-tool-${index}`}
+                            className="rounded-md border border-line bg-bg-elev px-3 py-1.5 text-sm font-medium text-ink shadow-sm"
+                          >
+                            {tool ? tool.name : toolSlug}
+                          </span>
+                        )
+                      })
                     ) : (
-                      <p className="text-sm text-muted">No tools in saved stack</p>
+                      <p className="text-sm text-muted">No tools saved in stack.</p>
                     )}
                   </div>
                 </div>
