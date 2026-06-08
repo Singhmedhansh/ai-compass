@@ -555,41 +555,41 @@ function DashboardPage() {
                   <div className="flex flex-wrap gap-2">
                     {editingStack ? (
                       <>
-                        <Button
-                          type="button"
-                          className="h-9 rounded-lg px-3 text-xs"
-                          disabled={stackBusy}
-                          onClick={saveStackEdits}
-                        >
-                          {stackBusy ? 'Saving…' : 'Save changes'}
-                        </Button>
                         <button
                           type="button"
-                          className="h-9 rounded-lg border border-line-strong px-3 text-xs font-semibold text-ink-2 transition hover:bg-bg-sunk"
-                          onClick={() => setEditingStack(false)}
+                          className="h-9 rounded-lg border border-line-strong px-4 text-xs font-semibold text-ink-2 transition hover:bg-bg-sunk"
+                          onClick={cancelEditStack}
                         >
                           Cancel
                         </button>
+                        <Button
+                          type="button"
+                          className="h-9 rounded-lg px-4 text-xs shadow-md"
+                          disabled={stackBusy}
+                          onClick={saveEditedStack}
+                        >
+                          {stackBusy ? 'Saving…' : 'Save Changes'}
+                        </Button>
                       </>
                     ) : (
                       <>
                         <button
                           type="button"
-                          className="h-9 rounded-lg border border-line-strong px-3 text-xs font-semibold text-ink-2 transition hover:bg-bg-sunk"
+                          className="h-9 rounded-lg border border-line-strong px-3 text-xs font-semibold text-ink-2 shadow-sm transition hover:bg-bg-sunk"
                           onClick={startEditStack}
                         >
                           Edit stack
                         </button>
                         <button
                           type="button"
-                          className="h-9 rounded-lg border border-line-strong px-3 text-xs font-semibold text-ink-2 transition hover:bg-bg-sunk"
+                          className="h-9 rounded-lg border border-line-strong px-3 text-xs font-semibold text-ink-2 shadow-sm transition hover:bg-bg-sunk"
                           onClick={() => navigate('/ai-tool-finder')}
                         >
                           Rebuild
                         </button>
                         <button
                           type="button"
-                          className="h-9 rounded-lg border border-danger/40 px-3 text-xs font-semibold text-danger transition hover:bg-danger-soft"
+                          className="h-9 rounded-lg border border-danger/40 px-3 text-xs font-semibold text-danger shadow-sm transition hover:bg-danger-soft"
                           disabled={stackBusy}
                           onClick={clearStack}
                         >
@@ -623,33 +623,52 @@ function DashboardPage() {
                   </div>
                 </div>
 
-                <div className="mt-6 border-t border-line pt-5">
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-muted">Saved tools</p>
-                  <div className="mt-2 flex flex-wrap gap-2">
+                <div className={`mt-6 border-t border-line pt-5 transition-all ${editingStack ? 'scale-[1.01]' : ''}`}>
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-muted">
+                    {editingStack ? 'Manage Stack Tools' : 'Saved tools'}
+                  </p>
+                  <div className={`mt-2 flex flex-wrap items-center gap-2 ${editingStack ? 'rounded-xl border border-dashed border-accent/50 bg-accent/5 p-4 shadow-inner' : ''}`}>
                     {editingStack ? (
-                      draftTools.length > 0 ? (
-                        draftTools.map((toolSlug, index) => {
+                      <>
+                        {draftTools.map((toolSlug, index) => {
                           const tool = allTools.find((t) => String(t.slug || t.name).toLowerCase() === String(toolSlug).toLowerCase())
                           return (
                             <span
                               key={`draft-tool-${index}`}
-                              className="inline-flex items-center gap-1.5 rounded-md border border-line bg-bg-sunk px-3 py-1.5 text-sm font-medium text-ink shadow-sm"
+                              className="group inline-flex cursor-default items-center gap-1.5 rounded-md border border-accent/30 bg-bg-elev px-3 py-1.5 text-sm font-medium text-ink shadow-sm transition-all hover:border-danger/40 hover:bg-danger-soft hover:text-danger"
                             >
                               {tool ? tool.name : toolSlug}
                               <button
                                 type="button"
                                 aria-label={`Remove ${tool ? tool.name : toolSlug}`}
                                 onClick={() => setDraftTools((d) => d.filter((_, i) => i !== index))}
-                                className="ml-1 text-muted transition hover:text-danger"
+                                className="ml-1 text-muted opacity-60 transition group-hover:text-danger group-hover:opacity-100"
                               >
                                 ×
                               </button>
                             </span>
                           )
-                        })
-                      ) : (
-                        <p className="text-sm text-muted">No tools — Cancel, or Clear the stack.</p>
-                      )
+                        })}
+                        <select
+                          value=""
+                          onChange={(e) => {
+                            if (e.target.value) {
+                              setDraftTools((prev) => [...prev, e.target.value])
+                            }
+                          }}
+                          className="h-9 min-w-[140px] cursor-pointer rounded-md border border-dashed border-line-strong bg-transparent px-3 py-1.5 text-sm font-medium text-ink-2 outline-none transition focus:border-accent focus:ring-1 focus:ring-accent hover:border-accent hover:text-ink"
+                        >
+                          <option value="" disabled>+ Add tool...</option>
+                          {allTools
+                            .filter((t) => !draftTools.includes(t.slug))
+                            .sort((a, b) => a.name.localeCompare(b.name))
+                            .map((t) => (
+                              <option key={t.slug} value={t.slug}>
+                                {t.name}
+                              </option>
+                            ))}
+                        </select>
+                      </>
                     ) : Array.isArray(savedStack.tools) && savedStack.tools.length > 0 ? (
                       savedStack.tools.map((toolSlug, index) => {
                         const tool = allTools.find((t) => String(t.slug || t.name).toLowerCase() === String(toolSlug).toLowerCase())
