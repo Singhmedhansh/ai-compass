@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect } from 'react'
-import { BrowserRouter, Routes, Route, useLocation, useNavigate, useOutlet } from 'react-router-dom'
-import { AnimatePresence, MotionConfig } from 'framer-motion'
+import { BrowserRouter, Routes, Route, useLocation, useNavigate, Outlet } from 'react-router-dom'
+import { MotionConfig } from 'framer-motion'
 import { HelmetProvider } from 'react-helmet-async'
 
 import ErrorBoundary from './components/ErrorBoundary'
@@ -61,18 +61,15 @@ function RouteFallback() {
 
 function TransitionLayout() {
   const location = useLocation()
-  const currentOutlet = useOutlet()
   
   return (
-    <AnimatePresence mode="wait" initial={false}>
-      <RouteTransition key={location.pathname}>
-        <ErrorBoundary key={location.pathname}>
-          <Suspense fallback={<RouteFallback />}>
-            {currentOutlet}
-          </Suspense>
-        </ErrorBoundary>
-      </RouteTransition>
-    </AnimatePresence>
+    <RouteTransition key={location.pathname}>
+      <ErrorBoundary key={location.pathname}>
+        <Suspense fallback={<RouteFallback />}>
+          <Outlet />
+        </Suspense>
+      </ErrorBoundary>
+    </RouteTransition>
   )
 }
 

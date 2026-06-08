@@ -1,3 +1,4 @@
+import { forwardRef } from 'react'
 import { motion } from 'framer-motion'
 
 import { pageEnter } from '../lib/motion'
@@ -14,9 +15,10 @@ const MotionDiv = motion.div
  * was only consumed by AdminPage and never functioned globally
  * because App.jsx's AnimatePresence had no keyed children).
  */
-export default function RouteTransition({ children }) {
+const RouteTransition = forwardRef(function RouteTransition({ children }, ref) {
   return (
     <MotionDiv
+      ref={ref}
       variants={pageEnter}
       initial="initial"
       animate="animate"
@@ -25,4 +27,6 @@ export default function RouteTransition({ children }) {
       {children}
     </MotionDiv>
   )
-}
+})
+
+export default RouteTransition
