@@ -15,15 +15,6 @@ const FALLBACK_TOOL_COUNT = 400
 
 const STUDENT_TOP_FALLBACK = [
   {
-    slug: 'chatgpt',
-    name: 'ChatGPT',
-    tagline: 'Fast all-rounder for writing, coding, and brainstorming',
-    pricing: 'Free',
-    student_friendly: true,
-    featured: true,
-    url: 'chatgpt.com',
-  },
-  {
     slug: 'claude',
     name: 'Claude',
     tagline: 'Strong for long documents and careful reasoning',
@@ -31,6 +22,15 @@ const STUDENT_TOP_FALLBACK = [
     student_friendly: true,
     featured: true,
     url: 'claude.ai',
+  },
+  {
+    slug: 'chatgpt',
+    name: 'ChatGPT',
+    tagline: 'Fast all-rounder for writing, coding, and brainstorming',
+    pricing: 'Free',
+    student_friendly: true,
+    featured: true,
+    url: 'chatgpt.com',
   },
   {
     slug: 'github-copilot',
