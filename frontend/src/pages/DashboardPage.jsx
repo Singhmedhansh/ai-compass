@@ -104,6 +104,7 @@ function DashboardPage() {
   const [allTools, setAllTools] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [copiedStack, setCopiedStack] = useState(false)
 
   useEffect(() => {
     const controller = new AbortController()
@@ -235,6 +236,17 @@ function DashboardPage() {
 
   const recommendationsTitle = savedStack?.goal ? `Trending for ${toProperCase(savedStack.goal)}` : 'Recommended for You'
   const recommendationsSubtitle = savedStack?.goal ? 'Based on your saved stack' : 'Based on your interests'
+
+  const shareStack = () => {
+    if (!user?.id) return
+    try {
+      navigator.clipboard.writeText(window.location.origin + `/stacks/${user.id}`)
+      setCopiedStack(true)
+      setTimeout(() => setCopiedStack(false), 2000)
+    } catch (err) {
+      // noop
+    }
+  }
 
   const startEditStack = () => {
     setDraftTools(Array.isArray(savedStack?.tools) ? [...savedStack.tools] : [])
@@ -573,6 +585,13 @@ function DashboardPage() {
                       </>
                     ) : (
                       <>
+                        <button
+                          type="button"
+                          className="h-9 rounded-lg border border-accent px-3 text-xs font-semibold text-accent shadow-sm transition hover:bg-accent-soft"
+                          onClick={shareStack}
+                        >
+                          {copiedStack ? 'Link Copied!' : 'Share stack'}
+                        </button>
                         <button
                           type="button"
                           className="h-9 rounded-lg border border-line-strong px-3 text-xs font-semibold text-ink-2 shadow-sm transition hover:bg-bg-sunk"

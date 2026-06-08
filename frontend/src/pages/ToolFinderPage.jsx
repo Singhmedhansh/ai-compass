@@ -808,6 +808,7 @@ function QuestionRow({ index, question, answer, isActive, onActivate, onSelect, 
 }
 
 function PreviewCard({ tool, rank }) {
+  const navigate = useNavigate()
   const tierBits = [tool.pricing, tool.platformLabel].filter(Boolean).join(' · ')
 
   return (
@@ -825,6 +826,7 @@ function PreviewCard({ tool, rank }) {
         } catch (e) {
           /* noop */
         }
+        navigate(`/tools/${tool.slug || ''}`)
       }}
     >
       <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg bg-bg-sunk" aria-hidden="true">
@@ -837,7 +839,7 @@ function PreviewCard({ tool, rank }) {
         </div>
         <p className="mt-1 text-sm italic leading-snug text-muted">
           <span className="mr-1.5 not-italic text-[11px] font-semibold uppercase tracking-wide text-accent-ink">why</span>
-          {tool.reason}
+          {tool.reason || tool._reason}
         </p>
         <div className="mt-2 flex justify-end">
           {getToolUrl(tool) ? (
@@ -845,6 +847,7 @@ function PreviewCard({ tool, rank }) {
               href={getToolUrl(tool)}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
               className="text-accent text-xs font-medium hover:translate-x-1 transition-transform inline-block"
             >
               Explore →
@@ -853,8 +856,6 @@ function PreviewCard({ tool, rank }) {
         </div>
       </div>
       <span className="font-mono text-xs text-muted-2">#{rank}</span>
-
-      
     </div>
   )
 }
@@ -1253,13 +1254,10 @@ function ToolFinderPage() {
               return (
                 <article
                   key={toolKey}
-                  className="group relative flex h-full min-w-0 flex-col rounded-2xl border border-line bg-bg-elev p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:border-accent hover:shadow-md"
+                  onClick={() => navigate(`/tools/${tool.slug || ''}`)}
+                  className="group relative flex h-full min-w-0 flex-col rounded-2xl border border-line bg-bg-elev p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:border-accent hover:shadow-md cursor-pointer"
                 >
-                  <button
-                    type="button"
-                    onClick={() => navigate(`/tools/${tool.slug || ''}`)}
-                    className="flex items-start gap-3 text-left"
-                  >
+                  <div className="flex items-start gap-3">
                     <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-bg-sunk" aria-hidden="true">
                       <ToolLogo tool={tool} size={36} />
                     </div>
@@ -1272,9 +1270,9 @@ function ToolFinderPage() {
                       </div>
                       <p className="mt-0.5 truncate text-xs text-muted">{tool.category || 'General'}</p>
                     </div>
-                  </button>
+                  </div>
 
-                  <p className="mt-3 line-clamp-2 text-xs italic leading-snug text-muted">✨ {tool.reason}</p>
+                  <p className="mt-3 line-clamp-2 text-xs italic leading-snug text-muted">✨ {tool.reason || tool._reason}</p>
                   <p className="mt-2 line-clamp-2 text-sm leading-snug text-ink-2">{tool.description}</p>
 
                   <div className="mt-3 flex flex-wrap gap-1.5">
@@ -1290,6 +1288,7 @@ function ToolFinderPage() {
                     href={getToolUrl(tool)}
                     target="_blank"
                     rel={OUTBOUND_REL}
+                    onClick={(e) => e.stopPropagation()}
                     className="mt-4 inline-flex h-9 w-full items-center justify-center gap-2 rounded-lg bg-accent px-4 text-xs font-semibold text-bg transition-opacity hover:opacity-90"
                   >
                     Visit Tool

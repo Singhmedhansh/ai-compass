@@ -34,9 +34,13 @@ function getFallbackLetter(tool) {
 }
 
 function ToolLogo({ tool, size = 48 }) {
+  const customIcon = tool?.icon || tool?.logoUrl || tool?.logo_url
   const domain = getDomain(tool?.url || tool?.website || tool?.link)
-  // 'favicon' -> 'emoji' (if available) -> 'letter'
-  const [stage, setStage] = useState(domain ? 'favicon' : (getEmoji(tool) ? 'emoji' : 'letter'))
+  
+  // 'custom' -> 'favicon' -> 'emoji' -> 'letter'
+  const [stage, setStage] = useState(
+    customIcon ? 'custom' : (domain ? 'favicon' : (getEmoji(tool) ? 'emoji' : 'letter'))
+  )
 
   const boxStyle = {
     width: size,
@@ -46,6 +50,23 @@ function ToolLogo({ tool, size = 48 }) {
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
+  }
+
+  if (stage === 'custom' && customIcon) {
+    return (
+      <img
+        src={customIcon}
+        alt={tool?.name ? `${tool.name} logo` : 'Tool logo'}
+        loading="lazy"
+        style={{
+          ...boxStyle,
+          objectFit: 'contain',
+          background: '#fff',
+          padding: 3,
+        }}
+        onError={() => setStage(domain ? 'favicon' : (getEmoji(tool) ? 'emoji' : 'letter'))}
+      />
+    )
   }
 
   if (stage === 'favicon' && domain) {

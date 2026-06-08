@@ -271,7 +271,18 @@ def get_similar_tools(slug, limit=4):
 
     model = load_model()
     if not model:
-        return []
+        try:
+            from app.tool_cache import get_cached_tools, _tool_slug
+            tools = get_cached_tools() or []
+            current_tool = next((t for t in tools if _tool_slug(t) == slug), None)
+            if not current_tool:
+                return []
+            category = current_tool.get("category")
+            candidates = [t for t in tools if t.get("category") == category and _tool_slug(t) != slug]
+            candidates.sort(key=lambda t: (float(t.get("rating", 0.0) or 0.0), t.get("name", "").lower()), reverse=True)
+            return candidates[:limit]
+        except Exception:
+            return []
 
     tool_index = model['tool_index']
     similarity_matrix = model['similarity_matrix']

@@ -1494,6 +1494,22 @@ def get_collection(slug: str):
                 tool_copy["user_rating_count"] = rated_slugs[slug_key]["count"]
                 collection_tools.append(tool_copy)
 
+        # Fallback: if we have fewer than 12 rated tools in the DB, fill with the highest-rated static tools from cache.
+        if len(collection_tools) < 12:
+            existing_slugs = {t.get("slug") or _tool_slug(t) for t in collection_tools}
+            sorted_by_static = sorted(tools, key=lambda t: _safe_float(t.get("rating")), reverse=True)
+            for tool in sorted_by_static:
+                slug_key = _tool_slug(tool)
+                if slug_key not in existing_slugs:
+                    tool_copy = dict(tool)
+                    # Use static rating & review count as fallback metrics
+                    tool_copy["user_rating"] = _safe_float(tool.get("rating"))
+                    tool_copy["user_rating_count"] = _safe_int(tool.get("review_count") or 5)
+                    collection_tools.append(tool_copy)
+                    existing_slugs.add(slug_key)
+                if len(collection_tools) >= 24:
+                    break
+
         collection_tools.sort(
             key=lambda t: float(t.get("user_rating", 0) or 0),
             reverse=True,
@@ -2213,6 +2229,12 @@ def get_stack():
     try:
         stack = json.loads(row.tools_json)
         stack['user_id'] = user_id
+        from app.models import User
+        owner = User.query.get(user_id)
+        if owner:
+            stack['owner_name'] = owner.display_name or owner.email.split('@')[0]
+        else:
+            stack['owner_name'] = f"User {user_id}"
     except (ValueError, TypeError):
         return jsonify({'stack': None}), 200
     return jsonify({'stack': stack}), 200
