@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client'
 import { ClerkProvider } from '@clerk/clerk-react'
 import { HelmetProvider } from 'react-helmet-async'
 import { Toaster } from 'sonner'
+import 'sonner/dist/styles.css'
 import App from './App.jsx'
 import { toApiUrl } from './config/api.js'
 
@@ -100,18 +101,13 @@ createRoot(document.getElementById('root')).render(
     <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
       <HelmetProvider>
         <Toaster
-          position="top-right"
+          position="bottom-left"
+          richColors
           closeButton
+          theme="dark"
           toastOptions={{
-            style: {
-              background: 'var(--bg-elev)',
-              color: 'var(--ink)',
-              border: '1px solid var(--line)',
-              boxShadow: 'var(--shadow-lg, 0 8px 24px rgba(0,0,0,0.12))',
-            },
             classNames: {
-              closeButton:
-                'border border-line bg-bg-elev text-ink-2 hover:bg-bg-sunk',
+              toast: 'font-medium',
             },
           }}
         />
