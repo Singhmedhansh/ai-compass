@@ -21,6 +21,7 @@ const STUDENT_TOP_FALLBACK = [
     pricing: 'Free',
     student_friendly: true,
     featured: true,
+    url: 'chatgpt.com',
   },
   {
     slug: 'claude',
@@ -29,6 +30,7 @@ const STUDENT_TOP_FALLBACK = [
     pricing: 'Free',
     student_friendly: true,
     featured: true,
+    url: 'claude.ai',
   },
   {
     slug: 'github-copilot',
@@ -37,6 +39,7 @@ const STUDENT_TOP_FALLBACK = [
     pricing: 'Free',
     student_friendly: true,
     featured: true,
+    url: 'github.com/features/copilot',
   },
   {
     slug: 'perplexity-ai',
@@ -44,6 +47,7 @@ const STUDENT_TOP_FALLBACK = [
     tagline: 'Research with citations and quick source finding',
     pricing: 'Free',
     student_friendly: true,
+    url: 'perplexity.ai',
   },
   {
     slug: 'notion-ai',
@@ -51,6 +55,7 @@ const STUDENT_TOP_FALLBACK = [
     tagline: 'Notes, planning, and study guides in one workspace',
     pricing: 'Free',
     student_friendly: true,
+    url: 'notion.so/product/ai',
   },
   {
     slug: 'grammarly',
@@ -58,6 +63,7 @@ const STUDENT_TOP_FALLBACK = [
     tagline: 'Last-pass writing polish for essays and emails',
     pricing: 'Free',
     student_friendly: true,
+    url: 'grammarly.com',
   },
 ]
 
