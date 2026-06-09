@@ -67,7 +67,7 @@ function Navbar() {
     }
 
     const storedTheme = window.localStorage.getItem(STORAGE_KEY)
-    setIsDark(storedTheme ? storedTheme === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches)
+    setIsDark(storedTheme === 'dark')
   }
 
   useEffect(() => {

@@ -150,8 +150,6 @@ export default function OnboardingTour() {
     }
   ]
 
-  const StepIcon = steps[currentStep].icon
-
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       {/* Dimmed backdrop */}
@@ -189,14 +187,9 @@ export default function OnboardingTour() {
           </div>
 
           {/* Heading */}
-          <div className="flex flex-col items-center gap-2 mt-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent-soft text-accent-ink">
-              <StepIcon className="h-5 w-5" />
-            </div>
-            <h3 className="text-xl font-bold text-ink tracking-tight mt-1">
-              {steps[currentStep].title}
-            </h3>
-          </div>
+          <h3 className="text-xl font-bold text-ink tracking-tight mt-2">
+            {steps[currentStep].title}
+          </h3>
 
           {/* Description */}
           <p className="text-sm text-ink-2 leading-relaxed max-w-sm">

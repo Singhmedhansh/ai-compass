@@ -13,8 +13,6 @@
         var stored = localStorage.getItem('ai-compass-theme');
         if (stored === 'dark') {
           document.documentElement.setAttribute('data-theme', 'dark');
-        } else if (stored !== 'light' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-          document.documentElement.setAttribute('data-theme', 'dark');
         }
       } catch (e) {}
     </script>
