@@ -299,6 +299,12 @@ function Navbar() {
             </Button>
           </Link>
 
+          <Link to="/syllabus-parser">
+            <Button variant="ghost" size="sm" className="text-ink-2">
+              Syllabus Parser
+            </Button>
+          </Link>
+
           <div
             className="relative"
             ref={guidesMenuRef}
@@ -583,6 +589,13 @@ function Navbar() {
                   className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
                 >
                   Help Center
+                </Link>
+                <Link
+                  to="/syllabus-parser"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
+                >
+                  Syllabus Parser
                 </Link>
                 <Link
                   to="/best-ai-tools-for-students"

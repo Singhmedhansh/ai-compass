@@ -68,6 +68,7 @@ const PRODUCT_LINKS = [
   { label: 'Collections', to: '/collections' },
   { label: 'Submit a tool', to: '/submit' },
   { label: 'Help Center', to: '/help' },
+  { label: 'Syllabus Parser', to: '/syllabus-parser' },
 ]
 
 const GUIDES_LINKS = [

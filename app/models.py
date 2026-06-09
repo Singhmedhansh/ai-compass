@@ -307,3 +307,15 @@ class Feedback(db.Model):
     )
 
     user = db.relationship("User", lazy="joined")
+
+
+class SyllabusStack(db.Model):
+    __tablename__ = "syllabus_stacks"
+
+    id = db.Column(db.Integer, primary_key=True)
+    share_id = db.Column(db.String(255), unique=True, nullable=False, index=True)
+    course_name = db.Column(db.String(255), nullable=True)
+    subject_area = db.Column(db.String(255), nullable=True)
+    tools_json = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc), index=True)
+

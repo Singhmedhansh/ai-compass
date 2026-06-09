@@ -51,6 +51,8 @@ const BestJasperAlternatives = lazy(() => import('./pages/BestJasperAlternatives
 const BestMurfAlternatives = lazy(() => import('./pages/BestMurfAlternatives'))
 const BestSynthesiaAlternatives = lazy(() => import('./pages/BestSynthesiaAlternatives'))
 const BestAIToolsForFictionWriters = lazy(() => import('./pages/BestAIToolsForFictionWriters'))
+const SyllabusParserPage = lazy(() => import('./pages/SyllabusParserPage'))
+const SharedToolkitPage = lazy(() => import('./pages/SharedToolkitPage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 
 function ScrollToTop() {
@@ -132,6 +134,8 @@ function AnimatedRoutes() {
             <Route path="/best-murf-alternatives" element={<BestMurfAlternatives />} />
             <Route path="/best-synthesia-alternatives" element={<BestSynthesiaAlternatives />} />
             <Route path="/best-ai-tools-for-fiction-writers" element={<BestAIToolsForFictionWriters />} />
+            <Route path="/syllabus-parser" element={<SyllabusParserPage />} />
+            <Route path="/shared-toolkit/:shareId" element={<SharedToolkitPage />} />
             <Route path="*" element={<NotFoundPage />} />
         </Route>
     </Routes>

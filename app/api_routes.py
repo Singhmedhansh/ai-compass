@@ -2809,6 +2809,69 @@ def admin_analytics():
     })
 
 
+@api_bp.post("/parse-syllabus")
+@csrf.exempt
+def parse_syllabus():
+    from app.services.syllabus_parser import process_syllabus_and_build_toolkit
+    
+    file = request.files.get("file")
+    text = request.form.get("text", "").strip()
+    
+    if not file and not text:
+        return jsonify({"error": "No file uploaded or syllabus text provided."}), 400
+        
+    syllabus_text = ""
+    filename = None
+    
+    if file:
+        filename = file.filename
+        # Limit syllabus upload size to 5MB
+        file.seek(0, os.SEEK_END)
+        size = file.tell()
+        file.seek(0)
+        if size > 5 * 1024 * 1024:
+            return jsonify({"error": "Syllabus file too large. Please upload a file under 5MB."}), 400
+            
+        from app.services.syllabus_parser import extract_text_from_file
+        syllabus_text = extract_text_from_file(file, filename)
+    else:
+        syllabus_text = text
+
+    if not syllabus_text or "[Error" in syllabus_text:
+        return jsonify({"error": syllabus_text or "Could not extract text from file."}), 400
+        
+    try:
+        toolkit = process_syllabus_and_build_toolkit(syllabus_text)
+        return jsonify(toolkit), 200
+    except Exception as e:
+        current_app.logger.exception("Syllabus parsing failed")
+        return jsonify({"error": f"Syllabus analysis failed: {str(e)}"}), 500
+
+
+@api_bp.get("/shared-toolkit/<share_id>")
+def get_shared_toolkit(share_id):
+    from app.models import SyllabusStack
+    import json
+    
+    stack = SyllabusStack.query.filter_by(share_id=share_id).first()
+    if not stack:
+        return jsonify({"error": "Shared toolkit not found."}), 404
+        
+    try:
+        data = json.loads(stack.tools_json)
+    except Exception:
+        data = {}
+        
+    return jsonify({
+        "share_id": stack.share_id,
+        "course_name": stack.course_name,
+        "subject_area": stack.subject_area,
+        "is_llm": data.get("is_llm", False),
+        "technologies": data.get("technologies", []),
+        "recommendations": data.get("recommendations", [])
+    }), 200
+
+
 # --- User feedback (floating widget on every page) -----------------------
 # Public POST for the widget submit; admin GETs to view + mark read.
 # Submissions also fan-out to an email so the admin sees them in real time
