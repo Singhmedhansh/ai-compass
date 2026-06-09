@@ -590,6 +590,17 @@ function DirectoryPage() {
     )
   }, [isLoading, error, searchMeta, filteredTools])
 
+  useEffect(() => {
+    if (!isLoading && !error && filteredTools.length === 0) {
+      const event = new CustomEvent('ai-compass-proactive-help', {
+        detail: {
+          message: 'Could not find the tool you are looking for? Visit our Help Center for guides or submit feedback for support.'
+        }
+      })
+      window.dispatchEvent(event)
+    }
+  }, [isLoading, error, filteredTools.length])
+
   const scrollToCategory = (slug) => {
     document
       .getElementById(`cat-${slug}`)

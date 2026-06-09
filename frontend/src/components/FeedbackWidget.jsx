@@ -52,6 +52,13 @@ export default function FeedbackWidget() {
     return () => window.removeEventListener('keydown', onKey)
   }, [open])
 
+  // Custom event listener to open feedback form programmatically
+  useEffect(() => {
+    const handleOpen = () => setOpen(true)
+    window.addEventListener('ai-compass-open-feedback', handleOpen)
+    return () => window.removeEventListener('ai-compass-open-feedback', handleOpen)
+  }, [])
+
   async function handleSubmit(e) {
     e.preventDefault()
     if (submitting) return

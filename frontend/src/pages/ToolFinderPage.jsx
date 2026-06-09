@@ -1233,6 +1233,17 @@ function ToolFinderPage() {
     }
   }, [answers])
 
+  useEffect(() => {
+    if (!loadingResults && results.length === 0 && canSeeResults && !error) {
+      const event = new CustomEvent('ai-compass-proactive-help', {
+        detail: {
+          message: 'No tools match your exact stack criteria? Visit our Help Center or submit feedback for tailored assistance.'
+        }
+      })
+      window.dispatchEvent(event)
+    }
+  }, [loadingResults, results.length, canSeeResults, error])
+
   const canSeeResults = (
     (Array.isArray(answers.goal) ? answers.goal.length > 0 : Boolean(answers.goal))
     && Boolean(answers.level)

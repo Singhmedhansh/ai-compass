@@ -13,6 +13,7 @@ import CompassLoader from './components/ui/CompassLoader'
 import Navbar from './components/ui/Navbar'
 import ScrollProgress from './components/ui/ScrollProgress'
 import CookieConsent from './components/ui/CookieConsent'
+import ProactiveHelpPrompt from './components/ui/ProactiveHelpPrompt'
 // HomePage stays eager — it's the most common first paint
 import HomePage from './pages/HomePage'
 
@@ -156,6 +157,7 @@ export default function App() {
             <Footer />
             <CompareTray />
             <FeedbackWidget />
+            <ProactiveHelpPrompt />
             <OfflineBanner />
             <CookieConsent />
           </div>
