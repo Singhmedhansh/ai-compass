@@ -932,8 +932,25 @@ def _rank_finder_tools(tools: list[dict], goal, budget: str, platform, level: st
 
     results = []
     for tool, score, breakdown in scored[:limit]:
-        # Clamped confidence percentage between 70% and 99%
-        confidence = int(70.0 + min(max((score / 130.0) * 29.0, 0.0), 29.0))
+        # Calculate a dynamic and realistic match confidence (between 70% and 99%)
+        # A typical good match score is around 140-160, and a perfect match score with high rating,
+        # custom use-case match, and featured/trending status can reach 190+.
+        # We scale the score dynamically and apply a slight penalty if the custom use-case didn't match.
+        base_confidence = 70.0
+        
+        # Scale based on a realistic maximum score of 195.0
+        ratio = min(max(score / 195.0, 0.0), 1.0)
+        calc_confidence = base_confidence + (ratio * 28.0)
+        
+        # If the user provided a custom use case but this tool didn't match the specifics,
+        # apply a penalty and cap it so it doesn't show an artificially high match.
+        if use_case and not breakdown.get("use_case", False):
+            calc_confidence = min(calc_confidence, 84.0)
+            # Add a small variance based on rating to avoid flat identical scores
+            rating_val = _rating_value(tool)
+            calc_confidence -= (5.0 - rating_val) * 2.0
+            
+        confidence = int(min(max(calc_confidence, 70.0), 99.0))
         results.append(
             {
                 **tool,
