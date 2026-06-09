@@ -12,6 +12,7 @@ const MotionDiv = motion.div
 const REVEAL_VIEWPORT = { once: true, margin: '-10% 0px' }
 
 const FAQS = [
+  // --- AI STACK ARCHITECT ---
   {
     category: 'AI Stack Architect',
     question: 'How does the match confidence percentage work?',
@@ -20,23 +21,92 @@ const FAQS = [
   {
     category: 'AI Stack Architect',
     question: 'Why does the search mapping understand terms like "write essays" or "build apps"?',
-    answer: 'We have implemented a semantic synonym and intent matcher in the backend. When you type specific descriptions, the system maps common keywords to matching tool categories. For example, "write essays" maps to academic writing, content drafting, or editing, while "build apps" maps to developer programming and coding stacks, ensuring you find the right fit even if you don\'t use exact tags.'
+    answer: 'We have implemented a semantic synonym and intent matcher in the backend. When you type specific descriptions, the system maps common keywords to matching tool categories. For example, "write essays" maps to academic writing, content drafting, or editing, while "build apps" maps to developer programming and coding stacks, ensuring you find the right fit even if you do not use exact tags.'
   },
+  {
+    category: 'AI Stack Architect',
+    question: 'Are there suggestion limits or daily limits on generating stacks?',
+    answer: 'There are currently no daily limits or suggestion limits on generating stacks using the AI Stack Architect. Guest users and registered users alike can run the tool finder wizard as many times as they want to search, discover, and build different stacks for their workflows.'
+  },
+  {
+    category: 'AI Stack Architect',
+    question: 'How does the system score custom text input queries?',
+    answer: 'When you enter a custom use-case or specific task description in the text input box, the backend runs a keyword-matching and scoring algorithm. It assigns weights to matching terms found in the tool descriptions, capabilities, and target audience fields. This custom use-case score is then factored into the overall match percentage along with your budget and platform constraints.'
+  },
+  {
+    category: 'AI Stack Architect',
+    question: 'Can I edit or modify a saved stack after generation?',
+    answer: 'Once you have saved a stack to your dashboard, you cannot directly edit the tools within that specific saved stack. However, you can use the stack as a template to run the builder again, swap tools out using the comparison engine, or save a new customized stack to your dashboard while deleting the old version.'
+  },
+  // --- DIRECTORY & SEARCH ---
   {
     category: 'Directory & Search',
     question: 'How are tools curated and rated on AI Compass?',
     answer: 'Every tool listed on AI Compass is hand-verified and curated. We do not accept sponsored placements that skew rankings. Curation scores and ratings reflect verified pricing plans, student benefits, platform ease-of-use, and community reviews. Standard ratings are updated in real-time as users submit reviews on the tool details pages.'
   },
   {
+    category: 'Directory & Search',
+    question: 'How do I find tools that offer student discounts or exclusive perks?',
+    answer: 'To find tools with student discounts or exclusive perks, visit our main Directory page. You can use the filters panel to toggle the "Student Discount / Perk Available" filter, which will narrow down the list of tools to only those that offer active student benefits, free trials, or discounted pricing tiers for academic users.'
+  },
+  {
+    category: 'Directory & Search',
+    question: 'What is the difference between Curation Score and Community Rating?',
+    answer: 'The Curation Score is an internal metric calculated by AI Compass based on data accuracy, pricing transparency, and platform support. The Community Rating is the average star rating calculated from user reviews left on our platform. Both metrics help you gauge the overall quality and reliability of a tool.'
+  },
+  {
+    category: 'Directory & Search',
+    question: 'What do the pricing tags (Free, Freemium, Paid, Free Trial) mean?',
+    answer: 'We categorize pricing into four tags: "Free" means the tool has a fully functional free tier with no time limits. "Freemium" means there is a free tier alongside paid upgrade options. "Paid" means the tool requires a subscription or one-time payment to use. "Free Trial" means you can test paid features for a limited period before buying.'
+  },
+  {
+    category: 'Directory & Search',
+    question: 'Can I filter search results by platform compatibility like macOS, iOS, or Android?',
+    answer: 'Yes. In the Directory page, the filters sidebar allows you to select operating system compatibility. You can filter tools to show only those supporting macOS, Windows, Linux, iOS, or Android, ensuring that any tool you discover fits your specific device constraints.'
+  },
+  // --- COMPARE ENGINE ---
+  {
     category: 'Compare Engine',
     question: 'How do I compare tools side-by-side?',
-    answer: 'You can compare tools in two ways: (1) Click "Add to Compare" on any tool card, which places it in your Compare Tray. Once you have selected 2-3 tools, click "Compare" to load the matrix. (2) Visit the /compare page directly and search/select tools to stack side-by-side.'
+    answer: 'You can compare tools in two ways: (1) Click "Add to Compare" on any tool card, which places it in your Compare Tray. Once you have selected 2-3 tools, click "Compare" to load the matrix. (2) Visit the compare page directly and search/select tools to stack side-by-side.'
   },
+  {
+    category: 'Compare Engine',
+    question: 'Can I compare tools across different categories?',
+    answer: 'Yes, our Compare Engine allows you to compare any tools side-by-side, even if they belong to different categories. However, we recommend comparing tools within the same category (e.g. comparing two writing tools) to get the most meaningful comparisons of features, pricing, and integrations.'
+  },
+  {
+    category: 'Compare Engine',
+    question: 'Is there a limit on how many tools I can add to the compare tray?',
+    answer: 'You can add up to 3 tools to your compare tray at one time. This limit ensures that the comparison matrix remains readable, responsive, and fits neatly on both desktop and mobile screens without causing horizontal scrolling issues.'
+  },
+  {
+    category: 'Compare Engine',
+    question: 'How is the comparison matrix compiled?',
+    answer: 'The comparison matrix extracts real-time database details for each selected tool, comparing them across key dimensions including pricing, platform support, core features, primary category, and curation score, allowing you to quickly spot differences.'
+  },
+  // --- ACCOUNTS & DASHBOARD ---
   {
     category: 'Accounts & Stacks',
     question: 'Do I need to sign up to use AI Compass?',
     answer: 'No! AI Compass is fully functional without an account. You can search, filter, compare, and get recommendations anonymously. A free account simply lets you save your recommended stacks to a private dashboard and generate public stack links to share with others.'
   },
+  {
+    category: 'Accounts & Stacks',
+    question: 'Are my saved stacks private or public by default?',
+    answer: 'By default, any stack you save to your dashboard is private and visible only to you when logged in. If you choose to share your stack, you can generate a public link that allows others to view your selected tools and configuration.'
+  },
+  {
+    category: 'Accounts & Stacks',
+    question: 'How can I delete a saved stack from my dashboard?',
+    answer: 'To delete a saved stack, log in and navigate to your Dashboard. Locate the stack you want to remove and click the "Delete" or "Remove" button on the card. This action is permanent and will clear the stack from your account history.'
+  },
+  {
+    category: 'Accounts & Stacks',
+    question: 'How do I delete my AI Compass account and associated data?',
+    answer: 'If you wish to delete your account and wipe all associated data (including saved stacks and account profile details), please go to your Profile settings page and click on the "Delete Account" button, or contact us through the Feedback widget for manual data deletion.'
+  },
+  // --- TROUBLESHOOTING & POLICIES ---
   {
     category: 'Troubleshooting',
     question: 'Why am I not receiving the registration verification email?',
@@ -46,6 +116,26 @@ const FAQS = [
     category: 'Troubleshooting',
     question: 'I found a bug or incorrect pricing details. What should I do?',
     answer: 'AI tools update their pricing plans frequently. If you see incorrect information or find a bug, please click the floating "Feedback" button in the bottom right corner of the screen and send us a quick report. We review and update data assets within 24 hours!'
+  },
+  {
+    category: 'Troubleshooting',
+    question: 'How can developers submit a new tool to AI Compass?',
+    answer: 'Developers can request listing a new tool by using our contact options or the feedback widget. Please provide the tool name, website URL, primary use-case, pricing model, and details of any student discounts or benefits offered. Our moderation team reviews submissions weekly.'
+  },
+  {
+    category: 'Troubleshooting',
+    question: 'How often is the tool database updated with new information?',
+    answer: 'We update our tools database and listings weekly to ensure pricing plans, features, and platform support remain accurate. Real-time updates are applied immediately when users submit confirmed pricing changes or when developers submit corrections.'
+  },
+  {
+    category: 'Troubleshooting',
+    question: 'Does AI Compass use affiliate links or sponsored listings?',
+    answer: 'AI Compass does not use sponsored listings that alter rankings or recommendations. We may use affiliate links for some tools to help support website operation costs, but this never affects our curation scores, tool matching, or recommendation objectivity.'
+  },
+  {
+    category: 'Troubleshooting',
+    question: 'How does AI Compass monetize or fund its operations?',
+    answer: 'AI Compass is currently a free product. We plan to keep all core discovery features, including the AI Stack Architect and Compare Engine, completely free. Future monetization may include premium developer features, newsletters, or affiliate programs, but will never compromise search objectivity.'
   }
 ]
 
@@ -82,7 +172,7 @@ function FAQItem({ question, answer, isOpen, onToggle }) {
 
 export default function HelpPage() {
   const [searchQuery, setSearchQuery] = useState('')
-  const [openFAQIndex, setOpenFAQIndex] = useState(null)
+  const [openFAQQuestion, setOpenFAQQuestion] = useState(null)
 
   const filteredFAQs = useMemo(() => {
     if (!searchQuery.trim()) return FAQS
@@ -95,8 +185,8 @@ export default function HelpPage() {
     )
   }, [searchQuery])
 
-  const toggleFAQ = (index) => {
-    setOpenFAQIndex(prevIndex => prevIndex === index ? null : index)
+  const toggleFAQ = (question) => {
+    setOpenFAQQuestion(prevQuestion => prevQuestion === question ? null : question)
   }
 
   return (
@@ -196,13 +286,13 @@ export default function HelpPage() {
 
             {filteredFAQs.length > 0 ? (
               <div className="divide-y divide-line">
-                {filteredFAQs.map((faq, index) => (
+                {filteredFAQs.map((faq) => (
                   <FAQItem
                     key={faq.question}
                     question={faq.question}
                     answer={faq.answer}
-                    isOpen={openFAQIndex === index}
-                    onToggle={() => toggleFAQ(index)}
+                    isOpen={openFAQQuestion === faq.question}
+                    onToggle={() => toggleFAQ(faq.question)}
                   />
                 ))}
               </div>
