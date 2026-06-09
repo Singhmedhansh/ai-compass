@@ -300,23 +300,120 @@ def parse_syllabus_local(syllabus_text):
         "tools_recommendations": results[:6]
     }
 
-def process_syllabus_and_build_toolkit(text_content):
+def parse_syllabus_image_llm(image_bytes, mimetype):
     """
-    Orchestrates the syllabus parsing (Gemini or local TF-IDF fallback) and
-    normalizes output tools against the database tools.json.
-    Saves the final toolkit in SyllabusStack table and returns the payload.
+    Calls Gemini API with an image payload (multimodal) using key rotation.
+    Returns parsed metadata dict or None if rate limited/no keys.
     """
-    # 1. Run parser (Gemini -> Falls back to Local)
-    parsed = parse_syllabus_llm(text_content)
-    is_llm_mode = True
+    import base64
     
-    if not parsed:
-        parsed = parse_syllabus_local(text_content)
-        is_llm_mode = False
+    keys = []
+    env_keys_str = os.environ.get("GEMINI_API_KEYS", "")
+    if env_keys_str:
+        keys.extend([k.strip() for k in env_keys_str.split(",") if k.strip()])
+    
+    single_key = os.environ.get("GEMINI_API_KEY")
+    if single_key and single_key not in keys:
+        keys.append(single_key)
         
-    # 2. Enrich tool suggestions with full tools.json attributes
+    if not keys:
+        print("[Syllabus Parser] No GEMINI_API_KEYS configured for image parsing.")
+        return None
+
+    # Base64 encode the image bytes
+    base64_data = base64.b64encode(image_bytes).decode("utf-8")
+
+    tools_str = json.dumps(POPULAR_TOOLS_LIST, indent=2)
+
+    prompt = f"""
+You are an expert academic assistant. Analyze the syllabus image provided and identify the student resources they will need to succeed in this course.
+
+List of popular tools available in our directory:
+{tools_str}
+
+Your response MUST be a valid JSON object matching the following structure:
+{{
+  "course_name": "extracted course name and code, e.g. CS201: Data Structures",
+  "subject_area": "general subject, e.g. Computer Science, Chemistry, English",
+  "technologies": ["list of technologies mentioned, e.g. Python, Java, writing, papers"],
+  "tools_recommendations": [
+    {{
+      "tool_slug": "slug of recommended tool from the provided list (or a general slug matching the list)",
+      "relevance_reason": "Specific custom reason (under 120 chars) connecting the tool directly to coursework, projects, or tasks identified in the syllabus image."
+    }}
+  ]
+}}
+
+Provide ONLY the raw JSON output. Do not wrap it in markdown code blocks like ```json.
+"""
+
+    for i, key in enumerate(keys):
+        try:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={key}"
+            headers = {"Content-Type": "application/json"}
+            
+            payload = {
+                "contents": [{
+                    "parts": [
+                        {
+                            "inlineData": {
+                                "mimeType": mimetype,
+                                "data": base64_data
+                            }
+                        },
+                        {
+                            "text": prompt
+                        }
+                    ]
+                }],
+                "generationConfig": {
+                    "responseMimeType": "application/json",
+                    "responseSchema": {
+                        "type": "OBJECT",
+                        "properties": {
+                            "course_name": {"type": "STRING"},
+                            "subject_area": {"type": "STRING"},
+                            "technologies": {"type": "ARRAY", "items": {"type": "STRING"}},
+                            "tools_recommendations": {
+                                "type": "ARRAY",
+                                "items": {
+                                    "type": "OBJECT",
+                                    "properties": {
+                                        "tool_slug": {"type": "STRING"},
+                                        "relevance_reason": {"type": "STRING"}
+                                    },
+                                    "required": ["tool_slug", "relevance_reason"]
+                                }
+                            }
+                        },
+                        "required": ["course_name", "subject_area", "technologies", "tools_recommendations"]
+                    }
+                }
+            }
+            
+            response = requests.post(url, headers=headers, json=payload, timeout=20)
+            
+            if response.status_code == 429:
+                print(f"[Syllabus Parser] Key {i+1} hit rate limits (429). Rotating...")
+                continue
+            elif response.status_code != 200:
+                print(f"[Syllabus Parser] Key {i+1} failed with status {response.status_code}. Rotating...")
+                continue
+                
+            res_data = response.json()
+            content_text = res_data["candidates"][0]["content"]["parts"][0]["text"].strip()
+            parsed = json.loads(content_text)
+            return parsed
+            
+        except Exception as e:
+            print(f"[Syllabus Parser] Exception during API attempt with Key {i+1}: {str(e)}")
+            continue
+            
+    return None
+
+def _normalize_and_save_toolkit(parsed, is_llm_mode):
+    """Enriches matches from tools.json, generates share ID, saves stack, and returns payload."""
     from app.tool_cache import get_cached_tools
-    from app.services.recommendation_service import _popularity_score
     
     cached_tools = get_cached_tools() or []
     tools_by_slug = {t.get("slug"): t for t in cached_tools}
@@ -365,7 +462,7 @@ def process_syllabus_and_build_toolkit(text_content):
                     "custom_reason": "High-quality academic helper verified for this study subject."
                 })
 
-    # 3. Persist output in SyllabusStack
+    # Persist output in SyllabusStack
     share_id = str(uuid.uuid4())[:8] # Unique share id
     
     stack = SyllabusStack(
@@ -394,3 +491,29 @@ def process_syllabus_and_build_toolkit(text_content):
         "technologies": parsed.get("technologies", []),
         "recommendations": normalized_recommendations
     }
+
+def process_syllabus_and_build_toolkit(text_content):
+    """
+    Orchestrates the syllabus parsing (Gemini or local TF-IDF fallback) and
+    normalizes output tools against the database tools.json.
+    Saves the final toolkit in SyllabusStack table and returns the payload.
+    """
+    parsed = parse_syllabus_llm(text_content)
+    is_llm_mode = True
+    
+    if not parsed:
+        parsed = parse_syllabus_local(text_content)
+        is_llm_mode = False
+        
+    return _normalize_and_save_toolkit(parsed, is_llm_mode)
+
+def process_syllabus_image_and_build_toolkit(image_bytes, mimetype):
+    """
+    Orchestrates the multimodal syllabus image parsing (Gemini) and
+    normalizes output tools. Saves the final toolkit in SyllabusStack table.
+    """
+    parsed = parse_syllabus_image_llm(image_bytes, mimetype)
+    if not parsed:
+        return {"error": "All Gemini keys exhausted or rate-limited. Local fallback does not support image analysis. Please check your GEMINI_API_KEYS configuration."}
+        
+    return _normalize_and_save_toolkit(parsed, True)

@@ -2812,7 +2812,7 @@ def admin_analytics():
 @api_bp.post("/parse-syllabus")
 @csrf.exempt
 def parse_syllabus():
-    from app.services.syllabus_parser import process_syllabus_and_build_toolkit
+    from app.services.syllabus_parser import process_syllabus_and_build_toolkit, process_syllabus_image_and_build_toolkit
     
     file = request.files.get("file")
     text = request.form.get("text", "").strip()
@@ -2820,7 +2820,6 @@ def parse_syllabus():
     if not file and not text:
         return jsonify({"error": "No file uploaded or syllabus text provided."}), 400
         
-    syllabus_text = ""
     filename = None
     
     if file:
@@ -2832,20 +2831,40 @@ def parse_syllabus():
         if size > 5 * 1024 * 1024:
             return jsonify({"error": "Syllabus file too large. Please upload a file under 5MB."}), 400
             
-        from app.services.syllabus_parser import extract_text_from_file
-        syllabus_text = extract_text_from_file(file, filename)
-    else:
-        syllabus_text = text
-
-    if not syllabus_text or "[Error" in syllabus_text:
-        return jsonify({"error": syllabus_text or "Could not extract text from file."}), 400
+        ext = os.path.splitext(filename or "")[1].lower()
+        is_image = ext in (".png", ".jpg", ".jpeg", ".webp") or (file.mimetype and file.mimetype.startswith("image/"))
         
-    try:
-        toolkit = process_syllabus_and_build_toolkit(syllabus_text)
-        return jsonify(toolkit), 200
-    except Exception as e:
-        current_app.logger.exception("Syllabus parsing failed")
-        return jsonify({"error": f"Syllabus analysis failed: {str(e)}"}), 500
+        if is_image:
+            image_bytes = file.read()
+            mimetype = file.mimetype or "image/jpeg"
+            try:
+                toolkit = process_syllabus_image_and_build_toolkit(image_bytes, mimetype)
+                if "error" in toolkit:
+                    return jsonify(toolkit), 400
+                return jsonify(toolkit), 200
+            except Exception as e:
+                current_app.logger.exception("Syllabus image parsing failed")
+                return jsonify({"error": f"Syllabus image analysis failed: {str(e)}"}), 500
+        else:
+            from app.services.syllabus_parser import extract_text_from_file
+            syllabus_text = extract_text_from_file(file, filename)
+            if not syllabus_text or "[Error" in syllabus_text:
+                return jsonify({"error": syllabus_text or "Could not extract text from file."}), 400
+            try:
+                toolkit = process_syllabus_and_build_toolkit(syllabus_text)
+                return jsonify(toolkit), 200
+            except Exception as e:
+                current_app.logger.exception("Syllabus parsing failed")
+                return jsonify({"error": f"Syllabus analysis failed: {str(e)}"}), 500
+    else:
+        if not text:
+            return jsonify({"error": "No syllabus text provided."}), 400
+        try:
+            toolkit = process_syllabus_and_build_toolkit(text)
+            return jsonify(toolkit), 200
+        except Exception as e:
+            current_app.logger.exception("Syllabus parsing failed")
+            return jsonify({"error": f"Syllabus analysis failed: {str(e)}"}), 500
 
 
 @api_bp.get("/shared-toolkit/<share_id>")

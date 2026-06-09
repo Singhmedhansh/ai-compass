@@ -19,13 +19,13 @@ def _build_production_app(monkeypatch):
     return app
 
 
-def test_onrender_host_redirects_to_canonical_domain(monkeypatch):
+def test_non_canonical_host_redirects_to_canonical_domain(monkeypatch):
     app = _build_production_app(monkeypatch)
     client = app.test_client()
 
     response = client.get(
         "/tools?category=Coding&q=chat",
-        base_url="https://ai-compass-1.onrender.com",
+        base_url="https://ai-compass-old.com",
         follow_redirects=False,
     )
 

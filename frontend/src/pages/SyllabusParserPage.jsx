@@ -40,10 +40,10 @@ export default function SyllabusParserPage() {
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const droppedFile = e.dataTransfer.files[0]
       const ext = droppedFile.name.split('.').pop().toLowerCase()
-      if (['pdf', 'docx', 'txt'].includes(ext)) {
+      if (['pdf', 'docx', 'txt', 'png', 'jpg', 'jpeg', 'webp'].includes(ext)) {
         setFile(droppedFile)
       } else {
-        setErrorMessage('Unsupported file type. Please upload a PDF, DOCX, or TXT file.')
+        setErrorMessage('Unsupported file type. Please upload a PDF, DOCX, TXT, PNG, JPG, JPEG, or WEBP file.')
       }
     }
   }
@@ -139,7 +139,7 @@ export default function SyllabusParserPage() {
       const response = await fetch(`${API}/api/v1/stack`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: json.dumps(payload),
+        body: JSON.stringify(payload),
       })
 
       if (response.ok) {
@@ -220,7 +220,7 @@ export default function SyllabusParserPage() {
                     ref={fileInputRef}
                     type="file"
                     className="hidden"
-                    accept=".pdf,.docx,.txt"
+                    accept=".pdf,.docx,.txt,.png,.jpg,.jpeg,.webp"
                     onChange={handleFileChange}
                   />
                   <div className="flex h-14 w-14 items-center justify-center rounded-full bg-accent-soft">
@@ -230,7 +230,7 @@ export default function SyllabusParserPage() {
                     {file ? file.name : 'Drag & drop your syllabus here'}
                   </p>
                   <p className="mt-2 text-sm text-muted">
-                    {file ? `${(file.size / 1024 / 1024).toFixed(2)} MB · Click to replace` : 'Supports PDF, DOCX, or TXT (Max 5MB)'}
+                    {file ? `${(file.size / 1024 / 1024).toFixed(2)} MB · Click to replace` : 'Supports PDF, DOCX, TXT, PNG, JPG, JPEG, WEBP (Max 5MB)'}
                   </p>
                 </div>
               ) : (

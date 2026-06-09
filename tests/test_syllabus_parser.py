@@ -91,3 +91,23 @@ def test_api_shared_toolkit(client):
     assert data["course_name"] == "Introduction to Java"
     assert len(data["recommendations"]) == 1
     assert data["recommendations"][0]["slug"] == "cursor"
+
+def test_api_parse_syllabus_image_no_keys(client):
+    # Sends a dummy png byte stream. Since no API keys are present in testing,
+    # it should degrade gracefully and return 400 with the error detail.
+    image_content = b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR..."
+    file_data = {
+        "file": (BytesIO(image_content), "syllabus.png")
+    }
+    
+    response = client.post(
+        "/api/v1/parse-syllabus",
+        data=file_data,
+        content_type="multipart/form-data"
+    )
+    
+    assert response.status_code == 400
+    data = json.loads(response.data.decode("utf-8"))
+    assert "error" in data
+    assert "local fallback does not support image" in data["error"].lower() or "gemini" in data["error"].lower()
+
