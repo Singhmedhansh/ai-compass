@@ -117,26 +117,26 @@ export default function Hero() {
       </div>
 
       {/* Horizontal Looping Marquee */}
-      <div className="mt-16 md:mt-20 w-full relative z-10 hidden md:block">
-        <p className="text-center text-[10px] font-bold uppercase tracking-widest text-muted-2 mb-4">
-          Discover & Compare 400+ Hand-Tested Tools
+      <div className="mt-20 md:mt-24 w-full relative z-10 hidden md:block">
+        <p className="text-center text-xs font-bold uppercase tracking-widest text-muted-2 mb-5">
+          Discover & Compare 400+ Hand-Tested AI Tools
         </p>
-        <div className="relative w-full overflow-hidden mask-gradient py-2">
-          <div className="animate-marquee gap-3 hover:[animation-play-state:paused] flex items-center pr-3">
+        <div className="relative w-full overflow-hidden mask-gradient py-3">
+          <div className="animate-marquee gap-4 hover:[animation-play-state:paused] flex items-center pr-4">
             {[...MARQUEE_LOGOS, ...MARQUEE_LOGOS].map((logo, index) => (
               <div
                 key={`${logo.name}-${index}`}
-                className="flex items-center gap-2 rounded-xl border border-line bg-bg-elev/40 px-3.5 py-2 shadow-sm backdrop-blur-[2px] hover:border-accent/30 hover:bg-bg-elev/80 transition-[background-color,border-color,transform] duration-300 transform hover:scale-[1.03] cursor-pointer"
+                className="flex items-center gap-3 rounded-2xl border border-line bg-bg-elev/40 px-5 py-3 shadow-md backdrop-blur-[2px] hover:border-accent/40 hover:bg-bg-elev/80 transition-[background-color,border-color,transform] duration-300 transform hover:scale-[1.05] cursor-pointer"
               >
                 <img
                   src={`/icon/${logo.domain}`}
                   alt={logo.name}
-                  className="h-5 w-5 rounded-md bg-white p-0.5 object-contain shadow-[0_1px_2px_rgba(0,0,0,0.05)] border border-line/30"
+                  className="h-7 w-7 rounded-lg bg-white p-0.5 object-contain shadow-[0_1px_4px_rgba(0,0,0,0.10)] border border-line/30"
                   onError={(e) => {
                     e.target.style.display = 'none'
                   }}
                 />
-                <span className="text-[11.5px] font-bold text-ink-2 tracking-tight select-none">
+                <span className="text-sm font-bold text-ink-2 tracking-tight select-none">
                   {logo.name}
                 </span>
               </div>
