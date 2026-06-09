@@ -169,3 +169,21 @@ html[data-theme='dark'] .glass-cookie {
 html[data-theme='dark'] .glass-box {
 	background-color: rgba(22, 27, 25, 0.40);
 }
+
+/* Infinite Marquee Animation */
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 45s linear infinite;
+}
+
+/* Premium Fade-out Edge Masks */
+.mask-gradient {
+  mask-image: linear-gradient(to right, transparent, #000 15%, #000 85%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 15%, #000 85%, transparent);
+}
+
