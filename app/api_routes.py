@@ -1079,8 +1079,21 @@ def get_student_discounts():
     except Exception:
         tools = []
 
-    UNIDAYS_PARTNERS = {
-        "adobe", "canva", "notion", "grammarly", "microsoft", "perplexity", "github", "quizlet", "codeium", "wolfram alpha"
+    UNIDAYS_DEALS = {
+        "adobe": "60% Off",
+        "adobe firefly": "60% Off",
+        "canva": "100% Free",
+        "notion": "100% Free",
+        "grammarly": "20% Off",
+        "microsoft": "100% Free",
+        "perplexity": "100% Free",
+        "github": "100% Free",
+        "github copilot": "100% Free",
+        "quizlet": "33% Off",
+        "codeium": "50% Off",
+        "wolfram alpha": "35% Off",
+        "spotify": "50% Off",
+        "apple": "10% Off",
     }
 
     results = []
@@ -1090,36 +1103,51 @@ def get_student_discounts():
             description = t.get("description") or ""
             name = t.get("name") or ""
             tagline = t.get("tagline") or ""
+            link = t.get("link") or t.get("website") or t.get("url") or ""
+            logo_emoji = t.get("logo_emoji") or t.get("emoji") or t.get("logoEmoji") or ""
 
-            # 1. Determine UNiDAYS status
+            # 1. Determine UNiDAYS status and exact percentage
             unidays_verified = False
-            all_text = f"{name} {tagline} {pricing_detail} {description}".lower()
-            if "unidays" in all_text:
-                unidays_verified = True
-            elif name.lower() in UNIDAYS_PARTNERS:
-                unidays_verified = True
-
-            # 2. Extract discount percentage / label
             discount_val = None
-            pct_match = re.search(r"(\d+)\s*%", pricing_detail)
-            if pct_match:
-                discount_val = f"{pct_match.group(1)}% Off"
+
+            name_lower = name.lower().strip()
+            matched_deal_key = None
+            for k in UNIDAYS_DEALS:
+                if k in name_lower or name_lower in k:
+                    matched_deal_key = k
+                    break
+
+            if matched_deal_key:
+                unidays_verified = True
+                discount_val = UNIDAYS_DEALS[matched_deal_key]
             else:
-                pricing_lower = pricing_detail.lower()
-                desc_lower = description.lower()
-                if "free for students" in pricing_lower or "free for students" in desc_lower or "free student tier" in pricing_lower or "free student tier" in desc_lower or "free via .edu" in pricing_lower:
-                    discount_val = "Free Student Tier"
-                elif "student discount" in pricing_lower or "student rate" in pricing_lower:
-                    discount_val = "Student Discount"
-                elif "free" in pricing_lower:
-                    discount_val = "Free Tier Available"
+                all_text = f"{name} {tagline} {pricing_detail} {description}".lower()
+                if "unidays" in all_text:
+                    unidays_verified = True
+
+            # 2. Extract discount percentage / label if not already mapped
+            if not discount_val:
+                pct_match = re.search(r"(\d+)\s*%", pricing_detail)
+                if pct_match:
+                    discount_val = f"{pct_match.group(1)}% Off"
                 else:
-                    discount_val = "Special Student Perk"
+                    pricing_lower = pricing_detail.lower()
+                    desc_lower = description.lower()
+                    if "free for students" in pricing_lower or "free for students" in desc_lower or "free student tier" in pricing_lower or "free student tier" in desc_lower or "free via .edu" in pricing_lower:
+                        discount_val = "Free Student Tier"
+                    elif "student discount" in pricing_lower or "student rate" in pricing_lower:
+                        discount_val = "Student Discount"
+                    elif "free" in pricing_lower:
+                        discount_val = "Free Tier Available"
+                    else:
+                        discount_val = "Special Student Perk"
 
             results.append({
                 "name": name,
                 "slug": _tool_slug(t),
                 "icon": t.get("icon"),
+                "link": link,
+                "logo_emoji": logo_emoji,
                 "tagline": tagline,
                 "category": t.get("category"),
                 "pricing": t.get("pricing") or t.get("price"),

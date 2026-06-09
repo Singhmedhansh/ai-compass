@@ -10,8 +10,9 @@ import {
   Percent, 
   Sparkles, 
   Star, 
-  HelpCircle,
-  AlertCircle
+  AlertCircle,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react'
 
 import { Button, ToolLogo } from '../components/ui'
@@ -19,6 +20,7 @@ import { sectionReveal } from '../lib/motion'
 
 const MotionDiv = motion.div
 const REVEAL_VIEWPORT = { once: true, margin: '-10% 0px' }
+const ITEMS_PER_PAGE = 12
 
 export default function StudentDiscountsPage() {
   const [loading, setLoading] = useState(true)
@@ -27,6 +29,7 @@ export default function StudentDiscountsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('All')
   const [unidaysOnly, setUnidaysOnly] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
 
   useEffect(() => {
     const API = import.meta.env.VITE_API_URL || ''
@@ -51,7 +54,7 @@ export default function StudentDiscountsPage() {
     loadDiscounts()
   }, [])
 
-  // 1. Get unique categories present in the discount tools for filter chips
+  // Get unique categories for filter chips
   const categories = useMemo(() => {
     const cats = new Set()
     discounts.forEach(item => {
@@ -62,7 +65,7 @@ export default function StudentDiscountsPage() {
     return ['All', ...Array.from(cats).sort()]
   }, [discounts])
 
-  // 2. Filter list based on search, category and UNiDAYS toggle
+  // Filter list based on search, category and UNiDAYS toggle
   const filteredDiscounts = useMemo(() => {
     return discounts.filter(item => {
       // UNiDAYS filter
@@ -89,6 +92,18 @@ export default function StudentDiscountsPage() {
     })
   }, [discounts, searchQuery, selectedCategory, unidaysOnly])
 
+  // Reset page when filters or options change
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchQuery, selectedCategory, unidaysOnly])
+
+  // Paginated subset of filtered tools
+  const totalPages = Math.ceil(filteredDiscounts.length / ITEMS_PER_PAGE)
+  const paginatedDiscounts = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
+    return filteredDiscounts.slice(startIndex, startIndex + ITEMS_PER_PAGE)
+  }, [filteredDiscounts, currentPage])
+
   return (
     <>
       <Helmet>
@@ -101,7 +116,7 @@ export default function StudentDiscountsPage() {
 
       <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
         {/* Premium Hero Header */}
-        <section className="text-center relative py-12 md:py-16 overflow-hidden rounded-3xl bg-bg-elev/30 border border-line/40 px-6">
+        <section className="text-center relative py-12 md:py-16 overflow-hidden rounded-3xl bg-bg-elev/40 border border-line/40 px-6 shadow-xl backdrop-blur-xl">
           <div className="absolute inset-0 bg-gradient-to-tr from-accent/5 via-transparent to-accent/5 pointer-events-none" />
           <span className="inline-flex items-center rounded-full bg-accent-soft px-3.5 py-1 text-xs font-semibold text-accent-ink mb-4">
             <GraduationCap className="mr-1.5 h-3.5 w-3.5" />
@@ -134,7 +149,7 @@ export default function StudentDiscountsPage() {
 
         {/* Filter Toolbar */}
         <section className="mt-12">
-          <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between border border-line bg-bg-elev/50 p-6 rounded-2xl">
+          <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between border border-line bg-bg-elev/50 p-6 rounded-2xl shadow-sm">
             {/* Search Input */}
             <div className="relative max-w-md w-full">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5" aria-hidden="true">
@@ -216,7 +231,7 @@ export default function StudentDiscountsPage() {
                 Reload Page
               </Button>
             </div>
-          ) : filteredDiscounts.length === 0 ? (
+          ) : paginatedDiscounts.length === 0 ? (
             <div className="rounded-2xl border border-line bg-bg-elev/40 py-16 px-4 text-center">
               <GraduationCap className="mx-auto h-12 w-12 text-muted opacity-40 mb-3" />
               <h3 className="text-lg font-bold text-ink">No student deals match your filters</h3>
@@ -236,108 +251,170 @@ export default function StudentDiscountsPage() {
               </button>
             </div>
           ) : (
-            <MotionDiv
-              variants={sectionReveal}
-              initial="initial"
-              whileInView="animate"
-              viewport={REVEAL_VIEWPORT}
-              className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
-            >
-              <AnimatePresence mode="popLayout">
-                {filteredDiscounts.map((tool) => (
-                  <motion.article
-                    key={tool.slug}
-                    layout
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    transition={{ duration: 0.22 }}
-                    className="flex flex-col justify-between rounded-2xl border border-line bg-bg-elev/60 backdrop-blur-md p-6 hover:border-accent/40 hover:shadow-lg hover:shadow-accent/5 transition-all duration-300 group"
-                  >
-                    <div>
-                      {/* Logo, Name, Verified Indicator */}
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex items-center gap-3">
-                          <ToolLogo tool={tool} size={44} />
-                          <div>
-                            <h3 className="text-base font-bold text-ink group-hover:text-accent transition">
-                              <Link to={`/tools/${tool.slug}`}>{tool.name}</Link>
-                            </h3>
-                            {tool.category && (
-                              <span className="text-[10px] font-semibold text-muted uppercase tracking-wider">
-                                {tool.category}
-                              </span>
-                            )}
+            <>
+              <MotionDiv
+                variants={sectionReveal}
+                initial="initial"
+                whileInView="animate"
+                viewport={REVEAL_VIEWPORT}
+                className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
+              >
+                <AnimatePresence mode="popLayout">
+                  {paginatedDiscounts.map((tool) => (
+                    <motion.article
+                      key={tool.slug}
+                      layout
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      transition={{ duration: 0.22 }}
+                      className="flex flex-col justify-between rounded-2xl border border-line/50 glass-card p-6 hover:border-accent hover:shadow-[0_4px_20px_-4px_rgba(47,179,137,0.15)] transition-all duration-300 group"
+                    >
+                      <div>
+                        {/* Logo, Name, Verified Indicator */}
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex items-center gap-3">
+                            <ToolLogo tool={tool} size={44} />
+                            <div>
+                              <h3 className="text-base font-bold text-ink group-hover:text-accent transition">
+                                <Link to={`/tools/${tool.slug}`}>{tool.name}</Link>
+                              </h3>
+                              {tool.category && (
+                                <span className="text-[10px] font-semibold text-muted uppercase tracking-wider">
+                                  {tool.category}
+                                </span>
+                              )}
+                            </div>
                           </div>
+
+                          {/* UNiDAYS verified check */}
+                          {tool.unidays_verified && (
+                            <span 
+                              title="UNiDAYS Verified Partner" 
+                              className="flex h-6 items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shrink-0 shadow-sm"
+                            >
+                              <CheckCircle className="h-3 w-3 shrink-0" />
+                              UNiDAYS
+                            </span>
+                          )}
                         </div>
 
-                        {/* UNiDAYS verified check */}
-                        {tool.unidays_verified && (
-                          <span 
-                            title="UNiDAYS Verified Partner" 
-                            className="flex h-6 items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shrink-0"
-                          >
-                            <CheckCircle className="h-3 w-3 shrink-0" />
-                            UNiDAYS
+                        {/* Tagline */}
+                        <p className="mt-4 text-xs leading-relaxed text-ink-2 min-h-[2.5rem] line-clamp-2">
+                          {tool.tagline}
+                        </p>
+
+                        {/* Details Badge */}
+                        <div className="mt-4 border-t border-line/60 pt-4">
+                          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted block mb-1">
+                            Curated Deal
                           </span>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="inline-flex items-center gap-1 rounded-lg bg-accent-soft px-2.5 py-1 text-xs font-bold text-accent-ink border border-accent/10">
+                              <Percent className="h-3 w-3" />
+                              {tool.discount_val}
+                            </span>
+                            <span className="text-xs font-medium text-ink-2 capitalize">
+                              ({tool.pricing})
+                            </span>
+                          </div>
+                        </div>
+                        
+                        {/* Exact pricingDetail text */}
+                        {tool.pricingDetail && (
+                          <p className="mt-2 text-[11px] leading-normal text-muted italic line-clamp-2">
+                            "{tool.pricingDetail}"
+                          </p>
                         )}
                       </div>
 
-                      {/* Tagline */}
-                      <p className="mt-4 text-xs leading-relaxed text-ink-2 min-h-[2.5rem] line-clamp-2">
-                        {tool.tagline}
-                      </p>
-
-                      {/* Details Badge */}
-                      <div className="mt-4 border-t border-line/60 pt-4">
-                        <span className="text-[10px] font-semibold uppercase tracking-wider text-muted block mb-1">
-                          Curated Deal
-                        </span>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="inline-flex items-center gap-1 rounded-lg bg-accent-soft px-2.5 py-1 text-xs font-bold text-accent-ink border border-accent/10">
-                            <Percent className="h-3 w-3" />
-                            {tool.discount_val}
-                          </span>
-                          <span className="text-xs font-medium text-ink-2 capitalize">
-                            ({tool.pricing})
-                          </span>
-                        </div>
+                      {/* Bottom Actions */}
+                      <div className="mt-6 flex items-center justify-between border-t border-line/40 pt-4">
+                        {tool.rating > 0 ? (
+                          <div className="flex items-center gap-1" title={`Rating: ${tool.rating}`}>
+                            <Star className="h-3.5 w-3.5 fill-accent text-accent" />
+                            <span className="text-xs font-bold text-ink">{tool.rating.toFixed(1)}</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1 text-muted">
+                            <Star className="h-3.5 w-3.5" />
+                            <span className="text-xs">Unrated</span>
+                          </div>
+                        )}
+                        
+                        <Link
+                          to={`/tools/${tool.slug}`}
+                          className="inline-flex items-center gap-1 text-xs font-semibold text-accent hover:text-accent-ink hover:underline transition"
+                        >
+                          Claim Perk
+                          <ArrowUpRight className="h-3.5 w-3.5" />
+                        </Link>
                       </div>
-                      
-                      {/* Exact pricingDetail text */}
-                      {tool.pricingDetail && (
-                        <p className="mt-2 text-[11px] leading-normal text-muted italic line-clamp-2">
-                          "{tool.pricingDetail}"
-                        </p>
-                      )}
-                    </div>
+                    </motion.article>
+                  ))}
+                </AnimatePresence>
+              </MotionDiv>
 
-                    {/* Bottom Actions */}
-                    <div className="mt-6 flex items-center justify-between border-t border-line/40 pt-4">
-                      {tool.rating > 0 ? (
-                        <div className="flex items-center gap-1" title={`Rating: ${tool.rating}`}>
-                          <Star className="h-3.5 w-3.5 fill-accent text-accent" />
-                          <span className="text-xs font-bold text-ink">{tool.rating.toFixed(1)}</span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-1 text-muted">
-                          <Star className="h-3.5 w-3.5" />
-                          <span className="text-xs">Unrated</span>
-                        </div>
-                      )}
-                      
-                      <Link
-                        to={`/tools/${tool.slug}`}
-                        className="inline-flex items-center gap-1 text-xs font-semibold text-accent hover:text-accent-ink hover:underline transition"
-                      >
-                        Claim Perk
-                        <ArrowUpRight className="h-3.5 w-3.5" />
-                      </Link>
-                    </div>
-                  </motion.article>
-                ))}
-              </AnimatePresence>
-            </MotionDiv>
+              {/* Enhanced Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="mt-12 flex items-center justify-center gap-2 border border-line bg-bg-elev/40 backdrop-blur-md p-3 rounded-2xl max-w-sm mx-auto shadow-md">
+                  <button
+                    type="button"
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-line bg-bg text-ink-2 hover:bg-bg-sunk hover:text-ink disabled:opacity-40 disabled:pointer-events-none transition"
+                    aria-label="Previous Page"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </button>
+                  
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                    const isFirst = page === 1
+                    const isLast = page === totalPages
+                    const isWithinRange = Math.abs(page - currentPage) <= 1
+                    
+                    if (isFirst || isLast || isWithinRange) {
+                      return (
+                        <button
+                          key={page}
+                          onClick={() => setCurrentPage(page)}
+                          className={`h-9 w-9 rounded-xl text-xs font-bold transition-all ${
+                            currentPage === page
+                              ? 'bg-accent text-bg shadow-sm shadow-accent/20'
+                              : 'border border-line bg-bg text-ink-2 hover:bg-bg-sunk hover:text-ink'
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      )
+                    }
+                    
+                    if (
+                      (page === 2 && currentPage > 3) ||
+                      (page === totalPages - 1 && currentPage < totalPages - 2)
+                    ) {
+                      return (
+                        <span key={page} className="text-muted px-1 text-xs">
+                          ...
+                        </span>
+                      )
+                    }
+                    
+                    return null
+                  })}
+
+                  <button
+                    type="button"
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-line bg-bg text-ink-2 hover:bg-bg-sunk hover:text-ink disabled:opacity-40 disabled:pointer-events-none transition"
+                    aria-label="Next Page"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
