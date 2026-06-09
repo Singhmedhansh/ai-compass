@@ -292,6 +292,13 @@ def get_cached_tools(data_path: str = DEFAULT_TOOLS_PATH) -> List[Dict[str, Any]
     # When the catalog comes from the DB, file mtime is meaningless — the
     # cache is busted explicitly by admin writes via refresh_tools_cache().
     if _DB_BACKED:
+        try:
+            from app.models import CatalogTool
+            db_count = CatalogTool.query.count()
+            if db_count > 5 and db_count != len(_TOOLS_CACHE):
+                refresh_tools_cache(data_path)
+        except Exception:
+            pass
         return list(_TOOLS_CACHE)
 
     try:
@@ -325,4 +332,9 @@ def refresh_tools_cache(data_path: str = DEFAULT_TOOLS_PATH) -> List[Dict[str, A
     except OSError:
         _TOOLS_CACHE_MTIME = None
     build_search_index(_TOOLS_CACHE)
+    try:
+        from app.ml_recommender import clear_model_cache
+        clear_model_cache()
+    except Exception:
+        pass
     return list(_TOOLS_CACHE)

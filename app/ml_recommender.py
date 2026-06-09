@@ -289,14 +289,18 @@ def get_similar_tools(slug, limit=4):
     tools = model['tools']
 
     if slug not in tool_index:
-        name_slug = slug.lower().replace('-', ' ')
-        for key in tool_index:
-            if key.lower().replace('-', ' ') == name_slug:
-                slug = key
-                break
-
-    if slug not in tool_index:
-        return []
+        try:
+            from app.tool_cache import get_cached_tools, _tool_slug
+            tools = get_cached_tools() or []
+            current_tool = next((t for t in tools if _tool_slug(t) == slug), None)
+            if not current_tool:
+                return []
+            category = current_tool.get("category")
+            candidates = [t for t in tools if t.get("category") == category and _tool_slug(t) != slug]
+            candidates.sort(key=lambda t: (float(t.get("rating", 0.0) or 0.0), t.get("name", "").lower()), reverse=True)
+            return candidates[:limit]
+        except Exception:
+            return []
 
     idx = tool_index[slug]
     row = similarity_matrix[idx]

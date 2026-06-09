@@ -157,4 +157,59 @@ def test_normalize_and_save_toolkit_with_external_tool(app):
         assert db_tool is not None
         assert db_tool.name == "ExclCadTool"
 
+def test_external_tool_detail_endpoint(client, app):
+    from app.services.syllabus_parser import _normalize_and_save_toolkit
+    from app.models import CatalogTool
+    from app import db
+    
+    parsed_payload = {
+        "course_name": "ME112: Engineering Graphics",
+        "subject_area": "Design & Graphics",
+        "technologies": ["CAD", "drawing"],
+        "tools_recommendations": [
+            {
+                "tool_slug": "my-new-exclusive-cad-tool",
+                "relevance_reason": "Excellent for rendering CAD sketches.",
+                "is_external": True,
+                "external_metadata": {
+                    "name": "ExclCadTool",
+                    "url": "https://www.exclcadtool.ai",
+                    "category": "Coding",
+                    "pricing": "Freemium",
+                    "tagline": "AI creative tools for industrial designers"
+                }
+            }
+        ]
+    }
+    
+    with app.app_context():
+        # Clear database to start clean
+        CatalogTool.query.delete()
+        db.session.commit()
+        
+        # Seed a companion Coding tool in the DB catalog so similar_tools can find it
+        from app.catalog_store import upsert_tool
+        upsert_tool({
+            "name": "Cursor",
+            "slug": "cursor",
+            "category": "Coding",
+            "pricing": "Freemium",
+            "link": "https://cursor.sh",
+            "tagline": "AI Code editor"
+        })
+        
+        _normalize_and_save_toolkit(parsed_payload, is_llm_mode=True)
+        
+    response = client.get("/api/v1/tools/my-new-exclusive-cad-tool")
+    assert response.status_code == 200
+    data = json.loads(response.data.decode("utf-8"))
+    assert data["name"] == "ExclCadTool"
+    assert data["category"] == "Coding"
+    assert "similar_tools" in data
+    # Verify the category fallback has fetched Cursor
+    assert len(data["similar_tools"]) > 0
+    assert data["similar_tools"][0]["slug"] == "cursor"
+
+
+
 
