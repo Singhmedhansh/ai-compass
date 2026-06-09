@@ -37,6 +37,7 @@ function Navbar() {
   const [isDark, setIsDark] = useState(getInitialTheme)
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
   const [isGuidesMenuOpen, setIsGuidesMenuOpen] = useState(false)
+  const [isStudentHubMenuOpen, setIsStudentHubMenuOpen] = useState(false)
   // Track the failed URL rather than a plain boolean so a new picture URL
   // (after re-login as a different user) implicitly resets the failure state —
   // no effect needed to compare prev/next prop values.
@@ -55,6 +56,7 @@ function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const menuRef = useClickOutside(() => setIsProfileMenuOpen(false))
   const guidesMenuRef = useClickOutside(() => setIsGuidesMenuOpen(false))
+  const studentHubMenuRef = useClickOutside(() => setIsStudentHubMenuOpen(false))
   const isAdmin = Boolean(user && (user.is_admin || ADMIN_EMAILS.includes(user.email)))
   const avatarLetter = useMemo(
     () => String(user?.name || user?.email || 'U').charAt(0).toUpperCase(),
@@ -299,17 +301,49 @@ function Navbar() {
             </Button>
           </Link>
 
-          <Link to="/syllabus-parser">
+          <div
+            className="relative"
+            ref={studentHubMenuRef}
+            onMouseEnter={() => setIsStudentHubMenuOpen(true)}
+            onMouseLeave={() => setIsStudentHubMenuOpen(false)}
+          >
             <Button variant="ghost" size="sm" className="text-ink-2">
-              Syllabus Parser
+              Student Hub
+              <ChevronDown className="h-4 w-4 ml-1 transition-transform" style={{ transform: isStudentHubMenuOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
             </Button>
-          </Link>
 
-          <Link to="/student-discounts">
-            <Button variant="ghost" size="sm" className="text-ink-2">
-              Student Discounts
-            </Button>
-          </Link>
+            <AnimatePresence initial={false}>
+              {isStudentHubMenuOpen && (
+                <MotionDiv
+                  key="student-hub-menu"
+                  role="menu"
+                  aria-label="Student Hub menu"
+                  initial={{ opacity: 0, y: -6, scale: 0.97 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -4, scale: 0.98 }}
+                  transition={dropdownTransition}
+                  className="absolute left-0 mt-1 w-56 origin-top-left overflow-hidden rounded-xl border border-line bg-bg-elev shadow-lg"
+                >
+                  <Link
+                    to="/syllabus-parser"
+                    onClick={() => setIsStudentHubMenuOpen(false)}
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-ink-2 transition hover:bg-bg-sunk"
+                    role="menuitem"
+                  >
+                    Syllabus Parser
+                  </Link>
+                  <Link
+                    to="/student-discounts"
+                    onClick={() => setIsStudentHubMenuOpen(false)}
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-ink-2 transition hover:bg-bg-sunk"
+                    role="menuitem"
+                  >
+                    Student Discounts
+                  </Link>
+                </MotionDiv>
+              )}
+            </AnimatePresence>
+          </div>
 
           <div
             className="relative"
