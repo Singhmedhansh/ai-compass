@@ -69,6 +69,7 @@ const PRODUCT_LINKS = [
   { label: 'Submit a tool', to: '/submit' },
   { label: 'Help Center', to: '/help' },
   { label: 'Syllabus Parser', to: '/syllabus-parser' },
+  { label: 'Student Discounts', to: '/student-discounts' },
 ]
 
 const GUIDES_LINKS = [

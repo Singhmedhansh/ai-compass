@@ -305,6 +305,12 @@ function Navbar() {
             </Button>
           </Link>
 
+          <Link to="/student-discounts">
+            <Button variant="ghost" size="sm" className="text-ink-2">
+              Student Discounts
+            </Button>
+          </Link>
+
           <div
             className="relative"
             ref={guidesMenuRef}
@@ -596,6 +602,13 @@ function Navbar() {
                   className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
                 >
                   Syllabus Parser
+                </Link>
+                <Link
+                  to="/student-discounts"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
+                >
+                  Student Discounts
                 </Link>
                 <Link
                   to="/best-ai-tools-for-students"

@@ -1070,6 +1070,73 @@ def list_tools():
     return response
 
 
+@api_bp.get("/student-discounts")
+@cache.cached(timeout=60, query_string=True)
+def get_student_discounts():
+    from flask import make_response
+    try:
+        tools = get_visible_tools(DATA_PATH)
+    except Exception:
+        tools = []
+
+    UNIDAYS_PARTNERS = {
+        "adobe", "canva", "notion", "grammarly", "microsoft", "perplexity", "github", "quizlet", "codeium", "wolfram alpha"
+    }
+
+    results = []
+    for t in tools:
+        if t.get("studentPerk") or t.get("student_perk"):
+            pricing_detail = t.get("pricingDetail") or ""
+            description = t.get("description") or ""
+            name = t.get("name") or ""
+            tagline = t.get("tagline") or ""
+
+            # 1. Determine UNiDAYS status
+            unidays_verified = False
+            all_text = f"{name} {tagline} {pricing_detail} {description}".lower()
+            if "unidays" in all_text:
+                unidays_verified = True
+            elif name.lower() in UNIDAYS_PARTNERS:
+                unidays_verified = True
+
+            # 2. Extract discount percentage / label
+            discount_val = None
+            pct_match = re.search(r"(\d+)\s*%", pricing_detail)
+            if pct_match:
+                discount_val = f"{pct_match.group(1)}% Off"
+            else:
+                pricing_lower = pricing_detail.lower()
+                desc_lower = description.lower()
+                if "free for students" in pricing_lower or "free for students" in desc_lower or "free student tier" in pricing_lower or "free student tier" in desc_lower or "free via .edu" in pricing_lower:
+                    discount_val = "Free Student Tier"
+                elif "student discount" in pricing_lower or "student rate" in pricing_lower:
+                    discount_val = "Student Discount"
+                elif "free" in pricing_lower:
+                    discount_val = "Free Tier Available"
+                else:
+                    discount_val = "Special Student Perk"
+
+            results.append({
+                "name": name,
+                "slug": _tool_slug(t),
+                "icon": t.get("icon"),
+                "tagline": tagline,
+                "category": t.get("category"),
+                "pricing": t.get("pricing") or t.get("price"),
+                "pricingDetail": pricing_detail,
+                "rating": t.get("rating") or 0.0,
+                "unidays_verified": unidays_verified,
+                "discount_val": discount_val
+            })
+
+    # Sort: UNiDAYS verified first, then by rating (descending), then by name (ascending)
+    results.sort(key=lambda x: (not x["unidays_verified"], -float(x["rating"] or 0), x["name"].lower()))
+
+    response = make_response(jsonify({"results": results, "total": len(results)}))
+    response.headers["Cache-Control"] = "public, max-age=60, stale-while-revalidate=300"
+    return response
+
+
 @api_bp.get("/stats")
 def get_public_stats():
     # Public counterpart to /admin/stats — used by the homepage to display a live tool count

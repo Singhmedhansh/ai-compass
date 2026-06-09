@@ -53,6 +53,7 @@ const BestSynthesiaAlternatives = lazy(() => import('./pages/BestSynthesiaAltern
 const BestAIToolsForFictionWriters = lazy(() => import('./pages/BestAIToolsForFictionWriters'))
 const SyllabusParserPage = lazy(() => import('./pages/SyllabusParserPage'))
 const SharedToolkitPage = lazy(() => import('./pages/SharedToolkitPage'))
+const StudentDiscountsPage = lazy(() => import('./pages/StudentDiscountsPage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 
 function ScrollToTop() {
@@ -136,6 +137,7 @@ function AnimatedRoutes() {
             <Route path="/best-ai-tools-for-fiction-writers" element={<BestAIToolsForFictionWriters />} />
             <Route path="/syllabus-parser" element={<SyllabusParserPage />} />
             <Route path="/shared-toolkit/:shareId" element={<SharedToolkitPage />} />
+            <Route path="/student-discounts" element={<StudentDiscountsPage />} />
             <Route path="*" element={<NotFoundPage />} />
         </Route>
     </Routes>

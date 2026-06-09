@@ -49,6 +49,7 @@ _ROUTE_META = {
     'forgot-password': ('Recover Password — AI Compass', 'Retrieve your account by resetting your password.'),
     'reset-password': ('Reset Password — AI Compass', 'Enter a new password for your account.'),
     'help': ('Help Center & Guides — AI Compass', 'Get guides, tutorials, and support for using AI Compass. Learn how the AI Stack Architect works, search tips, and troubleshooting.'),
+    'student-discounts': ('Student AI Discounts & UNiDAYS Deals — AI Compass', 'Explore the best student discounts and UNiDAYS deals on top AI tools. Save on writing, coding, research, and productivity tools with your student status.'),
 }
 
 # Routes the React SPA actually renders. Anything not in this set (and
@@ -59,6 +60,7 @@ _ROUTE_META = {
 _KNOWN_SPA_ROUTES: set[str] = {
     '',  # homepage
     'tools',
+    'student-discounts',
     'ai-tool-finder',
     'collections',
     'compare',
@@ -390,6 +392,39 @@ def _seo_body(normalized: str, tool: dict | None = None) -> str:
             f'<ul>{"".join(items)}</ul>{tail}{faq}'
         )
 
+    if normalized == 'student-discounts':
+        title, desc = _ROUTE_META[normalized]
+        tools = get_cached_tools() or []
+        discount_items = []
+        for t in tools:
+            if t.get("studentPerk") or t.get("student_perk"):
+                tname = _esc(t.get("name"))
+                tslug = _esc(t.get("slug"))
+                tdesc = _esc(t.get("shortDescription") or t.get("tagline") or t.get("description"))
+                p_detail = t.get("pricingDetail") or ""
+                # Simple extraction for SEO representation
+                pct_match = re.search(r"(\d+)\s*%", p_detail)
+                discount_val = f"{pct_match.group(1)}% Off" if pct_match else "Student Discount"
+
+                # Check unidays
+                unidays_verified = False
+                UNIDAYS_PARTNERS = {
+                    "adobe", "canva", "notion", "grammarly", "microsoft", "perplexity", "github", "quizlet", "codeium", "wolfram alpha"
+                }
+                all_text = f"{t.get('name')} {t.get('tagline')} {p_detail} {t.get('description') or ''}".lower()
+                if "unidays" in all_text or t.get("name", "").lower() in UNIDAYS_PARTNERS:
+                    unidays_verified = True
+
+                unidays_badge = " (UNiDAYS Verified)" if unidays_verified else ""
+                discount_items.append(
+                    f'<li><a href="/tools/{tslug}">{tname}</a> — <strong>{discount_val}</strong>{unidays_badge}. {tdesc}</li>'
+                )
+        return (
+            f'<h1>{_esc(title)}</h1>'
+            f'<p>{_esc(desc)}</p>'
+            f'<ul>{"".join(discount_items)}</ul>'
+        )
+
     if normalized in _ROUTE_META:
         title, desc = _ROUTE_META[normalized]
         count = _total_tools()
@@ -647,6 +682,7 @@ def sitemap():
     static = [
         ('/', '1.0', 'weekly'),
         ('/tools', '0.9', 'weekly'),
+        ('/student-discounts', '0.9', 'weekly'),
         ('/ai-tool-finder', '0.8', 'monthly'),
         ('/best-ai-tools-for-students', '0.9', 'weekly'),
         ('/best-ai-tools-for-teachers', '0.8', 'monthly'),
