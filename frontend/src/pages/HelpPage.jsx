@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronDown, Search, Sparkles, Layers, BookOpen, User, Settings, AlertCircle, MessageSquare, Mail, HelpCircle } from 'lucide-react'
+import { ChevronDown, Search, Sparkles, Layers, BookOpen, User, Settings, AlertCircle, MessageSquare, Mail, HelpCircle, Compass } from 'lucide-react'
 import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
@@ -209,6 +209,19 @@ export default function HelpPage() {
           <p className="mx-auto mt-4 max-w-xl text-base text-muted sm:text-lg">
             Find answers to frequently asked questions, learn how the Architect recommendation scoring works, or get support.
           </p>
+          <div className="mt-4 flex justify-center">
+            <button
+              type="button"
+              onClick={() => {
+                const event = new CustomEvent('ai-compass-start-tour')
+                window.dispatchEvent(event)
+              }}
+              className="inline-flex items-center gap-1.5 rounded-full border border-line bg-bg-elev px-4 py-2 text-xs font-semibold text-ink-2 shadow-sm transition hover:bg-bg-sunk"
+            >
+              <Compass className="h-4 w-4 text-accent" />
+              Take the onboarding tour
+            </button>
+          </div>
 
           {/* Search bar */}
           <div className="mx-auto mt-8 max-w-md">
