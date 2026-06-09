@@ -111,3 +111,50 @@ def test_api_parse_syllabus_image_no_keys(client):
     assert "error" in data
     assert "local fallback does not support image" in data["error"].lower() or "gemini" in data["error"].lower()
 
+def test_normalize_and_save_toolkit_with_external_tool(app):
+    from app.services.syllabus_parser import _normalize_and_save_toolkit
+    from app.models import CatalogTool
+    from app import db
+    
+    parsed_payload = {
+        "course_name": "ME112: Engineering Graphics",
+        "subject_area": "Design & Graphics",
+        "technologies": ["CAD", "drawing"],
+        "tools_recommendations": [
+            {
+                "tool_slug": "my-new-exclusive-cad-tool",
+                "relevance_reason": "Excellent for rendering CAD sketches.",
+                "is_external": True,
+                "external_metadata": {
+                    "name": "ExclCadTool",
+                    "url": "https://www.exclcadtool.ai",
+                    "category": "Design & Graphics",
+                    "pricing": "Freemium",
+                    "tagline": "AI creative tools for industrial designers"
+                }
+            }
+        ]
+    }
+    
+    with app.app_context():
+        # Before running, clean up if my-new-exclusive-cad-tool exists (though reset cache fixture handles it)
+        existing = CatalogTool.query.filter_by(slug="my-new-exclusive-cad-tool").first()
+        if existing:
+            db.session.delete(existing)
+            db.session.commit()
+            
+        result = _normalize_and_save_toolkit(parsed_payload, is_llm_mode=True)
+        
+        # Verify result contains the new tool
+        assert result["course_name"] == "ME112: Engineering Graphics"
+        assert len(result["recommendations"]) == 1
+        assert result["recommendations"][0]["slug"] == "my-new-exclusive-cad-tool"
+        assert result["recommendations"][0]["name"] == "ExclCadTool"
+        assert result["recommendations"][0]["url"] == "https://www.exclcadtool.ai"
+        
+        # Verify it was inserted in the database
+        db_tool = CatalogTool.query.filter_by(slug="my-new-exclusive-cad-tool").first()
+        assert db_tool is not None
+        assert db_tool.name == "ExclCadTool"
+
+

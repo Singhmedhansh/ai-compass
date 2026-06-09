@@ -136,11 +136,29 @@ Your response MUST be a valid JSON object matching the following structure:
   "technologies": ["list of technologies mentioned, e.g. Python, Java, writing, papers"],
   "tools_recommendations": [
     {{
-      "tool_slug": "slug of recommended tool from the provided list (or a general slug matching the list)",
-      "relevance_reason": "Specific custom reason (under 120 chars) connecting the tool directly to coursework, projects, or tasks identified in the syllabus text."
+      "tool_slug": "slug of recommended tool from the provided list",
+      "relevance_reason": "Specific custom reason (under 120 chars) connecting the tool directly to coursework.",
+      "is_external": false
+    }},
+    {{
+      "tool_slug": "unique-lowercase-slug-of-the-external-tool",
+      "relevance_reason": "Specific custom reason connecting the tool to the course.",
+      "is_external": true,
+      "external_metadata": {{
+        "name": "Name of the external tool",
+        "url": "Website URL of the tool starting with https://",
+        "category": "One of: Coding, Writing & Chat, Research, Productivity, Image Generation, Video Generation, Audio & Voice",
+        "pricing": "One of: Free, Freemium, Paid",
+        "tagline": "A short, descriptive tagline for the tool (under 100 chars)"
+      }}
     }}
   ]
 }}
+
+Instructions on recommending tools:
+1. Try to recommend relevant tools from the popular tools list first.
+2. If there are highly specialized AI tools that would be significantly better for this specific course but are NOT in the popular tools list (e.g. Vizcom or Kaedim for engineering graphics, specialized CAD AI assistants, math equation solvers, chemistry simulation AIs), you may recommend them as external tools.
+3. For any external tool recommended, you MUST set `is_external` to true and provide the `external_metadata` object. For catalog tools, set `is_external` to false.
 
 Provide ONLY the raw JSON output. Do not wrap it in markdown code blocks like ```json.
 """
@@ -168,9 +186,21 @@ Provide ONLY the raw JSON output. Do not wrap it in markdown code blocks like ``
                                     "type": "OBJECT",
                                     "properties": {
                                         "tool_slug": {"type": "STRING"},
-                                        "relevance_reason": {"type": "STRING"}
+                                        "relevance_reason": {"type": "STRING"},
+                                        "is_external": {"type": "BOOLEAN"},
+                                        "external_metadata": {
+                                            "type": "OBJECT",
+                                            "properties": {
+                                                "name": {"type": "STRING"},
+                                                "url": {"type": "STRING"},
+                                                "category": {"type": "STRING"},
+                                                "pricing": {"type": "STRING"},
+                                                "tagline": {"type": "STRING"}
+                                            },
+                                            "required": ["name", "url", "category", "pricing", "tagline"]
+                                        }
                                     },
-                                    "required": ["tool_slug", "relevance_reason"]
+                                    "required": ["tool_slug", "relevance_reason", "is_external"]
                                 }
                             }
                         },
@@ -338,11 +368,29 @@ Your response MUST be a valid JSON object matching the following structure:
   "technologies": ["list of technologies mentioned, e.g. Python, Java, writing, papers"],
   "tools_recommendations": [
     {{
-      "tool_slug": "slug of recommended tool from the provided list (or a general slug matching the list)",
-      "relevance_reason": "Specific custom reason (under 120 chars) connecting the tool directly to coursework, projects, or tasks identified in the syllabus image."
+      "tool_slug": "slug of recommended tool from the provided list",
+      "relevance_reason": "Specific custom reason (under 120 chars) connecting the tool directly to coursework.",
+      "is_external": false
+    }},
+    {{
+      "tool_slug": "unique-lowercase-slug-of-the-external-tool",
+      "relevance_reason": "Specific custom reason connecting the tool to the course.",
+      "is_external": true,
+      "external_metadata": {{
+        "name": "Name of the external tool",
+        "url": "Website URL of the tool starting with https://",
+        "category": "One of: Coding, Writing & Chat, Research, Productivity, Image Generation, Video Generation, Audio & Voice",
+        "pricing": "One of: Free, Freemium, Paid",
+        "tagline": "A short, descriptive tagline for the tool (under 100 chars)"
+      }}
     }}
   ]
 }}
+
+Instructions on recommending tools:
+1. Try to recommend relevant tools from the popular tools list first.
+2. If there are highly specialized AI tools that would be significantly better for this specific course but are NOT in the popular tools list (e.g. Vizcom or Kaedim for engineering graphics, specialized CAD AI assistants, math equation solvers, chemistry simulation AIs), you may recommend them as external tools.
+3. For any external tool recommended, you MUST set `is_external` to true and provide the `external_metadata` object. For catalog tools, set `is_external` to false.
 
 Provide ONLY the raw JSON output. Do not wrap it in markdown code blocks like ```json.
 """
@@ -380,9 +428,21 @@ Provide ONLY the raw JSON output. Do not wrap it in markdown code blocks like ``
                                     "type": "OBJECT",
                                     "properties": {
                                         "tool_slug": {"type": "STRING"},
-                                        "relevance_reason": {"type": "STRING"}
+                                        "relevance_reason": {"type": "STRING"},
+                                        "is_external": {"type": "BOOLEAN"},
+                                        "external_metadata": {
+                                            "type": "OBJECT",
+                                            "properties": {
+                                                "name": {"type": "STRING"},
+                                                "url": {"type": "STRING"},
+                                                "category": {"type": "STRING"},
+                                                "pricing": {"type": "STRING"},
+                                                "tagline": {"type": "STRING"}
+                                            },
+                                            "required": ["name", "url", "category", "pricing", "tagline"]
+                                        }
                                     },
-                                    "required": ["tool_slug", "relevance_reason"]
+                                    "required": ["tool_slug", "relevance_reason", "is_external"]
                                 }
                             }
                         },
@@ -432,6 +492,45 @@ def _normalize_and_save_toolkit(parsed, is_llm_mode):
                     tool = t
                     slug = cached_slug
                     break
+
+        # If still not found, check if it's an external tool suggestion
+        if not tool and rec.get("is_external") and rec.get("external_metadata"):
+            meta = rec.get("external_metadata")
+            ext_name = meta.get("name", "").strip()
+            ext_url = meta.get("url", "").strip()
+            if ext_name and ext_url:
+                ext_slug = slug or re.sub(r"[^a-z0-9]+", "-", ext_name.lower()).strip("-")
+                tool = {
+                    "name": ext_name,
+                    "slug": ext_slug,
+                    "tagline": meta.get("tagline", "Specialized AI tool recommended for this syllabus course."),
+                    "category": meta.get("category", "Productivity"),
+                    "pricing": meta.get("pricing", "Freemium"),
+                    "price": meta.get("pricing", "Freemium"),
+                    "link": ext_url,
+                    "url": ext_url,
+                    "description": meta.get("tagline", "Specialized AI tool recommended for this syllabus course."),
+                    "use_cases": [meta.get("tagline", "Course tasks support")],
+                    "tags": [meta.get("category", "Productivity").lower(), "external-added"],
+                    "rating": 4.0,
+                    "review_count": 1,
+                    "platforms": ["Web"],
+                    "difficulty": "beginner",
+                    "logo_emoji": "⚡",
+                    "hidden": False
+                }
+                try:
+                    from app.catalog_store import upsert_tool
+                    from app.tool_cache import refresh_tools_cache
+                    upsert_tool(tool)
+                    refresh_tools_cache()
+                    # Re-retrieve after caching to get database structure correct
+                    cached_tools = get_cached_tools() or []
+                    tools_by_slug = {t.get("slug"): t for t in cached_tools}
+                    tool = tools_by_slug.get(ext_slug) or tool
+                    slug = ext_slug
+                except Exception as db_err:
+                    print(f"[Syllabus Parser] Failed to insert external tool {ext_name}: {str(db_err)}")
         
         if tool:
             normalized_recommendations.append({
