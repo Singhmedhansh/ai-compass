@@ -48,6 +48,7 @@ _ROUTE_META = {
     'best-ai-tools-for-fiction-writers': ('10 Best AI Tools for Fiction Writers in 2026 — AI Compass', 'The 10 best AI tools for fiction writers, novelists, and screenwriters — Sudowrite, NovelAI, Squibler, Claude, and more. Hand-tested for prose voice, worldbuilding, and revision.'),
     'forgot-password': ('Recover Password — AI Compass', 'Retrieve your account by resetting your password.'),
     'reset-password': ('Reset Password — AI Compass', 'Enter a new password for your account.'),
+    'help': ('Help Center & Guides — AI Compass', 'Get guides, tutorials, and support for using AI Compass. Learn how the AI Stack Architect works, search tips, and troubleshooting.'),
 }
 
 # Routes the React SPA actually renders. Anything not in this set (and
@@ -82,6 +83,7 @@ _KNOWN_SPA_ROUTES: set[str] = {
     'auth/callback',
     'forgot-password',
     'reset-password',
+    'help',
 }
 
 _INDEX_HTML_CACHE = None
@@ -663,6 +665,7 @@ def sitemap():
         ('/contact', '0.3', 'yearly'),
         ('/privacy', '0.2', 'yearly'),
         ('/terms', '0.2', 'yearly'),
+        ('/help', '0.6', 'monthly'),
     ]
     for path, priority, freq in static:
         safe_path = escape(str(path))
@@ -766,7 +769,9 @@ def llms_txt():
         '- [Collections](https://ai-compass.in/collections): Curated tool bundles '
         'by use case.\n'
         '- [Compare tools](https://ai-compass.in/compare): Side-by-side tool '
-        'comparisons.\n\n'
+        'comparisons.\n'
+        '- [Help Center](https://ai-compass.in/help): Help articles, guides, and '
+        'troubleshooting support.\n\n'
         '## Guides\n'
         '- [Best AI Tools for Students](https://ai-compass.in/best-ai-tools-for-students)\n'
         '- [Best AI Tools for Teachers](https://ai-compass.in/best-ai-tools-for-teachers)\n'

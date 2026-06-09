@@ -67,6 +67,7 @@ const PRODUCT_LINKS = [
   { label: 'Catalog', to: '/tools' },
   { label: 'Collections', to: '/collections' },
   { label: 'Submit a tool', to: '/submit' },
+  { label: 'Help Center', to: '/help' },
 ]
 
 const GUIDES_LINKS = [

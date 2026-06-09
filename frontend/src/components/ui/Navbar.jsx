@@ -293,6 +293,12 @@ function Navbar() {
             </Button>
           </Link>
 
+          <Link to="/help">
+            <Button variant="ghost" size="sm" className="text-ink-2">
+              Help Center
+            </Button>
+          </Link>
+
           <div
             className="relative"
             ref={guidesMenuRef}
@@ -570,6 +576,13 @@ function Navbar() {
                   className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
                 >
                   Collections
+                </Link>
+                <Link
+                  to="/help"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
+                >
+                  Help Center
                 </Link>
                 <Link
                   to="/best-ai-tools-for-students"
