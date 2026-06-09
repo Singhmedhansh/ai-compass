@@ -253,6 +253,10 @@ function DashboardPage() {
     setEditingStack(true)
   }
 
+  const cancelEditStack = () => {
+    setEditingStack(false)
+  }
+
   const saveStackEdits = async () => {
     if (!user?.id) return
     setStackBusy(true)
@@ -578,7 +582,7 @@ function DashboardPage() {
                           type="button"
                           className="h-9 rounded-lg px-4 text-xs shadow-md"
                           disabled={stackBusy}
-                          onClick={saveEditedStack}
+                          onClick={saveStackEdits}
                         >
                           {stackBusy ? 'Saving…' : 'Save Changes'}
                         </Button>

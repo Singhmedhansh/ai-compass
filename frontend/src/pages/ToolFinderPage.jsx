@@ -1142,6 +1142,12 @@ function ToolFinderPage() {
   const wizardCompletedRef = useRef(false)
   const useCaseInputRef = useRef(null)
 
+  const canSeeResults = (
+    (Array.isArray(answers.goal) ? answers.goal.length > 0 : Boolean(answers.goal))
+    && Boolean(answers.level)
+  )
+
+
   useEffect(() => {
     const onResize = () => {
       setAspectBucket(getAspectBucket())
@@ -1244,11 +1250,6 @@ function ToolFinderPage() {
       window.dispatchEvent(event)
     }
   }, [loadingResults, results.length, canSeeResults, error])
-
-  const canSeeResults = (
-    (Array.isArray(answers.goal) ? answers.goal.length > 0 : Boolean(answers.goal))
-    && Boolean(answers.level)
-  )
 
   const handleStartWizard = () => {
     if (wizardStartedRef.current) return
