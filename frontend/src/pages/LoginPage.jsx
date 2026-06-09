@@ -38,7 +38,11 @@ function LoginPage() {
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search)
     if (queryParams.get('verified') === 'true') {
-      toast.success('Email verified successfully! You can now sign in.', {
+      // Clear stale user object (had is_verified:false) so the route guard
+      // doesn't immediately bounce us back to /verify-email-pending.
+      localStorage.removeItem('user')
+      window.dispatchEvent(new Event('userLoggedIn'))
+      toast.success('Email verified successfully! Please sign in to continue.', {
         duration: 5000,
       })
       navigate('/login', { replace: true })
@@ -90,6 +94,13 @@ function LoginPage() {
       toast.success(`Welcome back, ${firstName}! 👋`, {
         duration: 3000,
       })
+
+      // If the account isn't verified yet, send them to the verification
+      // pending page immediately (don't try to go to dashboard).
+      if (payload.is_verified === false) {
+        setTimeout(() => navigate('/verify-email-pending', { replace: true }), 400)
+        return
+      }
 
       // Honor return URL from <Link state={{ from: '...' }}> on the page that
       // sent the user here. Falls back to /dashboard if the user navigated

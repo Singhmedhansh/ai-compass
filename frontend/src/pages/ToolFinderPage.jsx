@@ -1137,6 +1137,7 @@ function ToolFinderPage() {
   const [error, setError] = useState('')
   const [aspectBucket, setAspectBucket] = useState(getAspectBucket)
   const [pendingCompletion, setPendingCompletion] = useState(null)
+  const [pendingStackSwitch, setPendingStackSwitch] = useState(false)
   const wizardStartedRef = useRef(false)
   const wizardCompletedRef = useRef(false)
   const useCaseInputRef = useRef(null)
@@ -1327,6 +1328,7 @@ function ToolFinderPage() {
     setResults([])
     setError('')
     setPendingCompletion(null)
+    setPendingStackSwitch(false)
     setHasStarted(false)
     setActiveQuestion(null)
     setViewMode('wizard')
@@ -1346,10 +1348,10 @@ function ToolFinderPage() {
       setHasStarted(true)
       setAnswers(stack.answers)
       setActiveQuestion(null)
-      // Instant gratification: pre-fill the wizard and switch to results immediately
-      setTimeout(() => {
-        setViewMode('results')
-      }, 300)
+      // Switch to results view once the fetch completes (handled by the
+      // useEffect below that watches loadingResults + results).
+      // We flag our intent here so the watcher knows to flip the view.
+      setPendingStackSwitch(true)
     }
   }
 
@@ -1365,6 +1367,19 @@ function ToolFinderPage() {
     })
     setPendingCompletion(null)
   }, [loadingResults, pendingCompletion, results.length])
+
+  // When a predefined stack template is selected, wait for the fetch to finish
+  // and then switch to the results view. If no results come back, stay in the
+  // wizard so the user can tweak their answers instead of seeing a blank screen.
+  useEffect(() => {
+    if (!pendingStackSwitch || loadingResults) return
+    setPendingStackSwitch(false)
+    if (results.length > 0) {
+      setViewMode('results')
+    } else {
+      toast.error('No tools matched this stack — try adjusting the answers.')
+    }
+  }, [pendingStackSwitch, loadingResults, results.length])
 
   const handleSaveStack = async () => {
     if (!user) {
