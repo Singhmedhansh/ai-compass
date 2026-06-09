@@ -8,21 +8,21 @@ import { MagneticWrapper, WordReveal } from '../ui'
 const FALLBACK_TOOL_COUNT = 400
 
 const MARQUEE_LOGOS = [
-  { name: 'ChatGPT', domain: 'openai.com' },
-  { name: 'Claude', domain: 'anthropic.com' },
-  { name: 'Gemini', domain: 'gemini.google.com' },
-  { name: 'Midjourney', domain: 'midjourney.com' },
-  { name: 'Perplexity', domain: 'perplexity.ai' },
-  { name: 'Notion', domain: 'notion.so' },
-  { name: 'Cursor', domain: 'cursor.com' },
-  { name: 'ElevenLabs', domain: 'elevenlabs.io' },
-  { name: 'Runway', domain: 'runwayml.com' },
-  { name: 'QuillBot', domain: 'quillbot.com' },
-  { name: 'Suno', domain: 'suno.com' },
-  { name: 'v0', domain: 'v0.dev' },
-  { name: 'Canva', domain: 'canva.com' },
-  { name: 'Grammarly', domain: 'grammarly.com' },
-  { name: 'DeepL', domain: 'deepl.com' }
+  { name: 'ChatGPT', domain: 'openai.com', slug: 'chatgpt' },
+  { name: 'Claude', domain: 'anthropic.com', slug: 'claude' },
+  { name: 'Gemini', domain: 'gemini.google.com', slug: 'gemini' },
+  { name: 'Midjourney', domain: 'midjourney.com', slug: 'midjourney' },
+  { name: 'Perplexity', domain: 'perplexity.ai', slug: 'perplexity-ai' },
+  { name: 'Notion', domain: 'notion.so', slug: 'notion' },
+  { name: 'Cursor', domain: 'cursor.com', slug: 'cursor' },
+  { name: 'ElevenLabs', domain: 'elevenlabs.io', slug: 'elevenlabs' },
+  { name: 'Runway', domain: 'runwayml.com', slug: 'runway-gen-3' },
+  { name: 'QuillBot', domain: 'quillbot.com', slug: 'quillbot' },
+  { name: 'Suno', domain: 'suno.com', slug: 'suno' },
+  { name: 'v0', domain: 'v0.dev', slug: 'vercel-v0' },
+  { name: 'Canva', domain: 'canva.com', slug: 'canva' },
+  { name: 'Grammarly', domain: 'grammarly.com', slug: 'grammarly' },
+  { name: 'DeepL', domain: 'deepl.com', slug: 'deepl' }
 ]
 
 export default function Hero() {
@@ -124,8 +124,9 @@ export default function Hero() {
         <div className="relative w-full overflow-hidden mask-gradient py-3">
           <div className="animate-marquee gap-4 hover:[animation-play-state:paused] flex items-center pr-4">
             {[...MARQUEE_LOGOS, ...MARQUEE_LOGOS].map((logo, index) => (
-              <div
+              <Link
                 key={`${logo.name}-${index}`}
+                to={`/tools/${logo.slug}`}
                 className="flex items-center gap-3 rounded-2xl border border-line bg-bg-elev/40 px-5 py-3 shadow-md backdrop-blur-[2px] hover:border-accent/40 hover:bg-bg-elev/80 transition-[background-color,border-color,transform] duration-300 transform hover:scale-[1.05] cursor-pointer"
               >
                 <img
@@ -139,7 +140,7 @@ export default function Hero() {
                 <span className="text-sm font-bold text-ink-2 tracking-tight select-none">
                   {logo.name}
                 </span>
-              </div>
+              </Link>
             ))}
           </div>
         </div>
