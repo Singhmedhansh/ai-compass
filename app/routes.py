@@ -83,6 +83,7 @@ _KNOWN_SPA_ROUTES: set[str] = {
     'auth/callback',
     'forgot-password',
     'reset-password',
+    'verify-email-pending',
     'help',
 }
 
