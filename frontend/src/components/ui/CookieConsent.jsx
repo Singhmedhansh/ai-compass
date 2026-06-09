@@ -57,7 +57,7 @@ export default function CookieConsent() {
           exit="exit"
           role="status"
           aria-live="polite"
-          className="fixed bottom-6 left-1/2 z-50 w-[calc(100%-2rem)] max-w-3xl rounded-token-lg border border-line dark:border-[#1f1f1f] bg-bg-elev/95 backdrop-blur-md p-4 md:py-3.5 md:px-5 shadow-2xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+          className="fixed bottom-6 left-1/2 z-50 w-[calc(100%-2rem)] max-w-3xl rounded-token-lg border border-line dark:border-[#1f1f1f] glass-cookie backdrop-blur-md p-4 md:py-3.5 md:px-5 shadow-2xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
         >
           <div className="flex items-start sm:items-center gap-3">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent-soft text-accent">

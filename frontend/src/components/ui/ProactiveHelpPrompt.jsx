@@ -111,7 +111,7 @@ export default function ProactiveHelpPrompt() {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 15, scale: 0.95 }}
           transition={{ duration: 0.25, ease: 'easeOut' }}
-          className={`fixed bottom-20 z-50 w-[calc(100vw-2rem)] max-w-xs rounded-2xl border border-line bg-bg-elev/75 p-4 shadow-xl backdrop-blur-lg ${
+          className={`fixed bottom-20 z-50 w-[calc(100vw-2rem)] max-w-xs rounded-2xl border border-line glass-card p-4 shadow-xl ${
             isWizardPage ? 'right-4 sm:right-6' : 'left-4 sm:left-6'
           }`}
           style={{

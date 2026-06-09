@@ -25,7 +25,7 @@ function getInitialTheme() {
     return storedTheme === 'dark'
   }
 
-  return window.matchMedia('(prefers-color-scheme: dark)').matches
+  return false
 }
 
 function Navbar() {
@@ -257,7 +257,7 @@ function Navbar() {
     <header
       className={`sticky top-0 z-50 transition-all duration-300 ${
         scrolled
-          ? 'border-b border-line bg-bg-elev/95 shadow-lg backdrop-blur-md'
+          ? 'border-b border-line glass-nav shadow-lg backdrop-blur-md'
           : 'border-b border-line bg-bg-elev'
       }`}
     >

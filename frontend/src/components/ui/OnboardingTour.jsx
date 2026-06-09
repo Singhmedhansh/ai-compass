@@ -111,7 +111,7 @@ export default function OnboardingTour() {
       icon: Layers,
       renderIllustration: () => (
         <div className="flex h-32 w-full items-center justify-center gap-2 p-3 rounded-2xl border border-line/40 bg-bg-sunk/30 overflow-hidden">
-          <div className="w-1/3 h-full rounded-xl border border-line bg-bg-elev/80 p-2 flex flex-col justify-between text-left shadow-sm">
+          <div className="w-1/3 h-full rounded-xl border border-line bg-bg-elev p-2 flex flex-col justify-between text-left shadow-sm">
             <span className="text-[10px] font-bold text-ink">Claude</span>
             <div className="h-1 bg-line rounded-full w-3/4" />
             <span className="text-[9px] text-accent font-semibold">Free Tier</span>
@@ -121,7 +121,7 @@ export default function OnboardingTour() {
             <div className="h-1 bg-accent rounded-full w-2/3" />
             <span className="text-[9px] text-accent-ink font-semibold">Freemium</span>
           </div>
-          <div className="w-1/3 h-full rounded-xl border border-line bg-bg-elev/80 p-2 flex flex-col justify-between text-left shadow-sm">
+          <div className="w-1/3 h-full rounded-xl border border-line bg-bg-elev p-2 flex flex-col justify-between text-left shadow-sm">
             <span className="text-[10px] font-bold text-ink">Gemini</span>
             <div className="h-1 bg-line rounded-full w-4/5" />
             <span className="text-[9px] text-accent font-semibold">Free Tier</span>
@@ -136,7 +136,7 @@ export default function OnboardingTour() {
       renderIllustration: () => (
         <div className="flex h-32 w-full items-center gap-3 p-4 rounded-2xl border border-line/40 bg-bg-sunk/30 overflow-hidden relative">
           {/* Mock Proactive Prompt */}
-          <div className="w-full rounded-xl border border-line bg-bg-elev/90 p-3 shadow-md text-left flex items-start gap-2 backdrop-blur">
+          <div className="w-full rounded-xl border border-line bg-bg-elev p-3 shadow-md text-left flex items-start gap-2 backdrop-blur">
             <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent-ink">
               <Sparkles className="h-3.5 w-3.5" />
             </div>
@@ -164,7 +164,7 @@ export default function OnboardingTour() {
       <MotionDiv
         initial={{ opacity: 0, scale: 0.95, y: 15 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        className="relative w-full max-w-md overflow-hidden rounded-3xl border border-line bg-bg-elev/75 p-6 md:p-8 shadow-2xl backdrop-blur-md text-ink"
+        className="relative z-10 w-full max-w-md overflow-hidden rounded-3xl border border-line glass-card p-6 md:p-8 shadow-2xl text-ink"
         style={{
           borderColor: 'rgba(230, 229, 222, 0.5)'
         }}

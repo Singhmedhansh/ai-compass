@@ -137,3 +137,35 @@ html[data-aspect='portrait'] {
 @media (prefers-reduced-motion: reduce) {
 	.compass-needle { animation: none; }
 }
+
+/* Premium Glassmorphic Cards (Light & Dark Mode compatible) */
+.glass-card {
+	background-color: rgba(255, 255, 255, 0.90);
+	backdrop-filter: blur(16px);
+	-webkit-backdrop-filter: blur(16px);
+}
+html[data-theme='dark'] .glass-card {
+	background-color: rgba(22, 27, 25, 0.90);
+}
+
+/* Glassmorphic helper classes for layout components to avoid Tailwind variable opacity bugs */
+.glass-nav {
+	background-color: rgba(255, 255, 255, 0.95);
+}
+html[data-theme='dark'] .glass-nav {
+	background-color: rgba(22, 27, 25, 0.95);
+}
+
+.glass-cookie {
+	background-color: rgba(255, 255, 255, 0.95);
+}
+html[data-theme='dark'] .glass-cookie {
+	background-color: rgba(22, 27, 25, 0.95);
+}
+
+.glass-box {
+	background-color: rgba(255, 255, 255, 0.40);
+}
+html[data-theme='dark'] .glass-box {
+	background-color: rgba(22, 27, 25, 0.40);
+}

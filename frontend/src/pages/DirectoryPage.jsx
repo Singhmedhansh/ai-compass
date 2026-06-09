@@ -731,7 +731,7 @@ function DirectoryPage() {
         />
       </div>
 
-      <section className="sticky top-16 z-20 mb-6 rounded-2xl border border-line bg-bg-elev/95 p-4 shadow-sm backdrop-blur">
+      <section className="sticky top-16 z-20 mb-6 rounded-2xl border border-line glass-nav p-4 shadow-sm backdrop-blur">
         {viewMode === 'hub' ? (
           <div className="filters-row flex gap-2 overflow-x-auto pb-1">
             {hubSections.map((c) => (

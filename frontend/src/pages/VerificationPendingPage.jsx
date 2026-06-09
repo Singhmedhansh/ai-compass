@@ -65,7 +65,7 @@ export default function VerificationPendingPage() {
       subtitle="Your account is pending email validation before accessing fully protected features."
     >
       <div className="mt-6 space-y-6">
-        <div className="rounded-lg border border-line bg-bg-elev/40 p-4 backdrop-blur-sm">
+        <div className="rounded-lg border border-line glass-box p-4 backdrop-blur-sm">
           <p className="text-sm text-ink-2 mb-2">
             A confirmation link was dispatched to:
           </p>

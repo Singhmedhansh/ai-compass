@@ -427,7 +427,7 @@ function DashboardPage() {
             <button
               type="button"
               onClick={() => navigate('/tools')}
-              className="flex items-center justify-between rounded-xl border border-line bg-bg-elev px-4 py-3.5 text-left shadow-sm transition hover:border-line-strong hover:bg-bg-elev/80"
+              className="flex items-center justify-between rounded-xl border border-line bg-bg-elev px-4 py-3.5 text-left shadow-sm transition hover:border-line-strong hover:bg-bg-sunk"
             >
               <span className="flex items-center gap-2 text-sm font-semibold text-ink">
                 <Grid3X3 className="h-4 w-4 text-muted" />
@@ -438,7 +438,7 @@ function DashboardPage() {
             <button
               type="button"
               onClick={() => navigate('/ai-tool-finder')}
-              className="flex items-center justify-between rounded-xl border border-line bg-bg-elev px-4 py-3.5 text-left shadow-sm transition hover:border-line-strong hover:bg-bg-elev/80"
+              className="flex items-center justify-between rounded-xl border border-line bg-bg-elev px-4 py-3.5 text-left shadow-sm transition hover:border-line-strong hover:bg-bg-sunk"
             >
               <span className="flex items-center gap-2 text-sm font-semibold text-ink">
                 <Sparkles className="h-4 w-4 text-accent" />
@@ -449,7 +449,7 @@ function DashboardPage() {
             <button
               type="button"
               onClick={() => navigate('/submit')}
-              className="flex items-center justify-between rounded-xl border border-line bg-bg-elev px-4 py-3.5 text-left shadow-sm transition hover:border-line-strong hover:bg-bg-elev/80"
+              className="flex items-center justify-between rounded-xl border border-line bg-bg-elev px-4 py-3.5 text-left shadow-sm transition hover:border-line-strong hover:bg-bg-sunk"
             >
               <span className="flex items-center gap-2 text-sm font-semibold text-ink">
                 <Wand2 className="h-4 w-4 text-muted" />
