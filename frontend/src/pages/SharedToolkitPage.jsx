@@ -106,7 +106,7 @@ export default function SharedToolkitPage() {
               <div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <ToolLogo domain={rec.url ? rec.url.replace(/^https?:\/\//, '').split('/')[0] : ''} name={rec.name} size={40} />
+                    <ToolLogo tool={rec} size={40} />
                     <div>
                       <h3 className="font-bold text-ink group-hover:text-accent transition-colors">{rec.name}</h3>
                       <span className="text-xs text-muted">{rec.category}</span>
