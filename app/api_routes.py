@@ -2450,14 +2450,25 @@ def save_stack():
         'saved_at': datetime.now(timezone.utc).isoformat(),
     }
     try:
+        name = str(data.get('name') or '').strip() or 'default'
         row = (
-            SavedStack.query.filter_by(user_id=user_id)
+            SavedStack.query.filter_by(user_id=user_id, name=name)
             .order_by(SavedStack.id.desc())
             .first()
         )
         if row is None:
-            row = SavedStack(user_id=user_id, name='default', tools_json='')
+            row = SavedStack(user_id=user_id, name=name, tools_json='')
             db.session.add(row)
+        
+        # Preserve is_private when overwriting
+        existing_private = False
+        if row.tools_json:
+            try:
+                existing_private = bool(json.loads(row.tools_json).get('is_private', False))
+            except Exception:
+                pass
+        stack_payload['is_private'] = existing_private
+
         row.tools_json = json.dumps(stack_payload, ensure_ascii=False)
         db.session.commit()
     except Exception as exc:  # noqa: BLE001
@@ -2465,33 +2476,65 @@ def save_stack():
         current_app.logger.exception("save_stack failed")
         return jsonify({'error': 'Could not save stack', 'detail': str(exc)}), 500
 
-    return jsonify({'message': 'Stack saved!', 'stack': {'user_id': user_id, **stack_payload}}), 200
+    return jsonify({'message': 'Stack saved!', 'stack': {'id': row.id, 'user_id': user_id, 'name': name, **stack_payload}}), 200
 
 
 @api_bp.route('/stack', methods=['GET'])
 def get_stack():
+    # Force Flask-Login to reload the user from the current request's session
+    import flask
+    ctx = getattr(flask, '_request_ctx_stack', None)
+    if ctx and ctx.top and hasattr(ctx.top, 'user'):
+        try:
+            delattr(ctx.top, 'user')
+        except AttributeError:
+            pass
+    try:
+        from flask.globals import request_ctx
+        if request_ctx and hasattr(request_ctx, 'user'):
+            delattr(request_ctx, 'user')
+    except (ImportError, AttributeError):
+        pass
+
     from app.models import SavedStack
 
-    user_id = request.args.get('user_id') or _stack_user_id()
-    if not user_id:
-        return jsonify({'stack': None}), 200
+    stack_id = request.args.get('stack_id')
+    if stack_id:
+        try:
+            row = SavedStack.query.filter_by(id=int(stack_id)).first()
+        except ValueError:
+            return jsonify({'error': 'Invalid stack ID'}), 400
+    else:
+        user_id = request.args.get('user_id') or _stack_user_id()
+        if not user_id:
+            return jsonify({'stack': None}), 200
+        row = (
+            SavedStack.query.filter_by(user_id=user_id)
+            .order_by(SavedStack.id.desc())
+            .first()
+        )
 
-    row = (
-        SavedStack.query.filter_by(user_id=user_id)
-        .order_by(SavedStack.id.desc())
-        .first()
-    )
     if row is None or not row.tools_json:
         return jsonify({'stack': None}), 200
     try:
         stack = json.loads(row.tools_json)
-        stack['user_id'] = user_id
+        owner_id = row.user_id
+        stack['user_id'] = owner_id
+        stack['id'] = row.id
+        stack['name'] = row.name or 'default'
+
+        # Privacy Authorization check
+        is_private = bool(stack.get('is_private', False))
+        if is_private:
+            if not current_user.is_authenticated or int(current_user.id) != int(owner_id):
+                return jsonify({'error': 'This stack is private'}), 403
+
         from app.models import User
-        owner = User.query.get(user_id)
+        owner = User.query.get(owner_id)
         if owner:
             stack['owner_name'] = owner.display_name or owner.email.split('@')[0]
         else:
-            stack['owner_name'] = f"User {user_id}"
+            stack['owner_name'] = f"User {owner_id}"
     except (ValueError, TypeError):
         return jsonify({'stack': None}), 200
     return jsonify({'stack': stack}), 200
@@ -2512,6 +2555,101 @@ def delete_stack():
         db.session.rollback()
         return jsonify({'error': 'Could not clear stack'}), 500
     return jsonify({'message': 'Stack cleared'}), 200
+
+
+@api_bp.route('/profile/stacks', methods=['GET'])
+def get_profile_stacks():
+    if not current_user.is_authenticated:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    from app.models import SavedStack
+    rows = SavedStack.query.filter_by(user_id=current_user.id).order_by(SavedStack.id.desc()).all()
+
+    results = []
+    for row in rows:
+        stack_data = {}
+        if row.tools_json:
+            try:
+                stack_data = json.loads(row.tools_json)
+            except Exception:
+                pass
+
+        results.append({
+            'id': row.id,
+            'name': row.name or 'default',
+            'created_at': row.created_at.isoformat() if row.created_at else None,
+            'is_private': bool(stack_data.get('is_private', False)),
+            'tools': stack_data.get('tools', []),
+            'goal': stack_data.get('goal', ''),
+            'budget': stack_data.get('budget', ''),
+            'platform': stack_data.get('platform', ''),
+            'level': stack_data.get('level', '')
+        })
+
+    return jsonify(results), 200
+
+
+@csrf.exempt
+@api_bp.route('/profile/stacks/<int:stack_id>', methods=['PUT'])
+def update_profile_stack(stack_id):
+    if not current_user.is_authenticated:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    from app.models import SavedStack
+    row = SavedStack.query.filter_by(id=stack_id, user_id=current_user.id).first()
+    if not row:
+        return jsonify({'error': 'Stack not found'}), 404
+
+    payload = request.get_json(silent=True) or {}
+    name = payload.get('name')
+    is_private = payload.get('is_private')
+
+    stack_data = {}
+    if row.tools_json:
+        try:
+            stack_data = json.loads(row.tools_json)
+        except Exception:
+            pass
+
+    if name is not None:
+        name_str = str(name).strip()
+        if name_str:
+            row.name = name_str
+
+    if is_private is not None:
+        stack_data['is_private'] = bool(is_private)
+
+    row.tools_json = json.dumps(stack_data, ensure_ascii=False)
+    db.session.commit()
+
+    return jsonify({
+        'id': row.id,
+        'name': row.name,
+        'created_at': row.created_at.isoformat() if row.created_at else None,
+        'is_private': bool(stack_data.get('is_private', False)),
+        'tools': stack_data.get('tools', []),
+        'goal': stack_data.get('goal', ''),
+        'budget': stack_data.get('budget', ''),
+        'platform': stack_data.get('platform', ''),
+        'level': stack_data.get('level', '')
+    }), 200
+
+
+@csrf.exempt
+@api_bp.route('/profile/stacks/<int:stack_id>', methods=['DELETE'])
+def delete_profile_stack(stack_id):
+    if not current_user.is_authenticated:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    from app.models import SavedStack
+    row = SavedStack.query.filter_by(id=stack_id, user_id=current_user.id).first()
+    if not row:
+        return jsonify({'error': 'Stack not found'}), 404
+
+    db.session.delete(row)
+    db.session.commit()
+
+    return jsonify({'message': 'Stack deleted successfully'}), 200
 
 
 # ── Backward-compat alias: /api/search → same logic as /api/v1/search ──────────

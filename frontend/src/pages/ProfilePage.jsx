@@ -1,4 +1,4 @@
-import { Bell, Check, CheckCircle2, Download, Loader2, ShieldAlert, Sparkles, Trash2, UserRound } from 'lucide-react'
+import { Bell, Check, CheckCircle2, Download, Loader2, ShieldAlert, Sparkles, Trash2, UserRound, Copy, Globe, Lock, Edit2, X, Library } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -130,6 +130,130 @@ function ProfilePage() {
   const [editGoals, setEditGoals] = useState([])
   const [editSkill, setEditSkill] = useState('intermediate')
   const [editPricing, setEditPricing] = useState('freemium')
+
+  const [stacks, setStacks] = useState([])
+  const [loadingStacks, setLoadingStacks] = useState(true)
+  const [editingStackId, setEditingStackId] = useState(null)
+  const [editingStackName, setEditingStackName] = useState('')
+  const [savingStackId, setSavingStackId] = useState(null)
+  const [deletingStackId, setDeletingStackId] = useState(null)
+
+  useEffect(() => {
+    const controller = new AbortController()
+
+    async function loadStacks() {
+      try {
+        const response = await fetch('/api/v1/profile/stacks', { signal: controller.signal })
+        if (response.ok) {
+          const data = await response.json()
+          setStacks(data)
+        }
+      } catch (error) {
+        if (error.name !== 'AbortError') {
+          console.error('Failed to load stacks', error)
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setLoadingStacks(false)
+        }
+      }
+    }
+
+    const storedUser = safeParseJson(localStorage.getItem('user'))
+    if (storedUser) {
+      loadStacks()
+    } else {
+      setLoadingStacks(false)
+    }
+
+    return () => controller.abort()
+  }, [])
+
+  const handleRenameStack = async (stackId) => {
+    const nextName = editingStackName.trim()
+    if (!nextName) {
+      showToast('Toolkit name cannot be empty.', 'error')
+      return
+    }
+
+    setSavingStackId(stackId)
+    try {
+      const response = await fetch(`/api/v1/profile/stacks/${stackId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: nextName }),
+      })
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}))
+        throw new Error(payload.error || 'Failed to rename toolkit.')
+      }
+
+      const updated = await response.json()
+      setStacks(prev => prev.map(s => s.id === stackId ? { ...s, name: updated.name } : s))
+      setEditingStackId(null)
+      showToast('Toolkit renamed successfully.')
+    } catch (error) {
+      showToast(error.message || 'Failed to rename toolkit.', 'error')
+    } finally {
+      setSavingStackId(null)
+    }
+  }
+
+  const handleTogglePrivacy = async (stackId, currentIsPrivate) => {
+    const nextIsPrivate = !currentIsPrivate
+    try {
+      const response = await fetch(`/api/v1/profile/stacks/${stackId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_private: nextIsPrivate }),
+      })
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}))
+        throw new Error(payload.error || 'Failed to update visibility.')
+      }
+
+      const updated = await response.json()
+      setStacks(prev => prev.map(s => s.id === stackId ? { ...s, is_private: updated.is_private } : s))
+      showToast(`Toolkit is now ${nextIsPrivate ? 'private' : 'public'}.`)
+    } catch (error) {
+      showToast(error.message || 'Failed to update visibility.', 'error')
+    }
+  }
+
+  const handleDeleteStack = async (stackId) => {
+    if (!window.confirm('Are you sure you want to delete this toolkit?')) {
+      return
+    }
+    setDeletingStackId(stackId)
+    try {
+      const response = await fetch(`/api/v1/profile/stacks/${stackId}`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}))
+        throw new Error(payload.error || 'Failed to delete toolkit.')
+      }
+
+      setStacks(prev => prev.filter(s => s.id !== stackId))
+      showToast('Toolkit deleted successfully.')
+    } catch (error) {
+      showToast(error.message || 'Failed to delete toolkit.', 'error')
+    } finally {
+      setDeletingStackId(null)
+    }
+  }
+
+  const handleShareStack = (stackId, isPrivate) => {
+    if (isPrivate) return
+
+    const shareUrl = `${window.location.origin}/stacks/${profile?.id || 'user'}?stack_id=${stackId}`
+    navigator.clipboard.writeText(shareUrl)
+      .then(() => showToast('Share link copied to clipboard!'))
+      .catch(() => showToast('Failed to copy link.', 'error'))
+  }
 
   const avatarLetter = useMemo(
     () => String(profile?.name || profile?.email || 'U').charAt(0).toUpperCase(),
@@ -751,6 +875,170 @@ function ProfilePage() {
                 </div>
               </div>
             )}
+          </section>
+
+          <section className="rounded-3xl border border-line bg-bg-elev p-6 shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-accent-soft text-accent">
+                <Library className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-ink">Saved Toolkits (Stacks)</h3>
+                <p className="text-sm text-muted">Manage your saved AI toolkits, rename them, toggle privacy settings, or copy share links.</p>
+              </div>
+            </div>
+
+            <div className="mt-6 space-y-4">
+              {loadingStacks ? (
+                <div className="flex items-center gap-2 text-sm text-muted">
+                  <Loader2 className="h-4 w-4 animate-spin text-accent" />
+                  Loading toolkits...
+                </div>
+              ) : stacks.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-line-strong bg-bg-sunk p-6 text-center text-sm text-muted animate-fade-in">
+                  <p>You don&apos;t have any saved toolkits yet.</p>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="mt-3"
+                    onClick={() => navigate('/ai-tool-finder')}
+                  >
+                    Build your first toolkit
+                  </Button>
+                </div>
+              ) : (
+                <div className="grid gap-4">
+                  {stacks.map((stack) => {
+                    const isEditingThisStack = editingStackId === stack.id
+                    const isSavingThisStack = savingStackId === stack.id
+                    const isDeletingThisStack = deletingStackId === stack.id
+
+                    return (
+                      <div
+                        key={stack.id}
+                        className="group relative flex flex-col gap-4 rounded-2xl border border-line bg-bg-sunk/50 p-4 transition hover:border-accent hover:bg-bg-elev md:flex-row md:items-center md:justify-between animate-fade-in"
+                      >
+                        <div className="flex-1 space-y-1">
+                          {isEditingThisStack ? (
+                            <div className="flex max-w-md items-center gap-2">
+                              <input
+                                value={editingStackName}
+                                onChange={(e) => setEditingStackName(e.target.value)}
+                                className="w-full rounded-xl border border-line bg-bg-elev px-3 py-1.5 text-sm font-semibold text-ink focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+                                placeholder="Toolkit name"
+                                disabled={isSavingThisStack}
+                                autoFocus
+                              />
+                              <Button
+                                variant="primary"
+                                size="sm"
+                                onClick={() => handleRenameStack(stack.id)}
+                                disabled={isSavingThisStack}
+                                className="h-9 px-3 shrink-0"
+                              >
+                                {isSavingThisStack ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+                              </Button>
+                              <Button
+                                variant="secondary"
+                                size="sm"
+                                onClick={() => setEditingStackId(null)}
+                                disabled={isSavingThisStack}
+                                className="h-9 px-3 shrink-0"
+                              >
+                                <X className="h-3.5 w-3.5" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h4 className="text-base font-bold text-ink truncate max-w-[200px] sm:max-w-xs">{stack.name}</h4>
+                              <button
+                                onClick={() => {
+                                  setEditingStackId(stack.id)
+                                  setEditingStackName(stack.name)
+                                }}
+                                className="text-muted hover:text-ink transition p-1 rounded hover:bg-line/20"
+                                title="Rename toolkit"
+                              >
+                                <Edit2 className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
+                          )}
+
+                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-muted pt-1">
+                            <span>{new Date(stack.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                            <span className="w-1 h-1 rounded-full bg-line-strong" />
+                            <span className="font-medium text-ink-2">{stack.tools.length} tool{stack.tools.length === 1 ? '' : 's'}</span>
+                            {stack.goal && (
+                              <>
+                                <span className="w-1 h-1 rounded-full bg-line-strong" />
+                                <span className="rounded bg-accent-soft px-1.5 py-0.5 font-medium text-accent-ink">{stack.goal}</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Toolkit controls */}
+                        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                          {/* Privacy Pill Toggle */}
+                          <button
+                            type="button"
+                            onClick={() => handleTogglePrivacy(stack.id, stack.is_private)}
+                            className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold border transition ${
+                              stack.is_private
+                                ? 'border-amber-500/20 bg-amber-500/10 text-amber-500 hover:bg-amber-500/20'
+                                : 'border-emerald-500/20 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20'
+                            }`}
+                            title="Click to toggle visibility"
+                          >
+                            {stack.is_private ? (
+                              <>
+                                <Lock className="h-3 w-3" />
+                                Private
+                              </>
+                            ) : (
+                              <>
+                                <Globe className="h-3 w-3" />
+                                Public
+                              </>
+                            )}
+                          </button>
+
+                          {/* Share Copy Button with tooltip */}
+                          <div className="group relative">
+                            <button
+                              disabled={stack.is_private}
+                              onClick={() => handleShareStack(stack.id, stack.is_private)}
+                              className="flex h-9 w-9 items-center justify-center rounded-xl border border-line bg-bg-elev text-ink transition hover:border-accent hover:bg-accent-soft/20 hover:text-accent-ink disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-bg-elev disabled:hover:text-ink disabled:hover:border-line"
+                            >
+                              <Copy className="h-4 w-4" />
+                            </button>
+                            {stack.is_private && (
+                              <span className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 -translate-x-1/2 whitespace-nowrap rounded-lg bg-black/90 px-2.5 py-1.5 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100 shadow-md">
+                                Make toolkit public to share link
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Delete Button */}
+                          <button
+                            onClick={() => handleDeleteStack(stack.id)}
+                            disabled={isDeletingThisStack}
+                            className="flex h-9 w-9 items-center justify-center rounded-xl border border-line bg-bg-elev text-muted transition hover:border-danger hover:bg-danger-soft hover:text-danger disabled:opacity-50"
+                            title="Delete toolkit"
+                          >
+                            {isDeletingThisStack ? (
+                              <Loader2 className="h-4 w-4 animate-spin text-danger" />
+                            ) : (
+                              <Trash2 className="h-4 w-4" />
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
           </section>
 
           <section className="rounded-3xl border border-line bg-bg-elev p-6 shadow-sm">

@@ -392,3 +392,117 @@ def test_update_profile_preferences(client, app):
         assert prefs["preferred_pricing"] == "free"
 
 
+def _clear_auth_cache():
+    import flask
+    from flask import g
+    if hasattr(g, '_login_user'):
+        try:
+            delattr(g, '_login_user')
+        except AttributeError:
+            pass
+    ctx = getattr(flask, '_request_ctx_stack', None)
+    if ctx and ctx.top and hasattr(ctx.top, 'user'):
+        try:
+            delattr(ctx.top, 'user')
+        except AttributeError:
+            pass
+    try:
+        from flask.globals import request_ctx
+        if request_ctx and hasattr(request_ctx, 'user'):
+            delattr(request_ctx, 'user')
+    except (ImportError, AttributeError):
+        pass
+
+
+def test_saved_stacks_manager(client, app):
+    """Verify listing, updating (rename/privacy), and deleting saved stacks via the profiles manager API, and verify 403 privacy enforcement."""
+    _clear_auth_cache()
+    # 1. Create users
+    with app.app_context():
+        # Cleanup prior residues
+        User.query.filter_by(email="stack_owner@example.com").delete()
+        User.query.filter_by(email="stack_stranger@example.com").delete()
+        db.session.commit()
+
+        owner = User(email="stack_owner@example.com", display_name="Stack Owner")
+        stranger = User(email="stack_stranger@example.com", display_name="Stranger")
+        db.session.add_all([owner, stranger])
+        db.session.commit()
+        owner_id = owner.id
+        stranger_id = stranger.id
+
+    # 2. Log in as owner
+    with client.session_transaction() as sess:
+        sess["_user_id"] = str(owner_id)
+        sess["_fresh"] = True
+
+    # 3. Create a stack via POST /api/v1/stack
+    stack_payload = {
+        "name": "Initial Stack Name",
+        "goal": "Software Projects",
+        "tools": ["notion", "github"],
+        "budget": "free",
+        "platform": "web",
+        "level": "intermediate"
+    }
+    resp = client.post("/api/v1/stack", json=stack_payload)
+    assert resp.status_code == 200
+    saved_stack_id = resp.get_json()["stack"]["id"]
+
+    # 4. List stacks via GET /api/v1/profile/stacks
+    resp = client.get("/api/v1/profile/stacks")
+    assert resp.status_code == 200
+    stacks_list = resp.get_json()
+    assert len(stacks_list) == 1
+    assert stacks_list[0]["name"] == "Initial Stack Name"
+    assert stacks_list[0]["is_private"] is False
+    assert "notion" in stacks_list[0]["tools"]
+
+    # 5. Update stack (rename & make private) via PUT /api/v1/profile/stacks/<id>
+    update_payload = {
+        "name": "My Renovated Stack",
+        "is_private": True
+    }
+    resp = client.put(f"/api/v1/profile/stacks/{saved_stack_id}", json=update_payload)
+    assert resp.status_code == 200
+    updated_data = resp.get_json()
+    assert updated_data["name"] == "My Renovated Stack"
+    assert updated_data["is_private"] is True
+
+    # 6. Verify GET /api/v1/stack?stack_id=<id> behaves correctly:
+    # A. Accessible by owner
+    resp = client.get(f"/api/v1/stack?stack_id={saved_stack_id}")
+    assert resp.status_code == 200
+    assert resp.get_json()["stack"]["name"] == "My Renovated Stack"
+
+    # B. Non-owner (stranger) gets 403 Forbidden
+    _clear_auth_cache()
+    stranger_client = app.test_client()
+    with stranger_client.session_transaction() as sess:
+        sess["_user_id"] = str(stranger_id)
+        sess["_fresh"] = True
+    resp = stranger_client.get(f"/api/v1/stack?stack_id={saved_stack_id}")
+    assert resp.status_code == 403
+    assert resp.get_json()["error"] == "This stack is private"
+
+    # C. Anonymous/logged-out client gets 403 Forbidden
+    _clear_auth_cache()
+    anon_client = app.test_client()
+    resp = anon_client.get(f"/api/v1/stack?stack_id={saved_stack_id}")
+    assert resp.status_code == 403
+    assert resp.get_json()["error"] == "This stack is private"
+
+    # 7. Log back in as owner to delete
+    _clear_auth_cache()
+    with client.session_transaction() as sess:
+        sess["_user_id"] = str(owner_id)
+        sess["_fresh"] = True
+
+    resp = client.delete(f"/api/v1/profile/stacks/{saved_stack_id}")
+    assert resp.status_code == 200
+    assert resp.get_json()["message"] == "Stack deleted successfully"
+
+    # 8. Verify listing shows 0 stacks
+    resp = client.get("/api/v1/profile/stacks")
+    assert resp.status_code == 200
+    assert len(resp.get_json()) == 0

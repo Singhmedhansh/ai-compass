@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
-import { ArrowLeft, Calendar, Copy, Check, ExternalLink, Grid3X3, Heart, Home, Share2, Sparkles, Wand2 } from 'lucide-react'
+import { ArrowLeft, Calendar, Copy, Check, ExternalLink, Grid3X3, Heart, Home, Share2, Sparkles, Wand2, Lock } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate, useParams, Link } from 'react-router-dom'
+import { useNavigate, useParams, Link, useSearchParams } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 
 import { Button, Card, CompassLoader } from '../components/ui'
@@ -45,6 +45,8 @@ function toProperCase(text) {
 export default function ShareStackPage() {
   const { userId } = useParams()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const stackId = searchParams.get('stack_id')
 
   const [savedStack, setSavedStack] = useState(null)
   const [allTools, setAllTools] = useState([])
@@ -60,24 +62,33 @@ export default function ShareStackPage() {
       setError('')
 
       try {
+        let stackUrl = `/api/v1/stack?user_id=${encodeURIComponent(userId || '')}`
+        if (stackId) {
+          stackUrl = `/api/v1/stack?stack_id=${encodeURIComponent(stackId)}`
+        }
+
         const [stackResponse, toolsResponse] = await Promise.all([
-          fetch(`/api/v1/stack?user_id=${encodeURIComponent(userId)}`, { signal: controller.signal }),
+          fetch(stackUrl, { signal: controller.signal }),
           fetch('/api/v1/tools', { signal: controller.signal })
         ])
 
-        const stackPayload = stackResponse.ok ? await stackResponse.json() : { stack: null }
         const allToolsPayload = toolsResponse.ok ? await toolsResponse.json() : []
-
         const rawTools = Array.isArray(allToolsPayload)
           ? allToolsPayload
           : allToolsPayload?.results || allToolsPayload?.tools || []
         const normalizedAllTools = rawTools.map(normalizeTool)
         setAllTools(normalizedAllTools)
 
-        const resolvedStack = stackPayload?.stack || null
-        setSavedStack(resolvedStack)
-
-        if (!resolvedStack) {
+        if (stackResponse.status === 403) {
+          setError('This stack has been set to private by its owner.')
+        } else if (stackResponse.ok) {
+          const stackPayload = await stackResponse.json()
+          const resolvedStack = stackPayload?.stack || null
+          setSavedStack(resolvedStack)
+          if (!resolvedStack) {
+            setError('This stack could not be found or has been cleared.')
+          }
+        } else {
           setError('This stack could not be found or has been cleared.')
         }
       } catch (err) {
@@ -91,7 +102,7 @@ export default function ShareStackPage() {
       }
     }
 
-    if (userId) {
+    if (userId || stackId) {
       loadStackData()
     } else {
       setError('Invalid stack owner link.')
@@ -99,7 +110,7 @@ export default function ShareStackPage() {
     }
 
     return () => controller.abort()
-  }, [userId])
+  }, [userId, stackId])
 
   const matchedTools = useMemo(() => {
     if (!savedStack?.tools || allTools.length === 0) return []
@@ -152,12 +163,13 @@ export default function ShareStackPage() {
   }
 
   if (error || !savedStack) {
+    const isPrivateError = error === 'This stack has been set to private by its owner.'
     return (
-      <div className="mx-auto max-w-md px-4 py-20 text-center">
-        <div aria-hidden="true" className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-danger/20 bg-danger-soft text-danger">
-          <Grid3X3 className="h-5 w-5" />
+      <div className="mx-auto max-w-md px-4 py-20 text-center animate-fade-in">
+        <div aria-hidden="true" className={`mx-auto flex h-12 w-12 items-center justify-center rounded-full border ${isPrivateError ? 'border-amber-500/20 bg-amber-500/10 text-amber-500' : 'border-danger/20 bg-danger-soft text-danger'}`}>
+          {isPrivateError ? <Lock className="h-5 w-5" /> : <Grid3X3 className="h-5 w-5" />}
         </div>
-        <h1 className="mt-4 text-base font-bold text-ink">Stack not found</h1>
+        <h1 className="mt-4 text-lg font-bold text-ink">{isPrivateError ? 'This stack is private' : 'Stack not found'}</h1>
         <p className="mt-1.5 text-sm text-muted">
           {error || 'The requested stack does not exist or has been cleared by the owner.'}
         </p>
