@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import AuthLayout from '../components/auth/AuthLayout'
@@ -11,6 +11,47 @@ export default function VerificationPendingPage() {
 
   const [resending, setResending] = useState(false)
   const [error, setError] = useState('')
+
+  useEffect(() => {
+    let active = true
+    async function checkVerificationStatus() {
+      try {
+        const response = await fetch('/api/v1/auth/me')
+        if (response.ok && active) {
+          const freshUser = await response.json()
+          if (freshUser.is_verified === true) {
+            const localUser = JSON.parse(localStorage.getItem('user') || 'null')
+            const merged = { ...localUser, ...freshUser }
+            localStorage.setItem('user', JSON.stringify(merged))
+            window.dispatchEvent(new Event('userLoggedIn'))
+            toast.success('Email verified successfully!')
+            navigate('/dashboard', { replace: true })
+          }
+        }
+      } catch (err) {
+        // ignore
+      }
+    }
+
+    if (user && user.is_verified === false) {
+      // Check status immediately
+      checkVerificationStatus()
+
+      // Also check status when the user switches back/focuses the tab
+      const handleFocus = () => {
+        checkVerificationStatus()
+      }
+      window.addEventListener('focus', handleFocus)
+      return () => {
+        active = false
+        window.removeEventListener('focus', handleFocus)
+      }
+    }
+
+    return () => {
+      active = false
+    }
+  }, [navigate, user])
 
   async function handleResend() {
     if (!email) {

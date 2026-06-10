@@ -296,7 +296,9 @@ def register():
 def login():
     if current_user.is_authenticated:
         _clear_stale_login_flash_errors()
-        return redirect("/dashboard")
+        qs = request.query_string.decode("utf-8")
+        target_url = f"/dashboard?{qs}" if qs else "/dashboard"
+        return redirect(target_url)
 
     if request.method == "POST":
         try:
