@@ -317,7 +317,7 @@ function ToolDetailPage() {
             .filter(Boolean)
         : []
 
-      const deduped = [normalizedSlug, ...existing.filter((item) => item !== normalizedSlug)].slice(0, 10)
+      const deduped = [normalizedSlug, ...existing.filter((item) => item !== normalizedSlug)].slice(0, 50)
       localStorage.setItem('recentlyViewed', JSON.stringify(deduped))
     } catch {
       localStorage.setItem('recentlyViewed', JSON.stringify([normalizedSlug]))

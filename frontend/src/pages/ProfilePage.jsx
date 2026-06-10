@@ -1,8 +1,8 @@
-import { Bell, Check, CheckCircle2, Download, GraduationCap, Loader2, ShieldAlert, Sparkles, Trash2, UserRound, Copy, Globe, Lock, Edit2, X, Library } from 'lucide-react'
+import { Bell, Check, CheckCircle2, Download, GraduationCap, Loader2, ShieldAlert, Sparkles, Trash2, UserRound, Copy, Globe, Lock, Edit2, X, Library, History, Search, ChevronDown, ChevronUp } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { Button } from '../components/ui'
+import { Button, ToolLogo } from '../components/ui'
 
 const THEME_STORAGE_KEY = 'ai-compass-theme'
 const NOTIFICATIONS_STORAGE_KEY = 'ai-compass-email-notifications'
@@ -143,6 +143,19 @@ function ProfilePage() {
   const [gradYear, setGradYear] = useState('2026')
   const [isVerifyingStudent, setIsVerifyingStudent] = useState(false)
   const [isResettingStudent, setIsResettingStudent] = useState(false)
+  const [allTools, setAllTools] = useState([])
+  const [loadingTools, setLoadingTools] = useState(true)
+  const [recentlyViewedSlugs, setRecentlyViewedSlugs] = useState(() => {
+    try {
+      const stored = localStorage.getItem('recentlyViewed')
+      return stored ? JSON.parse(stored) : []
+    } catch {
+      return []
+    }
+  })
+  const [searchTerm, setSearchTerm] = useState('')
+  const [categoryFilter, setCategoryFilter] = useState('all')
+  const [isHistoryCollapsed, setIsHistoryCollapsed] = useState(false)
 
   const studentVerification = useMemo(() => {
     try {
@@ -154,6 +167,46 @@ function ProfilePage() {
       return null
     }
   }, [profile?.preferences])
+
+  const recentlyViewedTools = useMemo(() => {
+    if (allTools.length === 0 || recentlyViewedSlugs.length === 0) {
+      return []
+    }
+    const toolBySlug = new Map(allTools.map((tool) => [String(tool.slug || '').toLowerCase(), tool]))
+    return recentlyViewedSlugs
+      .map((slug) => toolBySlug.get(String(slug).toLowerCase()))
+      .filter(Boolean)
+  }, [allTools, recentlyViewedSlugs])
+
+  const historyCategories = useMemo(() => {
+    const cats = new Set()
+    for (const tool of recentlyViewedTools) {
+      if (tool?.category) {
+        cats.add(String(tool.category).trim())
+      }
+    }
+    return Array.from(cats).sort()
+  }, [recentlyViewedTools])
+
+  const filteredTools = useMemo(() => {
+    let list = recentlyViewedTools
+
+    if (categoryFilter !== 'all') {
+      list = list.filter((tool) => String(tool.category).trim() === categoryFilter)
+    }
+
+    if (searchTerm.trim()) {
+      const query = searchTerm.toLowerCase().trim()
+      list = list.filter(
+        (tool) =>
+          String(tool.name).toLowerCase().includes(query) ||
+          String(tool.description).toLowerCase().includes(query) ||
+          String(tool.shortDescription).toLowerCase().includes(query)
+      )
+    }
+
+    return list
+  }, [recentlyViewedTools, categoryFilter, searchTerm])
 
   useEffect(() => {
     const controller = new AbortController()
@@ -182,6 +235,52 @@ function ProfilePage() {
     } else {
       setLoadingStacks(false)
     }
+
+    return () => controller.abort()
+  }, [])
+
+  useEffect(() => {
+    const controller = new AbortController()
+
+    async function loadAllTools() {
+      try {
+        const response = await fetch('/api/v1/tools', { signal: controller.signal })
+        if (response.ok) {
+          const data = await response.json()
+          const rawTools = Array.isArray(data)
+            ? data
+            : data?.results || data?.tools || []
+          const normalized = rawTools.map((rawTool) => {
+            const resolvedUrl = rawTool?.affiliate_url || rawTool?.url || rawTool?.website || rawTool?.link || rawTool?.homepage || ''
+            return {
+              slug: rawTool?.slug,
+              name: rawTool?.name || 'Unknown Tool',
+              description: rawTool?.description || rawTool?.shortDescription || rawTool?.summary || '',
+              shortDescription: rawTool?.shortDescription || rawTool?.description || rawTool?.summary || '',
+              category: rawTool?.category || 'General',
+              rating: Number(rawTool?.rating || rawTool?.averageRating || rawTool?.average_rating || 0),
+              pricing: rawTool?.pricing || rawTool?.price || rawTool?.pricingType || rawTool?.pricing_type || 'Free',
+              pricing_tiers: rawTool?.pricing_tiers || null,
+              url: resolvedUrl,
+              website: rawTool?.website || resolvedUrl,
+              link: rawTool?.link || resolvedUrl,
+              relevance_reason: rawTool?.relevance_reason || rawTool?.reason || '',
+            }
+          })
+          setAllTools(normalized)
+        }
+      } catch (error) {
+        if (error.name !== 'AbortError') {
+          console.error('Failed to load tools catalog', error)
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setLoadingTools(false)
+        }
+      }
+    }
+
+    loadAllTools()
 
     return () => controller.abort()
   }, [])
@@ -514,7 +613,15 @@ function ProfilePage() {
 
   const handleClearRecentlyViewed = () => {
     localStorage.removeItem('recentlyViewed')
+    setRecentlyViewedSlugs([])
     showToast('Recently viewed items cleared.')
+  }
+
+  const handleRemoveHistoryItem = (slugToRemove) => {
+    const updated = recentlyViewedSlugs.filter((slug) => slug !== slugToRemove)
+    setRecentlyViewedSlugs(updated)
+    localStorage.setItem('recentlyViewed', JSON.stringify(updated))
+    showToast('Removed item from history.')
   }
 
   const handleVerifyStudent = async (e) => {
@@ -1251,6 +1358,139 @@ function ProfilePage() {
                 </div>
               )}
             </div>
+          </section>
+
+          <section className="rounded-3xl border border-line bg-bg-elev p-6 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-accent-soft text-accent">
+                  <History className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-ink font-sans">Recent Activity Log</h3>
+                  <p className="text-sm text-muted">Manage your search history and recently viewed tools.</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {recentlyViewedSlugs.length > 0 && !isHistoryCollapsed && (
+                  <button
+                    type="button"
+                    onClick={handleClearRecentlyViewed}
+                    className="text-xs font-semibold text-muted hover:text-danger hover:underline transition"
+                  >
+                    Clear All
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setIsHistoryCollapsed(!isHistoryCollapsed)}
+                  className="flex h-8 w-8 items-center justify-center rounded-xl bg-bg-sunk hover:bg-line transition text-ink"
+                  aria-label={isHistoryCollapsed ? "Expand history" : "Collapse history"}
+                >
+                  {isHistoryCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+                </button>
+              </div>
+            </div>
+
+            {!isHistoryCollapsed && (
+              <div className="mt-6 space-y-4 animate-fade-in">
+                {/* Filter Bar */}
+                {recentlyViewedTools.length > 0 && (
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                    <div className="relative flex-1">
+                      <Search className="absolute left-3.5 top-3.5 h-4 w-4 text-muted-2" />
+                      <input
+                        type="text"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        placeholder="Search history..."
+                        className="w-full rounded-2xl border border-line bg-bg-sunk/40 pl-10 pr-4 py-2.5 text-sm text-ink placeholder:text-muted-2 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+                      />
+                    </div>
+                    {historyCategories.length > 0 && (
+                      <select
+                        value={categoryFilter}
+                        onChange={(e) => setCategoryFilter(e.target.value)}
+                        className="rounded-2xl border border-line bg-bg-sunk/40 px-4 py-2.5 text-sm text-ink focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+                      >
+                        <option value="all">All Categories</option>
+                        {historyCategories.map((cat) => (
+                          <option key={cat} value={cat}>
+                            {cat}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+                )}
+
+                {/* List Container */}
+                {loadingTools ? (
+                  <div className="flex items-center gap-2 py-4 text-sm text-muted">
+                    <Loader2 className="h-4 w-4 animate-spin text-accent" />
+                    Loading activity history...
+                  </div>
+                ) : recentlyViewedSlugs.length === 0 ? (
+                  <div className="rounded-2xl border border-dashed border-line-strong bg-bg-sunk p-6 text-center text-sm text-muted">
+                    <p>Your browsing history is currently empty.</p>
+                  </div>
+                ) : filteredTools.length === 0 ? (
+                  <div className="rounded-2xl border border-dashed border-line-strong bg-bg-sunk p-6 text-center text-sm text-muted">
+                    <p>No tools matched your search filters.</p>
+                  </div>
+                ) : (
+                  <div className="max-h-[380px] overflow-y-auto pr-1 space-y-2.5 custom-scrollbar">
+                    {filteredTools.map((tool) => (
+                      <div
+                        key={tool.slug}
+                        className="group flex items-center justify-between gap-4 rounded-2xl border border-line bg-bg-sunk/35 p-3.5 transition duration-200 hover:border-accent/40 hover:bg-bg-elev"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="shrink-0">
+                            <ToolLogo tool={tool} size={40} />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => navigate(`/tool/${tool.slug}`)}
+                                className="text-sm font-semibold text-ink hover:text-accent hover:underline text-left truncate"
+                              >
+                                {tool.name}
+                              </button>
+                              <span className="inline-block rounded-md bg-accent-soft px-1.5 py-0.5 text-[10px] font-bold text-accent">
+                                {tool.category}
+                              </span>
+                            </div>
+                            <p className="mt-0.5 text-xs text-muted truncate max-w-sm sm:max-w-md md:max-w-lg">
+                              {tool.shortDescription || tool.description}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => navigate(`/tool/${tool.slug}`)}
+                            className="hidden sm:inline-flex items-center rounded-xl bg-bg-sunk px-3 py-1.5 text-xs font-semibold text-ink hover:bg-line transition"
+                          >
+                            View Details
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveHistoryItem(tool.slug)}
+                            className="flex h-8.5 w-8.5 items-center justify-center rounded-xl text-muted hover:bg-danger-soft hover:text-danger transition"
+                            title="Remove from history"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </section>
 
           <section className="rounded-3xl border border-line bg-bg-elev p-6 shadow-sm">
