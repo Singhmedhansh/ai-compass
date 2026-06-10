@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import { motion } from 'framer-motion'
-import { Sparkles, Star } from 'lucide-react'
+import { Folder, Sparkles, Star } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -26,9 +26,10 @@ function slugify(value = '') {
     .replace(/\s+/g, '-')
 }
 
-function Card({ tool = {}, layoutType = 'standard', glass = false }) {
+function Card({ tool = {}, layoutType = 'standard', glass = false, folders = null, onFoldersUpdated = null }) {
   const navigate = useNavigate()
   const [isHovered, setIsHovered] = useState(false)
+  const [showFolderDropdown, setShowFolderDropdown] = useState(false)
 
   const isLarge = layoutType === 'large'
   const isWide = layoutType === 'wide'
@@ -68,9 +69,35 @@ function Card({ tool = {}, layoutType = 'standard', glass = false }) {
     }
   }
 
+  const handleToggleFolder = async (folderName, isMember) => {
+    try {
+      const url = `/api/v1/profile/favorites/folders/${encodeURIComponent(folderName)}/tools${isMember ? '/' + encodeURIComponent(slug) : ''}`
+      const method = isMember ? 'DELETE' : 'POST'
+      const body = isMember ? undefined : JSON.stringify({ tool_id: slug })
+      const headers = isMember ? {} : { 'Content-Type': 'application/json' }
+
+      const res = await fetch(url, {
+        method,
+        headers,
+        body,
+        credentials: 'include'
+      })
+
+      if (res.ok) {
+        if (onFoldersUpdated) {
+          onFoldersUpdated()
+        }
+      }
+    } catch (err) {
+      console.error('Error toggling folder membership', err)
+    }
+  }
+
   const hasReason = !!(tool.relevance_reason || tool.reason)
   const baseMinHeight = isLarge ? 450 : (hasReason ? 260 : 224)
   const hoverMinHeight = isLarge ? 480 : (hasReason ? 284 : 248)
+
+  const isInAnyFolder = folders ? folders.some(f => Array.isArray(f.tools) && f.tools.map(t => String(t).toLowerCase()).includes(String(slug).toLowerCase())) : false
 
   return (
     <MotionCard
@@ -80,9 +107,15 @@ function Card({ tool = {}, layoutType = 'standard', glass = false }) {
       onClick={() => navigate(`/tools/${slug}`)}
       onKeyDown={handleKeyDown}
       onHoverStart={() => setIsHovered(true)}
-      onHoverEnd={() => setIsHovered(false)}
+      onHoverEnd={() => {
+        setIsHovered(false)
+        setShowFolderDropdown(false)
+      }}
       onFocus={() => setIsHovered(true)}
-      onBlur={() => setIsHovered(false)}
+      onBlur={() => {
+        setIsHovered(false)
+        setShowFolderDropdown(false)
+      }}
       whileHover={{ y: -4, boxShadow: 'var(--shadow-lg)' }}
       whileTap={{ scale: 0.98 }}
       animate={{ minHeight: isHovered ? hoverMinHeight : baseMinHeight }}
@@ -93,7 +126,55 @@ function Card({ tool = {}, layoutType = 'standard', glass = false }) {
         isLarge ? "p-6" : "p-4"
       )}
     >
-      <div className="absolute right-2 top-2 z-10" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
+      <div className="absolute right-2 top-2 z-10 flex items-center gap-1.5" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
+        {folders && (
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setShowFolderDropdown(!showFolderDropdown)}
+              aria-label="Manage folders"
+              className={clsx(
+                'inline-flex h-10 w-10 items-center justify-center rounded-full outline-none transition focus-visible:ring-2 focus-visible:ring-accent md:h-8 md:w-8',
+                isInAnyFolder
+                  ? 'border border-accent bg-accent/10 text-accent'
+                  : 'border border-line bg-bg-elev text-muted hover:border-line-strong hover:text-ink',
+              )}
+            >
+              <Folder className="h-4 w-4" />
+            </button>
+            {showFolderDropdown && (
+              <div
+                className="absolute right-0 mt-1.5 z-30 w-48 rounded-xl border border-line bg-bg-elev p-2.5 shadow-xl backdrop-blur-md bg-opacity-95"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="mb-2 px-1 text-[11px] font-bold uppercase tracking-wider text-muted">Add to Folder</div>
+                <div className="space-y-0.5 max-h-40 overflow-y-auto">
+                  {folders.length === 0 ? (
+                    <p className="text-[11px] text-muted p-2 text-center">No folders created yet.</p>
+                  ) : (
+                    folders.map((folder) => {
+                      const isMember = Array.isArray(folder.tools) && folder.tools.map(t => String(t).toLowerCase()).includes(String(slug).toLowerCase());
+                      return (
+                        <label
+                          key={folder.name}
+                          className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-bg-sunk cursor-pointer text-xs font-medium text-ink-2"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isMember}
+                            onChange={() => handleToggleFolder(folder.name, isMember)}
+                            className="rounded border-line-strong text-accent focus:ring-accent accent-accent"
+                          />
+                          <span className="truncate">{folder.name}</span>
+                        </label>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
         <CompareToggleButton slug={slug} toolName={name} />
       </div>
 

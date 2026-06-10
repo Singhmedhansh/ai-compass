@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Calendar, Eye, Grid3X3, Heart, Home, Sparkles, Wand2 } from 'lucide-react'
+import { Calendar, Check, Edit3, Eye, FolderPlus, Grid3X3, Heart, Home, Sparkles, Trash2, Wand2, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -96,6 +96,14 @@ function DashboardPage() {
   const user = JSON.parse(localStorage.getItem('user') || 'null')
   const [recommendations, setRecommendations] = useState([])
   const [favorites, setFavorites] = useState([])
+  const [folders, setFolders] = useState([])
+  const [activeFolder, setActiveFolder] = useState('all')
+  const [showCreateFolderInput, setShowCreateFolderInput] = useState(false)
+  const [newFolderName, setNewFolderName] = useState('')
+  const [editingFolderName, setEditingFolderName] = useState(null)
+  const [renameValue, setRenameValue] = useState('')
+  const [folderActionError, setFolderActionError] = useState('')
+
   const [savedStack, setSavedStack] = useState(null)
   const [editingStack, setEditingStack] = useState(false)
   const [draftTools, setDraftTools] = useState([])
@@ -148,17 +156,19 @@ function DashboardPage() {
 
         const userIdForStack = mergedUser?.id || storedUser?.id || ''
 
-        const [recommendationsResponse, favoritesResponse, stackResponse, toolsResponse] = await Promise.all([
+        const [recommendationsResponse, favoritesResponse, stackResponse, toolsResponse, foldersResponse] = await Promise.all([
           fetch('/api/v1/dashboard/recommendations', { signal: controller.signal }),
           fetch('/api/v1/favorites', { signal: controller.signal }),
           fetch(`/api/v1/stack?user_id=${encodeURIComponent(userIdForStack)}`, { signal: controller.signal }),
-          fetch('/api/v1/tools', { signal: controller.signal })
+          fetch('/api/v1/tools', { signal: controller.signal }),
+          fetch('/api/v1/profile/favorites/folders', { signal: controller.signal })
         ])
 
         const recommendationsPayload = recommendationsResponse.ok ? await recommendationsResponse.json() : []
         const favoritesPayload = favoritesResponse.ok ? await favoritesResponse.json() : []
         const stackPayload = stackResponse.ok ? await stackResponse.json() : { stack: null }
-        
+        const foldersPayload = foldersResponse.ok ? await foldersResponse.json() : []
+
         const allToolsPayload = toolsResponse.ok ? await toolsResponse.json() : []
         const rawTools = Array.isArray(allToolsPayload)
           ? allToolsPayload
@@ -175,6 +185,7 @@ function DashboardPage() {
         setRecommendations(normalizedRecommendations)
         setFavorites(normalizedFavorites)
         setSavedStack(resolvedStack)
+        setFolders(foldersPayload)
 
         const recentSlugs = readRecentlyViewedSlugs()
         setRecentlyViewedSlugs(recentSlugs)
@@ -206,6 +217,104 @@ function DashboardPage() {
 
     return () => controller.abort()
   }, [navigate])
+
+  const fetchFolders = async () => {
+    try {
+      const res = await fetch('/api/v1/profile/favorites/folders')
+      if (res.ok) {
+        const data = await res.json()
+        setFolders(data)
+      }
+    } catch (err) {
+      console.error('Failed to fetch folders', err)
+    }
+  }
+
+  const handleCreateFolder = async (e) => {
+    e.preventDefault()
+    const name = newFolderName.trim()
+    if (!name) return
+    setFolderActionError('')
+    try {
+      const res = await fetch('/api/v1/profile/favorites/folders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ name })
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Failed to create folder')
+      }
+      const newFolder = await res.json()
+      setFolders(prev => [...prev, newFolder])
+      setActiveFolder(name)
+      setNewFolderName('')
+      setShowCreateFolderInput(false)
+    } catch (err) {
+      setFolderActionError(err.message)
+    }
+  }
+
+  const handleRenameFolder = async () => {
+    const newName = renameValue.trim()
+    if (!newName || newName === activeFolder) {
+      setEditingFolderName(null)
+      return
+    }
+    setFolderActionError('')
+    try {
+      const res = await fetch(`/api/v1/profile/favorites/folders/${encodeURIComponent(activeFolder)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ name: newName })
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Failed to rename folder')
+      }
+      const updatedFolder = await res.json()
+      setFolders(prev => prev.map(f => f.name === activeFolder ? updatedFolder : f))
+      setActiveFolder(newName)
+      setEditingFolderName(null)
+    } catch (err) {
+      setFolderActionError(err.message)
+    }
+  }
+
+  const handleDeleteFolder = async () => {
+    if (!window.confirm(`Are you sure you want to delete the folder "${activeFolder}"? The tools inside will remain favorited.`)) {
+      return
+    }
+    setFolderActionError('')
+    try {
+      const res = await fetch(`/api/v1/profile/favorites/folders/${encodeURIComponent(activeFolder)}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Failed to delete folder')
+      }
+      setFolders(prev => prev.filter(f => f.name !== activeFolder))
+      setActiveFolder('all')
+    } catch (err) {
+      setFolderActionError(err.message)
+    }
+  }
+
+  const displayedFavorites = useMemo(() => {
+    if (activeFolder === 'all') {
+      return favorites
+    }
+    const folder = folders.find(f => f.name === activeFolder)
+    if (!folder) return []
+    return favorites.filter(tool => {
+      const toolSlug = String(tool.slug || '').toLowerCase()
+      return folder.tools.map(t => String(t).toLowerCase()).includes(toolSlug)
+    })
+  }, [activeFolder, favorites, folders])
 
   const greeting = useMemo(() => getGreetingLabel(), [])
   const displayName = toProperCase(user?.name || 'there')
@@ -531,20 +640,176 @@ function DashboardPage() {
               </div>
             </div>
 
-            {favorites.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-line-strong bg-bg-sunk p-6 text-center">
-                <p className="text-sm text-muted">No favorites yet</p>
-                <Button className="mt-4" onClick={() => navigate('/tools')}>
-                  Explore Tools
-                </Button>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-                {favorites.map((tool) => (
-                  <Card key={tool.slug || tool.name} tool={tool} />
-                ))}
+            {/* Folder sub-navigation pills */}
+            <div className="mt-4 flex flex-wrap items-center gap-2 border-b border-line pb-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveFolder('all')
+                  setFolderActionError('')
+                }}
+                className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all ${
+                  activeFolder === 'all'
+                    ? 'bg-accent text-bg shadow-sm'
+                    : 'bg-bg-sunk text-ink-2 hover:bg-bg-sunk/80'
+                }`}
+              >
+                All Favorites
+              </button>
+
+              {folders.map((folder) => (
+                <button
+                  key={folder.name}
+                  type="button"
+                  onClick={() => {
+                    setActiveFolder(folder.name)
+                    setFolderActionError('')
+                  }}
+                  className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                    activeFolder === folder.name
+                      ? 'bg-accent text-bg shadow-sm'
+                      : 'bg-bg-sunk text-ink-2 hover:bg-bg-sunk/80'
+                  }`}
+                >
+                  <span>{folder.name}</span>
+                  <span className={`text-[10px] rounded-full px-1.5 py-0.5 ${
+                    activeFolder === folder.name ? 'bg-bg/25 text-bg' : 'bg-line text-ink-2'
+                  }`}>
+                    {Array.isArray(folder.tools) ? folder.tools.length : 0}
+                  </span>
+                </button>
+              ))}
+
+              {showCreateFolderInput ? (
+                <form 
+                  onSubmit={handleCreateFolder}
+                  className="flex items-center gap-1.5 ml-2"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <input
+                    type="text"
+                    value={newFolderName}
+                    onChange={(e) => setNewFolderName(e.target.value)}
+                    placeholder="Folder name..."
+                    autoFocus
+                    className="h-7 rounded-lg border border-line-strong bg-transparent px-2.5 text-xs font-medium text-ink outline-none focus:border-accent"
+                  />
+                  <button
+                    type="submit"
+                    className="flex h-7 w-7 items-center justify-center rounded-lg border border-accent bg-accent text-bg hover:bg-accent/90"
+                    aria-label="Save folder"
+                  >
+                    <Check className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowCreateFolderInput(false)
+                      setNewFolderName('')
+                      setFolderActionError('')
+                    }}
+                    className="flex h-7 w-7 items-center justify-center rounded-lg border border-line-strong bg-bg-elev text-muted hover:text-ink"
+                    aria-label="Cancel"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </form>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setShowCreateFolderInput(true)}
+                  className="rounded-full border border-dashed border-line-strong px-3 py-1.5 text-xs font-medium text-muted hover:border-line-strong/80 hover:text-ink transition flex items-center gap-1"
+                >
+                  <FolderPlus className="h-3.5 w-3.5" />
+                  New Folder
+                </button>
+              )}
+            </div>
+
+            {folderActionError && (
+              <p className="mt-2 text-xs text-danger">{folderActionError}</p>
+            )}
+
+            {/* Folder Actions (Rename / Delete) */}
+            {activeFolder !== 'all' && (
+              <div className="mt-3 mb-4 flex items-center justify-between rounded-lg bg-bg-sunk/40 px-3 py-2 border border-line text-xs">
+                {editingFolderName === activeFolder ? (
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      type="text"
+                      value={renameValue}
+                      onChange={(e) => setRenameValue(e.target.value)}
+                      className="h-6 rounded border border-line-strong bg-bg-elev px-2 text-xs font-medium text-ink outline-none focus:border-accent"
+                      autoFocus
+                    />
+                    <button
+                      onClick={handleRenameFolder}
+                      className="text-accent hover:text-accent/80 font-semibold flex items-center gap-0.5"
+                    >
+                      <Check className="h-3.5 w-3.5" /> Save
+                    </button>
+                    <button
+                      onClick={() => setEditingFolderName(null)}
+                      className="text-muted hover:text-ink font-semibold flex items-center gap-0.5"
+                    >
+                      <X className="h-3.5 w-3.5" /> Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-3">
+                    <span className="font-semibold text-ink-2">Folder: <span className="text-ink">{activeFolder}</span></span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => {
+                          setEditingFolderName(activeFolder)
+                          setRenameValue(activeFolder)
+                        }}
+                        className="text-muted hover:text-accent flex items-center gap-0.5"
+                        title="Rename folder"
+                      >
+                        <Edit3 className="h-3.5 w-3.5" /> Rename
+                      </button>
+                      <button
+                        onClick={handleDeleteFolder}
+                        className="text-muted hover:text-danger flex items-center gap-0.5"
+                        title="Delete folder"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" /> Delete
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
+
+            <div className="mt-4">
+              {displayedFavorites.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-line-strong bg-bg-sunk p-6 text-center">
+                  <p className="text-sm text-muted">
+                    {activeFolder === 'all' 
+                      ? 'No favorites yet' 
+                      : `No tools in folder "${activeFolder}". Assign tools using the folder icon on favorite cards.`
+                    }
+                  </p>
+                  {activeFolder === 'all' && (
+                    <Button className="mt-4" onClick={() => navigate('/tools')}>
+                      Explore Tools
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+                  {displayedFavorites.map((tool) => (
+                    <Card 
+                      key={tool.slug || tool.name} 
+                      tool={tool} 
+                      folders={folders}
+                      onFoldersUpdated={fetchFolders}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
           </MotionSection>
 
           <MotionSection

@@ -2368,6 +2368,27 @@ def auth_register():
         return jsonify({"error": "An unexpected error occurred. Please try again later."}), 500
 
 
+def _get_favorites_folders(user):
+    if not user.preferences:
+        return {}
+    try:
+        prefs = json.loads(user.preferences)
+        return prefs.get("favorites_folders", {})
+    except Exception:
+        return {}
+
+
+def _save_favorites_folders(user, folders):
+    prefs = {}
+    if user.preferences:
+        try:
+            prefs = json.loads(user.preferences)
+        except Exception:
+            pass
+    prefs["favorites_folders"] = folders
+    user.preferences = json.dumps(prefs, ensure_ascii=False)
+
+
 @csrf.exempt
 @api_bp.route("/favorites", methods=["POST"])
 @login_required
@@ -2386,6 +2407,17 @@ def toggle_favorite():
         return jsonify({"favorited": True})
 
     db.session.delete(favorite)
+    
+    # Automatically scrub from folders
+    folders = _get_favorites_folders(current_user)
+    updated = False
+    for f_name, tools in list(folders.items()):
+        if tool_id in tools:
+            folders[f_name] = [t for t in tools if t != tool_id]
+            updated = True
+    if updated:
+        _save_favorites_folders(current_user, folders)
+
     db.session.commit()
     return jsonify({"favorited": False})
 
@@ -2419,6 +2451,111 @@ def list_favorites():
             payload.append(tool)
 
     return jsonify(payload)
+
+
+@api_bp.route("/profile/favorites/folders", methods=["GET"])
+@login_required
+def list_folders():
+    folders = _get_favorites_folders(current_user)
+    results = [{"name": k, "tools": v} for k, v in folders.items()]
+    return jsonify(results), 200
+
+
+@csrf.exempt
+@api_bp.route("/profile/favorites/folders", methods=["POST"])
+@login_required
+def create_folder():
+    payload = request.get_json(silent=True) or {}
+    name = str(payload.get("name") or "").strip()
+    if not name:
+        return jsonify({"error": "Folder name is required."}), 400
+
+    folders = _get_favorites_folders(current_user)
+    if name in folders:
+        return jsonify({"error": "Folder already exists."}), 400
+
+    folders[name] = []
+    _save_favorites_folders(current_user, folders)
+    db.session.commit()
+    return jsonify({"name": name, "tools": []}), 201
+
+
+@csrf.exempt
+@api_bp.route("/profile/favorites/folders/<path:old_name>", methods=["PUT"])
+@login_required
+def rename_folder(old_name):
+    payload = request.get_json(silent=True) or {}
+    new_name = str(payload.get("name") or "").strip()
+    if not new_name:
+        return jsonify({"error": "New folder name is required."}), 400
+
+    folders = _get_favorites_folders(current_user)
+    if old_name not in folders:
+        return jsonify({"error": "Folder not found."}), 404
+    if new_name in folders and new_name != old_name:
+        return jsonify({"error": "A folder with this name already exists."}), 400
+
+    tools = folders.pop(old_name)
+    folders[new_name] = tools
+    _save_favorites_folders(current_user, folders)
+    db.session.commit()
+    return jsonify({"name": new_name, "tools": tools}), 200
+
+
+@csrf.exempt
+@api_bp.route("/profile/favorites/folders/<path:name>", methods=["DELETE"])
+@login_required
+def delete_folder(name):
+    folders = _get_favorites_folders(current_user)
+    if name not in folders:
+        return jsonify({"error": "Folder not found."}), 404
+
+    folders.pop(name)
+    _save_favorites_folders(current_user, folders)
+    db.session.commit()
+    return jsonify({"message": "Folder deleted successfully"}), 200
+
+
+@csrf.exempt
+@api_bp.route("/profile/favorites/folders/<path:name>/tools", methods=["POST"])
+@login_required
+def add_tool_to_folder(name):
+    payload = request.get_json(silent=True) or {}
+    tool_id = str(payload.get("tool_id") or "").strip().lower()
+    if not tool_id:
+        return jsonify({"error": "Tool ID is required."}), 400
+
+    folders = _get_favorites_folders(current_user)
+    if name not in folders:
+        return jsonify({"error": "Folder not found."}), 404
+
+    favorite = Favorite.query.filter_by(user_id=current_user.id, tool_id=tool_id).first()
+    if not favorite:
+        return jsonify({"error": "Tool is not in your favorites."}), 400
+
+    if tool_id not in folders[name]:
+        folders[name].append(tool_id)
+        _save_favorites_folders(current_user, folders)
+        db.session.commit()
+
+    return jsonify({"name": name, "tools": folders[name]}), 200
+
+
+@csrf.exempt
+@api_bp.route("/profile/favorites/folders/<path:name>/tools/<tool_slug>", methods=["DELETE"])
+@login_required
+def remove_tool_from_folder(name, tool_slug):
+    tool_slug = str(tool_slug).strip().lower()
+    folders = _get_favorites_folders(current_user)
+    if name not in folders:
+        return jsonify({"error": "Folder not found."}), 404
+
+    if tool_slug in folders[name]:
+        folders[name] = [t for t in folders[name] if t != tool_slug]
+        _save_favorites_folders(current_user, folders)
+        db.session.commit()
+
+    return jsonify({"name": name, "tools": folders[name]}), 200
 
 
 def _stack_user_id(data=None):

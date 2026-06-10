@@ -506,3 +506,112 @@ def test_saved_stacks_manager(client, app):
     resp = client.get("/api/v1/profile/stacks")
     assert resp.status_code == 200
     assert len(resp.get_json()) == 0
+
+
+def test_favorites_folders(client, app, seeded_tools):
+    """Verify listing, creating, renaming, deleting folders, adding/removing tools, and automated scrub on unfavorite."""
+    _clear_auth_cache()
+    # 1. Create a user
+    with app.app_context():
+        # Cleanup prior residues
+        User.query.filter_by(email="folder_owner@example.com").delete()
+        db.session.commit()
+
+        owner = User(email="folder_owner@example.com", display_name="Folder Owner")
+        db.session.add(owner)
+        db.session.commit()
+        owner_id = owner.id
+
+    # 2. Log in as owner
+    with client.session_transaction() as sess:
+        sess["_user_id"] = str(owner_id)
+        sess["_fresh"] = True
+
+    # 3. Initially folders should be empty
+    resp = client.get("/api/v1/profile/favorites/folders")
+    assert resp.status_code == 200
+    assert resp.get_json() == []
+
+    # 4. Create a folder "Development"
+    resp = client.post("/api/v1/profile/favorites/folders", json={"name": "Development"})
+    assert resp.status_code == 201
+    assert resp.get_json() == {"name": "Development", "tools": []}
+
+    # 5. Create a duplicate folder "Development" (should fail with 400)
+    resp = client.post("/api/v1/profile/favorites/folders", json={"name": "Development"})
+    assert resp.status_code == 400
+    assert "already exists" in resp.get_json()["error"]
+
+    # 6. Favorite "cursor" and "notion" via /api/v1/favorites
+    resp = client.post("/api/v1/favorites", json={"slug": "cursor"})
+    assert resp.status_code == 200
+    assert resp.get_json() == {"favorited": True}
+
+    resp = client.post("/api/v1/favorites", json={"slug": "notion"})
+    assert resp.status_code == 200
+    assert resp.get_json() == {"favorited": True}
+
+    # 7. Add "cursor" to "Development" folder
+    resp = client.post("/api/v1/profile/favorites/folders/Development/tools", json={"tool_id": "cursor"})
+    assert resp.status_code == 200
+    assert resp.get_json()["tools"] == ["cursor"]
+
+    # 8. Try to add a tool that is not favorited to "Development" (should fail with 400)
+    resp = client.post("/api/v1/profile/favorites/folders/Development/tools", json={"tool_id": "chatgpt"})
+    assert resp.status_code == 400
+    assert "not in your favorites" in resp.get_json()["error"]
+
+    # 9. List folders and verify "Development" has "cursor"
+    resp = client.get("/api/v1/profile/favorites/folders")
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert len(data) == 1
+    assert data[0]["name"] == "Development"
+    assert data[0]["tools"] == ["cursor"]
+
+    # 10. Rename folder "Development" to "Dev Tools"
+    resp = client.put("/api/v1/profile/favorites/folders/Development", json={"name": "Dev Tools"})
+    assert resp.status_code == 200
+    assert resp.get_json()["name"] == "Dev Tools"
+    assert resp.get_json()["tools"] == ["cursor"]
+
+    # 11. Verify list shows "Dev Tools" and not "Development"
+    resp = client.get("/api/v1/profile/favorites/folders")
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert len(data) == 1
+    assert data[0]["name"] == "Dev Tools"
+
+    # 12. Remove tool "cursor" from "Dev Tools"
+    resp = client.delete("/api/v1/profile/favorites/folders/Dev Tools/tools/cursor")
+    assert resp.status_code == 200
+    assert resp.get_json()["tools"] == []
+
+    # 13. Add "cursor" back to "Dev Tools" for unfavorite scrub testing
+    resp = client.post("/api/v1/profile/favorites/folders/Dev Tools/tools", json={"tool_id": "cursor"})
+    assert resp.status_code == 200
+    assert resp.get_json()["tools"] == ["cursor"]
+
+    # 14. Unfavorite "cursor" globally and verify it gets scrubbed from folders
+    resp = client.post("/api/v1/favorites", json={"slug": "cursor"})
+    assert resp.status_code == 200
+    assert resp.get_json() == {"favorited": False}
+
+    # 15. Verify "Dev Tools" folder is now empty of tools
+    resp = client.get("/api/v1/profile/favorites/folders")
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert len(data) == 1
+    assert data[0]["name"] == "Dev Tools"
+    assert data[0]["tools"] == []
+
+    # 16. Delete "Dev Tools" folder
+    resp = client.delete("/api/v1/profile/favorites/folders/Dev Tools")
+    assert resp.status_code == 200
+    assert "deleted successfully" in resp.get_json()["message"]
+
+    # 17. Verify folders list is empty again
+    resp = client.get("/api/v1/profile/favorites/folders")
+    assert resp.status_code == 200
+    assert resp.get_json() == []
+
