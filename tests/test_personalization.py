@@ -458,16 +458,18 @@ def test_saved_stacks_manager(client, app):
     assert stacks_list[0]["is_private"] is False
     assert "notion" in stacks_list[0]["tools"]
 
-    # 5. Update stack (rename & make private) via PUT /api/v1/profile/stacks/<id>
+    # 5. Update stack (rename, make private, and change tools list) via PUT /api/v1/profile/stacks/<id>
     update_payload = {
         "name": "My Renovated Stack",
-        "is_private": True
+        "is_private": True,
+        "tools": ["notion", "cursor"]
     }
     resp = client.put(f"/api/v1/profile/stacks/{saved_stack_id}", json=update_payload)
     assert resp.status_code == 200
     updated_data = resp.get_json()
     assert updated_data["name"] == "My Renovated Stack"
     assert updated_data["is_private"] is True
+    assert updated_data["tools"] == ["notion", "cursor"]
 
     # 6. Verify GET /api/v1/stack?stack_id=<id> behaves correctly:
     # A. Accessible by owner

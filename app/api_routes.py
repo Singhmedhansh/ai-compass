@@ -2822,6 +2822,11 @@ def update_profile_stack(stack_id):
     if is_private is not None:
         stack_data['is_private'] = bool(is_private)
 
+    tools = payload.get('tools')
+    if tools is not None:
+        if isinstance(tools, list):
+            stack_data['tools'] = [str(t).strip().lower() for t in tools if t]
+
     row.tools_json = json.dumps(stack_data, ensure_ascii=False)
     db.session.commit()
 
