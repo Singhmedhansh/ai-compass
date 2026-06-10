@@ -437,6 +437,9 @@ def _serialize_user(user: User) -> dict:
         str(user.email or "").strip().lower() in allow
     )
 
+    interests_list = [x.strip() for x in (user.interests or "").split(",") if x.strip()]
+    goals_list = [x.strip() for x in (user.goals or "").split(",") if x.strip()]
+
     return {
         "id": user.id,
         "name": user.display_name or "",
@@ -446,6 +449,11 @@ def _serialize_user(user: User) -> dict:
         "member_since": member_since,
         "is_admin": is_admin,
         "is_verified": bool(getattr(user, "is_verified", False)),
+        "onboarding_completed": bool(getattr(user, "onboarding_completed", False)),
+        "interests": interests_list,
+        "skill_level": user.skill_level or "",
+        "pricing_pref": user.pricing_pref or "",
+        "goals": goals_list,
     }
 
 
@@ -2156,6 +2164,73 @@ def update_profile():
     db.session.commit()
 
     return jsonify(_serialize_user(current_user))
+
+
+@csrf.exempt
+@api_bp.route("/profile/preferences", methods=["PUT"])
+def update_profile_preferences():
+    if not current_user.is_authenticated:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    payload = request.get_json(silent=True) or {}
+    interests = payload.get("interests") or []
+    goals = payload.get("goals") or []
+    skill_level = str(payload.get("skill_level") or "").strip()
+    pricing_pref = str(payload.get("pricing_pref") or "").strip()
+
+    if not isinstance(interests, list):
+        interests = [interests] if interests else []
+    if not isinstance(goals, list):
+        goals = [goals] if goals else []
+
+    interests = [str(x).strip() for x in interests if str(x).strip()]
+    goals = [str(x).strip() for x in goals if str(x).strip()]
+
+    # Validate categories to align with canonical categories
+    valid_categories = {
+        "Coding", "Writing & Chat", "Research", "Productivity",
+        "Image Generation", "Video Generation", "Audio & Voice"
+    }
+    user_interests = []
+    for category in interests:
+        matched = next((c for c in valid_categories if c.lower() == category.lower()), None)
+        if matched:
+            user_interests.append(matched)
+        else:
+            user_interests.append(category)
+
+    current_user.interests = ",".join(user_interests)
+    current_user.goals = ",".join(goals)
+    current_user.skill_level = skill_level
+    current_user.pricing_pref = pricing_pref
+    current_user.onboarding_completed = True
+
+    # Synchronize preferences JSON column for backwards compatibility
+    prefs = {}
+    if current_user.preferences:
+        try:
+            prefs = json.loads(current_user.preferences)
+        except Exception:
+            pass
+    if not isinstance(prefs, dict):
+        prefs = {}
+
+    prefs["interests"] = user_interests
+    prefs["goals"] = goals
+    prefs["skill_level"] = skill_level
+    prefs["preferred_pricing"] = pricing_pref
+    prefs["interest_tags"] = user_interests
+    prefs["pricing_pref"] = pricing_pref
+    current_user.preferences = json.dumps(prefs)
+
+    # Invalidate Gemini recommendation cache
+    from app.services.personalized_recommender import RECOMMENDATIONS_CACHE
+    RECOMMENDATIONS_CACHE.pop(current_user.id, None)
+
+    db.session.commit()
+
+    return jsonify(_serialize_user(current_user))
+
 
 
 @csrf.exempt

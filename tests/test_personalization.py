@@ -334,3 +334,61 @@ def test_gemini_external_tool_discovery(client, app, seeded_tools, monkeypatch):
         tool_detail = resp_tool.get_json()
         assert tool_detail["name"] == "ResearchBot AI"
 
+
+def test_update_profile_preferences(client, app):
+    """Verify that updating profile preferences via PUT endpoint correctly updates the user's columns, onboarding completion status, and clears the recommendations cache."""
+    with app.app_context():
+        # Clean prior run residue
+        User.query.filter_by(email="test_pref@example.com").delete()
+        db.session.commit()
+
+        # 1. Create a user
+        user = User(
+            email="test_pref@example.com",
+            display_name="Preference Test User",
+            onboarding_completed=False
+        )
+        db.session.add(user)
+        db.session.commit()
+        user_id = user.id
+
+        # 2. Log in
+        with client.session_transaction() as sess:
+            sess["_user_id"] = str(user_id)
+            sess["_fresh"] = True
+
+        # 3. Request preference update
+        payload = {
+            "interests": ["Coding", "Research"],
+            "goals": ["Build software Projects", "Academic Writing"],
+            "skill_level": "advanced",
+            "pricing_pref": "free"
+        }
+        resp = client.put("/api/v1/profile/preferences", json=payload)
+        assert resp.status_code == 200
+        
+        data = resp.get_json()
+        assert data["onboarding_completed"] is True
+        assert "Coding" in data["interests"]
+        assert "Research" in data["interests"]
+        assert "Build software Projects" in data["goals"]
+        assert "Academic Writing" in data["goals"]
+        assert data["skill_level"] == "advanced"
+        assert data["pricing_pref"] == "free"
+
+        # 4. Verify database updates
+        user_db = User.query.get(user_id)
+        assert user_db.onboarding_completed is True
+        assert user_db.interests == "Coding,Research"
+        assert user_db.goals == "Build software Projects,Academic Writing"
+        assert user_db.skill_level == "advanced"
+        assert user_db.pricing_pref == "free"
+
+        # Verify parsed preferences JSON
+        prefs = json.loads(user_db.preferences)
+        assert "interests" in prefs
+        assert "goals" in prefs
+        assert prefs["skill_level"] == "advanced"
+        assert prefs["preferred_pricing"] == "free"
+
+

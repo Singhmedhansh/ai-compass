@@ -15,6 +15,7 @@ import ScrollProgress from './components/ui/ScrollProgress'
 import CookieConsent from './components/ui/CookieConsent'
 import ProactiveHelpPrompt from './components/ui/ProactiveHelpPrompt'
 import OnboardingTour from './components/ui/OnboardingTour'
+import OnboardingWizard from './components/ui/OnboardingWizard'
 // HomePage stays eager — it's the most common first paint
 import HomePage from './pages/HomePage'
 
@@ -167,6 +168,7 @@ export default function App() {
             <FeedbackWidget />
             <ProactiveHelpPrompt />
             <OnboardingTour />
+            <OnboardingWizard />
             <OfflineBanner />
             <CookieConsent />
           </div>

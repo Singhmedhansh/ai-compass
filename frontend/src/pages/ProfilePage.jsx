@@ -1,4 +1,4 @@
-import { Bell, CheckCircle2, Download, Loader2, ShieldAlert, Trash2, UserRound } from 'lucide-react'
+import { Bell, Check, CheckCircle2, Download, Loader2, ShieldAlert, Sparkles, Trash2, UserRound } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -75,6 +75,37 @@ function ToggleSwitch({ checked, onChange, label, description }) {
   )
 }
 
+const CATEGORIES = [
+  { id: 'Coding', label: 'Coding' },
+  { id: 'Writing & Chat', label: 'Writing & Chat' },
+  { id: 'Research', label: 'Research' },
+  { id: 'Productivity', label: 'Productivity' },
+  { id: 'Image Generation', label: 'Image Gen' },
+  { id: 'Video Generation', label: 'Video Gen' },
+  { id: 'Audio & Voice', label: 'Audio & Voice' }
+]
+
+const GOALS = [
+  { id: 'Academic Writing', label: 'Writing papers & essays' },
+  { id: 'Software Projects', label: 'Building apps & coding' },
+  { id: 'Visual Design', label: 'Creating graphics & art' },
+  { id: 'Voiceovers & Podcasts', label: 'Editing audio & speech' },
+  { id: 'Study Planning', label: 'Workspace & task management' },
+  { id: 'Literature Review', label: 'Reading & scraping citations' }
+]
+
+const SKILL_LEVELS = [
+  { id: 'beginner', label: 'Beginner' },
+  { id: 'intermediate', label: 'Intermediate' },
+  { id: 'advanced', label: 'Advanced' }
+]
+
+const PRICING_PREFS = [
+  { id: 'free', label: 'Free' },
+  { id: 'freemium', label: 'Freemium' },
+  { id: 'paid', label: 'Paid' }
+]
+
 function ProfilePage() {
   const navigate = useNavigate()
   const [loading, setLoading] = useState(true)
@@ -93,6 +124,12 @@ function ProfilePage() {
     theme: getStoredTheme(),
     emailNotifications: readStoredBoolean(NOTIFICATIONS_STORAGE_KEY, true),
   }))
+  const [isEditingPreferences, setIsEditingPreferences] = useState(false)
+  const [isSavingPreferences, setIsSavingPreferences] = useState(false)
+  const [editInterests, setEditInterests] = useState([])
+  const [editGoals, setEditGoals] = useState([])
+  const [editSkill, setEditSkill] = useState('intermediate')
+  const [editPricing, setEditPricing] = useState('freemium')
 
   const avatarLetter = useMemo(
     () => String(profile?.name || profile?.email || 'U').charAt(0).toUpperCase(),
@@ -239,6 +276,67 @@ function ProfilePage() {
       showToast(error.message || 'Unable to save profile changes.', 'error')
     } finally {
       setIsSaving(false)
+    }
+  }
+
+  const handleEditPreferencesToggle = () => {
+    if (isEditingPreferences) {
+      setIsEditingPreferences(false)
+    } else {
+      setEditInterests(profile?.interests || [])
+      setEditGoals(profile?.goals || [])
+      setEditSkill(profile?.skill_level || 'intermediate')
+      setEditPricing(profile?.pricing_pref || 'freemium')
+      setIsEditingPreferences(true)
+    }
+  }
+
+  const handleEditInterestToggle = (id) => {
+    setEditInterests(prev => 
+      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+    )
+  }
+
+  const handleEditGoalToggle = (id) => {
+    setEditGoals(prev => 
+      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+    )
+  }
+
+  const handleSavePreferences = async () => {
+    setIsSavingPreferences(true)
+    try {
+      const response = await fetch('/api/v1/profile/preferences', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          interests: editInterests,
+          goals: editGoals,
+          skill_level: editSkill,
+          pricing_pref: editPricing,
+        }),
+      })
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}))
+        throw new Error(payload.error || 'Unable to save preferences.')
+      }
+
+      const updatedUser = await response.json()
+      const mergedUser = {
+        ...profile,
+        ...updatedUser,
+      }
+
+      setProfile(mergedUser)
+      setIsEditingPreferences(false)
+      localStorage.setItem('user', JSON.stringify(mergedUser))
+      window.dispatchEvent(new Event('userLoggedIn'))
+      showToast('Recommendation preferences updated successfully.')
+    } catch (error) {
+      showToast(error.message || 'Unable to save preferences.', 'error')
+    } finally {
+      setIsSavingPreferences(false)
     }
   }
 
@@ -471,6 +569,188 @@ function ProfilePage() {
               />
 
             </div>
+          </section>
+
+          <section className="rounded-3xl border border-line bg-bg-elev p-6 shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-accent-soft text-accent">
+                <Sparkles className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-ink">Recommendation Preferences</h3>
+                <p className="text-sm text-muted">Customize the types of tools, skill level, and budget Gemini suggests on your dashboard.</p>
+              </div>
+            </div>
+
+            {!isEditingPreferences ? (
+              <div className="mt-6 space-y-4">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-muted mb-2">Primary Interests</h4>
+                    <div className="flex flex-wrap gap-1.5">
+                      {profile?.interests && profile.interests.length > 0 ? (
+                        profile.interests.map(interest => (
+                          <span key={interest} className="rounded-full bg-accent-soft px-3 py-1 text-xs font-semibold text-accent-ink border border-accent/20 animate-fade-in">
+                            {interest}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-xs text-muted">No interests selected yet. Customize them to tune recommendations.</span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-muted mb-2">Target Goals</h4>
+                    <div className="space-y-1">
+                      {profile?.goals && profile.goals.length > 0 ? (
+                        profile.goals.map(goal => (
+                          <div key={goal} className="flex items-center gap-1.5 text-xs text-ink-2">
+                            <span className="flex h-3.5 w-3.5 items-center justify-center rounded bg-accent-soft text-accent-ink">
+                              <Check className="h-2.5 w-2.5" />
+                            </span>
+                            <span>{goal}</span>
+                          </div>
+                        ))
+                      ) : (
+                        <span className="text-xs text-muted">No goals specified yet.</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid gap-4 pt-2 border-t border-line/40 md:grid-cols-2">
+                  <div>
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-muted">Skill Level</h4>
+                    <p className="text-sm font-semibold mt-1 text-ink capitalize">{profile?.skill_level || 'Intermediate'}</p>
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-muted">Pricing Calibration</h4>
+                    <p className="text-sm font-semibold mt-1 text-ink capitalize">{profile?.pricing_pref || 'Freemium'}</p>
+                  </div>
+                </div>
+
+                <div className="pt-2">
+                  <Button variant="secondary" size="md" onClick={handleEditPreferencesToggle}>
+                    Edit Preferences
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="mt-6 space-y-6">
+                {/* Interests Pills */}
+                <div>
+                  <h4 className="text-sm font-bold text-ink-2 mb-2">Interests</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {CATEGORIES.map((cat) => {
+                      const isSelected = editInterests.includes(cat.id)
+                      return (
+                        <button
+                          key={cat.id}
+                          type="button"
+                          onClick={() => handleEditInterestToggle(cat.id)}
+                          className={`px-3 py-1.5 rounded-full border text-xs transition-all ${
+                            isSelected 
+                              ? 'border-accent bg-accent-soft/20 text-accent-ink font-semibold' 
+                              : 'border-line bg-bg-sunk hover:bg-bg-elev text-ink'
+                          }`}
+                        >
+                          {cat.label}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                {/* Goals */}
+                <div>
+                  <h4 className="text-sm font-bold text-ink-2 mb-2">Goals</h4>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    {GOALS.map((goal) => {
+                      const isSelected = editGoals.includes(goal.id)
+                      return (
+                        <button
+                          key={goal.id}
+                          type="button"
+                          onClick={() => handleEditGoalToggle(goal.id)}
+                          className={`flex items-center justify-between p-3 rounded-2xl border text-left transition-all ${
+                            isSelected 
+                              ? 'border-accent bg-accent-soft/10 text-accent-ink font-semibold' 
+                              : 'border-line bg-bg-sunk hover:bg-bg-elev text-ink'
+                          }`}
+                        >
+                          <span className="text-xs">{goal.label}</span>
+                          <div className={`flex h-4 w-4 items-center justify-center rounded-full border transition-all ${
+                            isSelected ? 'border-accent bg-accent text-white' : 'border-line-strong'
+                          }`}>
+                            {isSelected && <Check className="h-2.5 w-2.5" />}
+                          </div>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                {/* Skill Level & Pricing Grid */}
+                <div className="grid gap-4 md:grid-cols-2 border-t border-line/40 pt-4">
+                  <div>
+                    <h4 className="text-sm font-bold text-ink-2 mb-2">Skill Level</h4>
+                    <div className="grid grid-cols-3 gap-2">
+                      {SKILL_LEVELS.map((level) => (
+                        <button
+                          key={level.id}
+                          type="button"
+                          onClick={() => setEditSkill(level.id)}
+                          className={`p-2 rounded-xl border text-center transition-all ${
+                            editSkill === level.id 
+                              ? 'border-accent bg-accent-soft/20 text-accent-ink font-bold text-xs' 
+                              : 'border-line bg-bg-sunk hover:bg-bg-elev text-ink text-xs'
+                          }`}
+                        >
+                          {level.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="text-sm font-bold text-ink-2 mb-2">Pricing Preference</h4>
+                    <div className="grid grid-cols-3 gap-2">
+                      {PRICING_PREFS.map((pref) => (
+                        <button
+                          key={pref.id}
+                          type="button"
+                          onClick={() => setEditPricing(pref.id)}
+                          className={`p-2 rounded-xl border text-center transition-all ${
+                            editPricing === pref.id 
+                              ? 'border-accent bg-accent-soft/20 text-accent-ink font-bold text-xs' 
+                              : 'border-line bg-bg-sunk hover:bg-bg-elev text-ink text-xs'
+                          }`}
+                        >
+                          {pref.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-2 pt-2 border-t border-line/40">
+                  <Button variant="primary" size="md" onClick={handleSavePreferences} disabled={isSavingPreferences}>
+                    {isSavingPreferences ? (
+                      <span className="inline-flex items-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Saving...
+                      </span>
+                    ) : (
+                      'Save Preferences'
+                    )}
+                  </Button>
+                  <Button variant="ghost" size="md" onClick={handleEditPreferencesToggle} disabled={isSavingPreferences}>
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            )}
           </section>
 
           <section className="rounded-3xl border border-line bg-bg-elev p-6 shadow-sm">
