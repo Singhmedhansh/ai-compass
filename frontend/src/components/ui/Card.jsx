@@ -184,7 +184,7 @@ function Card({ tool = {}, layoutType = 'standard', glass = false, folders = nul
         </div>
 
         <div className={clsx("min-w-0 flex-1", isLarge ? "mt-4 w-full" : "")}>
-          <h3 className={clsx("truncate font-semibold text-ink", isLarge ? "text-xl" : "text-base")}>{name}</h3>
+          <h3 className={clsx("truncate font-semibold text-ink", isLarge ? "text-xl" : "text-base", !isLarge && (folders ? "pr-20" : "pr-8"))}>{name}</h3>
           <p
             className={clsx("mt-1 overflow-hidden text-muted", isLarge ? "text-base" : "text-sm")}
             style={{
