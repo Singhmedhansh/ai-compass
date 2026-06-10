@@ -1,4 +1,4 @@
-import { Bell, Check, CheckCircle2, Download, GraduationCap, Loader2, ShieldAlert, Sparkles, Trash2, UserRound, Copy, Globe, Lock, Edit2, X, Library, History, Search, ChevronDown, ChevronUp } from 'lucide-react'
+import { Bell, Check, CheckCircle2, Download, GraduationCap, Loader2, ShieldAlert, Sparkles, Trash2, UserRound, Copy, Globe, Lock, Edit2, X, Library, History, Search, ChevronDown, ChevronUp, BarChart3, RefreshCw, AlertCircle } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -157,6 +157,9 @@ function ProfilePage() {
   const [categoryFilter, setCategoryFilter] = useState('all')
   const [isHistoryCollapsed, setIsHistoryCollapsed] = useState(false)
   const [expandedStackIds, setExpandedStackIds] = useState([])
+  const [analyticsData, setAnalyticsData] = useState(null)
+  const [loadingAnalytics, setLoadingAnalytics] = useState(false)
+  const [analyticsError, setAnalyticsError] = useState(null)
 
   const studentVerification = useMemo(() => {
     try {
@@ -346,8 +349,32 @@ function ProfilePage() {
         prev.map((s) => (s.id === stackId ? { ...s, tools: updated.tools } : s))
       )
       showToast('Tool removed from toolkit.')
+    }
+  }
+
+  const handleFetchWorkflowAnalytics = async () => {
+    setLoadingAnalytics(true)
+    setAnalyticsError(null)
+
+    try {
+      const recentParam = recentlyViewedSlugs.join(',')
+      const response = await fetch(`/api/v1/profile/workflow-analytics?recent=${encodeURIComponent(recentParam)}`)
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}))
+        throw new Error(payload.error || 'Failed to fetch workflow insights.')
+      }
+
+      const data = await response.json()
+      if (data.error) {
+        throw new Error(data.error)
+      }
+      setAnalyticsData(data)
     } catch (error) {
-      showToast(error.message || 'Failed to remove tool.', 'error')
+      setAnalyticsError(error.message || 'Unable to analyze workflow.')
+      showToast(error.message || 'Failed to analyze workflow.', 'error')
+    } finally {
+      setLoadingAnalytics(false)
     }
   }
 
@@ -1489,6 +1516,202 @@ function ProfilePage() {
                 </div>
               )}
             </div>
+          </section>
+
+          <section className="rounded-3xl border border-line bg-bg-elev p-6 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-accent-soft text-accent">
+                  <BarChart3 className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-ink">AI Workflow Analytics</h3>
+                  <p className="text-sm text-muted">Audit your AI tool stack, analyze your persona, and discover gaps.</p>
+                </div>
+              </div>
+              {analyticsData && (
+                <button
+                  type="button"
+                  onClick={handleFetchWorkflowAnalytics}
+                  disabled={loadingAnalytics}
+                  className="flex h-8 w-8 items-center justify-center rounded-xl bg-bg-sunk hover:bg-line transition text-ink disabled:opacity-50"
+                  title="Re-analyze workflow"
+                >
+                  <RefreshCw className={`h-4 w-4 ${loadingAnalytics ? 'animate-spin' : ''}`} />
+                </button>
+              )}
+            </div>
+
+            {loadingAnalytics ? (
+              <div className="mt-8 flex flex-col items-center justify-center py-10 space-y-4 animate-pulse">
+                <div className="relative flex items-center justify-center h-16 w-16">
+                  <div className="absolute inset-0 rounded-full border-4 border-accent/20 animate-ping"></div>
+                  <div className="h-12 w-12 rounded-full border-4 border-t-accent border-r-transparent border-b-transparent border-l-transparent animate-spin"></div>
+                  <Sparkles className="absolute h-5 w-5 text-accent animate-pulse" />
+                </div>
+                <div className="text-center">
+                  <p className="text-sm font-bold text-ink">Auditing your workspace...</p>
+                  <p className="text-xs text-muted mt-1">Gemini is mapping your toolkit strengths and identifying gaps.</p>
+                </div>
+              </div>
+            ) : analyticsError ? (
+              <div className="mt-6 rounded-2xl border border-danger/25 bg-danger-soft/10 p-5 animate-fade-in">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="h-5 w-5 text-danger shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="text-sm font-bold text-ink">Analysis Failed</h4>
+                    <p className="mt-1 text-xs text-muted">{analyticsError}</p>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="mt-3 !border-danger !text-danger hover:!bg-danger-soft"
+                      onClick={handleFetchWorkflowAnalytics}
+                    >
+                      Try Again
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ) : !analyticsData ? (
+              <div className="mt-6 rounded-2xl border border-dashed border-line-strong bg-bg-sunk/40 p-6 text-center animate-fade-in">
+                <Sparkles className="mx-auto h-8 w-8 text-accent/60 mb-3" />
+                <h4 className="text-sm font-bold text-ink">Unlock your AI Persona</h4>
+                <p className="mx-auto mt-1 max-w-sm text-xs text-muted">
+                  Get a Gemini-powered audit showing your dominant workspace category, workflow gap analysis, and tailored balance suggestions.
+                </p>
+                <Button
+                  variant="primary"
+                  size="md"
+                  className="mt-4"
+                  onClick={handleFetchWorkflowAnalytics}
+                >
+                  Analyze My Workflow
+                </Button>
+              </div>
+            ) : (
+              <div className="mt-6 space-y-6 animate-fade-in">
+                {/* Persona Badge Header */}
+                <div className="rounded-2xl border border-accent/20 bg-accent-soft/5 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div>
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-accent px-2.5 py-0.5 text-[10px] font-bold text-white uppercase tracking-wider">
+                      AI Persona
+                    </span>
+                    <h4 className="text-lg font-bold text-ink mt-1.5">{analyticsData.persona}</h4>
+                    <p className="text-xs text-muted mt-0.5">{analyticsData.persona_description}</p>
+                  </div>
+                  <div className="shrink-0 flex h-14 w-14 items-center justify-center rounded-2xl bg-accent-soft/20 text-accent border border-accent/10">
+                    <Sparkles className="h-7 w-7" />
+                  </div>
+                </div>
+
+                {/* Audit & Distribution Grid */}
+                <div className="grid gap-6 md:grid-cols-[1.2fr_1fr]">
+                  {/* Insights Card */}
+                  <div className="space-y-4">
+                    <div className="rounded-2xl border border-line bg-bg-sunk/30 p-4.5">
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-muted mb-2.5">Workflow Audit</h4>
+                      <p className="text-xs text-ink-2 leading-relaxed">{analyticsData.workflow_insights}</p>
+                    </div>
+                  </div>
+
+                  {/* Category Distribution bars */}
+                  <div className="rounded-2xl border border-line bg-bg-sunk/30 p-4.5">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-muted mb-3.5">Category Distribution</h4>
+                    <div className="space-y-3">
+                      {Object.entries(analyticsData.distribution).map(([category, percentage]) => {
+                        let colorClass = 'bg-accent'
+                        if (category === 'Coding') colorClass = 'bg-indigo-500'
+                        else if (category === 'Research') colorClass = 'bg-violet-500'
+                        else if (category === 'Writing & Chat') colorClass = 'bg-emerald-500'
+                        else if (category.includes('Gen') || category.includes('Voice')) colorClass = 'bg-rose-500'
+                        else if (category === 'Productivity') colorClass = 'bg-amber-500'
+
+                        return (
+                          <div key={category} className="space-y-1">
+                            <div className="flex items-center justify-between text-[11px] font-semibold text-ink-2">
+                              <span>{category}</span>
+                              <span>{percentage}%</span>
+                            </div>
+                            <div className="h-2 w-full rounded-full bg-line/55 overflow-hidden">
+                              <div
+                                className={`h-full rounded-full ${colorClass} transition-all duration-500`}
+                                style={{ width: `${percentage}%` }}
+                              />
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Gap Recommendations */}
+                {analyticsData.recommendations && analyticsData.recommendations.length > 0 && (
+                  <div className="border-t border-line/45 pt-5 space-y-3">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-muted">Recommended to Balance Your Stack</h4>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {analyticsData.recommendations.map((rec) => {
+                        const resolvedTool = allTools.find(
+                          (t) => String(t.slug || '').toLowerCase() === String(rec.slug || '').toLowerCase()
+                        )
+
+                        return (
+                          <div
+                            key={rec.slug || rec.name}
+                            className="group flex flex-col justify-between rounded-2xl border border-line bg-bg-sunk/25 p-4 transition duration-200 hover:border-accent/40 hover:bg-bg-sunk/40"
+                          >
+                            <div className="flex items-start gap-3">
+                              {resolvedTool ? (
+                                <div className="shrink-0 mt-0.5">
+                                  <ToolLogo tool={resolvedTool} size={36} />
+                                </div>
+                              ) : (
+                                <div className="shrink-0 flex h-9 w-9 items-center justify-center rounded-xl bg-accent-soft text-accent text-xs font-bold font-sans">
+                                  {rec.name ? rec.name[0].toUpperCase() : 'T'}
+                                </div>
+                              )}
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  {resolvedTool ? (
+                                    <button
+                                      type="button"
+                                      onClick={() => navigate(`/tool/${resolvedTool.slug}`)}
+                                      className="text-xs font-bold text-ink hover:text-accent hover:underline text-left truncate"
+                                    >
+                                      {rec.name}
+                                    </button>
+                                  ) : (
+                                    <span className="text-xs font-bold text-ink truncate">{rec.name}</span>
+                                  )}
+                                  <span className="inline-block rounded bg-accent-soft px-1.5 py-0.5 text-[8.5px] font-bold text-accent">
+                                    {rec.category}
+                                  </span>
+                                </div>
+                                <p className="mt-1 text-[11px] text-muted leading-relaxed">
+                                  {rec.reason}
+                                </p>
+                              </div>
+                            </div>
+
+                            {resolvedTool && (
+                              <div className="mt-3 flex justify-end">
+                                <button
+                                  type="button"
+                                  onClick={() => navigate(`/tool/${resolvedTool.slug}`)}
+                                  className="text-[10px] font-bold text-accent hover:underline flex items-center gap-0.5"
+                                >
+                                  View Tool Details &rarr;
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </section>
 
           <section className="rounded-3xl border border-line bg-bg-elev p-6 shadow-sm">

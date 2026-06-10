@@ -714,3 +714,49 @@ def test_student_verification(client, app):
         assert "student_verification" not in prefs
 
 
+def test_workflow_analytics(client, app):
+    """Verify that get_workflow_analytics returns proper JSON data and uses local fallback when keys are absent."""
+    _clear_auth_cache()
+    
+    with app.app_context():
+        # Clean up prior user residues
+        User.query.filter_by(email="analytics_owner@example.com").delete()
+        db.session.commit()
+
+        user = User(email="analytics_owner@example.com", display_name="Analytics Owner")
+        db.session.add(user)
+        db.session.commit()
+        user_id = user.id
+
+    # Log in
+    with client.session_transaction() as sess:
+        sess["_user_id"] = str(user_id)
+        sess["_fresh"] = True
+
+    # 1. Fetch when there is no activity
+    resp = client.get("/api/v1/profile/workflow-analytics")
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert "error" in data
+    assert "No tools found" in data["error"]
+
+    # 2. Add some favorites
+    with app.app_context():
+        fav1 = Favorite(user_id=user_id, tool_id="notion")
+        fav2 = Favorite(user_id=user_id, tool_id="cursor")
+        db.session.add_all([fav1, fav2])
+        db.session.commit()
+
+    # 3. Fetch analytics (should invoke local fallback engine if GEMINI_API_KEY is not set)
+    resp = client.get("/api/v1/profile/workflow-analytics?recent=chatgpt")
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert "persona" in data
+    assert "persona_description" in data
+    assert "workflow_insights" in data
+    assert "distribution" in data
+    assert "recommendations" in data
+    assert len(data["recommendations"]) > 0
+
+
+

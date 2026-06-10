@@ -2299,6 +2299,288 @@ def reset_student_verification():
 
 
 
+@api_bp.route("/profile/workflow-analytics", methods=["GET"])
+@login_required
+def get_workflow_analytics():
+    from app.models import Favorite, SavedStack
+    from app.tool_cache import get_visible_tools
+
+    # 1. Fetch user activity
+    favorites = Favorite.query.filter_by(user_id=current_user.id).all()
+    stacks = SavedStack.query.filter_by(user_id=current_user.id).all()
+    
+    # Grab recently viewed slugs from request query params
+    recent_slugs_raw = request.args.get("recent", "")
+    recent_slugs = [s.strip().lower() for s in recent_slugs_raw.split(",") if s.strip()]
+
+    # If no activity whatsoever, return error/tip message
+    if not favorites and not stacks and not recent_slugs:
+        return jsonify({
+            "error": "No tools found in your favorites, toolkits, or history. Add or view some tools first to unlock your AI Persona!"
+        }), 200
+
+    all_tools = get_visible_tools()
+    tool_by_slug = {str(t.get("slug") or "").strip().lower(): t for t in all_tools}
+
+    # Resolve details
+    fav_details = []
+    stack_details = []
+    recent_details = []
+
+    user_categories = []
+
+    for f in favorites:
+        f_slug = str(f.tool_id or "").strip().lower()
+        tool = tool_by_slug.get(f_slug)
+        if tool:
+            fav_details.append({
+                "name": tool.get("name"),
+                "category": tool.get("category"),
+                "tagline": tool.get("tagline") or tool.get("shortDescription") or ""
+            })
+            user_categories.append(tool.get("category") or "General")
+
+    for s in stacks:
+        stack_tools = []
+        if s.tools_json:
+            try:
+                stack_tools = json.loads(s.tools_json).get("tools", [])
+            except Exception:
+                pass
+        for t_slug in stack_tools:
+            t_slug = str(t_slug).strip().lower()
+            tool = tool_by_slug.get(t_slug)
+            if tool:
+                stack_details.append({
+                    "name": tool.get("name"),
+                    "category": tool.get("category"),
+                    "tagline": tool.get("tagline") or tool.get("shortDescription") or ""
+                })
+                user_categories.append(tool.get("category") or "General")
+
+    for r_slug in recent_slugs:
+        tool = tool_by_slug.get(r_slug)
+        if tool:
+            recent_details.append({
+                "name": tool.get("name"),
+                "category": tool.get("category"),
+                "tagline": tool.get("tagline") or tool.get("shortDescription") or ""
+            })
+            user_categories.append(tool.get("category") or "General")
+
+    # Load preferences
+    interests = []
+    goals = []
+    if current_user.preferences:
+        try:
+            prefs = json.loads(current_user.preferences)
+            interests = prefs.get("interests", [])
+            goals = prefs.get("goals", [])
+        except Exception:
+            pass
+
+    # 2. Local Fallback Generator Function
+    def run_local_fallback():
+        from collections import Counter
+        counts = Counter(user_categories)
+        total = sum(counts.values()) or 1
+        
+        # Calculate percentages
+        dist = {}
+        for cat, val in counts.items():
+            dist[cat] = round((val / total) * 100)
+            
+        # Ensure it sums to exactly 100 if there's any distribution
+        if dist:
+            diff = 100 - sum(dist.values())
+            if diff != 0:
+                max_cat = max(dist, key=dist.get)
+                dist[max_cat] += diff
+        else:
+            dist = {"General": 100}
+
+        # Determine dominant category
+        dom_cat = max(dist, key=dist.get) if dist else "General"
+        
+        if dom_cat == "Coding":
+            persona = "Software Developer"
+            desc = "Automates tasks, writes code, and deploys scalable systems."
+            insights = "Your AI workflow is heavily optimized for coding. While this makes you super efficient at engineering, you might want to introduce Productivity tools or Writing & Chat assistants to write clear documentation and coordinate team tasks."
+            gap_cat = "Productivity"
+        elif dom_cat == "Research":
+            persona = "Research Specialist"
+            desc = "Focuses on literature reviews, citations, and summaries."
+            insights = "You are a research power-user, gathering insights and citations efficiently. Adding Writing & Chat tools can help you transform these raw citations into polished essays or summaries much faster."
+            gap_cat = "Writing & Chat"
+        elif dom_cat == "Writing & Chat":
+            persona = "Content Creator"
+            desc = "Specializes in drafts, copywriting, and brainstorming."
+            insights = "Your toolkit is built for generation and communication. To elevate your work, we recommend adding Research tools to back your claims with verified facts, or Productivity organizers to track your publishing schedule."
+            gap_cat = "Research"
+        elif dom_cat in ["Image Generation", "Video Generation", "Audio & Voice"]:
+            persona = "Creative Multimodal Designer"
+            desc = "Crafts visuals, speech synthesis, and video assets."
+            insights = "Your workflow is rich with multimedia generation. Adding Productivity tools will help you streamline project handoffs, while Writing & Chat assistants can help you script your video and audio narrations."
+            gap_cat = "Productivity"
+        else:
+            persona = "Productivity Optimizer"
+            desc = "Streamlines tasks, files, and personal workspace organization."
+            insights = "You are focused on optimization and organization. Balancing your stack with specific specialized assistants (like Coding or Writing tools) can help you execute projects directly from your organized space."
+            gap_cat = "Writing & Chat"
+
+        # Recommendations for gaps
+        fallback_recs = []
+        # Find tools in gap_cat that are not already in their stack
+        user_slugs = set([str(f.tool_id or "").strip().lower() for f in favorites] + 
+                         [str(slug).strip().lower() for s in stacks for slug in json.loads(s.tools_json).get("tools", []) if s.tools_json] +
+                         recent_slugs)
+        
+        gap_tools = [t for t in all_tools if str(t.get("category") or "").strip().lower() == gap_cat.lower() and str(t.get("slug") or "").strip().lower() not in user_slugs]
+        
+        # Sort by rating
+        gap_tools = sorted(gap_tools, key=lambda t: float(t.get("rating") or 0.0), reverse=True)
+        
+        for gt in gap_tools[:2]:
+            fallback_recs.append({
+                "name": gt.get("name") or "AI Tool",
+                "slug": gt.get("slug") or "",
+                "category": gt.get("category") or gap_cat,
+                "reason": f"Excellent {gap_cat} tool to round out your workflow and balance your dominant {dom_cat} tools."
+            })
+            
+        # In case we couldn't find enough
+        if len(fallback_recs) < 2:
+            # Add static fallback tools
+            static_tools = [
+                {"name": "Notion", "slug": "notion", "category": "Productivity", "reason": "Organize your workflow notes in a single workspace."},
+                {"name": "ChatGPT", "slug": "chatgpt", "category": "Writing & Chat", "reason": "All-purpose assistant to brainstorm and edit drafts."}
+            ]
+            for st in static_tools:
+                if st["slug"] not in user_slugs and len(fallback_recs) < 2:
+                    fallback_recs.append(st)
+
+        return {
+            "persona": persona,
+            "persona_description": desc,
+            "workflow_insights": insights,
+            "distribution": dist,
+            "recommendations": fallback_recs
+        }
+
+    # 3. Key Rotation & Gemini Call
+    keys = []
+    env_keys_str = os.environ.get("GEMINI_API_KEYS", "")
+    if env_keys_str:
+        keys.extend([k.strip() for k in env_keys_str.split(",") if k.strip()])
+    single_key = os.environ.get("GEMINI_API_KEY")
+    if single_key and single_key not in keys:
+        keys.append(single_key)
+
+    if not keys:
+        # No keys -> run local fallback immediately
+        return jsonify(run_local_fallback()), 200
+
+    prompt = f"""
+    You are an expert AI productivity auditor. Analyze this user's current AI tool choices and generate a workflow audit JSON.
+    
+    User Activity Profile:
+    - Favorited Tools: {json.dumps(fav_details)}
+    - Saved Toolkits (Stacks): {json.dumps(stack_details)}
+    - Recently Viewed Tools: {json.dumps(recent_details)}
+    - Interests: {list(interests)}
+    - Goals: {list(goals)}
+    
+    Your response must be a single, valid JSON object matching exactly this structure:
+    {{
+      "persona": "Name of AI Persona (e.g. Research Specialist, Content Writer, Software Developer)",
+      "persona_description": "A short, descriptive subtitle summarizing their persona (under 120 chars)",
+      "workflow_insights": "A short paragraph (2-3 sentences, under 300 chars) analyzing their toolkit's strengths, critical workflow gaps, and how they can optimize it.",
+      "distribution": {{
+        "CategoryName1": PercentageInteger1,
+        "CategoryName2": PercentageInteger2,
+        ...
+      }},
+      "recommendations": [
+        {{
+          "name": "Name of recommended tool",
+          "slug": "slug-of-the-tool",
+          "category": "Category of the tool",
+          "reason": "1-sentence description (under 120 chars) explaining exactly how it fills their gap."
+        }}
+      ]
+    }}
+    
+    Use only these exact categories in distribution and recommendations: Coding, Writing & Chat, Research, Productivity, Image Generation, Video Generation, Audio & Voice.
+    The sum of percentages in distribution must be 100.
+    Recommend 2-3 tools that are NOT already in their favorites or saved toolkits.
+    Respond ONLY with the JSON block. Do not include markdown code block formatting (like ```json).
+    """
+
+    for i, key in enumerate(keys):
+        try:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={key}"
+            headers = {"Content-Type": "application/json"}
+            payload = {
+                "contents": [{"parts": [{"text": prompt}]}],
+                "generationConfig": {
+                    "responseMimeType": "application/json",
+                    "responseSchema": {
+                        "type": "OBJECT",
+                        "properties": {
+                            "persona": {"type": "STRING"},
+                            "persona_description": {"type": "STRING"},
+                            "workflow_insights": {"type": "STRING"},
+                            "distribution": {
+                                "type": "OBJECT",
+                                "additionalProperties": {"type": "INTEGER"}
+                            },
+                            "recommendations": {
+                                "type": "ARRAY",
+                                "items": {
+                                    "type": "OBJECT",
+                                    "properties": {
+                                        "name": {"type": "STRING"},
+                                        "slug": {"type": "STRING"},
+                                        "category": {"type": "STRING"},
+                                        "reason": {"type": "STRING"}
+                                    },
+                                    "required": ["name", "slug", "category", "reason"]
+                                }
+                            }
+                        },
+                        "required": ["persona", "persona_description", "workflow_insights", "distribution", "recommendations"]
+                    }
+                }
+            }
+            
+            response = requests.post(url, headers=headers, json=payload, timeout=12)
+            if response.status_code == 429:
+                print(f"[Workflow Analytics] Key {i+1} hit rate limits (429). Rotating...")
+                continue
+            elif response.status_code != 200:
+                print(f"[Workflow Analytics] Key {i+1} failed with status {response.status_code}. Rotating...")
+                continue
+                
+            res_data = response.json()
+            content_text = res_data["candidates"][0]["content"]["parts"][0]["text"].strip()
+            parsed = json.loads(content_text)
+            
+            # Simple integrity checks
+            if not parsed.get("persona") or not parsed.get("distribution") or not parsed.get("recommendations"):
+                print(f"[Workflow Analytics] Key {i+1} returned incomplete payload. Rotating...")
+                continue
+                
+            return jsonify(parsed), 200
+        except Exception as e:
+            print(f"[Workflow Analytics] Gemini attempt with Key {i+1} failed: {str(e)}")
+            continue
+
+    # Fallback to local analyzer if all keys fail
+    print("[Workflow Analytics] All Gemini attempts failed. Using local fallback engine.")
+    return jsonify(run_local_fallback()), 200
+
+
+
 @csrf.exempt
 @api_bp.route("/profile", methods=["DELETE"])
 @login_required
