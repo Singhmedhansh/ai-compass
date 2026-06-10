@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import { motion } from 'framer-motion'
-import { Star } from 'lucide-react'
+import { Sparkles, Star } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -26,7 +26,7 @@ function slugify(value = '') {
     .replace(/\s+/g, '-')
 }
 
-function Card({ tool = {}, layoutType = 'standard' }) {
+function Card({ tool = {}, layoutType = 'standard', glass = false }) {
   const navigate = useNavigate()
   const [isHovered, setIsHovered] = useState(false)
 
@@ -68,6 +68,10 @@ function Card({ tool = {}, layoutType = 'standard' }) {
     }
   }
 
+  const hasReason = !!(tool.relevance_reason || tool.reason)
+  const baseMinHeight = isLarge ? 450 : (hasReason ? 260 : 224)
+  const hoverMinHeight = isLarge ? 480 : (hasReason ? 284 : 248)
+
   return (
     <MotionCard
       layout
@@ -81,11 +85,11 @@ function Card({ tool = {}, layoutType = 'standard' }) {
       onBlur={() => setIsHovered(false)}
       whileHover={{ y: -4, boxShadow: 'var(--shadow-lg)' }}
       whileTap={{ scale: 0.98 }}
-      whileTap={{ scale: 0.98 }}
-      animate={{ minHeight: isHovered ? (isLarge ? 480 : 248) : (isLarge ? 450 : 224) }}
+      animate={{ minHeight: isHovered ? hoverMinHeight : baseMinHeight }}
       transition={{ type: 'spring', stiffness: 300, damping: 20 }}
       className={clsx(
-        "group relative flex w-full flex-col gap-4 overflow-hidden rounded-2xl border border-line bg-bg-elev text-left shadow-sm cursor-pointer transition-all hover:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg",
+        "group relative flex w-full flex-col gap-4 overflow-hidden rounded-2xl border border-line text-left shadow-sm cursor-pointer transition-all hover:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg",
+        glass ? "glass-card bg-opacity-70 hover:bg-opacity-80" : "bg-bg-elev",
         isLarge ? "p-6" : "p-4"
       )}
     >
@@ -110,6 +114,13 @@ function Card({ tool = {}, layoutType = 'standard' }) {
           >
             {description}
           </p>
+
+          {hasReason && (
+            <div className="mt-2.5 flex items-start gap-1.5 rounded-lg bg-accent-soft/40 px-2.5 py-1.5 text-xs text-ink-2 border border-accent/10 backdrop-blur-sm">
+              <Sparkles className="h-3.5 w-3.5 text-accent shrink-0 mt-0.5" />
+              <span>{tool.relevance_reason || tool.reason}</span>
+            </div>
+          )}
         </div>
       </div>
 

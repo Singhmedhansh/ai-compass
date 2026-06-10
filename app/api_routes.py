@@ -1602,6 +1602,19 @@ def recommendations():
     return jsonify(ranked)
 
 
+@api_bp.get("/dashboard/recommendations")
+@login_required
+def dashboard_recommendations():
+    from flask import session
+    print("ENDPOINT COOKIES:", request.cookies)
+    print("ENDPOINT SESSION:", session)
+    print("ENDPOINT USER:", current_user)
+    from app.services.personalized_recommender import get_personalized_recommendations
+    limit = request.args.get("limit", 6, type=int)
+    results = get_personalized_recommendations(current_user, limit=limit)
+    return jsonify(results)
+
+
 @api_bp.get("/collections/<slug>")
 def get_collection(slug: str):
     slug_value = str(slug or "").strip().lower()

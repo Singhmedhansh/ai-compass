@@ -51,6 +51,7 @@ function normalizeTool(rawTool) {
     url: resolvedUrl,
     website: rawTool?.website || resolvedUrl,
     link: rawTool?.link || resolvedUrl,
+    relevance_reason: rawTool?.relevance_reason || rawTool?.reason || '',
   }
 }
 
@@ -148,7 +149,7 @@ function DashboardPage() {
         const userIdForStack = mergedUser?.id || storedUser?.id || ''
 
         const [recommendationsResponse, favoritesResponse, stackResponse, toolsResponse] = await Promise.all([
-          fetch('/api/v1/recommendations', { signal: controller.signal }),
+          fetch('/api/v1/dashboard/recommendations', { signal: controller.signal }),
           fetch('/api/v1/favorites', { signal: controller.signal }),
           fetch(`/api/v1/stack?user_id=${encodeURIComponent(userIdForStack)}`, { signal: controller.signal }),
           fetch('/api/v1/tools', { signal: controller.signal })
@@ -491,7 +492,7 @@ function DashboardPage() {
             {recommendations.length > 0 ? (
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
                 {recommendations.map((tool) => (
-                  <Card key={tool.slug || tool.name} tool={tool} />
+                  <Card key={tool.slug || tool.name} tool={tool} glass={true} />
                 ))}
               </div>
             ) : (
