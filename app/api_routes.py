@@ -454,6 +454,8 @@ def _serialize_user(user: User) -> dict:
         "skill_level": user.skill_level or "",
         "pricing_pref": user.pricing_pref or "",
         "goals": goals_list,
+        "student_status": bool(getattr(user, "student_status", False)),
+        "preferences": user.preferences or "{}",
     }
 
 
@@ -2230,6 +2232,70 @@ def update_profile_preferences():
     db.session.commit()
 
     return jsonify(_serialize_user(current_user))
+
+
+STUDENT_EMAIL_REGEX = re.compile(r'@[a-zA-Z0-9.-]+\.(edu|ac\.[a-z]{2}|edu\.[a-z]{2})$', re.IGNORECASE)
+
+@csrf.exempt
+@api_bp.route("/profile/verify-student", methods=["POST"])
+@login_required
+def verify_student():
+    payload = request.get_json(silent=True) or {}
+    school_email = str(payload.get("school_email") or "").strip().lower()
+    school_name = str(payload.get("school_name") or "").strip()
+    grad_year = str(payload.get("grad_year") or "").strip()
+
+    if not school_email or not school_name or not grad_year:
+        return jsonify({"error": "All fields (email, school name, graduation year) are required."}), 400
+
+    if not STUDENT_EMAIL_REGEX.search(school_email):
+        return jsonify({"error": "Please enter a valid student email address (e.g., ending in .edu, .edu.in, .ac.uk)"}), 400
+
+    # Load preferences
+    prefs = {}
+    if current_user.preferences:
+        try:
+            prefs = json.loads(current_user.preferences)
+        except Exception:
+            pass
+    if not isinstance(prefs, dict):
+        prefs = {}
+
+    from datetime import datetime, timezone
+    prefs["student_verification"] = {
+        "school_name": school_name,
+        "grad_year": grad_year,
+        "school_email": school_email,
+        "verified_at": datetime.now(timezone.utc).isoformat()
+    }
+
+    current_user.student_status = True
+    current_user.preferences = json.dumps(prefs)
+    db.session.commit()
+
+    return jsonify(_serialize_user(current_user)), 200
+
+
+@csrf.exempt
+@api_bp.route("/profile/verify-student", methods=["DELETE"])
+@login_required
+def reset_student_verification():
+    # Load preferences
+    prefs = {}
+    if current_user.preferences:
+        try:
+            prefs = json.loads(current_user.preferences)
+        except Exception:
+            pass
+    if not isinstance(prefs, dict):
+        prefs = {}
+
+    prefs.pop("student_verification", None)
+    current_user.student_status = False
+    current_user.preferences = json.dumps(prefs)
+    db.session.commit()
+
+    return jsonify(_serialize_user(current_user)), 200
 
 
 

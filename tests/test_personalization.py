@@ -615,3 +615,100 @@ def test_favorites_folders(client, app, seeded_tools):
     assert resp.status_code == 200
     assert resp.get_json() == []
 
+
+def test_student_verification(client, app):
+    """Verify posting valid and invalid school emails and unlinking verification resets user fields."""
+    _clear_auth_cache()
+    # 1. Create a user
+    with app.app_context():
+        # Cleanup prior residues
+        User.query.filter_by(email="student_test@example.com").delete()
+        db.session.commit()
+
+        user = User(email="student_test@example.com", display_name="Student Test User")
+        db.session.add(user)
+        db.session.commit()
+        user_id = user.id
+
+    # 2. Log in as user
+    with client.session_transaction() as sess:
+        sess["_user_id"] = str(user_id)
+        sess["_fresh"] = True
+
+    # 3. Initially, student_status must be False
+    with app.app_context():
+        db_user = User.query.get(user_id)
+        assert db_user.student_status is False
+
+    # 4. Attempt to verify with invalid email domain (should fail with 400)
+    invalid_payload = {
+        "school_email": "test@gmail.com",
+        "school_name": "MIT",
+        "grad_year": "2027"
+    }
+    resp = client.post("/api/v1/profile/verify-student", json=invalid_payload)
+    assert resp.status_code == 400
+    assert "valid student email address" in resp.get_json()["error"]
+
+    # 5. Attempt to verify with missing fields (should fail with 400)
+    missing_payload = {
+        "school_email": "test@mit.edu",
+        "school_name": "",
+        "grad_year": "2027"
+    }
+    resp = client.post("/api/v1/profile/verify-student", json=missing_payload)
+    assert resp.status_code == 400
+    assert "are required" in resp.get_json()["error"]
+
+    # 6. Verify with valid email (.edu) (should succeed with 200)
+    valid_payload = {
+        "school_email": "test@mit.edu",
+        "school_name": "MIT",
+        "grad_year": "2027"
+    }
+    resp = client.post("/api/v1/profile/verify-student", json=valid_payload)
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert data["student_status"] is True
+
+    # 7. Check database updates
+    with app.app_context():
+        db_user = User.query.get(user_id)
+        assert db_user.student_status is True
+        prefs = json.loads(db_user.preferences)
+        assert prefs["student_verification"]["school_name"] == "MIT"
+        assert prefs["student_verification"]["grad_year"] == "2027"
+        assert prefs["student_verification"]["school_email"] == "test@mit.edu"
+
+    # 8. Verify with valid email (.ac.uk) (should succeed with 200)
+    valid_payload_ac = {
+        "school_email": "test@oxford.ac.uk",
+        "school_name": "Oxford University",
+        "grad_year": "2028"
+    }
+    resp = client.post("/api/v1/profile/verify-student", json=valid_payload_ac)
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert data["student_status"] is True
+
+    # 9. Check preferences reflect latest institution
+    with app.app_context():
+        db_user = User.query.get(user_id)
+        prefs = json.loads(db_user.preferences)
+        assert prefs["student_verification"]["school_name"] == "Oxford University"
+        assert prefs["student_verification"]["school_email"] == "test@oxford.ac.uk"
+
+    # 10. Reset verification (unlink student status) (should succeed with 200)
+    resp = client.delete("/api/v1/profile/verify-student")
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert data["student_status"] is False
+
+    # 11. Check database reflects unlinked status
+    with app.app_context():
+        db_user = User.query.get(user_id)
+        assert db_user.student_status is False
+        prefs = json.loads(db_user.preferences)
+        assert "student_verification" not in prefs
+
+

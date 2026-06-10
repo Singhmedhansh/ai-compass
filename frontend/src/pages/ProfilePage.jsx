@@ -1,4 +1,4 @@
-import { Bell, Check, CheckCircle2, Download, Loader2, ShieldAlert, Sparkles, Trash2, UserRound, Copy, Globe, Lock, Edit2, X, Library } from 'lucide-react'
+import { Bell, Check, CheckCircle2, Download, GraduationCap, Loader2, ShieldAlert, Sparkles, Trash2, UserRound, Copy, Globe, Lock, Edit2, X, Library } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -137,6 +137,23 @@ function ProfilePage() {
   const [editingStackName, setEditingStackName] = useState('')
   const [savingStackId, setSavingStackId] = useState(null)
   const [deletingStackId, setDeletingStackId] = useState(null)
+
+  const [schoolEmail, setSchoolEmail] = useState('')
+  const [schoolName, setSchoolName] = useState('')
+  const [gradYear, setGradYear] = useState('2026')
+  const [isVerifyingStudent, setIsVerifyingStudent] = useState(false)
+  const [isResettingStudent, setIsResettingStudent] = useState(false)
+
+  const studentVerification = useMemo(() => {
+    try {
+      const prefs = typeof profile?.preferences === 'string'
+        ? JSON.parse(profile.preferences)
+        : profile?.preferences
+      return prefs?.student_verification || null
+    } catch {
+      return null
+    }
+  }, [profile?.preferences])
 
   useEffect(() => {
     const controller = new AbortController()
@@ -500,6 +517,81 @@ function ProfilePage() {
     showToast('Recently viewed items cleared.')
   }
 
+  const handleVerifyStudent = async (e) => {
+    e.preventDefault()
+    const email = schoolEmail.trim()
+    const school = schoolName.trim()
+
+    if (!email || !school || !gradYear) {
+      showToast('All fields are required.', 'error')
+      return
+    }
+
+    setIsVerifyingStudent(true)
+    try {
+      const res = await fetch('/api/v1/profile/verify-student', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          school_email: email,
+          school_name: school,
+          grad_year: gradYear
+        })
+      })
+
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to verify student status')
+      }
+
+      const mergedUser = {
+        ...profile,
+        ...data,
+      }
+      setProfile(mergedUser)
+      localStorage.setItem('user', JSON.stringify(mergedUser))
+      window.dispatchEvent(new Event('userLoggedIn'))
+      showToast('Student status verified successfully!')
+      setSchoolEmail('')
+      setSchoolName('')
+    } catch (err) {
+      showToast(err.message, 'error')
+    } finally {
+      setIsVerifyingStudent(false)
+    }
+  }
+
+  const handleResetStudentVerification = async () => {
+    if (!window.confirm('Are you sure you want to unlink and reset your student verification status?')) {
+      return
+    }
+
+    setIsResettingStudent(true)
+    try {
+      const res = await fetch('/api/v1/profile/verify-student', {
+        method: 'DELETE'
+      })
+
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to reset student status')
+      }
+
+      const mergedUser = {
+        ...profile,
+        ...data,
+      }
+      setProfile(mergedUser)
+      localStorage.setItem('user', JSON.stringify(mergedUser))
+      window.dispatchEvent(new Event('userLoggedIn'))
+      showToast('Student verification reset successfully.')
+    } catch (err) {
+      showToast(err.message, 'error')
+    } finally {
+      setIsResettingStudent(false)
+    }
+  }
+
   const handleDeleteAccount = async () => {
     if (!deletePassword) {
       setDeleteError('Enter your password')
@@ -584,11 +676,25 @@ function ProfilePage() {
                 placeholder="Display name"
               />
             ) : (
-              <h2 className="text-2xl font-bold tracking-tight text-ink">{profile?.name || 'Your profile'}</h2>
+              <h2 className="text-2xl font-bold tracking-tight text-ink flex items-center justify-center gap-1.5">
+                <span>{profile?.name || 'Your profile'}</span>
+                {profile?.student_status && (
+                  <CheckCircle2 className="h-5 w-5 text-emerald-500 fill-emerald-500/10 shrink-0" title="Verified Student Plus" />
+                )}
+              </h2>
             )}
 
             <p className="mt-2 break-all text-sm text-muted">{profile?.email || ''}</p>
             <p className="mt-2 text-sm text-muted">Member since {profile?.member_since || 'New member'}</p>
+            
+            {profile?.student_status && (
+              <div className="mt-3 flex justify-center">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-bold text-emerald-500 shadow-sm">
+                  <GraduationCap className="h-3.5 w-3.5" />
+                  Student Plus
+                </span>
+              </div>
+            )}
           </div>
 
           <Button
@@ -874,6 +980,112 @@ function ProfilePage() {
                   </Button>
                 </div>
               </div>
+            )}
+          </section>
+
+          <section className="rounded-3xl border border-line bg-bg-elev p-6 shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-accent-soft text-accent">
+                <GraduationCap className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-ink">Student Verification</h3>
+                <p className="text-sm text-muted">Verify your academic status to unlock student discounts and exclusive perks.</p>
+              </div>
+            </div>
+
+            {profile?.student_status ? (
+              <div className="mt-6 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5 animate-fade-in">
+                <div className="flex items-start gap-3.5">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-500">
+                    <CheckCircle2 className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-sm font-bold text-ink-2">Verified Student Plus</h4>
+                    <p className="mt-1 text-xs text-muted">Your student verification is active and verified.</p>
+                    
+                    <div className="mt-4 grid gap-3 sm:grid-cols-2 text-xs border-t border-line/40 pt-4">
+                      <div>
+                        <span className="block text-muted font-medium uppercase tracking-wider text-[10px]">Institution / School</span>
+                        <span className="mt-1 block font-bold text-ink truncate">{studentVerification?.school_name || 'Academic Institution'}</span>
+                      </div>
+                      <div>
+                        <span className="block text-muted font-medium uppercase tracking-wider text-[10px]">Graduation Year</span>
+                        <span className="mt-1 block font-bold text-ink">{studentVerification?.grad_year || 'N/A'}</span>
+                      </div>
+                      <div className="sm:col-span-2">
+                        <span className="block text-muted font-medium uppercase tracking-wider text-[10px]">Verified Email</span>
+                        <span className="mt-1 block font-bold text-ink truncate">{studentVerification?.school_email || 'student@school.edu'}</span>
+                      </div>
+                    </div>
+
+                    <div className="mt-5 flex justify-end">
+                      <button
+                        type="button"
+                        onClick={handleResetStudentVerification}
+                        disabled={isResettingStudent}
+                        className="text-xs font-semibold text-danger hover:underline disabled:opacity-50"
+                      >
+                        {isResettingStudent ? 'Resetting...' : 'Reset Student Verification'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <form onSubmit={handleVerifyStudent} className="mt-6 space-y-4 animate-fade-in">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-medium text-ink-2">Institution / School</span>
+                    <input
+                      type="text"
+                      required
+                      value={schoolName}
+                      onChange={(e) => setSchoolName(e.target.value)}
+                      placeholder="e.g. Stanford University"
+                      className="w-full rounded-2xl border border-line bg-bg-elev px-4 py-3 text-ink placeholder:text-muted-2 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+                    />
+                  </label>
+
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-medium text-ink-2">Graduation Year</span>
+                    <select
+                      value={gradYear}
+                      onChange={(e) => setGradYear(e.target.value)}
+                      className="w-full rounded-2xl border border-line bg-bg-elev px-4 py-3 text-ink focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+                    >
+                      {['2026', '2027', '2028', '2029', '2030', '2031', '2032'].map(year => (
+                        <option key={year} value={year}>{year}</option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <label className="block sm:col-span-2">
+                    <span className="mb-2 block text-sm font-medium text-ink-2">Academic Email Address</span>
+                    <input
+                      type="email"
+                      required
+                      value={schoolEmail}
+                      onChange={(e) => setSchoolEmail(e.target.value)}
+                      placeholder="student@school.edu"
+                      className="w-full rounded-2xl border border-line bg-bg-elev px-4 py-3 text-ink placeholder:text-muted-2 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+                    />
+                  </label>
+                </div>
+
+                <div className="pt-2">
+                  <Button type="submit" variant="primary" size="md" disabled={isVerifyingStudent}>
+                    {isVerifyingStudent ? (
+                      <span className="inline-flex items-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Verifying...
+                      </span>
+                    ) : (
+                      'Verify Student Status'
+                    )}
+                  </Button>
+                </div>
+              </form>
             )}
           </section>
 
