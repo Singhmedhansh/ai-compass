@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import { AnimatePresence, motion } from 'framer-motion'
-import { BadgeCheck, Heart, Star } from 'lucide-react'
+import { BadgeCheck, Check, Folder, Heart, Star } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
@@ -132,6 +132,7 @@ function ToolDetailPage() {
   const [tool, setTool] = useState(null)
   const [relatedTools, setRelatedTools] = useState([])
   const [isFavorite, setIsFavorite] = useState(false)
+  const [folders, setFolders] = useState([])
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
     try {
@@ -255,6 +256,51 @@ function ToolDetailPage() {
       cancelled = true
     }
   }, [isLoggedIn, tool?.slug])
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      setFolders([])
+      return
+    }
+
+    let cancelled = false
+    async function loadFolders() {
+      try {
+        const res = await fetch('/api/v1/profile/favorites/folders')
+        if (res.ok && !cancelled) {
+          const data = await res.json()
+          setFolders(data)
+        }
+      } catch (err) {
+        console.error('Failed to load folders', err)
+      }
+    }
+    loadFolders()
+
+    return () => {
+      cancelled = true
+    }
+  }, [isLoggedIn])
+
+  const handleFolderClick = async (folderName, isMember) => {
+    if (!isMember) {
+      try {
+        const res = await fetch(`/api/v1/profile/favorites/folders/${encodeURIComponent(folderName)}/tools`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tool_id: tool?.slug }),
+          credentials: 'include'
+        })
+        if (!res.ok) {
+          console.error('Failed to add to folder')
+        }
+      } catch (err) {
+        console.error('Error adding to folder', err)
+      }
+    }
+    // Navigate to dashboard and activate this folder
+    navigate(`/dashboard?folder=${encodeURIComponent(folderName)}`)
+  }
 
   useEffect(() => {
     const normalizedSlug = String(slug || '').trim().toLowerCase()
@@ -493,6 +539,43 @@ function ToolDetailPage() {
                     {isFavorite ? 'Saved to Favorites' : 'Save to Favorites'}
                   </Button>
                 </div>
+
+                {isFavorite && isLoggedIn && (
+                  <div className="mt-4 rounded-xl border border-line bg-bg-elev/40 p-4 shadow-sm backdrop-blur-md">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-muted mb-2 flex items-center gap-1.5">
+                      <Folder className="h-3.5 w-3.5" /> Organize to Folder
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {folders.length === 0 ? (
+                        <div className="text-xs text-muted flex flex-col gap-1.5">
+                          <span>You don't have any folders yet. Create folders on your Dashboard to organize favorites.</span>
+                          <Link to="/dashboard" className="text-accent hover:underline font-semibold w-fit">Go to Dashboard →</Link>
+                        </div>
+                      ) : (
+                        folders.map((folder) => {
+                          const isMember = Array.isArray(folder.tools) && folder.tools.map(t => String(t).toLowerCase()).includes(String(tool?.slug).toLowerCase())
+                          
+                          return (
+                            <button
+                              key={folder.name}
+                              type="button"
+                              onClick={() => handleFolderClick(folder.name, isMember)}
+                              className={clsx(
+                                "rounded-lg px-3 py-1.5 text-xs font-semibold transition-all flex items-center gap-1.5 border cursor-pointer",
+                                isMember 
+                                  ? "bg-accent/10 border-accent/30 text-accent hover:bg-accent/20"
+                                  : "bg-bg-sunk/50 border-line text-ink-2 hover:bg-bg-sunk hover:text-ink"
+                              )}
+                            >
+                              <span>{folder.name}</span>
+                              {isMember && <Check className="h-3 w-3" />}
+                            </button>
+                          )
+                        })
+                      )}
+                    </div>
+                  </div>
+                )}
                 {tool.isAffiliateLink ? (
                   <p className="mt-2 text-xs text-muted-2">
                     AI Compass may earn a commission when you sign up through this link, at no extra cost to you.

@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import { Calendar, Check, Edit3, Eye, FolderPlus, Grid3X3, Heart, Home, Sparkles, Trash2, Wand2, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 
 import { Button, Card, CompassLoader, CountUp } from '../components/ui'
 
@@ -92,6 +92,7 @@ function toProperCase(text) {
 
 function DashboardPage() {
   const navigate = useNavigate()
+  const location = useLocation()
 
   const user = JSON.parse(localStorage.getItem('user') || 'null')
   const [recommendations, setRecommendations] = useState([])
@@ -103,6 +104,16 @@ function DashboardPage() {
   const [editingFolderName, setEditingFolderName] = useState(null)
   const [renameValue, setRenameValue] = useState('')
   const [folderActionError, setFolderActionError] = useState('')
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search)
+    const folderParam = params.get('folder')
+    if (folderParam) {
+      setActiveFolder(folderParam)
+    } else if (location.state?.activeFolder) {
+      setActiveFolder(location.state.activeFolder)
+    }
+  }, [location])
 
   const [savedStack, setSavedStack] = useState(null)
   const [editingStack, setEditingStack] = useState(false)
