@@ -209,7 +209,7 @@ Provide ONLY the raw JSON output. Do not wrap it in markdown code blocks like ``
                 }
             }
             
-            response = requests.post(url, headers=headers, json=payload, timeout=12)
+            response = requests.post(url, headers=headers, json=payload, timeout=6)
             
             if response.status_code == 429:
                 print(f"[Syllabus Parser] Key {i+1} hit rate limits (429). Rotating...")
@@ -256,7 +256,7 @@ Provide ONLY the raw JSON output. Do not wrap it in markdown code blocks like ``
                     ],
                     "response_format": {"type": "json_object"}
                 }
-                response = requests.post(url, headers=headers, json=payload, timeout=20)
+                response = requests.post(url, headers=headers, json=payload, timeout=6)
                 if response.status_code == 200:
                     res_data = response.json()
                     content_text = res_data["choices"][0]["message"]["content"].strip()

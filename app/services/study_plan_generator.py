@@ -130,7 +130,7 @@ Provide ONLY raw JSON output. No markdown wrappers.
                         }
                     }
                 
-                res = requests.post(url, headers=headers, json=payload, timeout=25)
+                res = requests.post(url, headers=headers, json=payload, timeout=6)
                 if res.status_code == 200:
                     res_json = res.json()
                     content = res_json["candidates"][0]["content"]["parts"][0]["text"].strip()
@@ -159,7 +159,7 @@ Provide ONLY raw JSON output. No markdown wrappers.
                     ],
                     "response_format": {"type": "json_object"}
                 }
-                res = requests.post(url, headers=headers, json=payload, timeout=25)
+                res = requests.post(url, headers=headers, json=payload, timeout=6)
                 if res.status_code == 200:
                     res_json = res.json()
                     content = res_json["choices"][0]["message"]["content"].strip()
@@ -189,7 +189,7 @@ Provide ONLY raw JSON output. No markdown wrappers.
                 ],
                 "response_format": {"type": "json_object"}
             }
-            res = requests.post(url, headers=headers, json=payload, timeout=25)
+            res = requests.post(url, headers=headers, json=payload, timeout=6)
             if res.status_code == 200:
                 res_json = res.json()
                 content = res_json["choices"][0]["message"]["content"].strip()
@@ -215,7 +215,7 @@ Provide ONLY raw JSON output. No markdown wrappers.
                 ],
                 "response_format": {"type": "json_object"}
             }
-            res = requests.post(url, headers=headers, json=payload, timeout=25)
+            res = requests.post(url, headers=headers, json=payload, timeout=6)
             if res.status_code == 200:
                 res_json = res.json()
                 content = res_json["choices"][0]["message"]["content"].strip()
