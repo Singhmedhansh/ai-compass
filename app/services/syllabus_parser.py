@@ -93,18 +93,9 @@ def parse_syllabus_llm(syllabus_text):
     max_len = 15000
     trimmed_text = syllabus_text[:max_len] + "..." if len(syllabus_text) > max_len else syllabus_text
 
-    # Provide all dynamic tools so LLM can recommend anything (including CAD)
+    # Provide all dynamic tools in an extremely compact format to save tokens (avoiding TPM limits)
     all_tools = get_visible_tools()
-    minimal_tools = [
-        {
-            "name": t.get("name"),
-            "slug": t.get("slug"),
-            "category": t.get("category"),
-            "description": t.get("description")
-        }
-        for t in all_tools if t.get("slug") and t.get("name")
-    ]
-    tools_str = json.dumps(minimal_tools, separators=(',', ':'))
+    tools_str = ", ".join([f"{t.get('name')} (slug: {t.get('slug')})" for t in all_tools if t.get("slug") and t.get("name")])
 
     prompt = f"""
 You are an expert academic assistant. Analyze the syllabus text provided below and identify the student resources they will need to succeed in this course.
@@ -392,18 +383,9 @@ def parse_syllabus_image_llm(image_bytes, mimetype):
     # Base64 encode the image bytes
     base64_data = base64.b64encode(image_bytes).decode("utf-8")
 
-    # Provide all dynamic tools so LLM can recommend anything
+    # Provide all dynamic tools in an extremely compact format to save tokens
     all_tools = get_visible_tools()
-    minimal_tools = [
-        {
-            "name": t.get("name"),
-            "slug": t.get("slug"),
-            "category": t.get("category"),
-            "description": t.get("description")
-        }
-        for t in all_tools if t.get("slug") and t.get("name")
-    ]
-    tools_str = json.dumps(minimal_tools, separators=(',', ':'))
+    tools_str = ", ".join([f"{t.get('name')} (slug: {t.get('slug')})" for t in all_tools if t.get("slug") and t.get("name")])
 
     prompt = f"""
 You are an expert academic assistant. Analyze the syllabus image provided and identify the student resources they will need to succeed in this course.
