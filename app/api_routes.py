@@ -2602,23 +2602,31 @@ def get_security_info():
             except Exception:
                 db.session.rollback()
 
+    from datetime import timezone
+
     linked = []
     for la in current_user.linked_accounts:
+        created_at = la.created_at
+        if created_at and created_at.tzinfo is None:
+            created_at = created_at.replace(tzinfo=timezone.utc)
         linked.append({
             "provider": la.provider,
             "picture": la.oauth_picture_url or "",
-            "created_at": la.created_at.isoformat() if la.created_at else None
+            "created_at": created_at.isoformat() if created_at else None
         })
 
     current_session_uuid = session.get('user_uuid')
     sessions_list = []
     for s in current_user.sessions:
+        last_active = s.last_active_at
+        if last_active and last_active.tzinfo is None:
+            last_active = last_active.replace(tzinfo=timezone.utc)
         sessions_list.append({
             "session_uuid": s.session_uuid,
             "ip_address": s.ip_address or "Unknown IP",
             "user_agent": s.user_agent or "Unknown Device",
             "location": s.location or "Unknown Location",
-            "last_active_at": s.last_active_at.isoformat() if s.last_active_at else None,
+            "last_active_at": last_active.isoformat() if last_active else None,
             "is_current": (s.session_uuid == current_session_uuid)
         })
 
