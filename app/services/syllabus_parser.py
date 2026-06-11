@@ -546,45 +546,60 @@ Provide ONLY the raw JSON output. Do not wrap it in markdown code blocks like ``
                     "Authorization": f"Bearer {key}",
                     "Content-Type": "application/json"
                 }
-                payload = {
-                    "model": "llama-3.2-90b-vision-preview",
-                    "messages": [
-                        {
-                            "role": "user",
-                            "content": [
-                                {"type": "text", "text": prompt},
-                                {
-                                    "type": "image_url",
-                                    "image_url": {
-                                        "url": f"data:{mimetype};base64,{base64_data}"
+                
+                groq_models = [
+                    "llama-3.2-11b-vision-preview",
+                    "meta-llama/llama-4-scout-17b-16e-instruct",
+                    "llava-v1.5-7b-4096-preview"
+                ]
+                
+                success = False
+                for model_name in groq_models:
+                    payload = {
+                        "model": model_name,
+                        "messages": [
+                            {
+                                "role": "user",
+                                "content": [
+                                    {"type": "text", "text": prompt},
+                                    {
+                                        "type": "image_url",
+                                        "image_url": {
+                                            "url": f"data:{mimetype};base64,{base64_data}"
+                                        }
                                     }
-                                }
-                            ]
-                        }
-                    ]
-                }
-                
-                response = requests.post(url, headers=headers, json=payload, timeout=20)
-                if response.status_code == 429:
-                    print(f"[Syllabus Parser] Groq Vision Key {i+1} hit rate limits (429). Rotating...")
-                    continue
-                elif response.status_code != 200:
-                    err_text = response.text
-                    print(f"[Syllabus Parser] Groq Vision Key {i+1} failed with status {response.status_code}. {err_text}")
-                    errors.append(f"Groq Key {i+1} ({response.status_code}): {err_text}")
-                    continue
+                                ]
+                            }
+                        ]
+                    }
                     
-                res_data = response.json()
-                content_text = res_data["choices"][0]["message"]["content"].strip()
-                
-                start_idx = content_text.find('{')
-                end_idx = content_text.rfind('}')
-                if start_idx != -1 and end_idx != -1:
-                    content_text = content_text[start_idx:end_idx+1]
-                
-                parsed = json.loads(content_text.strip())
-                return parsed
-                
+                    response = requests.post(url, headers=headers, json=payload, timeout=20)
+                    if response.status_code == 429:
+                        print(f"[Syllabus Parser] Groq Vision Key {i+1} hit rate limits (429) on {model_name}. Rotating key...")
+                        break # Break model loop, continue to next key
+                        
+                    elif response.status_code != 200:
+                        err_text = response.text
+                        print(f"[Syllabus Parser] Groq Vision Key {i+1} failed with status {response.status_code} on {model_name}. {err_text}")
+                        # If it's a decommissioned model (400 or 404), try the next model with the SAME key.
+                        if response.status_code in (400, 404):
+                            errors.append(f"{model_name}: {err_text}")
+                            continue # Try next model
+                        else:
+                            errors.append(f"Groq Key {i+1} ({response.status_code}): {err_text}")
+                            break # Unknown error, rotate key
+                        
+                    res_data = response.json()
+                    content_text = res_data["choices"][0]["message"]["content"].strip()
+                    
+                    start_idx = content_text.find('{')
+                    end_idx = content_text.rfind('}')
+                    if start_idx != -1 and end_idx != -1:
+                        content_text = content_text[start_idx:end_idx+1]
+                    
+                    parsed = json.loads(content_text.strip())
+                    return parsed # SUCCESS! Return the data!
+
             except Exception as e:
                 err_msg = str(e)
                 print(f"[Syllabus Parser] Exception during Groq Vision API attempt with Key {i+1}: {err_msg}")
