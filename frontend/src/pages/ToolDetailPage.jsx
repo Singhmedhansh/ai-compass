@@ -10,6 +10,7 @@ import ReviewsSection from '../components/ui/ReviewsSection'
 import { Badge, Button, PricingSection, SkeletonToolDetail, ToolLogo } from '../components/ui'
 import ErrorState from '../components/ErrorState'
 import { sectionReveal, staggerChild, staggerParent } from '../lib/motion'
+import { classifyStudentOffer } from '../utils/student'
 import {
   toolHoverHandlers,
   alternativesHoverHandlers,
@@ -93,6 +94,10 @@ function normalizeTool(rawTool) {
     // "Verified <Month Year>" chip; missing = chip hidden.
     lastVerifiedAt: rawTool?.last_verified_at || rawTool?.lastVerifiedAt || null,
     studentFriendly: Boolean(rawTool?.student_friendly ?? rawTool?.studentPerk ?? rawTool?.student_perk),
+    student_friendly: rawTool?.student_friendly,
+    student_perk: rawTool?.student_perk || rawTool?.studentPerk,
+    pricingDetail: rawTool?.pricingDetail || rawTool?.pricing_detail || '',
+    uniHack: rawTool?.uniHack || '',
     pricing_tiers: rawTool?.pricing_tiers || null,
     // Fields below feed structured data (SoftwareApplication JSON-LD).
     // They're surfaced here so the JSON-LD block doesn't have to dig into
@@ -501,6 +506,19 @@ function ToolDetailPage() {
                   >
                     {tool.pricing}
                   </span>
+                  {(() => {
+                    const studentTag = classifyStudentOffer(tool)
+                    return studentTag && (
+                      <span className={clsx(
+                        "inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold uppercase tracking-wide border",
+                        studentTag === 'Student Discount' && 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+                        studentTag === 'Student Perks' && 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+                        studentTag === 'Student Hacks' && 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
+                      )}>
+                        {studentTag}
+                      </span>
+                    )
+                  })()}
                   {/* Trust signal: when the tool was last hand-tested.
                       Distinct from the pricing/category badges so users
                       read it as editorial provenance, not metadata. */}
@@ -709,16 +727,21 @@ function ToolDetailPage() {
               <div className="flex items-center justify-between gap-4">
                 <dt className="text-muted">Student friendly</dt>
                 <dd>
-                  <span
-                    className={clsx(
-                      'inline-flex rounded-full px-2 py-1 text-xs font-semibold',
-                      tool.studentFriendly
-                        ? 'bg-accent-soft text-accent-ink'
-                        : 'bg-bg-sunk text-ink-2',
-                    )}
-                  >
-                    {tool.studentFriendly ? 'Yes' : 'No'}
-                  </span>
+                  {(() => {
+                    const studentTag = classifyStudentOffer(tool)
+                    return (
+                      <span
+                        className={clsx(
+                          'inline-flex rounded-full px-2 py-1 text-xs font-semibold',
+                          studentTag
+                            ? 'bg-accent-soft text-accent-ink'
+                            : 'bg-bg-sunk text-ink-2',
+                        )}
+                      >
+                        {studentTag || 'No'}
+                      </span>
+                    )
+                  })()}
                 </dd>
               </div>
             </dl>

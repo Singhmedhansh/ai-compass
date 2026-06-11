@@ -350,6 +350,17 @@ class SyllabusStack(db.Model):
     created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc), index=True)
 
 
+class StudyPlan(db.Model):
+    __tablename__ = "study_plans"
+
+    id = db.Column(db.Integer, primary_key=True)
+    share_id = db.Column(db.String(255), unique=True, nullable=False, index=True)
+    course_name = db.Column(db.String(255), nullable=True)
+    topics = db.Column(db.Text, nullable=True)
+    plan_json = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc), index=True)
+
+
 class LinkedAccount(db.Model):
     __tablename__ = "linked_accounts"
 

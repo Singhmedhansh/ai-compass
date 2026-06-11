@@ -125,6 +125,8 @@ function mapTool(rawTool) {
     tagline: rawTool.tagline,
     featured: rawTool.featured === true,
     student_friendly: rawTool.student_friendly === true || rawTool.student_perk === true || rawTool.studentPerk === true,
+    pricingDetail: rawTool.pricingDetail || rawTool.pricing_detail || '',
+    uniHack: rawTool.uniHack || '',
     academic_integrity_rating: rawTool.academic_integrity_rating,
     academic_warning: rawTool.academic_warning,
     curation_score: rawTool.curation_score,

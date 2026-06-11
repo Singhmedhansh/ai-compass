@@ -230,7 +230,45 @@ Provide ONLY the raw JSON output. Do not wrap it in markdown code blocks like ``
             print(f"[Syllabus Parser] Exception during API attempt with Key {i+1}: {str(e)}")
             continue
             
-    print("[Syllabus Parser] All Gemini keys exhausted. Falling back to local parsing.")
+    # --- ATTEMPT GROQ ROTATION ---
+    groq_keys = []
+    env_groq_keys_str = os.environ.get("GROQ_API_KEYS", "")
+    if env_groq_keys_str:
+        groq_keys.extend([k.strip() for k in env_groq_keys_str.split(",") if k.strip()])
+    single_groq_key = os.environ.get("GROQ_API_KEY")
+    if single_groq_key and single_groq_key not in groq_keys:
+        groq_keys.append(single_groq_key)
+
+    if groq_keys:
+        for i, key in enumerate(groq_keys):
+            try:
+                print(f"[Syllabus Parser] Attempting Groq API Key {i+1}...")
+                url = "https://api.groq.com/openai/v1/chat/completions"
+                headers = {
+                    "Authorization": f"Bearer {key}",
+                    "Content-Type": "application/json"
+                }
+                payload = {
+                    "model": "llama-3.3-70b-versatile",
+                    "messages": [
+                        {"role": "system", "content": "You are a professional syllabus parser. Reply only with valid JSON matching the requested schema."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    "response_format": {"type": "json_object"}
+                }
+                response = requests.post(url, headers=headers, json=payload, timeout=20)
+                if response.status_code == 200:
+                    res_data = response.json()
+                    content_text = res_data["choices"][0]["message"]["content"].strip()
+                    parsed = json.loads(content_text)
+                    return parsed
+                else:
+                    print(f"[Syllabus Parser] Groq Key {i+1} failed with status {response.status_code}.")
+            except Exception as e:
+                print(f"[Syllabus Parser] Groq Key {i+1} error: {str(e)}")
+                continue
+
+    print("[Syllabus Parser] All Gemini and Groq keys exhausted. Falling back to local parsing.")
     return None
 
 def parse_syllabus_local(syllabus_text):

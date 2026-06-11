@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom'
 import Badge from './Badge'
 import CompareToggleButton from './CompareToggleButton'
 import ToolLogo from './ToolLogo'
+import { classifyStudentOffer } from '../../utils/student'
 
 const MotionCard = motion.div
 
@@ -221,11 +222,19 @@ function Card({ tool = {}, layoutType = 'standard', glass = false, folders = nul
               🛡️ {tool.academic_integrity_rating}
             </span>
           )}
-          {tool.student_friendly && (
-            <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 uppercase tracking-wider">
-              🎓 Discount
-            </span>
-          )}
+          {(() => {
+            const studentTag = classifyStudentOffer(tool)
+            return studentTag && (
+              <span className={clsx(
+                "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider border",
+                studentTag === 'Student Discount' && 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+                studentTag === 'Student Perks' && 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+                studentTag === 'Student Hacks' && 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
+              )}>
+                {studentTag}
+              </span>
+            )
+          })()}
         </div>
 
         {hasRealRating ? (
