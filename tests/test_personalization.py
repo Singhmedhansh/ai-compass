@@ -771,4 +771,124 @@ def test_workflow_analytics(client, app):
     assert data["distribution"]["Design & Graphics"] == 100
 
 
+def test_public_profile_and_submissions(client, app):
+    """Verify public profile settings toggling, slug unique validation, profile rendering, and submissions history logs."""
+    from app.models import User, Submission
+    _clear_auth_cache()
+    
+    with app.app_context():
+        # Clean up prior residues
+        User.query.filter_by(email="portfolio_user1@example.com").delete()
+        User.query.filter_by(email="portfolio_user2@example.com").delete()
+        Submission.query.filter_by(submitter_email="portfolio_user1@example.com").delete()
+        db.session.commit()
+
+        user1 = User(email="portfolio_user1@example.com", display_name="Medhansh Pratap")
+        user2 = User(email="portfolio_user2@example.com", display_name="Other User")
+        db.session.add_all([user1, user2])
+        db.session.commit()
+        user1_id = user1.id
+        user2_id = user2.id
+
+    client1 = app.test_client()
+    with client1.session_transaction() as sess:
+        sess["_user_id"] = str(user1_id)
+        sess["_fresh"] = True
+
+    client2 = app.test_client()
+    with client2.session_transaction() as sess:
+        sess["_user_id"] = str(user2_id)
+        sess["_fresh"] = True
+
+    anon_client = app.test_client()
+
+    # 2. Get initial settings
+    resp = client1.get("/api/v1/profile/public-settings")
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert data["is_profile_public"] is False
+    assert data["public_username"] == ""
+
+    # 3. Update public settings (invalid username slug)
+    payload_invalid = {
+        "is_profile_public": True,
+        "public_username": "a", # too short
+        "bio": "Developer bio"
+    }
+    resp = client1.put("/api/v1/profile/public-settings", json=payload_invalid)
+    assert resp.status_code == 400
+    assert "Username must be 3-30 characters" in resp.get_json()["error"]
+
+    # 4. Update public settings (valid slug)
+    payload_valid = {
+        "is_profile_public": True,
+        "public_username": "medhansh-coder",
+        "bio": "A passionate CS student",
+        "github_username": "medhansh-github",
+        "linkedin_username": "medhansh-linkedin"
+    }
+    resp = client1.put("/api/v1/profile/public-settings", json=payload_valid)
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert data["is_profile_public"] is True
+    assert data["public_username"] == "medhansh-coder"
+    assert data["bio"] == "A passionate CS student"
+
+    # 5. Check uniqueness: Log in as user2 and try to take 'medhansh-coder'
+    payload_dup = {
+        "is_profile_public": True,
+        "public_username": "medhansh-coder"
+    }
+    resp = client2.put("/api/v1/profile/public-settings", json=payload_dup)
+    assert resp.status_code == 400
+    assert "already taken" in resp.get_json()["error"]
+
+    # 6. Fetch user1 public profile anonymously/publicly
+    resp = anon_client.get("/api/v1/users/profile/medhansh-coder")
+    assert resp.status_code == 200
+    profile_data = resp.get_json()
+    assert profile_data["display_name"] == "Medhansh Pratap"
+    assert profile_data["bio"] == "A passionate CS student"
+    assert profile_data["github_username"] == "medhansh-github"
+    assert profile_data["linkedin_username"] == "medhansh-linkedin"
+    assert profile_data["favorites"] == []
+    assert profile_data["stacks"] == []
+
+    # 7. Make user1 profile private and try fetching it (should get 404)
+    resp = client1.put("/api/v1/profile/public-settings", json={"is_profile_public": False})
+    assert resp.status_code == 200
+    assert resp.get_json()["is_profile_public"] is False
+
+    resp = anon_client.get("/api/v1/users/profile/medhansh-coder")
+    assert resp.status_code == 404
+    assert "Profile not found or is private" in resp.get_json()["error"]
+
+    # 8. Verify catalog submissions logs for user1
+    # Create a dummy submission matching user1's email
+    with app.app_context():
+        import datetime
+        sub = Submission(
+            name="My AI Tool",
+            website="https://myaitool.com",
+            category="Coding",
+            description="An awesome coding tool",
+            pricing_model="Free",
+            submitter_email="portfolio_user1@example.com",
+            status="pending",
+            submitted_at=datetime.datetime.utcnow()
+        )
+        db.session.add(sub)
+        db.session.commit()
+
+    resp = client1.get("/api/v1/profile/submissions")
+    assert resp.status_code == 200
+    subs_data = resp.get_json()["submissions"]
+    assert len(subs_data) == 1
+    assert subs_data[0]["name"] == "My AI Tool"
+    assert subs_data[0]["status"] == "pending"
+    assert subs_data[0]["website"] == "https://myaitool.com"
+
+
+
+
 

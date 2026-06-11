@@ -608,6 +608,24 @@ def create_app(config: dict | None = None) -> Flask:
                     db.session.rollback()
                     print(f"[WARMUP] Alter table users check/addition completed: {alter_err}", flush=True)
 
+                # Raw SQL Fallback: Guarantee that public profile columns exist
+                for col_name, col_type in [
+                    ("is_profile_public", "BOOLEAN NOT NULL DEFAULT FALSE"),
+                    ("public_username", "VARCHAR(255)"),
+                    ("bio", "TEXT"),
+                    ("github_username", "VARCHAR(255)"),
+                    ("linkedin_username", "VARCHAR(255)"),
+                    ("twitter_username", "VARCHAR(255)")
+                ]:
+                    try:
+                        from sqlalchemy import text
+                        db.session.execute(text(f"ALTER TABLE users ADD COLUMN {col_name} {col_type};"))
+                        db.session.commit()
+                        print(f"[WARMUP] Successfully added {col_name} to users table.", flush=True)
+                    except Exception as err:
+                        db.session.rollback()
+                        print(f"[WARMUP] Column {col_name} already exists or failed to add: {err}", flush=True)
+
                 # One-time import of tools.json into the durable DB
                 # catalog. Idempotent — no-ops once seeded. If this
                 # fails, the cache will fall back to tools.json.

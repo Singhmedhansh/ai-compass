@@ -2739,6 +2739,178 @@ def revoke_session(session_uuid):
     return jsonify({"message": "Session revoked successfully."}), 200
 
 
+@api_bp.route("/profile/submissions", methods=["GET"])
+@login_required
+def get_profile_submissions():
+    from app.models import Submission
+    subs = Submission.query.filter_by(submitter_email=current_user.email).order_by(Submission.submitted_at.desc()).all()
+    
+    return jsonify({
+        "submissions": [{
+            "id": s.id,
+            "name": s.name,
+            "website": s.website,
+            "category": s.category,
+            "description": s.description,
+            "status": s.status,
+            "submitted_at": s.submitted_at.isoformat()
+        } for s in subs]
+    }), 200
+
+
+@api_bp.route("/profile/public-settings", methods=["GET"])
+@login_required
+def get_public_settings():
+    return jsonify({
+        "is_profile_public": bool(current_user.is_profile_public),
+        "public_username": current_user.public_username or "",
+        "bio": current_user.bio or "",
+        "github_username": current_user.github_username or "",
+        "linkedin_username": current_user.linkedin_username or "",
+        "twitter_username": current_user.twitter_username or ""
+    }), 200
+
+
+@csrf.exempt
+@api_bp.route("/profile/public-settings", methods=["PUT"])
+@login_required
+def update_public_settings():
+    payload = request.get_json(silent=True) or {}
+    
+    is_profile_public = payload.get("is_profile_public")
+    public_username = payload.get("public_username")
+    bio = payload.get("bio")
+    github_username = payload.get("github_username")
+    linkedin_username = payload.get("linkedin_username")
+    twitter_username = payload.get("twitter_username")
+    
+    if is_profile_public is not None:
+        current_user.is_profile_public = bool(is_profile_public)
+        
+    if public_username is not None:
+        username_str = str(public_username).strip().lower()
+        if not username_str:
+            if current_user.is_profile_public:
+                return jsonify({"error": "Public username is required if profile is public."}), 400
+            current_user.public_username = None
+        else:
+            # Validate username format (alphanumeric and dashes, 3-30 chars)
+            import re
+            if not re.match(r"^[a-z0-9\-]{3,30}$", username_str):
+                return jsonify({"error": "Username must be 3-30 characters long and contain only lowercase letters, numbers, and dashes."}), 400
+            
+            # Check uniqueness
+            existing = User.query.filter(User.public_username == username_str).first()
+            if existing and existing.id != current_user.id:
+                return jsonify({"error": "Username is already taken by another user."}), 400
+                
+            current_user.public_username = username_str
+            
+    if bio is not None:
+        bio_str = str(bio).strip()
+        if len(bio_str) > 500:
+            return jsonify({"error": "Bio cannot exceed 500 characters."}), 400
+        current_user.bio = bio_str
+        
+    if github_username is not None:
+        current_user.github_username = str(github_username).strip()
+        
+    if linkedin_username is not None:
+        current_user.linkedin_username = str(linkedin_username).strip()
+        
+    if twitter_username is not None:
+        current_user.twitter_username = str(twitter_username).strip()
+        
+    db.session.commit()
+    
+    return jsonify({
+        "success": True,
+        "message": "Public profile settings updated successfully.",
+        "is_profile_public": current_user.is_profile_public,
+        "public_username": current_user.public_username or "",
+        "bio": current_user.bio or "",
+        "github_username": current_user.github_username or "",
+        "linkedin_username": current_user.linkedin_username or "",
+        "twitter_username": current_user.twitter_username or ""
+    }), 200
+
+
+@api_bp.route("/users/profile/<username>", methods=["GET"])
+def get_public_profile(username):
+    from app.models import User, Favorite, SavedStack
+    from app.tool_cache import get_visible_tools
+    
+    username_clean = str(username).strip().lower()
+    user = User.query.filter(db.func.lower(User.public_username) == username_clean).first()
+    
+    if not user or not user.is_profile_public:
+        return jsonify({"error": "Profile not found or is private."}), 404
+
+    # Resolve favorites
+    favorites = Favorite.query.filter_by(user_id=user.id).all()
+    all_tools = get_visible_tools()
+    tool_by_slug = {str(t.get("slug") or "").strip().lower(): t for t in all_tools}
+    
+    fav_details = []
+    for f in favorites:
+        f_slug = str(f.tool_id or "").strip().lower()
+        tool = tool_by_slug.get(f_slug)
+        if tool:
+            fav_details.append({
+                "name": tool.get("name"),
+                "slug": tool.get("slug"),
+                "category": tool.get("category"),
+                "tagline": tool.get("tagline") or tool.get("shortDescription") or "",
+                "logo": tool.get("icon") or ""
+            })
+
+    # Resolve public stacks
+    stacks = SavedStack.query.filter_by(user_id=user.id).all()
+    public_stacks = []
+    for row in stacks:
+        stack_data = {}
+        if row.tools_json:
+            try:
+                stack_data = json.loads(row.tools_json)
+            except Exception:
+                pass
+        
+        if not bool(stack_data.get("is_private", False)):
+            # Resolve tools inside the stack
+            resolved_tools = []
+            for t_slug in stack_data.get("tools", []):
+                t_slug = str(t_slug).strip().lower()
+                tool = tool_by_slug.get(t_slug)
+                if tool:
+                    resolved_tools.append({
+                        "name": tool.get("name"),
+                        "slug": tool.get("slug"),
+                        "logo": tool.get("icon") or "",
+                        "category": tool.get("category")
+                    })
+            
+            public_stacks.append({
+                "id": row.id,
+                "name": row.name or "default",
+                "goal": stack_data.get("goal", ""),
+                "budget": stack_data.get("budget", ""),
+                "platform": stack_data.get("platform", ""),
+                "level": stack_data.get("level", ""),
+                "tools": resolved_tools
+            })
+            
+    return jsonify({
+        "display_name": user.display_name or "Anonymous User",
+        "avatar_url": user.oauth_picture_url or "",
+        "bio": user.bio or "",
+        "github_username": user.github_username or "",
+        "linkedin_username": user.linkedin_username or "",
+        "twitter_username": user.twitter_username or "",
+        "favorites": fav_details,
+        "stacks": public_stacks
+    }), 200
+
+
 @csrf.exempt
 @api_bp.route("/profile", methods=["DELETE"])
 @login_required

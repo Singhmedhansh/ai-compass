@@ -26,6 +26,12 @@ class User(UserMixin, db.Model):
     theme_preference = db.Column(db.String(20), nullable=True)
     notifications_enabled = db.Column(db.Boolean, nullable=False, default=True)
     is_verified = db.Column(db.Boolean, nullable=False, default=False, server_default="0")
+    is_profile_public = db.Column(db.Boolean, nullable=False, default=False, server_default="0")
+    public_username = db.Column(db.String(255), unique=True, nullable=True, index=True)
+    bio = db.Column(db.Text, nullable=True)
+    github_username = db.Column(db.String(255), nullable=True)
+    linkedin_username = db.Column(db.String(255), nullable=True)
+    twitter_username = db.Column(db.String(255), nullable=True)
     created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
 
     favorites = db.relationship("Favorite", back_populates="user", cascade="all, delete-orphan")

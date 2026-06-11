@@ -174,6 +174,110 @@ function ProfilePage() {
   const [revokingSessionUuid, setRevokingSessionUuid] = useState(null)
   const [showPasswordForm, setShowPasswordForm] = useState(false)
 
+  const [publicSettings, setPublicSettings] = useState({
+    is_profile_public: false,
+    public_username: '',
+    bio: '',
+    github_username: '',
+    linkedin_username: '',
+    twitter_username: ''
+  })
+  const [loadingPublicSettings, setLoadingPublicSettings] = useState(true)
+  const [savingPublicSettings, setSavingPublicSettings] = useState(false)
+  const [submissions, setSubmissions] = useState([])
+  const [loadingSubmissions, setLoadingSubmissions] = useState(true)
+
+  useEffect(() => {
+    const controller = new AbortController()
+    
+    async function fetchPublicSettings() {
+      try {
+        const response = await fetch('/api/v1/profile/public-settings', { signal: controller.signal })
+        if (response.ok) {
+          const data = await response.json()
+          setPublicSettings(data)
+        }
+      } catch (error) {
+        if (error.name !== 'AbortError') {
+          console.error('Failed to fetch public settings', error)
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setLoadingPublicSettings(false)
+        }
+      }
+    }
+
+    async function fetchSubmissions() {
+      try {
+        const response = await fetch('/api/v1/profile/submissions', { signal: controller.signal })
+        if (response.ok) {
+          const data = await response.json()
+          setSubmissions(data.submissions || [])
+        }
+      } catch (error) {
+        if (error.name !== 'AbortError') {
+          console.error('Failed to fetch submissions', error)
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setLoadingSubmissions(false)
+        }
+      }
+    }
+
+    const storedUser = safeParseJson(localStorage.getItem('user'))
+    if (storedUser) {
+      fetchPublicSettings()
+      fetchSubmissions()
+    } else {
+      setLoadingPublicSettings(false)
+      setLoadingSubmissions(false)
+    }
+
+    return () => controller.abort()
+  }, [])
+
+  const handleSavePublicSettings = async () => {
+    if (publicSettings.is_profile_public) {
+      const usernameClean = String(publicSettings.public_username || '').trim().lower()
+      if (!usernameClean) {
+        showToast('Public username is required if profile is public.', 'error')
+        return
+      }
+      if (!/^[a-z0-9\-]{3,30}$/.test(usernameClean)) {
+        showToast('Username must be 3-30 characters long and contain only lowercase letters, numbers, and dashes.', 'error')
+        return
+      }
+    }
+
+    if (String(publicSettings.bio || '').length > 500) {
+      showToast('Bio cannot exceed 500 characters.', 'error')
+      return
+    }
+
+    setSavingPublicSettings(true)
+    try {
+      const response = await fetch('/api/v1/profile/public-settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(publicSettings),
+      })
+
+      const data = await response.json()
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update public settings.')
+      }
+
+      setPublicSettings(data)
+      showToast('Public profile settings updated successfully.')
+    } catch (error) {
+      showToast(error.message || 'Failed to update settings.', 'error')
+    } finally {
+      setSavingPublicSettings(false)
+    }
+  }
+
   const studentVerification = useMemo(() => {
     try {
       const prefs = typeof profile?.preferences === 'string'
@@ -2258,6 +2362,251 @@ function ProfilePage() {
                     ))}
                   </div>
                 )}
+              </div>
+            )}
+          </section>
+
+          {/* Public Developer Portfolio Section (Phase 9) */}
+          <section className="rounded-3xl border border-line bg-bg-elev p-6 shadow-sm space-y-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-accent-soft text-accent">
+                  <Globe className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-ink">Public Developer Portfolio</h3>
+                  <p className="text-sm text-muted">Share your profile, curated stacks, and favorite tools with others.</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-ink-2">
+                  {publicSettings.is_profile_public ? 'Public' : 'Private'}
+                </span>
+                <span
+                  onClick={() => setPublicSettings(prev => ({ ...prev, is_profile_public: !prev.is_profile_public }))}
+                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full transition-colors duration-200 ease-in-out ${
+                    publicSettings.is_profile_public ? 'bg-accent' : 'bg-line-strong'
+                  }`}
+                  role="checkbox"
+                  aria-checked={publicSettings.is_profile_public}
+                >
+                  <span
+                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-bg-elev shadow ring-0 transition duration-200 ease-in-out ${
+                      publicSettings.is_profile_public ? 'translate-x-5' : 'translate-x-0.5'
+                    } top-0.5 relative`}
+                  />
+                </span>
+              </div>
+            </div>
+
+            {loadingPublicSettings ? (
+              <div className="flex items-center gap-2 py-4 text-sm text-muted">
+                <Loader2 className="h-4 w-4 animate-spin text-accent" />
+                Loading public portfolio settings...
+              </div>
+            ) : (
+              <div className="space-y-4 pt-2">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div>
+                    <label className="block mb-1.5 text-sm font-semibold text-ink-2">
+                      Portfolio Slug (ai-compass.in/u/...)
+                    </label>
+                    <div className="relative flex items-center">
+                      <span className="absolute left-3.5 text-sm font-medium text-muted-2">/u/</span>
+                      <input
+                        type="text"
+                        value={publicSettings.public_username}
+                        onChange={(e) => setPublicSettings(prev => ({ ...prev, public_username: e.target.value }))}
+                        placeholder="your-username"
+                        className="w-full rounded-2xl border border-line bg-bg-sunk/40 pl-10 pr-4 py-2.5 text-sm text-ink placeholder:text-muted-2 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block mb-1.5 text-sm font-semibold text-ink-2">
+                      Bio (Max 500 characters)
+                    </label>
+                    <textarea
+                      value={publicSettings.bio || ''}
+                      onChange={(e) => setPublicSettings(prev => ({ ...prev, bio: e.target.value }))}
+                      placeholder="Tell the community about yourself, your goals, or what stacks you build..."
+                      rows={2}
+                      maxLength={500}
+                      className="w-full rounded-2xl border border-line bg-bg-sunk/40 px-4 py-2.5 text-sm text-ink placeholder:text-muted-2 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 resize-none"
+                    />
+                    <div className="text-right text-[10px] text-muted-2 mt-1">
+                      {(publicSettings.bio || '').length}/500
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                  <div>
+                    <label className="block mb-1.5 text-sm font-semibold text-ink-2">GitHub Username</label>
+                    <input
+                      type="text"
+                      value={publicSettings.github_username || ''}
+                      onChange={(e) => setPublicSettings(prev => ({ ...prev, github_username: e.target.value }))}
+                      placeholder="github-profile"
+                      className="w-full rounded-2xl border border-line bg-bg-sunk/40 px-4 py-2.5 text-sm text-ink placeholder:text-muted-2 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+                    />
+                  </div>
+                  <div>
+                    <label className="block mb-1.5 text-sm font-semibold text-ink-2">LinkedIn Username</label>
+                    <input
+                      type="text"
+                      value={publicSettings.linkedin_username || ''}
+                      onChange={(e) => setPublicSettings(prev => ({ ...prev, linkedin_username: e.target.value }))}
+                      placeholder="linkedin-profile"
+                      className="w-full rounded-2xl border border-line bg-bg-sunk/40 px-4 py-2.5 text-sm text-ink placeholder:text-muted-2 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+                    />
+                  </div>
+                  <div>
+                    <label className="block mb-1.5 text-sm font-semibold text-ink-2">Twitter/X Username</label>
+                    <input
+                      type="text"
+                      value={publicSettings.twitter_username || ''}
+                      onChange={(e) => setPublicSettings(prev => ({ ...prev, twitter_username: e.target.value }))}
+                      placeholder="twitter-profile"
+                      className="w-full rounded-2xl border border-line bg-bg-sunk/40 px-4 py-2.5 text-sm text-ink placeholder:text-muted-2 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-line">
+                  <div className="flex flex-wrap gap-2">
+                    {publicSettings.is_profile_public && publicSettings.public_username && (
+                      <>
+                        <Button
+                          variant="secondary"
+                          size="md"
+                          onClick={() => {
+                            const url = `${window.location.origin}/u/${publicSettings.public_username}`
+                            navigator.clipboard.writeText(url)
+                            showToast('Portfolio URL copied to clipboard!')
+                          }}
+                        >
+                          <Copy className="mr-2 h-4 w-4" />
+                          Copy Link
+                        </Button>
+                        <Button
+                          variant="secondary"
+                          size="md"
+                          onClick={() => window.open(`/u/${publicSettings.public_username}`, '_blank')}
+                        >
+                          <Globe className="mr-2 h-4 w-4" />
+                          View Portfolio
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                  <Button
+                    variant="primary"
+                    size="md"
+                    onClick={handleSavePublicSettings}
+                    disabled={savingPublicSettings}
+                  >
+                    {savingPublicSettings ? (
+                      <span className="inline-flex items-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Saving...
+                      </span>
+                    ) : (
+                      'Save Settings'
+                    )}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </section>
+
+          {/* Catalog Submissions History Log (Phase 10) */}
+          <section className="rounded-3xl border border-line bg-bg-elev p-6 shadow-sm">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-accent-soft text-accent">
+                  <Library className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-ink">Catalog Submission Logs</h3>
+                  <p className="text-sm text-muted">Track the moderation status and feedback of your submitted AI tools.</p>
+                </div>
+              </div>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => navigate('/submit-tool')}
+                className="shrink-0"
+              >
+                Submit New Tool
+              </Button>
+            </div>
+
+            {loadingSubmissions ? (
+              <div className="flex items-center gap-2 mt-6 text-sm text-muted">
+                <Loader2 className="h-4 w-4 animate-spin text-accent" />
+                Loading submissions...
+              </div>
+            ) : submissions.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-line-strong bg-bg-sunk/35 p-6 text-center text-sm text-muted mt-6">
+                <p>You haven't submitted any AI tools yet.</p>
+                <button
+                  onClick={() => navigate('/submit-tool')}
+                  className="mt-2 text-accent font-semibold hover:underline"
+                >
+                  Submit your first tool to get started!
+                </button>
+              </div>
+            ) : (
+              <div className="mt-6 overflow-hidden rounded-2xl border border-line bg-bg-sunk/30">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse text-sm">
+                    <thead>
+                      <tr className="border-b border-line bg-bg-sunk/50 text-ink-2 font-medium">
+                        <th className="p-4">Tool Name</th>
+                        <th className="p-4">Category</th>
+                        <th className="p-4">Date Submitted</th>
+                        <th className="p-4 text-right">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-line">
+                      {submissions.map((sub) => {
+                        let badgeColor = 'bg-line-strong text-ink-2'
+                        if (sub.status === 'approved') badgeColor = 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
+                        else if (sub.status === 'rejected') badgeColor = 'bg-danger-soft text-danger border border-danger/20'
+                        else if (sub.status === 'pending') badgeColor = 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
+
+                        return (
+                          <tr key={sub.id} className="hover:bg-bg-elev/40 transition">
+                            <td className="p-4">
+                              <div className="font-semibold text-ink">{sub.name}</div>
+                              <div className="text-xs text-muted truncate max-w-[200px] sm:max-w-xs">
+                                <a href={sub.website} target="_blank" rel="noopener noreferrer" className="hover:text-accent hover:underline">
+                                  {sub.website}
+                                </a>
+                              </div>
+                            </td>
+                            <td className="p-4 text-ink-2">{sub.category}</td>
+                            <td className="p-4 text-muted">
+                              {new Date(sub.submitted_at).toLocaleDateString(undefined, {
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric',
+                              })}
+                            </td>
+                            <td className="p-4 text-right">
+                              <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wider ${badgeColor}`}>
+                                {sub.status || 'pending'}
+                              </span>
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
           </section>

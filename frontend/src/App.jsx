@@ -29,6 +29,7 @@ const CollectionPage = lazy(() => import('./pages/CollectionPage'))
 const ComparePage = lazy(() => import('./pages/ComparePage'))
 const DashboardPage = lazy(() => import('./pages/DashboardPage'))
 const ProfilePage = lazy(() => import('./pages/ProfilePage'))
+const PublicProfilePage = lazy(() => import('./pages/PublicProfilePage'))
 const ShareStackPage = lazy(() => import('./pages/ShareStackPage'))
 const LoginPage = lazy(() => import('./pages/LoginPage'))
 const RegisterPage = lazy(() => import('./pages/RegisterPage'))
@@ -114,6 +115,7 @@ function AnimatedRoutes() {
             <Route path="/compare/:pair" element={<ComparePage />} />
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/u/:username" element={<PublicProfilePage />} />
             <Route path="/stacks/:userId" element={<ShareStackPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
