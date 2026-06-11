@@ -387,6 +387,8 @@ def parse_syllabus_image_llm(image_bytes, mimetype):
     import base64
     
     keys = []
+    errors = []
+    
     env_keys_str = os.environ.get("GEMINI_API_KEYS", "")
     if env_keys_str:
         keys.extend([k.strip() for k in env_keys_str.split(",") if k.strip()])
@@ -521,7 +523,9 @@ Provide ONLY the raw JSON output. Do not wrap it in markdown code blocks like ``
             return parsed
             
         except Exception as e:
-            print(f"[Syllabus Parser] Exception during API attempt with Key {i+1}: {str(e)}")
+            err_msg = str(e)
+            print(f"[Syllabus Parser] Exception during API attempt with Key {i+1}: {err_msg}")
+            errors.append(f"Gemini Key {i+1}: {err_msg}")
             continue
             
     # --- ATTEMPT GROQ ROTATION FOR IMAGES ---
@@ -565,7 +569,9 @@ Provide ONLY the raw JSON output. Do not wrap it in markdown code blocks like ``
                     print(f"[Syllabus Parser] Groq Vision Key {i+1} hit rate limits (429). Rotating...")
                     continue
                 elif response.status_code != 200:
-                    print(f"[Syllabus Parser] Groq Vision Key {i+1} failed with status {response.status_code}. Rotating...")
+                    err_text = response.text
+                    print(f"[Syllabus Parser] Groq Vision Key {i+1} failed with status {response.status_code}. {err_text}")
+                    errors.append(f"Groq Key {i+1} ({response.status_code}): {err_text}")
                     continue
                     
                 res_data = response.json()
@@ -580,10 +586,12 @@ Provide ONLY the raw JSON output. Do not wrap it in markdown code blocks like ``
                 return parsed
                 
             except Exception as e:
-                print(f"[Syllabus Parser] Exception during Groq Vision API attempt with Key {i+1}: {str(e)}")
+                err_msg = str(e)
+                print(f"[Syllabus Parser] Exception during Groq Vision API attempt with Key {i+1}: {err_msg}")
+                errors.append(f"Groq Key {i+1} Exception: {err_msg}")
                 continue
 
-    return None
+    return {"error": "All APIs failed. Details: " + " | ".join(errors)}
 
 def _normalize_and_save_toolkit(parsed, is_llm_mode):
     """Enriches matches from tools.json, generates share ID, saves stack, and returns payload."""
@@ -726,6 +734,8 @@ def process_syllabus_image_and_build_toolkit(image_bytes, mimetype):
     normalizes output tools. Saves the final toolkit in SyllabusStack table.
     """
     parsed = parse_syllabus_image_llm(image_bytes, mimetype)
+    if isinstance(parsed, dict) and "error" in parsed:
+        return parsed
     if not parsed:
         return {"error": "All Gemini and Groq keys exhausted or rate-limited. Local fallback does not support image analysis. Please check your API KEYS configuration."}
         
