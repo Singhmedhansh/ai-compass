@@ -344,14 +344,7 @@ function Navbar() {
                   >
                     Student Discounts
                   </Link>
-                  <Link
-                    to="/study-plan"
-                    onClick={() => setIsStudentHubMenuOpen(false)}
-                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-ink-2 transition hover:bg-bg-sunk"
-                    role="menuitem"
-                  >
-                    Study Plan Generator
-                  </Link>
+
                 </MotionDiv>
               )}
             </AnimatePresence>
@@ -706,13 +699,7 @@ function Navbar() {
                 >
                   Student Discounts
                 </Link>
-                <Link
-                  to="/study-plan"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
-                >
-                  Study Plan Generator
-                </Link>
+
                 <Link
                   to="/best-ai-tools-for-students"
                   onClick={() => setIsMobileMenuOpen(false)}

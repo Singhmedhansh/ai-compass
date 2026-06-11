@@ -56,8 +56,7 @@ const BestAIToolsForFictionWriters = lazy(() => import('./pages/BestAIToolsForFi
 const SyllabusParserPage = lazy(() => import('./pages/SyllabusParserPage'))
 const SharedToolkitPage = lazy(() => import('./pages/SharedToolkitPage'))
 const StudentDiscountsPage = lazy(() => import('./pages/StudentDiscountsPage'))
-const StudyPlanGeneratorPage = lazy(() => import('./pages/StudyPlanGeneratorPage'))
-const StudyPlanViewerPage = lazy(() => import('./pages/StudyPlanViewerPage'))
+
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 
 function ScrollToTop() {
@@ -143,8 +142,7 @@ function AnimatedRoutes() {
             <Route path="/syllabus-parser" element={<SyllabusParserPage />} />
             <Route path="/shared-toolkit/:shareId" element={<SharedToolkitPage />} />
             <Route path="/student-discounts" element={<StudentDiscountsPage />} />
-            <Route path="/study-plan" element={<StudyPlanGeneratorPage />} />
-            <Route path="/study-plan/:shareId" element={<StudyPlanViewerPage />} />
+
             <Route path="*" element={<NotFoundPage />} />
         </Route>
     </Routes>

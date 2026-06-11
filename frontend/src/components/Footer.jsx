@@ -70,7 +70,6 @@ const PRODUCT_LINKS = [
   { label: 'Help Center', to: '/help' },
   { label: 'Syllabus Parser', to: '/syllabus-parser' },
   { label: 'Student Discounts', to: '/student-discounts' },
-  { label: 'Study Plan Generator', to: '/study-plan' },
 ]
 
 const GUIDES_LINKS = [
