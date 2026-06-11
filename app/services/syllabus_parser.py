@@ -521,6 +521,65 @@ Provide ONLY the raw JSON output. Do not wrap it in markdown code blocks like ``
             print(f"[Syllabus Parser] Exception during API attempt with Key {i+1}: {str(e)}")
             continue
             
+    # --- ATTEMPT GROQ ROTATION FOR IMAGES ---
+    groq_keys = []
+    env_groq_keys_str = os.environ.get("GROQ_API_KEYS", "")
+    if env_groq_keys_str:
+        groq_keys.extend([k.strip() for k in env_groq_keys_str.split(",") if k.strip()])
+    single_groq_key = os.environ.get("GROQ_API_KEY")
+    if single_groq_key and single_groq_key not in groq_keys:
+        groq_keys.append(single_groq_key)
+
+    if groq_keys:
+        for i, key in enumerate(groq_keys):
+            try:
+                print(f"[Syllabus Parser] Attempting Groq Vision API Key {i+1}...")
+                url = "https://api.groq.com/openai/v1/chat/completions"
+                headers = {
+                    "Authorization": f"Bearer {key}",
+                    "Content-Type": "application/json"
+                }
+                payload = {
+                    "model": "llama-3.2-90b-vision-preview",
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": [
+                                {"type": "text", "text": prompt},
+                                {
+                                    "type": "image_url",
+                                    "image_url": {
+                                        "url": f"data:{mimetype};base64,{base64_data}"
+                                    }
+                                }
+                            ]
+                        }
+                    ],
+                    "response_format": {"type": "json_object"}
+                }
+                
+                response = requests.post(url, headers=headers, json=payload, timeout=20)
+                if response.status_code == 429:
+                    print(f"[Syllabus Parser] Groq Vision Key {i+1} hit rate limits (429). Rotating...")
+                    continue
+                elif response.status_code != 200:
+                    print(f"[Syllabus Parser] Groq Vision Key {i+1} failed with status {response.status_code}. Rotating...")
+                    continue
+                    
+                res_data = response.json()
+                content_text = res_data["choices"][0]["message"]["content"].strip()
+                
+                if content_text.startswith("```json"): content_text = content_text[7:]
+                elif content_text.startswith("```"): content_text = content_text[3:]
+                if content_text.endswith("```"): content_text = content_text[:-3]
+                
+                parsed = json.loads(content_text.strip())
+                return parsed
+                
+            except Exception as e:
+                print(f"[Syllabus Parser] Exception during Groq Vision API attempt with Key {i+1}: {str(e)}")
+                continue
+
     return None
 
 def _normalize_and_save_toolkit(parsed, is_llm_mode):
@@ -665,6 +724,6 @@ def process_syllabus_image_and_build_toolkit(image_bytes, mimetype):
     """
     parsed = parse_syllabus_image_llm(image_bytes, mimetype)
     if not parsed:
-        return {"error": "All Gemini keys exhausted or rate-limited. Local fallback does not support image analysis. Please check your GEMINI_API_KEYS configuration."}
+        return {"error": "All Gemini and Groq keys exhausted or rate-limited. Local fallback does not support image analysis. Please check your API KEYS configuration."}
         
     return _normalize_and_save_toolkit(parsed, True)
