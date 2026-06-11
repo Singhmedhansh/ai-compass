@@ -321,10 +321,10 @@ const QUESTIONS = [
     id: 'platform',
     label: 'Platform',
     activeHeading: 'Where do you work?',
-    activeHelper: 'Pick every surface you use — we match tools that fit.',
+    activeHelper: 'Pick your primary platform — we match tools that fit.',
     options: PLATFORM_OPTIONS,
     type: 'chips',
-    multiSelect: true,
+    multiSelect: false,
   },
   {
     id: 'level',

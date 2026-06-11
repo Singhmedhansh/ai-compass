@@ -24,13 +24,24 @@ export default function FeedbackWidget() {
   const location = useLocation()
   const isWizardPage = location.pathname === '/ai-tool-finder'
   const [open, setOpen] = useState(false)
-  const [message, setMessage] = useState('')
-  const [email, setEmail] = useState('')
+  const [message, setMessage] = useState(() => {
+    try { return localStorage.getItem('ai-compass-feedback-draft-msg') || '' } catch { return '' }
+  })
+  const [email, setEmail] = useState(() => {
+    try { return localStorage.getItem('ai-compass-feedback-draft-email') || '' } catch { return '' }
+  })
   const [honeypot, setHoneypot] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState(null)
   const [recentlySubmitted, setRecentlySubmitted] = useState(false)
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('ai-compass-feedback-draft-msg', message)
+      localStorage.setItem('ai-compass-feedback-draft-email', email)
+    } catch { /* ignore */ }
+  }, [message, email])
 
   // Soften the FAB for 24h after a successful submit — same user submitting
   // again immediately is probably noise, but we still want them to be able
@@ -69,6 +80,11 @@ export default function FeedbackWidget() {
       return
     }
 
+    if (email.trim() && !email.includes('@')) {
+      setError('If providing an email, please include an @ sign so we can reach you.')
+      return
+    }
+
     setSubmitting(true)
     try {
       const resp = await fetch('/api/v1/feedback', {
@@ -94,6 +110,10 @@ export default function FeedbackWidget() {
       // Reset form for next time
       setMessage('')
       setEmail('')
+      try {
+        localStorage.removeItem('ai-compass-feedback-draft-msg')
+        localStorage.removeItem('ai-compass-feedback-draft-email')
+      } catch { /* ignore */ }
     } catch (err) {
       setError(err.message || 'Could not send feedback. Please try again.')
     } finally {
@@ -180,7 +200,7 @@ export default function FeedbackWidget() {
                   </button>
                 </div>
               ) : (
-                <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+                <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-3">
                   <label className="sr-only" htmlFor="feedback-message">Your message</label>
                   <textarea
                     id="feedback-message"

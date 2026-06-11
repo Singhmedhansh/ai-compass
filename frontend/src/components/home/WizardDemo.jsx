@@ -386,9 +386,10 @@ export default function WizardDemo() {
               {results.map((tool, i) => {
                 const t = tile(tool.key, tool.name)
                 return (
-                  <div
+                  <Link
+                    to={`/tools/${tool.key}`}
                     key={tool.key}
-                    className="mb-2.5 grid grid-cols-[36px_1fr_auto] items-start gap-3 rounded-xl border border-line bg-bg-elev p-3.5"
+                    className="mb-2.5 grid grid-cols-[36px_1fr_auto] items-start gap-3 rounded-xl border border-line bg-bg-elev p-3.5 transition-all hover:border-accent hover:-translate-y-0.5 hover:shadow-md cursor-pointer"
                   >
                     <div
                       className="grid h-9 w-9 place-items-center rounded-lg text-sm font-bold text-white"
@@ -422,7 +423,7 @@ export default function WizardDemo() {
                       </div>
                     </div>
                     <span className="text-xs font-medium text-muted-2">#{i + 1}</span>
-                  </div>
+                  </Link>
                 )
               })}
 

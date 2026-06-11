@@ -90,8 +90,8 @@ function AnimatedRoutes() {
   useEffect(() => {
     try {
       const storedUser = JSON.parse(localStorage.getItem('user') || 'null')
-      const allowedPaths = ['/verify-email-pending', '/login', '/register', '/forgot-password', '/reset-password']
-      if (storedUser && storedUser.is_verified === false && !allowedPaths.includes(location.pathname)) {
+      const protectedPaths = ['/dashboard', '/admin', '/profile', '/submit']
+      if (storedUser && storedUser.is_verified === false && protectedPaths.some(p => location.pathname.startsWith(p))) {
         navigate('/verify-email-pending', { replace: true })
       }
     } catch (e) {
