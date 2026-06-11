@@ -2560,7 +2560,7 @@ def get_workflow_analytics():
 
     for i, key in enumerate(keys):
         try:
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={key}"
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={key}"
             headers = {"Content-Type": "application/json"}
             payload = {
                 "contents": [{"parts": [{"text": prompt}]}],
@@ -2605,7 +2605,10 @@ def get_workflow_analytics():
                 
             res_data = response.json()
             content_text = res_data["candidates"][0]["content"]["parts"][0]["text"].strip()
-            parsed = json.loads(content_text)
+            if content_text.startswith("```json"): content_text = content_text[7:]
+            elif content_text.startswith("```"): content_text = content_text[3:]
+            if content_text.endswith("```"): content_text = content_text[:-3]
+            parsed = json.loads(content_text.strip())
             
             # Simple integrity checks
             if not parsed.get("persona") or not parsed.get("distribution") or not parsed.get("recommendations"):

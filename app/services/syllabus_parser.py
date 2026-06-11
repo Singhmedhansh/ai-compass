@@ -166,8 +166,8 @@ Provide ONLY the raw JSON output. Do not wrap it in markdown code blocks like ``
     # 2. Iterate keys to attempt parsing
     for i, key in enumerate(keys):
         try:
-            # Using Gemini 2.5 Flash as standard for structured JSON tasks
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={key}"
+            # Using Gemini 1.5 Flash as standard for structured JSON tasks
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={key}"
             headers = {"Content-Type": "application/json"}
             
             payload = {
@@ -222,8 +222,12 @@ Provide ONLY the raw JSON output. Do not wrap it in markdown code blocks like ``
             # Extract content text
             content_text = res_data["candidates"][0]["content"]["parts"][0]["text"].strip()
             
+            if content_text.startswith("```json"): content_text = content_text[7:]
+            elif content_text.startswith("```"): content_text = content_text[3:]
+            if content_text.endswith("```"): content_text = content_text[:-3]
+            
             # Load as json
-            parsed = json.loads(content_text)
+            parsed = json.loads(content_text.strip())
             return parsed
             
         except Exception as e:
@@ -260,7 +264,12 @@ Provide ONLY the raw JSON output. Do not wrap it in markdown code blocks like ``
                 if response.status_code == 200:
                     res_data = response.json()
                     content_text = res_data["choices"][0]["message"]["content"].strip()
-                    parsed = json.loads(content_text)
+                    
+                    if content_text.startswith("```json"): content_text = content_text[7:]
+                    elif content_text.startswith("```"): content_text = content_text[3:]
+                    if content_text.endswith("```"): content_text = content_text[:-3]
+                    
+                    parsed = json.loads(content_text.strip())
                     return parsed
                 else:
                     print(f"[Syllabus Parser] Groq Key {i+1} failed with status {response.status_code}.")
@@ -435,7 +444,7 @@ Provide ONLY the raw JSON output. Do not wrap it in markdown code blocks like ``
 
     for i, key in enumerate(keys):
         try:
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={key}"
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={key}"
             headers = {"Content-Type": "application/json"}
             
             payload = {
@@ -500,7 +509,12 @@ Provide ONLY the raw JSON output. Do not wrap it in markdown code blocks like ``
                 
             res_data = response.json()
             content_text = res_data["candidates"][0]["content"]["parts"][0]["text"].strip()
-            parsed = json.loads(content_text)
+            
+            if content_text.startswith("```json"): content_text = content_text[7:]
+            elif content_text.startswith("```"): content_text = content_text[3:]
+            if content_text.endswith("```"): content_text = content_text[:-3]
+            
+            parsed = json.loads(content_text.strip())
             return parsed
             
         except Exception as e:

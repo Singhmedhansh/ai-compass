@@ -105,7 +105,7 @@ Provide ONLY raw JSON output. No markdown wrappers.
     if gemini_keys:
         for i, key in enumerate(gemini_keys):
             try:
-                url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={key}"
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={key}"
                 headers = {"Content-Type": "application/json"}
                 
                 if syllabus_image_bytes and syllabus_image_mimetype:
@@ -134,7 +134,10 @@ Provide ONLY raw JSON output. No markdown wrappers.
                 if res.status_code == 200:
                     res_json = res.json()
                     content = res_json["candidates"][0]["content"]["parts"][0]["text"].strip()
-                    return json.loads(content)
+                    if content.startswith("```json"): content = content[7:]
+                    elif content.startswith("```"): content = content[3:]
+                    if content.endswith("```"): content = content[:-3]
+                    return json.loads(content.strip())
                 else:
                     print(f"[Study Plan] Gemini Key {i+1} failed with status {res.status_code}.")
             except Exception as e:
@@ -163,7 +166,10 @@ Provide ONLY raw JSON output. No markdown wrappers.
                 if res.status_code == 200:
                     res_json = res.json()
                     content = res_json["choices"][0]["message"]["content"].strip()
-                    return json.loads(content)
+                    if content.startswith("```json"): content = content[7:]
+                    elif content.startswith("```"): content = content[3:]
+                    if content.endswith("```"): content = content[:-3]
+                    return json.loads(content.strip())
                 else:
                     print(f"[Study Plan] Groq Key {i+1} failed with status {res.status_code}.")
             except Exception as e:
