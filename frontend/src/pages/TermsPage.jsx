@@ -25,7 +25,7 @@ export default function TermsPage() {
             <h1 className="text-3xl font-bold text-ink sm:text-4xl md:text-5xl">
               <WordReveal>Terms of Service</WordReveal>
             </h1>
-            <p className="mt-3 text-sm text-muted">Last updated: May 12, 2026</p>
+            <p className="mt-3 text-sm text-muted">Last updated: June 11, 2026</p>
             <p className="mt-6 text-base leading-relaxed text-ink-2">
               Welcome to AI Compass. These Terms of Service (&quot;Terms&quot;) govern your use of ai-compass.in (the &quot;Service&quot;). By using the Service, you agree to these Terms.
             </p>
@@ -101,8 +101,12 @@ export default function TermsPage() {
                 </p>
               </div>
               <p className="mt-3 leading-relaxed text-ink-2">
-                Tool information (pricing, features, descriptions) is provided for convenience and may not reflect the latest changes from the tool providers. We are not affiliated with most tools we list, and we make no warranties about external tools or services. Use of any third-party tool is subject to that tool&apos;s own terms.
+                Tool information (pricing, features, descriptions) is provided for convenience and may not reflect the latest changes from the tool providers. Currency conversions displayed on the Service are approximate estimates calculated via third-party APIs and are intended for comparison purposes only. We do not guarantee the accuracy of converted rates; you must verify actual pricing and billing terms directly with the respective tool provider before purchasing.
               </p>
+              <p className="mt-3 leading-relaxed text-ink-2">
+                We are not affiliated with most tools we list, and we make no warranties about external tools or services. Use of any third-party tool is subject to that tool&apos;s own terms.
+              </p>
+
             </section>
 
             <section className="mt-12">
@@ -153,6 +157,10 @@ export default function TermsPage() {
                 <li className="leading-relaxed">The quality, safety, or behavior of external tools</li>
                 <li className="leading-relaxed">Suitability of any tool for your specific needs</li>
               </ul>
+              <p className="mt-4 leading-relaxed text-ink-2 font-medium">
+                Academic Integrity Disclaimer: Academic Safety ratings (Safe, Use with Caution, High Risk) and related warnings displayed on AI Compass are for educational and informational purposes only and represent our editorial opinions. We do not guarantee that using any listed tool will bypass Turnitin, GPTZero, or any other AI detectors, or that your use of a tool complies with your educational institution&apos;s policies. You are solely responsible for ensuring your academic work complies with your school&apos;s, university&apos;s, or board&apos;s academic integrity codes. AI Compass and its operators accept no liability for any academic penalties, investigations, or misconduct findings resulting from your use of tools listed on this platform.
+              </p>
+
             </section>
 
             <section className="mt-12">

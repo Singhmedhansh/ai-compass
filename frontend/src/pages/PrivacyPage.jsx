@@ -25,7 +25,7 @@ export default function PrivacyPage() {
             <h1 className="text-3xl font-bold text-ink sm:text-4xl md:text-5xl">
               <WordReveal>Privacy Policy</WordReveal>
             </h1>
-            <p className="mt-3 text-sm text-muted">Last updated: May 12, 2026</p>
+            <p className="mt-3 text-sm text-muted">Last updated: June 11, 2026</p>
             <p className="mt-6 text-base leading-relaxed text-ink-2">
               This Privacy Policy explains how AI Compass (&quot;we&quot;, &quot;our&quot;, &quot;us&quot;) collects, uses, and protects your information when you use ai-compass.in (the &quot;Service&quot;). By using the Service, you agree to this policy.
             </p>
@@ -49,8 +49,9 @@ export default function PrivacyPage() {
                 Newsletter subscriptions: If you sign up via the homepage newsletter form (no account required), we store your email address and the timestamp of the subscription. We use it only to send the &quot;new tools&quot; digest. Every email has a one-click unsubscribe link; clicking it deletes the row from our database immediately.
               </p>
               <p className="mt-3 leading-relaxed text-ink-2">
-                User-generated content: Reviews, ratings, favorites, and collections you create are stored in our database. Reviews and ratings are publicly visible to other users along with your username.
+                User-generated content: Reviews, ratings, favorites, and collections you create are stored in our database. Reviews and ratings are publicly visible to other users along with your username. Upvotes and downvotes you cast on reviews are recorded to prevent double voting.
               </p>
+
               <p className="mt-3 leading-relaxed text-ink-2">
                 Session data: We use session cookies to keep you logged in. These are essential for the Service to function.
               </p>
