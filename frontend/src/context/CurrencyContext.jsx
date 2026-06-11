@@ -81,12 +81,16 @@ export function CurrencyProvider({ children }) {
       
       const converted = originalPrice * rate
       
+      const rounded = Math.round(converted)
       if (selectedCurrency === 'INR') {
-        return '₹' + Math.round(converted).toLocaleString('en-IN')
+        const formatted = rounded >= 10000 ? rounded.toLocaleString('en-IN') : String(rounded)
+        return '₹' + formatted
       } else if (selectedCurrency === 'EUR') {
-        return '€' + converted.toFixed(2)
+        const formatted = rounded >= 10000 ? rounded.toLocaleString('en-US') : String(rounded)
+        return '€' + formatted
       } else if (selectedCurrency === 'GBP') {
-        return '£' + converted.toFixed(2)
+        const formatted = rounded >= 10000 ? rounded.toLocaleString('en-US') : String(rounded)
+        return '£' + formatted
       }
       return match
     })

@@ -56,9 +56,11 @@ function Navbar() {
   })
   const [scrolled, setScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isCurrencyMenuOpen, setIsCurrencyMenuOpen] = useState(false)
   const menuRef = useClickOutside(() => setIsProfileMenuOpen(false))
   const guidesMenuRef = useClickOutside(() => setIsGuidesMenuOpen(false))
   const studentHubMenuRef = useClickOutside(() => setIsStudentHubMenuOpen(false))
+  const currencyMenuRef = useClickOutside(() => setIsCurrencyMenuOpen(false))
   const isAdmin = Boolean(user && (user.is_admin || ADMIN_EMAILS.includes(user.email)))
   const avatarLetter = useMemo(
     () => String(user?.name || user?.email || 'U').charAt(0).toUpperCase(),
@@ -438,19 +440,53 @@ function Navbar() {
           ) : null}
 
           {/* Currency Dropdown (Desktop) */}
-          <div className="relative">
-            <select
-              value={selectedCurrency}
-              onChange={(e) => setSelectedCurrency(e.target.value)}
-              className="h-10 rounded-lg border border-line-strong bg-bg-elev px-2 text-xs font-semibold text-ink-2 transition-colors hover:bg-bg-sunk focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent cursor-pointer"
-              aria-label="Select currency"
+          <div className="relative" ref={currencyMenuRef}>
+            <button
+              type="button"
+              onClick={() => setIsCurrencyMenuOpen((prev) => !prev)}
+              className="flex items-center gap-1.5 h-10 rounded-lg border border-line-strong bg-bg-elev px-3 text-xs font-semibold text-ink-2 transition-colors hover:bg-bg-sunk focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent select-none"
+              aria-haspopup="listbox"
+              aria-expanded={isCurrencyMenuOpen}
             >
-              {currencies.map((curr) => (
-                <option key={curr.code} value={curr.code}>
-                  {curr.code} ({curr.symbol})
-                </option>
-              ))}
-            </select>
+              <span>{selectedCurrency} ({currencies.find(c => c.code === selectedCurrency)?.symbol})</span>
+              <ChevronDown className="h-3.5 w-3.5 text-muted transition-transform duration-200" style={{ transform: isCurrencyMenuOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+            </button>
+
+            <AnimatePresence initial={false}>
+              {isCurrencyMenuOpen && (
+                <MotionDiv
+                  key="currency-menu"
+                  role="listbox"
+                  aria-label="Currency selection"
+                  initial={{ opacity: 0, y: -6, scale: 0.97 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -4, scale: 0.98 }}
+                  transition={dropdownTransition}
+                  className="absolute right-0 mt-2 w-40 origin-top-right overflow-hidden rounded-xl border border-line bg-bg-elev p-1 shadow-lg z-50"
+                >
+                  {currencies.map((curr) => (
+                    <button
+                      key={curr.code}
+                      type="button"
+                      onClick={() => {
+                        setSelectedCurrency(curr.code)
+                        setIsCurrencyMenuOpen(false)
+                      }}
+                      className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs font-medium transition ${
+                        selectedCurrency === curr.code
+                          ? 'bg-accent-soft text-accent-ink'
+                          : 'text-ink-2 hover:bg-bg-sunk hover:text-ink'
+                      }`}
+                      role="option"
+                      aria-selected={selectedCurrency === curr.code}
+                    >
+                      <span>{curr.name}</span>
+                      <span className="font-semibold text-muted">{curr.symbol}</span>
+                    </button>
+                  ))}
+                </MotionDiv>
+              )}
+            </AnimatePresence>
           </div>
 
           <button
@@ -743,7 +779,7 @@ function Navbar() {
                       setSelectedCurrency(e.target.value)
                       setIsMobileMenuOpen(false)
                     }}
-                    className="rounded-lg border border-line bg-bg-sunk px-3 py-1.5 text-xs font-semibold text-ink-2 focus:outline-none focus:ring-2 focus:ring-accent cursor-pointer"
+                    className="rounded-xl border border-line bg-bg-sunk px-3 py-2 text-xs font-semibold text-ink-2 focus:outline-none focus:ring-2 focus:ring-accent cursor-pointer"
                   >
                     {currencies.map((curr) => (
                       <option key={curr.code} value={curr.code}>
