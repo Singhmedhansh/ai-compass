@@ -2417,7 +2417,7 @@ def get_workflow_analytics():
             desc = "Specializes in drafts, copywriting, and brainstorming."
             insights = "Your toolkit is built for generation and communication. To elevate your work, we recommend adding Research tools to back your claims with verified facts, or Productivity organizers to track your publishing schedule."
             gap_cat = "Research"
-        elif dom_cat in ["Image Generation", "Video Generation", "Audio & Voice"]:
+        elif dom_cat in ["Image Generation", "Video Generation", "Audio & Voice", "Design & Graphics"]:
             persona = "Creative Multimodal Designer"
             desc = "Crafts visuals, speech synthesis, and video assets."
             insights = "Your workflow is rich with multimedia generation. Adding Productivity tools will help you streamline project handoffs, while Writing & Chat assistants can help you script your video and audio narrations."
@@ -2510,7 +2510,7 @@ def get_workflow_analytics():
       ]
     }}
     
-    Use only these exact categories in distribution and recommendations: Coding, Writing & Chat, Research, Productivity, Image Generation, Video Generation, Audio & Voice.
+    Use only these exact categories in distribution and recommendations: Coding, Writing & Chat, Research, Productivity, Image Generation, Video Generation, Audio & Voice, Design & Graphics.
     The sum of percentages in distribution must be 100.
     Recommend 2-3 tools that are NOT already in their favorites or saved toolkits.
     Respond ONLY with the JSON block. Do not include markdown code block formatting (like ```json).

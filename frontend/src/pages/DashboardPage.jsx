@@ -1,9 +1,9 @@
 import { motion } from 'framer-motion'
-import { Calendar, Check, Edit3, Eye, FolderPlus, Grid3X3, Heart, Home, Sparkles, Trash2, Wand2, X } from 'lucide-react'
+import { Calendar, Check, Edit3, Eye, FolderPlus, Grid3X3, Heart, Home, Sparkles, Trash2, Wand2, X, AlertCircle, BarChart3, RefreshCw } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 
-import { Button, Card, CompassLoader, CountUp } from '../components/ui'
+import { Button, Card, CompassLoader, CountUp, ToolLogo } from '../components/ui'
 
 const fadeUp = {
   hidden: { opacity: 0, y: 16 },
@@ -125,6 +125,9 @@ function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [copiedStack, setCopiedStack] = useState(false)
+  const [analyticsData, setAnalyticsData] = useState(null)
+  const [loadingAnalytics, setLoadingAnalytics] = useState(true)
+  const [analyticsError, setAnalyticsError] = useState(null)
 
   useEffect(() => {
     const controller = new AbortController()
@@ -228,6 +231,39 @@ function DashboardPage() {
 
     return () => controller.abort()
   }, [navigate])
+
+  const handleFetchWorkflowAnalytics = async (signal) => {
+    setLoadingAnalytics(true)
+    setAnalyticsError(null)
+    try {
+      const recentSlugsList = readRecentlyViewedSlugs()
+      const recentParam = recentSlugsList.join(',')
+      const response = await fetch(`/api/v1/profile/workflow-analytics?recent=${encodeURIComponent(recentParam)}`, { signal })
+      
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}))
+        throw new Error(payload.error || 'Failed to fetch workflow insights.')
+      }
+      
+      const data = await response.json()
+      if (data.error) {
+        throw new Error(data.error)
+      }
+      setAnalyticsData(data)
+    } catch (error) {
+      if (error.name !== 'AbortError') {
+        setAnalyticsError(error.message || 'Unable to analyze workflow.')
+      }
+    } finally {
+      setLoadingAnalytics(false)
+    }
+  }
+
+  useEffect(() => {
+    const controller = new AbortController()
+    handleFetchWorkflowAnalytics(controller.signal)
+    return () => controller.abort()
+  }, [])
 
   const fetchFolders = async () => {
     try {
@@ -986,6 +1022,204 @@ function DashboardPage() {
                     )}
                   </div>
                 </div>
+              </div>
+            )}
+          </MotionSection>
+
+          {/* AI Workflow Analytics Section */}
+          <MotionSection
+            variants={fadeUp}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, margin: '-10% 0px' }}
+            className="rounded-xl border border-line bg-bg-elev p-6 shadow-sm animate-fade-in"
+          >
+            <div className="flex items-center justify-between border-b border-line pb-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-accent-soft text-accent">
+                  <BarChart3 className="h-5 w-5" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-ink">AI Workflow Analytics</h2>
+                  <p className="text-xs text-muted">A summary of your tool stack's composition and balance.</p>
+                </div>
+              </div>
+              {analyticsData && (
+                <button
+                  type="button"
+                  onClick={() => handleFetchWorkflowAnalytics()}
+                  disabled={loadingAnalytics}
+                  className="flex h-8 w-8 items-center justify-center rounded-xl bg-bg-sunk hover:bg-line transition text-ink disabled:opacity-50"
+                  title="Re-analyze workflow"
+                >
+                  <RefreshCw className={`h-4 w-4 ${loadingAnalytics ? 'animate-spin' : ''}`} />
+                </button>
+              )}
+            </div>
+
+            {loadingAnalytics ? (
+              <div className="mt-6 flex flex-col items-center justify-center py-8 space-y-4 animate-pulse">
+                <div className="relative flex items-center justify-center h-12 w-12">
+                  <div className="absolute inset-0 rounded-full border-4 border-accent/20 animate-ping"></div>
+                  <div className="h-8 w-8 rounded-full border-4 border-t-accent border-r-transparent border-b-transparent border-l-transparent animate-spin"></div>
+                  <Sparkles className="absolute h-4 w-4 text-accent" />
+                </div>
+                <div className="text-center">
+                  <p className="text-sm font-bold text-ink">Auditing your workspace...</p>
+                </div>
+              </div>
+            ) : analyticsError ? (
+              analyticsError.includes('No tools found') ? (
+                <div className="mt-6 rounded-xl border border-dashed border-line-strong bg-bg-sunk/40 p-6 text-center animate-fade-in">
+                  <Sparkles className="mx-auto h-8 w-8 text-accent/60 mb-3" />
+                  <h4 className="text-sm font-bold text-ink">Unlock your AI Persona</h4>
+                  <p className="mx-auto mt-1 max-w-sm text-xs text-muted">
+                    {analyticsError}
+                  </p>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    className="mt-4"
+                    onClick={() => navigate('/tools')}
+                  >
+                    Explore &amp; Favorite Tools
+                  </Button>
+                </div>
+              ) : (
+                <div className="mt-6 rounded-xl border border-danger/25 bg-danger-soft/10 p-5 animate-fade-in">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="h-5 w-5 text-danger shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="text-sm font-bold text-ink">Analysis Failed</h4>
+                      <p className="mt-1 text-xs text-muted">{analyticsError}</p>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        className="mt-3 !border-danger !text-danger hover:!bg-danger-soft"
+                        onClick={() => handleFetchWorkflowAnalytics()}
+                      >
+                        Try Again
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )
+            ) : (
+              <div className="mt-6 space-y-6 animate-fade-in">
+                <div className="rounded-xl border border-accent/20 bg-accent-soft/5 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div>
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-accent px-2.5 py-0.5 text-[10px] font-bold text-white uppercase tracking-wider">
+                      AI Persona
+                    </span>
+                    <h4 className="text-lg font-bold text-ink mt-1.5">{analyticsData.persona}</h4>
+                    <p className="text-xs text-muted mt-0.5">{analyticsData.persona_description}</p>
+                  </div>
+                  <div className="shrink-0 flex h-12 w-12 items-center justify-center rounded-xl bg-accent-soft/20 text-accent border border-accent/10">
+                    <Sparkles className="h-6 w-6" />
+                  </div>
+                </div>
+
+                <div className="grid gap-6 md:grid-cols-[1.2fr_1fr]">
+                  <div className="rounded-xl border border-line bg-bg-sunk/30 p-6">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-muted mb-2.5">Workflow Audit</h4>
+                    <p className="text-sm font-medium text-ink-2 leading-relaxed">{analyticsData.workflow_insights}</p>
+                  </div>
+
+                  <div className="rounded-xl border border-line bg-bg-sunk/30 p-6">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-muted mb-3.5">Category Distribution</h4>
+                    <div className="space-y-4">
+                      {Object.entries(analyticsData.distribution).map(([category, percentage]) => {
+                        let colorClass = 'bg-accent'
+                        if (category === 'Coding') colorClass = 'bg-indigo-500'
+                        else if (category === 'Research') colorClass = 'bg-violet-500'
+                        else if (category === 'Writing & Chat') colorClass = 'bg-emerald-500'
+                        else if (category.includes('Gen') || category.includes('Voice')) colorClass = 'bg-rose-500'
+                        else if (category === 'Productivity') colorClass = 'bg-amber-500'
+                        else if (category === 'Design & Graphics') colorClass = 'bg-pink-500'
+
+                        return (
+                          <div key={category} className="space-y-1">
+                            <div className="flex items-center justify-between text-[11px] font-semibold text-ink-2">
+                              <span>{category}</span>
+                              <span>{percentage}%</span>
+                            </div>
+                            <div className="h-2.5 w-full rounded-full bg-line/55 overflow-hidden">
+                              <div
+                                className={`h-full rounded-full ${colorClass} transition-all duration-500`}
+                                style={{ width: `${percentage}%` }}
+                              />
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                </div>
+
+                {analyticsData.recommendations && analyticsData.recommendations.length > 0 && (
+                  <div className="border-t border-line/45 pt-5 space-y-3">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-muted">Recommended to Balance Your Stack</h4>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {analyticsData.recommendations.map((rec) => {
+                        const resolvedTool = allTools.find(
+                          (t) => String(t.slug || '').toLowerCase() === String(rec.slug || '').toLowerCase()
+                        )
+
+                        return (
+                          <div
+                            key={rec.slug || rec.name}
+                            className="group flex flex-col justify-between rounded-xl border border-line bg-bg-sunk/25 p-4 transition duration-200 hover:border-accent/40 hover:bg-bg-sunk/40"
+                          >
+                            <div className="flex items-start gap-3">
+                              {resolvedTool ? (
+                                <div className="shrink-0 mt-0.5">
+                                  <ToolLogo tool={resolvedTool} size={36} />
+                                </div>
+                              ) : (
+                                <div className="shrink-0 flex h-9 w-9 items-center justify-center rounded-lg bg-accent-soft text-accent text-xs font-bold">
+                                  {rec.name ? rec.name[0].toUpperCase() : 'T'}
+                                </div>
+                              )}
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  {resolvedTool ? (
+                                    <button
+                                      type="button"
+                                      onClick={() => navigate(`/tool/${resolvedTool.slug}`)}
+                                      className="text-xs font-bold text-ink hover:text-accent hover:underline text-left truncate"
+                                    >
+                                      {rec.name}
+                                    </button>
+                                  ) : (
+                                    <span className="text-xs font-bold text-ink truncate">{rec.name}</span>
+                                  )}
+                                  <span className="inline-block rounded bg-accent-soft px-1.5 py-0.5 text-[8.5px] font-bold text-accent">
+                                    {rec.category}
+                                  </span>
+                                </div>
+                                <p className="mt-1 text-[11px] text-muted leading-relaxed">
+                                  {rec.reason}
+                                </p>
+                              </div>
+                            </div>
+
+                            {resolvedTool && (
+                              <div className="mt-3 flex justify-end">
+                                <button
+                                  type="button"
+                                  onClick={() => navigate(`/tool/${resolvedTool.slug}`)}
+                                  className="text-[10px] font-bold text-accent hover:underline flex items-center gap-0.5"
+                                >
+                                  View Tool Details &rarr;
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </MotionSection>

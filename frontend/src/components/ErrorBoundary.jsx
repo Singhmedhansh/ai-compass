@@ -1,4 +1,5 @@
 import { Component } from 'react'
+import posthog from 'posthog-js'
 
 /**
  * App-level error boundary. Before this existed, any uncaught render
@@ -20,18 +21,16 @@ class ErrorBoundary extends Component {
   }
 
   componentDidCatch(error, info) {
-    // Surface to the console (and PostHog, if present) so prod crashes
-    // are diagnosable instead of silently white-screening.
+    // Surface to the console and PostHog so prod crashes are diagnosable
     console.error('ErrorBoundary caught:', error, info)
-    if (typeof window !== 'undefined' && window.posthog?.capture) {
-      try {
-        window.posthog.capture('frontend_error_boundary', {
-          message: String(error?.message || error),
-          stack: String(error?.stack || ''),
-        })
-      } catch {
-        /* never let telemetry break the fallback */
-      }
+    try {
+      posthog.captureException(error, { extra: info })
+      posthog.capture('frontend_error_boundary', {
+        message: String(error?.message || error),
+        stack: String(error?.stack || ''),
+      })
+    } catch {
+      /* never let telemetry break the fallback */
     }
   }
 

@@ -82,7 +82,8 @@ const CATEGORIES = [
   { id: 'Productivity', label: 'Productivity' },
   { id: 'Image Generation', label: 'Image Gen' },
   { id: 'Video Generation', label: 'Video Gen' },
-  { id: 'Audio & Voice', label: 'Audio & Voice' }
+  { id: 'Audio & Voice', label: 'Audio & Voice' },
+  { id: 'Design & Graphics', label: 'Design & Graphics' }
 ]
 
 const GOALS = [
@@ -1731,23 +1732,41 @@ function ProfilePage() {
                 </div>
               </div>
             ) : analyticsError ? (
-              <div className="mt-6 rounded-2xl border border-danger/25 bg-danger-soft/10 p-5 animate-fade-in">
-                <div className="flex items-start gap-3">
-                  <AlertCircle className="h-5 w-5 text-danger shrink-0 mt-0.5" />
-                  <div>
-                    <h4 className="text-sm font-bold text-ink">Analysis Failed</h4>
-                    <p className="mt-1 text-xs text-muted">{analyticsError}</p>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      className="mt-3 !border-danger !text-danger hover:!bg-danger-soft"
-                      onClick={handleFetchWorkflowAnalytics}
-                    >
-                      Try Again
-                    </Button>
+              analyticsError.includes('No tools found') ? (
+                <div className="mt-6 rounded-2xl border border-dashed border-line-strong bg-bg-sunk/40 p-6 text-center animate-fade-in">
+                  <Sparkles className="mx-auto h-8 w-8 text-accent/60 mb-3" />
+                  <h4 className="text-sm font-bold text-ink">Unlock your AI Persona</h4>
+                  <p className="mx-auto mt-1 max-w-sm text-xs text-muted">
+                    {analyticsError}
+                  </p>
+                  <Button
+                    variant="primary"
+                    size="md"
+                    className="mt-4"
+                    onClick={() => navigate('/tools')}
+                  >
+                    Explore &amp; Favorite Tools
+                  </Button>
+                </div>
+              ) : (
+                <div className="mt-6 rounded-2xl border border-danger/25 bg-danger-soft/10 p-5 animate-fade-in">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="h-5 w-5 text-danger shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="text-sm font-bold text-ink">Analysis Failed</h4>
+                      <p className="mt-1 text-xs text-muted">{analyticsError}</p>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        className="mt-3 !border-danger !text-danger hover:!bg-danger-soft"
+                        onClick={handleFetchWorkflowAnalytics}
+                      >
+                        Try Again
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )
             ) : !analyticsData ? (
               <div className="mt-6 rounded-2xl border border-dashed border-line-strong bg-bg-sunk/40 p-6 text-center animate-fade-in">
                 <Sparkles className="mx-auto h-8 w-8 text-accent/60 mb-3" />
@@ -1784,16 +1803,16 @@ function ProfilePage() {
                 <div className="grid gap-6 md:grid-cols-[1.2fr_1fr]">
                   {/* Insights Card */}
                   <div className="space-y-4">
-                    <div className="rounded-2xl border border-line bg-bg-sunk/30 p-4.5">
+                    <div className="rounded-2xl border border-line bg-bg-sunk/30 p-6">
                       <h4 className="text-xs font-bold uppercase tracking-wider text-muted mb-2.5">Workflow Audit</h4>
-                      <p className="text-xs text-ink-2 leading-relaxed">{analyticsData.workflow_insights}</p>
+                      <p className="text-sm font-medium text-ink-2 leading-relaxed">{analyticsData.workflow_insights}</p>
                     </div>
                   </div>
 
                   {/* Category Distribution bars */}
-                  <div className="rounded-2xl border border-line bg-bg-sunk/30 p-4.5">
+                  <div className="rounded-2xl border border-line bg-bg-sunk/30 p-6">
                     <h4 className="text-xs font-bold uppercase tracking-wider text-muted mb-3.5">Category Distribution</h4>
-                    <div className="space-y-3">
+                    <div className="space-y-4">
                       {Object.entries(analyticsData.distribution).map(([category, percentage]) => {
                         let colorClass = 'bg-accent'
                         if (category === 'Coding') colorClass = 'bg-indigo-500'
@@ -1801,6 +1820,7 @@ function ProfilePage() {
                         else if (category === 'Writing & Chat') colorClass = 'bg-emerald-500'
                         else if (category.includes('Gen') || category.includes('Voice')) colorClass = 'bg-rose-500'
                         else if (category === 'Productivity') colorClass = 'bg-amber-500'
+                        else if (category === 'Design & Graphics') colorClass = 'bg-pink-500'
 
                         return (
                           <div key={category} className="space-y-1">
@@ -1808,7 +1828,7 @@ function ProfilePage() {
                               <span>{category}</span>
                               <span>{percentage}%</span>
                             </div>
-                            <div className="h-2 w-full rounded-full bg-line/55 overflow-hidden">
+                            <div className="h-2.5 w-full rounded-full bg-line/55 overflow-hidden">
                               <div
                                 className={`h-full rounded-full ${colorClass} transition-all duration-500`}
                                 style={{ width: `${percentage}%` }}

@@ -27,6 +27,7 @@ CANONICAL_CATEGORIES = {
     "image generation": "Image Generation",
     "video generation": "Video Generation",
     "audio & voice": "Audio & Voice",
+    "design & graphics": "Design & Graphics",
 }
 
 CATEGORY_ALIASES = {
@@ -37,6 +38,8 @@ CATEGORY_ALIASES = {
     "video gen": "Video Generation",
     "audio": "Audio & Voice",
     "voice": "Audio & Voice",
+    "design": "Design & Graphics",
+    "graphics": "Design & Graphics",
 }
 
 CATEGORY_KEYWORDS = {
@@ -47,6 +50,7 @@ CATEGORY_KEYWORDS = {
     "Image Generation": ["image", "photo", "art", "design", "render", "diffusion", "visual", "poster"],
     "Video Generation": ["video", "subtitle", "screen", "record", "transcript", "editing", "film", "animation"],
     "Audio & Voice": ["audio", "voice", "speech", "podcast", "music", "transcription", "tts"],
+    "Design & Graphics": ["design", "graphic", "canvas", "draw", "sketch", "vector", "prototype", "wireframe", "cad", "autocad", "figma", "canva", "3d", "mockup", "logo"],
 }
 
 

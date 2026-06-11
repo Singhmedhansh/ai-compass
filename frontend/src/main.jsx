@@ -6,6 +6,8 @@ import { Toaster } from 'sonner'
 import 'sonner/dist/styles.css'
 import App from './App.jsx'
 import { toApiUrl } from './config/api.js'
+import posthog from 'posthog-js'
+import { PostHogProvider } from '@posthog/react'
 
 // --- Stale-deploy recovery -------------------------------------------------
 // After a deploy, a tab that was open (or has a cached index.html) still
@@ -96,19 +98,21 @@ window.addEventListener('resize', applyAspectRatioFlag)
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <HelmetProvider>
-      <Toaster
-        position="bottom-left"
-        richColors
-        closeButton
-        theme="dark"
-        toastOptions={{
-          classNames: {
-            toast: 'font-medium',
-          },
-        }}
-      />
-      <App />
-    </HelmetProvider>
+    <PostHogProvider client={posthog}>
+      <HelmetProvider>
+        <Toaster
+          position="bottom-left"
+          richColors
+          closeButton
+          theme="dark"
+          toastOptions={{
+            classNames: {
+              toast: 'font-medium',
+            },
+          }}
+        />
+        <App />
+      </HelmetProvider>
+    </PostHogProvider>
   </StrictMode>,
 )

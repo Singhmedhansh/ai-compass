@@ -758,5 +758,17 @@ def test_workflow_analytics(client, app):
     assert "recommendations" in data
     assert len(data["recommendations"]) > 0
 
+    # 4. Fetch with Design & Graphics tool (e.g. napkin-ai) dominant to test fallback persona mapping
+    with app.app_context():
+        Favorite.query.filter_by(user_id=user_id).delete()
+        db.session.commit()
+
+    resp = client.get("/api/v1/profile/workflow-analytics?recent=napkin-ai")
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert data["persona"] == "Creative Multimodal Designer"
+    assert "Design & Graphics" in data["distribution"]
+    assert data["distribution"]["Design & Graphics"] == 100
+
 
 
