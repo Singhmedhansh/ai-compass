@@ -160,6 +160,18 @@ function ProfilePage() {
   const [analyticsData, setAnalyticsData] = useState(null)
   const [loadingAnalytics, setLoadingAnalytics] = useState(false)
   const [analyticsError, setAnalyticsError] = useState(null)
+  const [securityData, setSecurityData] = useState(null)
+  const [loadingSecurity, setLoadingSecurity] = useState(true)
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  })
+  const [passwordFormError, setPasswordFormError] = useState('')
+  const [isChangingPassword, setIsChangingPassword] = useState(false)
+  const [unlinkingProvider, setUnlinkingProvider] = useState(null)
+  const [revokingSessionUuid, setRevokingSessionUuid] = useState(null)
+  const [showPasswordForm, setShowPasswordForm] = useState(false)
 
   const studentVerification = useMemo(() => {
     try {
@@ -349,6 +361,8 @@ function ProfilePage() {
         prev.map((s) => (s.id === stackId ? { ...s, tools: updated.tools } : s))
       )
       showToast('Tool removed from toolkit.')
+    } catch (error) {
+      showToast(error.message || 'Failed to remove tool.', 'error')
     }
   }
 
@@ -791,6 +805,168 @@ function ProfilePage() {
       setDeletingAccount(false)
     }
   }
+
+  const fetchSecurityInfo = async (signal) => {
+    try {
+      const response = await fetch('/api/v1/profile/security/info', { signal })
+      if (response.ok) {
+        const data = await response.json()
+        setSecurityData(data)
+      } else {
+        const errData = await response.json().catch(() => ({}))
+        console.error('Failed to load security info:', errData.error || response.statusText)
+      }
+    } catch (error) {
+      if (error.name !== 'AbortError') {
+        console.error('Failed to load security info', error)
+      }
+    } finally {
+      setLoadingSecurity(false)
+    }
+  }
+
+  useEffect(() => {
+    const controller = new AbortController()
+    fetchSecurityInfo(controller.signal)
+    return () => controller.abort()
+  }, [])
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const linked = params.get('linked')
+    const error = params.get('error')
+    const detail = params.get('detail')
+
+    if (linked) {
+      const providerName = linked.charAt(0).toUpperCase() + linked.slice(1)
+      showToast(`Successfully connected ${providerName} account!`)
+      navigate(window.location.pathname, { replace: true })
+      fetchSecurityInfo()
+    } else if (error === 'link_failed') {
+      let message = 'Failed to link account.'
+      if (detail === 'email_already_linked') {
+        message = 'This email address is already connected to another AI Compass account.'
+      } else if (detail === 'unauthorized') {
+        message = 'Authorization failed or timed out. Please try again.'
+      }
+      showToast(message, 'error')
+      navigate(window.location.pathname, { replace: true })
+    }
+  }, [navigate])
+
+  const handleUnlinkProvider = async (provider) => {
+    if (!window.confirm(`Are you sure you want to unlink your ${provider} account?`)) {
+      return
+    }
+
+    setUnlinkingProvider(provider.toLowerCase())
+    try {
+      const response = await fetch(`/api/v1/profile/security/unlink/${provider.toLowerCase()}`, {
+        method: 'POST',
+      })
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}))
+        throw new Error(payload.error || `Failed to unlink ${provider}.`)
+      }
+
+      showToast(`Successfully unlinked ${provider}.`)
+      await fetchSecurityInfo()
+    } catch (error) {
+      showToast(error.message || `Failed to unlink ${provider}.`, 'error')
+    } finally {
+      setUnlinkingProvider(null)
+    }
+  }
+
+  const handleRevokeSession = async (sessionUuid) => {
+    if (!window.confirm('Are you sure you want to revoke this session? You will be logged out of that device.')) {
+      return
+    }
+
+    setRevokingSessionUuid(sessionUuid)
+    try {
+      const response = await fetch(`/api/v1/profile/security/sessions/${sessionUuid}`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}))
+        throw new Error(payload.error || 'Failed to revoke session.')
+      }
+
+      const data = await response.json()
+      if (data.logged_out) {
+        localStorage.removeItem('user')
+        window.dispatchEvent(new Event('userLoggedIn'))
+        navigate('/login', { replace: true })
+        return
+      }
+
+      showToast('Session revoked successfully.')
+      await fetchSecurityInfo()
+    } catch (error) {
+      showToast(error.message || 'Failed to revoke session.', 'error')
+    } finally {
+      setRevokingSessionUuid(null)
+    }
+  }
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault()
+    setPasswordFormError('')
+
+    const { currentPassword, newPassword, confirmPassword } = passwordForm
+    const needsCurrentPassword = securityData?.has_password
+
+    if (needsCurrentPassword && !currentPassword) {
+      setPasswordFormError('Current password is required.')
+      return
+    }
+
+    if (!newPassword || newPassword.length < 8) {
+      setPasswordFormError('New password must be at least 8 characters long.')
+      return
+    }
+
+    if (newPassword !== confirmPassword) {
+      setPasswordFormError('Passwords do not match.')
+      return
+    }
+
+    setIsChangingPassword(true)
+    try {
+      const body = { new_password: newPassword }
+      if (needsCurrentPassword) {
+        body.current_password = currentPassword
+      }
+
+      const response = await fetch('/api/v1/profile/security/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}))
+        throw new Error(payload.error || 'Failed to update password.')
+      }
+
+      showToast(needsCurrentPassword ? 'Password updated successfully!' : 'Password set successfully!')
+      setPasswordForm({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      })
+      setShowPasswordForm(false)
+      await fetchSecurityInfo()
+    } catch (error) {
+      setPasswordFormError(error.message || 'Failed to update password.')
+    } finally {
+      setIsChangingPassword(false)
+    }
+  }
+
 
   if (loading) {
     return (
@@ -1712,6 +1888,225 @@ function ProfilePage() {
                 )}
               </div>
             )}
+          </section>
+
+          <section className="rounded-3xl border border-line bg-bg-elev p-6 shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-accent-soft text-accent">
+                <Lock className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-ink">Security &amp; Connected Accounts</h3>
+                <p className="text-sm text-muted">Manage your connected social login providers, active sessions, and password security.</p>
+              </div>
+            </div>
+
+            <div className="mt-6 space-y-6">
+              {/* Connected Accounts Badges */}
+              <div>
+                <h4 className="text-sm font-bold text-ink-2 mb-3">Login Providers</h4>
+                <p className="text-xs text-muted mb-4">Click to link a provider or unlink an existing one. Unlinking is only allowed if you have a password or other connected methods.</p>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  {/* Google */}
+                  {securityData?.linked_accounts?.some(a => a.provider === 'google') ? (
+                    <div className="flex items-center justify-between p-3 rounded-2xl border border-line bg-bg-sunk/30 animate-fade-in">
+                      <span className="text-xs font-semibold text-ink">Google</span>
+                      <button
+                        type="button"
+                        onClick={() => handleUnlinkProvider('Google')}
+                        disabled={unlinkingProvider !== null}
+                        className="text-xs font-bold text-danger hover:underline disabled:opacity-50"
+                      >
+                        {unlinkingProvider === 'google' ? 'Unlinking...' : 'Unlink'}
+                      </button>
+                    </div>
+                  ) : (
+                    <a
+                      href="/auth/google"
+                      className="flex items-center justify-center p-3 rounded-2xl border border-dashed border-line-strong hover:border-accent hover:bg-accent-soft/10 text-xs font-semibold text-muted hover:text-accent transition animate-fade-in"
+                    >
+                      Connect Google
+                    </a>
+                  )}
+
+                  {/* GitHub */}
+                  {securityData?.linked_accounts?.some(a => a.provider === 'github') ? (
+                    <div className="flex items-center justify-between p-3 rounded-2xl border border-line bg-bg-sunk/30 animate-fade-in">
+                      <span className="text-xs font-semibold text-ink">GitHub</span>
+                      <button
+                        type="button"
+                        onClick={() => handleUnlinkProvider('GitHub')}
+                        disabled={unlinkingProvider !== null}
+                        className="text-xs font-bold text-danger hover:underline disabled:opacity-50"
+                      >
+                        {unlinkingProvider === 'github' ? 'Unlinking...' : 'Unlink'}
+                      </button>
+                    </div>
+                  ) : (
+                    <a
+                      href="/auth/github"
+                      className="flex items-center justify-center p-3 rounded-2xl border border-dashed border-line-strong hover:border-accent hover:bg-accent-soft/10 text-xs font-semibold text-muted hover:text-accent transition animate-fade-in"
+                    >
+                      Connect GitHub
+                    </a>
+                  )}
+
+                  {/* LinkedIn */}
+                  {securityData?.linked_accounts?.some(a => a.provider === 'linkedin') ? (
+                    <div className="flex items-center justify-between p-3 rounded-2xl border border-line bg-bg-sunk/30 animate-fade-in">
+                      <span className="text-xs font-semibold text-ink">LinkedIn</span>
+                      <button
+                        type="button"
+                        onClick={() => handleUnlinkProvider('LinkedIn')}
+                        disabled={unlinkingProvider !== null}
+                        className="text-xs font-bold text-danger hover:underline disabled:opacity-50"
+                      >
+                        {unlinkingProvider === 'linkedin' ? 'Unlinking...' : 'Unlink'}
+                      </button>
+                    </div>
+                  ) : (
+                    <a
+                      href="/auth/linkedin"
+                      className="flex items-center justify-center p-3 rounded-2xl border border-dashed border-line-strong hover:border-accent hover:bg-accent-soft/10 text-xs font-semibold text-muted hover:text-accent transition animate-fade-in"
+                    >
+                      Connect LinkedIn
+                    </a>
+                  )}
+                </div>
+              </div>
+
+              {/* Password Management */}
+              <div className="border-t border-line/40 pt-4">
+                <h4 className="text-sm font-bold text-ink-2 mb-2">Password Security</h4>
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <p className="text-xs text-muted">
+                    {securityData?.has_password 
+                      ? 'Secure your account with a custom password.' 
+                      : 'You currently log in using social providers. Set a password to enable email/password sign-in.'}
+                  </p>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => {
+                      setShowPasswordForm(!showPasswordForm)
+                      setPasswordFormError('')
+                    }}
+                  >
+                    {showPasswordForm ? 'Cancel' : (securityData?.has_password ? 'Change Password' : 'Set Password')}
+                  </Button>
+                </div>
+
+                {showPasswordForm && (
+                  <form onSubmit={handleChangePassword} className="mt-4 space-y-4 rounded-2xl bg-bg-sunk/30 p-4 border border-line animate-fade-in">
+                    {securityData?.has_password && (
+                      <label className="block">
+                        <span className="mb-1.5 block text-xs font-medium text-ink-2">Current Password</span>
+                        <input
+                          type="password"
+                          required
+                          value={passwordForm.currentPassword}
+                          onChange={(e) => setPasswordForm(prev => ({ ...prev, currentPassword: e.target.value }))}
+                          placeholder="••••••••"
+                          className="w-full rounded-xl border border-line bg-bg-elev px-3 py-2 text-sm text-ink focus:border-accent focus:outline-none"
+                        />
+                      </label>
+                    )}
+
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <label className="block">
+                        <span className="mb-1.5 block text-xs font-medium text-ink-2">New Password</span>
+                        <input
+                          type="password"
+                          required
+                          value={passwordForm.newPassword}
+                          onChange={(e) => setPasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
+                          placeholder="••••••••"
+                          className="w-full rounded-xl border border-line bg-bg-elev px-3 py-2 text-sm text-ink focus:border-accent focus:outline-none"
+                        />
+                      </label>
+
+                      <label className="block">
+                        <span className="mb-1.5 block text-xs font-medium text-ink-2">Confirm New Password</span>
+                        <input
+                          type="password"
+                          required
+                          value={passwordForm.confirmPassword}
+                          onChange={(e) => setPasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                          placeholder="••••••••"
+                          className="w-full rounded-xl border border-line bg-bg-elev px-3 py-2 text-sm text-ink focus:border-accent focus:outline-none"
+                        />
+                      </label>
+                    </div>
+
+                    {passwordFormError && (
+                      <p className="text-xs text-danger font-medium">{passwordFormError}</p>
+                    )}
+
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        type="submit"
+                        variant="primary"
+                        size="sm"
+                        disabled={isChangingPassword}
+                      >
+                        {isChangingPassword ? 'Saving...' : (securityData?.has_password ? 'Update Password' : 'Set Password')}
+                      </Button>
+                    </div>
+                  </form>
+                )}
+              </div>
+
+              {/* Active Sessions */}
+              <div className="border-t border-line/40 pt-4">
+                <h4 className="text-sm font-bold text-ink-2 mb-2">Active Sessions</h4>
+                <p className="text-xs text-muted mb-4">Review all devices that are currently logged in to your account. You can revoke any session to force log out that device.</p>
+                
+                {loadingSecurity ? (
+                  <div className="flex items-center gap-2 text-xs text-muted">
+                    <Loader2 className="h-3.5 w-3.5 animate-spin text-accent" />
+                    Loading active sessions...
+                  </div>
+                ) : !securityData?.sessions || securityData.sessions.length === 0 ? (
+                  <div className="text-xs text-muted py-2">No active sessions found.</div>
+                ) : (
+                  <div className="space-y-3">
+                    {securityData.sessions.map((sess) => (
+                      <div
+                        key={sess.session_uuid}
+                        className="flex items-center justify-between gap-4 p-3 rounded-2xl border border-line bg-bg-sunk/30 animate-fade-in"
+                      >
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-xs font-bold text-ink truncate max-w-[150px] sm:max-w-xs">{sess.user_agent}</span>
+                            {sess.is_current && (
+                              <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-500 border border-emerald-500/20">
+                                Current Device
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] text-muted mt-1">
+                            <span>IP: {sess.ip_address}</span>
+                            <span className="w-1 h-1 rounded-full bg-line-strong" />
+                            <span>Location: {sess.location}</span>
+                            <span className="w-1 h-1 rounded-full bg-line-strong" />
+                            <span>Last Active: {new Date(sess.last_active_at).toLocaleString()}</span>
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => handleRevokeSession(sess.session_uuid)}
+                          disabled={revokingSessionUuid !== null}
+                          className="text-xs font-bold text-danger hover:underline shrink-0 disabled:opacity-50"
+                        >
+                          {revokingSessionUuid === sess.session_uuid ? 'Revoking...' : (sess.is_current ? 'Log out' : 'Revoke')}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
           </section>
 
           <section className="rounded-3xl border border-line bg-bg-elev p-6 shadow-sm">

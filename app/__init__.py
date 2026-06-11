@@ -98,7 +98,10 @@ def _load_local_dotenv(project_root: str) -> None:
 @login_manager.user_loader
 def load_user(user_id):
     from app.models import User
-    return User.query.get(int(user_id))
+    user = User.query.get(int(user_id))
+    print(f"[DEBUG USER LOADER] user_id: {user_id}, loaded user: {user}")
+    return user
+
 
 
 @login_manager.unauthorized_handler
@@ -334,6 +337,13 @@ def create_app(config: dict | None = None) -> Flask:
         canonical_host = (parsed_frontend_url.hostname or "").strip().lower()
 
     @app.before_request
+    def clear_g_for_testing():
+        if app.config.get("TESTING"):
+            from flask import g
+            for key in list(g.__dict__.keys()):
+                g.__dict__.pop(key, None)
+
+    @app.before_request
     def make_session_permanent():
         # Without this the session cookie is a browser-session cookie that
         # dies when the tab/browser closes. Permanent => it lasts
@@ -408,6 +418,104 @@ def create_app(config: dict | None = None) -> Flask:
 
         query = f"?{request.query_string.decode('utf-8')}" if request.query_string else ""
         return redirect(f"https://{canonical_host}{request.path}{query}", code=308)
+
+    @app.before_request
+    def enforce_user_sessions():
+        from flask import session, jsonify, redirect, request, g
+        from flask_login import current_user, logout_user
+        import uuid
+        from datetime import datetime, timezone
+        from app.models import UserSession
+
+        if request.path.startswith('/static') or request.path.startswith('/assets') or request.path in ('/healthz', '/health'):
+            return None
+        if current_user and current_user.is_authenticated:
+            session_uuid = session.get('user_uuid')
+
+
+
+            # Determine client IP
+            forwarded = str(request.headers.get("X-Forwarded-For") or "").strip()
+            ip = forwarded.split(",")[0].strip() if forwarded else str(request.remote_addr or "unknown")
+
+            if not session_uuid:
+                # generate new session
+                session_uuid = str(uuid.uuid4())
+                session['user_uuid'] = session_uuid
+
+                user_agent = request.headers.get("User-Agent", "Unknown Browser")[:500]
+
+                # location geolocator helper
+                location = "Unknown"
+                if app.config.get("TESTING") or ip in ("127.0.0.1", "localhost", "::1", "unknown"):
+                    location = "Local Network"
+                else:
+                    try:
+                        import requests
+                        resp = requests.get(f"http://ip-api.com/json/{ip}", timeout=0.8)
+                        if resp.status_code == 200:
+                            data = resp.json()
+                            city = data.get("city")
+                            country = data.get("country")
+                            if city and country:
+                                location = f"{city}, {country}"
+                            elif country:
+                                location = country
+                    except Exception:
+                        pass
+
+                new_sess = UserSession(
+                    session_uuid=session_uuid,
+                    user_id=current_user.id,
+                    ip_address=ip,
+                    user_agent=user_agent,
+                    location=location,
+                    last_active_at=datetime.now(timezone.utc),
+                    created_at=datetime.now(timezone.utc)
+                )
+                db.session.add(new_sess)
+                db.session.commit()
+            else:
+                db_session = UserSession.query.filter_by(session_uuid=session_uuid, user_id=current_user.id).first()
+                if not db_session:
+                    # Session has been revoked! Log out the user.
+                    logout_user()
+                    session.pop('user_uuid', None)
+                    if request.path.startswith('/api/'):
+                        return jsonify({"error": "Session revoked"}), 401
+                    return redirect('/')
+                else:
+                    now = datetime.now(timezone.utc)
+                    # Update at most once per 60 seconds
+                    last_active = db_session.last_active_at
+                    if last_active.tzinfo is None:
+                        last_active = last_active.replace(tzinfo=timezone.utc)
+                    if (now - last_active).total_seconds() > 60:
+                        db_session.last_active_at = now
+                        if db_session.ip_address != ip:
+                            db_session.ip_address = ip
+                            # location geolocator helper
+                            location = "Unknown"
+                            if app.config.get("TESTING") or ip in ("127.0.0.1", "localhost", "::1", "unknown"):
+                                location = "Local Network"
+                            else:
+                                try:
+                                    import requests
+                                    resp = requests.get(f"http://ip-api.com/json/{ip}", timeout=0.8)
+                                    if resp.status_code == 200:
+                                        data = resp.json()
+                                        city = data.get("city")
+                                        country = data.get("country")
+                                        if city and country:
+                                            location = f"{city}, {country}"
+                                        elif country:
+                                            location = country
+                                except Exception:
+                                    pass
+                            db_session.location = location
+                        db_session.user_agent = request.headers.get("User-Agent", "Unknown Browser")[:500]
+                        db.session.commit()
+        return None
 
     @app.before_request
     def setup_nonce():

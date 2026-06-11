@@ -60,3 +60,15 @@ def _reset_tool_cache(app):
             refresh_tools_cache()
         except Exception:
             pass
+
+
+@pytest.fixture(autouse=True)
+def _clear_active_g():
+    from flask import g, has_app_context
+    if has_app_context():
+        for key in list(g.__dict__.keys()):
+            g.__dict__.pop(key, None)
+    yield
+    if has_app_context():
+        for key in list(g.__dict__.keys()):
+            g.__dict__.pop(key, None)

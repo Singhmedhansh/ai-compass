@@ -2581,6 +2581,156 @@ def get_workflow_analytics():
 
 
 
+@api_bp.route("/profile/security/info", methods=["GET"])
+@login_required
+def get_security_info():
+    from app.models import LinkedAccount, UserSession
+    from flask import session
+
+    # Auto-migrate legacy oauth_provider to LinkedAccount if missing
+    if current_user.oauth_provider:
+        existing = LinkedAccount.query.filter_by(user_id=current_user.id, provider=current_user.oauth_provider).first()
+        if not existing:
+            try:
+                new_la = LinkedAccount(
+                    user_id=current_user.id,
+                    provider=current_user.oauth_provider,
+                    oauth_picture_url=current_user.oauth_picture_url
+                )
+                db.session.add(new_la)
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
+
+    linked = []
+    for la in current_user.linked_accounts:
+        linked.append({
+            "provider": la.provider,
+            "picture": la.oauth_picture_url or "",
+            "created_at": la.created_at.isoformat() if la.created_at else None
+        })
+
+    current_session_uuid = session.get('user_uuid')
+    sessions_list = []
+    for s in current_user.sessions:
+        sessions_list.append({
+            "session_uuid": s.session_uuid,
+            "ip_address": s.ip_address or "Unknown IP",
+            "user_agent": s.user_agent or "Unknown Device",
+            "location": s.location or "Unknown Location",
+            "last_active_at": s.last_active_at.isoformat() if s.last_active_at else None,
+            "is_current": (s.session_uuid == current_session_uuid)
+        })
+
+    # Sort sessions so current is first, then by last active desc
+    sessions_list.sort(key=lambda x: (not x["is_current"], x["last_active_at"] or ""), reverse=True)
+
+    return jsonify({
+        "has_password": bool(current_user.password_hash),
+        "linked_accounts": linked,
+        "sessions": sessions_list
+    }), 200
+
+
+@csrf.exempt
+@api_bp.route("/profile/security/change-password", methods=["POST"])
+@login_required
+def change_password():
+    payload = request.get_json(silent=True) or {}
+    current_password = str(payload.get("current_password") or "")
+    new_password = str(payload.get("new_password") or "")
+
+    if current_user.password_hash:
+        if not current_password:
+            return jsonify({"error": "Current password is required."}), 400
+        if not bcrypt.check_password_hash(current_user.password_hash, current_password):
+            return jsonify({"error": "Incorrect current password."}), 400
+
+    if not new_password or len(new_password) < 8:
+        return jsonify({"error": "New password must be at least 8 characters long."}), 400
+
+    try:
+        current_user.password_hash = bcrypt.generate_password_hash(new_password).decode("utf-8")
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": f"Failed to update password: {str(e)}"}), 500
+
+    return jsonify({"message": "Password updated successfully."}), 200
+
+
+@csrf.exempt
+@api_bp.route("/profile/security/unlink/<provider>", methods=["POST"])
+@login_required
+def unlink_provider(provider):
+    from app.models import LinkedAccount
+    provider = provider.strip().lower()
+
+    if provider not in ("google", "github", "linkedin"):
+        return jsonify({"error": "Invalid provider."}), 400
+
+    # Safety checks: must have a password OR at least one other oauth link
+    linked_providers = [la.provider for la in current_user.linked_accounts]
+    
+    # ensure it exists
+    la_to_delete = LinkedAccount.query.filter_by(user_id=current_user.id, provider=provider).first()
+    if not la_to_delete and current_user.oauth_provider != provider:
+        return jsonify({"error": "Provider is not linked."}), 400
+
+    other_providers = [p for p in linked_providers if p != provider]
+    
+    if not current_user.password_hash and not other_providers:
+        return jsonify({
+            "error": "Cannot unlink your only login method. Please configure a password or link another provider first to prevent locking yourself out."
+        }), 400
+
+    try:
+        if la_to_delete:
+            db.session.delete(la_to_delete)
+        
+        # Sync user's primary oauth_provider field if it matches the unlinked provider
+        if current_user.oauth_provider == provider:
+            current_user.oauth_provider = other_providers[0] if other_providers else None
+        
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": f"Failed to unlink provider: {str(e)}"}), 500
+
+    return jsonify({"message": f"Successfully unlinked {provider.capitalize()}."}), 200
+
+
+@csrf.exempt
+@api_bp.route("/profile/security/sessions/<session_uuid>", methods=["DELETE"])
+@login_required
+def revoke_session(session_uuid):
+    from app.models import UserSession
+    from flask import session as flask_session
+
+    sess = UserSession.query.filter_by(session_uuid=session_uuid, user_id=current_user.id).first()
+    if not sess:
+        return jsonify({"error": "Session not found."}), 404
+
+    try:
+        # If they are deleting their current session, log them out manually
+        is_current = (sess.session_uuid == flask_session.get('user_uuid'))
+        
+        db.session.delete(sess)
+        db.session.commit()
+
+        if is_current:
+            from flask_login import logout_user
+            logout_user()
+            flask_session.pop('user_uuid', None)
+            return jsonify({"message": "Current session revoked. Logging out...", "logged_out": True}), 200
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": f"Failed to revoke session: {str(e)}"}), 500
+
+    return jsonify({"message": "Session revoked successfully."}), 200
+
+
 @csrf.exempt
 @api_bp.route("/profile", methods=["DELETE"])
 @login_required

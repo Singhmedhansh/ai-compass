@@ -4,7 +4,7 @@ from urllib.parse import urlencode, urlparse
 
 from authlib.integrations.flask_client import OAuth
 from flask import Blueprint, current_app, jsonify, redirect, request, session, url_for
-from flask_login import login_user
+from flask_login import current_user, login_user
 
 from app import db
 from app.models import User
@@ -223,12 +223,51 @@ def _get_or_create_oauth_user(email, display_name, provider):
     return user
 
 
+def _handle_link_oauth_user(email, provider, picture_url=None):
+    from app.models import LinkedAccount
+    from datetime import datetime, timezone
+    email = email.strip().lower()
+    frontend_url = _frontend_base_url()
+    
+    link_user_id = session.pop('oauth_link_user_id', None)
+    if not current_user.is_authenticated or link_user_id != current_user.id:
+        return redirect(f"{frontend_url}/profile?error=link_failed&detail=unauthorized")
+        
+    # Check if this email is already linked to another user
+    existing_user = User.query.filter_by(email=email).first()
+    if existing_user and existing_user.id != current_user.id:
+        return redirect(f"{frontend_url}/profile?error=link_failed&detail=email_already_linked")
+        
+    # Create or update link for current_user
+    link = LinkedAccount.query.filter_by(user_id=current_user.id, provider=provider).first()
+    if not link:
+        link = LinkedAccount(
+            user_id=current_user.id,
+            provider=provider,
+            created_at=datetime.now(timezone.utc)
+        )
+        db.session.add(link)
+    
+    if picture_url:
+        link.oauth_picture_url = picture_url
+        if not current_user.oauth_picture_url:
+            current_user.oauth_picture_url = picture_url
+            
+    if not current_user.oauth_provider:
+        current_user.oauth_provider = provider
+        
+    db.session.commit()
+    return redirect(f"{frontend_url}/profile?linked={provider}")
+
+
 # ── Google ──────────────────────────────────────────────────────────────────
 
 @oauth_bp.route("/login/google")
 @oauth_bp.route("/auth/google")
 def login_google():
     frontend_url = _frontend_base_url()
+    if current_user.is_authenticated:
+        session['oauth_link_user_id'] = current_user.id
 
     if not os.getenv("GOOGLE_CLIENT_ID"):
         return jsonify({"error": "GOOGLE_CLIENT_ID not set"}), 500
@@ -265,7 +304,11 @@ def google_callback():
         if not email:
             return redirect(f"{frontend_url}/login?error=google_failed")
 
+        if session.get('oauth_link_user_id'):
+            return _handle_link_oauth_user(email, "google", picture)
+
         user = _get_or_create_oauth_user(email, name, "google")
+
         if picture and picture != (user.oauth_picture_url or ""):
             user.oauth_picture_url = picture
             db.session.commit()
@@ -283,6 +326,9 @@ def google_callback():
 @oauth_bp.route("/auth/github")
 def login_github():
     frontend_url = _frontend_base_url()
+    if current_user.is_authenticated:
+        session['oauth_link_user_id'] = current_user.id
+
     if not (current_app.config.get("GITHUB_CLIENT_ID") and current_app.config.get("GITHUB_CLIENT_SECRET")):
         return redirect(f"{frontend_url}/login?error=github_not_configured")
     try:
@@ -313,9 +359,13 @@ def github_callback():
         if not email:
             return redirect(f"{frontend_url}/login?error=github_no_email")
 
+        avatar_url = str(profile.get("avatar_url") or "").strip()
+
+        if session.get('oauth_link_user_id'):
+            return _handle_link_oauth_user(email, "github", avatar_url)
+
         display_name = profile.get("name") or profile.get("login", "")
         user = _get_or_create_oauth_user(email, display_name, "github")
-        avatar_url = str(profile.get("avatar_url") or "").strip()
         if avatar_url and avatar_url != (user.oauth_picture_url or ""):
             user.oauth_picture_url = avatar_url
             db.session.commit()
@@ -326,12 +376,16 @@ def github_callback():
         return redirect(f"{frontend_url}/login?error=github_failed")
 
 
+
 # ── LinkedIn (OpenID Connect) ────────────────────────────────────────────────
 
 @oauth_bp.route("/login/linkedin")
 @oauth_bp.route("/auth/linkedin")
 def login_linkedin():
     frontend_url = _frontend_base_url()
+    if current_user.is_authenticated:
+        session['oauth_link_user_id'] = current_user.id
+
     if not (current_app.config.get("LINKEDIN_CLIENT_ID") and current_app.config.get("LINKEDIN_CLIENT_SECRET")):
         return redirect(f"{frontend_url}/login?error=linkedin_not_configured")
     try:
@@ -374,6 +428,9 @@ def linkedin_callback():
             _save_linkedin_debug(dbg)
             return redirect(f"{frontend_url}/login?error=linkedin_no_email")
 
+        if session.get('oauth_link_user_id'):
+            return _handle_link_oauth_user(email, "linkedin", picture)
+
         user = _get_or_create_oauth_user(email, name, "linkedin")
         if picture and picture != (user.oauth_picture_url or ""):
             user.oauth_picture_url = picture
@@ -383,6 +440,7 @@ def linkedin_callback():
         dbg["user_id"] = user.id
         _save_linkedin_debug(dbg)
         return _spa_success_redirect(user, "linkedin", name, picture)
+
     except Exception as exc:
         current_app.logger.exception("LinkedIn OAuth callback failed")
         dbg["stage"] = dbg.get("stage", "?") + ":exception"

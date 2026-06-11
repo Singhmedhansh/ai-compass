@@ -29,6 +29,9 @@ class User(UserMixin, db.Model):
     created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
 
     favorites = db.relationship("Favorite", back_populates="user", cascade="all, delete-orphan")
+    linked_accounts = db.relationship("LinkedAccount", back_populates="user", cascade="all, delete-orphan")
+    sessions = db.relationship("UserSession", back_populates="user", cascade="all, delete-orphan")
+
 
 
 class AppSetting(db.Model):
@@ -318,4 +321,36 @@ class SyllabusStack(db.Model):
     subject_area = db.Column(db.String(255), nullable=True)
     tools_json = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc), index=True)
+
+
+class LinkedAccount(db.Model):
+    __tablename__ = "linked_accounts"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
+    provider = db.Column(db.String(50), nullable=False)
+    oauth_picture_url = db.Column(db.String(500), nullable=True)
+    created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+
+    user = db.relationship("User", back_populates="linked_accounts")
+
+    __table_args__ = (
+        db.UniqueConstraint("user_id", "provider", name="uq_user_provider_linked"),
+    )
+
+
+class UserSession(db.Model):
+    __tablename__ = "user_sessions"
+
+    id = db.Column(db.Integer, primary_key=True)
+    session_uuid = db.Column(db.String(100), unique=True, nullable=False, index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
+    ip_address = db.Column(db.String(100), nullable=True)
+    user_agent = db.Column(db.String(500), nullable=True)
+    location = db.Column(db.String(255), nullable=True)
+    last_active_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+    created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+
+    user = db.relationship("User", back_populates="sessions")
+
 

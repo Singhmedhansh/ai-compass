@@ -375,9 +375,22 @@ def logout():
     except Exception:
         pass
 
+    session_uuid = session.get('user_uuid')
+    if session_uuid:
+        try:
+            from app.models import UserSession
+            sess = UserSession.query.filter_by(session_uuid=session_uuid).first()
+            if sess:
+                db.session.delete(sess)
+                db.session.commit()
+        except Exception:
+            db.session.rollback()
+
     logout_user()
+    session.pop('user_uuid', None)
     flash("Logged out successfully.", "info")
     return redirect(url_for("main.index"))
+
 
 
 @auth_bp.route("/api/auth/forgot-password", methods=["POST"])
