@@ -104,6 +104,8 @@ function normalizeTool(rawTool) {
     // Cheapest non-zero tier from pricing_tiers.tiers[], if any. Powers
     // a real Offer in JSON-LD — Google requires a numeric `price`, so
     // labels like "Freemium" alone aren't enough.
+    academic_integrity_rating: rawTool?.academic_integrity_rating || null,
+    academic_warning: rawTool?.academic_warning || null,
     lowestPaidTier: (() => {
       const tiers = rawTool?.pricing_tiers?.tiers
       if (!Array.isArray(tiers)) return null
@@ -638,6 +640,31 @@ function ToolDetailPage() {
             </div>
           </section>
           </MotionDiv>
+
+          {tool.academic_integrity_rating && (
+            <MotionDiv variants={sectionReveal} initial="initial" animate="animate">
+              <section className={clsx(
+                "rounded-2xl border p-6 shadow-sm relative overflow-hidden backdrop-blur-sm",
+                tool.academic_integrity_rating === 'Safe' && 'bg-emerald-500/5 border-emerald-500/20 text-ink-2',
+                tool.academic_integrity_rating === 'Use with Caution' && 'bg-amber-500/5 border-amber-500/20 text-ink-2',
+                tool.academic_integrity_rating === 'High Risk' && 'bg-rose-500/5 border-rose-500/20 text-ink-2'
+              )}>
+                <h3 className="text-base font-bold flex items-center gap-2 mb-3">
+                  <span className="text-lg">🛡️</span>
+                  <span>Academic Integrity:</span>
+                  <span className={clsx(
+                    "px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider",
+                    tool.academic_integrity_rating === 'Safe' && 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+                    tool.academic_integrity_rating === 'Use with Caution' && 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
+                    tool.academic_integrity_rating === 'High Risk' && 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
+                  )}>
+                    {tool.academic_integrity_rating}
+                  </span>
+                </h3>
+                <p className="text-sm leading-relaxed">{tool.academic_warning}</p>
+              </section>
+            </MotionDiv>
+          )}
 
           <MotionDiv variants={sectionReveal} initial="initial" animate="animate">
           <section className="rounded-2xl border border-line bg-bg-elev p-6">

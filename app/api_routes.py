@@ -18,7 +18,7 @@ from html import escape as html_escape
 
 from app import bcrypt, cache, csrf, db
 from app.ml_recommender import clear_model_cache, detect_intent, get_similar_tools, load_model, rerank_by_category
-from app.models import Favorite, Rating, Review, ToolRating, User
+from app.models import Favorite, Rating, Review, ToolRating, User, ReviewVote
 from app.rate_limit import is_rate_limited
 from app.search_utils import search_tools, weighted_search
 from app.tool_cache import DEFAULT_TOOLS_PATH, TOOL_CACHE, get_cached_tools, get_visible_tools
@@ -188,7 +188,7 @@ def _local_fuzzy_search(raw_query: str, limit: int = 10, threshold: float = 0.72
     return [{**tool, "_score": round(score * 100, 2), "_match_type": "fuzzy"} for score, tool in ranked[:limit]]
 
 
-def _search_catalog_tools(raw_query: str, category: str, pricing: str, student_only: bool, trending_only: bool, sort_by: str) -> dict:
+def _search_catalog_tools(raw_query: str, category: str, pricing: str, student_only: bool, trending_only: bool, sort_by: str, actually_free: bool = False) -> dict:
     if not raw_query:
         return search_tools(
             raw_query=raw_query,
@@ -197,6 +197,7 @@ def _search_catalog_tools(raw_query: str, category: str, pricing: str, student_o
             student_only=student_only,
             trending_only=trending_only,
             sort_by=sort_by,
+            actually_free=actually_free,
         )
 
     try:
@@ -215,6 +216,8 @@ def _search_catalog_tools(raw_query: str, category: str, pricing: str, student_o
         if selected_category and tool.get("category") != selected_category:
             continue
         if student_only and not (tool.get("student_perk") or tool.get("studentPerk")):
+            continue
+        if actually_free and tool_pricing not in ("free", "freemium"):
             continue
         if trending_only and not tool.get("trending"):
             continue
@@ -1347,7 +1350,7 @@ def get_tool_reviews(slug: str):
         t0 = time.time()
         current_app.logger.info(f"[PERF] reviews start: {slug}")
         reviews = (
-            Review.query.options(joinedload(Review.user))
+            Review.query.options(joinedload(Review.user), joinedload(Review.votes))
             .filter_by(tool_slug=slug, is_hidden=False)
             .order_by(Review.created_at.desc())
             .limit(50)
@@ -1362,8 +1365,11 @@ def get_tool_reviews(slug: str):
                     or getattr(r.user, "display_name", None)
                     or "Anonymous"
                 ) if r.user else "Anonymous",
+                "is_student_verified": bool(r.user.student_status) if r.user else False,
                 "body": r.body,
                 "created_at": r.created_at.isoformat(),
+                "score": sum(v.vote_type for v in r.votes),
+                "user_vote": next((v.vote_type for v in r.votes if v.user_id == current_user.id), None) if current_user and current_user.is_authenticated else None,
             } for r in reviews],
             "count": len(reviews),
             "message": "No reviews yet. Be the first!" if not reviews else None
@@ -1464,6 +1470,40 @@ def post_review(slug: str):
         db.session.rollback()
         current_app.logger.exception("Review submit error")
         return jsonify({"error": "Could not save review"}), 500
+
+
+@api_bp.post("/reviews/<int:review_id>/vote")
+@csrf.exempt
+@login_required
+def vote_review(review_id: int):
+    try:
+        payload = request.get_json(silent=True) or {}
+        vote_type = payload.get("vote_type")  # 1 or -1, or 0 to clear
+        if vote_type not in (1, -1, 0):
+            return jsonify({"error": "Invalid vote type"}), 400
+
+        existing = ReviewVote.query.filter_by(review_id=review_id, user_id=current_user.id).first()
+        if vote_type == 0:
+            if existing:
+                db.session.delete(existing)
+        else:
+            if existing:
+                existing.vote_type = vote_type
+            else:
+                vote = ReviewVote(review_id=review_id, user_id=current_user.id, vote_type=vote_type)
+                db.session.add(vote)
+
+        db.session.commit()
+        
+        # Calculate new score
+        votes = ReviewVote.query.filter_by(review_id=review_id).all()
+        score = sum(v.vote_type for v in votes)
+        return jsonify({"success": True, "score": score})
+    except Exception:
+        db.session.rollback()
+        current_app.logger.exception("Review vote error")
+        return jsonify({"error": "Could not save vote"}), 500
+
 
 
 @api_bp.post("/submit-tool")
@@ -1589,6 +1629,7 @@ def api_search():
     category    = request.args.get('category', 'All')
     pricing     = request.args.get('pricing', 'All')
     student     = request.args.get('student_only', 'false') == 'true'
+    actually_f  = request.args.get('actually_free', 'false') == 'true'
     trending    = request.args.get('trending_only', 'false') == 'true'
     sort_by     = request.args.get('sort', 'Relevance')
 
@@ -1599,6 +1640,7 @@ def api_search():
         student_only=student,
         trending_only=trending,
         sort_by=sort_by,
+        actually_free=actually_f,
     )
     return jsonify(output)
 

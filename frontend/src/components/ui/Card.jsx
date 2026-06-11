@@ -205,8 +205,28 @@ function Card({ tool = {}, layoutType = 'standard', glass = false, folders = nul
         </div>
       </div>
 
-      <div className={clsx("flex items-center justify-between gap-3 mt-auto", isLarge ? "flex-wrap justify-center pt-4 border-t border-line" : "")}>
-        <Badge label={category} variant={category} />
+      <div className={clsx("flex items-center justify-between gap-3 mt-auto w-full", isLarge ? "flex-wrap justify-center pt-4 border-t border-line" : "")}>
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <Badge label={category} variant={category} />
+          {tool.academic_integrity_rating && (
+            <span
+              className={clsx(
+                'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider',
+                tool.academic_integrity_rating === 'Safe' && 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20',
+                tool.academic_integrity_rating === 'Use with Caution' && 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20',
+                tool.academic_integrity_rating === 'High Risk' && 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20'
+              )}
+              title={tool.academic_warning || 'Academic Safety'}
+            >
+              🛡️ {tool.academic_integrity_rating}
+            </span>
+          )}
+          {tool.student_friendly && (
+            <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 uppercase tracking-wider">
+              🎓 Discount
+            </span>
+          )}
+        </div>
 
         {hasRealRating ? (
           <div className="flex items-center gap-1" aria-label={`Rated ${rating} out of 5`}>

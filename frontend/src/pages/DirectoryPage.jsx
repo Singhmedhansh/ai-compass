@@ -124,7 +124,9 @@ function mapTool(rawTool) {
     accent_color: rawTool.accent_color,
     tagline: rawTool.tagline,
     featured: rawTool.featured === true,
-    student_friendly: rawTool.student_friendly === true,
+    student_friendly: rawTool.student_friendly === true || rawTool.student_perk === true || rawTool.studentPerk === true,
+    academic_integrity_rating: rawTool.academic_integrity_rating,
+    academic_warning: rawTool.academic_warning,
     curation_score: rawTool.curation_score,
     popularity_score: rawTool.popularity_score,
     _score: rawTool._score,
@@ -218,9 +220,11 @@ function buildDirectorySummary(tools) {
 function DirectoryPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const initialCategory = searchParams.get('category') || 'All'
-  const initialQuery = searchParams.get('q') || ''
+  const searchQuery = searchParams.get('q') || ''
   const queryFromParams = searchParams.get('q') || ''
   const categoryFromParams = searchParams.get('category') || 'All'
+  const actuallyFreeOnly = searchParams.get('actually_free') === 'true'
+  const studentOnly = searchParams.get('student_only') === 'true'
 
   const [tools, setTools] = useState([])
   const [directorySummary, setDirectorySummary] = useState(null)
@@ -233,10 +237,9 @@ function DirectoryPage() {
   const [retryNonce, setRetryNonce] = useState(0)
   const [catalogCount, setCatalogCount] = useState(null)
   const [category, setCategory] = useState(
-    CATEGORY_OPTIONS.find((item) => item.toLowerCase() === initialCategory.toLowerCase()) || 'All',
+    CATEGORY_OPTIONS.find((item) => item.toLowerCase() === categoryFromParams.toLowerCase()) || 'All',
   )
   const [sortBy, setSortBy] = useState('Trending')
-  const [searchQuery, setSearchQuery] = useState(initialQuery)
   const [showMobileFilters, setShowMobileFilters] = useState(false)
   const [showAllOpened, setShowAllOpened] = useState(false)
   const [zeroResultsFallbackActive, setZeroResultsFallbackActive] = useState(false)
@@ -244,7 +247,7 @@ function DirectoryPage() {
   const triggerRef = useRef(null)
   const panelRef = useRef(null)
   const hasSearchQuery = queryFromParams.trim().length > 0
-  const isRootHub = !hasSearchQuery && category === 'All'
+  const isRootHub = !hasSearchQuery && category === 'All' && !actuallyFreeOnly && !studentOnly
   const displayCount = catalogCount && catalogCount > 0 ? catalogCount : FALLBACK_TOOL_COUNT
   const hubToolCount = directorySummary?.total && directorySummary.total > 0
     ? directorySummary.total
@@ -252,7 +255,7 @@ function DirectoryPage() {
 
   // Tracks the query value WE last wrote to the URL, so the sync effect below can
   // tell an external URL change (navbar search, back/forward, deep link) apart
-  // from the echo of our own setSearchParams call. Without this guard the effect
+  // from the echo of our our own setSearchParams call. Without this guard the effect
   // reverted `searchQuery` to the URL's *trimmed* value on every keystroke, which
   // made it impossible to type a trailing space — i.e. you couldn't type a second
   // word, and in production the input appeared frozen after the first search.
@@ -275,7 +278,7 @@ function DirectoryPage() {
     }
   }, [queryFromParams, categoryFromParams, category])
 
-  const updateUrlParams = (nextCategory, nextQuery, nextTags = null) => {
+  const updateUrlParams = (nextCategory, nextQuery, nextTags = null, nextFree = null, nextStudent = null) => {
     const nextParams = new URLSearchParams(searchParams)
     const query = (nextQuery || '').trim()
     const tags = (nextTags || '').trim()
@@ -296,6 +299,20 @@ function DirectoryPage() {
       nextParams.set('tags', tags)
     } else {
       nextParams.delete('tags')
+    }
+
+    const freeVal = nextFree !== null ? nextFree : actuallyFreeOnly
+    if (freeVal) {
+      nextParams.set('actually_free', 'true')
+    } else {
+      nextParams.delete('actually_free')
+    }
+
+    const studentVal = nextStudent !== null ? nextStudent : studentOnly
+    if (studentVal) {
+      nextParams.set('student_only', 'true')
+    } else {
+      nextParams.delete('student_only')
     }
 
     // Record what we pushed so the sync effect treats this as our own write,
@@ -338,7 +355,8 @@ function DirectoryPage() {
     const normalizedTags = (searchParams.get('tags') || '').trim()
     const isRemoteSearch = Boolean(normalizedQuery)
     const isTaggedSearch = Boolean(normalizedTags)
-    const shouldLoadSummary = !isRemoteSearch && normalizedCategory === 'All' && !showAllOpened
+    const shouldLoadSummary = !isRemoteSearch && normalizedCategory === 'All' && !actuallyFreeOnly && !studentOnly && !showAllOpened
+
 
     // WHY 300ms: hit the backend after the user stops typing for one quarter
     // second — short enough that the page feels live, long enough that a
@@ -359,10 +377,16 @@ function DirectoryPage() {
           ? `${API}/api/v1/search?${new URLSearchParams({
               q: normalizedQuery,
               ...(canonicalCategory !== 'All' ? { category: canonicalCategory } : {}),
+              ...(actuallyFreeOnly ? { actually_free: 'true' } : {}),
+              ...(studentOnly ? { student_only: 'true' } : {}),
             }).toString()}`
           : shouldLoadSummary
             ? `${API}/api/v1/tools?fields=summary`
-            : `${API}/api/v1/tools?fields=card`
+            : `${API}/api/v1/tools?fields=card&${new URLSearchParams({
+                ...(actuallyFreeOnly ? { actually_free: 'true' } : {}),
+                ...(studentOnly ? { student_only: 'true' } : {}),
+              }).toString()}`
+
 
         const response = await fetch(endpoint, { signal: controller.signal })
         clearTimeout(abortTimeout)
@@ -440,7 +464,8 @@ function DirectoryPage() {
       clearTimeout(debounceTimer)
       controller.abort()
     }
-  }, [queryFromParams, category, retryNonce, searchParams, showAllOpened])
+  }, [queryFromParams, category, retryNonce, searchParams, showAllOpened, actuallyFreeOnly, studentOnly])
+
 
   const filteredTools = useMemo(() => {
     const normalizedSearch = queryFromParams.trim().toLowerCase()
@@ -453,9 +478,16 @@ function DirectoryPage() {
       return getNormalizedCategory(tool.category) === getNormalizedCategory(toCanonicalCategory(category))
     })
 
+    const byFree = actuallyFreeOnly ? byCategory.filter((tool) => {
+      const pricing = (tool.pricing || '').toLowerCase()
+      return pricing.includes('free') || pricing.includes('freemium')
+    }) : byCategory
+
+    const byStudent = studentOnly ? byFree.filter((tool) => tool.student_friendly) : byFree
+
     // 2. If it's a remote search, skip substring filtering (which breaks semantic matches)
     //    If it's NOT a remote search, do standard substring filtering.
-    const bySearch = hasSearchQuery ? byCategory : byCategory.filter((tool) => {
+    const bySearch = hasSearchQuery ? byStudent : byStudent.filter((tool) => {
       if (!normalizedSearch) {
         return true
       }
@@ -463,6 +495,7 @@ function DirectoryPage() {
       const normalizedDescription = (tool.description || '').toLowerCase()
       return normalizedName.includes(normalizedSearch) || normalizedDescription.includes(normalizedSearch)
     })
+
 
     const sorted = [...bySearch]
 
@@ -533,10 +566,9 @@ function DirectoryPage() {
 
   const handleReset = () => {
     setSortBy('Trending')
-    setCategory('All')
-    setSearchQuery('')
-    updateUrlParams('All', '')
+    updateUrlParams('All', '', null, false, false)
   }
+
 
   const closeDrawer = () => {
     setShowMobileFilters(false)
@@ -577,8 +609,9 @@ function DirectoryPage() {
   }
 
   const trimmedSearchTerm = queryFromParams.trim()
-  const hasFilter = category !== 'All'
+  const hasFilter = category !== 'All' || actuallyFreeOnly || studentOnly
   const viewMode = hasSearchQuery ? 'search' : hasFilter ? 'filter' : 'hub'
+
   useEffect(() => {
     setZeroResultsFallbackActive(
       Boolean(
@@ -712,10 +745,38 @@ function DirectoryPage() {
                   label="Sort tools"
                 />
               </div>
+              <div className="mb-4 flex flex-col gap-2">
+                <label className="block text-xs font-semibold text-ink-2">Discounts & Pricing</label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => updateUrlParams(category, searchQuery, null, !actuallyFreeOnly, studentOnly)}
+                    className={`flex-1 rounded-xl border py-2.5 text-center text-xs font-bold transition ${
+                      actuallyFreeOnly
+                        ? 'border-emerald-500 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                        : 'border-line bg-bg-sunk text-ink-2'
+                    }`}
+                  >
+                    🟢 Actually Free
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => updateUrlParams(category, searchQuery, null, actuallyFreeOnly, !studentOnly)}
+                    className={`flex-1 rounded-xl border py-2.5 text-center text-xs font-bold transition ${
+                      studentOnly
+                        ? 'border-accent bg-accent-soft text-accent-ink'
+                        : 'border-line bg-bg-sunk text-ink-2'
+                    }`}
+                  >
+                    🎓 Student Perks
+                  </button>
+                </div>
+              </div>
               <div className="flex gap-2">
                 <Button variant="primary" className="flex-1 font-semibold" onClick={closeDrawer}>Apply</Button>
                 <Button variant="secondary" className="flex-1 font-semibold" onClick={() => { handleReset(); closeDrawer() }}>Reset</Button>
               </div>
+
             </MotionDiv>
           </Fragment>
         )}
@@ -730,6 +791,29 @@ function DirectoryPage() {
           style={{ fontSize: 16 }}
         />
       </div>
+
+      {/* Task pills for quick-search */}
+      <div className="mb-6 flex flex-wrap gap-2 items-center">
+        <span className="text-xs font-semibold uppercase tracking-wider text-muted mr-1">Quick Tasks:</span>
+        {[
+          { label: "📝 Write Essays", query: "essay writing" },
+          { label: "📚 Summarize PDFs", query: "summarize pdf documents" },
+          { label: "💻 Code & Debug", query: "coding helper debug" },
+          { label: "🎓 Exam Prep", query: "exam test preparation study" },
+          { label: "🎨 Design Graphics", query: "design logos presentation slides" },
+          { label: "🎙️ Transcribe Lecture", query: "transcribe lecture audio to text" }
+        ].map((task) => (
+          <button
+            key={task.label}
+            type="button"
+            onClick={() => handleSearchChange(task.query)}
+            className="rounded-xl border border-line bg-bg-elev px-3 py-1.5 text-xs font-medium text-ink-2 hover:border-accent hover:text-accent transition shadow-sm"
+          >
+            {task.label}
+          </button>
+        ))}
+      </div>
+
 
       <section className="sticky top-16 z-20 mb-6 rounded-2xl border border-line glass-nav p-4 shadow-sm backdrop-blur">
         {viewMode === 'hub' ? (
@@ -768,17 +852,44 @@ function DirectoryPage() {
               })}
             </div>
 
-            <div className="mt-4 md:w-[220px]">
-              <Dropdown
-                value={sortBy}
-                onChange={setSortBy}
-                options={SORT_OPTIONS}
-                label="Sort tools"
-              />
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
+              <div className="md:w-[220px] w-full">
+                <Dropdown
+                  value={sortBy}
+                  onChange={setSortBy}
+                  options={SORT_OPTIONS}
+                  label="Sort tools"
+                />
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => updateUrlParams(category, searchQuery, null, !actuallyFreeOnly, studentOnly)}
+                  className={`flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+                    actuallyFreeOnly
+                      ? 'border-emerald-500 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                      : 'border-line bg-bg-elev text-ink-2 hover:bg-bg-sunk'
+                  }`}
+                >
+                  🟢 Actually Free
+                </button>
+                <button
+                  type="button"
+                  onClick={() => updateUrlParams(category, searchQuery, null, actuallyFreeOnly, !studentOnly)}
+                  className={`flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+                    studentOnly
+                      ? 'border-accent bg-accent-soft text-accent-ink'
+                      : 'border-line bg-bg-elev text-ink-2 hover:bg-bg-sunk'
+                  }`}
+                >
+                  🎓 Student Perks
+                </button>
+              </div>
             </div>
           </>
         )}
       </section>
+
       </MotionDiv>
 
       {viewMode !== 'hub' && (

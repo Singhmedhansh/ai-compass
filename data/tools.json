@@ -169,7 +169,9 @@
         }
       ]
     },
-    "curation_score": 100.0
+    "curation_score": 100.0,
+    "academic_integrity_rating": "Use with Caution",
+    "academic_warning": "High risk of AI detection by Turnitin if copied directly. Use for brainstorming, outlining, and explaining concepts rather than direct drafting."
   },
   {
     "id": 2,
@@ -336,7 +338,9 @@
         }
       ]
     },
-    "curation_score": 100.0
+    "curation_score": 100.0,
+    "academic_integrity_rating": "Use with Caution",
+    "academic_warning": "Excellent for analysis and writing assistance, but generated prose will trigger Turnitin. Always rewrite in your own voice."
   },
   {
     "id": 3,
@@ -459,7 +463,9 @@
         }
       ]
     },
-    "curation_score": 45.0
+    "curation_score": 45.0,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Safe for grammar, style, and spelling corrections. Does not generate original content unless using the generative assistant feature, which should be avoided for graded essays."
   },
   {
     "id": 5,
@@ -579,7 +585,9 @@
         }
       ]
     },
-    "curation_score": 63.0
+    "curation_score": 63.0,
+    "academic_integrity_rating": "High Risk",
+    "academic_warning": "Paraphrasing tools are heavily scrutinized by university boards. Modern detectors like Turnitin can detect machine-paraphrased content. Use strictly for grammar correction rather than spinning entire paragraphs."
   },
   {
     "id": 6,
@@ -728,7 +736,9 @@
         }
       ]
     },
-    "curation_score": 100.0
+    "curation_score": 100.0,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 7,
@@ -885,7 +895,9 @@
         }
       ]
     },
-    "curation_score": 97.0
+    "curation_score": 97.0,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 9,
@@ -1005,7 +1017,9 @@
         }
       ]
     },
-    "curation_score": 51.2
+    "curation_score": 51.2,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 10,
@@ -1130,7 +1144,9 @@
           "cta_url": "https://codeium.com"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 11,
@@ -1287,7 +1303,9 @@
         }
       ]
     },
-    "curation_score": 98.0
+    "curation_score": 98.0,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 12,
@@ -1404,7 +1422,9 @@
         }
       ]
     },
-    "curation_score": 54.5
+    "curation_score": 54.5,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 13,
@@ -1522,7 +1542,9 @@
         }
       ]
     },
-    "curation_score": 48.8
+    "curation_score": 48.8,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 14,
@@ -1608,7 +1630,9 @@
           "cta_url": "https://semanticscholar.org"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 15,
@@ -1711,7 +1735,9 @@
         }
       ]
     },
-    "curation_score": 40.0
+    "curation_score": 40.0,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 16,
@@ -1812,7 +1838,9 @@
           "cta_url": "https://connectedpapers.com"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 17,
@@ -1917,7 +1945,9 @@
           "cta_url": "https://apps.ankiweb.net"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 18,
@@ -2023,7 +2053,9 @@
         }
       ]
     },
-    "curation_score": 45.0
+    "curation_score": 45.0,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 19,
@@ -2126,7 +2158,9 @@
           "cta_url": "https://khanacademy.org"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 20,
@@ -2228,7 +2262,9 @@
           "cta_url": "https://photomath.com"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 21,
@@ -2356,7 +2392,9 @@
           "cta_url": "https://wolframalpha.com"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 22,
@@ -2446,7 +2484,9 @@
           "cta_url": "https://socratic.org"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 23,
@@ -2564,7 +2604,9 @@
           "cta_url": "https://todoist.com"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 24,
@@ -2668,7 +2710,9 @@
           "cta_url": "https://usemotion.com"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 25,
@@ -2795,7 +2839,9 @@
           "cta_url": "https://otter.ai"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 26,
@@ -2928,7 +2974,9 @@
         }
       ]
     },
-    "curation_score": 94.0
+    "curation_score": 94.0,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 27,
@@ -3019,7 +3067,9 @@
           "cta_url": "https://openai.com/dall-e-3"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 28,
@@ -3140,7 +3190,9 @@
         }
       ]
     },
-    "curation_score": 53.0
+    "curation_score": 53.0,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 29,
@@ -3229,7 +3281,9 @@
           "cta_url": "https://stability.ai"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 30,
@@ -3364,7 +3418,9 @@
         }
       ]
     },
-    "curation_score": 57.0
+    "curation_score": 57.0,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 31,
@@ -3474,7 +3530,9 @@
           "cta_url": "https://sora.com"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 32,
@@ -3597,7 +3655,9 @@
           "cta_url": "https://runwayml.com"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 33,
@@ -3732,7 +3792,9 @@
         }
       ]
     },
-    "curation_score": 60.5
+    "curation_score": 60.5,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 34,
@@ -3850,7 +3912,9 @@
         }
       ]
     },
-    "curation_score": 56.5
+    "curation_score": 56.5,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 35,
@@ -3968,7 +4032,9 @@
         }
       ]
     },
-    "curation_score": 55.8
+    "curation_score": 55.8,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 36,
@@ -4081,7 +4147,9 @@
           "cta_url": "https://www.beautiful.ai/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 37,
@@ -4193,7 +4261,9 @@
           "cta_url": "https://gamma.app"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 38,
@@ -4295,7 +4365,9 @@
         }
       ]
     },
-    "curation_score": 54.5
+    "curation_score": 54.5,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 40,
@@ -4409,7 +4481,9 @@
           "cta_url": "https://www.adobe.com/express/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 42,
@@ -4532,7 +4606,9 @@
           "cta_url": "https://julius.ai"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 44,
@@ -4674,7 +4750,9 @@
         }
       ]
     },
-    "curation_score": 67.0
+    "curation_score": 67.0,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 45,
@@ -4803,7 +4881,9 @@
           "cta_url": "https://www.microsoft.com/en-us/microsoft-365-copilot/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 46,
@@ -4927,7 +5007,9 @@
           "cta_url": "https://obsidian.md/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 47,
@@ -5048,7 +5130,9 @@
         }
       ]
     },
-    "curation_score": 61.2
+    "curation_score": 61.2,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 48,
@@ -5160,7 +5244,9 @@
           "cta_url": "https://www.mindgrasp.ai/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 49,
@@ -5269,7 +5355,9 @@
           "cta_url": "https://scite.ai/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 50,
@@ -5390,7 +5478,9 @@
           "cta_url": "https://www.zotero.org/storage"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 51,
@@ -5511,7 +5601,9 @@
           "cta_url": "https://napkin.ai"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 52,
@@ -5637,7 +5729,9 @@
           "cta_url": "https://miro.com/pricing/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 53,
@@ -5762,7 +5856,9 @@
           "cta_url": "https://lumen5.com/pricing/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 54,
@@ -5896,7 +5992,9 @@
         }
       ]
     },
-    "curation_score": 54.5
+    "curation_score": 54.5,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 55,
@@ -6031,7 +6129,9 @@
         }
       ]
     },
-    "curation_score": 67.0
+    "curation_score": 67.0,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 57,
@@ -6134,7 +6234,9 @@
         }
       ]
     },
-    "curation_score": 52.5
+    "curation_score": 52.5,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 58,
@@ -6222,7 +6324,9 @@
           "cta_url": "https://lmstudio.ai/download"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 59,
@@ -6310,7 +6414,9 @@
           "cta_url": "https://ollama.com/download"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 60,
@@ -6428,7 +6534,9 @@
         }
       ]
     },
-    "curation_score": 79.0
+    "curation_score": 79.0,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 61,
@@ -6540,7 +6648,9 @@
           "cta_url": "https://coggle.it/organisations"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 62,
@@ -6653,7 +6763,9 @@
           "cta_url": "https://get.mem.ai/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 63,
@@ -6752,7 +6864,9 @@
           "cta_url": "https://turnitin.gradescope.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 64,
@@ -6873,7 +6987,9 @@
           "cta_url": "https://poe.com/subscription_plans"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 65,
@@ -6989,7 +7105,9 @@
         }
       ]
     },
-    "curation_score": 52.5
+    "curation_score": 52.5,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 66,
@@ -7075,7 +7193,9 @@
           "cta_url": "https://bing.com/images/create"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 67,
@@ -7208,7 +7328,9 @@
         }
       ]
     },
-    "curation_score": 64.2
+    "curation_score": 64.2,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 69,
@@ -7343,7 +7465,9 @@
           "cta_url": "https://prezi.com/pricing/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 70,
@@ -7455,7 +7579,9 @@
           "cta_url": "https://www.slidesai.io/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 71,
@@ -7544,7 +7670,9 @@
           "cta_url": "https://www.panopto.com/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 72,
@@ -7633,7 +7761,9 @@
           "cta_url": "https://public.tableau.com"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 73,
@@ -7721,7 +7851,9 @@
           "cta_url": "https://orangedatamining.com"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 74,
@@ -7821,7 +7953,9 @@
           "cta_url": "https://www.knime.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 76,
@@ -7944,7 +8078,9 @@
           "cta_url": "https://colab.research.google.com/signup"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 77,
@@ -8032,7 +8168,9 @@
           "cta_url": "https://www.kaggle.com"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 78,
@@ -8097,7 +8235,9 @@
       "Pair programmer mode"
     ],
     "slug": "phind",
-    "curation_score": 56.2
+    "curation_score": 56.2,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 79,
@@ -8218,7 +8358,9 @@
           "cta_url": "https://codepen.io/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 80,
@@ -8306,7 +8448,9 @@
           "cta_url": "https://www.glean.com/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 81,
@@ -8459,7 +8603,9 @@
         }
       ]
     },
-    "curation_score": 62.0
+    "curation_score": 62.0,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 83,
@@ -8598,7 +8744,9 @@
           "cta_url": "https://www.taskade.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 84,
@@ -8687,7 +8835,9 @@
           "cta_url": "https://readwise.io/pricing/reader"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 85,
@@ -8753,7 +8903,9 @@
       "Follow-up questions"
     ],
     "slug": "explain-like-i'm-five",
-    "curation_score": 52.5
+    "curation_score": 52.5,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 86,
@@ -8865,7 +9017,9 @@
           "cta_url": "https://www.coursera.org/courseraplus"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 87,
@@ -8978,7 +9132,9 @@
           "cta_url": "https://www.duolingo.com"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 88,
@@ -9091,7 +9247,9 @@
           "cta_url": "https://www.brainscape.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 90,
@@ -9202,7 +9360,9 @@
           "cta_url": "https://www.caktus.ai/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 91,
@@ -9315,7 +9475,9 @@
           "cta_url": "https://www.copy.ai/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 92,
@@ -9447,7 +9609,9 @@
         }
       ]
     },
-    "curation_score": 58.2
+    "curation_score": 58.2,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 93,
@@ -9548,7 +9712,9 @@
           "cta_url": "https://www.jasper.ai/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 94,
@@ -9668,7 +9834,9 @@
           "cta_url": "https://lottiefiles.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 95,
@@ -9793,7 +9961,9 @@
           "cta_url": "https://spline.design/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 98,
@@ -9904,7 +10074,9 @@
           "cta_url": "https://lobehub.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 99,
@@ -10003,7 +10175,9 @@
           "cta_url": "https://www.cram.com/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 103,
@@ -10115,7 +10289,9 @@
           "cta_url": "https://www.mathworks.com/pricing-licensing.html"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 104,
@@ -10217,7 +10393,9 @@
           "cta_url": "https://www.mathway.com"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 109,
@@ -10320,7 +10498,9 @@
           "cta_url": "https://raindrop.io/pro/buy"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 110,
@@ -10447,7 +10627,9 @@
           "cta_url": "https://www.mural.co/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 111,
@@ -10565,7 +10747,9 @@
         }
       ]
     },
-    "curation_score": 60.0
+    "curation_score": 60.0,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 112,
@@ -10690,7 +10874,9 @@
           "cta_url": "https://www.mymap.ai/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 114,
@@ -10800,7 +10986,9 @@
           "cta_url": "https://skylum.com/luminar/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 115,
@@ -10887,7 +11075,9 @@
           "cta_url": "https://researchrabbit.ai"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 116,
@@ -10998,7 +11188,9 @@
           "cta_url": "https://one.google.com/about/google-ai-plans/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 117,
@@ -11109,7 +11301,9 @@
           "cta_url": "https://www.penelopeai.com"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 118,
@@ -11246,7 +11440,9 @@
           "cta_url": "https://clickup.com/brain/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 120,
@@ -11385,7 +11581,9 @@
           "cta_url": "https://www.typeform.com/pricing/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 122,
@@ -11474,7 +11672,9 @@
           "cta_url": "https://opera.com/features/aria"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 123,
@@ -11598,7 +11798,9 @@
           "cta_url": "https://pictory.ai/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 124,
@@ -11721,7 +11923,9 @@
           "cta_url": "https://www.goodnotes.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 125,
@@ -11834,7 +12038,9 @@
           "cta_url": "https://notability.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 126,
@@ -11932,7 +12138,9 @@
           "cta_url": "https://detangle.ai"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 127,
@@ -12043,7 +12251,9 @@
           "cta_url": "https://www.codecademy.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 128,
@@ -12161,7 +12371,9 @@
         }
       ]
     },
-    "curation_score": 59.8
+    "curation_score": 59.8,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 129,
@@ -12281,7 +12493,9 @@
         }
       ]
     },
-    "curation_score": 76.2
+    "curation_score": 76.2,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 130,
@@ -12368,7 +12582,9 @@
           "cta_url": "https://ahrefs.com/writing-tools"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 131,
@@ -12464,7 +12680,9 @@
           "cta_url": "https://www.paper-digest.com/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 132,
@@ -12587,7 +12805,9 @@
           "cta_url": "https://www.humata.ai/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 133,
@@ -12707,7 +12927,9 @@
           "cta_url": "https://pdf.ai/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 134,
@@ -12773,7 +12995,9 @@
       "Note import"
     ],
     "slug": "study.ai",
-    "curation_score": 58.5
+    "curation_score": 58.5,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 135,
@@ -12874,7 +13098,9 @@
           "cta_url": "https://www.wizeprep.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 136,
@@ -12989,7 +13215,9 @@
           "cta_url": "https://www.naturalreaders.com/online/pricing.html"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 137,
@@ -13099,7 +13327,9 @@
           "cta_url": "https://deepgram.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 138,
@@ -13222,7 +13452,9 @@
           "cta_url": "https://rows.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 139,
@@ -13347,7 +13579,9 @@
           "cta_url": "https://www.veed.io/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 140,
@@ -13484,7 +13718,9 @@
           "cta_url": "https://pitch.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 141,
@@ -13584,7 +13820,9 @@
           "cta_url": "https://paperpal.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 142,
@@ -13708,7 +13946,9 @@
           "cta_url": "https://play.aidungeon.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 143,
@@ -13810,7 +14050,9 @@
           "cta_url": "https://character.ai/subscription/plus/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 144,
@@ -13898,7 +14140,9 @@
           "cta_url": "https://workspace.google.com/marketplace/app/claude_for_sheets_and_docs"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 146,
@@ -14026,7 +14270,9 @@
           "cta_url": "https://ecom.docusign.com/plans-and-pricing/esignature"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 147,
@@ -14127,7 +14373,9 @@
           "cta_url": "https://chatpdf.com"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 149,
@@ -14193,7 +14441,9 @@
       "Length control"
     ],
     "slug": "stable-audio",
-    "curation_score": 58.5
+    "curation_score": 58.5,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 150,
@@ -14330,7 +14580,9 @@
           "cta_url": "https://www.krea.ai/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 151,
@@ -14447,7 +14699,9 @@
           "cta_url": "https://mistral.ai"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 152,
@@ -14535,7 +14789,9 @@
           "cta_url": "https://llama.meta.com"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 153,
@@ -14659,7 +14915,9 @@
           "cta_url": "https://v0.app"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 155,
@@ -14775,7 +15033,9 @@
         }
       ]
     },
-    "curation_score": 73.8
+    "curation_score": 73.8,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 156,
@@ -14908,7 +15168,9 @@
         }
       ]
     },
-    "curation_score": 73.8
+    "curation_score": 73.8,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 157,
@@ -15020,7 +15282,9 @@
           "cta_url": "https://www.continue.dev/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 158,
@@ -15108,7 +15372,9 @@
           "cta_url": "https://aider.chat"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 159,
@@ -15196,7 +15462,9 @@
           "cta_url": "https://www.gradio.app"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 160,
@@ -15309,7 +15577,9 @@
           "cta_url": "https://www.langchain.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 163,
@@ -15410,7 +15680,9 @@
           "cta_url": "https://liner.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 164,
@@ -15497,7 +15769,9 @@
           "cta_url": "https://glasp.co"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 165,
@@ -15636,7 +15910,9 @@
           "cta_url": "https://anara.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 166,
@@ -15734,7 +16010,9 @@
           "cta_url": "https://www.explainpaper.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 167,
@@ -15822,7 +16100,9 @@
           "cta_url": "https://arxiv-sanity-lite.com"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 168,
@@ -15940,7 +16220,9 @@
         }
       ]
     },
-    "curation_score": 60.0
+    "curation_score": 60.0,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 169,
@@ -16066,7 +16348,9 @@
           "cta_url": "https://prowritingaid.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 170,
@@ -16180,7 +16464,9 @@
           "cta_url": "https://languagetool.org/premium"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 171,
@@ -16267,7 +16553,9 @@
           "cta_url": "https://www.turnitin.com/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 173,
@@ -16371,7 +16659,9 @@
           "cta_url": "https://claude.ai/projects"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 174,
@@ -16483,7 +16773,9 @@
           "cta_url": "https://whimsical.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 175,
@@ -16571,7 +16863,9 @@
           "cta_url": "https://mermaid.js.org"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 176,
@@ -16659,7 +16953,9 @@
           "cta_url": "https://www.plasmo.com"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 177,
@@ -16783,7 +17079,9 @@
           "cta_url": "https://supabase.com"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 180,
@@ -16897,7 +17195,9 @@
           "cta_url": "https://wandb.ai/site/pricing/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 181,
@@ -17009,7 +17309,9 @@
           "cta_url": "https://roboflow.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 183,
@@ -17097,7 +17399,9 @@
           "cta_url": "https://www.rawgraphs.io"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 185,
@@ -17209,7 +17513,9 @@
           "cta_url": "https://observablehq.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 186,
@@ -17332,7 +17638,9 @@
           "cta_url": "https://piktochart.com/pricing/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 187,
@@ -17456,7 +17764,9 @@
           "cta_url": "https://www.visme.co/pricing/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 188,
@@ -17568,7 +17878,9 @@
           "cta_url": "https://www.storydoc.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 189,
@@ -17678,7 +17990,9 @@
           "cta_url": "https://www.haikudeck.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 190,
@@ -17779,7 +18093,9 @@
           "cta_url": "https://curipod.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 191,
@@ -17893,7 +18209,9 @@
           "cta_url": "https://www.formative.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 192,
@@ -18006,7 +18324,9 @@
           "cta_url": "https://www.numerade.com/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 193,
@@ -18106,7 +18426,9 @@
           "cta_url": "https://www.bartleby.com/plus"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 194,
@@ -18203,7 +18525,9 @@
           "cta_url": "https://thinkernotes.app/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 195,
@@ -18313,7 +18637,9 @@
           "cta_url": "https://www.stashpad.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 196,
@@ -18438,7 +18764,9 @@
           "cta_url": "https://tana.inc/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 197,
@@ -18528,7 +18856,9 @@
           "cta_url": "https://logseq.com/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 198,
@@ -18639,7 +18969,9 @@
           "cta_url": "https://capacities.io/pricing/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 201,
@@ -18740,7 +19072,9 @@
           "cta_url": "https://goblin.tools"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 202,
@@ -18864,7 +19198,9 @@
           "cta_url": "https://reclaim.ai/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 203,
@@ -18989,7 +19325,9 @@
           "cta_url": "https://www.supernormal.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 204,
@@ -19080,7 +19418,9 @@
           "cta_url": "https://reflect.app/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 205,
@@ -19192,7 +19532,9 @@
           "cta_url": "https://affine.pro/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 206,
@@ -19280,7 +19622,9 @@
           "cta_url": "https://github.com/AUTOMATIC1111/stable-diffusion-webui"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 207,
@@ -19368,7 +19712,9 @@
           "cta_url": "https://github.com/comfyanonymous/ComfyUI"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 208,
@@ -19492,7 +19838,9 @@
           "cta_url": "https://playground.com/design/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 209,
@@ -19580,7 +19928,9 @@
           "cta_url": "https://pheeds.com"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 210,
@@ -19689,7 +20039,9 @@
           "cta_url": "https://prompthero.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 211,
@@ -19827,7 +20179,9 @@
           "cta_url": "https://kaiber.ai/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 212,
@@ -19960,7 +20314,9 @@
         }
       ]
     },
-    "curation_score": 74.5
+    "curation_score": 74.5,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 213,
@@ -20072,7 +20428,9 @@
           "cta_url": "https://invideo.io/pricing/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 214,
@@ -20171,7 +20529,9 @@
           "cta_url": "https://podcast.adobe.com/en/plans"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 215,
@@ -20291,7 +20651,9 @@
           "cta_url": "https://cleanvoice.ai/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 216,
@@ -20414,7 +20776,9 @@
           "cta_url": "https://murf.ai/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 218,
@@ -20540,7 +20904,9 @@
           "cta_url": "https://www.vizcom.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 219,
@@ -20628,7 +20994,9 @@
           "cta_url": "https://khroma.co"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 220,
@@ -20729,7 +21097,9 @@
           "cta_url": "https://coolors.co/pro"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 221,
@@ -20817,7 +21187,9 @@
           "cta_url": "https://fontjoy.com"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 222,
@@ -20929,7 +21301,9 @@
           "cta_url": "https://remove.bg"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 223,
@@ -21043,7 +21417,9 @@
           "cta_url": "https://clipdrop.co/apis/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 224,
@@ -21164,7 +21540,9 @@
           "cta_url": "https://mokker.ai/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 225,
@@ -21277,7 +21655,9 @@
           "cta_url": "https://durable.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 226,
@@ -21375,7 +21755,9 @@
           "cta_url": "https://sketch2react.io/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 227,
@@ -21441,7 +21823,9 @@
       "Adaptive streaming"
     ],
     "slug": "musico",
-    "curation_score": 47.0
+    "curation_score": 47.0,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 228,
@@ -21551,7 +21935,9 @@
           "cta_url": "https://boomy.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 229,
@@ -21665,7 +22051,9 @@
           "cta_url": "https://moises.ai/pricing/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 230,
@@ -21777,7 +22165,9 @@
           "cta_url": "https://www.twelvelabs.io/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 231,
@@ -21899,7 +22289,9 @@
           "cta_url": "https://cohere.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 232,
@@ -21999,7 +22391,9 @@
           "cta_url": "https://docs.voyageai.com/docs/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 233,
@@ -22098,7 +22492,9 @@
           "cta_url": "https://groq.com"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 234,
@@ -22219,7 +22615,9 @@
           "cta_url": "https://www.together.ai/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 235,
@@ -22343,7 +22741,9 @@
           "cta_url": "https://www.pinecone.io/pricing/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 236,
@@ -22454,7 +22854,9 @@
           "cta_url": "https://weaviate.io/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 237,
@@ -22580,7 +22982,9 @@
           "cta_url": "https://flowiseai.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 238,
@@ -22705,7 +23109,9 @@
           "cta_url": "https://dify.ai/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 240,
@@ -22793,7 +23199,9 @@
           "cta_url": "https://pandas-ai.com"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 241,
@@ -22880,7 +23288,9 @@
           "cta_url": "https://pollinations.ai"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 242,
@@ -22979,7 +23389,9 @@
           "cta_url": "https://fal.ai"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 243,
@@ -23068,7 +23480,9 @@
           "cta_url": "https://replicate.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 244,
@@ -23197,7 +23611,9 @@
           "cta_url": "https://grok.com"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 245,
@@ -23285,7 +23701,9 @@
           "cta_url": "https://www.learnosity.com/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 246,
@@ -23351,7 +23769,9 @@
       "Progress tracking"
     ],
     "slug": "peergrade",
-    "curation_score": 56.2
+    "curation_score": 56.2,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 250,
@@ -23417,7 +23837,9 @@
       "Follow-up questions"
     ],
     "slug": "paper-brain",
-    "curation_score": 51.0
+    "curation_score": 51.0,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 251,
@@ -23539,7 +23961,9 @@
           "cta_url": "https://www.llamaindex.ai/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 252,
@@ -23639,7 +24063,9 @@
           "cta_url": "https://haystack.deepset.ai"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 254,
@@ -23728,7 +24154,9 @@
           "cta_url": "https://promptfoo.dev"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 255,
@@ -23816,7 +24244,9 @@
           "cta_url": "https://github.com/DS4SD/docling"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 256,
@@ -23904,7 +24334,9 @@
           "cta_url": "https://github.com/VikParuchuri/marker"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 257,
@@ -24016,7 +24448,9 @@
           "cta_url": "https://www.paperspace.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 258,
@@ -24128,7 +24562,9 @@
           "cta_url": "https://lightning.ai/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 259,
@@ -24242,7 +24678,9 @@
           "cta_url": "https://modal.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 260,
@@ -24342,7 +24780,9 @@
           "cta_url": "https://www.anyscale.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 261,
@@ -24440,7 +24880,9 @@
           "cta_url": "https://www.trychroma.com"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 263,
@@ -24528,7 +24970,9 @@
           "cta_url": "https://dvc.org"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 264,
@@ -24641,7 +25085,9 @@
           "cta_url": "https://www.comet.com/site/pricing/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 265,
@@ -24739,7 +25185,9 @@
           "cta_url": "https://www.lightly.ai/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 267,
@@ -24851,7 +25299,9 @@
           "cta_url": "https://labelbox.com/pricing/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 268,
@@ -24977,7 +25427,9 @@
           "cta_url": "https://www.metabase.com/pricing/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 273,
@@ -25064,7 +25516,9 @@
           "cta_url": "https://coolmindmaps.com"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 274,
@@ -25166,7 +25620,9 @@
           "cta_url": "https://studysmarter.de"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 275,
@@ -25276,7 +25732,9 @@
           "cta_url": "https://senecalearning.com/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 276,
@@ -25377,7 +25835,9 @@
           "cta_url": "https://www.gostudent.org/en-gb/prices/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 277,
@@ -25486,7 +25946,9 @@
           "cta_url": "https://www.albert.io/pricing-schools"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 278,
@@ -25612,7 +26074,9 @@
           "cta_url": "https://notebooklm.google.com"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 280,
@@ -25699,7 +26163,9 @@
           "cta_url": "https://www.scilearn.com/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 281,
@@ -25765,7 +26231,9 @@
       "Analytics"
     ],
     "slug": "sway",
-    "curation_score": 61.2
+    "curation_score": 61.2,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 282,
@@ -25890,7 +26358,9 @@
           "cta_url": "https://creately.com/pricing/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 283,
@@ -26013,7 +26483,9 @@
           "cta_url": "https://slab.com/pricing/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 284,
@@ -26123,7 +26595,9 @@
           "cta_url": "https://www.getguru.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 286,
@@ -26211,7 +26685,9 @@
           "cta_url": "https://aihomeworkhelper.com"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 287,
@@ -26309,7 +26785,9 @@
           "cta_url": "https://www.conker.ai/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 288,
@@ -26449,7 +26927,9 @@
           "cta_url": "https://www.jotform.com/pricing/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 289,
@@ -26574,7 +27054,9 @@
           "cta_url": "https://surveymonkey.com"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 291,
@@ -26699,7 +27181,9 @@
           "cta_url": "https://sentry.io/pricing/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 297,
@@ -26787,7 +27271,9 @@
           "cta_url": "https://www.explainx.ai"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 298,
@@ -26875,7 +27361,9 @@
           "cta_url": "https://github.com/tideflow-io/tideflow"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 299,
@@ -27014,7 +27502,9 @@
           "cta_url": "https://n8n.io/pricing/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 300,
@@ -27126,7 +27616,9 @@
           "cta_url": "https://www.make.com/en/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 306,
@@ -27228,7 +27720,9 @@
           "cta_url": "https://www.symbolab.com/registration"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 311,
@@ -27316,7 +27810,9 @@
           "cta_url": "https://www.kaggle.com/learn"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 312,
@@ -27404,7 +27900,9 @@
           "cta_url": "https://www.fast.ai"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 315,
@@ -27505,7 +28003,9 @@
           "cta_url": "https://roamresearch.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 317,
@@ -27630,7 +28130,9 @@
           "cta_url": "https://www.craft.do/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 319,
@@ -27733,7 +28235,9 @@
           "cta_url": "https://ticktick.com/upgrade"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 327,
@@ -27821,7 +28325,9 @@
           "cta_url": "https://readaloud.app"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 331,
@@ -27933,7 +28439,9 @@
           "cta_url": "https://www.litmaps.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 332,
@@ -28020,7 +28528,9 @@
           "cta_url": "https://inciteful.xyz"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 333,
@@ -28106,7 +28616,9 @@
           "cta_url": "https://iris.ai/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 334,
@@ -28192,7 +28704,9 @@
           "cta_url": "https://scholar.google.com"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 336,
@@ -28258,7 +28772,9 @@
       "API"
     ],
     "slug": "unpaywall",
-    "curation_score": 62.0
+    "curation_score": 62.0,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 339,
@@ -28369,7 +28885,9 @@
           "cta_url": "https://raycast.com"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 341,
@@ -28468,7 +28986,9 @@
           "cta_url": "https://screen.studio/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 342,
@@ -28597,7 +29117,9 @@
           "cta_url": "https://www.loom.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 344,
@@ -28701,7 +29223,9 @@
           "cta_url": "https://capcut.com"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 357,
@@ -28837,7 +29361,9 @@
           "cta_url": "https://www.plusai.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 359,
@@ -28948,7 +29474,9 @@
           "cta_url": "https://www.popai.pro/en/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 360,
@@ -29074,7 +29602,9 @@
           "cta_url": "https://www.mindmeister.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 361,
@@ -29189,7 +29719,9 @@
           "cta_url": "https://xmind.com/pricing/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 362,
@@ -29315,7 +29847,9 @@
           "cta_url": "https://miro.com"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 365,
@@ -29414,7 +29948,9 @@
           "cta_url": "https://tldraw.dev/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 366,
@@ -29539,7 +30075,9 @@
           "cta_url": "https://figma.com"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 369,
@@ -29664,7 +30202,9 @@
           "cta_url": "https://framer.com"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 371,
@@ -29789,7 +30329,9 @@
           "cta_url": "https://canva.com"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 376,
@@ -29876,7 +30418,9 @@
           "cta_url": "https://education.github.com/pack"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 377,
@@ -29963,7 +30507,9 @@
           "cta_url": "https://www.jetbrains.com/student/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 378,
@@ -30052,7 +30598,9 @@
           "cta_url": "https://code.visualstudio.com"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 379,
@@ -30169,7 +30717,9 @@
         }
       ]
     },
-    "curation_score": 47.0
+    "curation_score": 47.0,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 380,
@@ -30291,7 +30841,9 @@
           "cta_url": "https://stackblitz.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 385,
@@ -30391,7 +30943,9 @@
           "cta_url": "https://leetcode.com/subscribe/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 386,
@@ -30503,7 +31057,9 @@
           "cta_url": "https://neetcode.io"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 388,
@@ -30627,7 +31183,9 @@
           "cta_url": "https://www.hackerrank.com/products/developer-skills-platform/pricing/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 392,
@@ -30726,7 +31284,9 @@
           "cta_url": "https://cs50.harvard.edu"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 397,
@@ -30843,7 +31403,9 @@
           "cta_url": "https://www.remnote.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 398,
@@ -30953,7 +31515,9 @@
           "cta_url": "https://www.supermemo.com/en/premium-annual-access"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 400,
@@ -31080,7 +31644,9 @@
           "cta_url": "https://www.notion.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 401,
@@ -31182,7 +31748,9 @@
           "cta_url": "https://www.readwise.io/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 403,
@@ -31251,7 +31819,9 @@
       "Recommendations"
     ],
     "slug": "pocket",
-    "curation_score": 63.2
+    "curation_score": 63.2,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 404,
@@ -31377,7 +31947,9 @@
           "cta_url": "https://feedly.com/market-intelligence/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 405,
@@ -31491,7 +32063,9 @@
           "cta_url": "https://www.inoreader.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 406,
@@ -31625,7 +32199,9 @@
           "cta_url": "https://camo.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 409,
@@ -31727,7 +32303,9 @@
           "cta_url": "https://www.brain.fm/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 410,
@@ -31796,7 +32374,9 @@
       "Apple Watch integration"
     ],
     "slug": "endel",
-    "curation_score": 56.2
+    "curation_score": 56.2,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 412,
@@ -31897,7 +32477,9 @@
           "cta_url": "https://www.linkedin.com/learning/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 415,
@@ -31999,7 +32581,9 @@
           "cta_url": "https://apps.ankiweb.net/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 420,
@@ -32064,7 +32648,9 @@
       "Recommendation engine"
     ],
     "slug": "semantic-scholar-feeds",
-    "curation_score": 62.0
+    "curation_score": 62.0,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 425,
@@ -32162,7 +32748,9 @@
           "cta_url": "https://cohesive.ai/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 428,
@@ -32269,7 +32857,9 @@
           "cta_url": "https://you.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 430,
@@ -32390,7 +32980,9 @@
           "cta_url": "https://www.tavily.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 433,
@@ -32502,7 +33094,9 @@
           "cta_url": "https://workspace.google.com/education"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 434,
@@ -32628,7 +33222,9 @@
           "cta_url": "https://dropbox.com"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 435,
@@ -32774,7 +33370,9 @@
           "cta_url": "https://www.box.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 439,
@@ -32901,7 +33499,9 @@
           "cta_url": "https://www.microsoft.com/en-us/microsoft-teams/compare-microsoft-teams-business-options"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 440,
@@ -33027,7 +33627,9 @@
           "cta_url": "https://zoom.us"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 443,
@@ -33128,7 +33730,9 @@
           "cta_url": "https://www.dimensions.ai/request-access/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 446,
@@ -33249,7 +33853,9 @@
         }
       ]
     },
-    "curation_score": 62.0
+    "curation_score": 62.0,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 447,
@@ -33337,7 +33943,9 @@
           "cta_url": "https://detexify.kirelabs.org"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 449,
@@ -33439,7 +34047,9 @@
           "cta_url": "https://www.chegg.com/study-pack"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 450,
@@ -33551,7 +34161,9 @@
           "cta_url": "https://www.coursehero.com/plans/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 452,
@@ -33674,7 +34286,9 @@
           "cta_url": "https://huggingface.co/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 453,
@@ -33796,7 +34410,9 @@
           "cta_url": "https://manus.im"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 454,
@@ -33909,7 +34525,9 @@
           "cta_url": "https://liner.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 462,
@@ -34033,7 +34651,9 @@
           "cta_url": "https://fathom.ai/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 464,
@@ -34145,7 +34765,9 @@
           "cta_url": "https://tactiq.io/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 465,
@@ -34245,7 +34867,9 @@
           "cta_url": "https://www.notebook.ai/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 466,
@@ -34364,7 +34988,9 @@
         }
       ]
     },
-    "curation_score": 52.5
+    "curation_score": 52.5,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 467,
@@ -34486,7 +35112,9 @@
           "cta_url": "https://novelai.net/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 468,
@@ -34597,7 +35225,9 @@
           "cta_url": "https://squibler.io/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 471,
@@ -34706,7 +35336,9 @@
           "cta_url": "https://one.google.com/about/google-ai-plans/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 472,
@@ -34826,7 +35458,9 @@
           "cta_url": "https://mapify.so"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 475,
@@ -34939,7 +35573,9 @@
           "cta_url": "https://jenni.ai/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 477,
@@ -35004,7 +35640,9 @@
       "Export to Notion"
     ],
     "slug": "lateral-ai",
-    "curation_score": 52.5
+    "curation_score": 52.5,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 478,
@@ -35068,7 +35706,9 @@
       "Follow-up questions"
     ],
     "slug": "lumina-chat",
-    "curation_score": 58.5
+    "curation_score": 58.5,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 480,
@@ -35178,7 +35818,9 @@
           "cta_url": "https://pieces.app"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 481,
@@ -35302,7 +35944,9 @@
           "cta_url": "https://coderabbit.ai/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 482,
@@ -35416,7 +36060,9 @@
           "cta_url": "https://mintlify.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 483,
@@ -35506,7 +36152,9 @@
           "cta_url": "https://sourcegraph.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 484,
@@ -35630,7 +36278,9 @@
           "cta_url": "https://www.locofy.ai/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 485,
@@ -35751,7 +36401,9 @@
           "cta_url": "https://browser.ai/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 488,
@@ -35876,7 +36528,9 @@
           "cta_url": "https://hex.tech/pricing/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 492,
@@ -35979,7 +36633,9 @@
           "cta_url": "https://www.adobe.com/products/photoshop-lightroom/plans.html"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 493,
@@ -36099,7 +36755,9 @@
           "cta_url": "https://pixlr.com/pricing/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 495,
@@ -36232,7 +36890,9 @@
         }
       ]
     },
-    "curation_score": 82.0
+    "curation_score": 82.0,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 500,
@@ -36358,7 +37018,9 @@
           "cta_url": "https://www.glideapps.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "name": "Gemini CLI",
@@ -36426,7 +37088,9 @@
         }
       ]
     },
-    "strengths": []
+    "strengths": [],
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "name": "OpenAI Codex",
@@ -36511,7 +37175,9 @@
         }
       ]
     },
-    "strengths": []
+    "strengths": [],
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "name": "Rocket.new",
@@ -36597,7 +37263,9 @@
         }
       ]
     },
-    "strengths": []
+    "strengths": [],
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "name": "Kiro",
@@ -36686,7 +37354,9 @@
         }
       ]
     },
-    "strengths": []
+    "strengths": [],
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "name": "Emergent",
@@ -36771,7 +37441,9 @@
         }
       ]
     },
-    "strengths": []
+    "strengths": [],
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "name": "Antigravity",
@@ -36846,7 +37518,9 @@
         }
       ]
     },
-    "strengths": []
+    "strengths": [],
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "name": "Hostinger Horizons",
@@ -36936,7 +37610,9 @@
         }
       ]
     },
-    "strengths": []
+    "strengths": [],
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "name": "Claude Code",
@@ -37024,7 +37700,9 @@
         }
       ]
     },
-    "strengths": []
+    "strengths": [],
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 501,
@@ -37125,7 +37803,9 @@
           "cta_url": "https://openrouter.ai"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 504,
@@ -37189,7 +37869,9 @@
       "Google's research infrastructure"
     ],
     "is_ai_native": true,
-    "curation_score": 65.0
+    "curation_score": 65.0,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 505,
@@ -37319,7 +38001,9 @@
         }
       ]
     },
-    "curation_score": 65.0
+    "curation_score": 65.0,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 506,
@@ -37434,7 +38118,9 @@
         }
       ]
     },
-    "curation_score": 65.0
+    "curation_score": 65.0,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 508,
@@ -37549,7 +38235,9 @@
         }
       ]
     },
-    "curation_score": 65.0
+    "curation_score": 65.0,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 510,
@@ -37664,7 +38352,9 @@
         }
       ]
     },
-    "curation_score": 45.0
+    "curation_score": 45.0,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 511,
@@ -37794,7 +38484,9 @@
         }
       ]
     },
-    "curation_score": 45.0
+    "curation_score": 45.0,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 513,
@@ -37857,7 +38549,9 @@
       "Runs locally without subscription"
     ],
     "is_ai_native": true,
-    "curation_score": 65.0
+    "curation_score": 65.0,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 514,
@@ -37973,7 +38667,9 @@
         }
       ]
     },
-    "curation_score": 51.0
+    "curation_score": 51.0,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 515,
@@ -38080,7 +38776,9 @@
           "cta_url": "https://reve.com/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 516,
@@ -38212,7 +38910,9 @@
         }
       ]
     },
-    "curation_score": 65.0
+    "curation_score": 65.0,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 517,
@@ -38297,7 +38997,9 @@
           "cta_url": "https://cline.bot"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 518,
@@ -38412,7 +39114,9 @@
         }
       ]
     },
-    "curation_score": 53.0
+    "curation_score": 53.0,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 519,
@@ -38519,7 +39223,9 @@
           "cta_url": "https://www.undermind.ai/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 520,
@@ -38582,7 +39288,9 @@
     },
     "featured": false,
     "logo_emoji": "🤖",
-    "strengths": []
+    "strengths": [],
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 521,
@@ -38646,7 +39354,9 @@
     },
     "featured": false,
     "logo_emoji": "🤖",
-    "strengths": []
+    "strengths": [],
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 522,
@@ -38744,7 +39454,9 @@
     },
     "featured": false,
     "logo_emoji": "🤖",
-    "strengths": []
+    "strengths": [],
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 523,
@@ -38841,7 +39553,9 @@
     },
     "featured": false,
     "logo_emoji": "🤖",
-    "strengths": []
+    "strengths": [],
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 524,
@@ -38938,7 +39652,9 @@
     },
     "featured": false,
     "logo_emoji": "🤖",
-    "strengths": []
+    "strengths": [],
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 525,
@@ -39024,7 +39740,9 @@
     },
     "featured": false,
     "logo_emoji": "🤖",
-    "strengths": []
+    "strengths": [],
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 526,
@@ -39122,7 +39840,9 @@
     },
     "featured": false,
     "logo_emoji": "🤖",
-    "strengths": []
+    "strengths": [],
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 527,
@@ -39221,7 +39941,9 @@
     },
     "featured": false,
     "logo_emoji": "🤖",
-    "strengths": []
+    "strengths": [],
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 528,
@@ -39290,7 +40012,9 @@
     },
     "featured": false,
     "logo_emoji": "🤖",
-    "strengths": []
+    "strengths": [],
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 529,
@@ -39364,7 +40088,9 @@
     },
     "featured": false,
     "logo_emoji": "🤖",
-    "strengths": []
+    "strengths": [],
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 530,
@@ -39426,7 +40152,9 @@
     },
     "featured": false,
     "logo_emoji": "🤖",
-    "strengths": []
+    "strengths": [],
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 532,
@@ -39511,7 +40239,9 @@
     },
     "featured": false,
     "logo_emoji": "🤖",
-    "strengths": []
+    "strengths": [],
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 545,
@@ -39630,7 +40360,9 @@
           "cta_url": "https://www.scribbr.com/plagiarism-checker/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 549,
@@ -39760,7 +40492,9 @@
           "cta_url": "https://gptzero.me/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 550,
@@ -39868,7 +40602,9 @@
           "cta_url": "https://copyleaks.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 551,
@@ -39975,7 +40711,9 @@
           "cta_url": "https://originality.ai/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 552,
@@ -40085,7 +40823,9 @@
           "cta_url": "https://knowt.com/plans"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 553,
@@ -40193,7 +40933,9 @@
           "cta_url": "https://quizgecko.com/plans"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 554,
@@ -40292,7 +41034,9 @@
           "cta_url": "https://www.studocu.com/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 555,
@@ -40389,7 +41133,9 @@
           "cta_url": "https://www.studyfetch.com/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 558,
@@ -40497,7 +41243,9 @@
           "cta_url": "https://www.trinka.ai/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 559,
@@ -40615,7 +41363,9 @@
           "cta_url": "https://smodin.io/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 560,
@@ -40722,7 +41472,9 @@
           "cta_url": "https://www.speak.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "name": "Tiimo",
@@ -40821,7 +41573,9 @@
           "cta_url": "https://www.tiimoapp.com/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "name": "Saner.ai",
@@ -40932,7 +41686,9 @@
           "cta_url": "https://www.saner.ai/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "name": "Focus Bear",
@@ -41030,7 +41786,9 @@
           "cta_url": "https://www.focusbear.io/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "name": "Voice Dream Reader",
@@ -41117,7 +41875,9 @@
           "cta_url": "https://www.voicedream.com/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "name": "AudioPen",
@@ -41215,7 +41975,9 @@
           "cta_url": "https://www.audiopen.ai/prime"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "name": "Wispr Flow",
@@ -41314,7 +42076,9 @@
           "cta_url": "https://wisprflow.ai/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "name": "TurboLearn AI",
@@ -41425,7 +42189,9 @@
           "cta_url": "https://turbolearn.ai/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "name": "Coconote",
@@ -41533,7 +42299,9 @@
           "cta_url": "https://coconote.app/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "name": "Gauthmath",
@@ -41644,7 +42412,9 @@
           "cta_url": "https://www.gauthmath.com/plus"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "name": "Question.AI",
@@ -41750,7 +42520,9 @@
           "cta_url": "https://questionai.ai/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "name": "Studdy",
@@ -41845,7 +42617,9 @@
           "cta_url": "https://studdyai.com/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "name": "ZeroGPT",
@@ -41952,7 +42726,9 @@
           "cta_url": "https://www.zerogpt.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "name": "Winston AI",
@@ -42073,7 +42849,9 @@
           "cta_url": "https://gowinston.ai/pricing/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "name": "Writefull",
@@ -42180,7 +42958,9 @@
           "cta_url": "https://www.writefull.com/for-institutions"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "name": "Yomu AI",
@@ -42290,7 +43070,9 @@
           "cta_url": "https://www.yomu.ai/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "name": "Wisdolia",
@@ -42399,7 +43181,9 @@
           "cta_url": "https://www.wisdolia.com/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "name": "Sunsama",
@@ -42496,7 +43280,9 @@
           "cta_url": "https://www.sunsama.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "name": "TalkPal",
@@ -42592,7 +43378,9 @@
           "cta_url": "https://talkpal.ai/pricing/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "name": "Memrise",
@@ -42699,7 +43487,9 @@
           "cta_url": "https://app.memrise.com/payment/plans"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "name": "interviewing.io",
@@ -42806,7 +43596,9 @@
           "cta_url": "https://interviewing.io/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "name": "Exercism",
@@ -42893,7 +43685,9 @@
           "cta_url": "https://exercism.org/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "name": "Heptabase",
@@ -43015,7 +43809,9 @@
           "cta_url": "https://heptabase.com/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 583,
@@ -43128,7 +43924,9 @@
           "cta_url": "https://www.magicschool.ai/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 584,
@@ -43242,7 +44040,9 @@
           "cta_url": "https://www.briskteaching.com/plans"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 585,
@@ -43354,7 +44154,9 @@
           "cta_url": "https://web.diffit.me/pricing"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   },
   {
     "id": 587,
@@ -43478,6 +44280,8 @@
           "cta_url": "https://kahoot.com/schools/plans/"
         }
       ]
-    }
+    },
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
   }
 ]

@@ -173,7 +173,7 @@ def score_token_against_tool(token, tool_index):
 
     for uc in tool_index["_uses_lower"]:
         if token in uc:
-            score += 16
+            score += 45
 
     for s in tool_index["_strengths_lower"]:
         if token in s:
@@ -234,7 +234,7 @@ def weighted_search(query: str, tools: list) -> list:
 
             for uc in use_cases:
                 if token in uc:
-                    score += 20
+                    score += 60
 
             if token in name:
                 score += 30
@@ -255,7 +255,7 @@ def weighted_search(query: str, tools: list) -> list:
     return scored
 
 def search_tools(raw_query, category_filter="All", pricing_filter_ui="All",
-                 student_only=False, trending_only=False, sort_by="Relevance", limit=50):
+                 student_only=False, trending_only=False, sort_by="Relevance", limit=50, actually_free=False):
 
     from app.tool_cache import SEARCH_INDEX, get_cached_tools
 
@@ -321,6 +321,8 @@ def search_tools(raw_query, category_filter="All", pricing_filter_ui="All",
                     continue
                 if student_only and not (tool.get("student_perk") or tool.get("studentPerk")):
                     continue
+                if actually_free and tool_pricing not in ("free", "freemium"):
+                    continue
                 if trending_only and not tool.get("trending"):
                     continue
                 slug_key = tool.get("slug")
@@ -380,6 +382,8 @@ def search_tools(raw_query, category_filter="All", pricing_filter_ui="All",
         if selected_category and tool.get("category") != selected_category:
             continue
         if student_only and not (tool.get("student_perk") or tool.get("studentPerk")):
+            continue
+        if actually_free and tool_pricing not in ("free", "freemium"):
             continue
         if trending_only and not tool.get("trending"):
             continue

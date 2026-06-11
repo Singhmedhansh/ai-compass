@@ -593,6 +593,7 @@ def create_app(config: dict | None = None) -> Flask:
                     print(f"[WARMUP] migrate skipped: {e}", flush=True)
 
                 try:
+                    from app.models import ReviewVote
                     db.create_all()
                     print("[WARMUP] db.create_all() done", flush=True)
                 except Exception as e:

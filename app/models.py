@@ -224,6 +224,25 @@ class Review(db.Model):
     )
 
 
+class ReviewVote(db.Model):
+    __tablename__ = "review_votes"
+
+    id = db.Column(db.Integer, primary_key=True)
+    review_id = db.Column(db.Integer, db.ForeignKey("reviews.id"), nullable=False, index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
+    vote_type = db.Column(db.Integer, nullable=False)  # 1 for upvote, -1 for downvote
+    created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+
+    review = db.relationship("Review", backref=db.backref("votes", cascade="all, delete-orphan"))
+    user = db.relationship("User")
+
+    __table_args__ = (
+        db.UniqueConstraint("review_id", "user_id", name="uq_review_user_vote"),
+        db.CheckConstraint("vote_type = 1 OR vote_type = -1", name="ck_review_vote_type"),
+    )
+
+
+
 class SavedStack(db.Model):
     __tablename__ = "saved_stacks"
 
@@ -284,6 +303,8 @@ class Tool(db.Model):
     weekly_users = db.Column(db.Integer, default=0)
     launch_year = db.Column(db.Integer, nullable=True)
     is_active = db.Column(db.Boolean, default=True, index=True)
+    academic_integrity_rating = db.Column(db.String(50), nullable=True)
+    academic_warning = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     
     category_id = db.Column(db.Integer, db.ForeignKey('categories.id'), nullable=True, index=True)

@@ -235,6 +235,27 @@ function ToolColumn({ slug, status, tool, error, onRemove }) {
       </div>
 
       <div className="mt-6">
+        <SectionHeading>Academic Safety</SectionHeading>
+        <div className="mt-2">
+          {tool.academic_integrity_rating ? (
+            <div className="space-y-1.5">
+              <span className={clsx(
+                "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider",
+                tool.academic_integrity_rating === 'Safe' && 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20',
+                tool.academic_integrity_rating === 'Use with Caution' && 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20',
+                tool.academic_integrity_rating === 'High Risk' && 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20'
+              )}>
+                🛡️ {tool.academic_integrity_rating}
+              </span>
+              <p className="text-xs text-muted leading-relaxed">{tool.academic_warning}</p>
+            </div>
+          ) : (
+            <span className="text-xs text-muted">No safety details available.</span>
+          )}
+        </div>
+      </div>
+
+      <div className="mt-6">
         <SectionHeading>Quick info</SectionHeading>
         <dl className="mt-2 space-y-2">
           <QuickInfoRow label="Platform" value={platforms} />

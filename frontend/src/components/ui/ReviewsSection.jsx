@@ -89,6 +89,40 @@ export default function ReviewsSection({ slug, isLoggedIn }) {
     }
   }
 
+  const handleVote = async (reviewId, voteType) => {
+    if (!isLoggedIn) {
+      setError('Please log in to vote on reviews')
+      return
+    }
+
+    try {
+      const response = await fetch(`${API}/api/v1/reviews/${reviewId}/vote`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ vote_type: voteType }),
+        credentials: 'include',
+      })
+      const data = await response.json()
+      if (data.success) {
+        setReviews((prev) =>
+          prev.map((r) => {
+            if (r.id === reviewId) {
+              const currentVote = r.user_vote === voteType ? 0 : voteType
+              return {
+                ...r,
+                score: data.score,
+                user_vote: currentVote === 0 ? null : voteType,
+              }
+            }
+            return r
+          })
+        )
+      }
+    } catch {
+      console.error('Error submitting vote')
+    }
+  }
+
   return (
     <div className="rounded-2xl border border-line bg-bg-elev p-6">
       <h2 className="text-lg font-semibold text-ink">Reviews</h2>
@@ -183,7 +217,32 @@ export default function ReviewsSection({ slug, isLoggedIn }) {
       ) : (
         <div aria-live="polite" className="mt-4 space-y-3">
           {reviews.map((review) => (
-            <article key={review.id} className="flex gap-3 rounded-xl border border-line bg-bg-sunk p-4">
+            <article key={review.id} className="flex gap-3 rounded-xl border border-line bg-bg-sunk p-4 items-start">
+              {/* Vote buttons */}
+              <div className="flex flex-col items-center justify-center shrink-0 gap-0.5 select-none bg-bg-elev/50 rounded-lg p-1 border border-line/20">
+                <button
+                  type="button"
+                  onClick={() => handleVote(review.id, review.user_vote === 1 ? 0 : 1)}
+                  className={`p-1 rounded hover:bg-bg-elev transition text-xs leading-none ${
+                    review.user_vote === 1 ? 'text-emerald-500 font-bold' : 'text-muted'
+                  }`}
+                  aria-label="Upvote review"
+                >
+                  ▲
+                </button>
+                <span className="text-xs font-bold tabular-nums text-ink">{review.score || 0}</span>
+                <button
+                  type="button"
+                  onClick={() => handleVote(review.id, review.user_vote === -1 ? 0 : -1)}
+                  className={`p-1 rounded hover:bg-bg-elev transition text-xs leading-none ${
+                    review.user_vote === -1 ? 'text-rose-500 font-bold' : 'text-muted'
+                  }`}
+                  aria-label="Downvote review"
+                >
+                  ▼
+                </button>
+              </div>
+
               <div
                 aria-hidden="true"
                 className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent text-sm font-semibold text-white"
@@ -192,12 +251,19 @@ export default function ReviewsSection({ slug, isLoggedIn }) {
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-2">
-                  <strong className="text-sm text-ink">{review.user || 'Anonymous'}</strong>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <strong className="text-sm text-ink">{review.user || 'Anonymous'}</strong>
+                    {review.is_student_verified && (
+                      <span className="inline-flex items-center gap-0.5 rounded bg-indigo-500/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 border border-indigo-500/10">
+                        🎓 Verified Student
+                      </span>
+                    )}
+                  </div>
                   <span className="text-xs text-muted">
                     {review.created_at ? new Date(review.created_at).toLocaleDateString() : ''}
                   </span>
                 </div>
-                <p className="mt-2 text-sm text-ink-2">{review.body}</p>
+                <p className="mt-2 text-sm text-ink-2 whitespace-pre-wrap">{review.body}</p>
               </div>
             </article>
           ))}
