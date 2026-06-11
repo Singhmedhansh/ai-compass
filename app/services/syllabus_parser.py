@@ -222,9 +222,10 @@ Provide ONLY the raw JSON output. Do not wrap it in markdown code blocks like ``
             # Extract content text
             content_text = res_data["candidates"][0]["content"]["parts"][0]["text"].strip()
             
-            if content_text.startswith("```json"): content_text = content_text[7:]
-            elif content_text.startswith("```"): content_text = content_text[3:]
-            if content_text.endswith("```"): content_text = content_text[:-3]
+            start_idx = content_text.find('{')
+            end_idx = content_text.rfind('}')
+            if start_idx != -1 and end_idx != -1:
+                content_text = content_text[start_idx:end_idx+1]
             
             # Load as json
             parsed = json.loads(content_text.strip())
@@ -265,9 +266,10 @@ Provide ONLY the raw JSON output. Do not wrap it in markdown code blocks like ``
                     res_data = response.json()
                     content_text = res_data["choices"][0]["message"]["content"].strip()
                     
-                    if content_text.startswith("```json"): content_text = content_text[7:]
-                    elif content_text.startswith("```"): content_text = content_text[3:]
-                    if content_text.endswith("```"): content_text = content_text[:-3]
+                    start_idx = content_text.find('{')
+                    end_idx = content_text.rfind('}')
+                    if start_idx != -1 and end_idx != -1:
+                        content_text = content_text[start_idx:end_idx+1]
                     
                     parsed = json.loads(content_text.strip())
                     return parsed
@@ -510,9 +512,10 @@ Provide ONLY the raw JSON output. Do not wrap it in markdown code blocks like ``
             res_data = response.json()
             content_text = res_data["candidates"][0]["content"]["parts"][0]["text"].strip()
             
-            if content_text.startswith("```json"): content_text = content_text[7:]
-            elif content_text.startswith("```"): content_text = content_text[3:]
-            if content_text.endswith("```"): content_text = content_text[:-3]
+            start_idx = content_text.find('{')
+            end_idx = content_text.rfind('}')
+            if start_idx != -1 and end_idx != -1:
+                content_text = content_text[start_idx:end_idx+1]
             
             parsed = json.loads(content_text.strip())
             return parsed
@@ -554,8 +557,7 @@ Provide ONLY the raw JSON output. Do not wrap it in markdown code blocks like ``
                                 }
                             ]
                         }
-                    ],
-                    "response_format": {"type": "json_object"}
+                    ]
                 }
                 
                 response = requests.post(url, headers=headers, json=payload, timeout=20)
@@ -569,9 +571,10 @@ Provide ONLY the raw JSON output. Do not wrap it in markdown code blocks like ``
                 res_data = response.json()
                 content_text = res_data["choices"][0]["message"]["content"].strip()
                 
-                if content_text.startswith("```json"): content_text = content_text[7:]
-                elif content_text.startswith("```"): content_text = content_text[3:]
-                if content_text.endswith("```"): content_text = content_text[:-3]
+                start_idx = content_text.find('{')
+                end_idx = content_text.rfind('}')
+                if start_idx != -1 and end_idx != -1:
+                    content_text = content_text[start_idx:end_idx+1]
                 
                 parsed = json.loads(content_text.strip())
                 return parsed
