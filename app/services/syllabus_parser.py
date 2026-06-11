@@ -20,31 +20,8 @@ try:
 except ImportError:
     docx_available = False
 
-# List of the most critical student tools for prompt priming to help the LLM select correct slugs
-POPULAR_TOOLS_LIST = [
-    {"name": "ChatGPT", "slug": "chatgpt", "category": "Writing & Chat", "description": "Conversational writing, brainstorming, and editing"},
-    {"name": "Claude", "slug": "claude", "category": "Writing & Chat", "description": "Long document analysis, complex coding, and structured reasoning"},
-    {"name": "Gemini", "slug": "gemini", "category": "Writing & Chat", "description": "Multi-modal analysis, Google Workspace integration"},
-    {"name": "Cursor", "slug": "cursor", "category": "Coding", "description": "AI-first code editor with codebase-aware chat and inline edits"},
-    {"name": "GitHub Copilot", "slug": "github-copilot", "category": "Coding", "description": "IDE autocomplete for programming files"},
-    {"name": "Codeium", "slug": "codeium", "category": "Coding", "description": "Free coding autocomplete and terminal chat"},
-    {"name": "Tabnine", "slug": "tabnine", "category": "Coding", "description": "Privacy-first local AI code completion"},
-    {"name": "Perplexity AI", "slug": "perplexity-ai", "category": "Research", "description": "Academic search engine that answers questions with web citations"},
-    {"name": "Elicit", "slug": "elicit", "category": "Research", "description": "Finds, groups, and summarizes research papers"},
-    {"name": "Consensus", "slug": "consensus", "category": "Research", "description": "Finds scientific consensus and aggregates paper outcomes"},
-    {"name": "ResearchRabbit", "slug": "researchrabbit", "category": "Research", "description": "Visual mapping tool for academic citation networks"},
-    {"name": "Quillbot", "slug": "quillbot", "category": "Writing & Chat", "description": "Grammar checker, summarizer, and paraphraser"},
-    {"name": "Grammarly", "slug": "grammarly", "category": "Writing & Chat", "description": "Spelling, voice alignment, and final pass polish"},
-    {"name": "Notion", "slug": "notion", "category": "Productivity", "description": "Study wikis, planner, and workspace database notes"},
-    {"name": "Otter.ai", "slug": "otter-ai", "category": "Productivity", "description": "Meeting recorder and lecture transcriptions"},
-    {"name": "Canva", "slug": "canva", "category": "Design & Graphics", "description": "Presentations, syllabus slides, and visual graphics"},
-    {"name": "Midjourney", "slug": "midjourney", "category": "Image Generation", "description": "High-fidelity artistic prompts and image generations"},
-    {"name": "Runway Gen-3", "slug": "runway-gen-3", "category": "Video Generation", "description": "Video prompts and animations"},
-    {"name": "Suno", "slug": "suno", "category": "Audio & Voice", "description": "Text to full musical tracks and audio"},
-    {"name": "ElevenLabs", "slug": "elevenlabs", "category": "Audio & Voice", "description": "Text to speech voiceovers"},
-    {"name": "Vercel v0", "slug": "vercel-v0", "category": "Coding", "description": "Frontend React/HTML layout generator"},
-]
-
+# We will dynamically load the tools from the cache to ensure all database tools are available to the LLM.
+from app.tool_cache import get_visible_tools
 def extract_text_from_file(file_stream, filename):
     """Extracts raw text from a PDF, DOCX, or text file."""
     ext = os.path.splitext(filename or "")[1].lower()
@@ -116,7 +93,18 @@ def parse_syllabus_llm(syllabus_text):
     max_len = 15000
     trimmed_text = syllabus_text[:max_len] + "..." if len(syllabus_text) > max_len else syllabus_text
 
-    tools_str = json.dumps(POPULAR_TOOLS_LIST, indent=2)
+    # Provide all dynamic tools so LLM can recommend anything (including CAD)
+    all_tools = get_visible_tools()
+    minimal_tools = [
+        {
+            "name": t.get("name"),
+            "slug": t.get("slug"),
+            "category": t.get("category"),
+            "description": t.get("description")
+        }
+        for t in all_tools if t.get("slug") and t.get("name")
+    ]
+    tools_str = json.dumps(minimal_tools, separators=(',', ':'))
 
     prompt = f"""
 You are an expert academic assistant. Analyze the syllabus text provided below and identify the student resources they will need to succeed in this course.
@@ -404,7 +392,18 @@ def parse_syllabus_image_llm(image_bytes, mimetype):
     # Base64 encode the image bytes
     base64_data = base64.b64encode(image_bytes).decode("utf-8")
 
-    tools_str = json.dumps(POPULAR_TOOLS_LIST, indent=2)
+    # Provide all dynamic tools so LLM can recommend anything
+    all_tools = get_visible_tools()
+    minimal_tools = [
+        {
+            "name": t.get("name"),
+            "slug": t.get("slug"),
+            "category": t.get("category"),
+            "description": t.get("description")
+        }
+        for t in all_tools if t.get("slug") and t.get("name")
+    ]
+    tools_str = json.dumps(minimal_tools, separators=(',', ':'))
 
     prompt = f"""
 You are an expert academic assistant. Analyze the syllabus image provided and identify the student resources they will need to succeed in this course.
