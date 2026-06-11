@@ -4,6 +4,7 @@ import { AlertTriangle, ArrowLeft, Check, ExternalLink, LayoutGrid, Star, X } fr
 import { useEffect, useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { useCurrency } from '../context/CurrencyContext'
 
 import { Button, SkeletonCompareColumn, ToolLogo } from '../components/ui'
 import { sectionReveal, staggerChild, staggerParent } from '../lib/motion'
@@ -54,6 +55,7 @@ function StarRow({ rating }) {
 }
 
 function PricingBlock({ tool }) {
+  const { convertPrice } = useCurrency()
   const tiers = tool.pricing_tiers && Array.isArray(tool.pricing_tiers.tiers)
     ? tool.pricing_tiers.tiers
     : []
@@ -82,7 +84,7 @@ function PricingBlock({ tool }) {
               <span className="ml-1 text-[10px] font-semibold uppercase text-accent">Popular</span>
             ) : null}
           </dt>
-          <dd className="shrink-0 font-semibold text-ink">{tier.price_display}</dd>
+          <dd className="shrink-0 font-semibold text-ink">{convertPrice(tier.price_display)}</dd>
         </div>
       ))}
     </dl>
@@ -279,6 +281,7 @@ function ToolColumn({ slug, status, tool, error, onRemove }) {
 }
 
 export default function ComparePage() {
+  const { selectedCurrency } = useCurrency()
   const [searchParams, setSearchParams] = useSearchParams()
   const navigate = useNavigate()
   // pair is set by the /compare/:pair route ("chatgpt-vs-claude"); undefined
@@ -460,6 +463,12 @@ export default function ComparePage() {
       <h1 className="mt-4 text-2xl font-bold tracking-tight text-ink sm:text-3xl">
         {pairTitle ? pairTitle : `Comparing ${count} tool${count === 1 ? '' : 's'}`}
       </h1>
+
+      {selectedCurrency !== 'USD' && (
+        <div className="mt-4 rounded-xl border border-accent-soft bg-accent-soft/20 p-3 text-xs text-ink-2 font-medium max-w-xl">
+          Pricing displays are dynamically converted from USD. Kindly check the tool's official website for actual pricing in your country.
+        </div>
+      )}
 
       <MotionDiv
         variants={staggerParent}

@@ -2739,6 +2739,15 @@ def revoke_session(session_uuid):
     return jsonify({"message": "Session revoked successfully."}), 200
 
 
+@api_bp.route("/exchange-rates", methods=["GET"])
+def get_exchange_rates_route():
+    from app.currency import get_exchange_rates
+    return jsonify({
+        "base": "USD",
+        "rates": get_exchange_rates()
+    }), 200
+
+
 @api_bp.route("/profile/submissions", methods=["GET"])
 @login_required
 def get_profile_submissions():

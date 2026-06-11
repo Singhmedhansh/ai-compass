@@ -1,6 +1,8 @@
 import { Check, DollarSign } from 'lucide-react'
+import { useCurrency } from '../../context/CurrencyContext'
 
 export default function PricingSection({ tool }) {
+  const { convertPrice, selectedCurrency } = useCurrency()
   const pricingTiers = tool?.pricing_tiers
   const hasTiers = pricingTiers && Array.isArray(pricingTiers.tiers) && pricingTiers.tiers.length > 0
 
@@ -61,7 +63,7 @@ export default function PricingSection({ tool }) {
               </span>
             ) : null}
             <h3 className="text-base font-semibold text-ink">{tier.name}</h3>
-            <p className="mt-2 text-xl font-bold leading-tight text-ink break-words [overflow-wrap:anywhere]">{tier.price_display}</p>
+            <p className="mt-2 text-xl font-bold leading-tight text-ink break-words [overflow-wrap:anywhere]">{convertPrice(tier.price_display)}</p>
             <ul className="mt-4 space-y-2">
               {tier.features.map((feature, idx) => (
                 <li key={`${tier.name}-feature-${idx}`} className="flex items-start gap-2 text-sm text-ink-2">
@@ -81,6 +83,12 @@ export default function PricingSection({ tool }) {
           </article>
         ))}
       </div>
+
+      {selectedCurrency !== 'USD' && (
+        <div className="mt-4 rounded-xl border border-accent-soft bg-accent-soft/20 p-3 text-xs text-ink-2 font-medium">
+          Pricing is dynamically converted from USD. Kindly check the tool's official website for actual pricing in your country.
+        </div>
+      )}
 
       {verifiedDate || sourceHostname ? (
         <p className="mt-6 text-xs text-muted">

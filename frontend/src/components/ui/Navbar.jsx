@@ -7,6 +7,7 @@ import Button from './Button'
 import CompassMark from './CompassMark'
 import SearchInput from './SearchInput'
 import useClickOutside from '../../hooks/useClickOutside'
+import { useCurrency } from '../../context/CurrencyContext'
 
 const MotionDiv = motion.div
 
@@ -31,6 +32,7 @@ function getInitialTheme() {
 function Navbar() {
   const navigate = useNavigate()
   const location = useLocation()
+  const { selectedCurrency, setSelectedCurrency, currencies } = useCurrency()
   // /tools has its own page-level search; suppress the navbar one to avoid duplication
   const hideSearchOnRoute = location.pathname === '/tools'
   const [searchValue, setSearchValue] = useState('')
@@ -435,6 +437,22 @@ function Navbar() {
             </Link>
           ) : null}
 
+          {/* Currency Dropdown (Desktop) */}
+          <div className="relative">
+            <select
+              value={selectedCurrency}
+              onChange={(e) => setSelectedCurrency(e.target.value)}
+              className="h-10 rounded-lg border border-line-strong bg-bg-elev px-2 text-xs font-semibold text-ink-2 transition-colors hover:bg-bg-sunk focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent cursor-pointer"
+              aria-label="Select currency"
+            >
+              {currencies.map((curr) => (
+                <option key={curr.code} value={curr.code}>
+                  {curr.code} ({curr.symbol})
+                </option>
+              ))}
+            </select>
+          </div>
+
           <button
             type="button"
             onClick={toggleDarkMode}
@@ -713,6 +731,27 @@ function Navbar() {
                   {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
                   {isDark ? 'Light mode' : 'Dark mode'}
                 </button>
+
+                <div className="my-2 border-t border-line" />
+
+                {/* Currency Selector (Mobile) */}
+                <div className="flex items-center justify-between px-3 py-2">
+                  <span className="text-sm font-medium text-ink-2">Currency</span>
+                  <select
+                    value={selectedCurrency}
+                    onChange={(e) => {
+                      setSelectedCurrency(e.target.value)
+                      setIsMobileMenuOpen(false)
+                    }}
+                    className="rounded-lg border border-line bg-bg-sunk px-3 py-1.5 text-xs font-semibold text-ink-2 focus:outline-none focus:ring-2 focus:ring-accent cursor-pointer"
+                  >
+                    {currencies.map((curr) => (
+                      <option key={curr.code} value={curr.code}>
+                        {curr.code} ({curr.symbol})
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
                 <div className="my-2 border-t border-line" />
 

@@ -8,6 +8,8 @@ import App from './App.jsx'
 import { toApiUrl } from './config/api.js'
 import posthog from 'posthog-js'
 import { PostHogProvider } from '@posthog/react'
+import { CurrencyProvider } from './context/CurrencyContext.jsx'
+
 
 // --- Stale-deploy recovery -------------------------------------------------
 // After a deploy, a tab that was open (or has a cached index.html) still
@@ -111,7 +113,9 @@ createRoot(document.getElementById('root')).render(
             },
           }}
         />
-        <App />
+        <CurrencyProvider>
+          <App />
+        </CurrencyProvider>
       </HelmetProvider>
     </PostHogProvider>
   </StrictMode>,

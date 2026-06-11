@@ -889,6 +889,23 @@ def test_public_profile_and_submissions(client, app):
     assert subs_data[0]["website"] == "https://myaitool.com"
 
 
+def test_exchange_rates_endpoint(client, app):
+    """Verify that get_exchange_rates_route returns standard rates with correct fields."""
+    resp = client.get("/api/v1/exchange-rates")
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert data["base"] == "USD"
+    assert "rates" in data
+    rates = data["rates"]
+    assert "USD" in rates
+    assert "INR" in rates
+    assert "EUR" in rates
+    assert "GBP" in rates
+    assert rates["USD"] == 1.0
+    assert rates["INR"] > 0
+
+
+
 
 
 
