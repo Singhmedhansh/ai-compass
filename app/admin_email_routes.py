@@ -8,6 +8,7 @@ from flask_login import login_required, current_user
 from app.models import User, CatalogTool
 from app.email_utils import send_email, make_unsubscribe_token
 from app.tool_cache import get_cached_tools
+from app import csrf
 
 admin_email_bp = Blueprint("admin_email", __name__)
 
@@ -22,6 +23,7 @@ def _get_gemini_key():
     return keys[0] if keys else None
 
 @admin_email_bp.route("/api/v1/admin/emails/draft", methods=["POST"])
+@csrf.exempt
 @login_required
 def draft_email():
     if not current_user.is_admin:
@@ -96,6 +98,7 @@ Do not include markdown codeblocks (```json) in your response, just the raw JSON
         return jsonify({"error": str(e)}), 500
 
 @admin_email_bp.route("/api/v1/admin/emails/preview", methods=["POST"])
+@csrf.exempt
 @login_required
 def preview_email():
     if not current_user.is_admin:
@@ -119,6 +122,7 @@ def preview_email():
     return jsonify({"html": html})
 
 @admin_email_bp.route("/api/v1/admin/emails/send", methods=["POST"])
+@csrf.exempt
 @login_required
 def send_admin_email():
     if not current_user.is_admin:
