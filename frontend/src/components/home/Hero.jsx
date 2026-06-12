@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 
 import { useCatalogStats } from '../../hooks/useCatalogStats'
 import AnimatedCompass from '../ui/AnimatedCompass'
-import { MagneticWrapper, WordReveal, AuroraBackground } from '../ui'
+import { MagneticWrapper, WordReveal, AuroraBackground, ShinyText } from '../ui'
 
 // Static fallback covers the ~100ms before /api/v1/stats responds — kept close to the live count so the page never reads as broken.
 const FALLBACK_TOOL_COUNT = 400
@@ -44,7 +44,7 @@ export default function Hero() {
             </div>
 
             <h1 className="mt-4 mb-3.5 text-balance text-3xl font-semibold leading-[1.1] tracking-tight text-ink md:max-w-[16ch] md:text-[56px] lg:text-[64px]">
-              <WordReveal>A hand-picked AI finder. Made for students.</WordReveal>
+              <ShinyText text="A hand-picked AI finder. Made for students." className="leading-[1.1] pb-2" />
             </h1>
 
             <p className="mb-5 max-w-[36ch] text-pretty text-[15px] text-muted md:max-w-[48ch] md:text-lg">

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import MockupChrome from '../ui/MockupChrome'
+import { Tilt } from '../ui'
 import chatgptIcon from '../../assets/brand/chatgpt.svg'
 import claudeIcon from '../../assets/brand/claude.svg'
 import githubCopilotIcon from '../../assets/brand/github-copilot.svg'
@@ -386,44 +387,45 @@ export default function WizardDemo() {
               {results.map((tool, i) => {
                 const t = tile(tool.key, tool.name)
                 return (
-                  <Link
-                    to={`/tools/${tool.key}`}
-                    key={tool.key}
-                    className="mb-2.5 grid grid-cols-[36px_1fr_auto] items-start gap-3 rounded-xl border border-line bg-bg-elev p-3.5 transition-all hover:border-accent hover:-translate-y-0.5 hover:shadow-md cursor-pointer"
-                  >
-                    <div
-                      className="grid h-9 w-9 place-items-center rounded-lg text-sm font-bold text-white"
-                      style={{ background: t.bg }}
+                  <Tilt key={tool.key} className="mb-2.5">
+                    <Link
+                      to={`/tools/${tool.key}`}
+                      className="grid grid-cols-[36px_1fr_auto] items-start gap-3 rounded-xl border border-line bg-bg-elev p-3.5 transition-all hover:border-accent hover:-translate-y-0.5 hover:shadow-md cursor-pointer"
                     >
-                      {t.type === 'svg' ? (
-                        <img
-                          src={t.src}
-                          alt={t.alt}
-                          className="h-5 w-5"
-                          style={{ filter: 'brightness(0) invert(1)' }}
-                          width="20"
-                          height="20"
-                          loading="lazy"
-                          decoding="async"
-                        />
-                      ) : (
-                        t.letter
-                      )}
-                    </div>
-                    <div>
-                      <div className="flex items-baseline gap-2 text-sm font-semibold text-ink">
-                        {tool.name}{' '}
-                        <span className="text-xs font-normal text-muted">
-                          {tool.free ? 'free' : 'paid'} · {tool.model}
-                        </span>
+                      <div
+                        className="grid h-9 w-9 place-items-center rounded-lg text-sm font-bold text-white"
+                        style={{ background: t.bg }}
+                      >
+                        {t.type === 'svg' ? (
+                          <img
+                            src={t.src}
+                            alt={t.alt}
+                            className="h-5 w-5"
+                            style={{ filter: 'brightness(0) invert(1)' }}
+                            width="20"
+                            height="20"
+                            loading="lazy"
+                            decoding="async"
+                          />
+                        ) : (
+                          t.letter
+                        )}
                       </div>
-                      <div className="mt-1 text-[13px] leading-[1.45] text-muted">
-                        <span className="mr-1.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-accent-ink">why</span>
-                        {tool.why}
+                      <div>
+                        <div className="flex items-baseline gap-2 text-sm font-semibold text-ink">
+                          {tool.name}{' '}
+                          <span className="text-xs font-normal text-muted">
+                            {tool.free ? 'free' : 'paid'} · {tool.model}
+                          </span>
+                        </div>
+                        <div className="mt-1 text-[13px] leading-[1.45] text-muted">
+                          <span className="mr-1.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-accent-ink">why</span>
+                          {tool.why}
+                        </div>
                       </div>
-                    </div>
-                    <span className="text-xs font-medium text-muted-2">#{i + 1}</span>
-                  </Link>
+                      <span className="text-xs font-medium text-muted-2">#{i + 1}</span>
+                    </Link>
+                  </Tilt>
                 )
               })}
 

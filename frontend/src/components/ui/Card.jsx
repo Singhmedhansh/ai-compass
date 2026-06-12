@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 import { motion } from 'framer-motion'
 import { Folder, Sparkles, Star } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import Badge from './Badge'
@@ -31,6 +31,14 @@ function Card({ tool = {}, layoutType = 'standard', glass = false, folders = nul
   const navigate = useNavigate()
   const [isHovered, setIsHovered] = useState(false)
   const [showFolderDropdown, setShowFolderDropdown] = useState(false)
+  const cardRef = useRef(null)
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
+
+  const handleMouseMove = (e) => {
+    if (!cardRef.current) return
+    const rect = cardRef.current.getBoundingClientRect()
+    setMousePos({ x: e.clientX - rect.left, y: e.clientY - rect.top })
+  }
 
   const isLarge = layoutType === 'large'
   const isWide = layoutType === 'wide'
@@ -103,10 +111,12 @@ function Card({ tool = {}, layoutType = 'standard', glass = false, folders = nul
   return (
     <MotionCard
       layout
+      ref={cardRef}
       role="button"
       tabIndex={0}
       onClick={() => navigate(`/tools/${slug}`)}
       onKeyDown={handleKeyDown}
+      onMouseMove={handleMouseMove}
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => {
         setIsHovered(false)
@@ -127,6 +137,13 @@ function Card({ tool = {}, layoutType = 'standard', glass = false, folders = nul
         isLarge ? "p-6" : "p-4"
       )}
     >
+      <div 
+        className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 ease-in-out group-hover:opacity-100 z-0"
+        style={{
+          background: `radial-gradient(circle at ${mousePos.x}px ${mousePos.y}px, rgba(150, 150, 150, 0.08), transparent 50%)`,
+        }}
+      />
+      
       <div className="absolute right-2 top-2 z-10 flex items-center gap-1.5" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
         {folders && (
           <div className="relative">

@@ -46,6 +46,7 @@ export default {
         'pulse-1.5': 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         shimmer: 'shimmer 1.5s infinite',
         aurora: 'aurora 60s linear infinite',
+        shine: 'shine var(--shine-duration, 3s) linear infinite',
       },
       keyframes: {
         shimmer: {
@@ -54,6 +55,10 @@ export default {
         aurora: {
           from: { backgroundPosition: '50% 50%, 50% 50%' },
           to: { backgroundPosition: '350% 50%, 350% 50%' },
+        },
+        shine: {
+          '0%': { backgroundPosition: '100%' },
+          '100%': { backgroundPosition: '-100%' },
         },
       },
     }
