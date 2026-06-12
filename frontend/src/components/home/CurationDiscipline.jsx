@@ -80,6 +80,7 @@ export default function CurationDiscipline() {
             </div>
           </div>
         </div>
+        </div>
       </GridBackground>
     </section>
   )

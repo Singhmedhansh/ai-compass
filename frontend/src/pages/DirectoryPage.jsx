@@ -671,8 +671,8 @@ function DirectoryPage() {
         description={`Browse ${displayCount} curated AI tools by category, rating, and pricing. Find the right tool for writing, coding, research, and more.`}
         path="/tools"
       />
-      <GridBackground className="px-4 py-8 sm:px-6 lg:px-8 border-b border-line mb-8">
-        <MotionDiv variants={sectionReveal} initial="initial" animate="animate">
+      <MotionDiv variants={sectionReveal} initial="initial" animate="animate">
+        <GridBackground className="px-4 py-8 sm:px-6 lg:px-8 border-b border-line mb-8">
           <section className="mb-6 flex flex-wrap items-center justify-between gap-3">
             <h1 className="text-3xl font-bold tracking-tight text-ink sm:text-4xl"><WordReveal>AI Tools Directory</WordReveal></h1>
             <span className="text-sm font-medium tabular-nums text-muted">
@@ -691,8 +691,7 @@ function DirectoryPage() {
               Filters
             </button>
           </section>
-        </MotionDiv>
-      </GridBackground>
+        </GridBackground>
 
       {/* Mobile Filter Drawer */}
       <AnimatePresence>
