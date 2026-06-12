@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 
 import { useCatalogStats } from '../../hooks/useCatalogStats'
 import { useCountUp, useScrollReveal } from '../../lib/motion'
+import { GridBackground } from '../ui'
 
 const FALLBACK_TOOL_COUNT = 400
 
@@ -16,12 +17,13 @@ export default function CurationDiscipline() {
   const cadenceCount = useCountUp(7, { enabled: statsInView, duration: 1.0 })
 
   return (
-    <section id="curation" className="py-12 md:py-20">
-      <div className="mx-auto max-w-6xl px-5">
-        <div className="mb-4 inline-flex items-center gap-2 font-mono text-xs tracking-wide text-muted">
-          <span aria-hidden="true" className="h-px w-4 bg-line-strong" />
-          03 / Curation discipline
-        </div>
+    <section id="curation" className="relative">
+      <GridBackground className="py-12 md:py-20">
+        <div className="mx-auto max-w-6xl px-5 relative z-10">
+          <div className="mb-4 inline-flex items-center gap-2 font-mono text-xs tracking-wide text-muted">
+            <span aria-hidden="true" className="h-px w-4 bg-line-strong" />
+            03 / Curation discipline
+          </div>
 
         <h2 className="mb-4 max-w-[28ch] text-balance text-[28px] font-semibold leading-[1.15] tracking-tight text-ink md:max-w-[20ch] md:text-[40px]">
           Why this catalog isn't another scrape.
@@ -78,7 +80,7 @@ export default function CurationDiscipline() {
             </div>
           </div>
         </div>
-      </div>
+      </GridBackground>
     </section>
   )
 }

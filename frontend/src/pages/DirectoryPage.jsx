@@ -3,7 +3,7 @@ import { Helmet } from 'react-helmet-async'
 import { useSearchParams } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ArrowRight, ChevronDown, GraduationCap, SearchX, Sparkles } from 'lucide-react'
-import { Button, Dropdown, SearchInput, SEO, SkeletonCard, WordReveal } from '../components/ui'
+import { Button, Dropdown, SearchInput, SEO, SkeletonCard, WordReveal, GridBackground } from '../components/ui'
 import CategorySection from '../components/tools/CategorySection'
 import FlatToolGrid from '../components/tools/FlatToolGrid'
 import ErrorState from '../components/ErrorState'
@@ -12,6 +12,7 @@ import { inferErrorVariant } from '../utils/errorState'
 
 // Static fallback covers the ~100ms before /api/v1/stats responds — kept close to the live count so the meta never reads as broken.
 const FALLBACK_TOOL_COUNT = 400
+
 
 const STUDENT_TOP_FALLBACK = [
   {
@@ -663,32 +664,35 @@ function DirectoryPage() {
 
   return (
     <div
-      className="container main-content mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8"
+      className="container main-content mx-auto w-full max-w-7xl"
     >
       <SEO
         title="AI Tools Directory"
         description={`Browse ${displayCount} curated AI tools by category, rating, and pricing. Find the right tool for writing, coding, research, and more.`}
         path="/tools"
       />
-      <MotionDiv variants={sectionReveal} initial="initial" animate="animate">
-      <section className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-3xl font-bold tracking-tight text-ink sm:text-4xl"><WordReveal>AI Tools Directory</WordReveal></h1>
-        <span className="text-sm font-medium tabular-nums text-muted">
-          {isLoading ? 'Loading...' : `${isRootHub ? hubToolCount : filteredTools.length} tools`}
-        </span>
-        {/* Mobile Filters Button */}
-        <button
-          ref={triggerRef}
-          type="button"
-          aria-haspopup="dialog"
-          aria-expanded={showMobileFilters}
-          aria-controls="mobile-filters-drawer"
-          onClick={() => setShowMobileFilters(true)}
-          className="md:hidden ml-auto rounded-xl border border-line bg-bg-elev px-4 py-2 text-sm font-semibold text-ink-2 shadow-sm"
-        >
-          Filters
-        </button>
-      </section>
+      <GridBackground className="px-4 py-8 sm:px-6 lg:px-8 border-b border-line mb-8">
+        <MotionDiv variants={sectionReveal} initial="initial" animate="animate">
+          <section className="mb-6 flex flex-wrap items-center justify-between gap-3">
+            <h1 className="text-3xl font-bold tracking-tight text-ink sm:text-4xl"><WordReveal>AI Tools Directory</WordReveal></h1>
+            <span className="text-sm font-medium tabular-nums text-muted">
+              {isLoading ? 'Loading...' : `${isRootHub ? hubToolCount : filteredTools.length} tools`}
+            </span>
+            {/* Mobile Filters Button */}
+            <button
+              ref={triggerRef}
+              type="button"
+              aria-haspopup="dialog"
+              aria-expanded={showMobileFilters}
+              aria-controls="mobile-filters-drawer"
+              onClick={() => setShowMobileFilters(true)}
+              className="md:hidden ml-auto rounded-xl border border-line bg-bg-elev px-4 py-2 text-sm font-semibold text-ink-2 shadow-sm"
+            >
+              Filters
+            </button>
+          </section>
+        </MotionDiv>
+      </GridBackground>
 
       {/* Mobile Filter Drawer */}
       <AnimatePresence>

@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 
 import { useCatalogStats } from '../../hooks/useCatalogStats'
 import AnimatedCompass from '../ui/AnimatedCompass'
-import { MagneticWrapper, WordReveal, AuroraBackground, ShinyText } from '../ui'
+import { MagneticWrapper, WordReveal, AuroraBackground, ShinyText, FlipWords, InfiniteMarquee } from '../ui'
 
 // Static fallback covers the ~100ms before /api/v1/stats responds — kept close to the live count so the page never reads as broken.
 const FALLBACK_TOOL_COUNT = 400
@@ -28,6 +28,8 @@ const MARQUEE_LOGOS = [
 export default function Hero() {
   const { totalTools } = useCatalogStats()
   const displayCount = totalTools ?? FALLBACK_TOOL_COUNT
+  
+  const audienceWords = ["Students.", "Researchers.", "Coders.", "Writers.", "Designers."]
 
   return (
     <AuroraBackground>
@@ -44,7 +46,9 @@ export default function Hero() {
             </div>
 
             <h1 className="mt-4 mb-3.5 text-balance text-3xl font-semibold leading-[1.1] tracking-tight text-ink md:max-w-[16ch] md:text-[56px] lg:text-[64px]">
-              <ShinyText text="A hand-picked AI finder. Made for students." className="leading-[1.1] pb-2" />
+              <ShinyText text="A hand-picked AI finder." className="leading-[1.1]" />
+              <br className="hidden md:block" />
+              <span className="text-muted-2 text-3xl md:text-[56px] lg:text-[64px]">Made for <FlipWords words={audienceWords} className="text-ink" /></span>
             </h1>
 
             <p className="mb-5 max-w-[36ch] text-pretty text-[15px] text-muted md:max-w-[48ch] md:text-lg">
@@ -122,9 +126,12 @@ export default function Hero() {
           <p className="text-center text-xs font-bold uppercase tracking-widest text-muted-2 mb-5">
             Discover & Compare 400+ Hand-Tested AI Tools
           </p>
-          <div className="relative w-full overflow-hidden mask-gradient py-3">
-            <div className="animate-marquee gap-4 hover:[animation-play-state:paused] flex items-center pr-4">
-              {[...MARQUEE_LOGOS, ...MARQUEE_LOGOS].map((logo, index) => (
+          <div className="py-3">
+            <InfiniteMarquee
+              items={MARQUEE_LOGOS}
+              speed={40}
+              gap="1rem"
+              renderItem={(logo, index) => (
                 <Link
                   key={`${logo.name}-${index}`}
                   to={`/tools/${logo.slug}`}
@@ -134,16 +141,12 @@ export default function Hero() {
                     src={`/icon/${logo.domain}`}
                     alt={logo.name}
                     className="h-7 w-7 rounded-lg bg-white p-0.5 object-contain shadow-[0_1px_4px_rgba(0,0,0,0.10)] border border-line/30"
-                    onError={(e) => {
-                      e.target.style.display = 'none'
-                    }}
+                    loading="lazy"
                   />
-                  <span className="text-sm font-bold text-ink-2 tracking-tight select-none">
-                    {logo.name}
-                  </span>
+                  <span className="font-semibold text-ink-2">{logo.name}</span>
                 </Link>
-              ))}
-            </div>
+              )}
+            />
           </div>
         </div>
       </header>
