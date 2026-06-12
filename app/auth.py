@@ -1,4 +1,4 @@
-from flask import Blueprint, current_app, flash, redirect, request, session, url_for, jsonify
+from flask import Blueprint, current_app, flash, redirect, request, session, url_for, jsonify, render_template
 from flask_login import current_user, login_required, login_user, logout_user
 import json
 import os
@@ -284,6 +284,15 @@ def register():
             send_email(email, subject, html)
         except Exception:
             current_app.logger.exception("Failed to send verification email")
+
+        # Send welcome email
+        try:
+            welcome_subject = "Welcome to AI Compass"
+            workspace_link = f"{_frontend_base_url()}/dashboard"
+            welcome_html = render_template('emails/welcome.html', user_name=name, workspace_link=workspace_link)
+            send_email(email, welcome_subject, welcome_html)
+        except Exception:
+            current_app.logger.exception("Failed to send welcome email")
 
         _clear_stale_login_flash_errors()
         flash("Registration successful! Please check your email to verify your account.", "success")

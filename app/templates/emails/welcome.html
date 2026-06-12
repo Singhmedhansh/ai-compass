@@ -1,0 +1,45 @@
+{% extends "emails/base.html" %}
+
+{% block title %}Welcome to AI Compass{% endblock %}
+
+{% block content %}
+<h1 class="heading">Hey {{ user_name }},</h1>
+<p class="paragraph">
+  Your personalized account is ready. We've built specialized navigation layers to make finding, sorting,
+  and deploying academic AI tools completely instant. Here is what you can do right now:
+</p>
+
+<div class="feature-card">
+  <div class="feature-title">🚀 AI Discovery Wizard <span class="badge-emerald">Smart Search</span></div>
+  <div class="feature-desc">
+    Answer 3 simple questions about your current assignment, lab project, or exam track, and let our custom
+    parsing backend surface your ideal software toolkit automatically.
+  </div>
+</div>
+
+<div class="feature-card">
+  <div class="feature-title">🗂️ Custom Student Workspace <span class="badge-teal">Save Layouts</span></div>
+  <div class="feature-desc">
+    Instantly bookmark and build personalized stacks for quick reference. Group your daily developer tools,
+    LaTeX editors, and research assistants onto one unified dashboard.
+  </div>
+</div>
+
+<div class="feature-card">
+  <div class="feature-title">
+    🔍 Context-Aware Search Heuristics <span class="badge-emerald">Zero Dead-Ends</span>
+  </div>
+  <div class="feature-desc">
+    No more empty search queries. Our query normalization engine interprets messy, custom student sentences
+    and automatically surfaces highly relevant alternatives instead of crashing.
+  </div>
+</div>
+
+<table role="presentation" style="width: auto;">
+  <tr>
+    <td>
+      <a href="{{ workspace_link }}" target="_blank" class="cta-button">Open Your Workspace →</a>
+    </td>
+  </tr>
+</table>
+{% endblock %}

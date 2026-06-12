@@ -189,6 +189,11 @@ function AdminPage() {
   const [bcBusy, setBcBusy] = useState('')
   const [liBusy, setLiBusy] = useState(false)
 
+  const [nlPrompt, setNlPrompt] = useState('Draft a weekly newsletter highlighting new AI models and student tools.')
+  const [nlDraft, setNlDraft] = useState(null)
+  const [nlPreviewHtml, setNlPreviewHtml] = useState(null)
+  const [nlBusy, setNlBusy] = useState('')
+
   useEffect(() => {
     const u = JSON.parse(localStorage.getItem('user') || 'null')
     if (!u || !(u.is_admin || ADMIN_EMAILS.includes(u.email))) {
@@ -397,6 +402,42 @@ function AdminPage() {
       toast.error('Copy failed — select the text and copy manually')
     }
   }
+
+  const draftNewsletter = async () => {
+    setNlBusy('drafting')
+    try {
+      const d = await api('/api/v1/admin/emails/draft', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: nlPrompt })
+      })
+      setNlDraft(d)
+      setNlPreviewHtml(null)
+      toast.success('Draft generated!')
+    } catch (e) { toast.error(e.message) } finally { setNlBusy('') }
+  }
+
+  const previewNewsletter = async () => {
+    if (!nlDraft) return
+    setNlBusy('previewing')
+    try {
+      const d = await api('/api/v1/admin/emails/preview', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(nlDraft)
+      })
+      setNlPreviewHtml(d.html)
+    } catch (e) { toast.error(e.message) } finally { setNlBusy('') }
+  }
+
+  const sendNewsletter = async () => {
+    if (!nlDraft) return
+    if (!window.confirm('Send this LLM-drafted newsletter to ALL opted-in users now?')) return
+    setNlBusy('sending')
+    try {
+      const d = await api('/api/v1/admin/emails/send', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(nlDraft)
+      })
+      toast.success(`Delivered to ${d.sent_count}/${d.total_attempted} users`)
+    } catch (e) { toast.error(e.message) } finally { setNlBusy('') }
+  }
+
   const reviewSubmission = async (id, action) => {
     try {
       await api(`/api/v1/admin/submissions/${id}/${action}`, { method: 'POST' })
@@ -729,6 +770,72 @@ function AdminPage() {
                 <button disabled={!!bcBusy} onClick={() => runBroadcast('send')} className={BTN_PRIMARY}>{bcBusy === 'send' ? 'Sending…' : 'Send to all'}</button>
               </div>
             </Card>
+          </div>
+        )}
+
+        {activeTab === 'Newsletter' && (
+          <div className="space-y-4">
+            <Card>
+              <h2 className="text-xl font-semibold text-ink">LLM Email Studio</h2>
+              <p className="mt-1 text-sm text-muted">
+                Use Gemini to draft an intelligent newsletter combining the latest AI models and top trending tools from the catalog.
+              </p>
+              
+              <div className="mt-4">
+                <label className="mb-1 block text-sm font-semibold text-ink">Prompt / Instructions</label>
+                <textarea
+                  value={nlPrompt}
+                  onChange={(e) => setNlPrompt(e.target.value)}
+                  rows={3}
+                  className="w-full resize-y rounded-lg border border-line bg-bg-sunk p-3 text-sm text-ink-2"
+                />
+              </div>
+
+              <div className="mt-4 flex gap-2">
+                <button disabled={!!nlBusy} onClick={draftNewsletter} className={BTN_PRIMARY}>
+                  {nlBusy === 'drafting' ? 'Drafting with Gemini...' : 'Draft Newsletter'}
+                </button>
+              </div>
+            </Card>
+
+            {nlDraft && (
+              <Card>
+                <h3 className="mb-2 text-lg font-semibold text-ink">Review Draft JSON</h3>
+                <textarea
+                  value={JSON.stringify(nlDraft, null, 2)}
+                  onChange={(e) => {
+                    try {
+                      setNlDraft(JSON.parse(e.target.value))
+                    } catch(err) {
+                      // ignore parse errors while typing
+                    }
+                  }}
+                  rows={15}
+                  className="w-full resize-y rounded-lg border border-line bg-bg-sunk p-3 font-mono text-xs text-ink-2"
+                />
+                <div className="mt-4 flex gap-2">
+                  <button disabled={!!nlBusy} onClick={previewNewsletter} className={BTN_GHOST}>
+                    {nlBusy === 'previewing' ? 'Rendering...' : 'Render Preview'}
+                  </button>
+                  <button disabled={!!nlBusy} onClick={sendNewsletter} className={BTN_PRIMARY}>
+                    {nlBusy === 'sending' ? 'Sending...' : 'Send to All Users'}
+                  </button>
+                </div>
+              </Card>
+            )}
+
+            {nlPreviewHtml && (
+              <Card>
+                <h3 className="mb-4 text-lg font-semibold text-ink">Live Preview</h3>
+                <div className="w-full overflow-hidden rounded-xl border border-line bg-bg-sunk p-4 flex justify-center">
+                  <iframe 
+                    srcDoc={nlPreviewHtml} 
+                    title="Email Preview"
+                    className="h-[800px] w-full max-w-[600px] rounded-lg bg-white shadow-sm"
+                  />
+                </div>
+              </Card>
+            )}
           </div>
         )}
 

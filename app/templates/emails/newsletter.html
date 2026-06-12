@@ -1,0 +1,27 @@
+{% extends "emails/base.html" %}
+
+{% block title %}{{ subject }}{% endblock %}
+
+{% block content %}
+<h1 class="heading">Hey {{ user_name }},</h1>
+<p class="paragraph">
+  {{ opening_text }}
+</p>
+
+{% for item in news_items %}
+<div class="feature-card">
+  <div class="feature-title">{{ item.title }} <span class="badge-emerald">{{ item.badge }}</span></div>
+  <div class="feature-desc">
+    {{ item.description }}
+  </div>
+</div>
+{% endfor %}
+
+<table role="presentation" style="width: auto;">
+  <tr>
+    <td>
+      <a href="{{ cta_link }}" target="_blank" class="cta-button">{{ cta_text }} →</a>
+    </td>
+  </tr>
+</table>
+{% endblock %}

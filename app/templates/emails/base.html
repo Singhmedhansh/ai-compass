@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}AI Compass{% endblock %}</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        background-color: #f9fafb !important;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      table { border-spacing: 0; width: 100%; }
+      td { padding: 0; }
+
+      .wrapper {
+        background-color: #f9fafb;
+        padding: 40px 20px;
+      }
+
+      .main-card {
+        max-width: 560px;
+        margin: 0 auto;
+        background-color: #ffffff !important;
+        border: 1px solid #e5e7eb !important;
+        border-radius: 16px !important;
+        overflow: hidden;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+      }
+
+      .header-brand {
+        padding: 32px 32px 16px 32px;
+        font-size: 18px;
+        font-weight: 800;
+        color: #111827 !important;
+        letter-spacing: -0.03em;
+      }
+
+      .brand-dot {
+        color: #059669;
+      }
+
+      .content-area {
+        padding: 0 32px 32px 32px;
+      }
+
+      .heading {
+        color: #111827 !important;
+        font-size: 24px;
+        font-weight: 800;
+        margin: 0 0 12px 0;
+        letter-spacing: -0.025em;
+      }
+
+      .paragraph {
+        color: #4b5563 !important;
+        font-size: 15px;
+        line-height: 1.6;
+        margin: 0 0 28px 0;
+      }
+
+      /* Premium Feature Block Grid */
+      .feature-card {
+        background-color: #f3f4f6 !important;
+        border: 1px solid #e5e7eb !important;
+        border-radius: 12px !important;
+        padding: 16px;
+        margin-bottom: 16px;
+      }
+
+      .feature-title {
+        color: #111827 !important;
+        font-size: 15px;
+        font-weight: 700;
+        margin-bottom: 4px;
+      }
+
+      .feature-desc {
+        color: #4b5563 !important;
+        font-size: 13px;
+        line-height: 1.5;
+      }
+
+      .badge-emerald {
+        background-color: rgba(16, 185, 129, 0.15) !important;
+        color: #065f46 !important;
+        font-size: 11px;
+        font-family: monospace;
+        padding: 2px 6px;
+        border-radius: 4px;
+        display: inline-block;
+        margin-left: 6px;
+        vertical-align: middle;
+        font-weight: 600;
+      }
+
+      .badge-teal {
+        background-color: rgba(20, 184, 166, 0.15) !important;
+        color: #0f766e !important;
+        font-size: 11px;
+        font-family: monospace;
+        padding: 2px 6px;
+        border-radius: 4px;
+        display: inline-block;
+        margin-left: 6px;
+        vertical-align: middle;
+        font-weight: 600;
+      }
+
+      .cta-button {
+        background-color: #10b981 !important;
+        color: #ffffff !important;
+        font-size: 14px;
+        font-weight: 700;
+        text-decoration: none !important;
+        padding: 14px 28px;
+        border-radius: 12px;
+        display: inline-block;
+        text-align: center;
+        letter-spacing: -0.01em;
+        margin-top: 12px;
+        box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
+      }
+
+      .footer {
+        padding: 28px 32px;
+        background-color: #f9fafb;
+        border-top: 1px solid #e5e7eb;
+        text-align: center;
+      }
+
+      .footer-text {
+        color: #6b7280 !important;
+        font-size: 12px;
+        margin: 0;
+      }
+
+      .footer-link {
+        color: #059669 !important;
+        text-decoration: none !important;
+        font-weight: 500;
+      }
+
+      .dev-credit {
+        color: #9ca3af !important;
+        font-size: 11px;
+        font-family: monospace;
+        margin-top: 12px;
+        letter-spacing: 0.02em;
+      }
+
+      {% block extra_css %}{% endblock %}
+    </style>
+  </head>
+  <body>
+    <center class="wrapper">
+      <table class="main-card" role="presentation">
+        <tr>
+          <td class="header-brand">🧭 AI Compass<span class="brand-dot">.in</span></td>
+        </tr>
+
+        <tr>
+          <td class="content-area">
+            {% block content %}{% endblock %}
+          </td>
+        </tr>
+
+        <tr>
+          <td class="footer">
+            {% block footer_content %}
+            <p class="footer-text">
+              Questions or feedback? Reach out at
+              <a href="mailto:help@ai-compass.in" class="footer-link">help@ai-compass.in</a>
+            </p>
+            <p class="footer-text" style="margin-top: 6px;">Curated tools for engineering and college workflows.</p>
+            <p class="dev-credit">⚡ Developed by Medhansh Pratap Singh</p>
+            {% endblock %}
+            {% if unsubscribe_url %}
+            <p class="dev-credit" style="margin-top: 16px;">
+              Don't want to receive these updates? <a href="{{ unsubscribe_url }}" class="footer-link" style="color: #6b7280 !important;">Unsubscribe</a>
+            </p>
+            {% endif %}
+          </td>
+        </tr>
+      </table>
+    </center>
+  </body>
+</html>

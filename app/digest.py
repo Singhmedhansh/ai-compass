@@ -77,43 +77,44 @@ def _seed_snapshot() -> int:
     return len(slugs)
 
 
+from flask import render_template
+
 def _email_html(tools: list[dict], unsubscribe_url: str) -> tuple[str, str]:
-    rows, text_rows = [], []
+    text_rows = []
+    news_items = []
+    
     for t in tools[:25]:
         name = t.get("name", "")
         slug = str(t.get("slug", "")).strip().lower()
         tagline = t.get("tagline") or t.get("shortDescription") or t.get("description") or ""
         url = f"{BASE}/tools/{slug}"
-        rows.append(
-            f'<tr><td style="padding:10px 0;border-bottom:1px solid #e7e7e3">'
-            f'<a href="{url}" style="color:#0f5f47;font-weight:600;'
-            f'text-decoration:none;font-size:15px">{name}</a>'
-            f'<div style="color:#5b6b64;font-size:13px;margin-top:2px">{tagline}</div>'
-            f"</td></tr>"
-        )
+        
+        badge = "New"
+        if t.get("student_friendly") or t.get("student_discount"):
+            badge = "Student Friendly"
+            
+        news_items.append({
+            "title": name,
+            "badge": badge,
+            "description": tagline
+        })
         text_rows.append(f"- {name}: {tagline} ({url})")
 
     count = len(tools)
-    html = f"""<!doctype html><html><body style="margin:0;background:#fafaf9;
-      font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
-      <div style="max-width:560px;margin:0 auto;padding:28px 22px">
-        <div style="font-size:18px;font-weight:700;color:#0e1311">AI Compass</div>
-        <h1 style="font-size:20px;color:#0e1311;margin:22px 0 6px">
-          {count} new AI tool{'s' if count != 1 else ''} just added</h1>
-        <p style="color:#5b6b64;font-size:14px;margin:0 0 16px">
-          Hand-tested and added to the catalog. Free to browse, no login.</p>
-        <table style="width:100%;border-collapse:collapse">{''.join(rows)}</table>
-        <div style="margin:26px 0">
-          <a href="{BASE}/tools" style="background:#2fb389;color:#fff;
-            text-decoration:none;padding:11px 20px;border-radius:9px;
-            font-weight:600;font-size:14px">Browse all tools →</a>
-        </div>
-        <p style="color:#9aa39e;font-size:12px;margin-top:30px;
-          border-top:1px solid #e7e7e3;padding-top:14px">
-          You get this because you have an AI Compass account.
-          <a href="{unsubscribe_url}" style="color:#9aa39e">Unsubscribe</a>.
-        </p>
-      </div></body></html>"""
+    subject = f"{count} new AI tool{'s' if count != 1 else ''} on AI Compass"
+    opening_text = f"We just hand-tested and added {count} new AI tool{'s' if count != 1 else ''} to the catalog. Free to browse, no login required."
+    
+    html = render_template(
+        "emails/newsletter.html",
+        subject=subject,
+        user_name="Student",
+        opening_text=opening_text,
+        news_items=news_items,
+        cta_text="Browse all tools",
+        cta_link=f"{BASE}/tools",
+        unsubscribe_url=unsubscribe_url
+    )
+    
     text = (
         f"{count} new AI tools added to AI Compass\n\n"
         + "\n".join(text_rows)

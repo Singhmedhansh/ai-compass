@@ -322,6 +322,13 @@ def create_app(config: dict | None = None) -> Flask:
             raise
 
         try:
+            from app.admin_email_routes import admin_email_bp
+            app.register_blueprint(admin_email_bp)
+        except Exception as e:
+            app.logger.error(f"Failed to register admin_email_routes: {e}")
+            raise
+
+        try:
             from app import oauth
             app.register_blueprint(oauth.oauth_bp)
             oauth.init_oauth(app)
