@@ -45,10 +45,15 @@ export default {
       animation: {
         'pulse-1.5': 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         shimmer: 'shimmer 1.5s infinite',
+        aurora: 'aurora 60s linear infinite',
       },
       keyframes: {
         shimmer: {
           '100%': { transform: 'translateX(100%)' },
+        },
+        aurora: {
+          from: { backgroundPosition: '50% 50%, 50% 50%' },
+          to: { backgroundPosition: '350% 50%, 350% 50%' },
         },
       },
     }

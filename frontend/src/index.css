@@ -187,3 +187,15 @@ html[data-theme='dark'] .glass-box {
   -webkit-mask-image: linear-gradient(to right, transparent, #000 15%, #000 85%, transparent);
 }
 
+.mask-gradient-b {
+  mask-image: linear-gradient(to bottom, #000 60%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, #000 60%, transparent 100%);
+}
+
+:root {
+  --transparent: rgba(255, 255, 255, 0);
+}
+html[data-theme='dark'] {
+  --transparent: rgba(14, 19, 17, 0);
+}
+
