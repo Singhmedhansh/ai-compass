@@ -230,8 +230,8 @@ def get_personalized_recommendations(user, limit=6) -> list:
     if env_keys_str:
         keys.extend([k.strip() for k in env_keys_str.split(",") if k.strip()])
     single_key = os.environ.get("GEMINI_API_KEY")
-    if single_key and single_key not in keys:
-        keys.append(single_key)
+    if single_key and single_key.strip() not in keys:
+        keys.append(single_key.strip())
         
     recs = []
     
