@@ -296,6 +296,12 @@ function Navbar() {
             </Button>
           </Link>
 
+          <Link to="/model-comparison">
+            <Button variant="ghost" size="sm" className="text-ink-2">
+              Model Comparison
+            </Button>
+          </Link>
+
           <Link to="/help">
             <Button variant="ghost" size="sm" className="text-ink-2">
               Help Center
@@ -674,6 +680,13 @@ function Navbar() {
                   className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
                 >
                   Collections
+                </Link>
+                <Link
+                  to="/model-comparison"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
+                >
+                  Model Comparison
                 </Link>
                 <Link
                   to="/help"

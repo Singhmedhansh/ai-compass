@@ -56,6 +56,7 @@ const BestAIToolsForFictionWriters = lazy(() => import('./pages/BestAIToolsForFi
 const SyllabusParserPage = lazy(() => import('./pages/SyllabusParserPage'))
 const SharedToolkitPage = lazy(() => import('./pages/SharedToolkitPage'))
 const StudentDiscountsPage = lazy(() => import('./pages/StudentDiscountsPage'))
+const ModelComparisonPage = lazy(() => import('./pages/ModelComparisonPage'))
 
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 
@@ -212,6 +213,7 @@ function AnimatedRoutes() {
             <Route path="/syllabus-parser" element={<SyllabusParserPage />} />
             <Route path="/shared-toolkit/:shareId" element={<SharedToolkitPage />} />
             <Route path="/student-discounts" element={<StudentDiscountsPage />} />
+            <Route path="/model-comparison" element={<ModelComparisonPage />} />
 
             <Route path="*" element={<NotFoundPage />} />
         </Route>
