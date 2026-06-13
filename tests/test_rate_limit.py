@@ -1,4 +1,3 @@
-import pytest
 from unittest.mock import MagicMock, patch
 from app.rate_limit import is_rate_limited
 

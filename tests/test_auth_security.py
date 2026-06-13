@@ -1,5 +1,3 @@
-import json
-import pytest
 from app import db, bcrypt
 from app.models import User, UserSession, LinkedAccount
 

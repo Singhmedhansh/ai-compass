@@ -12,6 +12,7 @@ from flask_bcrypt import Bcrypt
 from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import CSRFProtect
+from flask_caching import Cache
 
 from app.tool_cache import DEFAULT_TOOLS_PATH, get_cached_tools, prime_tools_cache
 
@@ -63,8 +64,6 @@ try:
 except ImportError:
     Compress = None
 
-
-from flask_caching import Cache
 
 db = SQLAlchemy()
 login_manager = LoginManager()
@@ -428,7 +427,7 @@ def create_app(config: dict | None = None) -> Flask:
 
     @app.before_request
     def enforce_user_sessions():
-        from flask import session, jsonify, redirect, request, g
+        from flask import session, jsonify, redirect, request
         from flask_login import current_user, logout_user
         import uuid
         from datetime import datetime, timezone
@@ -600,7 +599,7 @@ def create_app(config: dict | None = None) -> Flask:
                     print(f"[WARMUP] migrate skipped: {e}", flush=True)
 
                 try:
-                    from app.models import ReviewVote
+                    from app.models import ReviewVote  # noqa: F401
                     db.create_all()
                     print("[WARMUP] db.create_all() done", flush=True)
                 except Exception as e:

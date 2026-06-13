@@ -1,11 +1,10 @@
 import json
 import os
 import requests
-from datetime import datetime, timezone
 
 from flask import Blueprint, jsonify, request, render_template, current_app
 from flask_login import login_required, current_user
-from app.models import User, CatalogTool
+from app.models import User
 from app.email_utils import send_email, make_unsubscribe_token
 from app.tool_cache import get_cached_tools
 from app import csrf
@@ -161,7 +160,7 @@ def send_admin_email():
                 sent += 1
             else:
                 errors.append(u.email)
-        except Exception as e:
+        except Exception:
             current_app.logger.exception(f"Failed to send email to {u.email}")
             errors.append(u.email)
             

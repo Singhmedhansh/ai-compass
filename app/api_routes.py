@@ -142,14 +142,16 @@ def _looks_like_question_intent(raw_query: str) -> bool:
 
 def _safe_float(v):
     try:
-        if v in (None, "", "N/A"): return 0.0
+        if v in (None, "", "N/A"):
+            return 0.0
         return float(v)
     except (ValueError, TypeError):
         return 0.0
 
 def _safe_int(v):
     try:
-        if v in (None, "", "N/A"): return 0
+        if v in (None, "", "N/A"):
+            return 0
         return int(v)
     except (ValueError, TypeError):
         return 0
@@ -2646,9 +2648,12 @@ def get_workflow_analytics():
                 
             res_data = response.json()
             content_text = res_data["candidates"][0]["content"]["parts"][0]["text"].strip()
-            if content_text.startswith("```json"): content_text = content_text[7:]
-            elif content_text.startswith("```"): content_text = content_text[3:]
-            if content_text.endswith("```"): content_text = content_text[:-3]
+            if content_text.startswith("```json"):
+                content_text = content_text[7:]
+            elif content_text.startswith("```"):
+                content_text = content_text[3:]
+            if content_text.endswith("```"):
+                content_text = content_text[:-3]
             parsed = json.loads(content_text.strip())
             
             # Simple integrity checks
@@ -2670,7 +2675,7 @@ def get_workflow_analytics():
 @api_bp.route("/profile/security/info", methods=["GET"])
 @login_required
 def get_security_info():
-    from app.models import LinkedAccount, UserSession
+    from app.models import LinkedAccount
     from flask import session
 
     # Auto-migrate legacy oauth_provider to LinkedAccount if missing
@@ -3129,7 +3134,7 @@ def auth_register():
             <p><a href="{verification_link}">Verify Email</a></p>
             """
             send_email(email, subject, html)
-        except Exception as email_exc:
+        except Exception:
             current_app.logger.exception("Failed to send verification email")
             db.session.rollback()
             return jsonify({"error": "Unable to send verification email. Please try again later."}), 500

@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from collections import Counter
 
 ROOT = Path(__file__).resolve().parent.parent
 TOOLS = ROOT / "data" / "tools.json"
@@ -114,7 +115,6 @@ slugs = [t["slug"] for t in data]
 none_makers = sum(1 for t in data if t.get("maker") in (None, "None", ""))
 print(f"unique ids: {len(set(ids)) == len(ids)} | unique slugs: {len(set(slugs)) == len(slugs)}")
 print(f"records still maker=None: {none_makers}")
-from collections import Counter
 cat = Counter(t.get("category") for t in data)
 print("Category distribution:")
 for c, n in sorted(cat.items(), key=lambda x: -x[1]):

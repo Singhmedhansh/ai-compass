@@ -1,9 +1,7 @@
 import os
 import re
-import pytest
 from unittest.mock import patch
 from app.search_utils import _get_gemini_key
-from app.admin_email_routes import _get_gemini_key as _get_admin_gemini_key
 
 def test_gemini_key_rotation_splitting():
     # 1. Comma separated

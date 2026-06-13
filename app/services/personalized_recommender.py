@@ -4,9 +4,7 @@ import re
 import hashlib
 import time
 import requests
-from flask_login import current_user
-from app.models import Favorite, SavedStack, ToolView, CatalogTool
-from app import db
+from app.models import Favorite, SavedStack, ToolView
 from app.tool_cache import get_visible_tools
 from app.recommendations import _collect_user_profile
 
@@ -79,7 +77,6 @@ def get_local_tfidf_recommendations(user, favorite_slugs, candidates, limit=6) -
         if vectorizer is None or tfidf_matrix is None or tool_index is None:
             return []
             
-        import numpy as np
         from sklearn.metrics.pairwise import cosine_similarity
         
         profile = _collect_user_profile(user)
@@ -353,9 +350,12 @@ Instructions:
                     
                 res_data = response.json()
                 content_text = res_data["candidates"][0]["content"]["parts"][0]["text"].strip()
-                if content_text.startswith("```json"): content_text = content_text[7:]
-                elif content_text.startswith("```"): content_text = content_text[3:]
-                if content_text.endswith("```"): content_text = content_text[:-3]
+                if content_text.startswith("```json"):
+                    content_text = content_text[7:]
+                elif content_text.startswith("```"):
+                    content_text = content_text[3:]
+                if content_text.endswith("```"):
+                    content_text = content_text[:-3]
                 parsed = json.loads(content_text.strip())
                 gemini_recs = parsed.get("recommendations", [])
                 

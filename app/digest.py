@@ -21,6 +21,7 @@ import logging
 from datetime import datetime, timedelta, timezone
 
 from app import db
+from flask import render_template
 from app.email_utils import email_enabled, make_unsubscribe_token, send_email
 from app.models import DigestState, NewsletterSubscriber, User
 from app.tool_cache import get_cached_tools
@@ -76,8 +77,6 @@ def _seed_snapshot() -> int:
     db.session.commit()
     return len(slugs)
 
-
-from flask import render_template
 
 def _email_html(tools: list[dict], unsubscribe_url: str) -> tuple[str, str]:
     text_rows = []

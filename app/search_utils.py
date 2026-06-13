@@ -6,14 +6,16 @@ import requests
 
 def _safe_float(v):
     try:
-        if v in (None, "", "N/A"): return 0.0
+        if v in (None, "", "N/A"):
+            return 0.0
         return float(v)
     except (ValueError, TypeError):
         return 0.0
 
 def _safe_int(v):
     try:
-        if v in (None, "", "N/A"): return 0
+        if v in (None, "", "N/A"):
+            return 0
         return int(v)
     except (ValueError, TypeError):
         return 0

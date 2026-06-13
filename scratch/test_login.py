@@ -1,9 +1,5 @@
 from app import create_app, db
 from app.models import User, UserSession
-import flask
-from flask import session
-from flask_login import current_user
-import uuid
 
 app = create_app({
     "TESTING": True,

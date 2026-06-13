@@ -3,7 +3,6 @@ import re
 import json
 import uuid
 import requests
-from datetime import datetime, timezone
 from app.models import SyllabusStack
 from app import db
 
@@ -534,7 +533,6 @@ Provide ONLY the raw JSON output. Do not wrap it in markdown code blocks like ``
                     "llava-v1.5-7b-4096-preview"
                 ]
                 
-                success = False
                 for model_name in groq_models:
                     payload = {
                         "model": model_name,
@@ -659,7 +657,7 @@ def _normalize_and_save_toolkit(parsed, is_llm_mode):
                 "rating": tool.get("rating", 4.0),
                 "url": tool.get("link") or tool.get("url"),
                 "tagline": tool.get("tagline") or tool.get("shortDescription") or "",
-                "custom_reason": reason or f"Top-rated helper matching your syllabus requirements."
+                "custom_reason": reason or "Top-rated helper matching your syllabus requirements."
             })
             
     # If LLM mapping failed to return matches, get top trending in their subject category

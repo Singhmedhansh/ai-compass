@@ -1,4 +1,3 @@
-import os
 import json
 from app.services.study_plan_generator import generate_study_plan_llm
 

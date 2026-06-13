@@ -1,7 +1,6 @@
-import pytest
 import json
 from io import BytesIO
-from app.services.syllabus_parser import parse_syllabus_local, process_syllabus_and_build_toolkit
+from app.services.syllabus_parser import parse_syllabus_local
 from app.models import SyllabusStack
 
 def test_local_parser_heuristic():

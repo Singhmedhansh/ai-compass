@@ -1,7 +1,6 @@
 from flask import Blueprint, current_app, flash, redirect, request, session, url_for, jsonify, render_template
 from flask_login import current_user, login_required, login_user, logout_user
 import json
-import os
 from itsdangerous import URLSafeTimedSerializer
 
 # Safe optional import for Sentry
