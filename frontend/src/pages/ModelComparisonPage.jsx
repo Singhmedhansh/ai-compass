@@ -538,16 +538,32 @@ export default function ModelComparisonPage() {
 
               {/* Ratio Bar */}
               <div className="border-t border-line pt-5">
-                <div className="flex justify-between text-xs font-bold text-muted-2 uppercase tracking-wider mb-2">
+                <div className="flex justify-between text-xs font-bold text-muted-2 uppercase tracking-wider mb-3">
                   <span>Prompt vs Response Ratio</span>
-                  <span>{Math.round(inputRatio * 100)}% / {Math.round(outputRatio * 100)}%</span>
+                  <span>{promptTokens.toLocaleString()} vs {responseTokens.toLocaleString()} tokens</span>
                 </div>
-                <div className="w-full bg-bg-sunk rounded-full h-4 overflow-hidden flex border border-line text-[9px] font-bold text-bg text-center relative shadow-inner">
-                  <div style={{ width: `${inputRatio * 100}%` }} className="bg-accent flex items-center justify-center min-w-[20px] transition-all duration-300">
-                    Input
+                
+                {/* Thick Progress Bar */}
+                <div className="w-full bg-bg-sunk rounded-full h-6 overflow-hidden flex border border-line p-1 shadow-inner relative">
+                  <div 
+                    style={{ width: `${inputRatio * 100}%` }} 
+                    className="bg-accent rounded-full h-full transition-all duration-500 ease-out" 
+                  />
+                  <div 
+                    style={{ width: `${outputRatio * 100}%` }} 
+                    className="bg-ink dark:bg-slate-200 rounded-full h-full transition-all duration-500 ease-out -ml-1.5" 
+                  />
+                </div>
+                
+                {/* Legend */}
+                <div className="flex justify-between items-center mt-3 text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-accent inline-block animate-pulse" />
+                    <span className="font-semibold text-ink-2">Input ({Math.round(inputRatio * 100)}%)</span>
                   </div>
-                  <div style={{ width: `${outputRatio * 100}%` }} className="bg-ink flex items-center justify-center min-w-[20px] transition-all duration-300 border-l border-line-strong">
-                    Output
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-ink dark:bg-slate-200 inline-block" />
+                    <span className="font-semibold text-ink-2">Output ({Math.round(outputRatio * 100)}%)</span>
                   </div>
                 </div>
               </div>
@@ -593,7 +609,7 @@ export default function ModelComparisonPage() {
                             {currentSymbol}{(m.totalCost * rate).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
                           </span>
                         </div>
-                        <div className="w-full bg-bg-sunk rounded-full h-3 overflow-hidden relative border border-line shadow-inner">
+                        <div className="w-full bg-bg-sunk rounded-full h-3.5 overflow-hidden relative border border-line shadow-inner">
                           <MotionDiv
                             initial={{ width: 0 }}
                             animate={{ width: `${percentage}%` }}

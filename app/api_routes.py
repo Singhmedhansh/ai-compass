@@ -3603,6 +3603,7 @@ Be professional, structured, and keep your recommendation under 250 words. Do no
 
     # Try Gemini keys first
     for i, key in enumerate(gemini_keys):
+        # Try gemini-2.0-flash
         try:
             url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={key}"
             req_data = json.dumps({
@@ -3620,12 +3621,33 @@ Be professional, structured, and keep your recommendation under 250 words. Do no
         except urllib.error.HTTPError as e:
             last_error_code = e.code
             last_error_msg = e.read().decode('utf-8')
-            print(f"[Model Advisor] Gemini Key {i+1}/{len(gemini_keys)} failed with code {e.code}: {last_error_msg}")
-            continue
+            print(f"[Model Advisor] Gemini Key {i+1} with gemini-2.0-flash failed: {e.code} - {last_error_msg}")
         except Exception as e:
             last_error_msg = str(e)
-            print(f"[Model Advisor] Gemini Key {i+1}/{len(gemini_keys)} encountered error: {e}")
-            continue
+            print(f"[Model Advisor] Gemini Key {i+1} with gemini-2.0-flash failed: {e}")
+
+        # Try gemini-1.5-flash on same key as fallback
+        try:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={key}"
+            req_data = json.dumps({
+                "contents": [{"parts": [{"text": prompt_text}]}]
+            }).encode('utf-8')
+            req = urllib.request.Request(
+                url,
+                data=req_data,
+                headers={'Content-Type': 'application/json'}
+            )
+            with urllib.request.urlopen(req, timeout=8) as response:
+                resp_data = json.loads(response.read().decode('utf-8'))
+                text = resp_data['candidates'][0]['content']['parts'][0]['text']
+                return jsonify({'recommendation': text}), 200
+        except urllib.error.HTTPError as e:
+            last_error_code = e.code
+            last_error_msg = e.read().decode('utf-8')
+            print(f"[Model Advisor] Gemini Key {i+1} with gemini-1.5-flash failed: {e.code} - {last_error_msg}")
+        except Exception as e:
+            last_error_msg = str(e)
+            print(f"[Model Advisor] Gemini Key {i+1} with gemini-1.5-flash failed: {e}")
 
     # Try Groq keys if Gemini failed or was empty
     for i, key in enumerate(groq_keys):
