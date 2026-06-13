@@ -3574,20 +3574,19 @@ User Requirements: "{requirements}"
 Project Prompt Tokens: {prompt_tokens}, Response Tokens: {response_tokens}, Requests: {requests_count}.
 
 Here is the current catalog of models available on AI Compass:
-- GPT-4o (OpenAI): Input: $5.0/M, Output: $15.0/M, Context: 128,000, Latency: Fast. Strengths: Universal standard, excellent logic, multimodal.
-- GPT-4o mini (OpenAI): Input: $0.15/M, Output: $0.6/M, Context: 128,000, Latency: Instant. Strengths: Incredibly cheap, fast, lightweight.
-- o1-preview (OpenAI): Input: $15.0/M, Output: $60.0/M, Context: 128,000, Latency: Thinking. Strengths: Complex reasoning, math.
-- o1-mini (OpenAI): Input: $3.0/M, Output: $12.0/M, Context: 128,000, Latency: Fast. Strengths: Coding and math specialist.
-- Claude 3.5 Sonnet (Anthropic): Input: $3.0/M, Output: $15.0/M, Context: 200,000, Latency: Fast. Strengths: Nuanced writing, coding, Artifacts UI.
-- Claude 3 Opus (Anthropic): Input: $15.0/M, Output: $75.0/M, Context: 200,000, Latency: Moderate. Strengths: Strategic planning, deep analysis.
-- Claude 3 Haiku (Anthropic): Input: $0.25/M, Output: $1.25/M, Context: 200,000, Latency: Instant. Strengths: Latency-sensitive parsing.
-- Gemini 1.5 Pro (Google): Input: $1.25/M, Output: $5.0/M, Context: 2,000,000, Latency: Moderate. Strengths: Giant 2M context, native audio/video.
-- Gemini 1.5 Flash (Google): Input: $0.075/M, Output: $0.3/M, Context: 1,000,000, Latency: Instant. Strengths: Extremely affordable, fast, large context.
-- Gemini 2.0 Flash (Google): Input: $0.075/M, Output: $0.3/M, Context: 1,000,000, Latency: Instant. Strengths: Real-time multimodal streaming, next-gen speed.
-- Llama 3.1 405B (Meta): Input: $2.66/M, Output: $2.66/M, Context: 128,000, Latency: Moderate. Strengths: Open-source flagship, matches GPT-4.
-- Llama 3.1 70B (Meta): Input: $0.6/M, Output: $0.6/M, Context: 128,000, Latency: Fast. Strengths: Ideal for self-hosting balance.
-- DeepSeek-V3 (DeepSeek): Input: $0.14/M, Output: $0.28/M, Context: 64,000, Latency: Fast. Strengths: Top coding/reasoning, incredibly cheap.
-- Mistral Large 2 (Mistral): Input: $2.0/M, Output: $6.0/M, Context: 128,000, Latency: Moderate. Strengths: Multilingual, agentic function calling.
+- GPT-4o (OpenAI): Input: $2.50/M, Output: $10.00/M, Context: 128,000, Latency: Fast. Strengths: Flagship high-speed model, superb multimodal, logic, reasoning.
+- GPT-4.5 (OpenAI): Input: $75.00/M, Output: $150.00/M, Context: 128,000, Latency: Moderate. Strengths: Ultra-premium frontier intelligence, deep world knowledge.
+- o1 (OpenAI): Input: $15.00/M, Output: $60.00/M, Context: 200,000, Latency: Thinking. Strengths: Complex reasoning, science, math.
+- o3-mini (OpenAI): Input: $1.10/M, Output: $4.40/M, Context: 200,000, Latency: Fast. Strengths: High-reasoning speed specialist, math, coding.
+- Claude 3.7 Sonnet (Anthropic): Input: $3.00/M, Output: $15.00/M, Context: 200,000, Latency: Fast. Strengths: Nuanced programming, hybrid reasoning.
+- Claude 4.7 Opus (Anthropic): Input: $15.00/M, Output: $75.00/M, Context: 200,000, Latency: Moderate. Strengths: Ultra-advanced analysis, executive logic.
+- Claude Fable (Anthropic): Input: $0.25/M, Output: $1.25/M, Context: 200,000, Latency: Instant. Strengths: Ultra-fast semantic routing.
+- Gemini 2.0 Pro (Google): Input: $1.25/M, Output: $5.00/M, Context: 2,097,152, Latency: Moderate. Strengths: Massive 2M context, deep reasoning.
+- Gemini 2.0 Flash (Google): Input: $0.075/M, Output: $0.30/M, Context: 1,048,576, Latency: Instant. Strengths: Extremely affordable, fast, native audio/video.
+- DeepSeek-V3 (DeepSeek): Input: $0.14/M, Output: $0.28/M, Context: 64,000, Latency: Fast. Strengths: Unbelievable cost-efficiency, excellent coding.
+- DeepSeek-R1 (DeepSeek): Input: $0.55/M, Output: $2.19/M, Context: 128,000, Latency: Thinking. Strengths: Benchmark leader reasoning, math, coding.
+- Llama 3.3 70B (Meta): Input: $0.35/M, Output: $0.40/M, Context: 128,000, Latency: Fast. Strengths: Top open-weights performer.
+- Mistral Large 3 (Mistral): Input: $2.00/M, Output: $6.00/M, Context: 128,000, Latency: Moderate. Strengths: Multilingual, agentic function calling.
 
 Based on the user's requirements:
 1. Recommend the single best model from our catalog. Explain why it fits their context best.
