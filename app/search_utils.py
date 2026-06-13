@@ -99,6 +99,8 @@ WEIGHTED_SEARCH_STOPWORDS = {
     "a", "an", "the", "for", "and", "or", "to", "in", "of", "is",
     "with", "that", "it", "me", "my", "i", "can", "how", "do",
     "make", "create", "build", "use", "using", "get",
+    "on", "at", "by", "be", "as", "from", "write", "find", "about",
+    "has", "have", "had", "does", "did", "this", "these", "those"
 }
 
 def parse_intent(raw_query):
@@ -205,7 +207,9 @@ def weighted_search(query: str, tools: list) -> list:
         'is','with','that','it','me','my','i','can','how',
         'do','make','create','build','use','using','get',
         'need','want','help','some','any','best','good',
-        'new','free','tool','tools','ai'
+        'new','free','tool','tools','ai',
+        'on','at','by','be','as','from','write','find','about',
+        'has','have','had','does','did','this','these','those'
     }
 
     tokens = [
@@ -544,6 +548,7 @@ Do not include markdown blocks, just return raw JSON.
                 elif text.startswith("```"):
                     text = text[3:-3].strip()
                 parsed = json.loads(text)
+                parsed["success"] = True
                 return parsed
     except Exception as e:
         print(f"LLM Search Error: {e}")

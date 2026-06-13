@@ -44378,6 +44378,7 @@
     ],
     "trending": false,
     "studentPerk": true,
+    "is_ai_native": true,
     "description": "Reactive Resume is a free and open source resume builder that's built to make the mundane tasks of creating, updating and sharing your resume as easy as 1, 2, 3. With this app, you can create multiple resumes, share them with recruiters through a unique link and print as PDF, all for free, with no ads, no tracking, and no loss of privacy.",
     "link": "https://rxresu.me/"
   }

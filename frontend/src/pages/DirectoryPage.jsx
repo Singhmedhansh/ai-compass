@@ -223,8 +223,8 @@ function buildDirectorySummary(tools) {
 function DirectoryPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const initialCategory = searchParams.get('category') || 'All'
-  const searchQuery = searchParams.get('q') || ''
   const queryFromParams = searchParams.get('q') || ''
+  const [searchQuery, setSearchQuery] = useState(queryFromParams)
   const categoryFromParams = searchParams.get('category') || 'All'
   const actuallyFreeOnly = searchParams.get('actually_free') === 'true'
   const studentOnly = searchParams.get('student_only') === 'true'
@@ -921,6 +921,7 @@ function DirectoryPage() {
 
           {!isLoading && !error && searchMeta?.llm_matched && searchMeta?.message && (
             <div className="mb-4 rounded-xl border border-accent/20 bg-accent-soft px-5 py-4 text-sm text-ink flex gap-3 items-start shadow-sm">
+              <Sparkles className="h-5 w-5 text-accent shrink-0 mt-0.5" />
               <p className="pt-0.5 font-medium leading-relaxed">{searchMeta.message}</p>
             </div>
           )}

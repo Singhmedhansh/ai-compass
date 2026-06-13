@@ -224,8 +224,6 @@ def _search_catalog_tools(raw_query: str, category: str, pricing: str, student_o
         filtered_tools.append(tool)
 
     def _handle_llm_response(llm_resp):
-        import json, os
-        from app.tool_cache import DEFAULT_TOOLS_PATH
         from app.ml_recommender import clear_model_cache
         
         llm_slugs = llm_resp.get("slugs", [])
@@ -234,18 +232,16 @@ def _search_catalog_tools(raw_query: str, category: str, pricing: str, student_o
         
         if new_tools:
             try:
-                with open(DEFAULT_TOOLS_PATH, 'r', encoding='utf-8') as f:
-                    db_tools = json.load(f)
-                max_id = max((t.get('id', 0) for t in db_tools), default=0)
+                # We dynamically assign IDs and slugs and add them to the in-memory tools list
+                # for the current session/cache, but we DO NOT write them to tools.json on disk
+                # to prevent persistent database pollution.
+                max_id = max((t.get('id', 0) for t in tools), default=0)
                 for nt in new_tools:
                     max_id += 1
                     nt['id'] = max_id
                     nt['slug'] = nt.get('slug', '').lower().replace(' ', '-')
-                    db_tools.append(nt)
                     tools.append(nt) # add to memory
                     llm_slugs.append(nt['slug'])
-                with open(DEFAULT_TOOLS_PATH, 'w', encoding='utf-8') as f:
-                    json.dump(db_tools, f, indent=2)
                 clear_model_cache()
             except Exception as e:
                 print(f"Failed to add new tools dynamically: {e}")
@@ -280,8 +276,19 @@ def _search_catalog_tools(raw_query: str, category: str, pricing: str, student_o
     
     if is_complex_query:
         llm_resp = llm_fallback_search(raw_query, tools)
-        if llm_resp.get("slugs") or llm_resp.get("new_tools"):
+        if llm_resp.get("success") or llm_resp.get("slugs") or llm_resp.get("new_tools"):
             return _handle_llm_response(llm_resp)
+        
+        # If LLM search failed/skipped (e.g. no key), and it looks like a question, don't fall through to keyword search
+        if _looks_like_question_intent(raw_query):
+            return {
+                "results": [],
+                "fallback": False,
+                "fuzzy_matched": False,
+                "fallback_detected": True,
+                "original_query": raw_query,
+                "total": 0,
+            }
 
     results = weighted_search(
         raw_query,
