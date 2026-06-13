@@ -66,6 +66,7 @@ const PRODUCT_LINKS = [
   { label: 'AI Stack Architect', to: '/ai-tool-finder' },
   { label: 'Catalog', to: '/tools' },
   { label: 'Collections', to: '/collections' },
+  { label: 'Model Comparison', to: '/model-comparison' },
   { label: 'Submit a tool', to: '/submit' },
   { label: 'Help Center', to: '/help' },
   { label: 'Syllabus Parser', to: '/syllabus-parser' },
