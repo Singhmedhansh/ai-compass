@@ -919,6 +919,13 @@ function DirectoryPage() {
             </div>
           )}
 
+          {!isLoading && !error && searchMeta?.llm_matched && searchMeta?.message && (
+            <div className="mb-4 rounded-xl border border-accent/20 bg-accent-soft px-5 py-4 text-sm text-ink flex gap-3 items-start shadow-sm">
+              <span className="text-xl leading-none">✨</span>
+              <p className="pt-0.5 font-medium leading-relaxed">{searchMeta.message}</p>
+            </div>
+          )}
+
           {!isLoading && !error && searchMeta?.fallback && filteredTools.length > 0 && (
             <div className="mb-4 rounded-lg border border-line bg-bg-sunk px-4 py-2.5 text-sm text-muted">
               No exact matches for <em>{searchMeta.original_query}</em>. Showing trending tools — try a different keyword or browse by category.

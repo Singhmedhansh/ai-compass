@@ -227,6 +227,9 @@ def _search_catalog_tools(raw_query: str, category: str, pricing: str, student_o
         raw_query,
         filtered_tools,
     )
+    # Filter out weak keyword matches (e.g. only matching words in description)
+    # This ensures that completely unrelated tools don't prevent the LLM fallback.
+    results = [r for r in results if r.get('relevance_score', 0) >= 30]
 
     if not results and raw_query and not (selected_category or selected_pricing or student_only or trending_only):
         fuzzy_results = _local_fuzzy_search(raw_query, limit=50, threshold=0.72)
