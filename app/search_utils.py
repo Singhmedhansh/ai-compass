@@ -1,5 +1,8 @@
 import sys
 import re
+import os
+import json
+import requests
 
 def _safe_float(v):
     try:
@@ -485,3 +488,63 @@ def search_tools(raw_query, category_filter="All", pricing_filter_ui="All",
         "fuzzy_matched": False,
         "total": len(results),
     }
+
+def _get_gemini_key():
+    keys = []
+    env_keys_str = os.environ.get("GEMINI_API_KEYS", "")
+    if env_keys_str:
+        keys.extend([k.strip() for k in env_keys_str.split(",") if k.strip()])
+    single_key = os.environ.get("GEMINI_API_KEY")
+    if single_key and single_key.strip() not in keys:
+        keys.append(single_key.strip())
+    return keys[0] if keys else None
+
+def llm_fallback_search(raw_query: str, all_tools: list[dict]) -> dict:
+    key = _get_gemini_key()
+    if not key:
+        return {"slugs": [], "message": ""}
+        
+    catalog_candidates = []
+    for t in all_tools:
+        catalog_candidates.append({
+            "slug": t.get("slug"),
+            "name": t.get("name"),
+            "category": t.get("category"),
+            "tagline": t.get("tagline") or t.get("shortDescription") or "",
+        })
+        
+    prompt = f"""
+You are an expert AI search engine. The user searched for: "{raw_query}".
+Based on the candidate catalog below, return a JSON object with two fields:
+1. "slugs": An array of up to 6 tool slugs from the catalog that best match the search intent. If the query is gibberish or completely irrelevant to AI tools, return an empty array.
+2. "message": A polite message (under 120 chars). If you found tools, say something like "We used AI to find these tools based on your intent." If you found nothing or the query was gibberish, say "We couldn't find any tools matching your search. Please try rephrasing or searching for something else."
+
+Candidate Catalog:
+{json.dumps(catalog_candidates)}
+
+Do not include markdown blocks, just return raw JSON.
+"""
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={key}"
+    payload = {
+        "contents": [{"parts": [{"text": prompt}]}],
+        "generationConfig": {"temperature": 0.2, "responseMimeType": "application/json"}
+    }
+    
+    try:
+        resp = requests.post(url, json=payload, timeout=10)
+        if resp.status_code == 200:
+            data = resp.json()
+            candidates = data.get("candidates", [])
+            if candidates:
+                text = candidates[0].get("content", {}).get("parts", [])[0].get("text", "")
+                text = text.strip()
+                if text.startswith("```json"):
+                    text = text[7:-3].strip()
+                elif text.startswith("```"):
+                    text = text[3:-3].strip()
+                parsed = json.loads(text)
+                return parsed
+    except Exception as e:
+        print(f"LLM Search Error: {e}")
+    return {"slugs": [], "message": ""}
+

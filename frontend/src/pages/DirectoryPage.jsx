@@ -413,6 +413,8 @@ function DirectoryPage() {
                 fallback: Boolean(data.fallback),
                 fallback_detected: Boolean(data.fallback_detected),
                 original_query: data.original_query || normalizedQuery,
+                message: data.message || null,
+                llm_matched: Boolean(data.llm_matched),
               }
             : null,
         )
@@ -650,10 +652,10 @@ function DirectoryPage() {
   let emptyBody
   if (hasSearchQuery && hasFilter) {
     emptyHeading = `No ${category} tools match "${displaySearchTerm}"`
-    emptyBody = 'Try a different category or rephrase your search.'
+    emptyBody = searchMeta?.message || 'Try a different category or rephrase your search.'
   } else if (hasSearchQuery) {
-    emptyHeading = `No tools match "${displaySearchTerm}"`
-    emptyBody = 'Try a different search term, or browse by category.'
+    emptyHeading = searchMeta?.message ? 'We searched everywhere...' : `No tools match "${displaySearchTerm}"`
+    emptyBody = searchMeta?.message || 'Try a different search term, or browse by category.'
   } else if (hasFilter) {
     emptyHeading = `No tools in ${category} yet`
     emptyBody = 'Try a different category, or reset to see all tools.'

@@ -20,7 +20,7 @@ from app import bcrypt, cache, csrf, db
 from app.ml_recommender import clear_model_cache, detect_intent, get_similar_tools, load_model, rerank_by_category
 from app.models import Favorite, Rating, Review, ToolRating, User, ReviewVote
 from app.rate_limit import is_rate_limited
-from app.search_utils import search_tools, weighted_search
+from app.search_utils import search_tools, weighted_search, llm_fallback_search
 from app.tool_cache import DEFAULT_TOOLS_PATH, TOOL_CACHE, get_cached_tools, get_visible_tools
 
 api_bp = Blueprint("api", __name__)
@@ -228,39 +228,6 @@ def _search_catalog_tools(raw_query: str, category: str, pricing: str, student_o
         filtered_tools,
     )
 
-    if raw_query and not (selected_category or selected_pricing or student_only or trending_only) and _looks_like_question_intent(raw_query):
-        fuzzy_results = _local_fuzzy_search(raw_query, limit=50, threshold=0.72)
-        if fuzzy_results:
-            intent_rule = detect_intent(raw_query)
-            if intent_rule:
-                fuzzy_results = rerank_by_category(fuzzy_results, intent_rule)
-            if sort_by == "Rating":
-                fuzzy_results.sort(key=lambda x: _safe_float(x.get("rating", 0)), reverse=True)
-            elif sort_by == "Reviews":
-                fuzzy_results.sort(key=lambda x: _safe_int(x.get("review_count", 0)), reverse=True)
-            elif sort_by == "Trending":
-                fuzzy_results.sort(key=lambda x: (bool(x.get("trending", False)), _safe_float(x.get("rating", 0))), reverse=True)
-            else:
-                fuzzy_results.sort(key=lambda x: x.get("_score", 0), reverse=True)
-
-            return {
-                "results": fuzzy_results,
-                "fallback": False,
-                "fuzzy_matched": True,
-                "suggested_query": fuzzy_results[0].get("name"),
-                "original_query": raw_query,
-                "total": len(fuzzy_results),
-            }
-
-        return {
-            "results": [],
-            "fallback": False,
-            "fuzzy_matched": False,
-            "fallback_detected": True,
-            "original_query": raw_query,
-            "total": 0,
-        }
-
     if not results and raw_query and not (selected_category or selected_pricing or student_only or trending_only):
         fuzzy_results = _local_fuzzy_search(raw_query, limit=50, threshold=0.72)
         if fuzzy_results:
@@ -284,6 +251,37 @@ def _search_catalog_tools(raw_query: str, category: str, pricing: str, student_o
                 "original_query": raw_query,
                 "total": len(fuzzy_results),
             }
+            
+        # If still no results, invoke LLM fallback
+        llm_resp = llm_fallback_search(raw_query, tools)
+        llm_slugs = llm_resp.get("slugs", [])
+        llm_msg = llm_resp.get("message", "")
+        if llm_slugs:
+            llm_results = []
+            for slug in llm_slugs:
+                matched = next((t for t in tools if t.get("slug") == slug), None)
+                if matched:
+                    llm_results.append({**matched, "_score": 100, "_match_type": "llm"})
+            return {
+                "results": llm_results,
+                "fallback": False,
+                "fuzzy_matched": False,
+                "fallback_detected": True,
+                "llm_matched": True,
+                "message": llm_msg,
+                "original_query": raw_query,
+                "total": len(llm_results),
+            }
+
+        return {
+            "results": [],
+            "fallback": False,
+            "fuzzy_matched": False,
+            "fallback_detected": True,
+            "message": llm_msg or "We couldn't find any tools matching your search.",
+            "original_query": raw_query,
+            "total": 0,
+        }
 
     if sort_by == "Rating":
         results.sort(key=lambda x: _safe_float(x.get("rating", 0)), reverse=True)
