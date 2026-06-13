@@ -3531,6 +3531,119 @@ def delete_profile_stack(stack_id):
     return jsonify({'message': 'Stack deleted successfully'}), 200
 
 
+@csrf.exempt
+@api_bp.route('/model-advisor', methods=['POST'])
+def model_advisor():
+    data = request.get_json() or {}
+    requirements = data.get('requirements', '').strip()
+    prompt_tokens = data.get('promptTokens', 10000)
+    response_tokens = data.get('responseTokens', 2000)
+    requests_count = data.get('requestsCount', 1000)
+
+    if not requirements:
+        return jsonify({'error': 'Requirements are required'}), 400
+
+    # Retrieve API key
+    env_keys_str = os.environ.get("GEMINI_API_KEYS", "")
+    single_key = os.environ.get("GEMINI_API_KEY")
+    api_key = None
+    if env_keys_str:
+        import re
+        keys = [k.strip() for k in re.split(r'[,\n\r]+', env_keys_str) if k.strip()]
+        if keys:
+            api_key = keys[0]
+    if not api_key:
+        api_key = single_key
+
+    # If Gemini key is not found, check Groq
+    groq_api_key = os.environ.get("GROQ_API_KEY")
+    if not groq_api_key:
+        groq_keys_str = os.environ.get("GROQ_API_KEYS", "")
+        if groq_keys_str:
+            import re
+            groq_keys = [k.strip() for k in re.split(r'[,\n\r]+', groq_keys_str) if k.strip()]
+            if groq_keys:
+                groq_api_key = groq_keys[0]
+
+    if not api_key and not groq_api_key:
+        return jsonify({'error': 'AI Advisor keys are not configured in environment variables.'}), 500
+
+    prompt_text = f"""
+You are the AI Compass Advisor. Help a developer select the best LLM model for their specific project.
+User Requirements: "{requirements}"
+Project Prompt Tokens: {prompt_tokens}, Response Tokens: {response_tokens}, Requests: {requests_count}.
+
+Here is the current catalog of models available on AI Compass:
+- GPT-4o (OpenAI): Input: $5.0/M, Output: $15.0/M, Context: 128,000, Latency: Fast. Strengths: Universal standard, excellent logic, multimodal.
+- GPT-4o mini (OpenAI): Input: $0.15/M, Output: $0.6/M, Context: 128,000, Latency: Instant. Strengths: Incredibly cheap, fast, lightweight.
+- o1-preview (OpenAI): Input: $15.0/M, Output: $60.0/M, Context: 128,000, Latency: Thinking. Strengths: Complex reasoning, math.
+- o1-mini (OpenAI): Input: $3.0/M, Output: $12.0/M, Context: 128,000, Latency: Fast. Strengths: Coding and math specialist.
+- Claude 3.5 Sonnet (Anthropic): Input: $3.0/M, Output: $15.0/M, Context: 200,000, Latency: Fast. Strengths: Nuanced writing, coding, Artifacts UI.
+- Claude 3 Opus (Anthropic): Input: $15.0/M, Output: $75.0/M, Context: 200,000, Latency: Moderate. Strengths: Strategic planning, deep analysis.
+- Claude 3 Haiku (Anthropic): Input: $0.25/M, Output: $1.25/M, Context: 200,000, Latency: Instant. Strengths: Latency-sensitive parsing.
+- Gemini 1.5 Pro (Google): Input: $1.25/M, Output: $5.0/M, Context: 2,000,000, Latency: Moderate. Strengths: Giant 2M context, native audio/video.
+- Gemini 1.5 Flash (Google): Input: $0.075/M, Output: $0.3/M, Context: 1,000,000, Latency: Instant. Strengths: Extremely affordable, fast, large context.
+- Gemini 2.0 Flash (Google): Input: $0.075/M, Output: $0.3/M, Context: 1,000,000, Latency: Instant. Strengths: Real-time multimodal streaming, next-gen speed.
+- Llama 3.1 405B (Meta): Input: $2.66/M, Output: $2.66/M, Context: 128,000, Latency: Moderate. Strengths: Open-source flagship, matches GPT-4.
+- Llama 3.1 70B (Meta): Input: $0.6/M, Output: $0.6/M, Context: 128,000, Latency: Fast. Strengths: Ideal for self-hosting balance.
+- DeepSeek-V3 (DeepSeek): Input: $0.14/M, Output: $0.28/M, Context: 64,000, Latency: Fast. Strengths: Top coding/reasoning, incredibly cheap.
+- Mistral Large 2 (Mistral): Input: $2.0/M, Output: $6.0/M, Context: 128,000, Latency: Moderate. Strengths: Multilingual, agentic function calling.
+
+Based on the user's requirements:
+1. Recommend the single best model from our catalog. Explain why it fits their context best.
+2. Outline 1 secondary/alternative model as a fallback (e.g. for cost efficiency or higher context).
+3. Mention the estimated cost for running their requests on both recommended models.
+Be professional, structured, and keep your recommendation under 250 words. Do not use markdown headers larger than h3.
+"""
+
+    try:
+        import urllib.request
+        import urllib.error
+
+        # Call Gemini if available
+        if api_key:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
+            req_data = json.dumps({
+                "contents": [{"parts": [{"text": prompt_text}]}]
+            }).encode('utf-8')
+            req = urllib.request.Request(
+                url,
+                data=req_data,
+                headers={'Content-Type': 'application/json'}
+            )
+            with urllib.request.urlopen(req) as response:
+                resp_data = json.loads(response.read().decode('utf-8'))
+                text = resp_data['candidates'][0]['content']['parts'][0]['text']
+                return jsonify({'recommendation': text}), 200
+        # Else call Groq Llama-3.3
+        elif groq_api_key:
+            url = "https://api.groq.com/openai/v1/chat/completions"
+            req_data = json.dumps({
+                "model": "llama-3.3-70b-versatile",
+                "messages": [{"role": "user", "content": prompt_text}]
+            }).encode('utf-8')
+            req = urllib.request.Request(
+                url,
+                data=req_data,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {groq_api_key}'
+                }
+            )
+            with urllib.request.urlopen(req) as response:
+                resp_data = json.loads(response.read().decode('utf-8'))
+                text = resp_data['choices'][0]['message']['content']
+                return jsonify({'recommendation': text}), 200
+
+    except urllib.error.HTTPError as e:
+        error_msg = e.read().decode('utf-8')
+        print(f"[Model Advisor API Error] {e.code}: {error_msg}")
+        return jsonify({'error': f"Upstream API error: {e.reason}"}), 502
+    except Exception as e:
+        print(f"[Model Advisor System Error] {e}")
+        return jsonify({'error': 'Failed to process advice recommendation due to a server error.'}), 500
+
+
 # ── Backward-compat alias: /api/search → same logic as /api/v1/search ──────────
 @compat_bp.get("/search")
 def compat_search():

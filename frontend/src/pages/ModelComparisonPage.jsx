@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Helmet } from "react-helmet-async";
-import { ArrowUpRight, Calculator, Key, MessageSquare, Sparkles, HelpCircle, RefreshCw, Layers, CheckSquare, Square, Zap, Info } from "lucide-react";
+import { ArrowUpRight, Calculator, MessageSquare, Sparkles, HelpCircle, RefreshCw, Layers, CheckSquare, Square, Zap, Info } from "lucide-react";
 import { SEO } from "../components/ui";
 import { useCurrency } from "../context/CurrencyContext";
 
@@ -201,27 +201,14 @@ export default function ModelComparisonPage() {
   const [requestsCount, setRequestsCount] = useState(1000);
 
   // AI Advisor states
-  const [apiKey, setApiKey] = useState(() => localStorage.getItem("ai-compass-advisor-key") || "");
-  const [apiProvider, setApiProvider] = useState(() => localStorage.getItem("ai-compass-advisor-provider") || "google");
   const [requirements, setRequirements] = useState("");
   const [advisorResponse, setAdvisorResponse] = useState("");
   const [isAdvisorLoading, setIsAdvisorLoading] = useState(false);
   const [advisorError, setAdvisorError] = useState("");
-  const [keyInputVisible, setKeyInputVisible] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
-
-  const saveApiDetails = (key, provider) => {
-    localStorage.setItem("ai-compass-advisor-key", key);
-    localStorage.setItem("ai-compass-advisor-provider", provider);
-  };
-
-  const handleClearApiKey = () => {
-    setApiKey("");
-    localStorage.removeItem("ai-compass-advisor-key");
-  };
 
   // Cost Calculation
   const calculateCost = (inputCostPerM, outputCostPerM) => {
@@ -270,11 +257,6 @@ export default function ModelComparisonPage() {
 
   // Call AI Advisor
   const getAdvisorRecommendation = async () => {
-    if (!apiKey) {
-      setAdvisorError("Please configure your API Key to use the Advisor.");
-      setKeyInputVisible(true);
-      return;
-    }
     if (!requirements.trim()) {
       setAdvisorError("Please describe your project requirements first.");
       return;
@@ -284,67 +266,30 @@ export default function ModelComparisonPage() {
     setAdvisorError("");
     setAdvisorResponse("");
 
-    const modelCatalogString = modelsData
-      .map(
-        (m) =>
-          `- ${m.name} (${m.provider}): Input: $${m.inputCost}/M tokens, Output: $${m.outputCost}/M tokens, Context: ${m.contextWindow} tokens, Latency: ${m.latency}. Strengths: ${m.strengths}`
-      )
-      .join("\n");
-
-    const promptText = `
-You are the AI Compass Advisor. Help a developer select the best LLM model for their specific project.
-User Requirements: "${requirements}"
-Project Prompt Tokens: ${promptTokens}, Response Tokens: ${responseTokens}, Requests: ${requestsCount}.
-
-Here is the current catalog of models available on AI Compass:
-${modelCatalogString}
-
-Based on the requirements:
-1. Recommend the single best model from our catalog. Explain why it fits their context best.
-2. Outline 1 secondary/alternative model as a fallback (e.g. for cost efficiency or higher context).
-3. Mention the estimated cost for running their requests on both recommended models.
-Be professional, structured, and keep your recommendation under 250 words. Do not use markdown headers larger than h3.
-`;
-
     try {
-      if (apiProvider === "google") {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-        const resp = await fetch(url, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: promptText }] }],
-          }),
-        });
+      const resp = await fetch("/api/v1/model-advisor", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          requirements,
+          promptTokens,
+          responseTokens,
+          requestsCount,
+        }),
+      });
 
-        if (!resp.ok) throw new Error(`Google API returned Status ${resp.status}`);
-        const data = await resp.json();
-        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (!text) throw new Error("Empty response from Gemini.");
-        setAdvisorResponse(text);
-      } else if (apiProvider === "groq") {
-        const url = "https://api.groq.com/openai/v1/chat/completions";
-        const resp = await fetch(url, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${apiKey}`,
-          },
-          body: JSON.stringify({
-            model: "llama-3.3-70b-versatile",
-            messages: [{ role: "user", content: promptText }],
-          }),
-        });
-
-        if (!resp.ok) throw new Error(`Groq API returned Status ${resp.status}`);
-        const data = await resp.json();
-        const text = data.choices?.[0]?.message?.content;
-        if (!text) throw new Error("Empty response from Groq.");
-        setAdvisorResponse(text);
+      if (!resp.ok) {
+        const errData = await resp.json().catch(() => ({}));
+        throw new Error(errData.error || `Advisor API returned Status ${resp.status}`);
       }
+
+      const data = await resp.json();
+      const text = data.recommendation;
+      if (!text) throw new Error("Empty response from advisor.");
+      setAdvisorResponse(text);
     } catch (err) {
       console.error(err);
-      setAdvisorError(err.message || "Failed to contact API. Please check your key or connection.");
+      setAdvisorError(err.message || "Failed to contact advisor. Please try again.");
     } finally {
       setIsAdvisorLoading(false);
     }
@@ -604,73 +549,7 @@ Be professional, structured, and keep your recommendation under 250 words. Do no
                 <MessageSquare className="h-6 w-6 text-accent" />
                 <h2 className="text-xl font-bold text-ink">Interactive Model Advisor</h2>
               </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setKeyInputVisible(!keyInputVisible)}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-line bg-bg px-3.5 py-1.5 text-xs font-semibold text-ink-2 hover:border-line-strong"
-                >
-                  <Key className="h-3.5 w-3.5" />
-                  {apiKey ? "Configure API" : "Enter API Key"}
-                </button>
-              </div>
             </div>
-
-            {/* API Key Panel */}
-            <AnimatePresence>
-              {(keyInputVisible || !apiKey) && (
-                <MotionDiv
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  className="overflow-hidden border-b border-line pb-6 mb-6"
-                >
-                  <div className="bg-bg rounded-2xl border border-line p-5">
-                    <h3 className="text-sm font-semibold text-ink mb-2">Configure Routing Provider</h3>
-                    <p className="text-xs text-muted mb-4">
-                      Enter your own Gemini or Groq API Key to consult the Advisor. Keys are stored locally in your browser.
-                    </p>
-                    <div className="flex flex-wrap gap-4 items-center">
-                      <div className="flex gap-2">
-                        {["google", "groq"].map((p) => (
-                          <button
-                            key={p}
-                            onClick={() => {
-                              setApiProvider(p);
-                              saveApiDetails(apiKey, p);
-                            }}
-                            className={`rounded-full px-4 py-1.5 text-xs font-bold border capitalize ${
-                              apiProvider === p ? "bg-accent text-bg border-accent" : "border-line text-muted hover:border-line-strong"
-                            }`}
-                          >
-                            {p === "google" ? "Gemini API" : "Groq API"}
-                          </button>
-                        ))}
-                      </div>
-                      <div className="flex-grow flex gap-2">
-                        <input
-                          type="password"
-                          placeholder={`Paste your ${apiProvider === "google" ? "Gemini" : "Groq"} API Key here`}
-                          value={apiKey}
-                          onChange={(e) => {
-                            setApiKey(e.target.value);
-                            saveApiDetails(e.target.value, apiProvider);
-                          }}
-                          className="flex-grow rounded-xl border border-line px-4 py-2 text-sm bg-bg-elev focus:border-accent focus:outline-none"
-                        />
-                        {apiKey && (
-                          <button
-                            onClick={handleClearApiKey}
-                            className="rounded-xl border border-line px-3 text-xs text-danger hover:border-danger/30"
-                          >
-                            Clear
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </MotionDiv>
-              )}
-            </AnimatePresence>
 
             {/* Requirement Form */}
             <div className="grid gap-6 md:grid-cols-[1fr_240px] items-start">
@@ -705,7 +584,7 @@ Be professional, structured, and keep your recommendation under 250 words. Do no
                 </button>
                 <div className="text-[11px] text-muted-2 text-center flex items-center justify-center gap-1">
                   <HelpCircle className="h-3 w-3" />
-                  Processed via {apiProvider === "google" ? "Gemini" : "Groq Llama-3.3"}
+                  Processed securely via AI Compass Advisor
                 </div>
               </div>
             </div>
