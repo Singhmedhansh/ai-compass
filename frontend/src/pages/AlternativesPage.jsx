@@ -333,6 +333,7 @@ export default function AlternativesPage() {
             {alternatives.map((alt, i) => (
               <MotionDiv
                 key={alt.slug}
+                id={alt.slug}
                 variants={staggerChild}
                 custom={i * 0.04}
                 className="group rounded-2xl border border-line bg-bg-elev p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-line-strong hover:shadow-sm"

@@ -60,8 +60,78 @@ const StudentDiscountsPage = lazy(() => import('./pages/StudentDiscountsPage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 
 function ScrollToTop() {
-  const { pathname } = useLocation()
-  useEffect(() => { window.scrollTo(0, 0) }, [pathname])
+  const { pathname, hash } = useLocation()
+
+  // Handle scrolling when path or hash changes (including page loads)
+  useEffect(() => {
+    if (!hash) {
+      window.scrollTo(0, 0)
+    } else {
+      const targetId = hash.startsWith('#') ? hash.slice(1) : hash
+      if (targetId) {
+        let attempts = 0
+        const maxAttempts = 40 // Wait up to 2 seconds for lazy-loaded content
+
+        const tryScroll = () => {
+          const element = document.getElementById(targetId)
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+            element.classList.add('hash-highlight')
+            setTimeout(() => {
+              element.classList.remove('hash-highlight')
+            }, 2000)
+          } else if (attempts < maxAttempts) {
+            attempts++
+            setTimeout(tryScroll, 50)
+          }
+        }
+        tryScroll()
+      }
+    }
+  }, [pathname, hash])
+
+  // Handle clicks on hash links (even if current hash is unchanged)
+  useEffect(() => {
+    const handleHashLinkClick = (e) => {
+      const anchor = e.target.closest('a')
+      if (!anchor) return
+
+      const href = anchor.getAttribute('href')
+      if (href && href.startsWith('#')) {
+        const targetId = href.slice(1)
+        e.preventDefault()
+        
+        const element = document.getElementById(targetId)
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          element.classList.add('hash-highlight')
+          setTimeout(() => {
+            element.classList.remove('hash-highlight')
+          }, 2000)
+        }
+        window.history.pushState(null, '', href)
+      } else if (href && href.includes('#')) {
+        const [path, targetHash] = href.split('#')
+        const currentPath = window.location.pathname
+        if (path === currentPath || path === '') {
+          e.preventDefault()
+          const element = document.getElementById(targetHash)
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+            element.classList.add('hash-highlight')
+            setTimeout(() => {
+              element.classList.remove('hash-highlight')
+            }, 2000)
+          }
+          window.history.pushState(null, '', href)
+        }
+      }
+    }
+
+    document.addEventListener('click', handleHashLinkClick)
+    return () => document.removeEventListener('click', handleHashLinkClick)
+  }, [])
+
   return null
 }
 

@@ -40,11 +40,7 @@ function Navbar() {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
   const [isGuidesMenuOpen, setIsGuidesMenuOpen] = useState(false)
   const [isStudentHubMenuOpen, setIsStudentHubMenuOpen] = useState(false)
-  // Track the failed URL rather than a plain boolean so a new picture URL
-  // (after re-login as a different user) implicitly resets the failure state —
-  // no effect needed to compare prev/next prop values.
   const [failedAvatarUrl, setFailedAvatarUrl] = useState(null)
-  const avatarFailed = failedAvatarUrl != null && failedAvatarUrl === user?.picture
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [authRefreshKey, setAuthRefreshKey] = useState(0)
   const [user, setUser] = useState(() => {
@@ -54,6 +50,7 @@ function Navbar() {
       return null
     }
   })
+  const avatarFailed = failedAvatarUrl != null && failedAvatarUrl === user?.picture
   const [scrolled, setScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isCurrencyMenuOpen, setIsCurrencyMenuOpen] = useState(false)

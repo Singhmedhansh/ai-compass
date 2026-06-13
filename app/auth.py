@@ -260,6 +260,15 @@ def register():
             flash("Full name, email and password are required.", "error")
             return redirect('/')
 
+        import re
+        if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+            flash("Invalid email address format.", "error")
+            return redirect('/')
+
+        if len(password) < 8:
+            flash("Password must be at least 8 characters long.", "error")
+            return redirect('/')
+
         if confirm_password != password:
             flash("Passwords do not match.", "error")
             return redirect('/')

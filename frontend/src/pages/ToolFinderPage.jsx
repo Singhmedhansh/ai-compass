@@ -1312,6 +1312,14 @@ function ToolFinderPage() {
 
       goToQuestionAfter(question, selectedAnswer ?? (question.type === 'text' ? '' : selectedAnswer), answers)
     } catch (error) {
+      try {
+        posthog?.captureException?.(error, {
+          location: 'ToolFinderPage.handleQuestionContinue',
+          question_id: question?.id
+        })
+      } catch (e) {
+        /* noop */
+      }
       console.error('Wizard Step 2 transition failed:', {
         error,
         message: error?.message,

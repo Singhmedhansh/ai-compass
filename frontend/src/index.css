@@ -199,3 +199,24 @@ html[data-theme='dark'] {
   --transparent: rgba(14, 19, 17, 0);
 }
 
+/* Smooth scroll pulse/highlight animation for navigated sections */
+@keyframes hash-pulse {
+  0% {
+    box-shadow: 0 0 0 2px rgba(22, 131, 88, 0.15), 0 0 0 6px rgba(22, 131, 88, 0.25);
+    border-color: var(--accent, #168358);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(22, 131, 88, 0.25), 0 0 0 12px rgba(22, 131, 88, 0.40);
+    border-color: var(--accent, #168358);
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent, 0 0 0 0 transparent;
+  }
+}
+
+.hash-highlight {
+  animation: hash-pulse 1.2s cubic-bezier(0.25, 0, 0, 1) both !important;
+  position: relative;
+  z-index: 10;
+}
+

@@ -292,61 +292,20 @@ def _search_catalog_tools(raw_query: str, category: str, pricing: str, student_o
                 "total": 0,
             }
 
-    results = weighted_search(
-        raw_query,
-        filtered_tools,
+    output = search_tools(
+        raw_query=raw_query,
+        category_filter=category,
+        pricing_filter_ui=pricing,
+        student_only=student_only,
+        trending_only=trending_only,
+        sort_by=sort_by,
+        limit=50,
+        actually_free=actually_free,
     )
-    # Filter out weak keyword matches (e.g. only matching words in description)
-    # This ensures that completely unrelated tools don't prevent the LLM fallback.
-    results = [r for r in results if r.get('relevance_score', 0) >= 30]
+    if "fallback" in output:
+        output["fallback_detected"] = output["fallback"]
+    return output
 
-    if not results and raw_query and not (selected_category or selected_pricing or student_only or trending_only):
-        fuzzy_results = _local_fuzzy_search(raw_query, limit=50, threshold=0.72)
-        if fuzzy_results:
-            intent_rule = detect_intent(raw_query)
-            if intent_rule:
-                fuzzy_results = rerank_by_category(fuzzy_results, intent_rule)
-            if sort_by == "Rating":
-                fuzzy_results.sort(key=lambda x: _safe_float(x.get("rating", 0)), reverse=True)
-            elif sort_by == "Reviews":
-                fuzzy_results.sort(key=lambda x: _safe_int(x.get("review_count", 0)), reverse=True)
-            elif sort_by == "Trending":
-                fuzzy_results.sort(key=lambda x: (bool(x.get("trending", False)), _safe_float(x.get("rating", 0))), reverse=True)
-            else:
-                fuzzy_results.sort(key=lambda x: x.get("_score", 0), reverse=True)
-
-            return {
-                "results": fuzzy_results,
-                "fallback": False,
-                "fuzzy_matched": True,
-                "suggested_query": fuzzy_results[0].get("name"),
-                "original_query": raw_query,
-                "total": len(fuzzy_results),
-            }
-            
-        # If still no results, invoke LLM fallback
-        llm_resp = llm_fallback_search(raw_query, tools)
-        return _handle_llm_response(llm_resp)
-
-    if sort_by == "Rating":
-        results.sort(key=lambda x: _safe_float(x.get("rating", 0)), reverse=True)
-    elif sort_by == "Reviews":
-        results.sort(key=lambda x: _safe_int(x.get("review_count", 0)), reverse=True)
-    elif sort_by == "Trending":
-        results.sort(key=lambda x: (bool(x.get("trending", False)), _safe_float(x.get("rating", 0))), reverse=True)
-    else:
-        results.sort(key=lambda x: x.get("relevance_score", 0), reverse=True)
-
-    response = {
-        "results": results,
-        "fallback": False,
-        "fuzzy_matched": False,
-        "total": len(results),
-    }
-    if not results and not (selected_category or selected_pricing or student_only or trending_only):
-        response["fallback_detected"] = True
-        response["original_query"] = raw_query
-    return response
 
 
 @api_bp.get("/tools/by-tags")

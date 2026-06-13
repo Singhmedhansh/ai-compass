@@ -83,6 +83,7 @@ const LAST_REVIEWED = "May 2026";
 // tool's affiliateUrl field below.
 function getOutboundUrl(tool) {
   if (tool.affiliateUrl) return { url: tool.affiliateUrl, isAffiliate: true };
+  if (tool.slug) return { url: `/go/${encodeURIComponent(tool.slug)}`, isAffiliate: false };
   if (tool.clearbitDomain) return { url: `https://${tool.clearbitDomain}`, isAffiliate: false };
   return { url: null, isAffiliate: false };
 }

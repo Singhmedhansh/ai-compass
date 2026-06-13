@@ -84,6 +84,7 @@ const AFFILIATE_URLS = {
 function getOutboundUrl(tool) {
   const affiliate = AFFILIATE_URLS[tool.slug];
   if (affiliate) return { url: affiliate, isAffiliate: true };
+  if (tool.slug) return { url: `/go/${encodeURIComponent(tool.slug)}`, isAffiliate: false };
   const m = typeof tool.iconUrl === 'string' && tool.iconUrl.match(/clearbit\.com\/([^/]+)/);
   if (m) return { url: `https://${m[1]}`, isAffiliate: false };
   return { url: null, isAffiliate: false };
@@ -99,6 +100,8 @@ const tools = [
     freeLimit: "Unlimited GPT-5 mini on free plan",
     paidPlan: "$20/month for Plus",
     bestFor: "Writing, coding, brainstorming, Q&A",
+    studentTip: "Use custom instructions to tell ChatGPT you're a student. It will give you structured explanations rather than writing direct answers.",
+    limitation: "You get GPT-5 mini/GPT-4o mini, but advanced features like high-end reasoning have daily caps.",
     freeVerdict:
       "The free tier is genuinely excellent now. Most students will never hit Plus territory.",
     color: "#10a37f",
@@ -113,6 +116,8 @@ const tools = [
     freeLimit: "Generous daily message cap with Claude Sonnet",
     paidPlan: "$20/month for Pro",
     bestFor: "Essays, code review, document analysis, careful reasoning",
+    studentTip: "Upload your entire syllabus or study guide to Claude. It has a huge 200k context window and can keep track of all details.",
+    limitation: "The rate limits on the free tier reset every few hours but can be hit quickly during heavy sessions.",
     freeVerdict:
       "Free tier handles documents up to ~75K words. Outperforms most paid tools for writing.",
     color: "#cc785c",
@@ -127,6 +132,8 @@ const tools = [
     freeLimit: "Unlimited free access to Gemini 2.5 Flash",
     paidPlan: "$20/month for Advanced",
     bestFor: "Image analysis, web-aware research, Google ecosystem",
+    studentTip: "Use `@Google Drive` in your chat prompts to search and summarize documents in your Google Drive directly.",
+    limitation: "It might hallucinate citations or source links; double check any academic claims it makes.",
     freeVerdict:
       "The free model is competitive with paid tools, and it ties into Drive/Docs natively.",
     color: "#4285f4",
@@ -141,6 +148,8 @@ const tools = [
     freeLimit: "500K characters/month free",
     paidPlan: "$8.74/month for Pro",
     bestFor: "Translating sources, language learning, multilingual writing",
+    studentTip: "Use DeepL's PDF translation tool to translate foreign language academic papers while keeping formatting intact.",
+    limitation: "The free plan is capped at 3 document uploads per month.",
     freeVerdict:
       "500K characters is plenty for a semester of foreign-language coursework.",
     color: "#0f2b46",
@@ -155,6 +164,8 @@ const tools = [
     freeLimit: "Unlimited free access to Llama, Mistral, and other open models",
     paidPlan: "N/A — fully free",
     bestFor: "Trying alternative models, technical experimentation, privacy-conscious use",
+    studentTip: "If you want to compare different open source models like Llama 3 or Mistral, this is the best place to test them side-by-side.",
+    limitation: "Does not have native web search or integrations with productivity tools.",
     freeVerdict:
       "The most open AI access on the internet. No account required, no rate limits worth mentioning.",
     color: "#ffd21e",
@@ -169,6 +180,8 @@ const tools = [
     freeLimit: "Unlimited free searches with the base model",
     paidPlan: "Free for students + $20/month for Pro",
     bestFor: "Research, fact-checking, finding sources",
+    studentTip: "Click 'Focus' and select 'Academic' to filter search results to peer-reviewed papers and science citations only.",
+    limitation: "The free tier uses a basic model for search; you need Pro for deep multi-step reasoning.",
     freeVerdict:
       "Free tier alone replaces Google for most research queries. Pro adds smarter models but isn't required.",
     color: "#20b8cd",
@@ -183,13 +196,14 @@ const tools = [
     freeLimit: "Generous free tier with current models",
     paidPlan: "$15/month for Pro",
     bestFor: "Debugging, framework lookups, technical reference",
+    studentTip: "Phind is excellent for coding homework. It lists official documentation links alongside its code explanations.",
+    limitation: "Highly developer-focused; not suitable for general humanities writing.",
     freeVerdict:
       "For technical questions, Phind's free tier often outperforms ChatGPT free because it pulls live docs.",
     color: "#00b3a4",
     badge: "Free unlimited",
   },
   {
-    // Spec asked for Pi (Inflection); not in tools.json. Substituted with Microsoft Copilot — closest free conversational AI in the catalog.
     rank: 8,
     name: "Microsoft Copilot",
     slug: "microsoft-copilot",
@@ -198,13 +212,14 @@ const tools = [
     freeLimit: "Unlimited free conversations",
     paidPlan: "N/A — fully free",
     bestFor: "Brainstorming out loud, casual problem-solving, voice mode",
+    studentTip: "It includes free GPT-4 access and web search without needing any sign-up or credit card.",
+    limitation: "Interface can feel cluttered and it is heavily integrated with Microsoft services.",
     freeVerdict:
       "A different vibe than ChatGPT — designed for conversation, not tasks. Useful when you're thinking through something.",
     color: "#0078d4",
     badge: "No signup needed",
   },
   {
-    // Spec asked for PhotoRoom; not in tools.json. Substituted with Remove.bg — closest free background-removal tool in the catalog.
     rank: 9,
     name: "Remove.bg",
     slug: "remove.bg",
@@ -213,13 +228,14 @@ const tools = [
     freeLimit: "Free for basic editing; unlimited background removals",
     paidPlan: "$12.99/month for Pro",
     bestFor: "Cleaning up photos, removing backgrounds, prepping images for assignments",
+    studentTip: "Perfect for quickly stripping backgrounds from headshots for resume profiles or design projects.",
+    limitation: "High-resolution downloads require credits, free tier only outputs low/medium res images.",
     freeVerdict:
       "The free tier covers everything most students need. Pro is for designers, not coursework.",
     color: "#52525b",
     badge: "No watermark",
   },
   {
-    // Spec asked for Mistral Le Chat; not in tools.json. Substituted with Mistral AI — closest Mistral entry in the catalog.
     rank: 10,
     name: "Mistral AI",
     slug: "mistral-ai",
@@ -228,6 +244,8 @@ const tools = [
     freeLimit: "Unlimited free access to Mistral's best model",
     paidPlan: "N/A for now — fully free in beta",
     bestFor: "Quick lookups, coding, fast iteration",
+    studentTip: "Mistral Le Chat is incredibly fast. Use it when you need quick synonyms, grammar checks, or code snippets.",
+    limitation: "Context window on free tier is smaller than Claude's.",
     freeVerdict:
       "Noticeably faster than ChatGPT for short prompts. Underrated for everyday use.",
     color: "#fa520f",
@@ -407,6 +425,47 @@ export default function BestFreeAITools() {
           </MotionDiv>
         </div>
 
+        {/* Quick Comparison Table */}
+        <div className="mx-auto max-w-[860px] px-6 mb-12">
+          <MotionDiv
+            variants={sectionReveal}
+            initial="initial"
+            whileInView="animate"
+            viewport={{ once: true, margin: '-10% 0px' }}
+            className="overflow-x-auto rounded-2xl border border-line bg-bg-elev shadow-sm font-sans"
+          >
+            <table className="w-full border-collapse text-left text-sm">
+              <thead>
+                <tr className="border-b border-line bg-bg-sunk text-xs font-semibold uppercase tracking-wider text-ink-2">
+                  <th className="px-6 py-4">Tool</th>
+                  <th className="px-6 py-4">Best For</th>
+                  <th className="px-6 py-4">Free Quota / Limit</th>
+                  <th className="px-6 py-4 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-line">
+                {tools.map((t) => (
+                  <tr key={t.slug} className="transition-colors hover:bg-accent-soft/15">
+                    <td className="whitespace-nowrap px-6 py-4 font-semibold text-ink">
+                      {t.rank}. {t.name}
+                    </td>
+                    <td className="px-6 py-4 text-muted">{t.bestFor}</td>
+                    <td className="px-6 py-4 text-muted">{t.freeLimit}</td>
+                    <td className="whitespace-nowrap px-6 py-4 text-right">
+                      <a
+                        href={`#${t.slug}`}
+                        className="inline-flex items-center text-xs font-semibold text-accent hover:underline"
+                      >
+                        Details →
+                      </a>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </MotionDiv>
+        </div>
+
         {/* Quick nav */}
         <MotionDiv
           variants={sectionReveal}
@@ -513,6 +572,22 @@ export default function BestFreeAITools() {
                         </dt>
                         <dd className="text-sm leading-relaxed text-muted">{tool.paidPlan}</dd>
                       </div>
+                      {tool.studentTip && (
+                        <div className="flex flex-col gap-1 sm:flex-row sm:gap-4">
+                          <dt className="shrink-0 text-xs font-semibold uppercase tracking-wider text-accent sm:w-32">
+                            Student Tip
+                          </dt>
+                          <dd className="text-sm font-medium leading-relaxed text-ink-2">{tool.studentTip}</dd>
+                        </div>
+                      )}
+                      {tool.limitation && (
+                        <div className="flex flex-col gap-1 sm:flex-row sm:gap-4">
+                          <dt className="shrink-0 text-xs font-semibold uppercase tracking-wider text-danger sm:w-32">
+                            Free Catch
+                          </dt>
+                          <dd className="text-sm leading-relaxed text-muted">{tool.limitation}</dd>
+                        </div>
+                      )}
                     </dl>
 
                     {/* Verdict callout */}

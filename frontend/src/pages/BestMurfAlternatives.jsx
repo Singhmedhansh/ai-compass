@@ -59,6 +59,7 @@ const AFFILIATE_URLS = {
 function getOutboundUrl(tool) {
   const affiliate = AFFILIATE_URLS[tool.slug];
   if (affiliate) return { url: affiliate, isAffiliate: true };
+  if (tool.slug) return { url: `/go/${encodeURIComponent(tool.slug)}`, isAffiliate: false };
   const m = typeof tool.iconUrl === "string" && tool.iconUrl.match(/clearbit\.com\/([^/]+)/);
   if (m) return { url: `https://${m[1]}`, isAffiliate: false };
   return { url: null, isAffiliate: false };
