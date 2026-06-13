@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Helmet } from "react-helmet-async";
-import { ArrowUpRight, Calculator, Key, MessageSquare, Sparkles, HelpCircle, RefreshCw } from "lucide-react";
+import { ArrowUpRight, Calculator, Key, MessageSquare, Sparkles, HelpCircle, RefreshCw, Layers, CheckSquare, Square, Zap, Info } from "lucide-react";
 import { SEO } from "../components/ui";
+import { useCurrency } from "../context/CurrencyContext";
 
 const MotionDiv = motion.div;
 
@@ -17,6 +18,8 @@ const modelsData = [
     outputCost: 15.0,
     contextWindow: "128,000",
     maxOutput: "4,096",
+    latency: "Fast",
+    reliability: "Enterprise",
     strengths: "Universal industry standard, excellent code & logic, multimodal capabilities.",
   },
   {
@@ -27,6 +30,8 @@ const modelsData = [
     outputCost: 0.6,
     contextWindow: "128,000",
     maxOutput: "16,384",
+    latency: "Instant",
+    reliability: "Enterprise",
     strengths: "Extremely cost-effective, blazing fast speed, great for high-frequency lightweight tasks.",
   },
   {
@@ -37,6 +42,8 @@ const modelsData = [
     outputCost: 60.0,
     contextWindow: "128,000",
     maxOutput: "32,768",
+    latency: "Thinking",
+    reliability: "High",
     strengths: "State-of-the-art complex reasoning, mathematical proofs, and advanced code design.",
   },
   {
@@ -47,6 +54,8 @@ const modelsData = [
     outputCost: 12.0,
     contextWindow: "128,000",
     maxOutput: "65,536",
+    latency: "Fast",
+    reliability: "High",
     strengths: "Math and coding specialist. High reasoning depth at a fraction of o1-preview's cost.",
   },
   {
@@ -57,6 +66,8 @@ const modelsData = [
     outputCost: 15.0,
     contextWindow: "200,000",
     maxOutput: "8,192",
+    latency: "Fast",
+    reliability: "Enterprise",
     strengths: "Unmatched writing nuance, top-tier coding, excellent instruction following.",
   },
   {
@@ -67,6 +78,8 @@ const modelsData = [
     outputCost: 75.0,
     contextWindow: "200,000",
     maxOutput: "4,096",
+    latency: "Moderate",
+    reliability: "Enterprise",
     strengths: "Deep analysis, executive summaries, complex business logic translation.",
   },
   {
@@ -77,6 +90,8 @@ const modelsData = [
     outputCost: 1.25,
     contextWindow: "200,000",
     maxOutput: "4,096",
+    latency: "Instant",
+    reliability: "High",
     strengths: "Fast response latency, perfect for simple classification and parsing.",
   },
   {
@@ -87,6 +102,8 @@ const modelsData = [
     outputCost: 5.0,
     contextWindow: "2,000,000",
     maxOutput: "8,192",
+    latency: "Moderate",
+    reliability: "Enterprise",
     strengths: "Industry-leading 2M token context, native audio/video understanding, Google integration.",
   },
   {
@@ -97,6 +114,8 @@ const modelsData = [
     outputCost: 0.3,
     contextWindow: "1,000,000",
     maxOutput: "8,192",
+    latency: "Instant",
+    reliability: "Enterprise",
     strengths: "Incredibly fast, vast context window for the price, highly affordable.",
   },
   {
@@ -107,6 +126,8 @@ const modelsData = [
     outputCost: 0.3,
     contextWindow: "1,000,000",
     maxOutput: "8,192",
+    latency: "Instant",
+    reliability: "High",
     strengths: "Next-gen real-time audio and visual streaming capabilities, faster speeds.",
   },
   {
@@ -117,6 +138,8 @@ const modelsData = [
     outputCost: 2.66,
     contextWindow: "128,000",
     maxOutput: "4,096",
+    latency: "Moderate",
+    reliability: "Standard",
     strengths: "Open-source flagship model, matches GPT-4 level on benchmarks, privacy safe.",
   },
   {
@@ -127,6 +150,8 @@ const modelsData = [
     outputCost: 0.6,
     contextWindow: "128,000",
     maxOutput: "4,096",
+    latency: "Fast",
+    reliability: "Standard",
     strengths: "Best balance of reasoning vs self-hosting costs. Highly customizable.",
   },
   {
@@ -137,6 +162,8 @@ const modelsData = [
     outputCost: 0.28,
     contextWindow: "64,000",
     maxOutput: "8,192",
+    latency: "Fast",
+    reliability: "Standard",
     strengths: "Top-tier coding, reasoning performance at a tiny fraction of US frontier models.",
   },
   {
@@ -147,13 +174,26 @@ const modelsData = [
     outputCost: 6.0,
     contextWindow: "128,000",
     maxOutput: "8,192",
+    latency: "Moderate",
+    reliability: "High",
     strengths: "Strong multilingual support, complex function calling and agentic actions.",
   },
 ];
 
+const presets = [
+  { label: "Simple Chatbot", prompt: 1000, response: 300, requests: 5000 },
+  { label: "Document RAG", prompt: 45000, response: 1500, requests: 500 },
+  { label: "Code Assistant", prompt: 8000, response: 1000, requests: 2000 },
+  { label: "AI Agent", prompt: 5000, response: 2500, requests: 20000 },
+];
+
 export default function ModelComparisonPage() {
+  const { selectedCurrency, exchangeRates, currentSymbol } = useCurrency();
+  const rate = exchangeRates[selectedCurrency] || 1.0;
+
   const [selectedProvider, setSelectedProvider] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedModels, setSelectedModels] = useState([]);
 
   // Cost calculator states
   const [promptTokens, setPromptTokens] = useState(10000);
@@ -191,6 +231,18 @@ export default function ModelComparisonPage() {
     return (singleRunCost * requestsCount).toFixed(4);
   };
 
+  // Preset Handler
+  const handleApplyPreset = (preset) => {
+    setPromptTokens(preset.prompt);
+    setResponseTokens(preset.response);
+    setRequestsCount(preset.requests);
+  };
+
+  // Input vs Output Token split ratio
+  const totalTokens = promptTokens + responseTokens;
+  const inputRatio = promptTokens / (totalTokens || 1);
+  const outputRatio = responseTokens / (totalTokens || 1);
+
   // Filter models
   const filteredModels = modelsData.filter((model) => {
     const matchesProvider = selectedProvider === "All" || model.provider === selectedProvider;
@@ -206,6 +258,15 @@ export default function ModelComparisonPage() {
       totalCost: parseFloat(calculateCost(m.inputCost, m.outputCost)),
     }))
     .sort((a, b) => a.totalCost - b.totalCost);
+
+  // Toggle Model Comparison Checkbox
+  const toggleModelSelection = (slug) => {
+    if (selectedModels.includes(slug)) {
+      setSelectedModels(selectedModels.filter((s) => s !== slug));
+    } else {
+      setSelectedModels([...selectedModels, slug]);
+    }
+  };
 
   // Call AI Advisor
   const getAdvisorRecommendation = async () => {
@@ -226,7 +287,7 @@ export default function ModelComparisonPage() {
     const modelCatalogString = modelsData
       .map(
         (m) =>
-          `- ${m.name} (${m.provider}): Input: $${m.inputCost}/M tokens, Output: $${m.outputCost}/M tokens, Context: ${m.contextWindow} tokens. Strengths: ${m.strengths}`
+          `- ${m.name} (${m.provider}): Input: $${m.inputCost}/M tokens, Output: $${m.outputCost}/M tokens, Context: ${m.contextWindow} tokens, Latency: ${m.latency}. Strengths: ${m.strengths}`
       )
       .join("\n");
 
@@ -311,20 +372,38 @@ Be professional, structured, and keep your recommendation under 250 words. Do no
           </p>
         </div>
 
+        {/* Comparison Presets block */}
+        <div className="mx-auto max-w-5xl px-4 mb-8 font-sans">
+          <div className="rounded-2xl border border-line bg-bg-elev p-5 flex flex-wrap items-center gap-3 justify-between">
+            <div className="flex items-center gap-2">
+              <Zap className="h-4.5 w-4.5 text-accent" />
+              <span className="text-xs font-semibold text-muted-2 uppercase tracking-wider">Quick Presets:</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {presets.map((preset) => (
+                <button
+                  key={preset.label}
+                  onClick={() => handleApplyPreset(preset)}
+                  className="rounded-lg border border-line bg-bg px-3 py-1.5 text-xs font-medium text-ink-2 hover:border-line-strong hover:bg-bg-sunk transition"
+                >
+                  {preset.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
         {/* Cost Calculator Section */}
-        <div className="mx-auto max-w-5xl px-4 mb-16 font-sans">
-          <div className="grid gap-8 lg:grid-cols-[1fr_400px]">
+        <div className="mx-auto max-w-5xl px-4 mb-12 font-sans">
+          <div className="grid gap-8 lg:grid-cols-[1fr_420px]">
             {/* Calculator Controls */}
             <div className="rounded-3xl border border-line bg-bg-elev p-6 sm:p-8">
               <div className="flex items-center gap-3 mb-6">
                 <Calculator className="h-6 w-6 text-accent" />
                 <h2 className="text-xl font-bold text-ink">API Cost Estimator</h2>
               </div>
-              <p className="text-sm text-muted mb-6">
-                Adjust prompts sizes and request frequencies to estimate total project costs.
-              </p>
 
-              <div className="space-y-6">
+              <div className="space-y-6 mb-6">
                 {/* Prompt Tokens */}
                 <div>
                   <div className="flex justify-between text-sm mb-2">
@@ -388,33 +467,134 @@ Be professional, structured, and keep your recommendation under 250 words. Do no
                   </div>
                 </div>
               </div>
+
+              {/* Cost Split Ratio Bar */}
+              <div className="border-t border-line pt-4">
+                <div className="flex items-center gap-1.5 mb-2">
+                  <span className="text-xs font-semibold text-muted-2 uppercase tracking-wider">Prompt vs Response Ratio</span>
+                </div>
+                <div className="w-full bg-bg-sunk rounded-full h-4 overflow-hidden flex border border-line text-[9px] font-bold text-bg text-center">
+                  <div style={{ width: `${inputRatio * 100}%` }} className="bg-accent flex items-center justify-center min-w-[30px] transition-all">
+                    Input ({Math.round(inputRatio * 100)}%)
+                  </div>
+                  <div style={{ width: `${outputRatio * 100}%` }} className="bg-ink flex items-center justify-center min-w-[30px] transition-all">
+                    Output ({Math.round(outputRatio * 100)}%)
+                  </div>
+                </div>
+              </div>
             </div>
 
-            {/* Live Cost Estimates */}
+            {/* Visual Dynamic cost bars */}
             <div className="rounded-3xl border border-accent bg-accent-soft/30 p-6 flex flex-col justify-between">
               <div>
                 <div className="flex items-center gap-2 mb-4">
                   <Sparkles className="h-5 w-5 text-accent" />
-                  <h3 className="font-bold text-ink uppercase tracking-wider text-xs">Cost Estimates</h3>
+                  <h3 className="font-bold text-ink uppercase tracking-wider text-xs">Cost Comparison ({selectedCurrency})</h3>
                 </div>
-                <div className="space-y-4 overflow-y-auto max-h-[300px] pr-2">
-                  {sortedCalculatorResults.map((m, idx) => (
-                    <div key={m.slug} className="flex justify-between items-center border-b border-line pb-2 text-sm">
-                      <span className="font-medium text-ink-2">
-                        {m.name}
-                        {idx === 0 && <span className="ml-2 text-[10px] bg-accent text-bg px-1.5 py-0.5 rounded font-bold">Cheapest</span>}
-                      </span>
-                      <span className="font-bold text-ink">${m.totalCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</span>
-                    </div>
-                  ))}
+
+                {/* Horizontal Cost comparison chart */}
+                <div className="space-y-3 overflow-y-auto max-h-[340px] pr-2">
+                  {sortedCalculatorResults.slice(0, 8).map((m, idx) => {
+                    const maxCost = Math.max(...sortedCalculatorResults.map(x => x.totalCost), 0.0001);
+                    const percentage = (m.totalCost / maxCost) * 100;
+                    return (
+                      <div key={m.slug} className="space-y-1">
+                        <div className="flex justify-between text-xs font-semibold text-ink-2">
+                          <span>{m.name} ({m.provider})</span>
+                          <span className="font-bold">{currentSymbol}{(m.totalCost * rate).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</span>
+                        </div>
+                        <div className="w-full bg-bg-sunk rounded-full h-2 overflow-hidden relative border border-line">
+                          <MotionDiv
+                            initial={{ width: 0 }}
+                            animate={{ width: `${percentage}%` }}
+                            transition={{ duration: 0.4, ease: "easeOut" }}
+                            className={`h-full rounded-full ${idx === 0 ? "bg-accent" : "bg-muted"}`}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
-              <div className="mt-4 pt-4 border-t border-line text-xs text-muted-2">
-                Based on custom prompt configurations. Standard pricing per 1 Million tokens.
+              <div className="mt-4 pt-4 border-t border-line text-xs text-muted-2 flex justify-between items-center">
+                <span>Calculated in {selectedCurrency}</span>
+                <span>Rates: 1 USD = {rate.toFixed(2)} {selectedCurrency}</span>
               </div>
             </div>
           </div>
         </div>
+
+        {/* Side-by-Side Comparison Matrix Panel */}
+        <AnimatePresence>
+          {selectedModels.length > 0 && (
+            <div className="mx-auto max-w-5xl px-4 mb-12 font-sans">
+              <MotionDiv
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 15 }}
+                className="rounded-3xl border border-line bg-bg-elev p-6 sm:p-8 shadow-md"
+              >
+                <div className="flex items-center justify-between border-b border-line pb-4 mb-6">
+                  <div className="flex items-center gap-2">
+                    <Layers className="h-6 w-6 text-accent" />
+                    <h2 className="text-xl font-bold text-ink">Side-by-Side Comparison ({selectedModels.length})</h2>
+                  </div>
+                  <button
+                    onClick={() => setSelectedModels([])}
+                    className="text-xs text-danger font-semibold hover:underline"
+                  >
+                    Clear Matrix
+                  </button>
+                </div>
+
+                <div className="grid gap-4 md:grid-flow-col overflow-x-auto pb-2">
+                  {selectedModels.map((slug) => {
+                    const model = modelsData.find((m) => m.slug === slug);
+                    if (!model) return null;
+                    const calculatedTotal = calculateCost(model.inputCost, model.outputCost);
+                    return (
+                      <div key={model.slug} className="border border-line rounded-2xl p-5 bg-bg min-w-[240px]">
+                        <h3 className="font-bold text-lg text-ink mb-1">{model.name}</h3>
+                        <p className="text-xs text-muted-2 mb-4 font-semibold uppercase tracking-wider">{model.provider}</p>
+                        
+                        <dl className="space-y-2 text-sm border-t border-line pt-3">
+                          <div className="flex justify-between">
+                            <dt className="text-muted">Input Price</dt>
+                            <dd className="font-semibold text-ink">${model.inputCost}/M</dd>
+                          </div>
+                          <div className="flex justify-between">
+                            <dt className="text-muted">Output Price</dt>
+                            <dd className="font-semibold text-ink">${model.outputCost}/M</dd>
+                          </div>
+                          <div className="flex justify-between">
+                            <dt className="text-muted">Context Size</dt>
+                            <dd className="font-semibold text-ink-2">{model.contextWindow}</dd>
+                          </div>
+                          <div className="flex justify-between">
+                            <dt className="text-muted">Max Output</dt>
+                            <dd className="font-semibold text-ink-2">{model.maxOutput}</dd>
+                          </div>
+                          <div className="flex justify-between">
+                            <dt className="text-muted">Latency</dt>
+                            <dd className="font-semibold text-accent">{model.latency}</dd>
+                          </div>
+                          <div className="flex justify-between">
+                            <dt className="text-muted">Reliability</dt>
+                            <dd className="font-semibold text-ink-2">{model.reliability}</dd>
+                          </div>
+                          <div className="flex justify-between border-t border-line pt-2 mt-2">
+                            <dt className="text-muted font-semibold">Total Est. Cost</dt>
+                            <dd className="font-bold text-accent">{currentSymbol}{(parseFloat(calculatedTotal) * rate).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</dd>
+                          </div>
+                        </dl>
+                      </div>
+                    );
+                  })}
+                </div>
+              </MotionDiv>
+            </div>
+          )}
+        </AnimatePresence>
 
         {/* AI Advisor Panel */}
         <div className="mx-auto max-w-5xl px-4 mb-16 font-sans">
@@ -543,7 +723,7 @@ Be professional, structured, and keep your recommendation under 250 words. Do no
                   <Sparkles className="h-5 w-5 text-accent" />
                   <h3 className="font-semibold text-ink">Advisor Recommendation</h3>
                 </div>
-                <div className="text-sm leading-relaxed text-ink-2 whitespace-pre-line font-sans">
+                <div className="text-sm leading-relaxed text-ink-2 whitespace-pre-line font-sans font-medium">
                   {advisorResponse}
                 </div>
               </div>
@@ -587,28 +767,42 @@ Be professional, structured, and keep your recommendation under 250 words. Do no
             <table className="w-full border-collapse text-left text-sm">
               <thead>
                 <tr className="border-b border-line bg-bg-sunk text-xs font-semibold uppercase tracking-wider text-ink-2">
+                  <th className="px-6 py-4">Compare</th>
                   <th className="px-6 py-4">Model Name</th>
                   <th className="px-6 py-4">Provider</th>
                   <th className="px-6 py-4">Input Price / M</th>
                   <th className="px-6 py-4">Output Price / M</th>
                   <th className="px-6 py-4">Context Size</th>
                   <th className="px-6 py-4">Max Output</th>
-                  <th className="px-6 py-4">Core Strengths</th>
+                  <th className="px-6 py-4">Latency</th>
+                  <th className="px-6 py-4">Reliability</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
                 {filteredModels.map((m) => (
                   <tr key={m.slug} className="transition-colors hover:bg-bg-sunk/40">
+                    <td className="px-6 py-4">
+                      <button
+                        onClick={() => toggleModelSelection(m.slug)}
+                        className="text-accent hover:scale-105 transition"
+                      >
+                        {selectedModels.includes(m.slug) ? (
+                          <CheckSquare className="h-5 w-5" />
+                        ) : (
+                          <Square className="h-5 w-5 text-muted-2" />
+                        )}
+                      </button>
+                    </td>
                     <td className="whitespace-nowrap px-6 py-4 font-semibold text-ink">
                       {m.name}
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-muted-2">
                       {m.provider}
                     </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-ink">
+                    <td className="whitespace-nowrap px-6 py-4 text-ink font-semibold">
                       ${m.inputCost.toFixed(2)}
                     </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-ink">
+                    <td className="whitespace-nowrap px-6 py-4 text-ink font-semibold">
                       ${m.outputCost.toFixed(2)}
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-muted">
@@ -617,14 +811,17 @@ Be professional, structured, and keep your recommendation under 250 words. Do no
                     <td className="whitespace-nowrap px-6 py-4 text-muted">
                       {m.maxOutput}
                     </td>
-                    <td className="px-6 py-4 text-sm text-muted leading-relaxed min-w-[240px]">
-                      {m.strengths}
+                    <td className="whitespace-nowrap px-6 py-4 text-muted font-medium text-accent">
+                      {m.latency}
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-4 text-muted">
+                      {m.reliability}
                     </td>
                   </tr>
                 ))}
                 {filteredModels.length === 0 && (
                   <tr>
-                    <td colSpan={7} className="px-6 py-8 text-center text-muted">
+                    <td colSpan={9} className="px-6 py-8 text-center text-muted">
                       No models match your query. Try searching for something else.
                     </td>
                   </tr>
