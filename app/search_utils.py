@@ -515,9 +515,10 @@ def llm_fallback_search(raw_query: str, all_tools: list[dict]) -> dict:
         
     prompt = f"""
 You are an expert AI search engine. The user searched for: "{raw_query}".
-Based on the candidate catalog below, return a JSON object with two fields:
-1. "slugs": An array of up to 6 tool slugs from the catalog that best match the search intent. If the query is gibberish or completely irrelevant to AI tools, return an empty array.
-2. "message": A polite message (under 120 chars). If you found tools, say something like "We used AI to find these tools based on your intent." If you found nothing or the query was gibberish, say "We couldn't find any tools matching your search. Please try rephrasing or searching for something else."
+Based on the candidate catalog below, return a JSON object with three fields:
+1. "slugs": An array of up to 6 tool slugs from the catalog that best match the search intent. If the query is gibberish, return an empty array.
+2. "message": A polite message (under 120 chars) explaining the recommendations or why none were found.
+3. "new_tools": If you strongly believe the absolute best tool for the user's intent is missing from the catalog, you MUST generate an entry for it. Return an array of objects for these missing tools. Each object MUST contain: "name", "slug", "tagline", "description", "category" (e.g. "Writing & Chat", "Productivity", "Coding"), and "link" (the official URL). Leave empty if not needed.
 
 Candidate Catalog:
 {json.dumps(catalog_candidates)}

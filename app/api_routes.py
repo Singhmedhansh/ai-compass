@@ -223,6 +223,66 @@ def _search_catalog_tools(raw_query: str, category: str, pricing: str, student_o
             continue
         filtered_tools.append(tool)
 
+    def _handle_llm_response(llm_resp):
+        import json, os
+        from app.tool_cache import DEFAULT_TOOLS_PATH
+        from app.ml_recommender import clear_model_cache
+        
+        llm_slugs = llm_resp.get("slugs", [])
+        llm_msg = llm_resp.get("message", "")
+        new_tools = llm_resp.get("new_tools", [])
+        
+        if new_tools:
+            try:
+                with open(DEFAULT_TOOLS_PATH, 'r', encoding='utf-8') as f:
+                    db_tools = json.load(f)
+                max_id = max((t.get('id', 0) for t in db_tools), default=0)
+                for nt in new_tools:
+                    max_id += 1
+                    nt['id'] = max_id
+                    nt['slug'] = nt.get('slug', '').lower().replace(' ', '-')
+                    db_tools.append(nt)
+                    tools.append(nt) # add to memory
+                    llm_slugs.append(nt['slug'])
+                with open(DEFAULT_TOOLS_PATH, 'w', encoding='utf-8') as f:
+                    json.dump(db_tools, f, indent=2)
+                clear_model_cache()
+            except Exception as e:
+                print(f"Failed to add new tools dynamically: {e}")
+
+        if llm_slugs:
+            llm_results = []
+            for slug in llm_slugs:
+                matched = next((t for t in tools if t.get("slug") == slug), None)
+                if matched:
+                    llm_results.append({**matched, "_score": 100, "_match_type": "llm"})
+            return {
+                "results": llm_results,
+                "fallback": False,
+                "fuzzy_matched": False,
+                "fallback_detected": True,
+                "llm_matched": True,
+                "message": llm_msg,
+                "original_query": raw_query,
+                "total": len(llm_results),
+            }
+        return {
+            "results": [],
+            "fallback": False,
+            "fuzzy_matched": False,
+            "fallback_detected": True,
+            "message": llm_msg or "We couldn't find any tools matching your search.",
+            "original_query": raw_query,
+            "total": 0,
+        }
+
+    is_complex_query = raw_query and len(raw_query.split()) >= 3 and not (selected_category or selected_pricing or student_only or trending_only)
+    
+    if is_complex_query:
+        llm_resp = llm_fallback_search(raw_query, tools)
+        if llm_resp.get("slugs") or llm_resp.get("new_tools"):
+            return _handle_llm_response(llm_resp)
+
     results = weighted_search(
         raw_query,
         filtered_tools,
@@ -257,34 +317,7 @@ def _search_catalog_tools(raw_query: str, category: str, pricing: str, student_o
             
         # If still no results, invoke LLM fallback
         llm_resp = llm_fallback_search(raw_query, tools)
-        llm_slugs = llm_resp.get("slugs", [])
-        llm_msg = llm_resp.get("message", "")
-        if llm_slugs:
-            llm_results = []
-            for slug in llm_slugs:
-                matched = next((t for t in tools if t.get("slug") == slug), None)
-                if matched:
-                    llm_results.append({**matched, "_score": 100, "_match_type": "llm"})
-            return {
-                "results": llm_results,
-                "fallback": False,
-                "fuzzy_matched": False,
-                "fallback_detected": True,
-                "llm_matched": True,
-                "message": llm_msg,
-                "original_query": raw_query,
-                "total": len(llm_results),
-            }
-
-        return {
-            "results": [],
-            "fallback": False,
-            "fuzzy_matched": False,
-            "fallback_detected": True,
-            "message": llm_msg or "We couldn't find any tools matching your search.",
-            "original_query": raw_query,
-            "total": 0,
-        }
+        return _handle_llm_response(llm_resp)
 
     if sort_by == "Rating":
         results.sort(key=lambda x: _safe_float(x.get("rating", 0)), reverse=True)
