@@ -97,3 +97,46 @@ def test_model_advisor_groq_success(mock_urlopen, client):
         data = json.loads(response.data.decode("utf-8"))
         assert "recommendation" in data
         assert "Llama 3.1 70B" in data["recommendation"]
+
+@patch("urllib.request.urlopen")
+def test_model_advisor_key_rotation_success(mock_urlopen, client):
+    # Setup multiple Gemini API keys
+    with patch.dict(os.environ, {"GEMINI_API_KEYS": "key-bad,key-good"}, clear=True):
+        # Setup mock response for the second key
+        mock_response = MagicMock()
+        mock_response.read.return_value = json.dumps({
+            "candidates": [{
+                "content": {
+                    "parts": [{
+                        "text": "Success with second key!"
+                    }]
+                }
+            }]
+        }).encode("utf-8")
+        mock_response.__enter__.return_value = mock_response
+
+        # Create HTTPError for the first key's failure (429 Rate Limit)
+        fp = MagicMock()
+        fp.read.return_value = b"Rate limit exceeded"
+        err = urllib.error.HTTPError("https://generativelanguage.googleapis.com", 429, "Too Many Requests", {}, fp)
+
+        # Set side effect: first call raises err, second returns mock_response
+        mock_urlopen.side_effect = [err, mock_response]
+
+        response = client.post(
+            "/api/v1/model-advisor",
+            data=json.dumps({
+                "requirements": "Need a simple text classifier with low cost.",
+                "promptTokens": 1000,
+                "responseTokens": 500,
+                "requestsCount": 2000
+            }),
+            content_type="application/json"
+        )
+        
+        assert response.status_code == 200
+        data = json.loads(response.data.decode("utf-8"))
+        assert "recommendation" in data
+        assert data["recommendation"] == "Success with second key!"
+        assert mock_urlopen.call_count == 2
+

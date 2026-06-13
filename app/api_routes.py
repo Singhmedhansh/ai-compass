@@ -3543,29 +3543,29 @@ def model_advisor():
     if not requirements:
         return jsonify({'error': 'Requirements are required'}), 400
 
-    # Retrieve API key
-    env_keys_str = os.environ.get("GEMINI_API_KEYS", "")
-    single_key = os.environ.get("GEMINI_API_KEY")
-    api_key = None
-    if env_keys_str:
+    # 1. Gather all configured Gemini keys
+    gemini_keys = []
+    env_gemini_keys_str = os.environ.get("GEMINI_API_KEYS", "")
+    if env_gemini_keys_str:
         import re
-        keys = [k.strip() for k in re.split(r'[,\n\r]+', env_keys_str) if k.strip()]
-        if keys:
-            api_key = keys[0]
-    if not api_key:
-        api_key = single_key
+        gemini_keys.extend([k.strip() for k in re.split(r'[,\n\r]+', env_gemini_keys_str) if k.strip()])
+    
+    single_gemini_key = os.environ.get("GEMINI_API_KEY")
+    if single_gemini_key and single_gemini_key not in gemini_keys:
+        gemini_keys.append(single_gemini_key)
 
-    # If Gemini key is not found, check Groq
-    groq_api_key = os.environ.get("GROQ_API_KEY")
-    if not groq_api_key:
-        groq_keys_str = os.environ.get("GROQ_API_KEYS", "")
-        if groq_keys_str:
-            import re
-            groq_keys = [k.strip() for k in re.split(r'[,\n\r]+', groq_keys_str) if k.strip()]
-            if groq_keys:
-                groq_api_key = groq_keys[0]
+    # 2. Gather all configured Groq keys
+    groq_keys = []
+    env_groq_keys_str = os.environ.get("GROQ_API_KEYS", "")
+    if env_groq_keys_str:
+        import re
+        groq_keys.extend([k.strip() for k in re.split(r'[,\n\r]+', env_groq_keys_str) if k.strip()])
+    
+    single_groq_key = os.environ.get("GROQ_API_KEY")
+    if single_groq_key and single_groq_key not in groq_keys:
+        groq_keys.append(single_groq_key)
 
-    if not api_key and not groq_api_key:
+    if not gemini_keys and not groq_keys:
         return jsonify({'error': 'AI Advisor keys are not configured in environment variables.'}), 500
 
     prompt_text = f"""
@@ -3595,13 +3595,16 @@ Based on the user's requirements:
 Be professional, structured, and keep your recommendation under 250 words. Do not use markdown headers larger than h3.
 """
 
-    try:
-        import urllib.request
-        import urllib.error
+    import urllib.request
+    import urllib.error
 
-        # Call Gemini if available
-        if api_key:
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
+    last_error_msg = None
+    last_error_code = None
+
+    # Try Gemini keys first
+    for i, key in enumerate(gemini_keys):
+        try:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={key}"
             req_data = json.dumps({
                 "contents": [{"parts": [{"text": prompt_text}]}]
             }).encode('utf-8')
@@ -3610,12 +3613,23 @@ Be professional, structured, and keep your recommendation under 250 words. Do no
                 data=req_data,
                 headers={'Content-Type': 'application/json'}
             )
-            with urllib.request.urlopen(req) as response:
+            with urllib.request.urlopen(req, timeout=8) as response:
                 resp_data = json.loads(response.read().decode('utf-8'))
                 text = resp_data['candidates'][0]['content']['parts'][0]['text']
                 return jsonify({'recommendation': text}), 200
-        # Else call Groq Llama-3.3
-        elif groq_api_key:
+        except urllib.error.HTTPError as e:
+            last_error_code = e.code
+            last_error_msg = e.read().decode('utf-8')
+            print(f"[Model Advisor] Gemini Key {i+1}/{len(gemini_keys)} failed with code {e.code}: {last_error_msg}")
+            continue
+        except Exception as e:
+            last_error_msg = str(e)
+            print(f"[Model Advisor] Gemini Key {i+1}/{len(gemini_keys)} encountered error: {e}")
+            continue
+
+    # Try Groq keys if Gemini failed or was empty
+    for i, key in enumerate(groq_keys):
+        try:
             url = "https://api.groq.com/openai/v1/chat/completions"
             req_data = json.dumps({
                 "model": "llama-3.3-70b-versatile",
@@ -3626,21 +3640,29 @@ Be professional, structured, and keep your recommendation under 250 words. Do no
                 data=req_data,
                 headers={
                     'Content-Type': 'application/json',
-                    'Authorization': f'Bearer {groq_api_key}'
+                    'Authorization': f'Bearer {key}'
                 }
             )
-            with urllib.request.urlopen(req) as response:
+            with urllib.request.urlopen(req, timeout=8) as response:
                 resp_data = json.loads(response.read().decode('utf-8'))
                 text = resp_data['choices'][0]['message']['content']
                 return jsonify({'recommendation': text}), 200
+        except urllib.error.HTTPError as e:
+            last_error_code = e.code
+            last_error_msg = e.read().decode('utf-8')
+            print(f"[Model Advisor] Groq Key {i+1}/{len(groq_keys)} failed with code {e.code}: {last_error_msg}")
+            continue
+        except Exception as e:
+            last_error_msg = str(e)
+            print(f"[Model Advisor] Groq Key {i+1}/{len(groq_keys)} encountered error: {e}")
+            continue
 
-    except urllib.error.HTTPError as e:
-        error_msg = e.read().decode('utf-8')
-        print(f"[Model Advisor API Error] {e.code}: {error_msg}")
-        return jsonify({'error': f"Upstream API error: {e.reason}"}), 502
-    except Exception as e:
-        print(f"[Model Advisor System Error] {e}")
-        return jsonify({'error': 'Failed to process advice recommendation due to a server error.'}), 500
+    # If all configured keys failed
+    if last_error_code:
+        reason = "Too Many Requests (Rate Limit reached on all keys)" if last_error_code == 429 else f"API Error {last_error_code}"
+        return jsonify({'error': f"All keys exhausted. Upstream API returned: {reason}"}), last_error_code
+    
+    return jsonify({'error': f"Failed to get recommendation: {last_error_msg or 'Unknown error'}"}), 502
 
 
 # ── Backward-compat alias: /api/search → same logic as /api/v1/search ──────────
