@@ -16,7 +16,8 @@ def _get_gemini_key():
     keys = []
     env_keys_str = os.environ.get("GEMINI_API_KEYS", "")
     if env_keys_str:
-        keys.extend([k.strip() for k in env_keys_str.split(",") if k.strip()])
+        import re
+        keys.extend([k.strip() for k in re.split(r'[,\n\r]+', env_keys_str) if k.strip()])
     single_key = os.environ.get("GEMINI_API_KEY")
     if single_key and single_key.strip() not in keys:
         keys.append(single_key.strip())

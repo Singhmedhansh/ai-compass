@@ -78,7 +78,7 @@ def parse_syllabus_llm(syllabus_text):
     keys = []
     env_keys_str = os.environ.get("GEMINI_API_KEYS", "")
     if env_keys_str:
-        keys.extend([k.strip() for k in env_keys_str.split(",") if k.strip()])
+        keys.extend([k.strip() for k in re.split(r'[,\n\r]+', env_keys_str) if k.strip()])
     
     # Fallback to single key if config uses that
     single_key = os.environ.get("GEMINI_API_KEY")
@@ -218,7 +218,7 @@ Provide ONLY the raw JSON output. Do not wrap it in markdown code blocks like ``
     groq_keys = []
     env_groq_keys_str = os.environ.get("GROQ_API_KEYS", "")
     if env_groq_keys_str:
-        groq_keys.extend([k.strip() for k in env_groq_keys_str.split(",") if k.strip()])
+        groq_keys.extend([k.strip() for k in re.split(r'[,\n\r]+', env_groq_keys_str) if k.strip()])
     single_groq_key = os.environ.get("GROQ_API_KEY")
     if single_groq_key and single_groq_key not in groq_keys:
         groq_keys.append(single_groq_key)
@@ -370,7 +370,7 @@ def parse_syllabus_image_llm(image_bytes, mimetype):
     
     env_keys_str = os.environ.get("GEMINI_API_KEYS", "")
     if env_keys_str:
-        keys.extend([k.strip() for k in env_keys_str.split(",") if k.strip()])
+        keys.extend([k.strip() for k in re.split(r'[,\n\r]+', env_keys_str) if k.strip()])
     
     single_key = os.environ.get("GEMINI_API_KEY")
     if single_key and single_key not in keys:
@@ -513,7 +513,7 @@ Provide ONLY the raw JSON output. Do not wrap it in markdown code blocks like ``
     groq_keys = []
     env_groq_keys_str = os.environ.get("GROQ_API_KEYS", "")
     if env_groq_keys_str:
-        groq_keys.extend([k.strip() for k in env_groq_keys_str.split(",") if k.strip()])
+        groq_keys.extend([k.strip() for k in re.split(r'[,\n\r]+', env_groq_keys_str) if k.strip()])
     single_groq_key = os.environ.get("GROQ_API_KEY")
     if single_groq_key and single_groq_key not in groq_keys:
         groq_keys.append(single_groq_key)
