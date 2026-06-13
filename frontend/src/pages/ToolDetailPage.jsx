@@ -382,16 +382,16 @@ function ToolDetailPage() {
     <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       {tool ? (
         <Helmet>
-          <title>{`${tool.name} — Review, Pricing & Alternatives | AI Compass`}</title>
+          <title>{`${tool.name} Review 2026: Is It Free? Pricing & Verdict | AI Compass`}</title>
           <meta name="description" content={helmetDescription} />
           <link rel="canonical" href={`https://ai-compass.in/tools/${tool.slug}`} />
           <meta property="og:type" content="article" />
-          <meta property="og:title" content={`${tool.name} — Review & Alternatives`} />
+          <meta property="og:title" content={`${tool.name} Review 2026: Is It Free? Pricing & Verdict`} />
           <meta property="og:description" content={tool.tagline || `${tool.name} on AI Compass`} />
           <meta property="og:url" content={`https://ai-compass.in/tools/${tool.slug}`} />
           <meta property="og:image" content={`https://ai-compass.in/og/${tool.slug}.png`} />
           <meta name="twitter:card" content="summary_large_image" />
-          <meta name="twitter:title" content={`${tool.name} — AI Compass`} />
+          <meta name="twitter:title" content={`${tool.name} Review 2026: Is It Free? Pricing & Verdict`} />
           <meta name="twitter:description" content={tool.tagline || `${tool.name} on AI Compass`} />
           <meta name="twitter:image" content={`https://ai-compass.in/og/${tool.slug}.png`} />
           <script type="application/ld+json">

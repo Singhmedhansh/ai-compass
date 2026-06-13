@@ -34,13 +34,13 @@ DIST_DIR = os.path.join(
 # Per-route static meta (title, description). /tools/<slug> is handled
 # dynamically against the tool catalog below.
 _ROUTE_META = {
-    'tools': ('AI Tools Directory — AI Compass', 'Browse {count} curated AI tools by category, rating, and pricing. Find the right tool for writing, coding, research, and more.'),
+    'tools': ('{count} Free AI Tools for Students — Tested & Ranked | AI Compass', 'Find your perfect AI tool in 30 seconds. {count} hand-tested tools — free, freemium & paid. Filter by writing, coding, research, design. No account needed.'),
     'ai-tool-finder': ('AI Tool Finder Wizard — AI Compass', 'Answer 4 questions and get 5-6 AI tools picked for you. Free, no login, no ranking tricks.'),
     'compare': ('Compare AI Tools — AI Compass', 'Side-by-side comparison of AI tools — pricing, features, platforms, and ratings.'),
     'collections': ('AI Tool Collections — AI Compass', 'Curated collections — best free, best for students, best for coding, and more.'),
     'best-ai-tools-for-students': ('Best AI Tools for Students — AI Compass', 'Hand-picked AI tools for studying, writing essays, coding, and research. Student-friendly pricing and perks.'),
     'best-ai-tools-for-teachers': ('10 Best AI Tools for Teachers in 2026 — AI Compass', 'The 10 best AI tools for teachers in 2026 — tested across lesson planning, grading, differentiation, and student engagement. All free or freemium options included.'),
-    'best-free-ai-tools': ('Best Free AI Tools — AI Compass', 'The best AI tools you can use without paying. Curated and ranked by quality, not popularity.'),
+    'best-free-ai-tools': ('Best Free AI Tools in 2026 (Free & Freemium Options) | AI Compass', 'The best free AI tools you can use without paying. Curated and ranked by quality, not popularity. Free tiers and student plans hand-tested.'),
     'best-coding-tools-for-students': ('Best Coding Tools for Students — AI Compass', 'The 10 best AI coding tools for student developers — Cursor, GitHub Copilot, Claude Code, Supabase, v0, Netlify. Free tiers and student plans, hand-tested.'),
     'best-jasper-alternatives': ('10 Best Jasper AI Alternatives in 2026 — AI Compass', 'Jasper is $39+/mo and built for marketing teams. These 10 alternatives are cheaper, better suited to fiction, academic, and student workflows — most with usable free tiers.'),
     'best-murf-alternatives': ('10 Best Murf AI Alternatives in 2026 — AI Compass', "Murf is no longer the voice-quality leader. These 10 alternatives — led by ElevenLabs — have better voices, usable free tiers, and pricing that doesn't feel like a 2022 SaaS quote."),
@@ -300,6 +300,36 @@ def _home_faq_block() -> str:
         + '</script>'
     )
     return f'<h2>Frequently asked questions</h2><dl>{rows}</dl>{script}'
+_TOOLS_FAQ = [
+    ("Are all tools on AI Compass free?",
+     "Most tools have a free tier. We label every tool as Free, Freemium, or Paid. You can filter by 'Free' to see only zero-cost tools."),
+    ("Do I need to sign up to use AI Compass?",
+     "No account is needed. You can browse, filter, compare, and visit any of our tools without signing up."),
+    ("How do I find the best AI tool for my needs?",
+     "Use the AI Tool Finder — answer 4 questions and get personalized recommendations in 10 seconds. Or browse by categories like Writing, Coding, Research, or Design."),
+]
+
+
+def _tools_faq_block() -> str:
+    """Crawler-visible FAQ (heading + <dl>) plus matching FAQPage JSON-LD for /tools."""
+    rows = ''.join(
+        f'<div><dt>{_esc(q)}</dt><dd>{_esc(a)}</dd></div>' for q, a in _TOOLS_FAQ
+    )
+    jsonld = {
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        'mainEntity': [
+            {'@type': 'Question', 'name': q,
+             'acceptedAnswer': {'@type': 'Answer', 'text': a}}
+            for q, a in _TOOLS_FAQ
+        ],
+    }
+    script = (
+        '<script type="application/ld+json">'
+        + json.dumps(jsonld, ensure_ascii=False)
+        + '</script>'
+    )
+    return f'<h2>Frequently asked questions</h2><dl>{rows}</dl>{script}'
 
 
 def _seo_body(normalized: str, tool: dict | None = None) -> str:
@@ -356,11 +386,44 @@ def _seo_body(normalized: str, tool: dict | None = None) -> str:
     if normalized in ('', 'tools'):
         tools = get_cached_tools() or []
         is_home = normalized == ''
-        heading = (
-            'Free AI Tools for Students — 400+ Hand-Tested | AI Compass'
-            if is_home
-            else 'AI Tools Directory — AI Compass'
-        )
+        total_count = _total_tools()
+        if is_home:
+            heading = f'AI Compass — {total_count} Free AI Tools for Students (No Signup)'
+            desc_text = (
+                'Hand-curated, hand-tested AI tools for students — writing, coding, '
+                'research, design, image, video, audio, and study tools. Free to browse, '
+                'no login required.'
+            )
+            intro = f'<p>{desc_text}</p>'
+            faq = _home_faq_block()
+        else:
+            heading = f'{total_count} Free AI Tools for Students — Tested & Ranked | AI Compass'
+            desc_text = (
+                f'Browse {total_count} hand-tested free & freemium AI tools for students. '
+                'Find the perfect AI assistant for homework, coding, thesis writing, and '
+                'research. No account signup or credit card required.'
+            )
+            intro = (
+                f'<p>{desc_text}</p>'
+                '<h2>Browse AI Tools by Category</h2>'
+                '<ul>'
+                '<li><a href="/tools?category=Writing">Writing AI tools</a></li>'
+                '<li><a href="/tools?category=Coding">Coding AI tools</a></li>'
+                '<li><a href="/tools?category=Research">Research AI tools</a></li>'
+                '<li><a href="/tools?category=Design">Design AI tools</a></li>'
+                '<li><a href="/tools?category=Image+Generation">Image Generation AI tools</a></li>'
+                '<li><a href="/tools?category=Video">Video AI tools</a></li>'
+                '</ul>'
+                '<h2>Popular Free Student AI Tools</h2>'
+                '<ul>'
+                '<li><a href="/tools/chatgpt">ChatGPT</a> — General purpose conversational AI</li>'
+                '<li><a href="/tools/claude">Claude</a> — Advanced reasoning & coding assistant</li>'
+                '<li><a href="/tools/perplexity">Perplexity</a> — AI search engine with real sources</li>'
+                '<li><a href="/tools/cursor">Cursor</a> — AI-powered code editor for developers</li>'
+                '</ul>'
+            )
+            faq = _tools_faq_block()
+
         # The homepage only needs a representative sample for crawl discovery
         # (keeps the served HTML lean); the full link index lives on /tools.
         listed = tools[:30] if is_home else tools
@@ -379,16 +442,13 @@ def _seo_body(normalized: str, tool: dict | None = None) -> str:
                 + '</li>'
             )
         tail = (
-            f'<p><a href="/tools">Browse all {_total_tools()} curated AI tools</a></p>'
+            f'<p><a href="/tools">Browse all {total_count} curated AI tools</a></p>'
             if is_home
             else ''
         )
-        faq = _home_faq_block() if is_home else ''
         return (
             f'<h1>{heading}</h1>'
-            '<p>Hand-curated, hand-tested AI tools for students — writing, coding, '
-            'research, design, image, video, audio, and study tools. Free to browse, '
-            'no login required.</p>'
+            f'{intro}'
             f'<ul>{"".join(items)}</ul>{tail}{faq}'
         )
 
@@ -519,7 +579,7 @@ def _meta_for_request_path(path: str):
             )
             html = _inject_meta(
                 base,
-                title=f'{name} — AI Compass',
+                title=f'{name} Review 2026: Is It Free? Pricing & Verdict | AI Compass',
                 description=desc,
                 canonical_path=f'/tools/{slug}',
                 image_url=f'https://ai-compass.in/og/{slug}.png',
@@ -549,10 +609,11 @@ def _meta_for_request_path(path: str):
             ][:12]
             html = _inject_meta(
                 base,
-                title=f'Top {name} Alternatives in 2026 | AI Compass',
+                title=f'{len(alts)} Best {name} Alternatives 2026 (Free Options) | AI Compass',
                 description=(
-                    f'Hand-tested alternatives to {name}, ranked by similarity. '
-                    'Free tiers, pricing, and use cases compared. Curated by AI Compass.'
+                    f'{len(alts)} hand-tested alternatives to {name}, ranked by similarity. '
+                    'Free tiers, pricing, and use cases compared. Curated by AI Compass. '
+                    'No login to compare.'
                 ),
                 canonical_path=f'/alternatives/{slug}',
                 image_url=f'https://ai-compass.in/og/{slug}.png',
@@ -608,10 +669,11 @@ def _meta_for_request_path(path: str):
     # Homepage — keep server title/description identical to the client
     # (HomePage.jsx <Helmet>) so crawlers and users never see a mismatch.
     if normalized == '':
-        title = 'Free AI Tools for Students — 400+ Hand-Tested | AI Compass'
+        count = _total_tools()
+        title = f'AI Compass — {count} Free AI Tools for Students (No Signup)'
         desc = (
-            '400+ free and freemium AI tools, hand-tested for students. '
-            'Find the right one in 30 seconds. No login, no signup, no ranking tricks.'
+            f'The student AI toolkit. {count} tools tested & ranked — writing, coding, '
+            'research, design. Free tiers & student plans. No login. Updated 2026.'
         )
         html = _inject_meta(base, title=title, description=desc, canonical_path='/')
         return _inject_seo_root(html, _seo_body('')), 200
@@ -619,10 +681,11 @@ def _meta_for_request_path(path: str):
     # Static route meta
     if normalized in _ROUTE_META:
         title, desc = _ROUTE_META[normalized]
-        # /tools description carries {count} as a template — sub in the
+        # /tools title and description carry {count} as a template — sub in the
         # live figure so the crawler-visible meta stays in sync with
         # /api/v1/stats. Other routes' descriptions don't reference count.
         if normalized == 'tools':
+            title = title.format(count=_total_tools())
             desc = desc.format(count=_total_tools())
         html = _inject_meta(base, title=title, description=desc, canonical_path=f'/{normalized}')
         return _inject_seo_root(html, _seo_body(normalized)), 200

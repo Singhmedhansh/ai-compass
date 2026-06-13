@@ -157,8 +157,8 @@ export default function AlternativesPage() {
   const { tool, alternatives } = data
   const count = alternatives.length
 
-  const pageTitle = `Top ${tool.name} Alternatives in 2026 | AI Compass`
-  const pageDescription = `${count} hand-tested alternatives to ${tool.name}, ranked by similarity. Free tiers, pricing, and use cases compared. Curated by AI Compass.`
+  const pageTitle = `${count} Best ${tool.name} Alternatives 2026 (Free Options) | AI Compass`
+  const pageDescription = `${count} hand-tested alternatives to ${tool.name}, ranked by similarity. Free tiers, pricing, and use cases compared. Curated by AI Compass. No login to compare.`
   const canonical = `https://ai-compass.in/alternatives/${tool.slug}`
 
   const jsonLd = {
@@ -209,7 +209,7 @@ export default function AlternativesPage() {
   return (
     <>
       <SEO
-        title={`Top ${tool.name} Alternatives in 2026`}
+        title={`${count} Best ${tool.name} Alternatives 2026 (Free Options)`}
         description={pageDescription}
         path={`/alternatives/${tool.slug}`}
       />

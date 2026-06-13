@@ -669,10 +669,44 @@ function DirectoryPage() {
       className="container main-content mx-auto w-full max-w-7xl"
     >
       <SEO
-        title="AI Tools Directory"
-        description={`Browse ${displayCount} curated AI tools by category, rating, and pricing. Find the right tool for writing, coding, research, and more.`}
+        title={`${displayCount} Free AI Tools for Students — Tested & Ranked`}
+        description={`Find your perfect AI tool in 30 seconds. ${displayCount} hand-tested tools — free, freemium & paid. Filter by writing, coding, research, design. No account needed.`}
         path="/tools"
       />
+      <Helmet>
+        <script type="application/ld+json">
+          {JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'FAQPage',
+            mainEntity: [
+              {
+                '@type': 'Question',
+                name: 'Are all tools on AI Compass free?',
+                acceptedAnswer: {
+                  '@type': 'Answer',
+                  text: 'Most tools have a free tier. Filter by "Free" to see zero-cost tools only. We label every tool as Free, Freemium, or Paid.',
+                },
+              },
+              {
+                '@type': 'Question',
+                name: 'Do I need to sign up to use AI Compass?',
+                acceptedAnswer: {
+                  '@type': 'Answer',
+                  text: 'No account needed. Browse, filter, compare, and visit any of our tools without signing up.',
+                },
+              },
+              {
+                '@type': 'Question',
+                name: 'How do I find the right AI tool for me?',
+                acceptedAnswer: {
+                  '@type': 'Answer',
+                  text: 'Use the AI Tool Finder — answer 4 questions and get a personalised recommendation in 10 seconds. Or filter by category: Writing, Coding, Research, Design, Image Generation.',
+                },
+              },
+            ],
+          })}
+        </script>
+      </Helmet>
       <MotionDiv variants={sectionReveal} initial="initial" animate="animate">
         <GridBackground className="px-4 py-8 sm:px-6 lg:px-8 border-b border-line mb-8">
           <section className="mb-6 flex flex-wrap items-center justify-between gap-3">
