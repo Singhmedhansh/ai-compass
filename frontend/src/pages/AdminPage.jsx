@@ -174,7 +174,7 @@ function AdminPage() {
   const [editing, setEditing] = useState(null)
   const [digestBusy, setDigestBusy] = useState('')
   const [liDrafts, setLiDrafts] = useState(null)
-  const [bcSubject, setBcSubject] = useState("What's new on AI Compass ✨")
+  const [bcSubject, setBcSubject] = useState("What's new on AI Compass")
   const [bcBody, setBcBody] = useState(
     "<p>Hey — it's been a while. We've shipped a lot since you last visited:</p>"
     + "<ul>"

@@ -946,7 +946,7 @@ function ResultCard({ tool, index, navigate }) {
         </span>
       </div>
 
-      <p className="mt-3 line-clamp-2 text-xs italic leading-snug text-muted">✨ {tool.reason || tool._reason}</p>
+      <p className="mt-3 line-clamp-2 text-xs italic leading-snug text-muted"> {tool.reason || tool._reason}</p>
       <p className="mt-2 line-clamp-2 text-sm leading-snug text-ink-2">{tool.description}</p>
 
       <div className="mt-3 flex flex-wrap gap-1.5">

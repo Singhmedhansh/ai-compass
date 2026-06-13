@@ -758,24 +758,24 @@ function DirectoryPage() {
                   <button
                     type="button"
                     onClick={() => updateUrlParams(category, searchQuery, null, !actuallyFreeOnly, studentOnly)}
-                    className={`flex-1 rounded-xl border py-2.5 text-center text-xs font-bold transition ${
+                    className={`flex flex-1 justify-center items-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-semibold transition ${
                       actuallyFreeOnly
                         ? 'border-emerald-500 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-                        : 'border-line bg-bg-sunk text-ink-2'
+                        : 'border-line bg-bg-elev text-ink-2'
                     }`}
                   >
-                    🟢 Actually Free
+                    Actually Free
                   </button>
                   <button
                     type="button"
                     onClick={() => updateUrlParams(category, searchQuery, null, actuallyFreeOnly, !studentOnly)}
-                    className={`flex-1 rounded-xl border py-2.5 text-center text-xs font-bold transition ${
+                    className={`flex flex-1 justify-center items-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-semibold transition ${
                       studentOnly
                         ? 'border-accent bg-accent-soft text-accent-ink'
-                        : 'border-line bg-bg-sunk text-ink-2'
+                        : 'border-line bg-bg-elev text-ink-2'
                     }`}
                   >
-                    🎓 Student Perks
+                    Student Perks
                   </button>
                 </div>
               </div>
@@ -803,12 +803,12 @@ function DirectoryPage() {
       <div className="mb-6 flex flex-wrap gap-2 items-center">
         <span className="text-xs font-semibold uppercase tracking-wider text-muted mr-1">Quick Tasks:</span>
         {[
-          { label: "📝 Write Essays", query: "essay writing" },
-          { label: "📚 Summarize PDFs", query: "summarize pdf documents" },
-          { label: "💻 Code & Debug", query: "coding helper debug" },
-          { label: "🎓 Exam Prep", query: "exam test preparation study" },
-          { label: "🎨 Design Graphics", query: "design logos presentation slides" },
-          { label: "🎙️ Transcribe Lecture", query: "transcribe lecture audio to text" }
+          { label: "Write Essays", query: "essay writing" },
+          { label: "Summarize PDFs", query: "summarize pdf documents" },
+          { label: "Code & Debug", query: "coding helper debug" },
+          { label: "Exam Prep", query: "exam test preparation study" },
+          { label: "Design Graphics", query: "design logos presentation slides" },
+          { label: "Transcribe Lecture", query: "transcribe lecture audio to text" }
         ].map((task) => (
           <button
             key={task.label}
@@ -878,7 +878,7 @@ function DirectoryPage() {
                       : 'border-line bg-bg-elev text-ink-2 hover:bg-bg-sunk'
                   }`}
                 >
-                  🟢 Actually Free
+                  Actually Free
                 </button>
                 <button
                   type="button"
@@ -889,7 +889,7 @@ function DirectoryPage() {
                       : 'border-line bg-bg-elev text-ink-2 hover:bg-bg-sunk'
                   }`}
                 >
-                  🎓 Student Perks
+                  Student Perks
                 </button>
               </div>
             </div>
@@ -921,7 +921,6 @@ function DirectoryPage() {
 
           {!isLoading && !error && searchMeta?.llm_matched && searchMeta?.message && (
             <div className="mb-4 rounded-xl border border-accent/20 bg-accent-soft px-5 py-4 text-sm text-ink flex gap-3 items-start shadow-sm">
-              <span className="text-xl leading-none">✨</span>
               <p className="pt-0.5 font-medium leading-relaxed">{searchMeta.message}</p>
             </div>
           )}
