@@ -240,10 +240,10 @@ const parseInlineMarkdown = (text) => {
   const parts = text.split(/(\*\*.*?\*\*|`.*?`)/g);
   return parts.map((part, i) => {
     if (part.startsWith('**') && part.endsWith('**')) {
-      return <strong key={i} className="font-extrabold text-ink">{part.slice(2, -2)}</strong>;
+      return <span key={i} className="text-ink font-normal">{part.slice(2, -2)}</span>;
     }
     if (part.startsWith('`') && part.endsWith('`')) {
-      return <code key={i} className="px-1.5 py-0.5 rounded bg-accent/10 border border-accent/20 text-accent font-mono text-xs">{part.slice(1, -1)}</code>;
+      return <code key={i} className="px-1.5 py-0.5 rounded bg-bg-elev border border-line text-ink font-mono text-xs">{part.slice(1, -1)}</code>;
     }
     return part;
   });
@@ -259,7 +259,7 @@ const renderMarkdown = (text) => {
     if (trimmed.startsWith('###')) {
       const headerText = trimmed.replace(/^###\s+/, '');
       return (
-        <h4 key={index} className="text-xs font-extrabold text-accent uppercase tracking-wider mt-6 mb-2 first:mt-0">
+        <h4 key={index} className="text-sm font-semibold text-ink mt-5 mb-2 first:mt-0">
           {parseInlineMarkdown(headerText)}
         </h4>
       );
@@ -268,7 +268,7 @@ const renderMarkdown = (text) => {
     if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
       const items = trimmed.split(/\n[-*]\s+/).map(item => item.replace(/^[-*]\s+/, ''));
       return (
-        <ul key={index} className="list-disc list-inside space-y-1.5 mb-3 text-ink-2 pl-2">
+        <ul key={index} className="list-disc list-inside space-y-1.5 mb-3 text-ink pl-2">
           {items.map((item, i) => (
             <li key={i}>{parseInlineMarkdown(item)}</li>
           ))}
@@ -277,7 +277,7 @@ const renderMarkdown = (text) => {
     }
 
     return (
-      <p key={index} className="mb-3 text-ink-2 last:mb-0">
+      <p key={index} className="mb-3 text-ink last:mb-0">
         {parseInlineMarkdown(trimmed)}
       </p>
     );
@@ -834,14 +834,12 @@ export default function ModelComparisonPage() {
             )}
 
             {advisorResponse && (
-              <div className="mt-6 rounded-2xl border border-accent/20 bg-accent-soft/10 p-5 sm:p-6 shadow-inner relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-accent/5 rounded-full blur-[40px] pointer-events-none" />
-                
-                <div className="flex items-center gap-2 mb-4 border-b border-accent/10 pb-3">
+              <div className="mt-6 rounded-2xl border border-line bg-bg-sunk p-5 sm:p-6 relative">
+                <div className="flex items-center gap-2 mb-4 border-b border-line pb-3">
                   <Bot className="h-5 w-5 text-accent" />
-                  <h3 className="font-extrabold text-sm text-ink uppercase tracking-wider">Advisor Recommendation</h3>
+                  <h3 className="font-bold text-sm text-ink uppercase tracking-wider">Advisor Recommendation</h3>
                 </div>
-                <div className="text-sm leading-relaxed text-ink-2 font-medium prose prose-invert max-w-none space-y-4">
+                <div className="text-sm leading-relaxed text-ink font-normal space-y-4">
                   {renderMarkdown(advisorResponse)}
                 </div>
               </div>
