@@ -140,3 +140,38 @@ def test_model_advisor_key_rotation_success(mock_urlopen, client):
         assert data["recommendation"] == "Success with second key!"
         assert mock_urlopen.call_count == 2
 
+
+@patch("urllib.request.urlopen")
+def test_model_advisor_gemini_403_detailed_error(mock_urlopen, client):
+    # Setup mock Gemini API key
+    with patch.dict(os.environ, {"GEMINI_API_KEY": "test-gemini-key"}, clear=True):
+        # Create HTTPError for 403 Forbidden with detailed error message
+        fp = MagicMock()
+        fp.read.return_value = json.dumps({
+            "error": {
+                "code": 403,
+                "message": "User location is not supported for the API key.",
+                "status": "PERMISSION_DENIED"
+            }
+        }).encode("utf-8")
+        err = urllib.error.HTTPError("https://generativelanguage.googleapis.com", 403, "Forbidden", {}, fp)
+        
+        mock_urlopen.side_effect = err
+
+        response = client.post(
+            "/api/v1/model-advisor",
+            data=json.dumps({
+                "requirements": "Need a simple text classifier with low cost.",
+                "promptTokens": 1000,
+                "responseTokens": 500,
+                "requestsCount": 2000
+            }),
+            content_type="application/json"
+        )
+        
+        assert response.status_code == 403
+        data = json.loads(response.data.decode("utf-8"))
+        assert "error" in data
+        assert "All keys exhausted. Upstream API returned: User location is not supported for the API key." in data["error"]
+
+

@@ -3679,10 +3679,30 @@ Be professional, structured, and keep your recommendation under 250 words. Do no
             print(f"[Model Advisor] Groq Key {i+1}/{len(groq_keys)} encountered error: {e}")
             continue
 
+    def extract_error_message(raw_msg, default_reason):
+        if not raw_msg:
+            return default_reason
+        try:
+            import json
+            data = json.loads(raw_msg)
+            if isinstance(data, dict):
+                if "error" in data:
+                    err = data["error"]
+                    if isinstance(err, dict) and "message" in err:
+                        return err["message"]
+                    elif isinstance(err, str):
+                        return err
+                if "message" in data:
+                    return data["message"]
+        except Exception:
+            pass
+        return default_reason
+
     # If all configured keys failed
     if last_error_code:
-        reason = "Too Many Requests (Rate Limit reached on all keys)" if last_error_code == 429 else f"API Error {last_error_code}"
-        return jsonify({'error': f"All keys exhausted. Upstream API returned: {reason}"}), last_error_code
+        default_reason = "Too Many Requests" if last_error_code == 429 else f"API Error {last_error_code}"
+        detailed_reason = extract_error_message(last_error_msg, default_reason)
+        return jsonify({'error': f"All keys exhausted. Upstream API returned: {detailed_reason}"}), last_error_code
     
     return jsonify({'error': f"Failed to get recommendation: {last_error_msg or 'Unknown error'}"}), 502
 
