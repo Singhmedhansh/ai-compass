@@ -175,3 +175,32 @@ def test_model_advisor_gemini_403_detailed_error(mock_urlopen, client):
         assert "All keys exhausted. Upstream API returned: User location is not supported for the API key." in data["error"]
 
 
+@patch("urllib.request.urlopen")
+def test_model_advisor_non_json_error_fallback(mock_urlopen, client):
+    # Setup mock Gemini API key
+    with patch.dict(os.environ, {"GEMINI_API_KEY": "test-gemini-key"}, clear=True):
+        # Create HTTPError for 403 Forbidden with non-JSON plain text (like Cloudflare block)
+        fp = MagicMock()
+        fp.read.return_value = b"error code: 1010"
+        err = urllib.error.HTTPError("https://generativelanguage.googleapis.com", 403, "Forbidden", {}, fp)
+        
+        mock_urlopen.side_effect = err
+
+        response = client.post(
+            "/api/v1/model-advisor",
+            data=json.dumps({
+                "requirements": "Need a simple text classifier with low cost.",
+                "promptTokens": 1000,
+                "responseTokens": 500,
+                "requestsCount": 2000
+            }),
+            content_type="application/json"
+        )
+        
+        assert response.status_code == 403
+        data = json.loads(response.data.decode("utf-8"))
+        assert "error" in data
+        assert "All keys exhausted. Upstream API returned: error code: 1010" in data["error"]
+
+
+

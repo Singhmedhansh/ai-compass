@@ -3612,7 +3612,10 @@ Be professional, structured, and keep your recommendation under 250 words. Do no
             req = urllib.request.Request(
                 url,
                 data=req_data,
-                headers={'Content-Type': 'application/json'}
+                headers={
+                    'Content-Type': 'application/json',
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+                }
             )
             with urllib.request.urlopen(req, timeout=8) as response:
                 resp_data = json.loads(response.read().decode('utf-8'))
@@ -3635,7 +3638,10 @@ Be professional, structured, and keep your recommendation under 250 words. Do no
             req = urllib.request.Request(
                 url,
                 data=req_data,
-                headers={'Content-Type': 'application/json'}
+                headers={
+                    'Content-Type': 'application/json',
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+                }
             )
             with urllib.request.urlopen(req, timeout=8) as response:
                 resp_data = json.loads(response.read().decode('utf-8'))
@@ -3662,7 +3668,8 @@ Be professional, structured, and keep your recommendation under 250 words. Do no
                 data=req_data,
                 headers={
                     'Content-Type': 'application/json',
-                    'Authorization': f'Bearer {key}'
+                    'Authorization': f'Bearer {key}',
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
                 }
             )
             with urllib.request.urlopen(req, timeout=8) as response:
@@ -3696,6 +3703,11 @@ Be professional, structured, and keep your recommendation under 250 words. Do no
                     return data["message"]
         except Exception:
             pass
+        
+        # Fallback: if raw_msg is short and doesn't look like HTML, return it
+        cleaned = raw_msg.strip()
+        if len(cleaned) < 200 and not ("<html" in cleaned.lower() or "<body" in cleaned.lower() or "<div" in cleaned.lower()):
+            return cleaned
         return default_reason
 
     # If all configured keys failed
@@ -3703,6 +3715,7 @@ Be professional, structured, and keep your recommendation under 250 words. Do no
         default_reason = "Too Many Requests" if last_error_code == 429 else f"API Error {last_error_code}"
         detailed_reason = extract_error_message(last_error_msg, default_reason)
         return jsonify({'error': f"All keys exhausted. Upstream API returned: {detailed_reason}"}), last_error_code
+
     
     return jsonify({'error': f"Failed to get recommendation: {last_error_msg or 'Unknown error'}"}), 502
 
