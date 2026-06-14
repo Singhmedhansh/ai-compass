@@ -3592,6 +3592,11 @@ Based on the user's requirements:
 1. Recommend the single best model from our catalog. Explain why it fits their context best.
 2. Outline 1 secondary/alternative model as a fallback (e.g. for cost efficiency or higher context).
 3. Mention the estimated cost for running their requests on both recommended models.
+   CRITICAL: Make sure your cost calculations are mathematically correct. The catalog prices are per MILLION tokens (/M).
+   Formula: Cost = (Prompt Tokens * Input Price + Response Tokens * Output Price) * Requests / 1,000,000.
+   For example, 10,000 prompt tokens and 2,000 response tokens for 1,000 requests on o3-mini (Input: $1.10/M, Output: $4.40/M) is:
+   Cost = (10,000 * $1.10 + 2,000 * $4.40) * 1,000 / 1,000,000 = (11,000 + 8,800) * 1,000 / 1,000,000 = $19.80 (NOT $19,800).
+   Always perform the division by 1,000,000 to convert from the per-million rate. Double check that the final sum is accurate.
 Be professional, structured, and keep your recommendation under 250 words. Do not use markdown headers larger than h3.
 """
 
