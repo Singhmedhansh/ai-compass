@@ -28,72 +28,69 @@ def get_verification_email_html(name, verification_link):
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Welcome to AI Compass</title>
+    <!-- Google Fonts for Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
       body {{
         margin: 0;
         padding: 0;
-        background-color: #050505 !important;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background-color: #FAFAF7 !important;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         -webkit-font-smoothing: antialiased;
+        color: #0F1411;
       }}
       table {{ border-spacing: 0; width: 100%; }}
       td {{ padding: 0; }}
 
       .wrapper {{
-        background-color: #050505;
+        background-color: #FAFAF7;
         padding: 40px 20px;
       }}
 
       .main-card {{
         max-width: 560px;
         margin: 0 auto;
-        background-color: #0b0b0b !important;
-        border: 1px solid #1f1f1f !important;
+        background-color: #FFFFFF !important;
+        border: 1px solid #E6E5DE !important;
         border-radius: 16px !important;
         overflow: hidden;
       }}
 
       .header-brand {{
         padding: 32px 32px 16px 32px;
-        font-size: 18px;
+        font-size: 20px;
         font-weight: 800;
-        color: #ffffff !important;
+        color: #0F1411 !important;
         letter-spacing: -0.03em;
         text-align: center;
       }}
 
       .header-brand span {{
-        background: linear-gradient(to right, #4ade80, #2dd4bf);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-      }}
-
-      .hero-image {{
-        width: 100%;
-        height: 180px;
-        background: linear-gradient(135deg, #1f1f1f 0%, #050505 100%);
-        border-bottom: 1px solid #1f1f1f;
-        text-align: center;
+        color: #168358;
       }}
 
       .content {{
         padding: 40px 32px;
-        color: #e5e5e5;
+        color: #0F1411;
       }}
 
       h1 {{
         margin: 0 0 16px 0;
         font-size: 24px;
         font-weight: 700;
-        color: #ffffff !important;
+        color: #0F1411 !important;
         letter-spacing: -0.02em;
+        text-align: left;
       }}
 
       p {{
         margin: 0 0 24px 0;
         font-size: 16px;
         line-height: 1.6;
-        color: #a3a3a3;
+        color: #6B716D;
+        text-align: left;
       }}
 
       .btn-container {{
@@ -104,30 +101,32 @@ def get_verification_email_html(name, verification_link):
       .btn {{
         display: inline-block;
         padding: 14px 28px;
-        background: linear-gradient(to right, #10b981, #14b8a6) !important;
-        color: #ffffff !important;
+        background-color: #168358 !important;
+        background: linear-gradient(135deg, #168358 0%, #10b981 100%) !important;
+        color: #FFFFFF !important;
         font-size: 16px;
         font-weight: 600;
         text-decoration: none;
         border-radius: 8px;
-        box-shadow: 0 4px 14px rgba(16, 185, 129, 0.2);
+        box-shadow: 0 4px 14px rgba(22, 131, 88, 0.15);
       }}
 
       .footer {{
         padding: 24px 32px;
-        background-color: #050505;
-        border-top: 1px solid #1f1f1f;
+        background-color: #F2F1EB;
+        border-top: 1px solid #E6E5DE;
         text-align: center;
       }}
 
       .footer p {{
         margin: 0;
         font-size: 13px;
-        color: #525252;
+        color: #7F857F;
+        text-align: center;
       }}
 
       .footer a {{
-        color: #10b981 !important;
+        color: #168358 !important;
         text-decoration: none;
       }}
     </style>
@@ -150,7 +149,7 @@ def get_verification_email_html(name, verification_link):
             <div class="btn-container">
               <a href="{verification_link}" class="btn">Verify Email</a>
             </div>
-            <p style="font-size: 14px; margin-bottom: 0;">
+            <p style="font-size: 14px; margin-bottom: 0; color: #7F857F;">
               If you didn't create an account, you can safely ignore this email.
             </p>
           </td>
@@ -507,7 +506,7 @@ def verify_email(token):
         db.session.rollback()
         return redirect(f"{_frontend_base_url()}/login?error=database-error")
 
-    return redirect(f"{_frontend_base_url()}/login?verified=true")
+    return redirect(f"{_frontend_base_url()}/verify-success")
 
 
 @auth_bp.route("/api/auth/resend-verification", methods=["POST"])

@@ -199,6 +199,13 @@ def init_oauth(app):
                 # LinkedIn's token endpoint requires the client creds in
                 # the POST body, not HTTP Basic.
                 "token_endpoint_auth_method": "client_secret_post",
+                "claims_options": {
+                    "id_token": {
+                        "nonce": {
+                            "essential": False
+                        }
+                    }
+                }
             },
         )
 
@@ -400,6 +407,15 @@ def linkedin_callback():
     frontend_url = _frontend_base_url()
     dbg: dict = {"stage": "start"}
     try:
+        # Remove nonce from session state data so Authlib doesn't validate it in OIDC flow
+        state = request.args.get('state')
+        if state:
+            state_key = f"_state_linkedin_{state}"
+            state_data = session.get(state_key)
+            if isinstance(state_data, dict) and "nonce" in state_data:
+                state_data.pop("nonce", None)
+                session[state_key] = state_data
+
         # Plain OAuth2 (see init_oauth): Authlib does NOT parse the
         # id_token, so no nonce validation. Identity comes from LinkedIn's
         # OIDC userinfo endpoint, called with the access token.

@@ -3083,15 +3083,12 @@ def auth_register():
         try:
             from itsdangerous import URLSafeTimedSerializer
             from app.email_utils import send_email
+            from app.auth import get_verification_email_html
             serializer = URLSafeTimedSerializer(current_app.config["SECRET_KEY"], salt="email-verification-salt")
             token = serializer.dumps(email)
             verification_link = f"{request.url_root}api/auth/verify-email/{token}"
             subject = "AI Compass - Verify Email"
-            html = f"""
-            <p>Hello {name},</p>
-            <p>Thank you for registering. Please click the link below to verify your email address:</p>
-            <p><a href="{verification_link}">Verify Email</a></p>
-            """
+            html = get_verification_email_html(name, verification_link)
             send_email(email, subject, html)
         except Exception:
             current_app.logger.exception("Failed to send verification email")
