@@ -1,4 +1,4 @@
-import { ChevronDown, LayoutDashboard, LogOut, Menu, Moon, Shield, Sparkles, Sun, UserCircle2, X } from 'lucide-react'
+import { ArrowLeft, ChevronDown, LayoutDashboard, LogOut, Menu, Moon, Shield, Sparkles, Sun, UserCircle2, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -40,6 +40,8 @@ function Navbar() {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
   const [isGuidesMenuOpen, setIsGuidesMenuOpen] = useState(false)
   const [isStudentHubMenuOpen, setIsStudentHubMenuOpen] = useState(false)
+  const [isToolsMenuOpen, setIsToolsMenuOpen] = useState(false)
+  const [isMobileToolsOpen, setIsMobileToolsOpen] = useState(false)
   const [failedAvatarUrl, setFailedAvatarUrl] = useState(null)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [authRefreshKey, setAuthRefreshKey] = useState(0)
@@ -58,6 +60,7 @@ function Navbar() {
   const guidesMenuRef = useClickOutside(() => setIsGuidesMenuOpen(false))
   const studentHubMenuRef = useClickOutside(() => setIsStudentHubMenuOpen(false))
   const currencyMenuRef = useClickOutside(() => setIsCurrencyMenuOpen(false))
+  const toolsMenuRef = useClickOutside(() => setIsToolsMenuOpen(false))
   const isAdmin = Boolean(user && (user.is_admin || ADMIN_EMAILS.includes(user.email)))
   const avatarLetter = useMemo(
     () => String(user?.name || user?.email || 'U').charAt(0).toUpperCase(),
@@ -269,6 +272,17 @@ function Navbar() {
           scrolled ? 'py-2' : 'py-3'
         }`}
       >
+        {location.pathname !== '/' && (
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="group flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-line bg-bg-elev text-ink-2 shadow-sm transition-all duration-300 hover:border-accent hover:text-accent hover:scale-105 active:scale-95"
+            aria-label="Go back"
+          >
+            <ArrowLeft className="h-4 w-4 transition-transform duration-300 group-hover:-translate-x-0.5" />
+          </button>
+        )}
+
         <Link
           to="/"
           className="flex shrink-0 items-center gap-2 text-lg font-bold tracking-tight text-ink transition-colors hover:text-accent-ink"
@@ -290,21 +304,53 @@ function Navbar() {
         )}
 
         <nav aria-label="Primary" className="order-2 ml-auto hidden items-center gap-2 sm:order-3 lg:flex">
-          <Link to="/collections">
+          <div
+            className="relative"
+            ref={toolsMenuRef}
+            onMouseEnter={() => setIsToolsMenuOpen(true)}
+            onMouseLeave={() => setIsToolsMenuOpen(false)}
+          >
             <Button variant="ghost" size="sm" className="text-ink-2">
-              Collections
+              Tools
+              <ChevronDown className="h-4 w-4 ml-1 transition-transform" style={{ transform: isToolsMenuOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
             </Button>
-          </Link>
+
+            <AnimatePresence initial={false}>
+              {isToolsMenuOpen && (
+                <MotionDiv
+                  key="tools-menu"
+                  role="menu"
+                  aria-label="Tools menu"
+                  initial={{ opacity: 0, y: -6, scale: 0.97 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -4, scale: 0.98 }}
+                  transition={dropdownTransition}
+                  className="absolute left-0 mt-1 w-56 origin-top-left overflow-hidden rounded-xl border border-line bg-bg-elev shadow-lg z-50"
+                >
+                  <Link
+                    to="/tools"
+                    onClick={() => setIsToolsMenuOpen(false)}
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-ink-2 transition hover:bg-bg-sunk"
+                    role="menuitem"
+                  >
+                    Catalog
+                  </Link>
+                  <Link
+                    to="/collections"
+                    onClick={() => setIsToolsMenuOpen(false)}
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-ink-2 transition hover:bg-bg-sunk"
+                    role="menuitem"
+                  >
+                    Collections
+                  </Link>
+                </MotionDiv>
+              )}
+            </AnimatePresence>
+          </div>
 
           <Link to="/model-comparison">
             <Button variant="ghost" size="sm" className="text-ink-2">
               Model Comparison
-            </Button>
-          </Link>
-
-          <Link to="/help">
-            <Button variant="ghost" size="sm" className="text-ink-2">
-              Help Center
             </Button>
           </Link>
 
@@ -674,26 +720,47 @@ function Navbar() {
               className="overflow-hidden"
             >
               <nav aria-label="Mobile" className="flex flex-col px-4 py-3">
-                <Link
-                  to="/collections"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
-                >
-                  Collections
-                </Link>
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setIsMobileToolsOpen((prev) => !prev)}
+                    className="flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk text-left"
+                  >
+                    <span>Tools</span>
+                    <ChevronDown className="h-4 w-4 transition-transform duration-200" style={{ transform: isMobileToolsOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+                  </button>
+                  {isMobileToolsOpen && (
+                    <div className="pl-4 space-y-1 mt-0.5">
+                      <Link
+                        to="/tools"
+                        onClick={() => {
+                          setIsMobileMenuOpen(false)
+                          setIsMobileToolsOpen(false)
+                        }}
+                        className="block rounded-lg px-3 py-2 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
+                      >
+                        Catalog
+                      </Link>
+                      <Link
+                        to="/collections"
+                        onClick={() => {
+                          setIsMobileMenuOpen(false)
+                          setIsMobileToolsOpen(false)
+                        }}
+                        className="block rounded-lg px-3 py-2 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
+                      >
+                        Collections
+                      </Link>
+                    </div>
+                  )}
+                </div>
+
                 <Link
                   to="/model-comparison"
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
                 >
                   Model Comparison
-                </Link>
-                <Link
-                  to="/help"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
-                >
-                  Help Center
                 </Link>
                 <Link
                   to="/syllabus-parser"
