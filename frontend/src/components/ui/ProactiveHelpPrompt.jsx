@@ -9,10 +9,10 @@ const KEY_PAGES = ['/tools', '/ai-tool-finder', '/compare', '/collections']
 const DWELL_TIMEOUT_MS = 40000 // 40 seconds
 
 const PAGE_MESSAGES = {
-  '/tools': 'Looking for a specific AI tool? Browse our categories or visit our Help Center for tips.',
-  '/ai-tool-finder': 'Stuck building your stack? Try our predefined presets, or check the Help Center for a step-by-step guide.',
-  '/compare': 'Comparing multiple tools? Visit the Help Center to learn how the comparison matrix and tray operate.',
-  '/collections': 'Exploring curated tool collections? Read our Help Center guides to understand rating and curation criteria.'
+  '/tools': 'Looking for a specific AI tool? Browse our categories or visit our FAQ & Support for tips.',
+  '/ai-tool-finder': 'Stuck building your stack? Try our predefined presets, or check the FAQ & Support for a step-by-step guide.',
+  '/compare': 'Comparing multiple tools? Visit the FAQ & Support to learn how the comparison matrix and tray operate.',
+  '/collections': 'Exploring curated tool collections? Read our FAQ & Support guides to understand rating and curation criteria.'
 }
 
 export default function ProactiveHelpPrompt() {
@@ -64,7 +64,7 @@ export default function ProactiveHelpPrompt() {
 
     // Start dwell timer
     timerRef.current = setTimeout(() => {
-      setMessage(PAGE_MESSAGES[location.pathname] || 'Need assistance navigating AI Compass? Check our Help Center or send us feedback.')
+      setMessage(PAGE_MESSAGES[location.pathname] || 'Need assistance navigating AI Compass? Check our FAQ & Support or send us feedback.')
       setVisible(true)
     }, DWELL_TIMEOUT_MS)
 
@@ -147,7 +147,7 @@ export default function ProactiveHelpPrompt() {
                   className="inline-flex items-center gap-1 text-[11px] font-semibold text-accent hover:underline"
                   onClick={() => setVisible(false)}
                 >
-                  Help Center <ArrowRight className="h-3 w-3" />
+                  FAQ & Support <ArrowRight className="h-3 w-3" />
                 </Link>
                 <span className="text-line-strong text-xs">|</span>
                 <button

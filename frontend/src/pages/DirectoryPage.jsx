@@ -535,7 +535,7 @@ function DirectoryPage() {
     })
 
     return sorted
-  }, [category, queryFromParams, hasSearchQuery, sortBy, tools])
+  }, [category, queryFromParams, hasSearchQuery, sortBy, tools, actuallyFreeOnly, studentOnly])
 
   const hubSections = useMemo(() => {
     if (directorySummary?.sections?.length) {
@@ -632,7 +632,7 @@ function DirectoryPage() {
     if (!isLoading && !error && filteredTools.length === 0) {
       const event = new CustomEvent('ai-compass-proactive-help', {
         detail: {
-          message: 'Could not find the tool you are looking for? Visit our Help Center for guides or submit feedback for support.'
+          message: 'Could not find the tool you are looking for? Visit our FAQ & Support for guides or submit feedback for support.'
         }
       })
       window.dispatchEvent(event)

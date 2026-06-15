@@ -130,8 +130,8 @@ export default function OnboardingTour() {
       )
     },
     {
-      title: 'Help Center & Support',
-      description: 'Our Help Center houses articles covering student discount filters, limits, and pricing. If you ever run a search returning 0 results, our proactive prompt will guide you to resources.',
+      title: 'FAQ & Support',
+      description: 'Our FAQ & Support page houses articles covering student discount filters, limits, and pricing. If you ever run a search returning 0 results, our proactive prompt will guide you to resources.',
       icon: HelpCircle,
       renderIllustration: () => (
         <div className="flex h-32 w-full items-center gap-3 p-4 rounded-2xl border border-line/40 bg-bg-sunk/30 overflow-hidden relative">

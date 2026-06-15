@@ -1068,6 +1068,15 @@ def list_tools():
         tools = get_visible_tools(DATA_PATH)
     except Exception:
         tools = []
+
+    student_only = request.args.get("student_only", "false") == "true"
+    actually_free = request.args.get("actually_free", "false") == "true"
+
+    if student_only:
+        tools = [t for t in tools if t.get("student_perk") or t.get("studentPerk") or t.get("student_friendly")]
+    if actually_free:
+        tools = [t for t in tools if str(t.get("pricing", "freemium")).lower() in ("free", "freemium")]
+
     fields = request.args.get("fields")
     if fields == "summary":
         return jsonify(_directory_summary_payload(tools))

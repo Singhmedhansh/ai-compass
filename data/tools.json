@@ -57,7 +57,7 @@
     "student_friendly": true,
     "review_count": 0,
     "company": "OpenAI",
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "pricing_tier": "Freemium",
     "popularity_score": 0.95,
     "weekly_users_estimate": "100M+",
@@ -231,7 +231,7 @@
     "student_friendly": true,
     "review_count": 0,
     "company": "Anthropic",
-    "logo_emoji": "\u00e2\u0153\u00b3\u00ef\u00b8\u008f",
+    "logo_emoji": "âœ³ï¸",
     "pricing_tier": "Freemium",
     "popularity_score": 1,
     "weekly_users_estimate": "10M+",
@@ -398,7 +398,7 @@
     "student_friendly": true,
     "review_count": 0,
     "company": "Grammarly Inc.",
-    "logo_emoji": "\ud83d\udcdd",
+    "logo_emoji": "📝",
     "pricing_tier": "Freemium",
     "popularity_score": 0.9,
     "weekly_users_estimate": "30M+",
@@ -520,7 +520,7 @@
     "student_friendly": true,
     "review_count": 0,
     "company": "QuillBot AI",
-    "logo_emoji": "\u00e2\u0153\u008d\u00ef\u00b8\u008f",
+    "logo_emoji": "âœï¸",
     "pricing_tier": "Freemium",
     "popularity_score": 0.82,
     "weekly_users_estimate": "5M+",
@@ -592,7 +592,7 @@
   {
     "id": 6,
     "name": "GitHub Copilot",
-    "icon": "/static/icons/copilot.svg",
+    "icon": "https://raw.githubusercontent.com/lobehub/lobe-icons/master/packages/static-svg/icons/copilot-color.svg",
     "maker": "GitHub / Microsoft",
     "tagline": "AI pair programmer that autocompletes code in real time",
     "category": "Coding",
@@ -648,7 +648,7 @@
     "company": "GitHub / Microsoft",
     "review_count": 0,
     "featured": true,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Line-by-line code suggestions",
       "Whole function generation",
@@ -798,7 +798,7 @@
     "company": "Anysphere",
     "review_count": 0,
     "featured": true,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Codebase-aware chat",
       "Inline code editing",
@@ -957,7 +957,7 @@
     "company": "Tabnine Ltd.",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Whole-line completions",
       "Local model option",
@@ -1079,7 +1079,7 @@
     "company": "Exafunction",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Free forever plan",
       "IDE plugins",
@@ -1210,7 +1210,7 @@
     "company": "Perplexity AI",
     "review_count": 0,
     "featured": true,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Real-time web search",
       "Citation links",
@@ -1362,7 +1362,7 @@
     "company": "Elicit",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Semantic paper search",
       "Auto-extraction of study data",
@@ -1482,7 +1482,7 @@
     "company": "Consensus NLP",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Consensus meter",
       "Paper snippets",
@@ -1601,7 +1601,7 @@
     "company": "Allen Institute for AI",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "TLDR summaries",
       "Citation graph",
@@ -1690,7 +1690,7 @@
     "company": "SciSpace",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "In-paper Q&A",
       "Math and table explanation",
@@ -1748,7 +1748,7 @@
     "category": "Research",
     "subCategory": "Citation Mapping",
     "price": "Freemium",
-    "pricingDetail": "Free (5 graphs/month); Academic ~$5/month (quarterly) or ~$3/month billed annually \u2014 unlimited graphs.",
+    "pricingDetail": "Free (5 graphs/month); Academic ~$5/month (quarterly) or ~$3/month billed annually — unlimited graphs.",
     "bestFor": "Visualizing how papers relate and finding seminal works",
     "tags": [
       "research",
@@ -1796,7 +1796,7 @@
     "company": "Connected Papers",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Visual graph explorer",
       "Paper clustering",
@@ -1903,7 +1903,7 @@
     "company": "Damien Elmes",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Spaced repetition algorithm",
       "Rich media cards",
@@ -2008,7 +2008,7 @@
     "company": "Quizlet Inc.",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "AI Q-Chat tutor",
       "Learn mode",
@@ -2117,7 +2117,7 @@
     "company": "Khan Academy",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Socratic tutoring style",
       "Curriculum alignment",
@@ -2171,7 +2171,7 @@
     "category": "Productivity",
     "subCategory": "Math Solver",
     "price": "Freemium",
-    "pricingDetail": "Free core step-by-step solver; Plus $9.99/month ($69.99/year \u2248 $5.83/month).",
+    "pricingDetail": "Free core step-by-step solver; Plus $9.99/month ($69.99/year ≈ $5.83/month).",
     "bestFor": "Understanding math problem-solving steps from a photo",
     "tags": [
       "math",
@@ -2190,7 +2190,7 @@
     "apiAvailable": false,
     "openSource": false,
     "studentPerk": false,
-    "uniHack": "Don't just copy the answer \u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u009d read through each step to understand the method for your exam",
+    "uniHack": "Don't just copy the answer Ã¢â‚¬â€ read through each step to understand the method for your exam",
     "features": [
       "Camera math scanning",
       "Step-by-step solutions",
@@ -2221,7 +2221,7 @@
     "company": "Google",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Camera math scanning",
       "Step-by-step solutions",
@@ -2326,7 +2326,7 @@
     "company": "Wolfram Research",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Step-by-step solutions",
       "Graphing",
@@ -2405,7 +2405,7 @@
     "category": "Courses & Tutorials",
     "subCategory": "Homework Help",
     "price": "Free",
-    "pricingDetail": "Completely free \u2014 no paid tier, no ads.",
+    "pricingDetail": "Completely free — no paid tier, no ads.",
     "bestFor": "Getting visual explanations to homework questions via camera",
     "tags": [
       "homework",
@@ -2455,7 +2455,7 @@
     "company": "Google",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Camera Q&A",
       "Visual explanations",
@@ -2549,7 +2549,7 @@
     "company": "Doist",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Natural language input",
       "Priority levels",
@@ -2669,7 +2669,7 @@
     "company": "Motion",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Auto task scheduling",
       "Calendar integration",
@@ -2774,7 +2774,7 @@
     "company": "Otter.ai",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Live transcription",
       "Speaker identification",
@@ -2900,7 +2900,7 @@
     "company": "Midjourney Inc.",
     "review_count": 0,
     "featured": true,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Photorealistic generation",
       "Style control",
@@ -2987,7 +2987,7 @@
     "category": "Image Generation",
     "subCategory": "Text to Image",
     "price": "Paid",
-    "pricingDetail": "Retired 12 May 2026 \u2014 replaced by GPT Image 1.5. Historically: limited free via ChatGPT free tier / Bing; full access via ChatGPT Plus $20/month; API ~$0.04-0.12/image.",
+    "pricingDetail": "Retired 12 May 2026 — replaced by GPT Image 1.5. Historically: limited free via ChatGPT free tier / Bing; full access via ChatGPT Plus $20/month; API ~$0.04-0.12/image.",
     "bestFor": "Generating images that precisely match complex text descriptions",
     "tags": [
       "image generation",
@@ -3038,7 +3038,7 @@
     "company": "OpenAI",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Precise prompt following",
       "Text in images",
@@ -3130,7 +3130,7 @@
     "company": "Adobe",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Generative fill",
       "Text effects",
@@ -3203,7 +3203,7 @@
     "category": "Image Generation",
     "subCategory": "Text to Image",
     "price": "Free",
-    "pricingDetail": "Free & open-source \u2014 self-host at no cost. Hosted/managed services (e.g. via APIs) are billed separately by providers.",
+    "pricingDetail": "Free & open-source — self-host at no cost. Hosted/managed services (e.g. via APIs) are billed separately by providers.",
     "bestFor": "Students who want full control and privacy for image generation",
     "tags": [
       "image generation",
@@ -3252,7 +3252,7 @@
     "company": "Stability AI",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Fully open source",
       "Unlimited local use",
@@ -3343,7 +3343,7 @@
     "company": "Leonardo AI",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Multiple model options",
       "Canvas editor",
@@ -3478,7 +3478,7 @@
     "company": "OpenAI",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Up to 20-second videos",
       "Multiple aspect ratios",
@@ -3591,7 +3591,7 @@
     "company": "Runway AI",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Text-to-video",
       "Image-to-video",
@@ -3717,7 +3717,7 @@
     "company": "Pika Labs",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Text-to-video",
       "Image-to-video",
@@ -3852,7 +3852,7 @@
     "company": "HeyGen",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Photo avatar",
       "Voice cloning",
@@ -3972,7 +3972,7 @@
     "company": "Synthesia",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "230+ AI avatars",
       "Script-to-video",
@@ -4092,7 +4092,7 @@
     "company": "Beautiful.ai",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Smart slide templates",
       "Auto-layout engine",
@@ -4207,7 +4207,7 @@
     "company": "Gamma Tech",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "One-prompt presentation generation",
       "Web publishing",
@@ -4320,7 +4320,7 @@
     "company": "Magical Tome",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Generative tiles",
       "AI image integration",
@@ -4427,7 +4427,7 @@
     "company": "Adobe",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "AI text effects",
       "Remove background",
@@ -4541,7 +4541,7 @@
     "company": "Julius AI",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Chat-based analysis",
       "Auto visualization",
@@ -4671,7 +4671,7 @@
     "company": "Google",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Google Workspace integration",
       "Real-time search",
@@ -4816,7 +4816,7 @@
     "company": "Microsoft",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Word integration",
       "Excel data insights",
@@ -4943,7 +4943,7 @@
     "company": "Obsidian",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Bidirectional linking",
       "Graph view",
@@ -5070,7 +5070,7 @@
     "company": "Speechify",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "AI voices",
       "Up to 4.5x speed",
@@ -5190,7 +5190,7 @@
     "company": "Mindgrasp",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Auto note generation",
       "Flashcard creation",
@@ -5302,7 +5302,7 @@
     "company": "Scite",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Smart citation context",
       "Supporting vs contrasting labels",
@@ -5418,7 +5418,7 @@
     "company": "Corporation for Digital Scholarship",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Browser extension",
       "PDF annotation",
@@ -5537,7 +5537,7 @@
     "company": "Napkin AI",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Text to diagram",
       "Multiple diagram styles",
@@ -5664,7 +5664,7 @@
     "company": "Miro",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "AI mind map generation",
       "Sticky note clustering",
@@ -5789,7 +5789,7 @@
     "company": "Lumen5",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Text-to-video",
       "Stock media library",
@@ -5917,7 +5917,7 @@
     "company": "Descript",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Text-based editing",
       "Filler word removal",
@@ -6054,7 +6054,7 @@
     "company": "DeepL GmbH",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "31 languages",
       "Document translation",
@@ -6189,7 +6189,7 @@
     "company": "Every.to",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "AI writing continuation",
       "Distraction-free mode",
@@ -6247,7 +6247,7 @@
     "category": "Coding",
     "subCategory": "Local AI",
     "price": "Free",
-    "pricingDetail": "Free \u2014 run local LLMs on your machine",
+    "pricingDetail": "Free — run local LLMs on your machine",
     "bestFor": "Running AI models locally for privacy-sensitive student projects",
     "tags": [
       "local AI",
@@ -6294,7 +6294,7 @@
     "company": "LM Studio",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Local model execution",
       "Model library browser",
@@ -6337,7 +6337,7 @@
     "category": "Coding",
     "subCategory": "Local AI",
     "price": "Free",
-    "pricingDetail": "Free & open-source \u2014 run models locally",
+    "pricingDetail": "Free & open-source — run models locally",
     "bestFor": "Running AI models locally for dev projects via terminal",
     "tags": [
       "local AI",
@@ -6384,7 +6384,7 @@
     "company": "Ollama",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "One-command model pull",
       "REST API",
@@ -6474,7 +6474,7 @@
     "company": "Hugging Face",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Model hub",
       "Datasets",
@@ -6594,7 +6594,7 @@
     "company": "Coggle",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Infinite canvas",
       "Real-time sharing",
@@ -6709,7 +6709,7 @@
     "company": "Mem Labs",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Auto-organization",
       "AI search",
@@ -6823,7 +6823,7 @@
     "company": "Turnitin / Gradescope",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Assignment submission",
       "AI grouping of answers",
@@ -6926,7 +6926,7 @@
     "company": "Quora",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Multiple AI models",
       "Custom bots",
@@ -7045,7 +7045,7 @@
     "company": "Scholarcy",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Auto-flashcard generation",
       "Key findings extraction",
@@ -7164,7 +7164,7 @@
     "company": "Microsoft",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "DALL-E 3 powered",
       "Free with Microsoft account",
@@ -7253,7 +7253,7 @@
     "company": "Ideogram AI",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Text-in-image generation",
       "Style presets",
@@ -7390,7 +7390,7 @@
     "company": "Prezi",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Zoom navigation",
       "AI topic suggestion",
@@ -7525,7 +7525,7 @@
     "company": "SlidesAI.io",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Text to Google Slides",
       "Multiple themes",
@@ -7641,7 +7641,7 @@
     "company": "Panopto",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Auto-transcription",
       "Smart search",
@@ -7731,7 +7731,7 @@
     "company": "Salesforce",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Drag-and-drop charts",
       "Interactive dashboards",
@@ -7821,7 +7821,7 @@
     "company": "University of Ljubljana",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Visual workflow builder",
       "ML algorithm library",
@@ -7911,7 +7911,7 @@
     "company": "KNIME AG",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Drag-and-drop nodes",
       "Python and R integration",
@@ -8013,7 +8013,7 @@
     "company": "Google",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Free GPU/TPU",
       "Jupyter notebook",
@@ -8138,7 +8138,7 @@
     "company": "Google",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Competitions",
       "Free notebooks with GPU",
@@ -8227,7 +8227,7 @@
     "company": "Phind",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Code-focused search",
       "Real-time web sources",
@@ -8295,7 +8295,7 @@
     "company": "CodePen",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Live preview",
       "AI code assistant",
@@ -8418,7 +8418,7 @@
     "company": "Glean",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Unified search",
       "AI summarization",
@@ -8461,7 +8461,7 @@
     "category": "Audio & Voice",
     "subCategory": "Text to Speech",
     "price": "Freemium",
-    "pricingDetail": "Free 10K chars/month \u00b7 Starter $5 (Instant Voice Clone) \u00b7 Creator $22 (Pro Voice Clone + Projects) \u00b7 Pro $99",
+    "pricingDetail": "Free 10K chars/month · Starter $5 (Instant Voice Clone) · Creator $22 (Pro Voice Clone + Projects) · Pro $99",
     "bestFor": "Narrating YouTube videos, audiobooks, and podcasts in your own cloned voice",
     "tags": [
       "text-to-speech",
@@ -8486,7 +8486,7 @@
       "Hyper-realistic voices in 29 languages",
       "Instant Voice Cloning (Starter $5+)",
       "Professional Voice Cloning (Creator $22+)",
-      "Projects \u2014 long-form audiobooks & multi-speaker (Creator $22+)",
+      "Projects — long-form audiobooks & multi-speaker (Creator $22+)",
       "Audio narration API"
     ],
     "platforms": [
@@ -8496,7 +8496,7 @@
     ],
     "languages": "29",
     "launchYear": 2022,
-    "description": "ElevenLabs produces the most natural-sounding text-to-speech audio available, with hundreds of voices across 29 languages. The Starter plan ($5) unlocks Instant Voice Cloning \u2014 train a clone of your voice from about a minute of audio. The Creator plan ($22) is the sweet spot for content creators: Professional Voice Cloning produces a clone almost indistinguishable from your natural voice, and Projects turns full scripts into multi-speaker long-form audio in one click \u2014 ideal for audiobooks, podcasts, and YouTube voice-overs. The free tier (10K chars/month) is enough to evaluate quality before upgrading.",
+    "description": "ElevenLabs produces the most natural-sounding text-to-speech audio available, with hundreds of voices across 29 languages. The Starter plan ($5) unlocks Instant Voice Cloning — train a clone of your voice from about a minute of audio. The Creator plan ($22) is the sweet spot for content creators: Professional Voice Cloning produces a clone almost indistinguishable from your natural voice, and Projects turns full scripts into multi-speaker long-form audio in one click — ideal for audiobooks, podcasts, and YouTube voice-overs. The free tier (10K chars/month) is enough to evaluate quality before upgrading.",
     "pricing_tier": "Freemium",
     "difficulty": "advanced",
     "student_friendly": true,
@@ -8512,12 +8512,12 @@
     "company": "ElevenLabs",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Hyper-realistic voices in 29 languages",
       "Instant Voice Cloning (Starter $5+)",
       "Professional Voice Cloning (Creator $22+)",
-      "Projects \u2014 long-form audiobooks & multi-speaker (Creator $22+)",
+      "Projects — long-form audiobooks & multi-speaker (Creator $22+)",
       "Audio narration API"
     ],
     "slug": "elevenlabs",
@@ -8666,7 +8666,7 @@
     "company": "Taskade",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "AI task generation",
       "Mind maps",
@@ -8757,7 +8757,7 @@
     "category": "Research",
     "subCategory": "Reading & Highlights",
     "price": "Paid",
-    "pricingDetail": "No standalone plan \u2014 bundled with Readwise: $9.99/month billed annually ($12.99 monthly); 30-day trial; 50% student discount",
+    "pricingDetail": "No standalone plan — bundled with Readwise: $9.99/month billed annually ($12.99 monthly); 30-day trial; 50% student discount",
     "bestFor": "Saving and reviewing academic articles with AI-generated summaries",
     "tags": [
       "reading",
@@ -8805,7 +8805,7 @@
     "company": "Readwise",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Read-it-later",
       "AI summaries",
@@ -8867,7 +8867,7 @@
     "apiAvailable": false,
     "openSource": false,
     "studentPerk": true,
-    "uniHack": "Use it when textbook definitions fail you \u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u009d get a simple analogy before diving back into the technical definition",
+    "uniHack": "Use it when textbook definitions fail you Ã¢â‚¬â€ get a simple analogy before diving back into the technical definition",
     "features": [
       "Simplified explanations",
       "Multiple complexity levels",
@@ -8895,7 +8895,7 @@
     "company": "OpenAI (GPT-powered tools)",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Simplified explanations",
       "Multiple complexity levels",
@@ -8965,7 +8965,7 @@
     "company": "Coursera",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "University-level courses",
       "AI learning recommendations",
@@ -9078,7 +9078,7 @@
     "company": "Duolingo",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "AI conversation practice",
       "Personalized lessons",
@@ -9194,7 +9194,7 @@
     "company": "Brainscape",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Confidence-based repetition",
       "Certified decks",
@@ -9307,7 +9307,7 @@
     "company": "Caktus AI",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Essay assistance",
       "Code help",
@@ -9420,7 +9420,7 @@
     "company": "Copy.ai",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Email templates",
       "Marketing copy",
@@ -9534,7 +9534,7 @@
     "company": "Writesonic",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Real-time search",
       "Article rewriter",
@@ -9668,7 +9668,7 @@
     "company": "Jasper AI",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Brand voice",
       "Template library",
@@ -9772,7 +9772,7 @@
     "company": "LottieFiles",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Animation library",
       "AI animation generation",
@@ -9895,7 +9895,7 @@
     "company": "Spline Design",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Browser-based 3D editing",
       "AI shape generation",
@@ -10022,7 +10022,7 @@
     "company": "Lobe Hub",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Multiple model support",
       "Plugin system",
@@ -10135,7 +10135,7 @@
     "company": "Cram.com",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Millions of card sets",
       "Memorize mode",
@@ -10236,7 +10236,7 @@
     "company": "MathWorks",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "AI coding assistant",
       "Simulink integration",
@@ -10351,7 +10351,7 @@
     "company": "Chegg",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Algebra to calculus",
       "Graphing",
@@ -10456,7 +10456,7 @@
     "company": "Raindrop.io",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Visual bookmarks",
       "AI tagging",
@@ -10561,7 +10561,7 @@
     "company": "Mural",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Templates library",
       "Voting features",
@@ -10687,7 +10687,7 @@
     "company": "Krisp AI",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Real-time noise removal",
       "Voice enhancement",
@@ -10807,7 +10807,7 @@
     "company": "MyMap AI",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Text to mind map",
       "Flowchart generation",
@@ -10934,7 +10934,7 @@
     "company": "Skylum",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "AI sky replacement",
       "Portrait enhancement",
@@ -10999,7 +10999,7 @@
     "category": "Research",
     "subCategory": "Literature Discovery",
     "price": "Free",
-    "pricingDetail": "Free \u2014 literature discovery & citation mapping at no cost",
+    "pricingDetail": "Free — literature discovery & citation mapping at no cost",
     "bestFor": "Discovering related papers and building literature maps for research",
     "tags": [
       "research",
@@ -11045,7 +11045,7 @@
     "company": "Research Rabbit",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Paper discovery",
       "Visual network map",
@@ -11135,7 +11135,7 @@
     "company": "Google",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Inline writing assistance",
       "Rewrite and improve",
@@ -11248,7 +11248,7 @@
     "company": "Penelope AI",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Tone improvement",
       "Sentence restructuring",
@@ -11364,7 +11364,7 @@
     "company": "ClickUp",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "AI task generation",
       "Docs with AI",
@@ -11500,7 +11500,7 @@
     "company": "Typeform",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "AI question generation",
       "Conversational UI",
@@ -11594,7 +11594,7 @@
     "category": "Research",
     "subCategory": "Browser AI",
     "price": "Free",
-    "pricingDetail": "Free AI assistant built into the Opera browser \u2014 no subscription.",
+    "pricingDetail": "Free AI assistant built into the Opera browser — no subscription.",
     "bestFor": "Summarizing webpages and researching without leaving the browser",
     "tags": [
       "browser",
@@ -11643,7 +11643,7 @@
     "company": "Opera",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Page summarization",
       "Research Q&A",
@@ -11732,7 +11732,7 @@
     "company": "Pictory AI",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Script to video",
       "Auto captions",
@@ -11861,7 +11861,7 @@
     "company": "GoodNotes",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Handwriting recognition",
       "AI flashcard generation",
@@ -11984,7 +11984,7 @@
     "company": "Ginger Labs",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Audio-synced notes",
       "Handwriting to text",
@@ -12098,7 +12098,7 @@
     "company": "Detangle AI",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Legal simplification",
       "Plain English summaries",
@@ -12198,7 +12198,7 @@
     "company": "Codecademy",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "AI hints",
       "In-browser code editor",
@@ -12311,7 +12311,7 @@
     "company": "Udio AI",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Full song generation",
       "Genre and mood control",
@@ -12433,7 +12433,7 @@
     "company": "Suno AI",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Vocal song generation",
       "Custom lyrics input",
@@ -12552,7 +12552,7 @@
     "company": "Ahrefs",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Paragraph generator",
       "Essay outline",
@@ -12641,7 +12641,7 @@
     "company": "Paper Digest",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Daily digest",
       "Field selection",
@@ -12739,7 +12739,7 @@
     "company": "Humata AI",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "PDF chat",
       "Multi-document analysis",
@@ -12865,7 +12865,7 @@
     "company": "PDF.ai",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "PDF upload and chat",
       "Summary generation",
@@ -12987,7 +12987,7 @@
     "company": "Study AI",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Study plan generation",
       "Quiz generation",
@@ -13057,7 +13057,7 @@
     "company": "Wize",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Adaptive quizzing",
       "Video explanations",
@@ -13130,7 +13130,7 @@
     "apiAvailable": false,
     "openSource": false,
     "studentPerk": true,
-    "uniHack": "Paste your essay into Natural Readers to proofread it by hearing it aloud \u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u009d you will catch errors you would never see",
+    "uniHack": "Paste your essay into Natural Readers to proofread it by hearing it aloud Ã¢â‚¬â€ you will catch errors you would never see",
     "features": [
       "Web-based reader",
       "Multiple voices",
@@ -13161,7 +13161,7 @@
     "company": "Natural Soft",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Web-based reader",
       "Multiple voices",
@@ -13275,7 +13275,7 @@
     "company": "Deepgram",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Real-time transcription",
       "Speaker diarization",
@@ -13387,7 +13387,7 @@
     "company": "Rows",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "AI formula writer",
       "Data summaries",
@@ -13512,7 +13512,7 @@
     "company": "Veed.io",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Auto captions",
       "AI translation",
@@ -13640,7 +13640,7 @@
     "company": "Pitch",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Real-time collaboration",
       "AI design assistance",
@@ -13731,7 +13731,7 @@
     "category": "Writing & Chat",
     "subCategory": "Academic Writing",
     "price": "Freemium",
-    "pricingDetail": "Free; Prime $25/month ($139/year \u2248 $11.58/month; quarterly $55)",
+    "pricingDetail": "Free; Prime $25/month ($139/year ≈ $11.58/month; quarterly $55)",
     "bestFor": "Improving academic writing quality and checking research integrity",
     "tags": [
       "academic writing",
@@ -13779,7 +13779,7 @@
     "company": "Paperpal",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Academic language suggestions",
       "Plagiarism check",
@@ -13810,7 +13810,7 @@
         {
           "name": "Prime",
           "price_amount": 25,
-          "price_display": "$25/month ($139/year \u2248 $11.58/month)",
+          "price_display": "$25/month ($139/year ≈ $11.58/month)",
           "features": [
             "Unlimited language checks",
             "Academic writing & paraphrasing",
@@ -13882,7 +13882,7 @@
     "company": "Latitude",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Infinite narrative generation",
       "Custom scenarios",
@@ -14008,7 +14008,7 @@
     "company": "Character Technologies",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Character chat",
       "Language practice bots",
@@ -14110,7 +14110,7 @@
     "company": "Anthropic",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "CLAUDE() formula",
       "Batch processing",
@@ -14202,7 +14202,7 @@
     "company": "Docusign",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "E-signature",
       "AI contract review",
@@ -14283,7 +14283,7 @@
     "category": "Research",
     "subCategory": "Document Q&A",
     "price": "Freemium",
-    "pricingDetail": "Free (2 docs/day, 50 questions/day); Plus $19.99/month \u2014 unlimited docs, up to 2,000 pages/PDF.",
+    "pricingDetail": "Free (2 docs/day, 50 questions/day); Plus $19.99/month — unlimited docs, up to 2,000 pages/PDF.",
     "bestFor": "Getting quick answers from research papers and textbook chapters",
     "tags": [
       "PDF",
@@ -14331,7 +14331,7 @@
     "company": "ChatPDF",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "PDF chat",
       "Auto-summary",
@@ -14433,7 +14433,7 @@
     "company": "Stability AI",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Music generation",
       "Sound effect generation",
@@ -14501,7 +14501,7 @@
     "company": "Krea",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Real-time generation",
       "Image enhancement",
@@ -14643,7 +14643,7 @@
     "company": "Mistral AI",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Le Chat interface",
       "Code generation",
@@ -14712,7 +14712,7 @@
     "category": "Coding",
     "subCategory": "Open-source LLM",
     "price": "Free",
-    "pricingDetail": "Free & open-weight under the Meta Llama Community License \u2014 self-host or use via providers at their rates.",
+    "pricingDetail": "Free & open-weight under the Meta Llama Community License — self-host or use via providers at their rates.",
     "bestFor": "Running a powerful open-source LLM for research and CS projects",
     "tags": [
       "open source",
@@ -14759,7 +14759,7 @@
     "company": "Meta AI",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Open weights",
       "Multiple sizes (8B-70B)",
@@ -14849,7 +14849,7 @@
     "company": "Vercel",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Text to React UI",
       "Tailwind CSS",
@@ -14972,7 +14972,7 @@
     "company": "Lovable",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Natural language app building",
       "GitHub sync",
@@ -15093,7 +15093,7 @@
     "company": "Codeium",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Cascade agentic mode",
       "Codebase search",
@@ -15228,7 +15228,7 @@
     "company": "Continue",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Any model support",
       "Inline autocomplete",
@@ -15295,7 +15295,7 @@
     "category": "Coding",
     "subCategory": "Terminal AI",
     "price": "Free",
-    "pricingDetail": "Free & open-source \u2014 you pay only for your own LLM API usage",
+    "pricingDetail": "Free & open-source — you pay only for your own LLM API usage",
     "bestFor": "CS students who prefer terminal workflows for AI-assisted coding",
     "tags": [
       "terminal",
@@ -15342,7 +15342,7 @@
     "company": "Paul Gauthier",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Terminal-based editing",
       "Git integration",
@@ -15432,7 +15432,7 @@
     "company": "Hugging Face",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Component library",
       "Hugging Face Spaces deploy",
@@ -15522,7 +15522,7 @@
     "company": "LangChain",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Agent framework",
       "RAG tools",
@@ -15639,7 +15639,7 @@
     "company": "Liner",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Web highlighting",
       "YouTube chapters",
@@ -15693,7 +15693,7 @@
     "category": "Research",
     "subCategory": "Social Highlighting",
     "price": "Free",
-    "pricingDetail": "Free \u2014 web highlighter, notes, and AI features at no cost",
+    "pricingDetail": "Free — web highlighter, notes, and AI features at no cost",
     "bestFor": "Collecting highlights from research and seeing what others highlight in the same papers",
     "tags": [
       "highlighting",
@@ -15739,7 +15739,7 @@
     "company": "Glasp",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Web highlights",
       "YouTube highlights",
@@ -15829,7 +15829,7 @@
     "company": "Unriddle",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Multi-document chat",
       "In-line citations",
@@ -15969,7 +15969,7 @@
     "company": "Explain Paper",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Highlight to explain",
       "Jargon definitions",
@@ -16070,7 +16070,7 @@
     "company": "Andrej Karpathy",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Paper recommendations",
       "Search",
@@ -16160,7 +16160,7 @@
     "company": "AI21 Labs",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Sentence rewriting",
       "Tone adjustment",
@@ -16256,7 +16256,7 @@
     "features": [
       "20+ writing reports",
       "Passive voice check",
-      "Clich\u00c3\u0192\u00c2\u00a9 detector",
+      "ClichÃƒÂ© detector",
       "Word frequency"
     ],
     "platforms": [
@@ -16265,7 +16265,7 @@
     ],
     "languages": "5+",
     "launchYear": 2012,
-    "description": "ProWritingAid generates over 20 detailed reports analyzing grammar, style consistency, readability, clich\u00c3\u0192\u00c2\u00a9s, and word repetition, making it one of the most thorough writing analysis tools for academic papers. Students writing theses and dissertations use it to get an objective editorial view of their entire manuscript. Integrations with Google Docs and Word make it seamless to use.",
+    "description": "ProWritingAid generates over 20 detailed reports analyzing grammar, style consistency, readability, clichÃƒÂ©s, and word repetition, making it one of the most thorough writing analysis tools for academic papers. Students writing theses and dissertations use it to get an objective editorial view of their entire manuscript. Integrations with Google Docs and Word make it seamless to use.",
     "pricing_tier": "Freemium",
     "difficulty": "advanced",
     "student_friendly": true,
@@ -16281,11 +16281,11 @@
     "company": "ProWritingAid",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "20+ writing reports",
       "Passive voice check",
-      "Clich\u00c3\u0192\u00c2\u00a9 detector",
+      "ClichÃƒÂ© detector",
       "Word frequency"
     ],
     "slug": "prowritingaid",
@@ -16380,7 +16380,7 @@
     "apiAvailable": true,
     "openSource": true,
     "studentPerk": true,
-    "uniHack": "Use LanguageTool for assignments written in your native language \u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u009d it supports 30+ languages unlike most grammar tools",
+    "uniHack": "Use LanguageTool for assignments written in your native language Ã¢â‚¬â€ it supports 30+ languages unlike most grammar tools",
     "features": [
       "30+ languages",
       "Grammar check",
@@ -16409,7 +16409,7 @@
     "company": "LanguageTool GmbH",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "30+ languages",
       "Grammar check",
@@ -16524,7 +16524,7 @@
     "company": "Turnitin",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Similarity report",
       "AI detection",
@@ -16566,7 +16566,7 @@
     "category": "Writing & Chat",
     "subCategory": "AI Workspace",
     "price": "Paid",
-    "pricingDetail": "Not a standalone product \u2014 included with Claude Pro ($20/month, $17/month annual) and Team ($25/seat/month). Unlimited projects on Pro+.",
+    "pricingDetail": "Not a standalone product — included with Claude Pro ($20/month, $17/month annual) and Team ($25/seat/month). Unlimited projects on Pro+.",
     "bestFor": "Long-running research projects where context persistence saves time",
     "tags": [
       "AI",
@@ -16618,7 +16618,7 @@
     "company": "Anthropic",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Persistent memory",
       "Document uploads",
@@ -16719,7 +16719,7 @@
     "company": "Whimsical",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "AI flowchart generation",
       "Wireframe kit",
@@ -16833,7 +16833,7 @@
     "company": "Mermaid Team",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Flowcharts",
       "Sequence diagrams",
@@ -16923,7 +16923,7 @@
     "company": "Plasmo Corp",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "React extension framework",
       "Hot reload",
@@ -17013,7 +17013,7 @@
     "company": "Supabase",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Postgres database",
       "Authentication",
@@ -17139,7 +17139,7 @@
     "company": "Weights & Biases",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Experiment tracking",
       "Hyperparameter sweeps",
@@ -17255,7 +17255,7 @@
     "company": "Roboflow",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Dataset annotation",
       "Model training",
@@ -17369,7 +17369,7 @@
     "company": "DensityDesign Lab",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Rare chart types",
       "SVG export",
@@ -17459,7 +17459,7 @@
     "company": "Observable",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Observable Plot",
       "D3 integration",
@@ -17572,7 +17572,7 @@
     "company": "Piktochart",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "AI infographic generation",
       "Chart builder",
@@ -17697,7 +17697,7 @@
     "company": "Visme",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "AI design generator",
       "Interactive elements",
@@ -17824,7 +17824,7 @@
     "company": "Storydoc",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Interactive decks",
       "AI writing",
@@ -17909,7 +17909,7 @@
     "apiAvailable": false,
     "openSource": false,
     "studentPerk": true,
-    "uniHack": "Use Haiku Deck when your content is simple and image-driven \u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u009d one sentence per slide with a perfect photo",
+    "uniHack": "Use Haiku Deck when your content is simple and image-driven Ã¢â‚¬â€ one sentence per slide with a perfect photo",
     "features": [
       "Auto image matching",
       "Minimal templates",
@@ -17938,7 +17938,7 @@
     "company": "Haiku Deck",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Auto image matching",
       "Minimal templates",
@@ -18022,7 +18022,7 @@
     "apiAvailable": false,
     "openSource": false,
     "studentPerk": true,
-    "uniHack": "Create a Curipod lesson to teach classmates in a study group session \u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u009d the live polls keep everyone engaged",
+    "uniHack": "Create a Curipod lesson to teach classmates in a study group session Ã¢â‚¬â€ the live polls keep everyone engaged",
     "features": [
       "AI lesson generation",
       "Live polls",
@@ -18050,7 +18050,7 @@
     "company": "Curipod",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "AI lesson generation",
       "Live polls",
@@ -18106,7 +18106,7 @@
     "category": "Courses & Tutorials",
     "subCategory": "Self-assessment",
     "price": "Freemium",
-    "pricingDetail": "Free Teacher; Paid Teacher $20.75/month (annual); Balanced Assessment (district) \u2014 contact sales",
+    "pricingDetail": "Free Teacher; Paid Teacher $20.75/month (annual); Balanced Assessment (district) — contact sales",
     "bestFor": "Self-testing knowledge with AI-graded short answers and instant feedback",
     "tags": [
       "assessment",
@@ -18153,7 +18153,7 @@
     "company": "Formative",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "AI grading",
       "Short answer feedback",
@@ -18271,7 +18271,7 @@
     "company": "Numerade",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Video solutions",
       "AI tutor chat",
@@ -18386,7 +18386,7 @@
     "company": "Chegg",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Step-by-step solutions",
       "Essay checker",
@@ -18487,7 +18487,7 @@
     "company": "Thinker Notes",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Kindle import",
       "Spaced repetition",
@@ -18585,7 +18585,7 @@
     "company": "Stashpad",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Instant capture",
       "Markdown support",
@@ -18698,7 +18698,7 @@
     "company": "Tana",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Supertags",
       "AI commands",
@@ -18826,7 +18826,7 @@
     "company": "Logseq",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Bidirectional links",
       "Block-based outliner",
@@ -18917,7 +18917,7 @@
     "company": "Capacities",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Object types",
       "Relations",
@@ -19031,7 +19031,7 @@
     "company": "Goblin Tools",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Magic To-Do task splitter",
       "Tone checker",
@@ -19132,7 +19132,7 @@
     "company": "Reclaim AI",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Habit scheduling",
       "Task time blocking",
@@ -19259,7 +19259,7 @@
     "company": "Supernormal",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Auto meeting notes",
       "Action items",
@@ -19387,7 +19387,7 @@
     "company": "Reflect",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Calendar-linked notes",
       "AI assistant",
@@ -19479,7 +19479,7 @@
     "company": "AFFiNE",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Doc editor",
       "Infinite whiteboard",
@@ -19539,7 +19539,7 @@
   {
     "id": 206,
     "name": "Stable Diffusion WebUI",
-    "icon": "/static/icons/sdwebui.svg",
+    "icon": "https://raw.githubusercontent.com/lobehub/lobe-icons/master/packages/static-svg/icons/stability-color.svg",
     "maker": "AUTOMATIC1111 / community",
     "tagline": "Feature-rich browser UI for running Stable Diffusion locally",
     "category": "Image Generation",
@@ -19592,7 +19592,7 @@
     "company": "AUTOMATIC1111 / community",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "ControlNet",
       "LoRA support",
@@ -19629,7 +19629,7 @@
   {
     "id": 207,
     "name": "ComfyUI",
-    "icon": "/static/icons/comfyui.svg",
+    "icon": "https://raw.githubusercontent.com/lobehub/lobe-icons/master/packages/static-svg/icons/comfyui.svg",
     "maker": "ComfyUI Community",
     "tagline": "Node-based visual workflow builder for advanced Stable Diffusion pipelines",
     "category": "Image Generation",
@@ -19654,7 +19654,7 @@
     "apiAvailable": true,
     "openSource": true,
     "studentPerk": true,
-    "uniHack": "Build a node-based image generation workflow as your AI art final project \u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u009d it demonstrates both coding and creative skills",
+    "uniHack": "Build a node-based image generation workflow as your AI art final project Ã¢â‚¬â€ it demonstrates both coding and creative skills",
     "features": [
       "Node-based workflow",
       "API server",
@@ -19682,7 +19682,7 @@
     "company": "ComfyUI Community",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Node-based workflow",
       "API server",
@@ -19772,7 +19772,7 @@
     "company": "Playground AI",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "500 free images/day",
       "Canvas editor",
@@ -19898,7 +19898,7 @@
     "company": "Pheeds",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Prompt templates",
       "Style descriptors",
@@ -19987,7 +19987,7 @@
     "company": "PromptHero",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Prompt search",
       "Output preview",
@@ -20099,7 +20099,7 @@
     "company": "Kaiber AI",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Image to video",
       "Audio reactivity",
@@ -20239,7 +20239,7 @@
     "company": "Kuaishou",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "5-second HD clips",
       "3D spatial consistency",
@@ -20374,7 +20374,7 @@
     "company": "InVideo",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Text to video",
       "AI voiceover",
@@ -20488,7 +20488,7 @@
     "company": "Adobe",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Enhance Speech AI",
       "Remote recording",
@@ -20589,7 +20589,7 @@
     "company": "Cleanvoice AI",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Filler word removal",
       "Stutter editing",
@@ -20711,7 +20711,7 @@
     "company": "Murf AI",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "120+ voices",
       "Pitch and speed control",
@@ -20836,7 +20836,7 @@
     "company": "Vizcom",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Sketch to render",
       "Style library",
@@ -20964,7 +20964,7 @@
     "company": "Khroma",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Preference learning",
       "Infinite palettes",
@@ -21025,7 +21025,7 @@
     "apiAvailable": false,
     "openSource": false,
     "studentPerk": true,
-    "uniHack": "Hit spacebar repeatedly to generate palettes instantly \u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u009d lock any color you like with the lock icon before regenerating",
+    "uniHack": "Hit spacebar repeatedly to generate palettes instantly Ã¢â‚¬â€ lock any color you like with the lock icon before regenerating",
     "features": [
       "One-click generation",
       "Palette exploration",
@@ -21054,7 +21054,7 @@
     "company": "Coolors",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "One-click generation",
       "Palette exploration",
@@ -21157,7 +21157,7 @@
     "company": "Fontjoy",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "AI pairing",
       "Lock font",
@@ -21219,7 +21219,7 @@
     "apiAvailable": true,
     "openSource": false,
     "studentPerk": true,
-    "uniHack": "Use the free preview resolution for quick background removal on presentation images \u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u009d it's usually sufficient for slide use",
+    "uniHack": "Use the free preview resolution for quick background removal on presentation images Ã¢â‚¬â€ it's usually sufficient for slide use",
     "features": [
       "Instant background removal",
       "HD exports",
@@ -21248,7 +21248,7 @@
     "company": "Kaleido AI",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Instant background removal",
       "HD exports",
@@ -21363,7 +21363,7 @@
     "company": "Stability AI",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Object removal",
       "Image upscaling",
@@ -21476,7 +21476,7 @@
     "company": "Mokker AI",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Background generation",
       "Multiple styles",
@@ -21600,7 +21600,7 @@
     "company": "Durable",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Instant website generation",
       "AI copy",
@@ -21716,7 +21716,7 @@
     "company": "Sketch2React",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Figma plugin",
       "React export",
@@ -21815,7 +21815,7 @@
     "company": "Musico",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Continuous generation",
       "Style control",
@@ -21883,7 +21883,7 @@
     "company": "Boomy Corporation",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Genre selection",
       "Streaming distribution",
@@ -21997,7 +21997,7 @@
     "company": "Moises AI",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Stem separation",
       "Pitch shift",
@@ -22111,7 +22111,7 @@
     "company": "Twelve Labs",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Video search",
       "Video summarization",
@@ -22178,7 +22178,7 @@
     "category": "Coding",
     "subCategory": "NLP API",
     "price": "Freemium",
-    "pricingDetail": "Free trial API (rate-limited); usage-based \u2014 Command R+ $2.50/$10 per 1M tokens; dedicated from $2,500/month",
+    "pricingDetail": "Free trial API (rate-limited); usage-based — Command R+ $2.50/$10 per 1M tokens; dedicated from $2,500/month",
     "bestFor": "Building NLP-powered applications and learning enterprise AI development",
     "tags": [
       "NLP",
@@ -22225,7 +22225,7 @@
     "company": "Cohere",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Command model",
       "Embed API",
@@ -22302,7 +22302,7 @@
     "category": "Coding",
     "subCategory": "Embeddings",
     "price": "Freemium",
-    "pricingDetail": "Free first 200M tokens; usage-based \u2014 voyage-4 $0.06/MTok, voyage-4-large $0.12, voyage-4-lite $0.02",
+    "pricingDetail": "Free first 200M tokens; usage-based — voyage-4 $0.06/MTok, voyage-4-large $0.12, voyage-4-lite $0.02",
     "bestFor": "Building semantic search and RAG systems for AI course projects",
     "tags": [
       "embeddings",
@@ -22321,7 +22321,7 @@
     "apiAvailable": true,
     "openSource": false,
     "studentPerk": true,
-    "uniHack": "Use Voyage embeddings in your RAG pipeline for your NLP course \u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u009d the free 50M tokens are more than enough for any student project",
+    "uniHack": "Use Voyage embeddings in your RAG pipeline for your NLP course Ã¢â‚¬â€ the free 50M tokens are more than enough for any student project",
     "features": [
       "Top MTEB embeddings",
       "Domain-specific models",
@@ -22349,7 +22349,7 @@
     "company": "Voyage AI",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Top MTEB embeddings",
       "Domain-specific models",
@@ -22451,7 +22451,7 @@
     "company": "Groq",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "LPU inference",
       "OpenAI-compatible API",
@@ -22505,7 +22505,7 @@
     "category": "Coding",
     "subCategory": "AI Cloud",
     "price": "Freemium",
-    "pricingDetail": "Start free; usage-based \u2014 Llama 3.3 70B $0.88/1M tokens; GPU clusters from $5.49/hour (H100); Enterprise custom",
+    "pricingDetail": "Start free; usage-based — Llama 3.3 70B $0.88/1M tokens; GPU clusters from $5.49/hour (H100); Enterprise custom",
     "bestFor": "Running large open-source models in the cloud for AI research projects",
     "tags": [
       "cloud AI",
@@ -22552,7 +22552,7 @@
     "company": "Together AI",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "100+ models",
       "Fine-tuning",
@@ -22675,7 +22675,7 @@
     "company": "Pinecone Systems",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Vector storage",
       "Similarity search",
@@ -22801,7 +22801,7 @@
     "company": "Weaviate",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Vector and hybrid search",
       "Built-in vectorization",
@@ -22915,7 +22915,7 @@
     "company": "Flowise AI",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Visual LLM builder",
       "RAG templates",
@@ -23042,7 +23042,7 @@
     "company": "LangGenius",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Visual workflow editor",
       "RAG pipeline",
@@ -23169,7 +23169,7 @@
     "company": "Sinaptik-AI",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Natural language dataframe queries",
       "Auto visualization",
@@ -23258,7 +23258,7 @@
     "company": "Pollinations AI",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "No auth required",
       "URL-based API",
@@ -23348,7 +23348,7 @@
     "company": "fal.ai",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "FLUX models",
       "Video generation",
@@ -23449,7 +23449,7 @@
     "company": "Replicate",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Thousands of models",
       "Simple API",
@@ -23544,7 +23544,7 @@
     "company": "xAI",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Real-time X data",
       "Image generation",
@@ -23643,7 +23643,7 @@
     "apiAvailable": true,
     "openSource": false,
     "studentPerk": true,
-    "uniHack": "Ask your professors if your LMS uses Learnosity \u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u009d adaptive questions can help focus your exam practice on weaker areas",
+    "uniHack": "Ask your professors if your LMS uses Learnosity Ã¢â‚¬â€ adaptive questions can help focus your exam practice on weaker areas",
     "features": [
       "Adaptive questions",
       "Instant feedback",
@@ -23671,7 +23671,7 @@
     "company": "Learnosity",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Adaptive questions",
       "Instant feedback",
@@ -23733,7 +23733,7 @@
     "apiAvailable": false,
     "openSource": false,
     "studentPerk": true,
-    "uniHack": "Read the rubric carefully before giving peer feedback \u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u009d well-reasoned feedback helps you internalize the grading criteria too",
+    "uniHack": "Read the rubric carefully before giving peer feedback Ã¢â‚¬â€ well-reasoned feedback helps you internalize the grading criteria too",
     "features": [
       "Rubric-based review",
       "Anonymous feedback",
@@ -23761,7 +23761,7 @@
     "company": "Peergrade",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Rubric-based review",
       "Anonymous feedback",
@@ -23829,7 +23829,7 @@
     "company": "Paper Brain",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "In-browser paper chat",
       "arXiv integration",
@@ -23897,7 +23897,7 @@
     "company": "LlamaIndex",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Data connectors",
       "Index types",
@@ -23930,7 +23930,7 @@
           "price_amount": 0,
           "price_display": "$0",
           "features": [
-            "10,000 credits/mo (\u2248 1,000 pages)",
+            "10,000 credits/mo (≈ 1,000 pages)",
             "Agentic OCR & structured extraction",
             "1 user, 1 project"
           ],
@@ -24021,7 +24021,7 @@
     "company": "deepset",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Document store integrations",
       "Reader and retriever",
@@ -24124,7 +24124,7 @@
     "company": "PromptFoo",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Prompt comparison",
       "Automated testing",
@@ -24161,7 +24161,7 @@
   {
     "id": 255,
     "name": "Docling",
-    "icon": "/static/icons/docling.svg",
+    "icon": "https://raw.githubusercontent.com/DS4SD/docling/main/docs/assets/logo.png",
     "maker": "IBM Research",
     "tagline": "Open-source document parsing library that converts PDFs to AI-friendly formats",
     "category": "Coding",
@@ -24214,7 +24214,7 @@
     "company": "IBM Research",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "PDF parsing",
       "Table extraction",
@@ -24251,7 +24251,7 @@
   {
     "id": 256,
     "name": "Marker",
-    "icon": "/static/icons/marker.svg",
+    "icon": "https://raw.githubusercontent.com/datalab-to/marker/master/data/images/datalab-logo.png",
     "maker": "VikParuchuri",
     "tagline": "High-quality open-source PDF to markdown converter using AI",
     "category": "Coding",
@@ -24304,7 +24304,7 @@
     "company": "VikParuchuri",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "OCR support",
       "Equation rendering",
@@ -24394,7 +24394,7 @@
     "company": "Paperspace / DigitalOcean",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Free CPU notebooks",
       "GPU access",
@@ -24508,7 +24508,7 @@
     "company": "Lightning AI",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Free GPU hours",
       "PyTorch Lightning",
@@ -24622,7 +24622,7 @@
     "company": "Modal Labs",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "GPU function decorator",
       "Container management",
@@ -24710,7 +24710,7 @@
     "apiAvailable": false,
     "openSource": true,
     "studentPerk": true,
-    "uniHack": "Use Ray Tune for hyperparameter search in your ML project \u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u009d it parallelizes experiments across all your CPU cores automatically",
+    "uniHack": "Use Ray Tune for hyperparameter search in your ML project Ã¢â‚¬â€ it parallelizes experiments across all your CPU cores automatically",
     "features": [
       "Parallel execution",
       "Ray Tune",
@@ -24739,7 +24739,7 @@
     "company": "Anyscale",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Parallel execution",
       "Ray Tune",
@@ -24840,7 +24840,7 @@
     "company": "Chroma",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "In-memory and persistent mode",
       "Python-first",
@@ -24889,7 +24889,7 @@
     "name": "DVC",
     "icon": "/static/icons/dvc.svg",
     "maker": "Iterative",
-    "tagline": "Git for data and ML models \u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u009d open source version control for datasets",
+    "tagline": "Git for data and ML models Ã¢â‚¬â€ open source version control for datasets",
     "category": "Coding",
     "subCategory": "ML Versioning",
     "price": "Free",
@@ -24940,7 +24940,7 @@
     "company": "Iterative",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Dataset versioning",
       "Model versioning",
@@ -25030,7 +25030,7 @@
     "company": "Comet",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Experiment logging",
       "Hyperparameter comparison",
@@ -25145,7 +25145,7 @@
     "company": "Lightly AI",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Dataset curation",
       "Similarity visualization",
@@ -25245,7 +25245,7 @@
     "company": "Labelbox",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Image annotation",
       "Text labeling",
@@ -25360,7 +25360,7 @@
     "company": "Metabase",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "SQL editor",
       "No-code questions",
@@ -25487,7 +25487,7 @@
     "company": "Coolmindmaps",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Freeform mapping",
       "Color-coded nodes",
@@ -25578,7 +25578,7 @@
     "company": "StudySmarter GmbH",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "AI flashcard generation",
       "Smart learning plans",
@@ -25682,7 +25682,7 @@
     "company": "Seneca Learning",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "No-error algorithm",
       "Curriculum-aligned content",
@@ -25764,7 +25764,7 @@
     "apiAvailable": false,
     "openSource": false,
     "studentPerk": true,
-    "uniHack": "Book a trial lesson for a subject you are stuck on \u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u009d the free first session is enough to get unstuck on a specific concept",
+    "uniHack": "Book a trial lesson for a subject you are stuck on Ã¢â‚¬â€ the free first session is enough to get unstuck on a specific concept",
     "features": [
       "Human tutors",
       "AI practice tools",
@@ -25794,7 +25794,7 @@
     "company": "GoStudent",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Human tutors",
       "AI practice tools",
@@ -25814,7 +25814,7 @@
         {
           "name": "1:1 Tutoring",
           "price_amount": null,
-          "price_display": "From \u20ac19.99/lesson",
+          "price_display": "From €19.99/lesson",
           "features": [
             "50-min 1:1 online lessons",
             "Monthly packages of 4/6/8/12 lessons",
@@ -25826,7 +25826,7 @@
         {
           "name": "GoStudent Learning",
           "price_amount": 14.9,
-          "price_display": "\u20ac14.90/month",
+          "price_display": "€14.90/month",
           "features": [
             "AI tutor & learning platform",
             "First month free"
@@ -25867,7 +25867,7 @@
     "apiAvailable": false,
     "openSource": false,
     "studentPerk": true,
-    "uniHack": "Use Albert for AP exam practice \u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u009d its question bank and detailed explanations closely mirror the actual test format",
+    "uniHack": "Use Albert for AP exam practice Ã¢â‚¬â€ its question bank and detailed explanations closely mirror the actual test format",
     "features": [
       "AP subject coverage",
       "SAT and ACT prep",
@@ -25895,7 +25895,7 @@
     "company": "Albert",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "AP subject coverage",
       "SAT and ACT prep",
@@ -26006,7 +26006,7 @@
     "company": "Google",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Source-grounded answers",
       "Audio overview generation",
@@ -26134,7 +26134,7 @@
     "company": "MySciLearn",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "AI explanations",
       "Interactive simulations",
@@ -26223,7 +26223,7 @@
     "company": "Microsoft",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Auto layout",
       "Media embedding",
@@ -26292,7 +26292,7 @@
     "company": "Creately",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "AI diagram generation",
       "1000+ templates",
@@ -26418,7 +26418,7 @@
     "company": "Slab",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Unified search",
       "AI summaries",
@@ -26544,7 +26544,7 @@
     "company": "Guru Technologies",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "AI-powered search",
       "Knowledge cards",
@@ -26655,7 +26655,7 @@
     "company": "AI Homework Helper",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Multi-subject support",
       "Step-by-step solutions",
@@ -26745,7 +26745,7 @@
     "company": "Conker",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "AI quiz generation",
       "Multiple question types",
@@ -26847,7 +26847,7 @@
     "company": "Jotform",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "AI form builder",
       "Conditional logic",
@@ -26989,7 +26989,7 @@
     "company": "Momentive",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "AI question suggestions",
       "Response analytics",
@@ -27114,7 +27114,7 @@
     "company": "Sentry",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Error tracking",
       "Performance monitoring",
@@ -27241,7 +27241,7 @@
     "company": "Explainx AI",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Visual agent builder",
       "Web search agents",
@@ -27278,7 +27278,7 @@
   {
     "id": 298,
     "name": "Tideflow",
-    "icon": "/static/icons/tideflow.svg",
+    "icon": "https://raw.githubusercontent.com/tideflow-io/tideflow/master/public/images/logo.png",
     "maker": "Tideflow",
     "tagline": "Open-source AI workflow automation platform for n8n and Zapier alternatives",
     "category": "Productivity",
@@ -27331,7 +27331,7 @@
     "company": "Tideflow",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Visual workflow builder",
       "App integrations",
@@ -27421,7 +27421,7 @@
     "company": "n8n GmbH",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "400+ integrations",
       "AI agent nodes",
@@ -27453,7 +27453,7 @@
         {
           "name": "Starter",
           "price_amount": 20,
-          "price_display": "\u20ac20/month (billed annually)",
+          "price_display": "€20/month (billed annually)",
           "features": [
             "2,500 executions/mo",
             "5 concurrent executions",
@@ -27466,7 +27466,7 @@
         {
           "name": "Pro",
           "price_amount": 50,
-          "price_display": "\u20ac50/month (billed annually)",
+          "price_display": "€50/month (billed annually)",
           "features": [
             "10,000 executions/mo",
             "20 concurrent executions",
@@ -27479,7 +27479,7 @@
         {
           "name": "Business",
           "price_amount": 667,
-          "price_display": "\u20ac667/month (self-hosted, billed annually)",
+          "price_display": "€667/month (self-hosted, billed annually)",
           "features": [
             "40,000 executions/mo",
             "SSO/SAML/LDAP",
@@ -27562,7 +27562,7 @@
     "company": "Make",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Visual scenario builder",
       "1,500+ app integrations",
@@ -27678,7 +27678,7 @@
     "company": "Symbolab",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Step-by-step solutions",
       "Practice problems",
@@ -27780,7 +27780,7 @@
     "company": "Google / Kaggle",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Free GPU notebooks",
       "Hands-on exercises",
@@ -27823,7 +27823,7 @@
     "category": "Courses & Tutorials",
     "subCategory": "Deep Learning",
     "price": "Free",
-    "pricingDetail": "Free & open-source \u2014 free deep-learning courses and the fastai library",
+    "pricingDetail": "Free & open-source — free deep-learning courses and the fastai library",
     "bestFor": "Learning practical deep learning from a practitioner perspective rather than pure theory",
     "tags": [
       "deep learning",
@@ -27842,7 +27842,7 @@
     "apiAvailable": false,
     "openSource": true,
     "studentPerk": true,
-    "uniHack": "Take Practical Deep Learning for Coders before your ML course starts \u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u009d you will understand every lecture concept immediately from day one",
+    "uniHack": "Take Practical Deep Learning for Coders before your ML course starts Ã¢â‚¬â€ you will understand every lecture concept immediately from day one",
     "features": [
       "Video lectures",
       "Jupyter notebooks",
@@ -27870,7 +27870,7 @@
     "company": "fast.ai",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Video lectures",
       "Jupyter notebooks",
@@ -27961,7 +27961,7 @@
     "company": "Roam Research",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Block references",
       "Bidirectional links",
@@ -28065,7 +28065,7 @@
     "company": "Craft",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Block editor",
       "Deep links",
@@ -28193,7 +28193,7 @@
     "company": "Appest",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Pomodoro timer",
       "Habit tracker",
@@ -28267,7 +28267,7 @@
     "apiAvailable": false,
     "openSource": true,
     "studentPerk": true,
-    "uniHack": "Install Read Aloud and click play on any assigned web article to listen during lunch \u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u009d completely free with no limits",
+    "uniHack": "Install Read Aloud and click play on any assigned web article to listen during lunch Ã¢â‚¬â€ completely free with no limits",
     "features": [
       "Web page reading",
       "Speed control",
@@ -28295,7 +28295,7 @@
     "company": "Read Aloud",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Web page reading",
       "Speed control",
@@ -28385,7 +28385,7 @@
     "company": "Litmaps",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Citation network map",
       "Alert system",
@@ -28497,7 +28497,7 @@
     "company": "Inciteful",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Paper discovery",
       "Literature connector",
@@ -28587,7 +28587,7 @@
     "company": "Iris AI",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Paper clustering",
       "Concept extraction",
@@ -28629,7 +28629,7 @@
     "category": "Research",
     "subCategory": "Academic Search",
     "price": "Free",
-    "pricingDetail": "Completely free academic search engine \u2014 no paid tier.",
+    "pricingDetail": "Completely free academic search engine — no paid tier.",
     "bestFor": "Finding academic papers, patents, and citations across all disciplines",
     "tags": [
       "academic search",
@@ -28675,7 +28675,7 @@
     "company": "Google",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Paper search",
       "Citation tracking",
@@ -28736,7 +28736,7 @@
     "apiAvailable": true,
     "openSource": true,
     "studentPerk": true,
-    "uniHack": "Install Unpaywall and a green tab will appear on any paper that has a free legal version \u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u009d it finds them 50% of the time",
+    "uniHack": "Install Unpaywall and a green tab will appear on any paper that has a free legal version Ã¢â‚¬â€ it finds them 50% of the time",
     "features": [
       "Auto open-access detection",
       "PDF direct link",
@@ -28764,7 +28764,7 @@
     "company": "OurResearch",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Auto open-access detection",
       "PDF direct link",
@@ -28832,7 +28832,7 @@
     "company": "Raycast",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "App launcher",
       "AI commands",
@@ -28945,7 +28945,7 @@
     "company": "Adam Pietrasiak",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Auto zoom on click",
       "Animated background",
@@ -29018,7 +29018,7 @@
     "apiAvailable": true,
     "openSource": false,
     "studentPerk": true,
-    "uniHack": "Send a 3-minute Loom explaining your code to a team member instead of a long text message \u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u009d it saves back-and-forth instantly",
+    "uniHack": "Send a 3-minute Loom explaining your code to a team member instead of a long text message Ã¢â‚¬â€ it saves back-and-forth instantly",
     "features": [
       "Screen + cam recording",
       "Instant link sharing",
@@ -29049,7 +29049,7 @@
     "company": "Loom",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Screen + cam recording",
       "Instant link sharing",
@@ -29180,7 +29180,7 @@
     "company": "ByteDance",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "AI captions",
       "Text-to-video",
@@ -29255,7 +29255,7 @@
     "apiAvailable": false,
     "openSource": false,
     "studentPerk": true,
-    "uniHack": "Generate a slide deck draft with Plus AI inside Google Slides, then edit it like a normal deck \u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u009d no new tool to learn",
+    "uniHack": "Generate a slide deck draft with Plus AI inside Google Slides, then edit it like a normal deck Ã¢â‚¬â€ no new tool to learn",
     "features": [
       "Google Slides add-on",
       "PowerPoint add-on",
@@ -29283,7 +29283,7 @@
     "company": "Plus AI",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Google Slides add-on",
       "PowerPoint add-on",
@@ -29421,7 +29421,7 @@
     "company": "Popai",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Document to slides",
       "PDF chat",
@@ -29536,7 +29536,7 @@
     "company": "MeisterTask GmbH",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Real-time collaboration",
       "AI suggestions",
@@ -29665,7 +29665,7 @@
     "company": "XMind",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Multiple diagram types",
       "AI mind map generation",
@@ -29782,7 +29782,7 @@
     "company": "Miro",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Infinite canvas",
       "AI diagram generation",
@@ -29879,7 +29879,7 @@
     "apiAvailable": true,
     "openSource": true,
     "studentPerk": true,
-    "uniHack": "Use tldraw's AI to describe a wireframe in text and watch it generate the layout \u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u009d then refine by hand",
+    "uniHack": "Use tldraw's AI to describe a wireframe in text and watch it generate the layout Ã¢â‚¬â€ then refine by hand",
     "features": [
       "AI wireframe generation",
       "Real-time collaboration",
@@ -29907,7 +29907,7 @@
     "company": "tldraw",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "AI wireframe generation",
       "Real-time collaboration",
@@ -30009,7 +30009,7 @@
     "company": "Figma",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Component library",
       "Prototyping",
@@ -30107,7 +30107,7 @@
     "apiAvailable": false,
     "openSource": false,
     "studentPerk": true,
-    "uniHack": "Build your portfolio on Framer using the AI assistant to generate the initial layout \u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u009d it's faster than any template approach",
+    "uniHack": "Build your portfolio on Framer using the AI assistant to generate the initial layout Ã¢â‚¬â€ it's faster than any template approach",
     "features": [
       "AI site generation",
       "Visual code editor",
@@ -30136,7 +30136,7 @@
     "company": "Framer",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "AI site generation",
       "Visual code editor",
@@ -30265,7 +30265,7 @@
     "company": "Canva",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "AI image generation",
       "Magic Write",
@@ -30336,13 +30336,13 @@
   {
     "id": 376,
     "name": "GitHub Student Developer Pack",
-    "icon": "/static/icons/githubstudent.svg",
+    "icon": "https://github.com/githubeducation.png",
     "maker": "GitHub",
     "tagline": "Free access to $200K+ in developer tools for verified students",
     "category": "Coding",
     "subCategory": "Student Benefits",
     "price": "Free",
-    "pricingDetail": "Free for verified students \u2014 bundle of free developer tools & credits.",
+    "pricingDetail": "Free for verified students — bundle of free developer tools & credits.",
     "bestFor": "Getting free access to GitHub Copilot, domains, cloud credits, and 100+ tools",
     "tags": [
       "student benefits",
@@ -30361,7 +30361,7 @@
     "apiAvailable": false,
     "openSource": false,
     "studentPerk": true,
-    "uniHack": "Apply immediately upon enrollment \u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u009d the Student Pack includes GitHub Copilot, .me domain, cloud credits, and over 100 paid tools for free",
+    "uniHack": "Apply immediately upon enrollment Ã¢â‚¬â€ the Student Pack includes GitHub Copilot, .me domain, cloud credits, and over 100 paid tools for free",
     "features": [
       "GitHub Copilot free",
       "Cloud credits",
@@ -30389,7 +30389,7 @@
     "company": "GitHub",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "GitHub Copilot free",
       "Cloud credits",
@@ -30477,7 +30477,7 @@
     "company": "JetBrains",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "IntelliJ IDEA",
       "PyCharm",
@@ -30568,7 +30568,7 @@
     "company": "Microsoft",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Extension marketplace",
       "Integrated terminal",
@@ -30629,7 +30629,7 @@
     "apiAvailable": true,
     "openSource": false,
     "studentPerk": true,
-    "uniHack": "Start a coding project in Replit when working on a shared computer \u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u009d your environment is in the cloud and works identically everywhere",
+    "uniHack": "Start a coding project in Replit when working on a shared computer Ã¢â‚¬â€ your environment is in the cloud and works identically everywhere",
     "features": [
       "Browser coding",
       "AI agent",
@@ -30657,7 +30657,7 @@
     "company": "Replit",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Browser coding",
       "AI agent",
@@ -30749,7 +30749,7 @@
     "apiAvailable": false,
     "openSource": false,
     "studentPerk": true,
-    "uniHack": "Share a StackBlitz link when asking for help with code \u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u009d your TA can see and edit your exact running environment instantly",
+    "uniHack": "Share a StackBlitz link when asking for help with code Ã¢â‚¬â€ your TA can see and edit your exact running environment instantly",
     "features": [
       "WebContainers",
       "npm support",
@@ -30777,7 +30777,7 @@
     "company": "StackBlitz",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "WebContainers",
       "npm support",
@@ -30873,7 +30873,7 @@
     "apiAvailable": false,
     "openSource": false,
     "studentPerk": true,
-    "uniHack": "Start with NeetCode's free 150-problem roadmap on LeetCode rather than random problems \u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u009d it covers all patterns systematically",
+    "uniHack": "Start with NeetCode's free 150-problem roadmap on LeetCode rather than random problems Ã¢â‚¬â€ it covers all patterns systematically",
     "features": [
       "2500+ problems",
       "Company-specific lists",
@@ -30901,7 +30901,7 @@
     "company": "LeetCode",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "2500+ problems",
       "Company-specific lists",
@@ -30975,7 +30975,7 @@
     "apiAvailable": false,
     "openSource": false,
     "studentPerk": true,
-    "uniHack": "Follow the free NeetCode 150 roadmap in order \u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u009d it's the most efficient path to being interview-ready, taking 2\u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u01533 months of daily practice",
+    "uniHack": "Follow the free NeetCode 150 roadmap in order Ã¢â‚¬â€ it's the most efficient path to being interview-ready, taking 2Ã¢â‚¬â€œ3 months of daily practice",
     "features": [
       "150-problem roadmap",
       "Video explanations",
@@ -31003,7 +31003,7 @@
     "company": "NeetCode",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "150-problem roadmap",
       "Video explanations",
@@ -31089,7 +31089,7 @@
     "apiAvailable": false,
     "openSource": false,
     "studentPerk": true,
-    "uniHack": "Earn the Problem Solving certificate and display it on your LinkedIn \u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u009d recruiters specifically look for verified HackerRank skills",
+    "uniHack": "Earn the Problem Solving certificate and display it on your LinkedIn Ã¢â‚¬â€ recruiters specifically look for verified HackerRank skills",
     "features": [
       "Skill certifications",
       "Domain-specific tracks",
@@ -31117,7 +31117,7 @@
     "company": "HackerRank",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Skill certifications",
       "Domain-specific tracks",
@@ -31196,7 +31196,7 @@
     "category": "Courses & Tutorials",
     "subCategory": "Computer Science Education",
     "price": "Free",
-    "pricingDetail": "Free \u2014 Harvard CS50 full course is free; optional verified certificate via edX (paid)",
+    "pricingDetail": "Free — Harvard CS50 full course is free; optional verified certificate via edX (paid)",
     "bestFor": "Building the strongest possible CS foundations from Harvard's world-famous course",
     "tags": [
       "computer science",
@@ -31215,7 +31215,7 @@
     "apiAvailable": false,
     "openSource": false,
     "studentPerk": true,
-    "uniHack": "Take CS50 the summer before your first CS course \u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u009d students who do this consistently outperform their peers all semester",
+    "uniHack": "Take CS50 the summer before your first CS course Ã¢â‚¬â€ students who do this consistently outperform their peers all semester",
     "features": [
       "Problem sets",
       "Final project",
@@ -31243,7 +31243,7 @@
     "company": "Harvard University",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Problem sets",
       "Final project",
@@ -31293,7 +31293,7 @@
     "name": "Remnote",
     "icon": "/static/icons/remnote.svg",
     "maker": "RemNote",
-    "tagline": "Note-taking app with built-in spaced repetition \u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u009d take notes once, learn forever",
+    "tagline": "Note-taking app with built-in spaced repetition Ã¢â‚¬â€ take notes once, learn forever",
     "category": "Writing & Chat",
     "subCategory": "Notes + Flashcards",
     "price": "Freemium",
@@ -31316,7 +31316,7 @@
     "apiAvailable": false,
     "openSource": false,
     "studentPerk": true,
-    "uniHack": "Format key facts in your lecture notes as RemNote flashcard format \u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u009d they automatically become spaced repetition cards without any extra work",
+    "uniHack": "Format key facts in your lecture notes as RemNote flashcard format Ã¢â‚¬â€ they automatically become spaced repetition cards without any extra work",
     "features": [
       "Integrated flashcards",
       "PDF annotation",
@@ -31347,7 +31347,7 @@
     "company": "RemNote",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Integrated flashcards",
       "PDF annotation",
@@ -31464,7 +31464,7 @@
     "company": "SuperMemo World",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "SM-18 algorithm",
       "Knowledge base",
@@ -31529,7 +31529,7 @@
     "subCategory": "All-in-one Workspace",
     "price": "Freemium",
     "pricingDetail": "Free tier; Plus $10/month; Business $20/month; Enterprise custom",
-    "bestFor": "Organizing all academic work \u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u009d notes, projects, references, and databases in one place",
+    "bestFor": "Organizing all academic work Ã¢â‚¬â€ notes, projects, references, and databases in one place",
     "tags": [
       "notes",
       "workspace",
@@ -31578,7 +31578,7 @@
     "company": "Notion Labs",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "AI writing assistant",
       "Databases",
@@ -31706,7 +31706,7 @@
     "company": "Readwise",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Daily review emails",
       "Kindle import",
@@ -31780,7 +31780,7 @@
     "apiAvailable": true,
     "openSource": false,
     "studentPerk": true,
-    "uniHack": "Save any article or research page to Pocket for clean offline reading during commutes \u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u009d it strips all ads and formatting distractions",
+    "uniHack": "Save any article or research page to Pocket for clean offline reading during commutes Ã¢â‚¬â€ it strips all ads and formatting distractions",
     "features": [
       "Save to read later",
       "Text-to-speech",
@@ -31811,7 +31811,7 @@
     "company": "Mozilla",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Save to read later",
       "Text-to-speech",
@@ -31881,7 +31881,7 @@
     "company": "Feedly",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "AI digest",
       "Research boards",
@@ -32009,7 +32009,7 @@
     "company": "Innologics",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Keyword rules",
       "Active search subscriptions",
@@ -32095,7 +32095,7 @@
     "apiAvailable": false,
     "openSource": false,
     "studentPerk": true,
-    "uniHack": "Use Camo for virtual job interviews \u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u009d your iPhone camera dramatically outperforms your laptop webcam at no additional hardware cost",
+    "uniHack": "Use Camo for virtual job interviews Ã¢â‚¬â€ your iPhone camera dramatically outperforms your laptop webcam at no additional hardware cost",
     "features": [
       "iPhone camera",
       "Controls overlay",
@@ -32124,7 +32124,7 @@
     "company": "Reincubate",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "iPhone camera",
       "Controls overlay",
@@ -32261,7 +32261,7 @@
     "company": "Brain.fm",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Focus music",
       "Relaxation",
@@ -32366,7 +32366,7 @@
     "company": "Endel",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Circadian adaptation",
       "Heart rate input",
@@ -32406,7 +32406,7 @@
     "apiAvailable": false,
     "openSource": false,
     "studentPerk": true,
-    "uniHack": "Check if your public library card gives free LinkedIn Learning access \u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u009d most city libraries in the US and UK include it",
+    "uniHack": "Check if your public library card gives free LinkedIn Learning access Ã¢â‚¬â€ most city libraries in the US and UK include it",
     "features": [
       "LinkedIn certificate",
       "Expert instructors",
@@ -32436,7 +32436,7 @@
     "company": "LinkedIn",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "LinkedIn certificate",
       "Expert instructors",
@@ -32540,7 +32540,7 @@
     "company": "Community",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Shared deck library",
       "Audio pronunciation",
@@ -32640,7 +32640,7 @@
     "company": "Allen Institute for AI",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Personalized feed",
       "Save papers",
@@ -32661,7 +32661,7 @@
     "category": "Writing & Chat",
     "subCategory": "AI Writing",
     "price": "Paid",
-    "pricingDetail": "No free tier; Pro $40/user/month (Agent OS \u2014 product pivoted from cohesive.so); Enterprise custom",
+    "pricingDetail": "No free tier; Pro $40/user/month (Agent OS — product pivoted from cohesive.so); Enterprise custom",
     "bestFor": "Refining essay drafts in real time with inline AI suggestions",
     "tags": [
       "writing",
@@ -32706,7 +32706,7 @@
     "company": "Cohesive AI",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Real-time editing",
       "Content templates",
@@ -32779,7 +32779,7 @@
     "apiAvailable": false,
     "openSource": false,
     "studentPerk": true,
-    "uniHack": "Switch to YouCode mode for programming questions \u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u009d it searches Stack Overflow, GitHub, and documentation simultaneously",
+    "uniHack": "Switch to YouCode mode for programming questions Ã¢â‚¬â€ it searches Stack Overflow, GitHub, and documentation simultaneously",
     "features": [
       "Multiple AI modes",
       "YouCode",
@@ -32807,7 +32807,7 @@
     "company": "You.com",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Multiple AI modes",
       "YouCode",
@@ -32917,7 +32917,7 @@
     "company": "Tavily",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "AI-optimized search",
       "Answer extraction",
@@ -33042,7 +33042,7 @@
     "company": "Google",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Google Docs AI",
       "Unlimited Drive",
@@ -33126,7 +33126,7 @@
     "apiAvailable": true,
     "openSource": false,
     "studentPerk": true,
-    "uniHack": "Install Dropbox alongside Google Drive to maintain a backup of critical thesis files \u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u009d never lose months of work to a single device failure",
+    "uniHack": "Install Dropbox alongside Google Drive to maintain a backup of critical thesis files Ã¢â‚¬â€ never lose months of work to a single device failure",
     "features": [
       "File sync",
       "Collaboration",
@@ -33157,7 +33157,7 @@
     "company": "Dropbox",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "File sync",
       "Collaboration",
@@ -33254,7 +33254,7 @@
     "apiAvailable": true,
     "openSource": false,
     "studentPerk": true,
-    "uniHack": "Check if your university provides Box through their IT department \u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u009d many institutions offer unlimited Box storage to students for research data",
+    "uniHack": "Check if your university provides Box through their IT department Ã¢â‚¬â€ many institutions offer unlimited Box storage to students for research data",
     "features": [
       "Unlimited storage via university",
       "AI document insights",
@@ -33285,7 +33285,7 @@
     "company": "Box",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Unlimited storage via university",
       "AI document insights",
@@ -33433,7 +33433,7 @@
     "company": "Microsoft",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Video meetings",
       "Chat",
@@ -33562,7 +33562,7 @@
     "company": "Zoom Video Communications",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "HD video meetings",
       "AI Companion",
@@ -33659,7 +33659,7 @@
     "apiAvailable": true,
     "openSource": false,
     "studentPerk": true,
-    "uniHack": "Search Dimensions for researcher profiles when preparing for professor meetings or informational interviews \u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u009d it shows their full publication history",
+    "uniHack": "Search Dimensions for researcher profiles when preparing for professor meetings or informational interviews Ã¢â‚¬â€ it shows their full publication history",
     "features": [
       "100M+ publications",
       "Grant database",
@@ -33687,7 +33687,7 @@
     "company": "Digital Science",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "100M+ publications",
       "Grant database",
@@ -33793,7 +33793,7 @@
     "company": "Mathpix",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Equation OCR",
       "LaTeX output",
@@ -33885,7 +33885,7 @@
     "apiAvailable": false,
     "openSource": true,
     "studentPerk": true,
-    "uniHack": "Draw any symbol you see in a paper on Detexify to instantly get its LaTeX command \u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u009d no more hunting through symbol tables",
+    "uniHack": "Draw any symbol you see in a paper on Detexify to instantly get its LaTeX command Ã¢â‚¬â€ no more hunting through symbol tables",
     "features": [
       "Draw to find symbol",
       "LaTeX command",
@@ -33913,7 +33913,7 @@
     "company": "detexify team",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Draw to find symbol",
       "LaTeX command",
@@ -33975,7 +33975,7 @@
     "apiAvailable": false,
     "openSource": false,
     "studentPerk": true,
-    "uniHack": "Use Chegg for understanding solution methods on similar practice problems, not for copying homework \u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u009d understanding the approach is what helps on exams",
+    "uniHack": "Use Chegg for understanding solution methods on similar practice problems, not for copying homework Ã¢â‚¬â€ understanding the approach is what helps on exams",
     "features": [
       "Textbook solutions",
       "Expert Q&A",
@@ -34005,7 +34005,7 @@
     "company": "Chegg",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Textbook solutions",
       "Expert Q&A",
@@ -34109,7 +34109,7 @@
     "company": "Course Hero",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Crowdsourced documents",
       "AI tutor",
@@ -34221,7 +34221,7 @@
     "company": "Hugging Face",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Free CPU hosting",
       "Gradio and Streamlit support",
@@ -34318,7 +34318,7 @@
     "apiAvailable": false,
     "openSource": false,
     "studentPerk": true,
-    "uniHack": "Describe a multi-step research task \u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u009d Manus will search the web, compile sources, and produce a structured report autonomously",
+    "uniHack": "Describe a multi-step research task Ã¢â‚¬â€ Manus will search the web, compile sources, and produce a structured report autonomously",
     "features": [
       "Autonomous task execution",
       "Web browsing",
@@ -34346,7 +34346,7 @@
     "company": "Monica AI",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Autonomous task execution",
       "Web browsing",
@@ -34473,7 +34473,7 @@
     "company": "Liner",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "PDF highlighting",
       "AI explanation",
@@ -34557,7 +34557,7 @@
     "apiAvailable": false,
     "openSource": false,
     "studentPerk": true,
-    "uniHack": "Fathom is completely free for individuals \u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u009d use it to record every online lecture and get a summary and action items automatically",
+    "uniHack": "Fathom is completely free for individuals Ã¢â‚¬â€ use it to record every online lecture and get a summary and action items automatically",
     "features": [
       "Free unlimited recording",
       "AI highlights",
@@ -34585,7 +34585,7 @@
     "company": "Fathom Video",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Free unlimited recording",
       "AI highlights",
@@ -34711,7 +34711,7 @@
     "company": "Tactiq",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Real-time transcript",
       "AI summary",
@@ -34825,7 +34825,7 @@
     "company": "Notebook AI",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Character sheets",
       "World building",
@@ -34928,7 +34928,7 @@
     "company": "Sudowrite",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Story engine",
       "Describe tool",
@@ -35048,7 +35048,7 @@
     "company": "Anlatan",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "AI storytelling",
       "Custom AI modules",
@@ -35172,7 +35172,7 @@
     "company": "Squibler",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Screenplay format",
       "AI writing assistant",
@@ -35285,7 +35285,7 @@
     "company": "Google",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Gemini content generation",
       "Speaker notes AI",
@@ -35345,7 +35345,7 @@
     "name": "Mapify",
     "icon": "/static/icons/mapify.svg",
     "maker": "Mapify",
-    "tagline": "Convert any content \u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u009d URLs, PDFs, videos \u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u009d into AI mind maps instantly",
+    "tagline": "Convert any content Ã¢â‚¬â€ URLs, PDFs, videos Ã¢â‚¬â€ into AI mind maps instantly",
     "category": "Productivity",
     "subCategory": "Mind Mapping",
     "price": "Freemium",
@@ -35380,7 +35380,7 @@
     ],
     "languages": "15+",
     "launchYear": 2023,
-    "description": "Mapify converts any input \u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u009d a URL, PDF, YouTube video, or plain text \u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u009d into a structured mind map automatically, making it the fastest way to visually understand any content. Students paste lecture video links or paper URLs and receive a navigable mind map within seconds, skipping the manual effort of building maps from notes. The export options allow saving maps to Notion, PDF, or image formats.",
+    "description": "Mapify converts any input Ã¢â‚¬â€ a URL, PDF, YouTube video, or plain text Ã¢â‚¬â€ into a structured mind map automatically, making it the fastest way to visually understand any content. Students paste lecture video links or paper URLs and receive a navigable mind map within seconds, skipping the manual effort of building maps from notes. The export options allow saving maps to Notion, PDF, or image formats.",
     "pricing_tier": "Freemium",
     "difficulty": "advanced",
     "student_friendly": true,
@@ -35396,7 +35396,7 @@
     "company": "Mapify",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "URL to mind map",
       "PDF to mind map",
@@ -35519,7 +35519,7 @@
     "company": "Jenni AI",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "AI autocomplete",
       "Auto-citation",
@@ -35632,7 +35632,7 @@
     "company": "Lateral",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Theme extraction",
       "Visual mapping",
@@ -35698,7 +35698,7 @@
     "company": "Lumina",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Scientific Q&A",
       "Paper citations",
@@ -35738,7 +35738,7 @@
     "apiAvailable": true,
     "openSource": false,
     "studentPerk": true,
-    "uniHack": "Use Pieces to auto-save every useful code snippet you find during tutorials \u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u009d build a personal searchable snippet library for exam revision",
+    "uniHack": "Use Pieces to auto-save every useful code snippet you find during tutorials Ã¢â‚¬â€ build a personal searchable snippet library for exam revision",
     "features": [
       "Auto snippet capture",
       "AI search",
@@ -35766,7 +35766,7 @@
     "company": "Mesh Intelligent Technologies",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Auto snippet capture",
       "AI search",
@@ -35878,7 +35878,7 @@
     "company": "CodeRabbit",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "PR line comments",
       "Security checks",
@@ -35976,7 +35976,7 @@
     "apiAvailable": false,
     "openSource": false,
     "studentPerk": true,
-    "uniHack": "Use the Mintlify VS Code extension to generate docstrings for every function in your assignment before submission \u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u009d professors notice documentation quality",
+    "uniHack": "Use the Mintlify VS Code extension to generate docstrings for every function in your assignment before submission Ã¢â‚¬â€ professors notice documentation quality",
     "features": [
       "Auto docstring generation",
       "VS Code extension",
@@ -36005,7 +36005,7 @@
     "company": "Mintlify",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Auto docstring generation",
       "VS Code extension",
@@ -36073,7 +36073,7 @@
     "category": "Coding",
     "subCategory": "Code Intelligence",
     "price": "Paid",
-    "pricingDetail": "Enterprise only \u2014 $59/user/month. Free & Pro plans were discontinued July 2025; individual users moved to Amp (free).",
+    "pricingDetail": "Enterprise only — $59/user/month. Free & Pro plans were discontinued July 2025; individual users moved to Amp (free).",
     "bestFor": "Understanding large unfamiliar codebases quickly for internships and group projects",
     "tags": [
       "code search",
@@ -36092,7 +36092,7 @@
     "apiAvailable": true,
     "openSource": true,
     "studentPerk": true,
-    "uniHack": "Use Cody when joining a group project mid-semester \u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u009d ask it to explain any file or function in the existing codebase instantly",
+    "uniHack": "Use Cody when joining a group project mid-semester Ã¢â‚¬â€ ask it to explain any file or function in the existing codebase instantly",
     "features": [
       "Codebase Q&A",
       "Multi-repo search",
@@ -36121,7 +36121,7 @@
     "company": "Sourcegraph",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Codebase Q&A",
       "Multi-repo search",
@@ -36212,7 +36212,7 @@
     "company": "Locofy.ai",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Figma to React",
       "Next.js export",
@@ -36291,7 +36291,7 @@
     "category": "Coding",
     "subCategory": "Client-side AI",
     "price": "Freemium",
-    "pricingDetail": "Free ($0, 2 GB); Starter $39/month (10 GB); Growth $149/month (50 GB); Custom \u2014 contact sales",
+    "pricingDetail": "Free ($0, 2 GB); Starter $39/month (10 GB); Growth $149/month (50 GB); Custom — contact sales",
     "bestFor": "CS students learning to run AI models client-side in web applications",
     "tags": [
       "WebGPU",
@@ -36310,7 +36310,7 @@
     "apiAvailable": true,
     "openSource": true,
     "studentPerk": true,
-    "uniHack": "Build a privacy-preserving AI web app for your capstone that runs Llama entirely in the user's browser \u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u009d no server costs needed",
+    "uniHack": "Build a privacy-preserving AI web app for your capstone that runs Llama entirely in the user's browser Ã¢â‚¬â€ no server costs needed",
     "features": [
       "In-browser inference",
       "WebGPU acceleration",
@@ -36338,7 +36338,7 @@
     "company": "Browser AI",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "In-browser inference",
       "WebGPU acceleration",
@@ -36461,7 +36461,7 @@
     "company": "Hex Technologies",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Notebook to app",
       "AI SQL generation",
@@ -36591,7 +36591,7 @@
     "company": "Adobe",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "AI denoise",
       "Subject masking",
@@ -36693,7 +36693,7 @@
     "company": "Inmagine Group",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "AI background removal",
       "Generative AI fill",
@@ -36815,7 +36815,7 @@
     "company": "Luma AI",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Realistic physics",
       "Extend video",
@@ -36922,7 +36922,7 @@
     "apiAvailable": true,
     "openSource": false,
     "studentPerk": true,
-    "uniHack": "Build a functioning mobile app for your entrepreneurship course project using a Google Sheet as the database \u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u009d zero coding required",
+    "uniHack": "Build a functioning mobile app for your entrepreneurship course project using a Google Sheet as the database Ã¢â‚¬â€ zero coding required",
     "features": [
       "Spreadsheet to app",
       "AI column generation",
@@ -36950,7 +36950,7 @@
     "company": "Glide",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [
       "Spreadsheet to app",
       "AI column generation",
@@ -37448,7 +37448,7 @@
   {
     "name": "Antigravity",
     "slug": "antigravity",
-    "description": "Google Antigravity is an AI-powered agentic development platform launched November 2025 alongside Gemini 3. It runs cloud-hosted agents that build, run, debug, and ship full-stack applications from natural-language prompts \u2014 no local toolchain required. Currently in public preview, free for individuals.",
+    "description": "Google Antigravity is an AI-powered agentic development platform launched November 2025 alongside Gemini 3. It runs cloud-hosted agents that build, run, debug, and ship full-stack applications from natural-language prompts — no local toolchain required. Currently in public preview, free for individuals.",
     "category": "Coding",
     "pricing": "Freemium",
     "url": "https://antigravity.google",
@@ -37464,7 +37464,7 @@
     ],
     "maker": "Google",
     "company": "Google",
-    "logo_emoji": "\ud83d\ude80",
+    "logo_emoji": "🚀",
     "student_friendly": true,
     "student_perk": true,
     "featured": false,
@@ -37713,7 +37713,7 @@
     "category": "Coding",
     "subCategory": "LLM API",
     "price": "Freemium",
-    "pricingDetail": "No subscription \u2014 pay-as-you-go credits across all models; some free models available; small fee on credit purchases.",
+    "pricingDetail": "No subscription — pay-as-you-go credits across all models; some free models available; small fee on credit purchases.",
     "bestFor": "Comparing LLM models, optimizing costs, and switching providers without code changes",
     "tags": [
       "api",
@@ -37760,7 +37760,7 @@
     "company": "OpenRouter",
     "review_count": 0,
     "featured": false,
-    "logo_emoji": "\ud83d\udd00",
+    "logo_emoji": "🔀",
     "student_perk": true,
     "strengths": [
       "Access 200+ LLM models",
@@ -37834,7 +37834,7 @@
     "apiAvailable": false,
     "openSource": false,
     "studentPerk": true,
-    "uniHack": "Prompt for ambient sound (e.g., 'rain on a metal roof') even on quiet visual clips \u2014 Veo's audio layer adds atmosphere most video tools require manual sound design for.",
+    "uniHack": "Prompt for ambient sound (e.g., 'rain on a metal roof') even on quiet visual clips — Veo's audio layer adds atmosphere most video tools require manual sound design for.",
     "features": [
       "Native audio and dialogue generation",
       "Lip-sync for character speech",
@@ -37857,7 +37857,7 @@
     "student_friendly": true,
     "review_count": 0,
     "company": "Google DeepMind",
-    "logo_emoji": "\ud83d\udcf9",
+    "logo_emoji": "📹",
     "pricing_tier": "Paid",
     "popularity_score": 0,
     "weekly_users_estimate": null,
@@ -37899,7 +37899,7 @@
     "apiAvailable": false,
     "openSource": false,
     "studentPerk": true,
-    "uniHack": "The free credit refresh is daily \u2014 schedule generations across days for longer projects instead of one big paid session.",
+    "uniHack": "The free credit refresh is daily — schedule generations across days for longer projects instead of one big paid session.",
     "features": [
       "Text-to-video and image-to-video",
       "Longer-duration clips",
@@ -37922,7 +37922,7 @@
     "student_friendly": true,
     "review_count": 0,
     "company": "MiniMax",
-    "logo_emoji": "\ud83c\udf0a",
+    "logo_emoji": "🌊",
     "pricing_tier": "Freemium",
     "popularity_score": 0,
     "weekly_users_estimate": null,
@@ -38031,7 +38031,7 @@
     "apiAvailable": false,
     "openSource": false,
     "studentPerk": true,
-    "uniHack": "Browse the camera motion library before writing your prompt \u2014 picking a motion template first shapes the prompt more effectively than writing a prompt and hoping camera motion follows.",
+    "uniHack": "Browse the camera motion library before writing your prompt — picking a motion template first shapes the prompt more effectively than writing a prompt and hoping camera motion follows.",
     "features": [
       "Pre-set camera motion templates (dolly, crash zoom, etc.)",
       "Character consistency",
@@ -38043,7 +38043,7 @@
     ],
     "languages": "English",
     "launchYear": 2024,
-    "description": "Higgsfield AI specializes in director-style camera moves applied to AI video \u2014 crash zoom, vertigo, dolly out, FPV \u2014 accessible as templates rather than requiring prompt expertise. Useful for stylized content where camera motion matters.",
+    "description": "Higgsfield AI specializes in director-style camera moves applied to AI video — crash zoom, vertigo, dolly out, FPV — accessible as templates rather than requiring prompt expertise. Useful for stylized content where camera motion matters.",
     "use_cases": [
       "Stylized social content",
       "Film school exercises",
@@ -38054,7 +38054,7 @@
     "student_friendly": true,
     "review_count": 0,
     "company": "Higgsfield",
-    "logo_emoji": "\ud83c\udf9e\ufe0f",
+    "logo_emoji": "🎞️",
     "pricing_tier": "Freemium",
     "popularity_score": 0,
     "weekly_users_estimate": null,
@@ -38148,7 +38148,7 @@
     "apiAvailable": false,
     "openSource": false,
     "studentPerk": true,
-    "uniHack": "Type sparse notes during class focusing on questions you have and key terms \u2014 Granola fills in the missing context from the lecture audio when you process notes later.",
+    "uniHack": "Type sparse notes during class focusing on questions you have and key terms — Granola fills in the missing context from the lecture audio when you process notes later.",
     "features": [
       "Background meeting capture without a bot joining",
       "AI enhances your own typed notes",
@@ -38160,7 +38160,7 @@
     ],
     "languages": "English",
     "launchYear": 2024,
-    "description": "Granola is an AI notepad that runs alongside you during meetings \u2014 you take normal notes while it captures audio in the background, then enhances your notes with what you missed. No bot joining the meeting, no awkward 'is this being recorded' moments.",
+    "description": "Granola is an AI notepad that runs alongside you during meetings — you take normal notes while it captures audio in the background, then enhances your notes with what you missed. No bot joining the meeting, no awkward 'is this being recorded' moments.",
     "use_cases": [
       "Class lectures where you take partial notes",
       "Project meetings",
@@ -38171,14 +38171,14 @@
     "student_friendly": true,
     "review_count": 0,
     "company": "Granola",
-    "logo_emoji": "\ud83e\udd63",
+    "logo_emoji": "🥣",
     "pricing_tier": "Freemium",
     "popularity_score": 0,
     "weekly_users_estimate": null,
     "pricing": "Freemium",
     "student_perk": true,
     "strengths": [
-      "No meeting bot \u2014 Mac native audio capture is invisible to other participants",
+      "No meeting bot — Mac native audio capture is invisible to other participants",
       "Enhances your notes rather than replacing them",
       "Strong design and UX"
     ],
@@ -38288,7 +38288,7 @@
     "student_friendly": true,
     "review_count": 0,
     "company": "tl;dv",
-    "logo_emoji": "\u23f1\ufe0f",
+    "logo_emoji": "⏱️",
     "pricing_tier": "Freemium",
     "popularity_score": 0,
     "weekly_users_estimate": null,
@@ -38382,7 +38382,7 @@
     "apiAvailable": false,
     "openSource": false,
     "studentPerk": true,
-    "uniHack": "Ask AskFred questions like 'what did Professor X say about the final exam format' across your entire recorded semester \u2014 works as a personal lecture search engine.",
+    "uniHack": "Ask AskFred questions like 'what did Professor X say about the final exam format' across your entire recorded semester — works as a personal lecture search engine.",
     "features": [
       "Auto-join meetings via calendar integration",
       "Topic tracking across conversations",
@@ -38394,7 +38394,7 @@
     ],
     "languages": "English",
     "launchYear": 2016,
-    "description": "Fireflies.ai handles meeting transcription plus conversation analytics \u2014 topic tracking, sentiment patterns, and natural-language search across your entire meeting history via the AskFred assistant.",
+    "description": "Fireflies.ai handles meeting transcription plus conversation analytics — topic tracking, sentiment patterns, and natural-language search across your entire meeting history via the AskFred assistant.",
     "use_cases": [
       "Tracking themes across a semester of meetings",
       "Research interview analysis",
@@ -38405,7 +38405,7 @@
     "student_friendly": true,
     "review_count": 0,
     "company": "Fireflies.ai",
-    "logo_emoji": "\ud83d\udc1d",
+    "logo_emoji": "🐝",
     "pricing_tier": "Freemium",
     "popularity_score": 0,
     "weekly_users_estimate": null,
@@ -38514,7 +38514,7 @@
     "apiAvailable": false,
     "openSource": true,
     "studentPerk": true,
-    "uniHack": "Use FLUX.1 Schnell (free, fast) for prompt iteration, then re-run the winning prompts through FLUX.1 Pro (paid, higher quality) for final outputs \u2014 saves credits vs running every iteration through Pro.",
+    "uniHack": "Use FLUX.1 Schnell (free, fast) for prompt iteration, then re-run the winning prompts through FLUX.1 Pro (paid, higher quality) for final outputs — saves credits vs running every iteration through Pro.",
     "features": [
       "Open-weights model (FLUX.1)",
       "Strong prompt adherence vs alternatives",
@@ -38526,7 +38526,7 @@
     ],
     "languages": "English",
     "launchYear": 2024,
-    "description": "Flux from Black Forest Labs is the leading open-weights image generation model \u2014 considered state-of-the-art for prompt adherence and quality, available both for local use and through hosted services. Built by former Stable Diffusion researchers.",
+    "description": "Flux from Black Forest Labs is the leading open-weights image generation model — considered state-of-the-art for prompt adherence and quality, available both for local use and through hosted services. Built by former Stable Diffusion researchers.",
     "use_cases": [
       "Project visuals where prompt accuracy matters",
       "Reference images for design work",
@@ -38537,7 +38537,7 @@
     "student_friendly": true,
     "review_count": 0,
     "company": "Black Forest Labs",
-    "logo_emoji": "\ud83d\udd2e",
+    "logo_emoji": "🔮",
     "pricing_tier": "Freemium",
     "popularity_score": 0,
     "weekly_users_estimate": null,
@@ -38580,7 +38580,7 @@
     "apiAvailable": false,
     "openSource": false,
     "studentPerk": true,
-    "uniHack": "Lock a brand style on your first generation, then generate every subsequent image in the same style \u2014 useful for a presentation deck where all visuals should match.",
+    "uniHack": "Lock a brand style on your first generation, then generate every subsequent image in the same style — useful for a presentation deck where all visuals should match.",
     "features": [
       "Vector (SVG) generation, not just raster",
       "Brand style locks for consistent output",
@@ -38592,7 +38592,7 @@
     ],
     "languages": "English",
     "launchYear": 2023,
-    "description": "Recraft generates vector graphics (SVG) and brand-consistent imagery \u2014 uncommon among AI image generators that typically output raster (PNG/JPG). Useful when you need editable graphics or visual series that share a style.",
+    "description": "Recraft generates vector graphics (SVG) and brand-consistent imagery — uncommon among AI image generators that typically output raster (PNG/JPG). Useful when you need editable graphics or visual series that share a style.",
     "use_cases": [
       "Class project icon sets",
       "Brand identity exploration",
@@ -38603,7 +38603,7 @@
     "student_friendly": true,
     "review_count": 0,
     "company": "Recraft AI",
-    "logo_emoji": "\ud83c\udfa8",
+    "logo_emoji": "🎨",
     "pricing_tier": "Freemium",
     "popularity_score": 0,
     "weekly_users_estimate": null,
@@ -38697,7 +38697,7 @@
     "apiAvailable": false,
     "openSource": false,
     "studentPerk": true,
-    "uniHack": "Use Reve for the hero image of any project, then Flux or Ideogram for supporting visuals \u2014 Reve's per-image quality is high enough to justify saving credits for the single most-important shot.",
+    "uniHack": "Use Reve for the hero image of any project, then Flux or Ideogram for supporting visuals — Reve's per-image quality is high enough to justify saving credits for the single most-important shot.",
     "features": [
       "High-quality text-to-image",
       "Strong prompt adherence",
@@ -38709,7 +38709,7 @@
     ],
     "languages": "English",
     "launchYear": 2025,
-    "description": "Reve Image is a newer entrant in AI image generation focused on aesthetic quality \u2014 outputs that feel intentional and polished rather than generic. Particularly strong at portrait and editorial-style imagery.",
+    "description": "Reve Image is a newer entrant in AI image generation focused on aesthetic quality — outputs that feel intentional and polished rather than generic. Particularly strong at portrait and editorial-style imagery.",
     "use_cases": [
       "Portfolio-quality project visuals",
       "Marketing or social content needing polish",
@@ -38720,7 +38720,7 @@
     "student_friendly": true,
     "review_count": 0,
     "company": "Reve",
-    "logo_emoji": "\ud83d\udcad",
+    "logo_emoji": "💭",
     "pricing_tier": "Freemium",
     "popularity_score": 0,
     "weekly_users_estimate": null,
@@ -38808,7 +38808,7 @@
     "apiAvailable": false,
     "openSource": false,
     "studentPerk": true,
-    "uniHack": "Start with 'build me a simple X then I'll add features' rather than describing the whole app upfront \u2014 Bolt handles iteration better than one giant prompt.",
+    "uniHack": "Start with 'build me a simple X then I'll add features' rather than describing the whole app upfront — Bolt handles iteration better than one giant prompt.",
     "features": [
       "Runs Node.js in browser via WebContainers",
       "Generates Vite, React, Next.js, Vue, Svelte apps",
@@ -38820,7 +38820,7 @@
     ],
     "languages": "English",
     "launchYear": 2024,
-    "description": "Bolt.new from StackBlitz lets you generate and run full-stack web applications entirely in the browser via WebContainers \u2014 no local Node, npm, or framework setup. Ask in natural language and watch it build, preview, and deploy.",
+    "description": "Bolt.new from StackBlitz lets you generate and run full-stack web applications entirely in the browser via WebContainers — no local Node, npm, or framework setup. Ask in natural language and watch it build, preview, and deploy.",
     "use_cases": [
       "Hackathon prototypes",
       "Class project demos",
@@ -38831,7 +38831,7 @@
     "student_friendly": true,
     "review_count": 0,
     "company": "StackBlitz",
-    "logo_emoji": "\u26a1",
+    "logo_emoji": "⚡",
     "pricing_tier": "Freemium",
     "popularity_score": 0,
     "weekly_users_estimate": null,
@@ -38924,7 +38924,7 @@
     "category": "Coding",
     "subCategory": "AI Coding Agent",
     "price": "Free",
-    "pricingDetail": "Free & open-source VS Code extension \u2014 bring your own API key; you pay the model provider directly.",
+    "pricingDetail": "Free & open-source VS Code extension — bring your own API key; you pay the model provider directly.",
     "bestFor": "Agentic coding in VS Code with your choice of LLM provider",
     "tags": [
       "ai-coding",
@@ -38941,7 +38941,7 @@
     "apiAvailable": true,
     "openSource": true,
     "studentPerk": true,
-    "uniHack": "Use Cline's plan mode first to see what it would do before approving \u2014 gives you a free review of an LLM's intended changes before any API tokens get spent on execution.",
+    "uniHack": "Use Cline's plan mode first to see what it would do before approving — gives you a free review of an LLM's intended changes before any API tokens get spent on execution.",
     "features": [
       "Multi-file edits with diff approval",
       "Terminal command execution with approval",
@@ -38953,7 +38953,7 @@
     ],
     "languages": "English",
     "launchYear": 2024,
-    "description": "Cline is an open-source autonomous coding agent for VS Code. Bring your own API key (Claude, GPT, etc.) and Cline plans multi-file edits, runs terminal commands (with your approval), and can preview changes in a browser \u2014 all within your editor.",
+    "description": "Cline is an open-source autonomous coding agent for VS Code. Bring your own API key (Claude, GPT, etc.) and Cline plans multi-file edits, runs terminal commands (with your approval), and can preview changes in a browser — all within your editor.",
     "use_cases": [
       "Refactoring projects across files",
       "Implementing features from specifications",
@@ -38964,7 +38964,7 @@
     "student_friendly": true,
     "review_count": 0,
     "company": "Cline (open source)",
-    "logo_emoji": "\ud83d\udcbb",
+    "logo_emoji": "💻",
     "pricing_tier": "Free",
     "popularity_score": 0,
     "weekly_users_estimate": null,
@@ -39027,7 +39027,7 @@
     "apiAvailable": true,
     "openSource": false,
     "studentPerk": true,
-    "uniHack": "Devin's price point makes it impractical for personal use, but if your university or workplace has access, queue well-scoped tasks (clear bug reports with repro) rather than vague feature asks \u2014 the more constrained the task, the better Devin performs.",
+    "uniHack": "Devin's price point makes it impractical for personal use, but if your university or workplace has access, queue well-scoped tasks (clear bug reports with repro) rather than vague feature asks — the more constrained the task, the better Devin performs.",
     "features": [
       "End-to-end task completion (read brief, plan, code, test)",
       "Sandboxed execution environment",
@@ -39050,7 +39050,7 @@
     "student_friendly": true,
     "review_count": 0,
     "company": "Cognition",
-    "logo_emoji": "\ud83e\udde0",
+    "logo_emoji": "🧠",
     "pricing_tier": "Paid",
     "popularity_score": 0,
     "weekly_users_estimate": null,
@@ -39145,7 +39145,7 @@
     "apiAvailable": false,
     "openSource": false,
     "studentPerk": true,
-    "uniHack": "Pose your research question as a full sentence, not keywords \u2014 Undermind is built to handle 'how does X relate to Y in context Z' better than Google Scholar.",
+    "uniHack": "Pose your research question as a full sentence, not keywords — Undermind is built to handle 'how does X relate to Y in context Z' better than Google Scholar.",
     "features": [
       "Agentic semantic search across academic literature",
       "Reads paper abstracts and full text to assess relevance",
@@ -39157,7 +39157,7 @@
     ],
     "languages": "English",
     "launchYear": 2023,
-    "description": "Undermind is an AI research agent that performs deeper semantic literature search than traditional databases \u2014 it actually reads paper content to assess relevance rather than relying on keyword matching. Particularly useful for cross-disciplinary research where the obvious keywords don't surface the right papers.",
+    "description": "Undermind is an AI research agent that performs deeper semantic literature search than traditional databases — it actually reads paper content to assess relevance rather than relying on keyword matching. Particularly useful for cross-disciplinary research where the obvious keywords don't surface the right papers.",
     "use_cases": [
       "Thesis literature discovery",
       "Finding papers on cross-disciplinary topics",
@@ -39168,7 +39168,7 @@
     "student_friendly": true,
     "review_count": 0,
     "company": "Undermind",
-    "logo_emoji": "\ud83d\udd0e",
+    "logo_emoji": "🔎",
     "pricing_tier": "Freemium",
     "popularity_score": 0,
     "weekly_users_estimate": null,
@@ -39287,7 +39287,7 @@
       ]
     },
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [],
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
@@ -39353,7 +39353,7 @@
       ]
     },
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [],
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
@@ -39453,7 +39453,7 @@
       ]
     },
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [],
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
@@ -39552,7 +39552,7 @@
       ]
     },
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [],
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
@@ -39651,7 +39651,7 @@
       ]
     },
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [],
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
@@ -39739,7 +39739,7 @@
       ]
     },
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [],
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
@@ -39839,7 +39839,7 @@
       ]
     },
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [],
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
@@ -39940,7 +39940,7 @@
       ]
     },
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [],
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
@@ -40011,7 +40011,7 @@
       ]
     },
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [],
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
@@ -40021,7 +40021,7 @@
     "name": "Amazon Q Developer",
     "slug": "amazon-q-developer",
     "tagline": "AWS-integrated AI coding assistant",
-    "description": "AWS's AI coding tool (formerly CodeWhisperer). Particularly strong for AWS-centric workflows \u2014 generates SDK calls, IAM policies, CloudFormation. Free tier with monthly limits.",
+    "description": "AWS's AI coding tool (formerly CodeWhisperer). Particularly strong for AWS-centric workflows — generates SDK calls, IAM policies, CloudFormation. Free tier with monthly limits.",
     "category": "Coding",
     "pricing": "Freemium",
     "link": "https://aws.amazon.com/q/developer",
@@ -40087,7 +40087,7 @@
       ]
     },
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [],
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
@@ -40112,7 +40112,7 @@
       "ai-coding",
       "autonomous-development"
     ],
-    "icon": "",
+    "icon": "https://raw.githubusercontent.com/RooCodeInc/Roo-Code/main/src/assets/icons/icon.png",
     "rating": 0,
     "review_count": 0,
     "weeklyUsers": null,
@@ -40128,7 +40128,7 @@
     "company": "Roo Code",
     "subCategory": "AI Coding Agent",
     "pricing_tier": "Free",
-    "pricingDetail": "Free & open-source VS Code AI agent \u2014 bring your own LLM API key",
+    "pricingDetail": "Free & open-source VS Code AI agent — bring your own LLM API key",
     "pricing_source_url": "https://github.com/RooVetGit/Roo-Code",
     "pricing_verified_at": "2026-05-25",
     "pricing_tiers": {
@@ -40151,7 +40151,7 @@
       ]
     },
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [],
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
@@ -40238,7 +40238,7 @@
       ]
     },
     "featured": false,
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "strengths": [],
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments."
@@ -40297,7 +40297,7 @@
     "difficulty": "Beginner",
     "review_count_display": "",
     "company": "Scribbr",
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "pricing_tier": "Freemium",
     "popularity_score": 0,
     "pricing": "Freemium",
@@ -40331,7 +40331,7 @@
         {
           "name": "Plagiarism Check (Small)",
           "price_amount": 19.95,
-          "price_display": "$19.95 per check (\u2264 7,500 words)",
+          "price_display": "$19.95 per check (≤ 7,500 words)",
           "features": [
             "University-grade plagiarism check",
             "Detailed similarity report"
@@ -40414,7 +40414,7 @@
     "difficulty": "Beginner",
     "review_count_display": "",
     "company": "GPTZero",
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "pricing_tier": "Freemium",
     "popularity_score": 0,
     "pricing": "Freemium",
@@ -40505,7 +40505,7 @@
     "category": "Research",
     "subCategory": "Plagiarism & AI Detection",
     "price": "Freemium",
-    "pricingDetail": "Free trial; Personal $13.99/month (100 credits \u2248 25k words/month); Enterprise custom",
+    "pricingDetail": "Free trial; Personal $13.99/month (100 credits ≈ 25k words/month); Enterprise custom",
     "bestFor": "Plagiarism and AI checks before submitting assignments",
     "tags": [
       "plagiarism",
@@ -40546,7 +40546,7 @@
     "difficulty": "Beginner",
     "review_count_display": "",
     "company": "Copyleaks",
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "pricing_tier": "Freemium",
     "popularity_score": 0,
     "pricing": "Freemium",
@@ -40582,9 +40582,9 @@
           "price_amount": 13.99,
           "price_display": "$13.99/month ($167.88/year)",
           "features": [
-            "100 credits/mo (\u2248 25,000 words)",
+            "100 credits/mo (≈ 25,000 words)",
             "AI & plagiarism detection",
-            "1 credit \u2248 250 words / 1 image"
+            "1 credit ≈ 250 words / 1 image"
           ],
           "cta_label": "Choose Personal",
           "cta_url": "https://copyleaks.com/pricing"
@@ -40654,7 +40654,7 @@
     "difficulty": "Beginner",
     "review_count_display": "",
     "company": "Originality.AI",
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "pricing_tier": "Paid",
     "popularity_score": 0,
     "pricing": "Paid",
@@ -40767,7 +40767,7 @@
     "difficulty": "Beginner",
     "review_count_display": "",
     "company": "Knowt",
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "pricing_tier": "Freemium",
     "popularity_score": 0,
     "pricing": "Freemium",
@@ -40877,7 +40877,7 @@
     "difficulty": "Beginner",
     "review_count_display": "",
     "company": "Quizgecko",
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "pricing_tier": "Freemium",
     "popularity_score": 0,
     "pricing": "Freemium",
@@ -40988,7 +40988,7 @@
     "difficulty": "Beginner",
     "review_count_display": "",
     "company": "StuDocu",
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "pricing_tier": "Freemium",
     "popularity_score": 0,
     "pricing": "Freemium",
@@ -41088,7 +41088,7 @@
     "difficulty": "Beginner",
     "review_count_display": "",
     "company": "StudyFetch",
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "pricing_tier": "Freemium",
     "popularity_score": 0,
     "pricing": "Freemium",
@@ -41187,7 +41187,7 @@
     "difficulty": "Beginner",
     "review_count_display": "",
     "company": "Trinka",
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "pricing_tier": "Freemium",
     "popularity_score": 0,
     "pricing": "Freemium",
@@ -41297,7 +41297,7 @@
     "difficulty": "Beginner",
     "review_count_display": "",
     "company": "Smodin",
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "pricing_tier": "Freemium",
     "popularity_score": 0,
     "pricing": "Freemium",
@@ -41417,7 +41417,7 @@
     "difficulty": "Beginner",
     "review_count_display": "",
     "company": "Speak",
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "pricing_tier": "Freemium",
     "popularity_score": 0,
     "pricing": "Freemium",
@@ -41534,7 +41534,7 @@
     "student_friendly": true,
     "is_ai_native": true,
     "uniHack": "",
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "popularity_score": 0,
     "curation_score": 55.0,
     "icon": "/static/icons/default.png",
@@ -41563,7 +41563,7 @@
         {
           "name": "Premium",
           "price_amount": 6,
-          "price_display": "$6/month ($35/year \u2248 $2.92/month)",
+          "price_display": "$6/month ($35/year ≈ $2.92/month)",
           "features": [
             "Full planner & widgets",
             "AI planning",
@@ -41635,7 +41635,7 @@
     "student_friendly": true,
     "is_ai_native": true,
     "uniHack": "",
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "popularity_score": 0,
     "curation_score": 55.0,
     "icon": "/static/icons/default.png",
@@ -41748,7 +41748,7 @@
     "student_friendly": true,
     "is_ai_native": true,
     "uniHack": "",
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "popularity_score": 0,
     "curation_score": 55.0,
     "icon": "/static/icons/default.png",
@@ -41848,7 +41848,7 @@
     "student_friendly": true,
     "is_ai_native": true,
     "uniHack": "",
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "popularity_score": 0,
     "curation_score": 55.0,
     "icon": "/static/icons/default.png",
@@ -41935,7 +41935,7 @@
     "student_friendly": true,
     "is_ai_native": true,
     "uniHack": "",
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "popularity_score": 0,
     "curation_score": 55.0,
     "icon": "/static/icons/default.png",
@@ -42037,7 +42037,7 @@
     "student_friendly": true,
     "is_ai_native": true,
     "uniHack": "",
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "popularity_score": 0,
     "curation_score": 55.0,
     "icon": "/static/icons/default.png",
@@ -42087,7 +42087,7 @@
     "category": "Courses & Tutorials",
     "subCategory": "Lecture Capture",
     "price": "Freemium",
-    "pricingDetail": "Free; Pro $5.99-8.99/month; Unlimited $19.99/month ($119/year \u2248 $9.92/month)",
+    "pricingDetail": "Free; Pro $5.99-8.99/month; Unlimited $19.99/month ($119/year ≈ $9.92/month)",
     "pricing": "Freemium",
     "pricing_tier": "Freemium",
     "bestFor": "Turning recorded lectures into study material automatically",
@@ -42138,7 +42138,7 @@
     "student_friendly": true,
     "is_ai_native": true,
     "uniHack": "",
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "popularity_score": 0,
     "curation_score": 55.0,
     "icon": "/static/icons/default.png",
@@ -42179,7 +42179,7 @@
         {
           "name": "Unlimited",
           "price_amount": 19.99,
-          "price_display": "$19.99/month ($119/year \u2248 $9.92/month)",
+          "price_display": "$19.99/month ($119/year ≈ $9.92/month)",
           "features": [
             "Unlimited lecture time",
             "Unlimited PDFs & flashcards",
@@ -42249,7 +42249,7 @@
     "student_friendly": true,
     "is_ai_native": true,
     "uniHack": "",
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "popularity_score": 0,
     "curation_score": 55.0,
     "icon": "/static/icons/default.png",
@@ -42361,7 +42361,7 @@
     "student_friendly": true,
     "is_ai_native": true,
     "uniHack": "",
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "popularity_score": 0,
     "curation_score": 55.0,
     "icon": "/static/icons/default.png",
@@ -42472,7 +42472,7 @@
     "student_friendly": true,
     "is_ai_native": true,
     "uniHack": "",
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "popularity_score": 0,
     "curation_score": 55.0,
     "icon": "/static/icons/default.png",
@@ -42580,7 +42580,7 @@
     "student_friendly": true,
     "is_ai_native": true,
     "uniHack": "",
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "popularity_score": 0,
     "curation_score": 55.0,
     "icon": "/static/icons/default.png",
@@ -42677,7 +42677,7 @@
     "student_friendly": true,
     "is_ai_native": true,
     "uniHack": "",
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "popularity_score": 0,
     "curation_score": 55.0,
     "icon": "/static/icons/default.png",
@@ -42786,7 +42786,7 @@
     "student_friendly": true,
     "is_ai_native": true,
     "uniHack": "",
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "popularity_score": 0,
     "curation_score": 55.0,
     "icon": "/static/icons/default.png",
@@ -42909,7 +42909,7 @@
     "student_friendly": true,
     "is_ai_native": true,
     "uniHack": "",
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "popularity_score": 0,
     "curation_score": 55.0,
     "icon": "/static/icons/default.png",
@@ -43020,7 +43020,7 @@
     "student_friendly": true,
     "is_ai_native": true,
     "uniHack": "",
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "popularity_score": 0,
     "curation_score": 55.0,
     "icon": "/static/icons/default.png",
@@ -43130,7 +43130,7 @@
     "student_friendly": true,
     "is_ai_native": true,
     "uniHack": "",
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "popularity_score": 0,
     "curation_score": 55.0,
     "icon": "/static/icons/default.png",
@@ -43241,7 +43241,7 @@
     "student_friendly": true,
     "is_ai_native": true,
     "uniHack": "",
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "popularity_score": 0,
     "curation_score": 55.0,
     "icon": "/static/icons/default.png",
@@ -43340,7 +43340,7 @@
     "student_friendly": true,
     "is_ai_native": true,
     "uniHack": "",
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "popularity_score": 0,
     "curation_score": 55.0,
     "icon": "/static/icons/default.png",
@@ -43438,7 +43438,7 @@
     "student_friendly": true,
     "is_ai_native": true,
     "uniHack": "",
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "popularity_score": 0,
     "curation_score": 55.0,
     "icon": "/static/icons/default.png",
@@ -43547,7 +43547,7 @@
     "student_friendly": true,
     "is_ai_native": true,
     "uniHack": "",
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "popularity_score": 0,
     "curation_score": 55.0,
     "icon": "/static/icons/default.png",
@@ -43607,7 +43607,7 @@
     "category": "Coding",
     "subCategory": "Interview Prep",
     "price": "Free",
-    "pricingDetail": "Free \u2014 coding practice in 70+ languages, donation-supported nonprofit",
+    "pricingDetail": "Free — coding practice in 70+ languages, donation-supported nonprofit",
     "pricing": "Free",
     "pricing_tier": "Free",
     "bestFor": "Practising programming with feedback across 70+ languages",
@@ -43658,7 +43658,7 @@
     "student_friendly": true,
     "is_ai_native": true,
     "uniHack": "",
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "popularity_score": 0,
     "curation_score": 55.0,
     "icon": "/static/icons/default.png",
@@ -43747,7 +43747,7 @@
     "student_friendly": true,
     "is_ai_native": true,
     "uniHack": "",
-    "logo_emoji": "\ud83e\udd16",
+    "logo_emoji": "🤖",
     "popularity_score": 0,
     "curation_score": 55.0,
     "icon": "/static/icons/default.png",
@@ -43864,7 +43864,7 @@
     "student_friendly": true,
     "review_count": 0,
     "company": "MagicSchool",
-    "logo_emoji": "\ud83e\ude84",
+    "logo_emoji": "🪄",
     "pricing_tier": "Freemium",
     "pricing": "Freemium",
     "student_perk": true,
@@ -43968,7 +43968,7 @@
     ],
     "languages": "10+",
     "launchYear": 2023,
-    "description": "Chrome extension that brings AI into Google Docs, Slides, and classroom workflows without switching tabs \u2014 inline feedback, quiz generation, and lesson material creation.",
+    "description": "Chrome extension that brings AI into Google Docs, Slides, and classroom workflows without switching tabs — inline feedback, quiz generation, and lesson material creation.",
     "use_cases": [
       "inline student feedback on Google Docs",
       "quiz generation",
@@ -43979,7 +43979,7 @@
     "student_friendly": true,
     "review_count": 0,
     "company": "Brisk Teaching",
-    "logo_emoji": "\u26a1",
+    "logo_emoji": "⚡",
     "pricing_tier": "Freemium",
     "pricing": "Freemium",
     "student_perk": true,
@@ -44084,7 +44084,7 @@
     ],
     "languages": "40+",
     "launchYear": 2023,
-    "description": "Paste any text, article, or YouTube video and Diffit instantly re-levels it for multiple reading levels \u2014 same topic, adjusted vocabulary and complexity \u2014 with auto-generated comprehension questions and vocabulary lists.",
+    "description": "Paste any text, article, or YouTube video and Diffit instantly re-levels it for multiple reading levels — same topic, adjusted vocabulary and complexity — with auto-generated comprehension questions and vocabulary lists.",
     "use_cases": [
       "reading level differentiation",
       "ESL and multilingual learners",
@@ -44096,7 +44096,7 @@
     "student_friendly": true,
     "review_count": 0,
     "company": "Diffit",
-    "logo_emoji": "\ud83d\udcda",
+    "logo_emoji": "📚",
     "pricing_tier": "Freemium",
     "pricing": "Freemium",
     "student_perk": true,
@@ -44199,7 +44199,7 @@
     ],
     "languages": "20+",
     "launchYear": 2013,
-    "description": "Game-based learning platform with AI-powered quiz generation, adaptive learning paths, and engagement analytics \u2014 used by teachers for formative assessment and live review sessions.",
+    "description": "Game-based learning platform with AI-powered quiz generation, adaptive learning paths, and engagement analytics — used by teachers for formative assessment and live review sessions.",
     "use_cases": [
       "quiz and game creation",
       "live classroom review",
@@ -44211,7 +44211,7 @@
     "student_friendly": true,
     "review_count": 0,
     "company": "Kahoot!",
-    "logo_emoji": "\ud83c\udfae",
+    "logo_emoji": "🎮",
     "pricing_tier": "Freemium",
     "pricing": "Freemium",
     "student_perk": true,
@@ -44353,7 +44353,7 @@
     ],
     "trending": true,
     "studentPerk": true,
-    "description": "Teal is an all-in-one platform for job seekers. It features an AI resume builder that helps tailor your experience to specific roles, along with a robust job tracker board to organize your applications\u2014perfect for the chaotic senior year job hunt.",
+    "description": "Teal is an all-in-one platform for job seekers. It features an AI resume builder that helps tailor your experience to specific roles, along with a robust job tracker board to organize your applications—perfect for the chaotic senior year job hunt.",
     "link": "https://www.tealhq.com/"
   },
   {

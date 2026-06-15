@@ -68,7 +68,7 @@ const PRODUCT_LINKS = [
   { label: 'Collections', to: '/collections' },
   { label: 'Model Comparison', to: '/model-comparison' },
   { label: 'Submit a tool', to: '/submit' },
-  { label: 'Help Center', to: '/help' },
+  { label: 'FAQ & Support', to: '/help' },
   { label: 'Syllabus Parser', to: '/syllabus-parser' },
   { label: 'Student Discounts', to: '/student-discounts' },
 ]

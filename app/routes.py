@@ -48,7 +48,7 @@ _ROUTE_META = {
     'best-ai-tools-for-fiction-writers': ('10 Best AI Tools for Fiction Writers in 2026 — AI Compass', 'The 10 best AI tools for fiction writers, novelists, and screenwriters — Sudowrite, NovelAI, Squibler, Claude, and more. Hand-tested for prose voice, worldbuilding, and revision.'),
     'forgot-password': ('Recover Password — AI Compass', 'Retrieve your account by resetting your password.'),
     'reset-password': ('Reset Password — AI Compass', 'Enter a new password for your account.'),
-    'help': ('Help Center & Guides — AI Compass', 'Get guides, tutorials, and support for using AI Compass. Learn how the AI Stack Architect works, search tips, and troubleshooting.'),
+    'help': ('FAQ & Support — AI Compass', 'Get answers to frequently asked questions, learn how the AI Stack Architect works, or contact support.'),
     'student-discounts': ('Student AI Discounts & UNiDAYS Deals — AI Compass', 'Explore the best student discounts and UNiDAYS deals on top AI tools. Save on writing, coding, research, and productivity tools with your student status.'),
 }
 
@@ -395,7 +395,7 @@ def _seo_body(normalized: str, tool: dict | None = None) -> str:
                 'no login required.'
             )
             intro = f'<p>{desc_text}</p>'
-            faq = _home_faq_block()
+            faq = ''
         else:
             heading = f'{total_count} Free AI Tools for Students — Tested & Ranked | AI Compass'
             desc_text = (
@@ -484,6 +484,11 @@ def _seo_body(normalized: str, tool: dict | None = None) -> str:
             f'<p>{_esc(desc)}</p>'
             f'<ul>{"".join(discount_items)}</ul>'
         )
+
+    if normalized == 'help':
+        title, desc = _ROUTE_META[normalized]
+        faq = _home_faq_block()
+        return f'<h1>{_esc(title)}</h1><p>{_esc(desc)}</p>{faq}'
 
     if normalized in _ROUTE_META:
         title, desc = _ROUTE_META[normalized]
@@ -870,8 +875,8 @@ def llms_txt():
         'by use case.\n'
         '- [Compare tools](https://ai-compass.in/compare): Side-by-side tool '
         'comparisons.\n'
-        '- [Help Center](https://ai-compass.in/help): Help articles, guides, and '
-        'troubleshooting support.\n\n'
+        '- [FAQ & Support](https://ai-compass.in/help): Frequently asked questions, '
+        'guides, and support.\n\n'
         '## Guides\n'
         '- [Best AI Tools for Students](https://ai-compass.in/best-ai-tools-for-students)\n'
         '- [Best AI Tools for Teachers](https://ai-compass.in/best-ai-tools-for-teachers)\n'

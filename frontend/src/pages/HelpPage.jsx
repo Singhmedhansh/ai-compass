@@ -12,6 +12,37 @@ const MotionDiv = motion.div
 const REVEAL_VIEWPORT = { once: true, margin: '-10% 0px' }
 
 const FAQS = [
+  // --- GENERAL ---
+  {
+    category: 'General',
+    question: 'Is AI Compass free to use?',
+    answer: 'Yes. Browsing and searching all 400+ AI tools is completely free — no login, no signup, and no credit card required.'
+  },
+  {
+    category: 'General',
+    question: 'How many AI tools are listed on AI Compass?',
+    answer: 'Over 400 hand-tested AI tools across writing, coding, research, design, image, video, audio, and study.'
+  },
+  {
+    category: 'General',
+    question: 'Do I need an account to use AI Compass?',
+    answer: 'No. You can search, filter, compare, and open any tool without an account. An optional free account lets you save favourites and build a stack.'
+  },
+  {
+    category: 'General',
+    question: 'How are the tools chosen?',
+    answer: 'Every tool is hand-picked and hand-tested by us — no pay-to-rank placement and no directory spam.'
+  },
+  {
+    category: 'General',
+    question: 'Does AI Compass show pricing?',
+    answer: "Yes. Tools show verified, up-to-date pricing tiers — free, freemium, or paid — sourced from each tool's official pricing page."
+  },
+  {
+    category: 'General',
+    question: 'Who is AI Compass for?',
+    answer: "It's built for students first, but anyone trying to find the right AI tool quickly will find it useful."
+  },
   // --- AI STACK ARCHITECT ---
   {
     category: 'AI Stack Architect',
@@ -192,16 +223,29 @@ export default function HelpPage() {
   return (
     <>
       <SEO
-        title="Help Center & Guides — AI Compass"
-        description="Get guides, tutorials, and support for using AI Compass. Learn how the AI Stack Architect works, search tips, and troubleshooting."
+        title="FAQ & Support — AI Compass"
+        description="Get answers to frequently asked questions, learn how the AI Stack Architect works, and get support."
       />
+      <Helmet>
+        <script type="application/ld+json">
+          {JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'FAQPage',
+            mainEntity: FAQS.map(({ question, answer }) => ({
+              '@type': 'Question',
+              name: question,
+              acceptedAnswer: { '@type': 'Answer', text: answer },
+            })),
+          })}
+        </script>
+      </Helmet>
 
       <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
         {/* Hero Header */}
         <section className="text-center">
           <span className="inline-flex items-center rounded-full bg-accent-soft px-3 py-1 text-xs font-semibold text-accent-ink">
             <HelpCircle className="mr-1.5 h-3.5 w-3.5" />
-            Support Center
+            FAQ & Support
           </span>
           <h1 className="mt-4 text-3xl font-extrabold tracking-tight text-ink sm:text-4xl md:text-5xl">
             <WordReveal>How can we help you?</WordReveal>

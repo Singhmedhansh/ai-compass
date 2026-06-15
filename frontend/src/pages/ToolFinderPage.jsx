@@ -1244,7 +1244,7 @@ function ToolFinderPage() {
     if (!loadingResults && results.length === 0 && canSeeResults && !error) {
       const event = new CustomEvent('ai-compass-proactive-help', {
         detail: {
-          message: 'No tools match your exact stack criteria? Visit our Help Center or submit feedback for tailored assistance.'
+          message: 'No tools match your exact stack criteria? Visit our FAQ & Support or submit feedback for tailored assistance.'
         }
       })
       window.dispatchEvent(event)
