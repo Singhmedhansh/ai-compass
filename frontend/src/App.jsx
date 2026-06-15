@@ -4,18 +4,11 @@ import { MotionConfig } from 'framer-motion'
 import { HelmetProvider } from 'react-helmet-async'
 
 import ErrorBoundary from './components/ErrorBoundary'
-import FeedbackWidget from './components/FeedbackWidget'
 import Footer from './components/Footer'
-import OfflineBanner from './components/OfflineBanner'
 import RouteTransition from './components/RouteTransition'
-import CompareTray from './components/ui/CompareTray'
 import CompassLoader from './components/ui/CompassLoader'
 import Navbar from './components/ui/Navbar'
 import ScrollProgress from './components/ui/ScrollProgress'
-import CookieConsent from './components/ui/CookieConsent'
-import ProactiveHelpPrompt from './components/ui/ProactiveHelpPrompt'
-import OnboardingTour from './components/ui/OnboardingTour'
-import OnboardingWizard from './components/ui/OnboardingWizard'
 // HomePage stays eager — it's the most common first paint
 import HomePage from './pages/HomePage'
 
@@ -23,6 +16,14 @@ import HomePage from './pages/HomePage'
 const DirectoryPage = lazy(() => import('./pages/DirectoryPage'))
 const ToolDetailPage = lazy(() => import('./pages/ToolDetailPage'))
 const AlternativesPage = lazy(() => import('./pages/AlternativesPage'))
+
+const CompareTray = lazy(() => import('./components/ui/CompareTray'))
+const FeedbackWidget = lazy(() => import('./components/FeedbackWidget'))
+const ProactiveHelpPrompt = lazy(() => import('./components/ui/ProactiveHelpPrompt'))
+const OnboardingTour = lazy(() => import('./components/ui/OnboardingTour'))
+const OnboardingWizard = lazy(() => import('./components/ui/OnboardingWizard'))
+const OfflineBanner = lazy(() => import('./components/OfflineBanner'))
+const CookieConsent = lazy(() => import('./components/ui/CookieConsent'))
 const ToolFinderPage = lazy(() => import('./pages/ToolFinderPage'))
 const CollectionsPage = lazy(() => import('./pages/CollectionsPage'))
 const CollectionPage = lazy(() => import('./pages/CollectionPage'))
@@ -240,13 +241,15 @@ export default function App() {
               <AnimatedRoutes />
             </main>
             <Footer />
-            <CompareTray />
-            <FeedbackWidget />
-            <ProactiveHelpPrompt />
-            <OnboardingTour />
-            <OnboardingWizard />
-            <OfflineBanner />
-            <CookieConsent />
+            <Suspense fallback={null}>
+              <CompareTray />
+              <FeedbackWidget />
+              <ProactiveHelpPrompt />
+              <OnboardingTour />
+              <OnboardingWizard />
+              <OfflineBanner />
+              <CookieConsent />
+            </Suspense>
           </div>
         </BrowserRouter>
       </MotionConfig>

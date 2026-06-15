@@ -1,3 +1,4 @@
+/* global process */
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import posthog from '@posthog/rollup-plugin'
@@ -18,12 +19,10 @@ export default defineConfig(({ mode }) => {
       sourcemap: true,
       outDir: '../static/dist',
       emptyOutDir: true,
-      // target=es2020 drops the legacy syntax transforms Vite ships by
-      // default (target=modules ~= ES2018 modulo a few features). Saves
-      // ~19 KiB of polyfill code per Lighthouse, and every browser we
-      // care about (Chrome 80+, Safari 14+, Firefox 78+) is on >2 years
-      // of ES2020 support — millennia in browser-years.
-      target: 'es2020',
+      // target=es2022 drops more legacy syntax transforms Vite ships by
+      // default. Saves polyfill code, and every browser we
+      // care about supports ES2022 natively.
+      target: 'es2022',
       rollupOptions: {
         output: {
           // Split heavyweight vendor libs into their own long-cached

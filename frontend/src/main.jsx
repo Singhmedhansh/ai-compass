@@ -6,8 +6,6 @@ import { Toaster } from 'sonner'
 import 'sonner/dist/styles.css'
 import App from './App.jsx'
 import { toApiUrl } from './config/api.js'
-import posthog from 'posthog-js'
-import { PostHogProvider } from '@posthog/react'
 import { CurrencyProvider } from './context/CurrencyContext.jsx'
 
 
@@ -100,23 +98,21 @@ window.addEventListener('resize', applyAspectRatioFlag)
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <PostHogProvider client={posthog}>
-      <HelmetProvider>
-        <Toaster
-          position="bottom-left"
-          richColors
-          closeButton
-          theme="dark"
-          toastOptions={{
-            classNames: {
-              toast: 'font-medium',
-            },
-          }}
-        />
-        <CurrencyProvider>
-          <App />
-        </CurrencyProvider>
-      </HelmetProvider>
-    </PostHogProvider>
+    <HelmetProvider>
+      <Toaster
+        position="bottom-left"
+        richColors
+        closeButton
+        theme="dark"
+        toastOptions={{
+          classNames: {
+            toast: 'font-medium',
+          },
+        }}
+      />
+      <CurrencyProvider>
+        <App />
+      </CurrencyProvider>
+    </HelmetProvider>
   </StrictMode>,
 )

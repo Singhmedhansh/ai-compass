@@ -1215,7 +1215,7 @@ def serve_react(path):
         if path.startswith('assets/'):
             response.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
         else:
-            response.headers['Cache-Control'] = 'public, max-age=86400'
+            response.headers['Cache-Control'] = 'public, max-age=31536000'
         return response
 
     result = _meta_for_request_path(path)

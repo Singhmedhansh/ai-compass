@@ -194,7 +194,7 @@ export default function WizardDemo() {
         aria-pressed={active}
         disabled={!interactive}
         className={[
-          'shrink-0 whitespace-nowrap rounded-full border px-2.5 py-1.5 text-xs transition-all duration-200',
+          'relative shrink-0 whitespace-nowrap rounded-full border px-2.5 py-1.5 text-xs transition-all duration-200',
           active
             ? 'border-accent bg-accent text-white'
             : 'border-line bg-bg text-muted',
@@ -202,9 +202,18 @@ export default function WizardDemo() {
         ].join(' ')}
         style={{
           transform: flashing ? 'scale(1.08)' : 'scale(1)',
-          animation: flashing ? 'wd-flash .42s ease-out' : undefined,
+          transition: 'transform 0.15s',
         }}
       >
+        {flashing && (
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 rounded-full border-2 border-accent"
+            style={{
+              animation: 'wd-flash-ring .42s ease-out forwards',
+            }}
+          />
+        )}
         {value}
       </button>
     )
@@ -239,9 +248,9 @@ export default function WizardDemo() {
                 0%   { transform: translate(-50%,-50%) scale(.25); opacity: .55; }
                 100% { transform: translate(-50%,-50%) scale(2.4); opacity: 0; }
               }
-              @keyframes wd-flash {
-                0%   { box-shadow: 0 0 0 0 color-mix(in oklab, var(--accent) 55%, transparent); }
-                100% { box-shadow: 0 0 0 10px color-mix(in oklab, var(--accent) 0%, transparent); }
+              @keyframes wd-flash-ring {
+                0%   { transform: scale(1); opacity: 0.85; }
+                100% { transform: scale(1.25); opacity: 0; }
               }
             `}</style>
 
@@ -262,18 +271,25 @@ export default function WizardDemo() {
             {/* Ghost cursor */}
             <div
               aria-hidden="true"
-              className="pointer-events-none absolute z-20 transition-[left,top] duration-700 ease-out"
+              className="pointer-events-none absolute z-20"
               style={{
-                left: cursor.x,
-                top: cursor.y,
+                left: 0,
+                top: 0,
                 opacity: cursor.visible ? 1 : 0,
-                transform: `translate(-4px,-2px) scale(${cursor.pressed ? 0.82 : 1})`,
-                transition: 'left .7s cubic-bezier(.22,1,.36,1), top .7s cubic-bezier(.22,1,.36,1), opacity .35s, transform .15s',
+                transform: `translate3d(${cursor.x}px, ${cursor.y}px, 0)`,
+                transition: 'transform .7s cubic-bezier(.22,1,.36,1), opacity .35s',
               }}
             >
-              <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-                <path d="M3 2l14 6.5-6 1.7-1.7 6L3 2z" fill="var(--ink)" stroke="var(--bg)" strokeWidth="1.4" strokeLinejoin="round" />
-              </svg>
+              <div
+                style={{
+                  transform: `translate(-4px,-2px) scale(${cursor.pressed ? 0.82 : 1})`,
+                  transition: 'transform .15s',
+                }}
+              >
+                <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+                  <path d="M3 2l14 6.5-6 1.7-1.7 6L3 2z" fill="var(--ink)" stroke="var(--bg)" strokeWidth="1.4" strokeLinejoin="round" />
+                </svg>
+              </div>
             </div>
 
             {/* Questions column */}

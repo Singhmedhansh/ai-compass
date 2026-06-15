@@ -1,10 +1,12 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { motion, useSpring, useTransform } from 'framer-motion';
 
 const springConfig = { damping: 20, stiffness: 300, mass: 0.5 };
+const MotionDiv = motion.div;
 
 export default function Tilt({ children, className = '', rotation = 10, scale = 1.02 }) {
   const ref = useRef(null);
+  const rectRef = useRef(null);
   const [isHovered, setIsHovered] = useState(false);
   
   const x = useSpring(0, springConfig);
@@ -13,9 +15,19 @@ export default function Tilt({ children, className = '', rotation = 10, scale = 
   const rotateX = useTransform(y, (value) => value * -rotation);
   const rotateY = useTransform(x, (value) => value * rotation);
 
+  const handleMouseEnter = () => {
+    setIsHovered(true);
+    if (ref.current) {
+      rectRef.current = ref.current.getBoundingClientRect();
+    }
+  };
+
   const handleMouseMove = (e) => {
     if (!ref.current) return;
-    const rect = ref.current.getBoundingClientRect();
+    if (!rectRef.current) {
+      rectRef.current = ref.current.getBoundingClientRect();
+    }
+    const rect = rectRef.current;
     const width = rect.width;
     const height = rect.height;
     
@@ -31,14 +43,26 @@ export default function Tilt({ children, className = '', rotation = 10, scale = 
 
   const handleMouseLeave = () => {
     setIsHovered(false);
+    rectRef.current = null;
     x.set(0);
     y.set(0);
   };
 
+  useEffect(() => {
+    if (!isHovered) return undefined;
+    const handleScroll = () => {
+      rectRef.current = null;
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [isHovered]);
+
   return (
-    <motion.div
+    <MotionDiv
       ref={ref}
-      onMouseEnter={() => setIsHovered(true)}
+      onMouseEnter={handleMouseEnter}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       animate={{ scale: isHovered ? scale : 1 }}
@@ -51,6 +75,6 @@ export default function Tilt({ children, className = '', rotation = 10, scale = 
       className={`relative will-change-transform ${className}`}
     >
       {children}
-    </motion.div>
+    </MotionDiv>
   );
 }

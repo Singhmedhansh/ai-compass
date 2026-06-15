@@ -38,6 +38,15 @@ export default function AnimatedCompass({ size = 340, className = '' }) {
     let rafId = 0
     let pendingX = 0
     let pendingY = 0
+    let rectCache = null
+
+    const getRect = () => {
+      if (!rectCache) {
+        const wrap = wrapRef.current
+        if (wrap) rectCache = wrap.getBoundingClientRect()
+      }
+      return rectCache
+    }
 
     const updateNeedle = () => {
       rafId = 0
@@ -45,7 +54,8 @@ export default function AnimatedCompass({ size = 340, className = '' }) {
       const needle = needleRef.current
       if (!wrap || !needle) return
 
-      const rect = wrap.getBoundingClientRect()
+      const rect = getRect()
+      if (!rect) return
       const cx = rect.left + rect.width / 2
       const cy = rect.top + rect.height / 2
       const dx = pendingX - cx
@@ -80,15 +90,23 @@ export default function AnimatedCompass({ size = 340, className = '' }) {
     }
 
     const handleScroll = () => {
+      rectCache = null
+      if (!rafId) rafId = window.requestAnimationFrame(updateNeedle)
+    }
+
+    const handleResize = () => {
+      rectCache = null
       if (!rafId) rafId = window.requestAnimationFrame(updateNeedle)
     }
 
     window.addEventListener('mousemove', handleMove, { passive: true })
     window.addEventListener('scroll', handleScroll, { passive: true })
+    window.addEventListener('resize', handleResize, { passive: true })
 
     return () => {
       window.removeEventListener('mousemove', handleMove)
       window.removeEventListener('scroll', handleScroll)
+      window.removeEventListener('resize', handleResize)
       if (rafId) window.cancelAnimationFrame(rafId)
     }
   }, [])

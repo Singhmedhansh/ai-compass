@@ -158,6 +158,7 @@ def create_app(config: dict | None = None) -> Flask:
     app.config["SESSION_REFRESH_EACH_REQUEST"] = True
     app.config["REMEMBER_COOKIE_DURATION"] = timedelta(days=30)
     app.config["REMEMBER_COOKIE_SAMESITE"] = "Lax"
+    app.config["SEND_FILE_MAX_AGE_DEFAULT"] = timedelta(days=365)
     app.config["REMEMBER_COOKIE_HTTPONLY"] = True
     configured_frontend_url = (app.config.get("FRONTEND_URL") or os.getenv("FRONTEND_URL") or "").strip()
     default_frontend_url = "https://ai-compass.in" if is_production else "http://localhost:5173"

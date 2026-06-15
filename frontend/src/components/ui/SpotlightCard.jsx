@@ -1,7 +1,8 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 
 const SpotlightCard = ({ children, className = "", spotlightColor = "rgba(255, 255, 255, 0.25)" }) => {
   const divRef = useRef(null);
+  const rectRef = useRef(null);
   const [isFocused, setIsFocused] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [opacity, setOpacity] = useState(0);
@@ -9,7 +10,10 @@ const SpotlightCard = ({ children, className = "", spotlightColor = "rgba(255, 2
   const handleMouseMove = (e) => {
     if (!divRef.current || isFocused) return;
 
-    const rect = divRef.current.getBoundingClientRect();
+    if (!rectRef.current) {
+      rectRef.current = divRef.current.getBoundingClientRect();
+    }
+    const rect = rectRef.current;
     setPosition({ x: e.clientX - rect.left, y: e.clientY - rect.top });
   };
 
@@ -25,11 +29,25 @@ const SpotlightCard = ({ children, className = "", spotlightColor = "rgba(255, 2
 
   const handleMouseEnter = () => {
     setOpacity(1);
+    if (divRef.current) {
+      rectRef.current = divRef.current.getBoundingClientRect();
+    }
   };
 
   const handleMouseLeave = () => {
     setOpacity(0);
+    rectRef.current = null;
   };
+
+  useEffect(() => {
+    const handleScroll = () => {
+      rectRef.current = null;
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
 
   return (
     <div

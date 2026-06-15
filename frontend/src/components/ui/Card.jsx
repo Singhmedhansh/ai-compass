@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 import { motion } from 'framer-motion'
 import { Folder, Sparkles, Star } from 'lucide-react'
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import Badge from './Badge'
@@ -32,13 +32,28 @@ function Card({ tool = {}, layoutType = 'standard', glass = false, folders = nul
   const [isHovered, setIsHovered] = useState(false)
   const [showFolderDropdown, setShowFolderDropdown] = useState(false)
   const cardRef = useRef(null)
+  const rectRef = useRef(null)
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
 
   const handleMouseMove = (e) => {
     if (!cardRef.current) return
-    const rect = cardRef.current.getBoundingClientRect()
+    if (!rectRef.current) {
+      rectRef.current = cardRef.current.getBoundingClientRect()
+    }
+    const rect = rectRef.current
     setMousePos({ x: e.clientX - rect.left, y: e.clientY - rect.top })
   }
+
+  useEffect(() => {
+    if (!isHovered) return undefined
+    const handleScroll = () => {
+      rectRef.current = null
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+    }
+  }, [isHovered])
 
   const isLarge = layoutType === 'large'
   const isWide = layoutType === 'wide'
@@ -121,11 +136,13 @@ function Card({ tool = {}, layoutType = 'standard', glass = false, folders = nul
       onHoverEnd={() => {
         setIsHovered(false)
         setShowFolderDropdown(false)
+        rectRef.current = null
       }}
       onFocus={() => setIsHovered(true)}
       onBlur={() => {
         setIsHovered(false)
         setShowFolderDropdown(false)
+        rectRef.current = null
       }}
       whileHover={{ y: -4, boxShadow: 'var(--shadow-lg)' }}
       whileTap={{ scale: 0.98 }}
