@@ -584,6 +584,14 @@ def create_app(config: dict | None = None) -> Flask:
     # binding to the port, so the first user request hits a warm cache
     # without blocking startup.
     if not app.config.get("TESTING"):
+        app.warmup_status = {
+            "migrate": "pending",
+            "db_create": "pending",
+            "users_alter": "pending",
+            "seed": "pending",
+            "sync": "pending",
+            "error": None
+        }
         def _warm_up():
             with app.app_context():
                 # Phase 1 — DB schema bootstrap. Used to run inline in
@@ -596,15 +604,19 @@ def create_app(config: dict | None = None) -> Flask:
                     from flask_migrate import upgrade as db_upgrade
                     db_upgrade()
                     print("[WARMUP] flask db upgrade done", flush=True)
+                    app.warmup_status["migrate"] = "success"
                 except Exception as e:
                     print(f"[WARMUP] migrate skipped: {e}", flush=True)
+                    app.warmup_status["migrate"] = f"skipped: {e}"
 
                 try:
                     from app.models import ReviewVote  # noqa: F401
                     db.create_all()
                     print("[WARMUP] db.create_all() done", flush=True)
+                    app.warmup_status["db_create"] = "success"
                 except Exception as e:
                     print(f"[WARMUP] db.create_all() error: {e}", flush=True)
+                    app.warmup_status["db_create"] = f"error: {e}"
 
                 # Raw SQL Fallback: Guarantee that the is_verified column exists in the users table
                 try:
@@ -612,9 +624,11 @@ def create_app(config: dict | None = None) -> Flask:
                     db.session.execute(text("ALTER TABLE users ADD COLUMN is_verified BOOLEAN NOT NULL DEFAULT FALSE;"))
                     db.session.commit()
                     print("[WARMUP] Successfully added is_verified column to users table via raw SQL fallback.", flush=True)
+                    app.warmup_status["users_alter"] = "success"
                 except Exception as alter_err:
                     db.session.rollback()
                     print(f"[WARMUP] Alter table users check/addition completed: {alter_err}", flush=True)
+                    app.warmup_status["users_alter"] = f"check_complete: {alter_err}"
 
                 # Raw SQL Fallback: Guarantee that public profile columns exist
                 for col_name, col_type in [
@@ -641,10 +655,13 @@ def create_app(config: dict | None = None) -> Flask:
                     from app.catalog_store import seed_from_json_if_empty, sync_ratings_and_verifications_from_json
                     seeded = seed_from_json_if_empty()
                     print(f"[WARMUP] catalog seed: {seeded} rows inserted", flush=True)
+                    app.warmup_status["seed"] = f"success ({seeded} inserted)"
                     synced = sync_ratings_and_verifications_from_json()
                     print(f"[WARMUP] catalog ratings/verifications sync: {synced} rows updated", flush=True)
+                    app.warmup_status["sync"] = f"success ({synced} synced)"
                 except Exception as e:
                     print(f"[WARMUP] catalog seed/sync skipped: {e}", flush=True)
+                    app.warmup_status["error"] = str(e)
 
                 # SECRET_KEY rotation when no env var is set. Only runs
                 # in the rare config where SECRET_KEY isn't provided by
@@ -722,5 +739,11 @@ def create_app(config: dict | None = None) -> Flask:
     @app.route('/healthz')
     def healthz():
         return 'ok', 200, {'Content-Type': 'text/plain'}
+
+    @app.route('/healthz-detailed')
+    def healthz_detailed():
+        from flask import jsonify
+        status = getattr(app, "warmup_status", {"message": "Not initialized / testing mode"})
+        return jsonify(status), 200
 
     return app
