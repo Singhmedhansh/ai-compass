@@ -751,4 +751,23 @@ def create_app(config: dict | None = None) -> Flask:
         status = getattr(app, "warmup_status", {"message": "Not initialized / testing mode"})
         return jsonify(status), 200
 
+    @app.route('/debug-threads')
+    def debug_threads():
+        import threading
+        import traceback
+        import sys
+        from flask import jsonify
+
+        id_to_thread = {t.ident: t for t in threading.enumerate()}
+        res = []
+        for thread_id, frame in sys._current_frames().items():
+            t = id_to_thread.get(thread_id)
+            t_name = t.name if t else "Unknown"
+            res.append({
+                "thread_id": thread_id,
+                "name": t_name,
+                "stack": traceback.format_stack(frame)
+            })
+        return jsonify(res), 200
+
     return app
