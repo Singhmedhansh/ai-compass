@@ -1411,6 +1411,17 @@ def get_tool_ratings(slug: str):
     avg = round(float(result.avg), 1) if result and result.avg is not None else 0
     count = int(result.count or 0) if result else 0
 
+    if count == 0:
+        from app.models import CatalogTool
+        row = CatalogTool.query.filter_by(slug=slug_value).first()
+        if row:
+            try:
+                rec = json.loads(row.data) if row.data else {}
+                avg = float(rec.get("rating") or 0.0)
+                count = int(rec.get("review_count") or rec.get("reviewCount") or rec.get("reviews") or 0)
+            except Exception:
+                pass
+
     user_rating = None
     if current_user.is_authenticated:
         rating = Rating.query.filter_by(user_id=current_user.id, tool_slug=slug_value).first()
