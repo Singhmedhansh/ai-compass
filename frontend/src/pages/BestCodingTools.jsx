@@ -69,7 +69,7 @@ function BrandIcon({ tool, isHero }) {
   );
 }
 
-const LAST_REVIEWED = "May 2026";
+const LAST_REVIEWED = "June 2026";
 
 // Slug -> affiliate URL. Add entries here when partnerships are signed;
 // the CTA picks them up and adds rel="sponsored" automatically.
@@ -341,7 +341,7 @@ export default function BestCodingTools() {
         {/* Hero */}
         <div className="mx-auto max-w-[860px] px-6 pt-20 pb-12 text-center">
           <div className="inline-block rounded-full border border-accent bg-accent-soft px-4 py-1.5 text-[13px] uppercase tracking-widest text-accent-ink mb-6 font-sans">
-            Updated May 2026 · 10 tools reviewed
+            Updated June 2026 · 10 tools reviewed
           </div>
           <h1 className="text-[clamp(2rem,5vw,3.2rem)] font-bold leading-[1.15] tracking-tight text-ink mb-5">
             <WordReveal>The 10 Best Coding Tools for Students in 2026</WordReveal>

@@ -75,7 +75,7 @@ function BrandIcon({ tool, isHero }) {
 }
 
 // Surface review recency as a trust signal — matches the catalog's "no scraping, hand-tested" claim on the homepage Curation Discipline section.
-const LAST_REVIEWED = "May 2026";
+const LAST_REVIEWED = "June 2026";
 
 // Outbound CTA target: per-tool affiliateUrl (rel=sponsored) when a program is
 // signed, otherwise the tool's homepage built from its clearbitDomain. None of
@@ -360,7 +360,7 @@ export default function BestAIToolsForTeachers() {
         {/* Hero */}
         <div className="mx-auto max-w-[860px] px-6 pt-20 pb-12 text-center">
           <div className="inline-block rounded-full border border-accent bg-accent-soft px-4 py-1.5 text-[13px] uppercase tracking-widest text-accent-ink mb-6 font-sans">
-            10 tools · Updated May 2026
+            10 tools · Updated June 2026
           </div>
           <h1 className="text-[clamp(2rem,5vw,3.2rem)] font-bold leading-[1.15] tracking-tight text-ink mb-5">
             <WordReveal>The best AI tools for teachers in 2026</WordReveal>

@@ -56,7 +56,7 @@ function BrandIcon({ tool, isHero }) {
   );
 }
 
-const LAST_REVIEWED = "May 2026";
+const LAST_REVIEWED = "June 2026";
 
 // Affiliate URLs for partnered tools. CTA below sets rel="sponsored" when
 // the click is monetised; the page-level disclosure in the hero is shown
@@ -255,7 +255,7 @@ export default function BestAIToolsForFictionWriters() {
         <title>10 Best AI Tools for Fiction Writers in 2026 (Tested & Ranked) | AI Compass</title>
         <meta
           name="description"
-          content="The 10 best AI tools for fiction writers, novelists, and screenwriters — Sudowrite, NovelAI, Squibler, Claude, and more. Hand-tested for prose voice, worldbuilding, and revision. Published May 2026."
+          content="The 10 best AI tools for fiction writers, novelists, and screenwriters — Sudowrite, NovelAI, Squibler, Claude, and more. Hand-tested for prose voice, worldbuilding, and revision. Published June 2026."
         />
         <meta
           name="keywords"
@@ -315,7 +315,7 @@ export default function BestAIToolsForFictionWriters() {
         {/* Hero */}
         <div className="mx-auto max-w-[860px] px-6 pt-20 pb-12 text-center">
           <div className="inline-block rounded-full border border-accent bg-accent-soft px-4 py-1.5 text-[13px] uppercase tracking-widest text-accent-ink mb-6 font-sans">
-            Updated May 2026 · 10 tools tested
+            Updated June 2026 · 10 tools tested
           </div>
           <h1 className="text-[clamp(2rem,5vw,3.2rem)] font-bold leading-[1.15] tracking-tight text-ink mb-5">
             <WordReveal>10 Best AI Tools for Fiction Writers in 2026</WordReveal>

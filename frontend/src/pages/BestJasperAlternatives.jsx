@@ -55,7 +55,7 @@ function BrandIcon({ tool, isHero }) {
   );
 }
 
-const LAST_REVIEWED = "May 2026";
+const LAST_REVIEWED = "June 2026";
 
 // Slug -> affiliate URL for partnered tools. Two of the top picks
 // (Sudowrite, Jenni AI) are partners; the CTA below adds rel="sponsored"
@@ -256,7 +256,7 @@ export default function BestJasperAlternatives() {
         <title>10 Best Jasper AI Alternatives in 2026 (Tested & Ranked) | AI Compass</title>
         <meta
           name="description"
-          content="Jasper is $39+/mo and built for marketing teams. These 10 alternatives are cheaper, better suited to fiction/academic/student workflows, and most have usable free tiers. Hand-tested, published May 2026."
+          content="Jasper is $39+/mo and built for marketing teams. These 10 alternatives are cheaper, better suited to fiction/academic/student workflows, and most have usable free tiers. Hand-tested, published June 2026."
         />
         <meta
           name="keywords"
@@ -316,7 +316,7 @@ export default function BestJasperAlternatives() {
         {/* Hero */}
         <div className="mx-auto max-w-[860px] px-6 pt-20 pb-12 text-center">
           <div className="inline-block rounded-full border border-accent bg-accent-soft px-4 py-1.5 text-[13px] uppercase tracking-widest text-accent-ink mb-6 font-sans">
-            Updated May 2026 · 10 tools tested
+            Updated June 2026 · 10 tools tested
           </div>
           <h1 className="text-[clamp(2rem,5vw,3.2rem)] font-bold leading-[1.15] tracking-tight text-ink mb-5">
             <WordReveal>10 Best Jasper AI Alternatives in 2026</WordReveal>
