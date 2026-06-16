@@ -638,11 +638,13 @@ def create_app(config: dict | None = None) -> Flask:
                 # catalog. Idempotent — no-ops once seeded. If this
                 # fails, the cache will fall back to tools.json.
                 try:
-                    from app.catalog_store import seed_from_json_if_empty
+                    from app.catalog_store import seed_from_json_if_empty, sync_ratings_and_verifications_from_json
                     seeded = seed_from_json_if_empty()
                     print(f"[WARMUP] catalog seed: {seeded} rows inserted", flush=True)
+                    synced = sync_ratings_and_verifications_from_json()
+                    print(f"[WARMUP] catalog ratings/verifications sync: {synced} rows updated", flush=True)
                 except Exception as e:
-                    print(f"[WARMUP] catalog seed skipped: {e}", flush=True)
+                    print(f"[WARMUP] catalog seed/sync skipped: {e}", flush=True)
 
                 # SECRET_KEY rotation when no env var is set. Only runs
                 # in the rare config where SECRET_KEY isn't provided by

@@ -202,3 +202,56 @@ def set_fields(slug: str, *, hidden=None, affiliate_url=None) -> bool:
         except Exception:  # noqa: BLE001
             pass
         return False
+
+
+def sync_ratings_and_verifications_from_json() -> int:
+    """Sync ratings, review counts, and verified dates from tools.json into CatalogTool database table.
+    Does not overwrite admin edits to other fields. Returns number of tools updated."""
+    try:
+        from app import db
+        from app.models import CatalogTool
+        from app.tool_cache import _load_tools_from_disk
+
+        tools = _load_tools_from_disk() or []
+        by_slug = {str(t.get("slug") or "").strip().lower(): t for t in tools if t.get("slug")}
+
+        rows = CatalogTool.query.all()
+        updated = 0
+        for row in rows:
+            slug = str(row.slug or "").strip().lower()
+            src = by_slug.get(slug)
+            if src:
+                try:
+                    rec = json.loads(row.data) if row.data else {}
+                except (ValueError, TypeError):
+                    rec = {}
+
+                changed = False
+                for key in ("rating", "review_count", "reviewCount", "reviews", "last_verified_at"):
+                    if src.get(key) != rec.get(key):
+                        rec[key] = src[key]
+                        changed = True
+
+                if "pricing_tiers" in src and isinstance(src["pricing_tiers"], dict):
+                    rec.setdefault("pricing_tiers", {})
+                    if isinstance(rec["pricing_tiers"], dict):
+                        if src["pricing_tiers"].get("last_verified_at") != rec["pricing_tiers"].get("last_verified_at"):
+                            rec["pricing_tiers"]["last_verified_at"] = src["pricing_tiers"]["last_verified_at"]
+                            changed = True
+
+                if changed:
+                    row.data = json.dumps(rec, ensure_ascii=False)
+                    updated += 1
+        if updated > 0:
+            db.session.commit()
+            log.info("catalog_store: synced %s tools from tools.json", updated)
+        return updated
+    except Exception as exc:  # noqa: BLE001
+        log.warning("catalog_store.sync_ratings_and_verifications_from_json failed: %s", exc)
+        try:
+            from app import db
+            db.session.rollback()
+        except Exception:  # noqa: BLE001
+            pass
+        return 0
+
