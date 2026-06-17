@@ -2,6 +2,7 @@ import json
 import os
 import re
 import sys
+import time
 from typing import List, Dict, Any
 from filelock import FileLock, Timeout
 
@@ -17,6 +18,8 @@ if not os.path.exists(DEFAULT_TOOLS_PATH):
 _TOOLS_CACHE: List[Dict[str, Any]] | None = None
 _TOOLS_CACHE_MTIME: float | None = None
 _DB_BACKED: bool = False  # True once the catalog is served from the DB
+_LAST_DB_COUNT_CHECK_TIME: float = 0.0
+_DB_CHECK_INTERVAL: float = 30.0  # seconds - check at most once every 30s
 TOOL_CACHE: Dict[str, Dict[str, Any]] = {}
 
 CANONICAL_CATEGORIES = {
@@ -296,13 +299,17 @@ def get_cached_tools(data_path: str = DEFAULT_TOOLS_PATH) -> List[Dict[str, Any]
     # When the catalog comes from the DB, file mtime is meaningless — the
     # cache is busted explicitly by admin writes via refresh_tools_cache().
     if _DB_BACKED:
-        try:
-            from app.models import CatalogTool
-            db_count = CatalogTool.query.count()
-            if db_count > 5 and db_count != len(_TOOLS_CACHE):
-                refresh_tools_cache(data_path)
-        except Exception:
-            pass
+        global _LAST_DB_COUNT_CHECK_TIME
+        now = time.time()
+        if now - _LAST_DB_COUNT_CHECK_TIME >= _DB_CHECK_INTERVAL:
+            _LAST_DB_COUNT_CHECK_TIME = now
+            try:
+                from app.models import CatalogTool
+                db_count = CatalogTool.query.count()
+                if db_count > 5 and db_count != len(_TOOLS_CACHE):
+                    refresh_tools_cache(data_path)
+            except Exception:
+                pass
         return list(_TOOLS_CACHE)
 
     try:
@@ -329,7 +336,8 @@ def get_visible_tools(data_path: str = DEFAULT_TOOLS_PATH) -> List[Dict[str, Any
 
 def refresh_tools_cache(data_path: str = DEFAULT_TOOLS_PATH) -> List[Dict[str, Any]]:
     """Force cache reload from disk after tools.json updates."""
-    global _TOOLS_CACHE, _TOOLS_CACHE_MTIME
+    global _TOOLS_CACHE, _TOOLS_CACHE_MTIME, _LAST_DB_COUNT_CHECK_TIME
+    _LAST_DB_COUNT_CHECK_TIME = time.time()
     _TOOLS_CACHE = _load_tools(data_path)
     try:
         _TOOLS_CACHE_MTIME = os.path.getmtime(data_path)
