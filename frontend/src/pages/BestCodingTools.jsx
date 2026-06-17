@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowUpRight, Sparkles, Code2, Terminal, Cpu, Database, Check, X, ShieldAlert } from "lucide-react";
+import { ArrowUpRight, Sparkles, Code2, Terminal, Cpu, Database, Check, X, ShieldAlert, GraduationCap } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 
