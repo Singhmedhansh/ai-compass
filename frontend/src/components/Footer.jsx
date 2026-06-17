@@ -86,17 +86,23 @@ const ABOUT_LINKS = [
   { label: 'Terms', to: '/terms' },
 ]
 
+const HOW_TO_LINKS = [
+  { label: 'Claim GitHub Student Pack', to: '/guides/github-student-pack' },
+  { label: 'Claim Notion Premium', to: '/guides/notion-student-premium' },
+  { label: 'Claim JetBrains License', to: '/guides/jetbrains-student-license' },
+]
+
 export default function Footer() {
   return (
     <footer className="border-t border-line bg-bg py-10 md:py-12">
       <div className="mx-auto max-w-6xl px-5">
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-[1.5fr_1fr_1fr_1fr]">
-          <div>
+        <div className="grid grid-cols-2 gap-8 md:grid-cols-[1.5fr_1fr_1fr_1fr_1fr]">
+          <div className="col-span-2 md:col-span-1">
             <div className="flex items-center gap-2">
               <CompassMark size={24} />
               <span className="text-base font-semibold text-ink">AI Compass</span>
             </div>
-            <p className="mt-3 max-w-[32ch] text-sm leading-relaxed text-muted">
+            <p className="mt-3 max-w-[32ch] text-sm leading-relaxed text-muted font-sans">
               A hand-curated AI tool finder for students. Built and maintained by a small team out of Bengaluru. ai-compass.in
             </p>
           </div>
@@ -125,6 +131,24 @@ export default function Footer() {
             </h3>
             <ul className="space-y-2">
               {GUIDES_LINKS.map((link) => (
+                <li key={link.to}>
+                  <Link
+                    to={link.to}
+                    className="text-sm text-ink-2 transition-colors hover:text-accent-ink"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted">
+              HOW TO
+            </h3>
+            <ul className="space-y-2">
+              {HOW_TO_LINKS.map((link) => (
                 <li key={link.to}>
                   <Link
                     to={link.to}
