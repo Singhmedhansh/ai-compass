@@ -36,6 +36,7 @@ DIST_DIR = os.path.join(
 _ROUTE_META = {
     'tools': ('{count} Free AI Tools for Students — Tested & Ranked | AI Compass', 'Find your perfect AI tool in 30 seconds. {count} hand-tested tools — free, freemium & paid. Filter by writing, coding, research, design. No account needed.'),
     'ai-tool-finder': ('AI Tool Finder Wizard — AI Compass', 'Answer 4 questions and get 5-6 AI tools picked for you. Free, no login, no ranking tricks.'),
+    'about': ('About Us — AI Compass', 'Learn about the mission of AI Compass and how our hand-tested student AI toolkit differs from traditional LLM tool recommendations.'),
     'compare': ('Compare AI Tools — AI Compass', 'Side-by-side comparison of AI tools — pricing, features, platforms, and ratings.'),
     'collections': ('AI Tool Collections — AI Compass', 'Curated collections — best free, best for students, best for coding, and more.'),
     'best-ai-tools-for-students': ('Best AI Tools for Students — AI Compass', 'Hand-picked AI tools for studying, writing essays, coding, and research. Student-friendly pricing and perks.'),
@@ -61,6 +62,7 @@ _KNOWN_SPA_ROUTES: set[str] = {
     'tools',
     'student-discounts',
     'ai-tool-finder',
+    'about',
     'collections',
     'compare',
     'dashboard',

@@ -42,6 +42,7 @@ const ClerkTestPage = lazy(() => import('./pages/ClerkTestPage'))
 const AdminPage = lazy(() => import('./pages/AdminPage'))
 const AuthCallbackPage = lazy(() => import('./pages/AuthCallbackPage'))
 const SubmitPage = lazy(() => import('./pages/SubmitPage'))
+const AboutPage = lazy(() => import('./pages/AboutPage'))
 const TeamPage = lazy(() => import('./pages/TeamPage'))
 const ContactPage = lazy(() => import('./pages/ContactPage'))
 const PrivacyPage = lazy(() => import('./pages/PrivacyPage'))
@@ -199,6 +200,7 @@ function AnimatedRoutes() {
             <Route path="/clerk-test" element={<ClerkTestPage />} />
             <Route path="/admin" element={<AdminPage />} />
             <Route path="/submit" element={<SubmitPage />} />
+            <Route path="/about" element={<AboutPage />} />
             <Route path="/team" element={<TeamPage />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />

@@ -80,6 +80,7 @@ const GUIDES_LINKS = [
 ]
 
 const ABOUT_LINKS = [
+  { label: 'About Us', to: '/about' },
   { label: 'Team', to: '/team' },
   { label: 'Contact', to: '/contact' },
   { label: 'Privacy', to: '/privacy' },

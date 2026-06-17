@@ -51,7 +51,7 @@ def test_health_route_returns_json(client):
 
 @pytest.mark.parametrize("route", [
     "/this-page-does-not-exist",
-    "/about",  # no /about route in the SPA — used to soft-200
+    "/some-non-existent-page",
     "/settings",
     "/saved-tools",
     "/random/nested/garbage",
@@ -69,3 +69,9 @@ def test_unknown_tool_slug_returns_404(client):
 def test_unknown_alternatives_slug_returns_404(client):
     resp = client.get("/alternatives/this-tool-definitely-does-not-exist-xyz")
     assert resp.status_code == 404
+
+
+def test_about_route_returns_200(client):
+    resp = client.get("/about")
+    assert resp.status_code == 200
+    assert b"About Us" in resp.data or b"About AI Compass" in resp.data
