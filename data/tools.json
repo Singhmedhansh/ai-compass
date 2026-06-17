@@ -28823,7 +28823,7 @@
   {
     "id": 327,
     "name": "Read Aloud",
-    "icon": "/static/icons/readaloud.svg",
+    "icon": "https://raw.githubusercontent.com/ken107/read-aloud/master/img/icon.png",
     "maker": "Read Aloud",
     "tagline": "Free Chrome extension that reads any web page aloud with a click",
     "category": "Audio & Voice",

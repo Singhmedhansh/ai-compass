@@ -227,7 +227,7 @@ def sync_ratings_and_verifications_from_json() -> int:
                     rec = {}
 
                 changed = False
-                for key in ("rating", "review_count", "reviewCount", "reviews", "last_verified_at"):
+                for key in ("rating", "review_count", "reviewCount", "reviews", "last_verified_at", "icon"):
                     if src.get(key) != rec.get(key):
                         rec[key] = src[key]
                         changed = True
