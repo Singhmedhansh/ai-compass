@@ -39,13 +39,12 @@ _ROUTE_META = {
     'compare': ('Compare AI Tools — AI Compass', 'Side-by-side comparison of AI tools — pricing, features, platforms, and ratings.'),
     'collections': ('AI Tool Collections — AI Compass', 'Curated collections — best free, best for students, best for coding, and more.'),
     'best-ai-tools-for-students': ('Best AI Tools for Students — AI Compass', 'Hand-picked AI tools for studying, writing essays, coding, and research. Student-friendly pricing and perks.'),
-    'best-ai-tools-for-teachers': ('10 Best AI Tools for Teachers in 2026 — AI Compass', 'The 10 best AI tools for teachers in 2026 — tested across lesson planning, grading, differentiation, and student engagement. All free or freemium options included.'),
-    'best-free-ai-tools': ('Best Free AI Tools in 2026 (Free & Freemium Options) | AI Compass', 'The best free AI tools you can use without paying. Curated and ranked by quality, not popularity. Free tiers and student plans hand-tested.'),
-    'best-coding-tools-for-students': ('Best Coding Tools for Students — AI Compass', 'The 10 best AI coding tools for student developers — Cursor, GitHub Copilot, Claude Code, Supabase, v0, Netlify. Free tiers and student plans, hand-tested.'),
-    'best-jasper-alternatives': ('10 Best Jasper AI Alternatives in 2026 — AI Compass', 'Jasper is $39+/mo and built for marketing teams. These 10 alternatives are cheaper, better suited to fiction, academic, and student workflows — most with usable free tiers.'),
-    'best-murf-alternatives': ('10 Best Murf AI Alternatives in 2026 — AI Compass', "Murf is no longer the voice-quality leader. These 10 alternatives — led by ElevenLabs — have better voices, usable free tiers, and pricing that doesn't feel like a 2022 SaaS quote."),
-    'best-synthesia-alternatives': ('10 Best Synthesia Alternatives in 2026 — AI Compass', "Synthesia is $22+/mo for AI avatar videos most creators don't need. These 10 alternatives — led by Pictory — split into cheaper avatar tools and 'AI video without avatars' for explainers, training, and social shorts."),
-    'best-ai-tools-for-fiction-writers': ('10 Best AI Tools for Fiction Writers in 2026 — AI Compass', 'The 10 best AI tools for fiction writers, novelists, and screenwriters — Sudowrite, NovelAI, Squibler, Claude, and more. Hand-tested for prose voice, worldbuilding, and revision.'),
+    'best-ai-tools-for-teachers': ('AI Plagiarism, Detection & Classroom Policy: Educator\'s Guide | AI Compass', 'A comprehensive academic guide on AI plagiarism. Compare Turnitin vs GPTZero vs CopyLeaks, understand bypass methods, and design AI-resistant assessments.'),
+    'best-free-ai-tools': ('100% Free AI Tools Guide (No Subscriptions or Paywalls) | AI Compass', 'Hand-tested 100% free AI tools with zero premium tiers, top-ups, or credit limits. Includes DuckDuckGo AI Chat, local desktop LLMs, and open-source enhancers.'),
+    'best-coding-tools-for-students': ('Best Coding Tools for Students — AI Compass', 'The best AI coding tools for student developers — Cursor, GitHub Copilot, Claude Code, and more. Features comparative analysis of text editors and agent managers.'),
+    'guides/github-student-pack': ('How to Claim GitHub Student Developer Pack (Step-by-Step) | AI Compass', 'A complete student guide to claiming the GitHub Student Developer Pack. Learn how to verify your .edu email and access GitHub Copilot and other perks for free.'),
+    'guides/notion-student-premium': ('How to Get Notion Plus & Notion AI for Students (Step-by-Step) | AI Compass', 'Learn how to claim Notion\'s free education plan and upgrade to Notion Plus with Notion AI, using your school email.'),
+    'guides/jetbrains-student-license': ('How to Get JetBrains Free Student License (Step-by-Step) | AI Compass', 'Step-by-step walkthrough to get IntelliJ IDEA Ultimate, PyCharm Pro, and other JetBrains tools 100% free as a student.'),
     'forgot-password': ('Recover Password — AI Compass', 'Retrieve your account by resetting your password.'),
     'reset-password': ('Reset Password — AI Compass', 'Enter a new password for your account.'),
     'help': ('FAQ & Support — AI Compass', 'Get answers to frequently asked questions, learn how the AI Stack Architect works, or contact support.'),
@@ -78,10 +77,9 @@ _KNOWN_SPA_ROUTES: set[str] = {
     'best-ai-tools-for-teachers',
     'best-free-ai-tools',
     'best-coding-tools-for-students',
-    'best-jasper-alternatives',
-    'best-murf-alternatives',
-    'best-synthesia-alternatives',
-    'best-ai-tools-for-fiction-writers',
+    'guides/github-student-pack',
+    'guides/notion-student-premium',
+    'guides/jetbrains-student-license',
     'auth/callback',
     'forgot-password',
     'reset-password',
@@ -756,10 +754,9 @@ def sitemap():
         ('/best-ai-tools-for-teachers', '0.8', 'monthly'),
         ('/best-free-ai-tools', '0.9', 'weekly'),
         ('/best-coding-tools-for-students', '0.9', 'weekly'),
-        ('/best-jasper-alternatives', '0.9', 'weekly'),
-        ('/best-murf-alternatives', '0.9', 'weekly'),
-        ('/best-synthesia-alternatives', '0.9', 'weekly'),
-        ('/best-ai-tools-for-fiction-writers', '0.9', 'weekly'),
+        ('/guides/github-student-pack', '0.9', 'weekly'),
+        ('/guides/notion-student-premium', '0.9', 'weekly'),
+        ('/guides/jetbrains-student-license', '0.9', 'weekly'),
         ('/collections', '0.7', 'weekly'),
         # Public static routes that were previously absent from the sitemap
         # despite being indexable. Lower priority — these aren't conversion
@@ -882,10 +879,9 @@ def llms_txt():
         '- [Best AI Tools for Teachers](https://ai-compass.in/best-ai-tools-for-teachers)\n'
         '- [Best Free AI Tools](https://ai-compass.in/best-free-ai-tools)\n'
         '- [Best Coding Tools for Students](https://ai-compass.in/best-coding-tools-for-students)\n'
-        '- [Best Jasper Alternatives](https://ai-compass.in/best-jasper-alternatives)\n'
-        '- [Best Murf Alternatives](https://ai-compass.in/best-murf-alternatives)\n'
-        '- [Best Synthesia Alternatives](https://ai-compass.in/best-synthesia-alternatives)\n'
-        '- [Best AI Tools for Fiction Writers](https://ai-compass.in/best-ai-tools-for-fiction-writers)\n\n'
+        '- [How to Claim GitHub Student Developer Pack](https://ai-compass.in/guides/github-student-pack)\n'
+        '- [How to Get Notion Student Premium](https://ai-compass.in/guides/notion-student-premium)\n'
+        '- [How to Get JetBrains Student License](https://ai-compass.in/guides/jetbrains-student-license)\n\n'
         '## About\n'
         '- [Contact](https://ai-compass.in/contact)\n'
         '- [Privacy Policy](https://ai-compass.in/privacy)\n'

@@ -454,29 +454,31 @@ function Navbar() {
                 >
                   Best Coding Tools for Students
                 </Link>
+                <div className="border-t border-line my-1"></div>
+                <div className="px-4 py-1.5 text-[11px] font-bold tracking-wider text-muted uppercase">How-To Guides</div>
                 <Link
-                  to="/best-jasper-alternatives"
+                  to="/guides/github-student-pack"
                   onClick={() => setIsGuidesMenuOpen(false)}
                   className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-ink-2 transition hover:bg-bg-sunk"
                   role="menuitem"
                 >
-                  Best Jasper Alternatives
+                  Claim GitHub Student Pack
                 </Link>
                 <Link
-                  to="/best-murf-alternatives"
+                  to="/guides/notion-student-premium"
                   onClick={() => setIsGuidesMenuOpen(false)}
                   className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-ink-2 transition hover:bg-bg-sunk"
                   role="menuitem"
                 >
-                  Best Murf Alternatives
+                  Claim Notion Premium
                 </Link>
                 <Link
-                  to="/best-synthesia-alternatives"
+                  to="/guides/jetbrains-student-license"
                   onClick={() => setIsGuidesMenuOpen(false)}
                   className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-ink-2 transition hover:bg-bg-sunk"
                   role="menuitem"
                 >
-                  Best Synthesia Alternatives
+                  Claim JetBrains License
                 </Link>
               </MotionDiv>
               ) : null}
@@ -805,26 +807,28 @@ function Navbar() {
                 >
                   Best Coding Tools for Students
                 </Link>
+                <div className="border-t border-line/50 my-1 mx-3"></div>
+                <div className="px-3 py-1.5 text-[10px] font-bold tracking-wider text-muted uppercase">How-To Guides</div>
                 <Link
-                  to="/best-jasper-alternatives"
+                  to="/guides/github-student-pack"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
+                  className="block rounded-lg px-3 py-2 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
                 >
-                  Best Jasper Alternatives
+                  Claim GitHub Student Pack
                 </Link>
                 <Link
-                  to="/best-murf-alternatives"
+                  to="/guides/notion-student-premium"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
+                  className="block rounded-lg px-3 py-2 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
                 >
-                  Best Murf Alternatives
+                  Claim Notion Premium
                 </Link>
                 <Link
-                  to="/best-synthesia-alternatives"
+                  to="/guides/jetbrains-student-license"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
+                  className="block rounded-lg px-3 py-2 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
                 >
-                  Best Synthesia Alternatives
+                  Claim JetBrains License
                 </Link>
                 {isAdmin ? (
                   <Link

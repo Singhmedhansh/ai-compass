@@ -51,10 +51,9 @@ const BestAIToolsForStudents = lazy(() => import('./pages/BestAIToolsForStudents
 const BestAIToolsForTeachers = lazy(() => import('./pages/BestAIToolsForTeachers'))
 const BestFreeAITools = lazy(() => import('./pages/BestFreeAITools'))
 const BestCodingTools = lazy(() => import('./pages/BestCodingTools'))
-const BestJasperAlternatives = lazy(() => import('./pages/BestJasperAlternatives'))
-const BestMurfAlternatives = lazy(() => import('./pages/BestMurfAlternatives'))
-const BestSynthesiaAlternatives = lazy(() => import('./pages/BestSynthesiaAlternatives'))
-const BestAIToolsForFictionWriters = lazy(() => import('./pages/BestAIToolsForFictionWriters'))
+const HowToGithubStudentPack = lazy(() => import('./pages/HowToGithubStudentPack'))
+const HowToNotionStudent = lazy(() => import('./pages/HowToNotionStudent'))
+const HowToJetBrainsStudent = lazy(() => import('./pages/HowToJetBrainsStudent'))
 const SyllabusParserPage = lazy(() => import('./pages/SyllabusParserPage'))
 const SharedToolkitPage = lazy(() => import('./pages/SharedToolkitPage'))
 const StudentDiscountsPage = lazy(() => import('./pages/StudentDiscountsPage'))
@@ -209,10 +208,9 @@ function AnimatedRoutes() {
             <Route path="/best-ai-tools-for-teachers" element={<BestAIToolsForTeachers />} />
             <Route path="/best-free-ai-tools" element={<BestFreeAITools />} />
             <Route path="/best-coding-tools-for-students" element={<BestCodingTools />} />
-            <Route path="/best-jasper-alternatives" element={<BestJasperAlternatives />} />
-            <Route path="/best-murf-alternatives" element={<BestMurfAlternatives />} />
-            <Route path="/best-synthesia-alternatives" element={<BestSynthesiaAlternatives />} />
-            <Route path="/best-ai-tools-for-fiction-writers" element={<BestAIToolsForFictionWriters />} />
+            <Route path="/guides/github-student-pack" element={<HowToGithubStudentPack />} />
+            <Route path="/guides/notion-student-premium" element={<HowToNotionStudent />} />
+            <Route path="/guides/jetbrains-student-license" element={<HowToJetBrainsStudent />} />
             <Route path="/syllabus-parser" element={<SyllabusParserPage />} />
             <Route path="/shared-toolkit/:shareId" element={<SharedToolkitPage />} />
             <Route path="/student-discounts" element={<StudentDiscountsPage />} />

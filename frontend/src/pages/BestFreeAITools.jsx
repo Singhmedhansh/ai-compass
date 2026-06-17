@@ -1,16 +1,8 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowUpRight, Sparkles } from "lucide-react";
+import { ArrowUpRight, Sparkles, Shield, Cpu, RefreshCw, Layers } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-
-// Brand logos: tools with a curated SVG under /assets/brand/ get pixel-perfect
-// vector marks; everything else uses Clearbit's logo CDN keyed off the tool's
-// canonical domain. Clearbit returns 404 on miss (unlike Google's favicon API
-// which returns a generic globe with HTTP 200), so onError correctly flips the
-// card to its initial-letter tile.
-import chatgptIcon from "../assets/brand/chatgpt.svg";
-import claudeIcon from "../assets/brand/claude.svg";
 
 import { MagneticWrapper, WordReveal } from "../components/ui";
 import { useCatalogStats } from "../hooks/useCatalogStats";
@@ -18,20 +10,8 @@ import { sectionReveal, staggerParent, staggerChild } from "../lib/motion";
 import { toolHoverHandlers, alternativesHoverHandlers } from "../lib/prefetch";
 
 const MotionDiv = motion.div;
-// Static fallback covers the ~100ms before /api/v1/stats responds.
 const FALLBACK_TOOL_COUNT = 400;
 
-// Per-card icon with a 3-stage fallback: primary (tool.iconUrl, usually Clearbit
-// or a Vite-imported brand SVG) -> 'fallback' (DuckDuckGo's icon proxy, keyed off
-// the Clearbit domain) -> letter tile. Each onError advances one step. A
-// Vite-bundled SVG that 404s jumps straight to the letter since its URL doesn't
-// match the Clearbit pattern, so domain extraction returns null.
-//
-// DuckDuckGo over Google: Google's s2/favicons API returns a generic globe
-// placeholder with HTTP 200 for unknown sites, which never triggers onError —
-// Phind manifested this exact bug (globe icon stuck on the card). DuckDuckGo's
-// ip3 endpoint returns a clean 404 on miss, so the cascade reliably falls
-// through to the letter tile.
 function BrandIcon({ tool, isHero }) {
   const [stage, setStage] = useState(tool.iconUrl ? "primary" : "letter");
 
@@ -69,233 +49,211 @@ function BrandIcon({ tool, isHero }) {
   );
 }
 
-// Surface review recency as a trust signal — matches the catalog's "no scraping, hand-tested" claim on the homepage Curation Discipline section.
-const LAST_REVIEWED = "April 2026";
-
-// Slug -> affiliate URL. Add entries here when partnerships are signed;
-// the CTA picks them up and adds rel="sponsored" automatically.
-const AFFILIATE_URLS = {
-  // 'sudowrite': 'https://www.sudowrite.com/?via=medhansh',
-  // 'jenni-ai': 'https://jenni.ai/?via=medhansh',
-  // 'elevenlabs': 'https://try.elevenlabs.io/2f10b9jmqa4g',
-  // 'pictory': 'https://pictory.ai?ref=medhansh34',
-};
+const LAST_REVIEWED = "June 2026";
 
 function getOutboundUrl(tool) {
-  const affiliate = AFFILIATE_URLS[tool.slug];
-  if (affiliate) return { url: affiliate, isAffiliate: true };
   if (tool.slug) return { url: `/go/${encodeURIComponent(tool.slug)}`, isAffiliate: false };
-  const m = typeof tool.iconUrl === 'string' && tool.iconUrl.match(/clearbit\.com\/([^/]+)/);
-  if (m) return { url: `https://${m[1]}`, isAffiliate: false };
   return { url: null, isAffiliate: false };
 }
 
 const tools = [
   {
     rank: 1,
-    name: "ChatGPT",
-    slug: "chatgpt",
-    iconUrl: chatgptIcon,
-    tagline: "Best free all-purpose AI",
-    freeLimit: "Unlimited GPT-5 mini on free plan",
-    paidPlan: "$20/month for Plus",
-    bestFor: "Writing, coding, brainstorming, Q&A",
-    studentTip: "Use custom instructions to tell ChatGPT you're a student. It will give you structured explanations rather than writing direct answers.",
-    limitation: "You get GPT-5 mini/GPT-4o mini, but advanced features like high-end reasoning have daily caps.",
+    name: "DuckDuckGo AI Chat",
+    slug: "duckduckgo-ai-chat",
+    iconUrl: "https://logo.clearbit.com/duckduckgo.com",
+    tagline: "100% Free, anonymous access to top models",
+    freeLimit: "Unlimited free chat (subject to fair use caps)",
+    paidPlan: "N/A — completely free",
+    bestFor: "Anonymous essay ideas, basic code generation, and Q&A without tracking",
+    studentTip: "Toggle between Claude 3 Haiku, Llama 3, Mixtral, and Gemma models on the fly to get different perspectives on the same essay topic.",
+    limitation: "Does not support file uploads, image generation, or real-time web browsing.",
     freeVerdict:
-      "The free tier is genuinely excellent now. Most students will never hit Plus territory.",
-    color: "#10a37f",
-    badge: "100% Free to start",
+      "A privacy advocate's dream. Completely free access to top-tier models with absolutely zero account requirements or subscription prompts.",
+    color: "#de5833",
+    badge: "No Account Required",
   },
   {
     rank: 2,
-    name: "Claude",
-    slug: "claude",
-    iconUrl: claudeIcon,
-    tagline: "Best free model for long writing",
-    freeLimit: "Generous daily message cap with Claude Sonnet",
-    paidPlan: "$20/month for Pro",
-    bestFor: "Essays, code review, document analysis, careful reasoning",
-    studentTip: "Upload your entire syllabus or study guide to Claude. It has a huge 200k context window and can keep track of all details.",
-    limitation: "The rate limits on the free tier reset every few hours but can be hit quickly during heavy sessions.",
+    name: "LM Studio",
+    slug: "lm-studio",
+    iconUrl: "https://logo.clearbit.com/lmstudio.ai",
+    tagline: "Run powerful AI models locally on your PC or Mac",
+    freeLimit: "Unlimited lifetime use, offline execution",
+    paidPlan: "N/A — 100% free for personal use",
+    bestFor: "CS homework, secure research, private writing",
+    studentTip: "Download lightweight models like Llama 3 8B or Mistral 7B. They run smoothly on mid-range laptops and don't require an active internet connection.",
+    limitation: "Requires a modern machine with a decent GPU or Apple Silicon chip for fast response rates.",
     freeVerdict:
-      "Free tier handles documents up to ~75K words. Outperforms most paid tools for writing.",
-    color: "#cc785c",
-    badge: "Free 200K context",
+      "The gold standard for local LLM tools. Runs completely offline, keeping your transcripts 100% private and bypass-proof.",
+    color: "#6366f1",
+    badge: "100% Local & Private",
   },
   {
     rank: 3,
-    name: "Gemini",
-    slug: "gemini",
-    iconUrl: "https://logo.clearbit.com/gemini.google.com",
-    tagline: "Google's free multimodal AI",
-    freeLimit: "Unlimited free access to Gemini 2.5 Flash",
-    paidPlan: "$20/month for Advanced",
-    bestFor: "Image analysis, web-aware research, Google ecosystem",
-    studentTip: "Use `@Google Drive` in your chat prompts to search and summarize documents in your Google Drive directly.",
-    limitation: "It might hallucinate citations or source links; double check any academic claims it makes.",
+    name: "Upscayl",
+    slug: "upscayl",
+    iconUrl: "https://logo.clearbit.com/upscayl.org",
+    tagline: "Open-source AI image upscaler and enhancer",
+    freeLimit: "Unlimited batch image upscaling up to 8x",
+    paidPlan: "N/A — fully open-source and free",
+    bestFor: "Enhancing presentation graphics, resume headshots, and design assets",
+    studentTip: "Use the 'Double Upscayl' option to scale blurry charts or graphs from old research papers into crisp, high-resolution figures.",
+    limitation: "Processes images locally, which can take several seconds per image depending on your graphics card.",
     freeVerdict:
-      "The free model is competitive with paid tools, and it ties into Drive/Docs natively.",
-    color: "#4285f4",
-    badge: "No credit card",
+      "Beats commercial web-based upscalers hands down. No watermarks, no resolution limits, and zero credits to buy.",
+    color: "#10b981",
+    badge: "No Watermarks",
   },
   {
     rank: 4,
-    name: "DeepL",
-    slug: "deepl",
-    iconUrl: "https://logo.clearbit.com/deepl.com",
-    tagline: "Translation that beats Google Translate",
-    freeLimit: "500K characters/month free",
-    paidPlan: "$8.74/month for Pro",
-    bestFor: "Translating sources, language learning, multilingual writing",
-    studentTip: "Use DeepL's PDF translation tool to translate foreign language academic papers while keeping formatting intact.",
-    limitation: "The free plan is capped at 3 document uploads per month.",
-    freeVerdict:
-      "500K characters is plenty for a semester of foreign-language coursework.",
-    color: "#0f2b46",
-    badge: "No signup needed",
-  },
-  {
-    rank: 5,
     name: "Hugging Face Chat",
     slug: "hugging-face",
     iconUrl: "https://logo.clearbit.com/huggingface.co",
-    tagline: "Open-source models, free, no signup",
-    freeLimit: "Unlimited free access to Llama, Mistral, and other open models",
-    paidPlan: "N/A — fully free",
-    bestFor: "Trying alternative models, technical experimentation, privacy-conscious use",
-    studentTip: "If you want to compare different open source models like Llama 3 or Mistral, this is the best place to test them side-by-side.",
-    limitation: "Does not have native web search or integrations with productivity tools.",
+    tagline: "Free playground for the world's best open LLMs",
+    freeLimit: "Unlimited access to Llama 3, Command R+, Phi-3, and Mistral",
+    paidPlan: "N/A — completely free playground",
+    bestFor: "Trying open-source models, customizing system prompts, and programming research",
+    studentTip: "Check the 'System Prompt' field under settings to instruct the model to act as a strict tutor that guides you rather than giving answers.",
+    limitation: "Can experience high server load during peak hours, causing slower generation times.",
     freeVerdict:
-      "The most open AI access on the internet. No account required, no rate limits worth mentioning.",
+      "Access the bleeding edge of open-source AI in a simple, web-based UI with zero upgrades or premium walls.",
     color: "#ffd21e",
-    badge: "Open source",
+    badge: "Open Source Hub",
+  },
+  {
+    rank: 5,
+    name: "Whisper (Buzz)",
+    slug: "buzz-whisper",
+    iconUrl: "https://logo.clearbit.com/github.com",
+    tagline: "Open-source local transcription app powered by OpenAI Whisper",
+    freeLimit: "Unlimited transcribing duration, zero server fees",
+    paidPlan: "N/A — free desktop client",
+    bestFor: "Transcribing long lectures, seminar records, and project interviews",
+    studentTip: "Select the 'Medium' or 'Large' Whisper models if you have an Apple Silicon Mac or dedicated GPU; it matches human accuracy for complex vocabulary.",
+    limitation: "The large model file downloads take up a few gigabytes of disk space during installation.",
+    freeVerdict:
+      "Say goodbye to subscription-based transcription tools. Transcribe hours of lectures directly on your machine for free.",
+    color: "#24292e",
+    badge: "Unlimited Transcription",
   },
   {
     rank: 6,
-    name: "Perplexity",
-    slug: "perplexity-ai",
-    iconUrl: "https://logo.clearbit.com/perplexity.ai",
-    tagline: "Free AI search with citations",
-    freeLimit: "Unlimited free searches with the base model",
-    paidPlan: "Free for students + $20/month for Pro",
-    bestFor: "Research, fact-checking, finding sources",
-    studentTip: "Click 'Focus' and select 'Academic' to filter search results to peer-reviewed papers and science citations only.",
-    limitation: "The free tier uses a basic model for search; you need Pro for deep multi-step reasoning.",
+    name: "Fooocus",
+    slug: "fooocus",
+    iconUrl: "https://logo.clearbit.com/github.com",
+    tagline: "Offline AI image generator with Midjourney-grade quality",
+    freeLimit: "Unlimited offline image generation",
+    paidPlan: "N/A — run locally for free",
+    bestFor: "Stunning presentation artwork, poster designs, and artistic prompts",
+    studentTip: "Use the built-in 'Styles' library to easily generate images in technical drawing, anime, or architectural mockups without learning complex prompts.",
+    limitation: "Requires a high-end Nvidia graphic card (minimum 6GB VRAM) to run efficiently on Windows.",
     freeVerdict:
-      "Free tier alone replaces Google for most research queries. Pro adds smarter models but isn't required.",
-    color: "#20b8cd",
-    badge: "Free for students",
+      "Stunning SDXL rendering engine wrapped in a highly simplified UI. 100% free, private, and customizable on your machine.",
+    color: "#ec4899",
+    badge: "Local Midjourney Alternative",
   },
   {
     rank: 7,
-    name: "Phind",
-    slug: "phind",
-    iconUrl: "https://logo.clearbit.com/phind.com",
-    tagline: "AI search built for developers",
-    freeLimit: "Generous free tier with current models",
-    paidPlan: "$15/month for Pro",
-    bestFor: "Debugging, framework lookups, technical reference",
-    studentTip: "Phind is excellent for coding homework. It lists official documentation links alongside its code explanations.",
-    limitation: "Highly developer-focused; not suitable for general humanities writing.",
+    name: "Jan.ai",
+    slug: "jan-ai",
+    iconUrl: "https://logo.clearbit.com/jan.ai",
+    tagline: "Open-source, offline-first chat client for your desktop",
+    freeLimit: "Unlimited offline local model chat",
+    paidPlan: "N/A — completely free and local",
+    bestFor: "Secure code debugging, note formatting, private question answering",
+    studentTip: "Link your local notes folder to Jan using its extensions to chat directly with your semesters' lecture notes offline.",
+    limitation: "Requires manually downloading models from Hugging Face through their in-app search.",
     freeVerdict:
-      "For technical questions, Phind's free tier often outperforms ChatGPT free because it pulls live docs.",
-    color: "#00b3a4",
-    badge: "Free unlimited",
+      "A beautiful, clean chat interface modeled after ChatGPT but running entirely offline on your computer.",
+    color: "#f59e0b",
+    badge: "Offline Chat client",
   },
   {
     rank: 8,
-    name: "Microsoft Copilot",
-    slug: "microsoft-copilot",
-    iconUrl: "https://logo.clearbit.com/microsoft.com",
-    tagline: "Conversational AI with no signup wall",
-    freeLimit: "Unlimited free conversations",
-    paidPlan: "N/A — fully free",
-    bestFor: "Brainstorming out loud, casual problem-solving, voice mode",
-    studentTip: "It includes free GPT-4 access and web search without needing any sign-up or credit card.",
-    limitation: "Interface can feel cluttered and it is heavily integrated with Microsoft services.",
+    name: "Audacity with OpenVINO Plugins",
+    slug: "audacity-openvino",
+    iconUrl: "https://logo.clearbit.com/audacityteam.org",
+    tagline: "Free local AI plugins for music, transcription, and noise removal",
+    freeLimit: "Unlimited local audio processing",
+    paidPlan: "N/A — open-source audio editor extension",
+    bestFor: "Cleaning up lecture audio recordings, separating music track stems, and podcast projects",
+    studentTip: "Run the 'Noise Suppression' plugin to scrub low hums or background chatter from lecture notes recorded on your phone.",
+    limitation: "Currently works best on Windows machines with Intel CPUs or Nvidia GPUs.",
     freeVerdict:
-      "A different vibe than ChatGPT — designed for conversation, not tasks. Useful when you're thinking through something.",
-    color: "#0078d4",
-    badge: "No signup needed",
+      "Brings massive AI capabilities directly to the world's most popular free audio editor with zero cloud processing.",
+    color: "#3b82f6",
+    badge: "Intel OpenVINO Powered",
   },
   {
     rank: 9,
-    name: "Remove.bg",
-    slug: "remove.bg",
-    iconUrl: "https://logo.clearbit.com/remove.bg",
-    tagline: "Free AI image editing and background removal",
-    freeLimit: "Free for basic editing; unlimited background removals",
-    paidPlan: "$12.99/month for Pro",
-    bestFor: "Cleaning up photos, removing backgrounds, prepping images for assignments",
-    studentTip: "Perfect for quickly stripping backgrounds from headshots for resume profiles or design projects.",
-    limitation: "High-resolution downloads require credits, free tier only outputs low/medium res images.",
+    name: "Pinokio",
+    slug: "pinokio",
+    iconUrl: "https://logo.clearbit.com/pinokio.computer",
+    tagline: "The 1-click AI application installer and browser",
+    freeLimit: "Unlimited local installs of complex machine learning tools",
+    paidPlan: "N/A — free open-source script launcher",
+    bestFor: "Running complex AI projects (like Stable Diffusion, Face Fusion, voice cloners) without code",
+    studentTip: "Perfect for CS/Design students who want to test complex AI GitHub repos but don't want to wrestle with Python environments, CUDA paths, or terminal dependencies.",
+    limitation: "Downloaded applications can consume massive hard drive space (often 10GB-30GB per model).",
     freeVerdict:
-      "The free tier covers everything most students need. Pro is for designers, not coursework.",
-    color: "#52525b",
-    badge: "No watermark",
+      "A complete game-changer. Solves the nightmare of local machine learning installations by automating scripts in 1 click.",
+    color: "#1e293b",
+    badge: "1-Click Script Installer",
   },
   {
     rank: 10,
-    name: "Mistral AI",
-    slug: "mistral-ai",
-    iconUrl: "https://logo.clearbit.com/mistral.ai",
-    tagline: "Fast free AI from a top open-source lab",
-    freeLimit: "Unlimited free access to Mistral's best model",
-    paidPlan: "N/A for now — fully free in beta",
-    bestFor: "Quick lookups, coding, fast iteration",
-    studentTip: "Mistral Le Chat is incredibly fast. Use it when you need quick synonyms, grammar checks, or code snippets.",
-    limitation: "Context window on free tier is smaller than Claude's.",
+    name: "GPT4All",
+    slug: "gpt4all",
+    iconUrl: "https://logo.clearbit.com/gpt4all.io",
+    tagline: "Run lightweight local chat models on any CPU (no GPU needed)",
+    freeLimit: "Unlimited offline use, search local documents",
+    paidPlan: "N/A — Nomic AI open project",
+    bestFor: "Searching PDFs, reading textbook data offline, general helper chatbot",
+    studentTip: "Use the LocalDocs feature to point GPT4All to your courses' PDF folder. Ask it questions, and it will search and summarize the answers based exclusively on those documents.",
+    limitation: "Local execution on CPU is slower than GPU, generating text at roughly 3-10 tokens per second.",
     freeVerdict:
-      "Noticeably faster than ChatGPT for short prompts. Underrated for everyday use.",
-    color: "#fa520f",
-    badge: "Free beta",
+      "The best local AI option for students without gaming laptops. Runs directly on normal CPUs (Intel/AMD/Apple M-series).",
+    color: "#8b5cf6",
+    badge: "Works on Regular Laptops",
   },
 ];
 
 const tips = [
   {
-    icon: "🎓",
-    title: "Use your college email",
-    body: "Many AI tools have hidden student discounts. GitHub Copilot, Notion, and Figma are completely free with a .edu or college email address.",
+    icon: "💻",
+    title: "Embrace Local AI Tools",
+    body: "By running tools like LM Studio or Upscayl directly on your laptop, you bypass all cloud limits, queue wait times, and monthly subscription paywalls entirely.",
   },
   {
-    icon: "🔄",
-    title: "Stack free tools smartly",
-    body: "Use Perplexity for research, ChatGPT for writing, Grammarly for editing. Three free tools covering your whole workflow costs ₹0.",
+    icon: "🔌",
+    title: "Go completely offline",
+    body: "Local models require zero internet. Use them to study on flights, trains, or in campus libraries with poor Wi-Fi, without any interruption or connection drops.",
   },
   {
-    icon: "⏰",
-    title: "Daily limits reset",
-    body: "Most free tiers with daily limits (like Claude) reset every 24 hours. Hit the limit? Switch to a different free tool and come back tomorrow.",
+    icon: "📂",
+    title: "Chat with your private files",
+    body: "Using tools like GPT4All LocalDocs, you can search and summarize your personal PDF library and course textbook files securely without uploading them to commercial servers.",
   },
   {
-    icon: "🇮🇳",
-    title: "India pricing is lower",
-    body: "If you do decide to pay, always check the India pricing page specifically. ChatGPT Plus, Notion AI, and others charge significantly less in INR than USD.",
+    icon: "🛑",
+    title: "Disable VPNs for web freebies",
+    body: "For free web services like DuckDuckGo AI Chat, make sure your VPN is disabled if you hit connection blocks. Many CDNs restrict access to known VPN IP ranges.",
   },
 ];
 
 const faqs = [
   {
-    q: "Which AI tools are completely free with no credit card?",
-    a: "ChatGPT, Claude, Grammarly, Perplexity, and Google Gemini all have free plans that require no credit card. Just sign up with your email and start using them immediately.",
+    q: "Why are these tools 100% free with no upgrade plans?",
+    a: "Most tools on this list are open-source projects or run locally on your computer's own processor (CPU/GPU). Because the developers don't have to pay for expensive cloud computing servers, they can distribute the software completely free of charge.",
   },
   {
-    q: "What's the best free AI tool for Indian students?",
-    a: "Perplexity AI is the best starting point — no login required, unlimited searches, and real citations. Pair it with the free tier of ChatGPT and Grammarly for a complete zero-cost AI stack.",
+    q: "Do I need a powerful gaming computer to run local AI?",
+    a: "Not necessarily. While image generators like Fooocus require a dedicated graphics card (Nvidia/AMD), chat clients like GPT4All are optimized to run on regular laptops using just the standard processor (CPU).",
   },
   {
-    q: "Are free AI tools good enough or do I need to pay?",
-    a: "For most student use cases, free tiers are genuinely sufficient. ChatGPT free includes GPT-4o, Grammarly free catches all common errors, and Perplexity free has unlimited searches. You only need paid plans if you're hitting daily limits regularly.",
-  },
-  {
-    q: "How do I get GitHub Copilot for free as a student?",
-    a: "Go to education.github.com and apply for the GitHub Student Developer Pack using your college email address. Approval usually takes 1-3 days and gives you Copilot plus dozens of other developer tools completely free.",
-  },
-  {
-    q: "What free AI tools work in India without VPN?",
-    a: "All tools on this list work in India without a VPN — ChatGPT, Claude, Grammarly, Perplexity, Quillbot, Gamma, Google Gemini, and Otter.ai are all fully accessible in India.",
+    q: "Are these tools safe and private for student research?",
+    a: "Yes, they are far safer than commercial cloud assistants. Because local apps (LM Studio, Jan, GPT4All, Whisper Buzz) process everything on your physical device, no data is uploaded to third-party databases, eliminating data leaks or academic tracking.",
   },
 ];
 
@@ -310,29 +268,29 @@ export default function BestFreeAITools() {
   return (
     <>
       <Helmet>
-        <title>10 Best Free AI Tools 2026 — No Credit Card | AI Compass</title>
+        <title>100% Free AI Tools Guide (No Subscriptions or Paywalls) | AI Compass</title>
         <meta
           name="description"
-          content="The 10 best truly-free AI tools in 2026. No credit card, no demo-grade limits. Hand-tested, pricing re-verified monthly. Published April 2026."
+          content="Hand-tested 100% free AI tools with zero premium tiers, top-ups, or credit limits. Includes DuckDuckGo AI Chat, local desktop LLMs, and open-source enhancers."
         />
         <meta
           name="keywords"
-          content="free AI tools, best free AI tools 2026, free AI tools for students, free AI tools India, no credit card AI tools, free ChatGPT alternatives"
+          content="free AI tools, 100% free AI, open source AI tools, local LLM, run AI offline, free AI tools for students, no credit card AI"
         />
         <link rel="canonical" href="https://ai-compass.in/best-free-ai-tools" />
-        <meta property="og:title" content="10 Best Free AI Tools 2026 — No Credit Card | AI Compass" />
-        <meta property="og:description" content="The 10 best truly-free AI tools in 2026. No credit card, no demo-grade limits. Hand-tested, pricing re-verified monthly. Published April 2026." />
+        <meta property="og:title" content="100% Free AI Tools Guide (No Subscriptions) | AI Compass" />
+        <meta property="og:description" content="Hand-tested 100% free AI tools with zero premium tiers, top-ups, or credit limits. Includes DuckDuckGo AI Chat, local desktop LLMs, and open-source enhancers." />
         <meta property="og:url" content="https://ai-compass.in/best-free-ai-tools" />
         <meta property="og:type" content="article" />
         <script type="application/ld+json">{JSON.stringify({
           "@context": "https://schema.org",
           "@type": "Article",
-          "headline": "10 Best Free AI Tools in 2026 — No Credit Card Needed",
-          "description": "The best free AI tools for students — ranked by how useful the free tier actually is.",
+          "headline": "100% Free AI Tools in 2026 — No Subscriptions or Paywalls",
+          "description": "The best 100% free AI tools for students — featuring local LLMs, open-source enhancers, and anonymous web tools.",
           "url": "https://ai-compass.in/best-free-ai-tools",
           "publisher": { "@type": "Organization", "name": "AI Compass", "url": "https://ai-compass.in" },
-          "datePublished": "2026-04-20",
-          "dateModified": "2026-04-20",
+          "datePublished": "2026-06-16",
+          "dateModified": "2026-06-16",
           "author": { "@type": "Organization", "name": "AI Compass", "url": "https://ai-compass.in" },
           "image": "https://ai-compass.in/og-image.png",
           "mainEntityOfPage": { "@type": "WebPage", "@id": "https://ai-compass.in/best-free-ai-tools" },
@@ -369,57 +327,60 @@ export default function BestFreeAITools() {
       </Helmet>
 
       <div className="font-serif">
-
         {/* Hero */}
         <div className="mx-auto max-w-[860px] px-6 pt-20 pb-12 text-center">
           <div className="inline-block rounded-full border border-accent bg-accent-soft px-4 py-1.5 text-[13px] uppercase tracking-widest text-accent-ink mb-6 font-sans">
-            ₹0 · No credit card · Updated April 2026
+            ₹0 · 100% Free · Local & Private · Updated June 2026
           </div>
           <h1 className="text-[clamp(2rem,5vw,3.2rem)] font-bold leading-[1.15] tracking-tight text-ink mb-5">
-            <WordReveal>The 10 Best Free AI Tools in 2026</WordReveal>
+            <WordReveal>The 100% Free AI Toolbox</WordReveal>
           </h1>
           <p className="text-[1.15rem] leading-[1.75] text-muted max-w-[640px] mx-auto mb-8 font-sans">
-            You don't need to spend money to use powerful AI. These 10 tools have free tiers that are genuinely useful — not crippled demos. Ranked by how good the free plan actually is.
+            Tired of premium upgrades, daily word limits, and token top-up plans? We curated the best 
+            AI tools that are <strong>genuinely 100% free</strong>—mostly open-source, local-first applications 
+            with zero subscription models.
           </p>
           <div className="flex flex-wrap justify-center gap-3 font-sans text-[13px] text-muted">
-            {["✅ All free to start", "✅ No credit card required", "✅ Works in India"].map(t => (
+            {["✅ No Credit Cards", "✅ No Upgrade Popups", "✅ Works Offline"].map(t => (
               <span key={t}>{t}</span>
             ))}
           </div>
           <p className="mt-4 text-sm text-muted">
-            <span className="inline-flex items-center gap-2 rounded-full border border-line bg-bg-elev px-3 py-1 text-xs font-medium text-ink-2">
+            <span className="inline-flex items-center gap-2 rounded-full border border-line bg-bg-elev px-3 py-1 text-xs font-medium text-ink-2 font-sans">
               <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden="true" />
-              Published: {LAST_REVIEWED}
+              Verified: {LAST_REVIEWED}
             </span>
           </p>
         </div>
 
-        {/* What "free" actually means — criteria block inserted between hero and Quick nav */}
+        {/* What "100% Free" actually means */}
         <div className="mx-auto max-w-[860px] px-6 mb-12">
           <MotionDiv
             variants={sectionReveal}
             initial="initial"
             whileInView="animate"
             viewport={{ once: true, margin: '-10% 0px' }}
-            className="rounded-2xl border border-line bg-bg-elev p-6 md:p-8"
+            className="rounded-2xl border border-line bg-bg-elev p-6 md:p-8 font-sans"
           >
-            <h2 className="text-lg font-semibold text-ink sm:text-xl">What "free" actually means here</h2>
+            <h2 className="text-lg font-semibold text-ink sm:text-xl flex items-center gap-2">
+              <Shield className="h-5 w-5 text-accent" /> Why there are no catch-ups or limits
+            </h2>
             <ul className="mt-4 grid gap-3 sm:grid-cols-2">
               <li className="flex items-start gap-3 text-sm text-ink-2 leading-relaxed">
                 <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" aria-hidden="true" />
-                <span>Free means free — no credit card required to start, no auto-conversion to paid.</span>
+                <span><strong>No Cloud Server Cost:</strong> By running AI on your own computer processor, there are no expensive API bills for developers to pass on to you.</span>
               </li>
               <li className="flex items-start gap-3 text-sm text-ink-2 leading-relaxed">
                 <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" aria-hidden="true" />
-                <span>Free tier covers actual student workflows, not just demo-grade limits.</span>
+                <span><strong>Open Source Licenses:</strong> Built by global open-source communities that champion free, privacy-first software access.</span>
               </li>
               <li className="flex items-start gap-3 text-sm text-ink-2 leading-relaxed">
                 <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" aria-hidden="true" />
-                <span>Free-tier quotas re-checked monthly — they shrink without notice on most platforms.</span>
+                <span><strong>No Account Signups:</strong> Web tools featured here (like DuckDuckGo AI) require zero logins or registration to function.</span>
               </li>
               <li className="flex items-start gap-3 text-sm text-ink-2 leading-relaxed">
                 <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" aria-hidden="true" />
-                <span>If a tool starts gating essential features behind paid plans, it drops off this list.</span>
+                <span><strong>Privacy First:</strong> Your prompts, text edits, and designs never leave your local hardware, making them 100% academic-safe.</span>
               </li>
             </ul>
           </MotionDiv>
@@ -439,8 +400,8 @@ export default function BestFreeAITools() {
                 <tr className="border-b border-line bg-bg-sunk text-xs font-semibold uppercase tracking-wider text-ink-2">
                   <th className="px-6 py-4">Tool</th>
                   <th className="px-6 py-4">Best For</th>
-                  <th className="px-6 py-4">Free Quota / Limit</th>
-                  <th className="px-6 py-4 text-right">Action</th>
+                  <th className="px-6 py-4">Execution Type</th>
+                  <th className="px-6 py-4 text-right">Details</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
@@ -450,13 +411,15 @@ export default function BestFreeAITools() {
                       {t.rank}. {t.name}
                     </td>
                     <td className="px-6 py-4 text-muted">{t.bestFor}</td>
-                    <td className="px-6 py-4 text-muted">{t.freeLimit}</td>
+                    <td className="px-6 py-4 text-muted">
+                      {t.badge.includes("Local") || t.badge.includes("Offline") ? "💻 Local PC/Mac" : "🌐 Web (Anonymous)"}
+                    </td>
                     <td className="whitespace-nowrap px-6 py-4 text-right">
                       <a
                         href={`#${t.slug}`}
                         className="inline-flex items-center text-xs font-semibold text-accent hover:underline"
                       >
-                        Details →
+                        Read More →
                       </a>
                     </td>
                   </tr>
@@ -475,7 +438,7 @@ export default function BestFreeAITools() {
           className="mx-auto max-w-[860px] px-6 mb-12"
         >
           <div className="rounded-xl border border-line bg-bg-elev p-5 font-sans">
-            <p className="text-[12px] text-muted-2 mb-3 uppercase tracking-widest">Quick jump</p>
+            <p className="text-[12px] text-muted-2 mb-3 uppercase tracking-widest">Jump to tool walkthrough</p>
             <div className="flex flex-wrap gap-2">
               {tools.map(t => (
                 <a
@@ -499,19 +462,18 @@ export default function BestFreeAITools() {
           className="mx-auto max-w-[860px] px-6"
         >
           {tools.map((tool, i) => {
-            const isHero = tool.rank === 1
+            const isHero = tool.rank === 1;
             return (
               <MotionDiv
                 key={tool.slug}
                 variants={staggerChild}
-                // Capped stagger via custom={i * 0.04}; for a 10-card list the last card enters ~0.4s after the first — cascading but not slow.
                 custom={i * 0.04}
                 id={tool.slug}
                 className={`group relative mb-10 overflow-hidden rounded-3xl border border-line scroll-mt-20 transition-all duration-300 hover:-translate-y-1 hover:border-line-strong hover:shadow-lg ${isHero ? 'bg-gradient-to-br from-bg-elev to-accent-soft/40 ring-1 ring-accent/30' : 'bg-bg-elev'}`}
               >
                 {isHero ? (
                   <div className="px-6 pt-6 sm:px-8 sm:pt-8">
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-accent px-3 py-1 text-xs font-semibold text-accent-ink">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-accent px-3 py-1 text-xs font-semibold text-accent-ink font-sans">
                       <Sparkles className="h-3 w-3" aria-hidden="true" />
                       Editor&apos;s pick
                     </span>
@@ -536,7 +498,7 @@ export default function BestFreeAITools() {
                   </div>
 
                   {/* Right content */}
-                  <div className="min-w-0">
+                  <div className="min-w-0 font-sans">
                     <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
                       <h3 className={`font-semibold tracking-tight text-ink ${isHero ? 'text-3xl md:text-4xl' : 'text-2xl md:text-3xl'}`}>
                         {tool.name}
@@ -548,7 +510,7 @@ export default function BestFreeAITools() {
                       ) : null}
                     </div>
 
-                    <p className="mb-6 text-base leading-relaxed text-muted">
+                    <p className="mb-6 text-base leading-relaxed text-muted font-serif">
                       {tool.tagline}
                     </p>
 
@@ -562,20 +524,20 @@ export default function BestFreeAITools() {
                       </div>
                       <div className="flex flex-col gap-1 sm:flex-row sm:gap-4">
                         <dt className="shrink-0 text-xs font-semibold uppercase tracking-wider text-ink-2 sm:w-32">
-                          Free tier
+                          Free model
                         </dt>
                         <dd className="text-sm leading-relaxed text-muted">{tool.freeLimit}</dd>
                       </div>
                       <div className="flex flex-col gap-1 sm:flex-row sm:gap-4">
                         <dt className="shrink-0 text-xs font-semibold uppercase tracking-wider text-ink-2 sm:w-32">
-                          Paid plan starts
+                          Premium Cost
                         </dt>
                         <dd className="text-sm leading-relaxed text-muted">{tool.paidPlan}</dd>
                       </div>
                       {tool.studentTip && (
                         <div className="flex flex-col gap-1 sm:flex-row sm:gap-4">
                           <dt className="shrink-0 text-xs font-semibold uppercase tracking-wider text-accent sm:w-32">
-                            Student Tip
+                            How to use
                           </dt>
                           <dd className="text-sm font-medium leading-relaxed text-ink-2">{tool.studentTip}</dd>
                         </div>
@@ -583,7 +545,7 @@ export default function BestFreeAITools() {
                       {tool.limitation && (
                         <div className="flex flex-col gap-1 sm:flex-row sm:gap-4">
                           <dt className="shrink-0 text-xs font-semibold uppercase tracking-wider text-danger sm:w-32">
-                            Free Catch
+                            Hardware Catch
                           </dt>
                           <dd className="text-sm leading-relaxed text-muted">{tool.limitation}</dd>
                         </div>
@@ -592,24 +554,24 @@ export default function BestFreeAITools() {
 
                     {/* Verdict callout */}
                     <div className="mb-6 rounded-2xl bg-accent-soft px-5 py-4">
-                      <p className="text-sm font-medium italic leading-relaxed text-accent-ink">
+                      <p className="text-sm font-medium italic leading-relaxed text-accent-ink font-serif">
                         &ldquo;{tool.freeVerdict}&rdquo;
                       </p>
                     </div>
 
-                    {/* CTA — outbound primary, internal review secondary. Outbound uses affiliate_url with rel=sponsored when partnered, else falls through to the tool's homepage extracted from its Clearbit icon URL. */}
+                    {/* CTA */}
                     {(() => {
-                      const { url, isAffiliate } = getOutboundUrl(tool)
+                      const { url } = getOutboundUrl(tool);
                       return (
                         <div className="flex flex-wrap items-center gap-3">
                           {url && (
                             <a
                               href={url}
                               target="_blank"
-                              rel={isAffiliate ? 'sponsored noopener noreferrer' : 'noopener noreferrer'}
+                              rel="noopener noreferrer"
                               className="inline-flex items-center gap-2 rounded-full bg-ink px-5 py-2.5 text-sm font-medium text-bg transition-all duration-200 hover:gap-3 hover:bg-ink-2"
                             >
-                              Try {tool.name}
+                              Open Tool Site
                               <ArrowUpRight className="h-4 w-4" />
                             </a>
                           )}
@@ -618,7 +580,7 @@ export default function BestFreeAITools() {
                             {...toolHoverHandlers(tool.slug)}
                             className="inline-flex items-center gap-1 text-sm font-medium text-muted hover:text-ink"
                           >
-                            Read review →
+                            Read details →
                           </Link>
                           <Link
                             to={`/alternatives/${tool.slug}`}
@@ -628,12 +590,12 @@ export default function BestFreeAITools() {
                             See alternatives →
                           </Link>
                         </div>
-                      )
+                      );
                     })()}
                   </div>
                 </div>
               </MotionDiv>
-            )
+            );
           })}
         </MotionDiv>
 
@@ -643,17 +605,17 @@ export default function BestFreeAITools() {
           initial="initial"
           whileInView="animate"
           viewport={{ once: true, margin: '-10% 0px' }}
-          className="mx-auto max-w-[860px] px-6 mt-16"
+          className="mx-auto max-w-[860px] px-6 mt-16 font-sans"
         >
           <h2 className="text-[1.6rem] font-bold tracking-tight text-ink mb-6">
-            4 tips to get the most out of free AI tools
+            Pro tips for running local AI tools
           </h2>
           <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4">
             {tips.map(tip => (
               <div key={tip.title} className="rounded-xl border border-line bg-bg-elev p-5">
                 <div className="text-[1.5rem] mb-2.5">{tip.icon}</div>
-                <h3 className="font-sans text-[14px] font-semibold text-ink mb-2">{tip.title}</h3>
-                <p className="font-sans text-[13px] text-muted m-0 leading-[1.6]">{tip.body}</p>
+                <h3 className="text-[14px] font-semibold text-ink mb-2">{tip.title}</h3>
+                <p className="text-[13px] text-muted m-0 leading-[1.6] font-serif">{tip.body}</p>
               </div>
             ))}
           </div>
@@ -665,20 +627,20 @@ export default function BestFreeAITools() {
           initial="initial"
           whileInView="animate"
           viewport={{ once: true, margin: '-10% 0px' }}
-          className="mx-auto max-w-[860px] px-6 mt-16"
+          className="mx-auto max-w-[860px] px-6 mt-16 font-sans"
         >
           <div className="rounded-2xl border border-accent bg-accent-soft p-10 text-center">
             <h2 className="text-[1.4rem] font-bold tracking-tight text-ink mb-3">
-              Not sure which free tools to start with?
+              Need a personalized recommendation?
             </h2>
-            <p className="font-sans text-[15px] text-muted mb-6">
-              Answer 3 quick questions and get a personalised free AI stack built for your exact workflow.
+            <p className="text-[15px] text-muted mb-6">
+              Answer 4 questions and get a custom free AI stack selected specifically for your hardware setup.
             </p>
             <Link
               to="/ai-tool-finder"
-              className="inline-flex items-center gap-2 rounded-lg bg-accent px-7 py-3 font-sans text-[14px] font-semibold text-bg no-underline transition hover:opacity-90"
+              className="inline-flex items-center gap-2 rounded-lg bg-accent px-7 py-3 text-[14px] font-semibold text-bg no-underline transition hover:opacity-90"
             >
-              Find my free AI stack →
+              Build my free AI stack →
             </Link>
           </div>
         </MotionDiv>
@@ -689,7 +651,7 @@ export default function BestFreeAITools() {
           initial="initial"
           whileInView="animate"
           viewport={{ once: true, margin: '-10% 0px' }}
-          className="mx-auto max-w-[860px] px-6 mt-16"
+          className="mx-auto max-w-[860px] px-6 mt-16 font-sans"
         >
           <h2 className="text-[1.6rem] font-bold tracking-tight text-ink mb-8">
             Frequently asked questions
@@ -697,8 +659,8 @@ export default function BestFreeAITools() {
           <div className="flex flex-col gap-4">
             {faqs.map((faq, i) => (
               <div key={i} className="rounded-xl border border-line bg-bg-elev p-6">
-                <h3 className="font-sans text-[15px] font-semibold text-ink mb-2.5">{faq.q}</h3>
-                <p className="font-sans text-[14px] leading-[1.7] text-muted m-0">{faq.a}</p>
+                <h3 className="text-[15px] font-semibold text-ink mb-2.5">{faq.q}</h3>
+                <p className="text-[14px] leading-[1.7] text-muted m-0 font-serif">{faq.a}</p>
               </div>
             ))}
           </div>
@@ -712,7 +674,7 @@ export default function BestFreeAITools() {
           viewport={{ once: true, margin: '-10% 0px' }}
           className="mx-auto max-w-[860px] px-6 mt-16 mb-20 text-center font-sans"
         >
-          <p className="text-[14px] text-muted-2 mb-2">Also read</p>
+          <p className="text-[14px] text-muted-2 mb-2 font-serif">Read also</p>
           <div className="flex flex-wrap justify-center gap-6">
             <MagneticWrapper strength={0.2}>
               <Link to="/best-ai-tools-for-students" className="text-[14px] font-semibold text-accent no-underline hover:underline">
@@ -724,7 +686,6 @@ export default function BestFreeAITools() {
             </Link>
           </div>
         </MotionDiv>
-
       </div>
     </>
   );

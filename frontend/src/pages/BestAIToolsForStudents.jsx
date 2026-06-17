@@ -71,7 +71,7 @@ function BrandIcon({ tool, isHero }) {
 }
 
 // Surface review recency as a trust signal — matches the catalog's "no scraping, hand-tested" claim on the homepage Curation Discipline section.
-const LAST_REVIEWED = "April 2026";
+const LAST_REVIEWED = "June 2026";
 
 // Slug -> affiliate URL for tools we partner with. Add an entry when an
 // affiliate program is signed; the CTA picks it up and adds rel="sponsored".
@@ -341,7 +341,7 @@ export default function BestAIToolsForStudents() {
         {/* Hero */}
         <div className="mx-auto max-w-[860px] px-6 pt-20 pb-12 text-center">
           <div className="inline-block rounded-full border border-accent bg-accent-soft px-4 py-1.5 text-[13px] uppercase tracking-widest text-accent-ink mb-6 font-sans">
-            Updated April 2026 · 10 tools reviewed
+            Updated June 2026 · 10 tools reviewed
           </div>
           <h1 className="text-[clamp(2rem,5vw,3.2rem)] font-bold leading-[1.15] tracking-tight text-ink mb-5">
             <WordReveal>The 10 Best AI Tools for Students in 2026</WordReveal>
@@ -390,6 +390,39 @@ export default function BestAIToolsForStudents() {
                 <span>Order reflects student utility — what actually helps with coursework, research, and projects.</span>
               </li>
             </ul>
+          </MotionDiv>
+        </div>
+
+        {/* Claiming Student Software Perks Callout */}
+        <div className="mx-auto max-w-[860px] px-6 mb-12">
+          <MotionDiv
+            variants={sectionReveal}
+            initial="initial"
+            whileInView="animate"
+            viewport={{ once: true, margin: '-10% 0px' }}
+            className="rounded-2xl border border-accent bg-accent-soft/10 p-6 md:p-8 font-sans flex flex-col md:flex-row items-center justify-between gap-6"
+          >
+            <div>
+              <h3 className="text-lg font-bold mb-2 text-ink">🎁 Claim Free Student software</h3>
+              <p className="text-sm text-muted font-serif leading-relaxed">
+                Many premium AI and productivity tools offer free educational plans. Don&apos;t pay full price — 
+                use our step-by-step guides to unlock Notion Plus, GitHub Copilot, and JetBrains IDEs.
+              </p>
+            </div>
+            <div className="flex flex-col gap-2 shrink-0 w-full md:w-auto">
+              <Link
+                to="/guides/github-student-pack"
+                className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg bg-accent text-bg font-semibold text-xs transition hover:opacity-90 text-center"
+              >
+                Claim GitHub Pack
+              </Link>
+              <Link
+                to="/guides/notion-student-premium"
+                className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg border border-line bg-bg-elev text-ink font-semibold text-xs transition hover:bg-bg-sunk text-center"
+              >
+                Claim Notion Premium
+              </Link>
+            </div>
           </MotionDiv>
         </div>
 
