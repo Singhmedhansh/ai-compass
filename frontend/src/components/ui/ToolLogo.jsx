@@ -34,7 +34,14 @@ function getFallbackLetter(tool) {
 }
 
 function ToolLogo({ tool, size = 48 }) {
-  const customIcon = tool?.icon || tool?.logoUrl || tool?.logo_url
+  let customIcon = tool?.icon || tool?.logoUrl || tool?.logo_url
+  if (customIcon) {
+    const isLocalStatic = customIcon.startsWith('/static/icons/') && !customIcon.endsWith('default.png')
+    const isClearbit = customIcon.includes('clearbit.com')
+    if (isLocalStatic || isClearbit) {
+      customIcon = null
+    }
+  }
   const domain = getDomain(tool?.url || tool?.website || tool?.link)
   
   // 'custom' -> 'favicon' -> 'emoji' -> 'letter'
