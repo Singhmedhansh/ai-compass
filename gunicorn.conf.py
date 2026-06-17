@@ -38,7 +38,7 @@ loglevel = "info"
 # NOTE: preload=True shares the DB connection pool across workers. With
 # workers=1 this is fine. If workers is ever raised, add a
 # @worker_init signal hook to reconnect the pool after fork.
-preload_app = True
+preload_app = False
 
 # Print a clear marker once gunicorn has bound — useful for debugging
 # port-scan failures in Render logs.

@@ -728,6 +728,8 @@ def create_app(config: dict | None = None) -> Flask:
     if not app.config.get("TESTING"):
         @app.before_request
         def trigger_warmup_on_first_request():
+            if request.path in ('/healthz', '/healthz-detailed', '/debug-threads'):
+                return
             if not getattr(app, "_warmup_started", False):
                 app._warmup_started = True
                 threading.Thread(target=_warm_up, name="warmup", daemon=True).start()
