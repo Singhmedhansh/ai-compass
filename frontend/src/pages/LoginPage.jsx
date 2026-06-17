@@ -91,7 +91,7 @@ function LoginPage() {
       window.dispatchEvent(new Event('userLoggedIn'))
 
       const firstName = (payload.name || 'there').split(' ')[0]
-      toast.success(`Welcome back, ${firstName}! 👋`, {
+      toast.success(`Welcome back, ${firstName}!`, {
         duration: 3000,
       })
 

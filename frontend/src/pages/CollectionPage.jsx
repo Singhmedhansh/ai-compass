@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { Link, useParams } from 'react-router-dom'
+import { Inbox } from 'lucide-react'
 
 import { Button, Card, SkeletonCard } from '../components/ui'
 import ErrorState from '../components/ErrorState'
@@ -130,8 +131,8 @@ function CollectionPage() {
         </div>
       ) : !error ? (
         <section className="rounded-2xl border border-dashed border-line-strong bg-bg-sunk px-6 py-14 text-center">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-line bg-bg-elev text-3xl shadow-sm" aria-hidden="true">
-            📭
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-line bg-bg-elev shadow-sm text-muted-2" aria-hidden="true">
+            <Inbox className="h-8 w-8" />
           </div>
           <h2 className="mt-5 text-xl font-semibold text-ink">No tools found in this collection</h2>
           <p className="mt-2 text-sm text-muted">

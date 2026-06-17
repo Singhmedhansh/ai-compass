@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import { AnimatePresence, motion } from 'framer-motion'
-import { BadgeCheck, Check, Folder, Heart, Star } from 'lucide-react'
+import { BadgeCheck, Check, Folder, Heart, Star, Shield } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
@@ -668,7 +668,7 @@ function ToolDetailPage() {
                 tool.academic_integrity_rating === 'High Risk' && 'bg-rose-500/5 border-rose-500/20 text-ink-2'
               )}>
                 <h3 className="text-base font-bold flex items-center gap-2 mb-3">
-                  <span className="text-lg">🛡️</span>
+                  <Shield className="h-5 w-5 text-accent" />
                   <span>Academic Integrity:</span>
                   <span className={clsx(
                     "px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider",

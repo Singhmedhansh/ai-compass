@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowUpRight, Sparkles } from "lucide-react";
+import { ArrowUpRight, Sparkles, Check, Gift } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 
@@ -349,9 +349,12 @@ export default function BestAIToolsForStudents() {
           <p className="text-[1.15rem] leading-[1.75] text-muted max-w-[640px] mx-auto mb-8 font-sans">
             There are thousands of AI tools. Most aren't worth your time. These 10 are — ranked by how much they actually help students with essays, research, coding, and staying organised.
           </p>
-          <div className="flex flex-wrap justify-center gap-3 font-sans text-[13px] text-muted">
-            {["✅ All have free tiers", "✅ Tested by students", "✅ Ranked by real utility"].map(t => (
-              <span key={t}>{t}</span>
+          <div className="flex flex-wrap justify-center gap-4 font-sans text-[13px] text-muted">
+            {["All have free tiers", "Tested by students", "Ranked by real utility"].map(t => (
+              <span key={t} className="flex items-center gap-1.5">
+                <Check className="h-4 w-4 text-emerald-500" />
+                {t}
+              </span>
             ))}
           </div>
           <p className="mt-4 text-sm text-muted">
@@ -403,7 +406,9 @@ export default function BestAIToolsForStudents() {
             className="rounded-2xl border border-accent bg-accent-soft/10 p-6 md:p-8 font-sans flex flex-col md:flex-row items-center justify-between gap-6"
           >
             <div>
-              <h3 className="text-lg font-bold mb-2 text-ink">🎁 Claim Free Student software</h3>
+              <h3 className="text-lg font-bold mb-2 text-ink flex items-center gap-1.5">
+                <Gift className="h-5 w-5 text-accent" /> Claim Free Student Software
+              </h3>
               <p className="text-sm text-muted font-serif leading-relaxed">
                 Many premium AI and productivity tools offer free educational plans. Don&apos;t pay full price — 
                 use our step-by-step guides to unlock Notion Plus, GitHub Copilot, and JetBrains IDEs.

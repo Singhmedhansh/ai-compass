@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { AlertTriangle, Loader2, MessageSquare } from 'lucide-react'
+import { AlertTriangle, Loader2, MessageSquare, GraduationCap } from 'lucide-react'
 
 import Button from './Button'
 
@@ -255,7 +255,7 @@ export default function ReviewsSection({ slug, isLoggedIn }) {
                     <strong className="text-sm text-ink">{review.user || 'Anonymous'}</strong>
                     {review.is_student_verified && (
                       <span className="inline-flex items-center gap-0.5 rounded bg-indigo-500/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 border border-indigo-500/10">
-                        🎓 Verified Student
+                        <GraduationCap className="h-3.5 w-3.5 text-indigo-500" /> Verified Student
                       </span>
                     )}
                   </div>

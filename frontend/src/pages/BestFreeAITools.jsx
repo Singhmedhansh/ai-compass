@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowUpRight, Sparkles, Shield, Cpu, RefreshCw, Layers } from "lucide-react";
+import { ArrowUpRight, Sparkles, Shield, Cpu, RefreshCw, Layers, Check, Laptop, WifiOff, FolderOpen, ShieldAlert } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 
@@ -221,22 +221,22 @@ const tools = [
 
 const tips = [
   {
-    icon: "💻",
+    icon: Laptop,
     title: "Embrace Local AI Tools",
     body: "By running tools like LM Studio or Upscayl directly on your laptop, you bypass all cloud limits, queue wait times, and monthly subscription paywalls entirely.",
   },
   {
-    icon: "🔌",
+    icon: WifiOff,
     title: "Go completely offline",
     body: "Local models require zero internet. Use them to study on flights, trains, or in campus libraries with poor Wi-Fi, without any interruption or connection drops.",
   },
   {
-    icon: "📂",
+    icon: FolderOpen,
     title: "Chat with your private files",
     body: "Using tools like GPT4All LocalDocs, you can search and summarize your personal PDF library and course textbook files securely without uploading them to commercial servers.",
   },
   {
-    icon: "🛑",
+    icon: ShieldAlert,
     title: "Disable VPNs for web freebies",
     body: "For free web services like DuckDuckGo AI Chat, make sure your VPN is disabled if you hit connection blocks. Many CDNs restrict access to known VPN IP ranges.",
   },
@@ -340,9 +340,12 @@ export default function BestFreeAITools() {
             AI tools that are <strong>genuinely 100% free</strong>—mostly open-source, local-first applications 
             with zero subscription models.
           </p>
-          <div className="flex flex-wrap justify-center gap-3 font-sans text-[13px] text-muted">
-            {["✅ No Credit Cards", "✅ No Upgrade Popups", "✅ Works Offline"].map(t => (
-              <span key={t}>{t}</span>
+          <div className="flex flex-wrap justify-center gap-4 font-sans text-[13px] text-muted">
+            {["No Credit Cards", "No Upgrade Popups", "Works Offline"].map(t => (
+              <span key={t} className="flex items-center gap-1.5">
+                <Check className="h-4 w-4 text-emerald-500" />
+                {t}
+              </span>
             ))}
           </div>
           <p className="mt-4 text-sm text-muted">
@@ -412,7 +415,15 @@ export default function BestFreeAITools() {
                     </td>
                     <td className="px-6 py-4 text-muted">{t.bestFor}</td>
                     <td className="px-6 py-4 text-muted">
-                      {t.badge.includes("Local") || t.badge.includes("Offline") ? "💻 Local PC/Mac" : "🌐 Web (Anonymous)"}
+                      {t.badge.includes("Local") || t.badge.includes("Offline") ? (
+                        <span className="flex items-center gap-1.5">
+                          <Laptop className="h-4 w-4 text-accent" /> Local PC/Mac
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-1.5">
+                          <Layers className="h-4 w-4 text-emerald-500" /> Web (Anonymous)
+                        </span>
+                      )}
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-right">
                       <a
@@ -611,13 +622,18 @@ export default function BestFreeAITools() {
             Pro tips for running local AI tools
           </h2>
           <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4">
-            {tips.map(tip => (
-              <div key={tip.title} className="rounded-xl border border-line bg-bg-elev p-5">
-                <div className="text-[1.5rem] mb-2.5">{tip.icon}</div>
-                <h3 className="text-[14px] font-semibold text-ink mb-2">{tip.title}</h3>
-                <p className="text-[13px] text-muted m-0 leading-[1.6] font-serif">{tip.body}</p>
-              </div>
-            ))}
+            {tips.map(tip => {
+              const IconComponent = tip.icon;
+              return (
+                <div key={tip.title} className="rounded-xl border border-line bg-bg-elev p-5">
+                  <div className="text-accent mb-2.5">
+                    <IconComponent className="h-6 w-6" />
+                  </div>
+                  <h3 className="text-[14px] font-semibold text-ink mb-2">{tip.title}</h3>
+                  <p className="text-[13px] text-muted m-0 leading-[1.6] font-serif">{tip.body}</p>
+                </div>
+              );
+            })}
           </div>
         </MotionDiv>
 

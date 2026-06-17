@@ -230,9 +230,12 @@ export default function BestCodingTools() {
             AI has changed software engineering. We analyzed and compared the top AI-native editors 
             and autonomous agents to help you select the ultimate developer stack.
           </p>
-          <div className="flex flex-wrap justify-center gap-3 font-sans text-[13px] text-muted">
-            {["🚀 Codebase-wide context", "🤖 Agentic task execution", "🎓 Student benefits included"].map(t => (
-              <span key={t}>{t}</span>
+          <div className="flex flex-wrap justify-center gap-4 font-sans text-[13px] text-muted font-medium">
+            {["Codebase-wide context", "Agentic task execution", "Student benefits included"].map(t => (
+              <span key={t} className="flex items-center gap-1.5">
+                <Check className="h-4 w-4 text-emerald-500" />
+                {t}
+              </span>
             ))}
           </div>
           <p className="mt-4 text-sm text-muted">

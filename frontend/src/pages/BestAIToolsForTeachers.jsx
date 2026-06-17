@@ -14,7 +14,8 @@ import {
   Users, 
   Settings, 
   ArrowLeft,
-  ChevronRight
+  ChevronRight,
+  GraduationCap
 } from "lucide-react";
 
 import { WordReveal } from "../components/ui";
@@ -118,8 +119,8 @@ export default function BestAIToolsForTeachers() {
 
         {/* Hero Section */}
         <div className="mx-auto max-w-[960px] px-6 pt-12 pb-12 text-center">
-          <div className="inline-block rounded-full border border-accent bg-accent-soft px-4 py-1.5 text-[13px] uppercase tracking-widest text-accent-ink mb-6 font-sans">
-            🎓 Educator Advisory Board · Verified June 2026
+          <div className="inline-flex items-center gap-1.5 rounded-full border border-accent bg-accent-soft px-4 py-1.5 text-[13px] uppercase tracking-widest text-accent-ink mb-6 font-sans">
+            <GraduationCap className="h-4 w-4" /> Educator Advisory Board · Verified June 2026
           </div>
           <h1 className="text-[clamp(2.2rem,6vw,3.6rem)] font-bold leading-[1.15] tracking-tight text-ink mb-5">
             <WordReveal>The Educator&apos;s Blueprint</WordReveal>

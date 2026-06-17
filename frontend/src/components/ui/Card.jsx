@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import { motion } from 'framer-motion'
-import { Folder, Sparkles, Star } from 'lucide-react'
+import { Folder, Sparkles, Star, Shield } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -253,7 +253,7 @@ function Card({ tool = {}, layoutType = 'standard', glass = false, folders = nul
               )}
               title={tool.academic_warning || 'Academic Safety'}
             >
-              🛡️ {tool.academic_integrity_rating}
+              <Shield className="h-3 w-3" /> {tool.academic_integrity_rating}
             </span>
           )}
           {(() => {

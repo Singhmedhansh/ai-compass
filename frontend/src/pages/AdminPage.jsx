@@ -649,7 +649,7 @@ function AdminPage() {
                 </div>
                 {(analytics.outbound?.monetization_gaps || []).length > 0 && (
                   <Card>
-                    <h3 className="font-semibold text-ink">💸 Monetization gaps</h3>
+                    <h3 className="font-semibold text-ink flex items-center gap-1.5"><Link2 className="h-4 w-4 text-accent" /> Monetization gaps</h3>
                     <p className="mb-3 mt-1 text-xs text-muted">
                       High-traffic tools with no affiliate link yet — these clicks earn nothing. Sign up for these programs first, then paste the referral URL via each tool&apos;s “Affiliate” action in the Tools tab.
                     </p>

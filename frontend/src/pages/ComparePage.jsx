@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import { motion } from 'framer-motion'
-import { AlertTriangle, ArrowLeft, Check, ExternalLink, LayoutGrid, Star, X } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, Check, ExternalLink, LayoutGrid, Star, X, Shield } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
@@ -245,7 +245,7 @@ function ToolColumn({ slug, status, tool, error, onRemove }) {
                 tool.academic_integrity_rating === 'Use with Caution' && 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20',
                 tool.academic_integrity_rating === 'High Risk' && 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20'
               )}>
-                🛡️ {tool.academic_integrity_rating}
+                <Shield className="h-3.5 w-3.5" /> {tool.academic_integrity_rating}
               </span>
               <p className="text-xs text-muted leading-relaxed">{tool.academic_warning}</p>
             </div>

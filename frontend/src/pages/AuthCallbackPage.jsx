@@ -41,7 +41,7 @@ export default function AuthCallbackPage() {
         });
       }
       window.dispatchEvent(new Event('userLoggedIn'))
-      toast.success(`Welcome back, ${params.name.split(' ')[0]}! 👋`)
+      toast.success(`Welcome back, ${params.name.split(' ')[0]}!`)
       navigate('/dashboard', { replace: true })
     } else {
       navigate('/login?error=missing_params', { replace: true })
