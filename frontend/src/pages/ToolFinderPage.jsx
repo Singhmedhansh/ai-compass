@@ -471,7 +471,7 @@ function buildPersona(answers) {
   return clauses.length > 0 ? `${lead} ${clauses.join(', ')}:` : `${lead}:`
 }
 
-function QuestionRow({ index, question, answer, isActive, onActivate, onSelect, onTextChange, onNext, textInputRef, selectedGoals }) {
+function QuestionRow({ index, question, answer, isActive, onActivate, onSelect, onTextChange, onNext, onPrev, textInputRef, selectedGoals }) {
   const indexLabel = String(index).padStart(2, '0')
   const isMulti = Boolean(question.multiSelect)
   const isAnswered = isMulti
@@ -668,7 +668,10 @@ function QuestionRow({ index, question, answer, isActive, onActivate, onSelect, 
 
                 <div className="flex items-center justify-between gap-3 mt-2">
                   <span className="text-xs text-muted-2">Select a category above or press Continue to skip</span>
-                  <Button variant="primary" size="sm" onClick={onNext}>Continue</Button>
+                  <div className="flex gap-2">
+                    <Button variant="secondary" size="sm" onClick={onPrev}>← Back</Button>
+                    <Button variant="primary" size="sm" onClick={onNext}>Continue →</Button>
+                  </div>
                 </div>
               </div>
             ) : question.type === 'text' ? (
@@ -695,9 +698,10 @@ function QuestionRow({ index, question, answer, isActive, onActivate, onSelect, 
                   <span className="text-xs text-muted-2 transition-colors hover:text-muted">
                     Press Continue to skip this step
                   </span>
-                  <Button variant="primary" size="sm" onClick={onNext}>
-                    Continue →
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button variant="secondary" size="sm" onClick={onPrev}>← Back</Button>
+                    <Button variant="primary" size="sm" onClick={onNext}>Continue →</Button>
+                  </div>
                 </div>
               </div>
             ) : (
@@ -776,19 +780,25 @@ function QuestionRow({ index, question, answer, isActive, onActivate, onSelect, 
                         ? `${selectedCount} selected — pick more or continue`
                         : 'Pick all that apply'}
                     </span>
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      onClick={onNext}
-                      disabled={selectedCount === 0}
-                    >
-                      Continue
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button variant="secondary" size="sm" onClick={onPrev}>← Back</Button>
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        onClick={onNext}
+                        disabled={selectedCount === 0}
+                      >
+                        Continue
+                      </Button>
+                    </div>
                   </div>
                 ) : (
-                  <p className="pt-0.5 text-xs text-muted-2">
-                    Pick one — we&apos;ll move to the next question automatically.
-                  </p>
+                  <div className="pt-0.5 flex items-center justify-between">
+                    <p className="text-xs text-muted-2">
+                      Pick one — we&apos;ll move to the next question automatically.
+                    </p>
+                    <Button variant="secondary" size="sm" onClick={onPrev}>← Back</Button>
+                  </div>
                 )}
               </div>
             )}
@@ -1142,6 +1152,26 @@ function ToolFinderPage() {
   const wizardCompletedRef = useRef(false)
   const useCaseInputRef = useRef(null)
 
+  // Helper to go to previous question
+  const handlePrevQuestion = (currentId) => {
+    const idx = QUESTION_FLOW.indexOf(currentId)
+    if (idx > 0) {
+      setActiveQuestion(QUESTION_FLOW[idx - 1])
+    }
+  }
+
+  // Helper to reset wizard state (Clear Choice)
+  const handleClearChoice = () => {
+    setAnswers({ goal: [], use_case: '', budget: '', platform: [], level: '' })
+    setResults([])
+    setViewMode('wizard')
+    setActiveQuestion(null)
+    setHasStarted(false)
+    setSelectedStackId('custom')
+    wizardStartedRef.current = false
+    wizardCompletedRef.current = false
+  }
+
   const canSeeResults = (
     (Array.isArray(answers.goal) ? answers.goal.length > 0 : Boolean(answers.goal))
     && Boolean(answers.level)
@@ -1455,6 +1485,10 @@ function ToolFinderPage() {
                 Refine answers
               </Button>
 
+              <Button variant="secondary" size="sm" onClick={handleClearChoice}>
+                Clear Choice
+              </Button>
+
               <Button
                 variant="primary"
                 size="sm"
@@ -1522,8 +1556,8 @@ function ToolFinderPage() {
             <WizardProgress answers={answers} />
             <div className="grid grid-cols-1 gap-6 md:grid-cols-[1fr_1.2fr] md:gap-8">
             <div className="flex flex-col gap-3">
-              {QUESTIONS.map((question, idx) => (
-                <QuestionRow
+                {QUESTIONS.map((question, idx) => (
+                  <QuestionRow
                   key={question.id}
                   index={idx + 1}
                   question={question}
@@ -1533,6 +1567,7 @@ function ToolFinderPage() {
                   onSelect={(value) => handleQuestionSelect(question, value)}
                   onTextChange={(value) => writeAnswer(question.id, value)}
                   onNext={() => handleQuestionContinue(question)}
+                  onPrev={() => handlePrevQuestion(question.id)}
                   textInputRef={question.id === 'use_case' ? useCaseInputRef : undefined}
                   selectedGoals={answers.goal}
                 />
