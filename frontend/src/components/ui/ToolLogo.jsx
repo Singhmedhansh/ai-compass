@@ -42,7 +42,7 @@ function ToolLogo({ tool, size = 48 }) {
       customIcon = null
     }
   }
-  const domain = getDomain(tool?.url || tool?.website || tool?.link)
+  const domain = getDomain(tool?.website || tool?.link || tool?.url)
   
   // 'custom' -> 'favicon' -> 'emoji' -> 'letter'
   const [stage, setStage] = useState(
