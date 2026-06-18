@@ -721,42 +721,41 @@ function Navbar() {
               transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
               className="overflow-hidden"
             >
-              <nav aria-label="Mobile" className="flex flex-col px-4 py-3">
-                <div className="relative">
-                  <button
-                    type="button"
-                    onClick={() => setIsMobileToolsOpen((prev) => !prev)}
-                    className="flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk text-left"
-                  >
-                    <span>Tools</span>
-                    <ChevronDown className="h-4 w-4 transition-transform duration-200" style={{ transform: isMobileToolsOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
-                  </button>
-                  {isMobileToolsOpen && (
-                    <div className="pl-4 space-y-1 mt-0.5">
-                      <Link
-                        to="/tools"
-                        onClick={() => {
-                          setIsMobileMenuOpen(false)
-                          setIsMobileToolsOpen(false)
-                        }}
-                        className="block rounded-lg px-3 py-2 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
-                      >
-                        Catalog
-                      </Link>
-                      <Link
-                        to="/collections"
-                        onClick={() => {
-                          setIsMobileMenuOpen(false)
-                          setIsMobileToolsOpen(false)
-                        }}
-                        className="block rounded-lg px-3 py-2 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
-                      >
-                        Collections
-                      </Link>
-                    </div>
-                  )}
-                </div>
+              <nav aria-label="Mobile" className="flex flex-col px-4 py-3 gap-0.5">
 
+                {/* Primary CTA — always visible at the top */}
+                <Link
+                  to="/ai-tool-finder"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center justify-center gap-2 rounded-xl bg-accent px-4 py-2.5 text-sm font-bold text-white shadow-sm mb-2 hover:opacity-90 transition"
+                >
+                  <Sparkles className="h-4 w-4" />
+                  Find My Perfect AI Tool
+                </Link>
+
+                {/* ── DISCOVER ── */}
+                <div className="px-3 pt-2 pb-0.5 text-[10px] font-bold tracking-wider text-muted uppercase">Discover</div>
+                <Link
+                  to="/tools"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
+                >
+                  Browse All Tools
+                </Link>
+                <Link
+                  to="/collections"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
+                >
+                  Collections
+                </Link>
+                <Link
+                  to="/compare"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
+                >
+                  Compare AI Tools
+                </Link>
                 <Link
                   to="/model-comparison"
                   onClick={() => setIsMobileMenuOpen(false)}
@@ -764,34 +763,16 @@ function Navbar() {
                 >
                   Model Comparison
                 </Link>
-                <Link
-                  to="/syllabus-parser"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
-                >
-                  Syllabus Parser
-                </Link>
-                <Link
-                  to="/student-discounts"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
-                >
-                  Student Discounts
-                </Link>
 
+                {/* ── STUDENT HUB ── */}
+                <div className="border-t border-line/50 mt-2 mx-1" />
+                <div className="px-3 pt-2 pb-0.5 text-[10px] font-bold tracking-wider text-muted uppercase">Student Hub</div>
                 <Link
                   to="/best-ai-tools-for-students"
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
                 >
                   Best AI Tools for Students
-                </Link>
-                <Link
-                  to="/best-ai-tools-for-teachers"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
-                >
-                  Best AI Tools for Teachers
                 </Link>
                 <Link
                   to="/best-free-ai-tools"
@@ -801,14 +782,37 @@ function Navbar() {
                   Best Free AI Tools
                 </Link>
                 <Link
+                  to="/student-discounts"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
+                >
+                  Student Discounts
+                </Link>
+                <Link
+                  to="/syllabus-parser"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
+                >
+                  Syllabus Parser
+                </Link>
+                <Link
+                  to="/best-ai-tools-for-teachers"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
+                >
+                  AI Tools for Teachers
+                </Link>
+                <Link
                   to="/best-coding-tools-for-students"
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
                 >
-                  Best Coding Tools for Students
+                  Best Coding Tools
                 </Link>
-                <div className="border-t border-line/50 my-1 mx-3"></div>
-                <div className="px-3 py-1.5 text-[10px] font-bold tracking-wider text-muted uppercase">How-To Guides</div>
+
+                {/* ── HOW-TO GUIDES ── */}
+                <div className="border-t border-line/50 mt-2 mx-1" />
+                <div className="px-3 pt-2 pb-0.5 text-[10px] font-bold tracking-wider text-muted uppercase">How-To Guides</div>
                 <Link
                   to="/guides/github-student-pack"
                   onClick={() => setIsMobileMenuOpen(false)}
@@ -830,6 +834,7 @@ function Navbar() {
                 >
                   Claim JetBrains License
                 </Link>
+
                 {isAdmin ? (
                   <Link
                     to="/admin"
@@ -896,14 +901,6 @@ function Navbar() {
                       <UserCircle2 className="h-4 w-4" />
                       Profile &amp; Settings
                     </Link>
-                    <Link
-                      to="/ai-tool-finder"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
-                    >
-                      <Sparkles className="h-4 w-4" />
-                      AI Stack Architect
-                    </Link>
                     {isAdmin ? (
                       <Link
                         to="/admin"
@@ -949,6 +946,7 @@ function Navbar() {
           )}
         </AnimatePresence>
       </div>
+
     </header>
   )
 }

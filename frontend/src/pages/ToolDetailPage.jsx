@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import { AnimatePresence, motion } from 'framer-motion'
-import { BadgeCheck, Check, Folder, Heart, Star, Shield } from 'lucide-react'
+import { BadgeCheck, Check, Folder, Heart, Star, Shield, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
@@ -20,6 +20,68 @@ import { outboundUrl, OUTBOUND_REL } from '../utils/outbound'
 import { inferErrorVariant } from '../utils/errorState'
 
 const MotionDiv = motion.div
+
+// Shown to users who arrive directly on a tool page (empty referrer or external
+// referrer). Gives cold visitors instant site context before they bounce.
+// Dismissed per-session via sessionStorage so repeat visitors never see it.
+function DirectLandingStrip() {
+  const [show, setShow] = useState(() => {
+    // Don't re-show after dismissal within the same session
+    if (typeof sessionStorage !== 'undefined') {
+      if (sessionStorage.getItem('ai_compass_strip_dismissed')) return false
+    }
+    // Show if referrer is empty (direct link) or from an external domain
+    try {
+      const ref = document.referrer
+      if (!ref) return true
+      const refHost = new URL(ref).hostname
+      return !refHost.includes('ai-compass.in')
+    } catch {
+      return true
+    }
+  })
+
+  const dismiss = () => {
+    setShow(false)
+    try { sessionStorage.setItem('ai_compass_strip_dismissed', '1') } catch { /* ignore */ }
+  }
+
+  if (!show) return null
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -6 }}
+        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+        className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-accent/25 bg-accent-soft px-4 py-2.5 text-sm"
+      >
+        <p className="text-accent-ink">
+          You&rsquo;re on{' '}
+          <Link to="/" className="font-bold text-accent hover:underline underline-offset-2">
+            AI Compass
+          </Link>
+          {' '}— 400+ free AI tools, hand-tested for students.{' '}
+          <Link
+            to="/tools"
+            className="font-semibold text-accent hover:underline underline-offset-2"
+          >
+            Browse all →
+          </Link>
+        </p>
+        <button
+          type="button"
+          onClick={dismiss}
+          aria-label="Dismiss"
+          className="shrink-0 rounded-full p-0.5 text-accent hover:bg-accent/10 transition"
+        >
+          <X className="h-3.5 w-3.5" />
+        </button>
+      </motion.div>
+    </AnimatePresence>
+  )
+}
 
 const pricingBadgeClasses = {
   free: 'bg-accent-soft text-accent-ink',
@@ -380,6 +442,9 @@ function ToolDetailPage() {
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      {/* Context strip for direct / external-referrer landings — renders even
+          during skeleton load so cold visitors see site value immediately */}
+      <DirectLandingStrip />
       {tool ? (
         <Helmet>
           <title>{`${tool.name} Review 2026: Is It Free? Pricing & Verdict | AI Compass`}</title>

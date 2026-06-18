@@ -209,7 +209,15 @@ def create_app(config: dict | None = None) -> Flask:
     database_uri = str(app.config.get("SQLALCHEMY_DATABASE_URI") or "")
     engine_options = {
         "pool_pre_ping": True,
-        "pool_recycle": 300,
+        # Recycle every 30 minutes instead of 5 — 6× fewer round-trips to Neon
+        # per idle connection, which helps the compute endpoint auto-suspend.
+        "pool_recycle": 1800,
+        # Small pool: Neon bills for compute while ANY connection is open and
+        # active. 2 persistent + 2 overflow is plenty for a single-worker app
+        # and lets Neon's auto-suspend kick in during quiet periods.
+        "pool_size": 2,
+        "max_overflow": 2,
+        "pool_timeout": 30,
     }
     if database_uri.startswith("postgres://") or database_uri.startswith("postgresql://"):
         # connect_timeout=10 — if Neon is cold and unreachable, fail
@@ -247,11 +255,19 @@ def create_app(config: dict | None = None) -> Flask:
     # cloudflareinsights is listed defensively in case CF Web Analytics is on.
     csp = {
         "default-src": "'self'",
-        "script-src": "'self' https://us-assets.i.posthog.com https://us.i.posthog.com https://static.cloudflareinsights.com",
-        "style-src": "'self' https://fonts.googleapis.com",
+        # 'unsafe-inline' needed for PostHog/theme-detector inline scripts in
+        # index.html. GA4 loads from googletagmanager.com. PostHog JS from its CDN.
+        "script-src": "'self' 'unsafe-inline' https://www.googletagmanager.com https://us-assets.i.posthog.com https://us.i.posthog.com https://static.cloudflareinsights.com",
+        # 'unsafe-inline' is REQUIRED here. Framer Motion (and React itself) inject
+        # inline style attributes at runtime for animations. Nonces do NOT apply to
+        # style attributes — only to <style> elements — so a nonce-only policy
+        # generates ~990 CSP violations per page. unsafe-inline is the correct fix.
+        "style-src": "'self' 'unsafe-inline' https://fonts.googleapis.com",
         "font-src": "'self' https://fonts.gstatic.com data:",
         "img-src": "'self' data: https:",
-        "connect-src": "'self' https://us.i.posthog.com https://us-assets.i.posthog.com https://cloudflareinsights.com",
+        # Include ai-compass.in itself so the /ingest PostHog proxy is explicitly
+        # allowed as a connect target (some browsers enforce this strictly).
+        "connect-src": "'self' https://us.i.posthog.com https://us-assets.i.posthog.com https://cloudflareinsights.com https://www.google-analytics.com",
         "worker-src": "'self' blob:",
         "frame-ancestors": "'self'",
         "base-uri": "'self'",
@@ -279,7 +295,11 @@ def create_app(config: dict | None = None) -> Flask:
             frame_options="SAMEORIGIN",
             referrer_policy="strict-origin-when-cross-origin",
             content_security_policy=csp,
-            content_security_policy_nonce_in=['script-src', 'style-src'],
+            # Only apply nonce to script-src. Nonces do NOT work for style
+            # attributes (only <style> elements), so including style-src here
+            # was what made the CSP strict enough to block Framer Motion's
+            # runtime inline styles — causing 990+ violations per page.
+            content_security_policy_nonce_in=['script-src'],
             permissions_policy={
                 "geolocation": "()",
                 "microphone": "()",

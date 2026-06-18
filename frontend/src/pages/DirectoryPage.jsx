@@ -245,6 +245,9 @@ function DirectoryPage() {
   const [sortBy, setSortBy] = useState('Trending')
   const [showMobileFilters, setShowMobileFilters] = useState(false)
   const [showAllOpened, setShowAllOpened] = useState(false)
+  // Tracks whether the full-tool re-fetch (triggered by opening Show All) is in flight,
+  // so we can show skeleton cards immediately instead of a blank disclosure.
+  const [showAllLoading, setShowAllLoading] = useState(false)
   const [zeroResultsFallbackActive, setZeroResultsFallbackActive] = useState(false)
   const latestRequestIdRef = useRef(0)
   const triggerRef = useRef(null)
@@ -460,6 +463,7 @@ function DirectoryPage() {
       } finally {
         if (requestId === latestRequestIdRef.current && !controller.signal.aborted) {
           setIsLoading(false)
+          setShowAllLoading(false)
         }
       }
     }
@@ -1109,15 +1113,28 @@ function DirectoryPage() {
           <details
             className="group mt-2 overflow-hidden rounded-2xl border border-line bg-bg-elev"
             onToggle={(e) => {
-              if (e.currentTarget.open) setShowAllOpened(true)
+              if (e.currentTarget.open) {
+                setShowAllOpened(true)
+                // Show skeleton immediately so users get feedback while the full
+                // tool list re-fetches (hub mode only loaded a summary).
+                setShowAllLoading(true)
+              }
             }}
           >
-              <summary className="flex cursor-pointer select-none items-center justify-between px-5 py-4 text-sm font-semibold text-ink-2 marker:content-none [&::-webkit-details-marker]:hidden">
+            <summary className="flex cursor-pointer select-none items-center justify-between px-5 py-4 text-sm font-semibold text-ink-2 marker:content-none [&::-webkit-details-marker]:hidden">
               Show all {isRootHub ? hubToolCount : filteredTools.length} tools
               <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" />
             </summary>
             <div className="px-5 pb-6 pt-2">
-              {showAllOpened && <FlatToolGrid tools={filteredTools} />}
+              {showAllOpened && (showAllLoading || isLoading) ? (
+                <div className="tools-grid grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <SkeletonCard key={`show-all-skeleton-${i}`} />
+                  ))}
+                </div>
+              ) : showAllOpened && filteredTools.length > 0 ? (
+                <FlatToolGrid tools={filteredTools} />
+              ) : null}
             </div>
           </details>
         </div>

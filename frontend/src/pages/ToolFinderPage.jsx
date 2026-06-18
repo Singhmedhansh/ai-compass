@@ -678,6 +678,8 @@ function QuestionRow({ index, question, answer, isActive, onActivate, onSelect, 
               <div className="flex flex-col gap-3">
                 <p className="text-sm text-muted">{question.activeHelper}</p>
                 <input
+                  id="wizard-free-text"
+                  name="wizard-free-text"
                   type="text"
                   ref={textInputRef}
                   className="w-full rounded-lg border border-line bg-bg-elev px-3 py-2 text-ink placeholder:text-muted-2 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"

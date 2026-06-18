@@ -109,12 +109,20 @@ def _proxy_posthog_request(path: str) -> Response:
         'trailers',
         'transfer-encoding',
         'upgrade',
+        # Force-exclude so we can override below
+        'accept-encoding',
     }
     headers = {
         key: value
         for key, value in request.headers.items()
         if key.lower() not in excluded_headers
     }
+    # CRITICAL: Force identity (no compression) on upstream requests.
+    # If we forward the client's 'Accept-Encoding: gzip' header, PostHog's
+    # CDN responds with gzip content. We then strip 'content-encoding' from
+    # the response headers (below) so the browser can't decode it, and the
+    # SDK sends garbled bytes on subsequent requests, causing 400s.
+    headers['Accept-Encoding'] = 'identity'
 
     try:
         upstream = requests.request(

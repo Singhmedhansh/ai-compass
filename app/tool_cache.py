@@ -19,7 +19,10 @@ _TOOLS_CACHE: List[Dict[str, Any]] | None = None
 _TOOLS_CACHE_MTIME: float | None = None
 _DB_BACKED: bool = False  # True once the catalog is served from the DB
 _LAST_DB_COUNT_CHECK_TIME: float = 0.0
-_DB_CHECK_INTERVAL: float = 30.0  # seconds - check at most once every 30s
+# Check at most once every 5 minutes — the previous 30s interval kept Neon's
+# compute endpoint perpetually active, burning CU-hrs even during quiet periods.
+# 300s still catches admin catalog updates within a predictable window.
+_DB_CHECK_INTERVAL: float = 300.0  # seconds
 TOOL_CACHE: Dict[str, Dict[str, Any]] = {}
 
 CANONICAL_CATEGORIES = {

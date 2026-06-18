@@ -29,13 +29,31 @@ export default function CookieConsent() {
   useEffect(() => {
     const consent = localStorage.getItem('ai_compass_cookie_consent')
     if (consent !== 'granted' && consent !== 'declined') {
-      // Small delayed mount to feel natural and let other components render
+      // Wait 3.5s so users see page content before the banner interrupts.
+      // This dramatically reduces it being the first/only interaction.
       const timer = setTimeout(() => {
         setVisible(true)
-      }, 800)
+      }, 3500)
       return () => clearTimeout(timer)
     }
   }, [])
+
+  // Scroll-to-dismiss: if the user scrolls >100px before touching the banner
+  // they've clearly engaged with the content — auto-accept and get out of the way.
+  useEffect(() => {
+    if (!visible) return
+    let dismissed = false
+    const handleScroll = () => {
+      if (dismissed) return
+      if (window.scrollY > 100) {
+        dismissed = true
+        localStorage.setItem('ai_compass_cookie_consent', 'granted')
+        setVisible(false)
+      }
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [visible])
 
   const handleAccept = () => {
     localStorage.setItem('ai_compass_cookie_consent', 'granted')
