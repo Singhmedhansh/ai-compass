@@ -62,17 +62,9 @@ export default function ProactiveHelpPrompt() {
 
     if (isDismissed) return
 
-    // Start dwell timer
-    timerRef.current = setTimeout(() => {
-      setMessage(PAGE_MESSAGES[location.pathname] || 'Need assistance navigating AI Compass? Check our FAQ & Support or send us feedback.')
-      setVisible(true)
-    }, DWELL_TIMEOUT_MS)
-
-    return () => {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current)
-      }
-    }
+    // Time-based automatic popup disabled to eliminate distraction/friction.
+    // Proactive help is now purely reactive (e.g., when search yields zero results).
+    return () => {}
   }, [location.pathname, isKeyPage])
 
   // Listen for custom trigger events from pages (e.g. empty results)

@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { HelpCircle } from 'lucide-react'
 
 import { useCatalogStats } from '../../hooks/useCatalogStats'
 import AnimatedCompass from '../ui/AnimatedCompass'
@@ -30,6 +31,10 @@ export default function Hero() {
   const displayCount = totalTools ?? FALLBACK_TOOL_COUNT
   
   const audienceWords = ["Students.", "Researchers.", "Coders.", "Writers.", "Designers."]
+
+  const handleStartTour = () => {
+    window.dispatchEvent(new CustomEvent('ai-compass-start-tour'))
+  }
 
   return (
     <AuroraBackground>
@@ -83,6 +88,13 @@ export default function Hero() {
               >
                 Browse the catalog
               </Link>
+              <button
+                type="button"
+                onClick={handleStartTour}
+                className="inline-flex items-center gap-1.5 rounded-full border border-line px-[18px] py-3 text-sm font-medium text-muted hover:text-ink hover:border-ink hover:bg-bg-elev transition-all"
+              >
+                <HelpCircle className="h-4 w-4" /> Take a Tour
+              </button>
             </div>
 
             <div

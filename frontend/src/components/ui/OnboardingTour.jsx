@@ -12,20 +12,7 @@ export default function OnboardingTour() {
   const [active, setActive] = useState(false)
   const [currentStep, setCurrentStep] = useState(0)
 
-  // Start tour manually or auto-start for new visitors on allowed entry pages
-  useEffect(() => {
-    const tourCompleted = localStorage.getItem('ai-compass-tour-completed') === 'true'
-    const isAllowedPage = ALLOWED_TOUR_PAGES.includes(location.pathname)
-    
-    if (!tourCompleted && isAllowedPage) {
-      // Small delay to let initial page animations finish
-      const timer = setTimeout(() => {
-        setActive(true)
-        setCurrentStep(0)
-      }, 1200)
-      return () => clearTimeout(timer)
-    }
-  }, [location.pathname])
+  // Tour is now purely opt-in via manual triggers to reduce bounce rate and friction.
 
   // Listener for manual tour trigger
   useEffect(() => {
