@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Helmet } from 'react-helmet-async'
-import { Upload, FileText, CheckCircle, Share2, Clipboard, ArrowRight, Loader2, Sparkles, BookOpen } from 'lucide-react'
+import { Upload, FileText, CheckCircle, Share2, Clipboard, ArrowRight, Loader2, Sparkles, BookOpen, AlertTriangle } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 import { Button, Card, WordReveal } from '../components/ui'
@@ -252,8 +252,13 @@ export default function SyllabusParserPage() {
               )}
 
               {errorMessage && (
-                <div className="mt-4 rounded-xl border border-red-500/20 bg-red-500/5 p-4 text-sm text-red-400">
-                  {errorMessage}
+                <div className="mt-4 flex items-start gap-3 rounded-xl border border-red-500/20 bg-red-500/5 p-4 text-sm text-red-400">
+                  <AlertTriangle className="h-5 w-5 shrink-0 text-red-400" />
+                  <div>
+                    <p className="font-semibold text-red-400">Oops, we couldn't parse that</p>
+                    <p className="mt-1 text-red-400/80">{errorMessage}</p>
+                    <p className="mt-2 text-xs">Try pasting the text directly or checking your internet connection.</p>
+                  </div>
                 </div>
               )}
 

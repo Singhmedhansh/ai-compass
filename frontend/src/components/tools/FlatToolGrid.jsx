@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import clsx from 'clsx'
 import { motion } from 'framer-motion'
-import { Plus } from 'lucide-react'
+import { Plus, Loader2 } from 'lucide-react'
 
 import { Card } from '../ui'
 import { staggerChild, staggerParent } from '../../lib/motion'
@@ -10,11 +10,16 @@ const MotionDiv = motion.div
 
 export default function FlatToolGrid({ tools, defaultLimit = 24 }) {
   const [limit, setLimit] = useState(defaultLimit)
+  const [loading, setLoading] = useState(false)
   const visibleTools = tools.slice(0, limit)
   const hasMore = limit < tools.length
 
   const handleLoadMore = () => {
-    setLimit(prev => prev + 24)
+    setLoading(true)
+    setTimeout(() => {
+      setLimit(prev => prev + 24)
+      setLoading(false)
+    }, 400)
   }
 
   return (
@@ -59,10 +64,15 @@ export default function FlatToolGrid({ tools, defaultLimit = 24 }) {
         <div className="flex justify-center pb-8 mt-4">
           <button
             onClick={handleLoadMore}
-            className="group flex items-center gap-2 rounded-full border border-line bg-bg-elev px-6 py-3 text-sm font-medium text-ink transition-colors hover:border-accent hover:bg-accent-soft hover:text-accent-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            disabled={loading}
+            className="group flex items-center gap-2 rounded-full border border-line bg-bg-elev px-6 py-3 text-sm font-medium text-ink transition-colors hover:border-accent hover:bg-accent-soft hover:text-accent-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-50"
           >
-            <Plus className="h-4 w-4 transition-transform group-hover:rotate-90" />
-            Load More Tools ({tools.length - limit} remaining)
+            {loading ? (
+              <Loader2 className="h-4 w-4 animate-spin text-accent" />
+            ) : (
+              <Plus className="h-4 w-4 transition-transform group-hover:rotate-90" />
+            )}
+            {loading ? 'Loading...' : `Load More Tools (${tools.length - limit} remaining)`}
           </button>
         </div>
       )}

@@ -541,6 +541,24 @@ function ToolDetailPage() {
           </script>
         </Helmet>
       ) : null}
+      {tool && !loading && (
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-4 text-sm border-b border-line pb-4">
+          <nav className="flex items-center space-x-2 text-muted" aria-label="Breadcrumb">
+            <Link to="/" className="hover:text-ink transition-colors font-medium">AI Compass</Link>
+            <span className="text-muted-2">/</span>
+            <Link to={`/tools?category=${encodeURIComponent(tool.category)}`} className="hover:text-ink transition-colors font-medium">{tool.category}</Link>
+            <span className="text-muted-2">/</span>
+            <span className="text-ink font-semibold" aria-current="page">{tool.name}</span>
+          </nav>
+ 
+          <Link
+            to="/tools"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-line bg-bg-elev px-4 py-2 text-xs font-semibold text-ink-2 hover:bg-bg-sunk hover:text-ink transition"
+          >
+            ← Back to Directory
+          </Link>
+        </div>
+      )}
       {loading ? (
         <SkeletonToolDetail />
       ) : error || !tool ? (
@@ -558,7 +576,7 @@ function ToolDetailPage() {
               <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-bg-sunk">
                 <ToolLogo tool={tool} size={64} />
               </div>
-
+ 
               <div className="min-w-0 flex-1">
                 <h1 className="text-2xl font-bold tracking-tight text-ink sm:text-3xl lg:text-4xl">{tool.name}</h1>
                 <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -570,6 +588,12 @@ function ToolDetailPage() {
                     )}
                   >
                     {tool.pricing}
+                  </span>
+                  <span className="inline-flex items-center rounded-full bg-accent-soft/50 px-2.5 py-1 text-xs font-semibold text-accent-ink border border-accent/20">
+                    👍 Recommended for Students
+                  </span>
+                  <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                    ⚡ Free tier available
                   </span>
                   {(() => {
                     const studentTag = classifyStudentOffer(tool)

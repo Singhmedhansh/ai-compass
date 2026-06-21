@@ -206,15 +206,43 @@ function ToolColumn({ slug, status, tool, error, onRemove }) {
 
       {tagline ? <p className="mt-3 text-sm text-muted">{tagline}</p> : null}
 
-      <a
-        href={url}
-        target="_blank"
-        rel={OUTBOUND_REL}
-        className="mt-4 inline-flex items-center justify-center gap-1.5 rounded-lg bg-accent px-3 py-2 text-sm font-semibold text-bg outline-none transition hover:opacity-90 focus-visible:ring-2 focus-visible:ring-accent"
-      >
-        Visit tool
-        <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
-      </a>
+      {studentFriendly ? (
+        <div className="mt-4 rounded-xl border border-accent-soft bg-accent-soft/20 p-3">
+          <p className="text-sm font-semibold text-accent-ink flex items-center gap-1.5">
+            <span role="img" aria-label="student">🎓</span> We recommend {name} for students
+          </p>
+          <p className="mt-1 text-xs text-ink-2">
+            It offers features tailored for academic use cases and a dedicated student perk.
+          </p>
+        </div>
+      ) : (
+         <div className="mt-4 rounded-xl border border-line bg-bg-sunk p-3">
+          <p className="text-sm font-semibold text-ink flex items-center gap-1.5">
+             <span role="img" aria-label="info">ℹ️</span> Good for general use
+          </p>
+          <p className="mt-1 text-xs text-ink-2">
+            A solid option with standard features. Consider alternatives if you specifically need student perks.
+          </p>
+        </div>
+      )}
+
+      <div className="mt-4 flex flex-col gap-2">
+        <a
+          href={url}
+          target="_blank"
+          rel={OUTBOUND_REL}
+          className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-bg outline-none transition hover:opacity-90 focus-visible:ring-2 focus-visible:ring-accent"
+        >
+          Try {name}
+          <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+        </a>
+        <Link
+          to={`/tools/${slug}/alternatives`}
+          className="inline-flex w-full items-center justify-center rounded-lg border border-line bg-transparent px-4 py-2 text-sm font-medium text-ink transition hover:bg-bg-sunk focus-visible:ring-2 focus-visible:ring-accent"
+        >
+          View alternatives
+        </Link>
+      </div>
 
       <div className="mt-6">
         <SectionHeading>Pricing</SectionHeading>

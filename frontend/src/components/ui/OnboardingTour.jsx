@@ -11,10 +11,15 @@ export default function OnboardingTour() {
   const location = useLocation()
   const [active, setActive] = useState(false)
   const [currentStep, setCurrentStep] = useState(0)
+  const [showFloatingButton, setShowFloatingButton] = useState(() => {
+    try {
+      return localStorage.getItem('ai-compass-tour-completed') !== 'true'
+    } catch {
+      return true
+    }
+  })
 
-  // Tour is now purely opt-in via manual triggers to reduce bounce rate and friction.
-
-  // Listener for manual tour trigger
+  // Listener for manual tour trigger and auto-trigger delayed by 45s
   useEffect(() => {
     const handleStartTour = () => {
       setActive(true)
@@ -22,10 +27,24 @@ export default function OnboardingTour() {
     }
 
     window.addEventListener('ai-compass-start-tour', handleStartTour)
+
+    // Auto-trigger delay if not already completed
+    const completed = localStorage.getItem('ai-compass-tour-completed') === 'true'
+    let delayTimer = null
+    if (!completed) {
+      delayTimer = setTimeout(() => {
+        if (ALLOWED_TOUR_PAGES.includes(location.pathname) && !active) {
+          setActive(true)
+          setCurrentStep(0)
+        }
+      }, 45000)
+    }
+
     return () => {
       window.removeEventListener('ai-compass-start-tour', handleStartTour)
+      if (delayTimer) clearTimeout(delayTimer)
     }
-  }, [])
+  }, [location.pathname, active])
 
   const handleNext = () => {
     if (currentStep < 3) {
@@ -43,10 +62,25 @@ export default function OnboardingTour() {
 
   const handleComplete = () => {
     setActive(false)
+    setShowFloatingButton(false)
     localStorage.setItem('ai-compass-tour-completed', 'true')
   }
 
-  if (!active) return null
+  if (!active) {
+    if (!showFloatingButton || !ALLOWED_TOUR_PAGES.includes(location.pathname)) return null
+    return (
+      <button
+        onClick={() => {
+          setActive(true)
+          setCurrentStep(0)
+        }}
+        className="fixed bottom-4 right-4 z-40 flex items-center gap-1.5 rounded-full border border-accent/30 bg-bg-elev px-3.5 py-2 text-xs font-bold text-accent shadow-lg backdrop-blur-md transition-all hover:scale-105 hover:bg-accent-soft focus:outline-none focus:ring-2 focus:ring-accent"
+      >
+        <Compass className="h-4 w-4" />
+        Take a quick tour
+      </button>
+    )
+  }
 
   const steps = [
     {

@@ -183,18 +183,19 @@ function TemplateGallery({ onSelect }) {
   )
 }
 
-function WizardProgress({ answers }) {
+function WizardProgress({ answers, activeQuestionId }) {
   const steps = QUESTIONS.map((q) => {
     const answer = answers[q.id]
     const isAnswered = Array.isArray(answer) ? answer.length > 0 : Boolean(answer)
     return { label: q.label, isAnswered }
   })
   const answeredCount = steps.filter((s) => s.isAnswered).length
+  const currentStepIndex = QUESTION_FLOW.indexOf(activeQuestionId) + 1
 
   return (
     <div className="mb-6">
       <div className="mb-2 flex items-center justify-between">
-        <span className="text-xs font-medium text-muted">{answeredCount} of {TOTAL_QUESTIONS} answered</span>
+        <span className="text-xs font-medium text-muted">Step {currentStepIndex > 0 ? currentStepIndex : 1} of {TOTAL_QUESTIONS} · {answeredCount} answered</span>
         <span className="text-xs font-semibold text-accent-ink">{Math.round((answeredCount / TOTAL_QUESTIONS) * 100)}%</span>
       </div>
       <div className="flex gap-1.5">
@@ -226,12 +227,12 @@ function getAspectBucket() {
 }
 
 const GOAL_OPTIONS = [
-  { id: 'learning', label: 'Learning', icon: GraduationCap, desc: 'Study, exam prep, and new skills' },
-  { id: 'coding', label: 'Coding', icon: Code, desc: 'Build apps, debug, and write scripts' },
-  { id: 'writing', label: 'Writing', icon: PenTool, desc: 'Essays, copy, editing, and grammar' },
-  { id: 'research', label: 'Research', icon: BookOpen, desc: 'Papers, citations, and literature search' },
-  { id: 'creating', label: 'Creating', icon: Palette, desc: 'Images, video, audio, and slides' },
-  { id: 'productivity', label: 'Productivity', icon: Zap, desc: 'Tasks, notes, meetings, and automation' },
+  { id: 'learning', label: '🎓 Learning', icon: GraduationCap, desc: 'Study, exam prep, and new skills' },
+  { id: 'coding', label: '💻 Coding', icon: Code, desc: 'Build apps, debug, and write scripts' },
+  { id: 'writing', label: '✍️ Writing', icon: PenTool, desc: 'Essays, copy, editing, and grammar' },
+  { id: 'research', label: '📚 Research', icon: BookOpen, desc: 'Papers, citations, and literature search' },
+  { id: 'creating', label: '🎨 Creating', icon: Palette, desc: 'Images, video, audio, and slides' },
+  { id: 'productivity', label: '⚡ Productivity', icon: Zap, desc: 'Tasks, notes, meetings, and automation' },
 ]
 
 const SUB_CATEGORIES = {
@@ -296,7 +297,7 @@ const QUESTIONS = [
   {
     id: 'goal',
     label: 'Use case',
-    activeHeading: "What's your primary goal?",
+    activeHeading: "What are you trying to do today?",
     activeHelper: 'Pick all that apply — you can refine these anytime.',
     options: GOAL_OPTIONS,
     type: 'chips',
@@ -571,7 +572,7 @@ function QuestionRow({ index, question, answer, isActive, onActivate, onSelect, 
                             type="button"
                             onClick={() => {
                               onTextChange(sub.label)
-                              window.setTimeout(() => onNext(), 280)
+                              window.setTimeout(() => onNext(), 150)
                             }}
                             className={`flex items-center gap-3 rounded-xl border p-3.5 text-left transition-all focus:outline-none focus:ring-2 focus:ring-accent ${
                               isSelected
@@ -619,7 +620,7 @@ function QuestionRow({ index, question, answer, isActive, onActivate, onSelect, 
                                   type="button"
                                   onClick={() => {
                                     onTextChange(sub.label)
-                                    window.setTimeout(() => onNext(), 280)
+                                    window.setTimeout(() => onNext(), 150)
                                   }}
                                   className={`flex items-center gap-3 rounded-xl border p-3.5 text-left transition-all focus:outline-none focus:ring-2 focus:ring-accent ${
                                     isSelected
@@ -1333,7 +1334,7 @@ function ToolFinderPage() {
     // Single-select: record, let the highlight register, then auto-advance.
     const nextAnswers = { ...answers, [question.id]: value }
     writeAnswer(question.id, value)
-    window.setTimeout(() => goToQuestionAfter(question, value, nextAnswers), 280)
+    window.setTimeout(() => goToQuestionAfter(question, value, nextAnswers), 150)
   }
 
   const handleQuestionContinue = (question) => {
@@ -1555,7 +1556,7 @@ function ToolFinderPage() {
                 100% { transform: scale(1.05); }
               }
             `}</style>
-            <WizardProgress answers={answers} />
+            <WizardProgress answers={answers} activeQuestionId={activeQuestion} />
             <div className="grid grid-cols-1 gap-6 md:grid-cols-[1fr_1.2fr] md:gap-8">
             <div className="flex flex-col gap-3">
                 {QUESTIONS.map((question, idx) => (

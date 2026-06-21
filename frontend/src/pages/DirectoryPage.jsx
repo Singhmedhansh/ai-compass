@@ -1,9 +1,9 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { Helmet } from 'react-helmet-async'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams, Link } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ArrowRight, ChevronDown, GraduationCap, SearchX, Sparkles } from 'lucide-react'
-import { Button, Dropdown, SearchInput, SEO, SkeletonCard, WordReveal, GridBackground } from '../components/ui'
+import { Button, Dropdown, SearchInput, SEO, SkeletonCard, WordReveal, GridBackground, ToolLogo } from '../components/ui'
 import CategorySection from '../components/tools/CategorySection'
 import FlatToolGrid from '../components/tools/FlatToolGrid'
 import ErrorState from '../components/ErrorState'
@@ -1059,29 +1059,83 @@ function DirectoryPage() {
           )}
 
           {!isLoading && !error && filteredTools.length > 0 && (
-            <FlatToolGrid
-              key={`${category}-${sortBy}-${queryFromParams}`}
-              tools={filteredTools}
-            />
+            <div className="flex flex-col gap-6">
+              {hasSearchQuery && (
+                <div className="rounded-3xl border border-accent/30 bg-accent-soft/20 p-6 shadow-md border-2">
+                  <div className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-accent px-3 py-1 text-xs font-semibold text-white">
+                    <Sparkles className="h-3.5 w-3.5" /> Best Match for &quot;{queryFromParams}&quot;
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-[auto_1fr] gap-6 items-start">
+                    <div className="mx-auto md:mx-0 flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-bg-elev border border-line shadow" aria-hidden="true">
+                      <ToolLogo tool={filteredTools[0]} size={80} />
+                    </div>
+                    <div className="flex-1 text-center md:text-left min-w-0">
+                      <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
+                        <h2 className="text-2xl font-bold text-ink">{filteredTools[0].name}</h2>
+                        <span className="rounded-full bg-accent-soft px-2.5 py-0.5 text-xs font-bold text-accent-ink border border-accent/20">
+                          {filteredTools[0].pricing}
+                        </span>
+                        <span className="rounded-full bg-bg-sunk px-2.5 py-0.5 text-xs font-semibold text-ink-2 border border-line">
+                          {filteredTools[0].platformLabel || 'Web'}
+                        </span>
+                      </div>
+                      <p className="mt-2 text-base text-ink-2 leading-relaxed">{filteredTools[0].description}</p>
+                      <p className="mt-3 text-sm font-medium italic text-accent-ink bg-accent-soft/40 px-3.5 py-2 rounded-xl border border-accent/15 inline-block">
+                        <span className="font-bold uppercase tracking-wider text-[11px] mr-1.5 not-italic text-accent-ink">Why it fits</span>
+                        {filteredTools[0].relevance_reason || filteredTools[0].why_this_tool || filteredTools[0].reason || "Matches search criteria and features student-friendly capabilities."}
+                      </p>
+                      <div className="mt-4 flex flex-wrap justify-center md:justify-start gap-3">
+                        <Link to={`/tools/${filteredTools[0].slug}`} className="inline-flex items-center gap-1.5 rounded-xl bg-accent px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 shadow-sm transition-all">
+                          View details &amp; reviews
+                        </Link>
+                        {filteredTools[0].url && (
+                          <a href={filteredTools[0].url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 rounded-xl border border-line bg-bg-elev px-5 py-2.5 text-sm font-semibold text-ink hover:bg-bg-sunk transition-colors">
+                            Visit Website →
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              <FlatToolGrid
+                key={`${category}-${sortBy}-${queryFromParams}`}
+                tools={hasSearchQuery ? filteredTools.slice(1) : filteredTools}
+              />
+            </div>
           )}
 
           {!isLoading && !error && filteredTools.length === 0 && !zeroResultsFallbackActive && (
-            <section
-              role="status"
-              aria-live="polite"
-              className="rounded-2xl border border-line bg-bg-sunk px-6 py-16 text-center"
-            >
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-line bg-bg-elev shadow-sm" aria-hidden="true">
-                <SearchX className="h-7 w-7 text-muted" />
+            <div className="flex flex-col gap-8">
+              <section
+                role="status"
+                aria-live="polite"
+                className="rounded-2xl border border-line bg-bg-sunk px-6 py-16 text-center"
+              >
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-line bg-bg-elev shadow-sm" aria-hidden="true">
+                  <SearchX className="h-7 w-7 text-muted" />
+                </div>
+                <h2 className="mt-5 text-xl font-semibold text-ink">{emptyHeading}</h2>
+                <p className="mt-2 text-sm text-muted">{emptyBody}</p>
+                <div className="mt-6">
+                  <Button variant="secondary" onClick={handleReset}>
+                    Reset filters
+                  </Button>
+                </div>
+              </section>
+
+              <div className="border-t border-line pt-8">
+                <h3 className="text-xl font-bold text-ink mb-4 flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-accent animate-pulse" /> Try these popular tools instead:
+                </h3>
+                <FlatToolGrid
+                  key="popular-fallback-grid"
+                  tools={studentTop}
+                  defaultLimit={8}
+                />
               </div>
-              <h2 className="mt-5 text-xl font-semibold text-ink">{emptyHeading}</h2>
-              <p className="mt-2 text-sm text-muted">{emptyBody}</p>
-              <div className="mt-6">
-                <Button variant="secondary" onClick={handleReset}>
-                  Reset filters
-                </Button>
-              </div>
-            </section>
+            </div>
           )}
         </>
       )}

@@ -137,7 +137,20 @@ function LoginPage() {
         </p>
       ) : null}
 
-      <MotionForm className="mt-6 space-y-4" onSubmit={handleSubmit} animate={shakeControls} noValidate>
+      <div className="mt-6">
+        <SocialAuthButtons verb="Continue" />
+      </div>
+
+      <div className="relative my-4">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-line" />
+        </div>
+        <div className="relative flex justify-center text-xs">
+          <span className="bg-bg px-2 text-muted">or sign in with email</span>
+        </div>
+      </div>
+
+      <MotionForm className="mt-2 space-y-4" onSubmit={handleSubmit} animate={shakeControls} noValidate>
         <div>
           <label htmlFor="login-email" className="mb-1.5 block text-sm font-medium text-ink-2">
             Email
@@ -196,21 +209,14 @@ function LoginPage() {
         ) : null}
       </MotionForm>
 
-      <div className="relative my-4">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-line" />
-        </div>
-        <div className="relative flex justify-center text-xs">
-          <span className="bg-bg px-2 text-muted">or</span>
-        </div>
-      </div>
-
-      <SocialAuthButtons verb="Continue" />
-
       <p className="mt-6 text-center text-sm text-muted">
         Don&apos;t have an account?{' '}
         <Link to="/register" className="font-semibold text-accent hover:underline">
           Register
+        </Link>
+        {' · '}
+        <Link to="/tools" className="font-semibold text-accent hover:underline">
+          Continue as Guest
         </Link>
       </p>
     </AuthLayout>
