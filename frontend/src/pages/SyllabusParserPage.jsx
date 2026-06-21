@@ -188,6 +188,8 @@ export default function SyllabusParserPage() {
             >
               <div className="mb-6 flex justify-center border-b border-line pb-1">
                 <button
+                  id="tab-upload"
+                  data-testid="tab-upload"
                   onClick={() => { setActiveTab('upload'); setErrorMessage(''); }}
                   className={`px-4 py-2 text-sm font-bold transition-all border-b-2 ${
                     activeTab === 'upload' ? 'border-accent text-accent' : 'border-transparent text-muted hover:text-ink'
@@ -196,6 +198,8 @@ export default function SyllabusParserPage() {
                   Upload File
                 </button>
                 <button
+                  id="tab-text"
+                  data-testid="tab-text"
                   onClick={() => { setActiveTab('text'); setErrorMessage(''); }}
                   className={`px-4 py-2 text-sm font-bold transition-all border-b-2 ${
                     activeTab === 'text' ? 'border-accent text-accent' : 'border-transparent text-muted hover:text-ink'
@@ -236,6 +240,8 @@ export default function SyllabusParserPage() {
               ) : (
                 <div className="flex flex-col">
                   <textarea
+                    id="syllabus-textarea"
+                    data-testid="syllabus-textarea"
                     rows={8}
                     value={rawText}
                     onChange={(e) => setRawText(e.target.value)}
@@ -253,6 +259,8 @@ export default function SyllabusParserPage() {
 
               <div className="mt-6 flex justify-end">
                 <Button
+                  id="analyze-button"
+                  data-testid="analyze-button"
                   variant="primary"
                   className="w-full md:w-auto font-semibold"
                   onClick={handleSyllabusParse}

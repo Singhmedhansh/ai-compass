@@ -1235,9 +1235,9 @@ function ToolFinderPage() {
       return
     }
 
+    setLoadingResults(true)
     const controller = new AbortController()
     const timer = setTimeout(async () => {
-      setLoadingResults(true)
       setError('')
       try {
         const API = import.meta.env.VITE_API_URL || ''
