@@ -635,45 +635,48 @@ export default function ModelComparisonPage() {
 
                 {/* Horizontal Cost comparison chart */}
                 <div className="space-y-4 overflow-y-auto max-h-[350px] pr-1.5">
-                  {sortedCalculatorResults.slice(0, 8).map((m, idx) => {
-                    const maxCost = Math.max(...sortedCalculatorResults.map(x => x.totalCost), 0.0001);
-                    const percentage = (m.totalCost / maxCost) * 100;
-                    const providerConfig = providerColorMap[m.provider] || providerColorMap.default;
+                  {(() => {
+                    const visibleResults = sortedCalculatorResults.slice(0, 8);
+                    const maxCost = Math.max(...visibleResults.map(x => x.totalCost), 0.0001);
+                    return visibleResults.map((m, idx) => {
+                      const percentage = (m.totalCost / maxCost) * 100;
+                      const providerConfig = providerColorMap[m.provider] || providerColorMap.default;
 
-                    return (
-                      <div key={m.slug} className="space-y-1.5 p-2 rounded-2xl border border-line/40 bg-bg/40 hover:bg-bg transition duration-200">
-                        <div className="flex justify-between items-center text-xs">
-                          <div className="flex items-center gap-2 overflow-hidden">
-                            {idx === 0 && (
-                              <span className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 rounded-md px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wider shrink-0">
-                                Best Value
+                      return (
+                        <div key={m.slug} className="space-y-1.5 p-2 rounded-2xl border border-line/40 bg-bg/40 hover:bg-bg transition duration-200">
+                          <div className="flex justify-between items-center text-xs">
+                            <div className="flex items-center gap-2 overflow-hidden">
+                              {idx === 0 && (
+                                <span className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 rounded-md px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wider shrink-0">
+                                  Best Value
+                                </span>
+                              )}
+                              <span className="font-bold text-ink-2 truncate">{m.name}</span>
+                              <span className={`px-2 py-0.5 rounded-full text-[9px] font-semibold border shrink-0 ${providerConfig.badge}`}>
+                                {m.provider}
                               </span>
-                            )}
-                            <span className="font-bold text-ink-2 truncate">{m.name}</span>
-                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-semibold border shrink-0 ${providerConfig.badge}`}>
-                              {m.provider}
-                            </span>
+                            </div>
+                            <div className="text-right shrink-0">
+                              <span className="font-extrabold text-ink block">
+                                {currentSymbol}{(m.totalCost * rate).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              </span>
+                              <span className="text-[10px] text-muted-2 block">
+                                {currentSymbol}{((m.totalCost / requestsCount) * rate).toLocaleString(undefined, { minimumFractionDigits: 4, maximumFractionDigits: 4 })}/run
+                              </span>
+                            </div>
                           </div>
-                          <div className="text-right shrink-0">
-                            <span className="font-extrabold text-ink block">
-                              {currentSymbol}{(m.totalCost * rate).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                            </span>
-                            <span className="text-[10px] text-muted-2 block">
-                              {currentSymbol}{((m.totalCost / requestsCount) * rate).toLocaleString(undefined, { minimumFractionDigits: 4, maximumFractionDigits: 4 })}/run
-                            </span>
+                          <div className="w-full bg-bg-sunk rounded-full h-3.5 overflow-hidden relative border border-line shadow-inner">
+                            <MotionDiv
+                              initial={{ width: 0 }}
+                              animate={{ width: `${percentage}%` }}
+                              transition={{ duration: 0.5, ease: "easeOut" }}
+                              className={`h-full rounded-full ${providerConfig.bar}`}
+                            />
                           </div>
                         </div>
-                        <div className="w-full bg-bg-sunk rounded-full h-3.5 overflow-hidden relative border border-line shadow-inner">
-                          <MotionDiv
-                            initial={{ width: 0 }}
-                            animate={{ width: `${percentage}%` }}
-                            transition={{ duration: 0.5, ease: "easeOut" }}
-                            className={`h-full rounded-full ${providerConfig.bar}`}
-                          />
-                        </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    });
+                  })()}
                 </div>
               </div>
 
