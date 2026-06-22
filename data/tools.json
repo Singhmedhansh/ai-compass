@@ -975,7 +975,35 @@
       "last_verified_at": "2026-06-22",
       "source_url": "https://elicit.com/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Basic",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "Find search summaries",
+            "5,000 one-time credits",
+            "Extract data from 10 PDFs"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://elicit.com",
+          "is_popular": false
+        },
+        {
+          "name": "Plus",
+          "price_amount": 12,
+          "price_display": "$12/mo (billed annually)",
+          "features": [
+            "12,000 monthly credits",
+            "Extract data from unlimited PDFs",
+            "Export results to CSV/BIB",
+            "Priority feature access"
+          ],
+          "cta_label": "Get Plus",
+          "cta_url": "https://elicit.com/pricing",
+          "is_popular": true
+        }
+      ]
     },
     "curation_score": 54.5,
     "academic_integrity_rating": "Safe",
@@ -1050,9 +1078,37 @@
     "slug": "consensus",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://consensus.app/pricing",
+      "source_url": "https://consensus.app/home/pricing/",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "Unlimited searches",
+            "AI-powered answers",
+            "Basic filters"
+          ],
+          "cta_label": "Sign Up",
+          "cta_url": "https://consensus.app",
+          "is_popular": false
+        },
+        {
+          "name": "Premium",
+          "price_amount": 10,
+          "price_display": "$10/mo",
+          "features": [
+            "Unlimited Copilot queries",
+            "GPT-4o summarizations",
+            "Bookmark & export results",
+            "Quality consensus meter"
+          ],
+          "cta_label": "Go Premium",
+          "cta_url": "https://consensus.app/home/pricing/",
+          "is_popular": true
+        }
+      ]
     },
     "curation_score": 48.8,
     "academic_integrity_rating": "Safe",
@@ -1129,9 +1185,24 @@
     "pricing_verified_at": "2026-05-18",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://semanticscholar.org",
+      "source_url": "https://www.semanticscholar.org",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Search 200M+ academic papers",
+            "AI-powered TL;DR summaries",
+            "Citation tracking metrics",
+            "Research feeds and library lists"
+          ],
+          "cta_label": "Search Papers",
+          "cta_url": "https://www.semanticscholar.org",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -1207,7 +1278,35 @@
       "last_verified_at": "2026-06-22",
       "source_url": "https://typeset.io/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "Ask questions about PDFs",
+            "Basic literature search",
+            "Citation formatting templates"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://typeset.io",
+          "is_popular": false
+        },
+        {
+          "name": "Premium",
+          "price_amount": 12,
+          "price_display": "$12/mo",
+          "features": [
+            "Unlimited Copilot queries",
+            "Advanced paraphrasing tools",
+            "Plagiarism checks (30 pages/mo)",
+            "Export to MS Word/LaTeX"
+          ],
+          "cta_label": "Go Premium",
+          "cta_url": "https://typeset.io/pricing",
+          "is_popular": true
+        }
+      ]
     },
     "curation_score": 40.0,
     "academic_integrity_rating": "Safe",
@@ -1287,9 +1386,36 @@
     "pricing_verified_at": "2026-05-18",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://connectedpapers.com/pricing",
+      "source_url": "https://www.connectedpapers.com/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "5 graph generations/month",
+            "Prior graph history access",
+            "Community support"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://www.connectedpapers.com",
+          "is_popular": false
+        },
+        {
+          "name": "Academic",
+          "price_amount": 4,
+          "price_display": "$4/mo (billed annually)",
+          "features": [
+            "Unlimited graph generations",
+            "Multi-origin search bibliography",
+            "Priority support"
+          ],
+          "cta_label": "Subscribe",
+          "cta_url": "https://www.connectedpapers.com/pricing",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -1616,9 +1742,36 @@
     "pricing_verified_at": "2026-05-18",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://photomath.com",
+      "source_url": "https://photomath.com/",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Camera scan math recognition",
+            "Basic solution outlines",
+            "Interactive graph calculations"
+          ],
+          "cta_label": "Get App",
+          "cta_url": "https://photomath.com/",
+          "is_popular": true
+        },
+        {
+          "name": "Photomath Plus",
+          "price_amount": 10,
+          "price_display": "$9.99/mo",
+          "features": [
+            "Animated tutorial helper",
+            "Textbook solution matches",
+            "Deep conceptual math tips"
+          ],
+          "cta_label": "Try Plus",
+          "cta_url": "https://photomath.com/",
+          "is_popular": false
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -3953,9 +4106,37 @@
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://zotero.org",
+      "source_url": "https://www.zotero.org/storage",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free Storage",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "300MB cloud storage sync",
+            "Unlimited local storage library",
+            "Reference browser extensions",
+            "Collaborative shared folders"
+          ],
+          "cta_label": "Download Zotero",
+          "cta_url": "https://www.zotero.org",
+          "is_popular": true
+        },
+        {
+          "name": "Storage Plus",
+          "price_amount": 20,
+          "price_display": "$20/year (2GB)",
+          "features": [
+            "2GB sync storage",
+            "Shared group library space",
+            "File attachments backup"
+          ],
+          "cta_label": "Upgrade Storage",
+          "cta_url": "https://www.zotero.org/storage",
+          "is_popular": false
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -7733,9 +7914,35 @@
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://mathway.com",
+      "source_url": "https://www.mathway.com/settings/upgrade",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "Solve general equations",
+            "Basic graphical output plots"
+          ],
+          "cta_label": "Solve Free",
+          "cta_url": "https://www.mathway.com",
+          "is_popular": false
+        },
+        {
+          "name": "Premium",
+          "price_amount": 10,
+          "price_display": "$9.99/mo",
+          "features": [
+            "Step-by-step calculus steps",
+            "Ad-free layout",
+            "History logging tracker"
+          ],
+          "cta_label": "Get Premium",
+          "cta_url": "https://www.mathway.com",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -10280,7 +10487,35 @@
       "last_verified_at": "2026-06-22",
       "source_url": "https://paperpal.com/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "200 edit recommendations/mo",
+            "Basic translation support",
+            "Word & Web integration"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://paperpal.com",
+          "is_popular": false
+        },
+        {
+          "name": "Prime",
+          "price_amount": 12,
+          "price_display": "$12/mo (billed annually)",
+          "features": [
+            "Unlimited edit suggestions",
+            "Unlimited translations & paraphrases",
+            "Technical journal pre-checks",
+            "Plagiarism check (7,000 words/mo)"
+          ],
+          "cta_label": "Go Prime",
+          "cta_url": "https://paperpal.com/pricing",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -13895,9 +14130,35 @@
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://bartleby.com/pricing",
+      "source_url": "https://www.bartleby.com/essay-builder",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free Basic",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "Search textbook database titles",
+            "View limited step solutions"
+          ],
+          "cta_label": "Search Free",
+          "cta_url": "https://www.bartleby.com",
+          "is_popular": false
+        },
+        {
+          "name": "Bartleby Learn",
+          "price_amount": 10,
+          "price_display": "$9.99/mo",
+          "features": [
+            "Step-by-step textbook solutions",
+            "Ask 30 expert homework questions/mo",
+            "24/7 homework helper chat"
+          ],
+          "cta_label": "Subscribe",
+          "cta_url": "https://www.bartleby.com",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -21002,9 +21263,35 @@
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://symbolab.com",
+      "source_url": "https://www.symbolab.com/subscribe",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "Calculate basic answers",
+            "View default formula graphs"
+          ],
+          "cta_label": "Solve Free",
+          "cta_url": "https://www.symbolab.com",
+          "is_popular": false
+        },
+        {
+          "name": "Pro Premium",
+          "price_amount": 7,
+          "price_display": "$6.99/mo",
+          "features": [
+            "Step-by-step math explanations",
+            "Practice chemistry & algebra quizzes",
+            "Ad-free experience"
+          ],
+          "cta_label": "Get Pro",
+          "cta_url": "https://www.symbolab.com/subscribe",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -25922,9 +26209,37 @@
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://chegg.com/study",
+      "source_url": "https://www.chegg.com/study",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Chegg Study",
+          "price_amount": 16,
+          "price_display": "$15.95/mo",
+          "features": [
+            "Step-by-step textbook solutions",
+            "Ask experts 24/7",
+            "Search millions of Q&As"
+          ],
+          "cta_label": "Subscribe",
+          "cta_url": "https://www.chegg.com/study",
+          "is_popular": true
+        },
+        {
+          "name": "Chegg Study Pack",
+          "price_amount": 20,
+          "price_display": "$19.95/mo",
+          "features": [
+            "All Chegg Study features",
+            "Practice exams and quizzes",
+            "Plagiarism checks and grammar tool",
+            "Math solver scanner"
+          ],
+          "cta_label": "Get Pack",
+          "cta_url": "https://www.chegg.com/study",
+          "is_popular": false
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -26003,9 +26318,35 @@
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://coursehero.com",
+      "source_url": "https://www.coursehero.com/pricing/",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Basic",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "Browse free previews",
+            "Earn unlocks by uploading study guides"
+          ],
+          "cta_label": "Sign Up",
+          "cta_url": "https://www.coursehero.com",
+          "is_popular": false
+        },
+        {
+          "name": "Premium",
+          "price_amount": 15,
+          "price_display": "$14.95/mo (billed annually)",
+          "features": [
+            "30 document unlocks/month",
+            "30 textbook solution unlocks",
+            "Ask 40 homework helper tutors"
+          ],
+          "cta_label": "Get Premium",
+          "cta_url": "https://www.coursehero.com/pricing/",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -30419,9 +30760,35 @@
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://www.scribbr.com/citation/generator/",
+      "source_url": "https://www.scribbr.com/pricing/",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free Tools",
+          "price_amount": 0,
+          "price_display": "$0",
+          "features": [
+            "Citation generator (APA/MLA)",
+            "Basic grammar & spelling check"
+          ],
+          "cta_label": "Use Free Tools",
+          "cta_url": "https://www.scribbr.com",
+          "is_popular": false
+        },
+        {
+          "name": "Plagiarism Checker",
+          "price_amount": 20,
+          "price_display": "From $19.95",
+          "features": [
+            "Partnership with Turnitin database",
+            "Matches against 99.3B web sources",
+            "Full similarity report score"
+          ],
+          "cta_label": "Run Plagiarism Check",
+          "cta_url": "https://www.scribbr.com/plagiarism-checker/",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -30573,7 +30940,34 @@
       "last_verified_at": "2026-06-22",
       "source_url": "https://copyleaks.com/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free Trial",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "Check up to 10 pages",
+            "AI detector access",
+            "Basic plagiarism checks"
+          ],
+          "cta_label": "Try Free",
+          "cta_url": "https://copyleaks.com",
+          "is_popular": false
+        },
+        {
+          "name": "Pro Plagiarism & AI",
+          "price_amount": 11,
+          "price_display": "$11/mo (100 pages)",
+          "features": [
+            "Multi-language AI detection",
+            "Source code plagiarism checks",
+            "API integrations"
+          ],
+          "cta_label": "Choose Plan",
+          "cta_url": "https://copyleaks.com/pricing",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
