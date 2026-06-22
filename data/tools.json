@@ -2415,9 +2415,24 @@
     "pricing_verified_at": "2026-05-18",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://openai.com/pricing",
+      "source_url": "https://openai.com/dall-e-3",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "API Usage",
+          "price_amount": 0.04,
+          "price_display": "From $0.040 / image",
+          "features": [
+            "Standard 1024x1024 generation",
+            "HD quality parameters support",
+            "Developer API key integrations",
+            "Commercial distribution licenses"
+          ],
+          "cta_label": "Developer Portal",
+          "cta_url": "https://platform.openai.com",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -2494,9 +2509,38 @@
     "slug": "adobe-firefly",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://firefly.adobe.com/pricing",
+      "source_url": "https://www.adobe.com/firefly.html",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "25 generative credits/month",
+            "Text to image generation",
+            "Generative fill & recolor",
+            "Community forum support"
+          ],
+          "cta_label": "Try Firefly",
+          "cta_url": "https://firefly.adobe.com/",
+          "is_popular": false
+        },
+        {
+          "name": "Premium",
+          "price_amount": 5,
+          "price_display": "$4.99/mo",
+          "features": [
+            "100 generative credits/month",
+            "No watermarks on images",
+            "Commercial use support",
+            "Priority rendering"
+          ],
+          "cta_label": "Subscribe",
+          "cta_url": "https://www.adobe.com/firefly.html",
+          "is_popular": true
+        }
+      ]
     },
     "curation_score": 53.0,
     "academic_integrity_rating": "Safe",
@@ -2667,9 +2711,38 @@
     "slug": "leonardo-ai",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://leonardo.ai",
+      "source_url": "https://leonardo.ai/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free Plan",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "150 fast credits daily",
+            "AI image generation",
+            "Upscaling & real-time canvas",
+            "Requires Leonardo registration"
+          ],
+          "cta_label": "Create Free",
+          "cta_url": "https://leonardo.ai",
+          "is_popular": false
+        },
+        {
+          "name": "Apprentice Pro",
+          "price_amount": 10,
+          "price_display": "$10/mo (billed annually)",
+          "features": [
+            "8,500 fast credits monthly",
+            "Priority image generation speed",
+            "Upscale images with advanced parameters",
+            "Unlock custom model training"
+          ],
+          "cta_label": "Upgrade Apprentice",
+          "cta_url": "https://leonardo.ai/pricing",
+          "is_popular": true
+        }
+      ]
     },
     "curation_score": 57.0,
     "academic_integrity_rating": "Safe",
@@ -2747,9 +2820,24 @@
     "pricing_verified_at": "2026-05-18",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://sora.com/pricing",
+      "source_url": "https://openai.com/sora",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Access Info",
+          "price_amount": 0,
+          "price_display": "Enterprise Only",
+          "features": [
+            "Ultra-realistic video generation",
+            "Bespoke production environments",
+            "Secure data privacy policies",
+            "Requires sales contact verification"
+          ],
+          "cta_label": "Read Announcements",
+          "cta_url": "https://openai.com/sora",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -2829,7 +2917,36 @@
       "last_verified_at": "2026-06-22",
       "source_url": "https://runwayml.com/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free Tier",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "125 one-time generation credits",
+            "Gen-1 & Gen-2 model access",
+            "720p output resolution limits",
+            "Watermarked downloads"
+          ],
+          "cta_label": "Sign Up Free",
+          "cta_url": "https://runwayml.com",
+          "is_popular": false
+        },
+        {
+          "name": "Standard Plan",
+          "price_amount": 12,
+          "price_display": "$12/mo (billed annually)",
+          "features": [
+            "625 credits monthly",
+            "Gen-3 Alpha model access",
+            "Remove watermarks from files",
+            "Export in high resolution"
+          ],
+          "cta_label": "Subscribe Pro",
+          "cta_url": "https://runwayml.com/pricing",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -2995,9 +3112,38 @@
     "slug": "heygen",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://heygen.com/pricing",
+      "source_url": "https://www.heygen.com/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free Plan",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "1 free credit (1 minute total)",
+            "1 custom instant avatar",
+            "120+ public avatars",
+            "300+ voice profiles available"
+          ],
+          "cta_label": "Try HeyGen Free",
+          "cta_url": "https://heygen.com",
+          "is_popular": false
+        },
+        {
+          "name": "Creator Plan",
+          "price_amount": 24,
+          "price_display": "$24/mo (billed annually)",
+          "features": [
+            "15 monthly credits allocation",
+            "Fast-track video processing queue",
+            "Premium 4K video resolution options",
+            "Auto-captions helper script"
+          ],
+          "cta_label": "Upgrade Creator",
+          "cta_url": "https://www.heygen.com/pricing",
+          "is_popular": true
+        }
+      ]
     },
     "curation_score": 56.5,
     "academic_integrity_rating": "Safe",
@@ -3261,9 +3407,38 @@
     "pricing_verified_at": "2026-05-18",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://gamma.app",
+      "source_url": "https://gamma.app/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free Starter",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "400 credits upon sign-up",
+            "Basic analytics summaries",
+            "Gamma watermark branding",
+            "Export to PDF & PPT"
+          ],
+          "cta_label": "Create Free",
+          "cta_url": "https://gamma.app",
+          "is_popular": false
+        },
+        {
+          "name": "Plus Plan",
+          "price_amount": 8,
+          "price_display": "$8/mo (billed annually)",
+          "features": [
+            "Unlimited document updates",
+            "Remove Gamma badges logo",
+            "Custom fonts integration",
+            "30-day version backups history"
+          ],
+          "cta_label": "Choose Plus",
+          "cta_url": "https://gamma.app/pricing",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -3419,9 +3594,38 @@
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://express.adobe.com/pricing",
+      "source_url": "https://www.adobe.com/express/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "Drag-and-drop video & photo editing",
+            "25 generative credits/month",
+            "Thousands of templates",
+            "5GB storage"
+          ],
+          "cta_label": "Start Free",
+          "cta_url": "https://www.adobe.com/express/",
+          "is_popular": false
+        },
+        {
+          "name": "Premium",
+          "price_amount": 10,
+          "price_display": "$9.99/mo",
+          "features": [
+            "250 generative credits/month",
+            "Premium templates & fonts",
+            "One-click resize & brand kits",
+            "100GB storage"
+          ],
+          "cta_label": "Get Premium",
+          "cta_url": "https://www.adobe.com/express/pricing",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -4420,9 +4624,38 @@
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://lumen5.com/pricing",
+      "source_url": "https://lumen5.com/pricing/",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Community Plan",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Unlimited videos per month",
+            "Lumen5 branded logo prints",
+            "720p maximum resolution",
+            "Standard templates"
+          ],
+          "cta_label": "Sign Up Free",
+          "cta_url": "https://lumen5.com",
+          "is_popular": false
+        },
+        {
+          "name": "Starter Plan",
+          "price_amount": 19,
+          "price_display": "$19/mo (billed annually)",
+          "features": [
+            "No watermarks on exported files",
+            "1080p full HD rendering quality",
+            "Access premium asset libraries",
+            "Custom branding options"
+          ],
+          "cta_label": "Go Starter",
+          "cta_url": "https://lumen5.com/pricing/",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -5438,9 +5671,24 @@
     "pricing_verified_at": "2026-05-18",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://bing.com/images/create",
+      "source_url": "https://www.bing.com/create",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "DALL-E 3 powered generation",
+            "15 daily boosts for fast generation",
+            "No monthly subscription",
+            "Requires Microsoft account"
+          ],
+          "cta_label": "Create Images",
+          "cta_url": "https://www.bing.com/create",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -5514,9 +5762,38 @@
     "slug": "ideogram",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://ideogram.ai/api-pricing/",
+      "source_url": "https://ideogram.ai/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free Plan",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "10 prompt runs daily",
+            "Accurate typography renderer",
+            "Public search gallery",
+            "Standard download sizes"
+          ],
+          "cta_label": "Sign Up Free",
+          "cta_url": "https://ideogram.ai",
+          "is_popular": false
+        },
+        {
+          "name": "Basic Plan",
+          "price_amount": 7,
+          "price_display": "$7/mo (billed annually)",
+          "features": [
+            "400 prompt runs monthly",
+            "Priority generation speed",
+            "Download original images in high-res",
+            "Private profiles search"
+          ],
+          "cta_label": "Subscribe",
+          "cta_url": "https://ideogram.ai/pricing",
+          "is_popular": true
+        }
+      ]
     },
     "curation_score": 64.2,
     "academic_integrity_rating": "Safe",
@@ -5597,9 +5874,37 @@
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://prezi.com/pricing/?click_source=logged_element&page_location=header&element_text=pricing",
+      "source_url": "https://prezi.com/pricing/",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free Basic",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Create 3 presentations online",
+            "Standard templates gallery",
+            "Requires internet access"
+          ],
+          "cta_label": "Sign Up Free",
+          "cta_url": "https://prezi.com",
+          "is_popular": false
+        },
+        {
+          "name": "Edu Plus",
+          "price_amount": 3,
+          "price_display": "$3.00/mo (students & educators)",
+          "features": [
+            "Unlimited presentations creation",
+            "AI presentation structure builder",
+            "Offline desktop application access",
+            "Export presentation to PDF files"
+          ],
+          "cta_label": "Apply Edu",
+          "cta_url": "https://prezi.com/pricing/edu/",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -7531,9 +7836,38 @@
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://lottiefiles.com",
+      "source_url": "https://lottiefiles.com/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free Plan",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "Up to 10 private animations",
+            "Explore 100k+ free assets",
+            "Access basic editing workspace",
+            "Community forum help"
+          ],
+          "cta_label": "Join Free",
+          "cta_url": "https://lottiefiles.com",
+          "is_popular": false
+        },
+        {
+          "name": "Design Pro",
+          "price_amount": 20,
+          "price_display": "$19.99/mo (billed annually)",
+          "features": [
+            "Unlimited private animations",
+            "Premium plugin suite tools",
+            "Team collaboration project areas",
+            "Asset file conversion scripts"
+          ],
+          "cta_label": "Go Pro",
+          "cta_url": "https://lottiefiles.com/pricing",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -8362,9 +8696,37 @@
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://mymap.ai/#pricing",
+      "source_url": "https://www.mymap.ai/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "60 credits per sign-up",
+            "Create interactive mind maps",
+            "Basic PDF export capabilities"
+          ],
+          "cta_label": "Start Drawing",
+          "cta_url": "https://www.mymap.ai",
+          "is_popular": false
+        },
+        {
+          "name": "Pro",
+          "price_amount": 9,
+          "price_display": "$9.00/mo (billed annually)",
+          "features": [
+            "1,000 monthly credits allocation",
+            "Collaborative project areas",
+            "High definition exports options",
+            "Priority generation speed queue"
+          ],
+          "cta_label": "Go Pro",
+          "cta_url": "https://www.mymap.ai/pricing",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -8441,9 +8803,24 @@
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://skylum.com/luminar",
+      "source_url": "https://skylum.com/luminar-neo",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Luminar Neo Pro",
+          "price_amount": 10,
+          "price_display": "$9.95/mo (billed annually)",
+          "features": [
+            "AI landscape enhancer features",
+            "Generative erase & background remove",
+            "Portrait skin retouching tools",
+            "Full plugin suite updates"
+          ],
+          "cta_label": "Buy Plan",
+          "cta_url": "https://skylum.com/luminar-neo/pricing",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -10345,7 +10722,36 @@
       "last_verified_at": "2026-06-22",
       "source_url": "https://www.veed.io/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free Tier",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Unlimited screen recording runs",
+            "10 minutes export limit monthly",
+            "Veed.io watermark branding logo",
+            "720p output resolution limits"
+          ],
+          "cta_label": "Edit Video Free",
+          "cta_url": "https://www.veed.io",
+          "is_popular": false
+        },
+        {
+          "name": "Pro Plan",
+          "price_amount": 18,
+          "price_display": "$18/mo (billed annually)",
+          "features": [
+            "720 minutes subtitles generation",
+            "No watermarks on exported files",
+            "1080p full HD video exports",
+            "Access premium asset libraries"
+          ],
+          "cta_label": "Go Pro",
+          "cta_url": "https://www.veed.io/pricing",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -11135,9 +11541,38 @@
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://krea.ai/pricing",
+      "source_url": "https://www.krea.ai/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free Plan",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Real-time canvas drawing editor",
+            "Runway-fast generative enhancements",
+            "50 image runs daily",
+            "Standard speed processing"
+          ],
+          "cta_label": "Start Generating",
+          "cta_url": "https://www.krea.ai",
+          "is_popular": false
+        },
+        {
+          "name": "Pro Plan",
+          "price_amount": 8,
+          "price_display": "$8/mo (billed annually)",
+          "features": [
+            "Unlimited real-time generation",
+            "High-res enhancements & upscaler",
+            "Private generation mode",
+            "Custom AI models training"
+          ],
+          "cta_label": "Go Pro",
+          "cta_url": "https://www.krea.ai/pricing",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -13822,7 +14257,22 @@
       "last_verified_at": "2026-06-22",
       "source_url": "https://storydoc.com/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Starter Plan",
+          "price_amount": 30,
+          "price_display": "$30/mo (billed annually)",
+          "features": [
+            "Unlimited interactive presentation files",
+            "Create presentation layouts with AI",
+            "1 shared dashboard area",
+            "Basic viewer analytics stats"
+          ],
+          "cta_label": "Start Trial",
+          "cta_url": "https://storydoc.com",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -15384,9 +15834,38 @@
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://playground.com",
+      "source_url": "https://playground.com/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free Plan",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Create 50 images daily",
+            "Playground v3 model access",
+            "Advanced canvas editing board",
+            "Commercial use permissions"
+          ],
+          "cta_label": "Create Free",
+          "cta_url": "https://playground.com",
+          "is_popular": false
+        },
+        {
+          "name": "Pro Plan",
+          "price_amount": 12,
+          "price_display": "$12/mo (billed annually)",
+          "features": [
+            "Create 1,000 images daily",
+            "Priority speed processing pipeline",
+            "Unlimited canvas expansions",
+            "No image resolution limits"
+          ],
+          "cta_label": "Go Pro",
+          "cta_url": "https://playground.com/pricing",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -15463,9 +15942,23 @@
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://pheeds.com/pricing",
+      "source_url": "https://pheeds.com",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free Trial",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "AI prompt creator sandbox",
+            "Midjourney styles gallery lists",
+            "Standard copy-paste templates"
+          ],
+          "cta_label": "Open Gallery",
+          "cta_url": "https://pheeds.com",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -15635,7 +16128,36 @@
       "last_verified_at": "2026-06-22",
       "source_url": "https://kaiber.ai/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Explorer Plan",
+          "price_amount": 5,
+          "price_display": "$5/mo",
+          "features": [
+            "100 credits monthly",
+            "Create video from text/audio/image",
+            "Standard resolution export options",
+            "Watermarked downloads"
+          ],
+          "cta_label": "Start Trial",
+          "cta_url": "https://kaiber.ai",
+          "is_popular": false
+        },
+        {
+          "name": "Artist Plan",
+          "price_amount": 10,
+          "price_display": "$10/mo (billed annually)",
+          "features": [
+            "1,000 monthly credits allocation",
+            "High-res 4K video exports",
+            "No watermarked logo prints",
+            "Priority processing rendering"
+          ],
+          "cta_label": "Go Artist",
+          "cta_url": "https://kaiber.ai/pricing",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -15708,9 +16230,38 @@
     "slug": "kling-ai",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://klingai.com/dev/pricing",
+      "source_url": "https://klingai.com/",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free Tier",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "66 daily generation credits",
+            "High-fidelity video rendering",
+            "Up to 5 seconds per clip",
+            "Requires login"
+          ],
+          "cta_label": "Generate Video",
+          "cta_url": "https://klingai.com/",
+          "is_popular": false
+        },
+        {
+          "name": "Standard Plan",
+          "price_amount": 10,
+          "price_display": "$10/mo",
+          "features": [
+            "1,000 credits monthly",
+            "No watermarks",
+            "High definition rendering",
+            "Priority generation speed"
+          ],
+          "cta_label": "Upgrade Standard",
+          "cta_url": "https://klingai.com/",
+          "is_popular": true
+        }
+      ]
     },
     "curation_score": 74.5,
     "academic_integrity_rating": "Safe",
@@ -15789,9 +16340,38 @@
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://invideo.io/pricing/",
+      "source_url": "https://invideo.io/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free Starter",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "10 minutes AI generation weekly",
+            "10GB storage library",
+            "Standard stock assets",
+            "Invideo watermark branding"
+          ],
+          "cta_label": "Start Free",
+          "cta_url": "https://invideo.io",
+          "is_popular": false
+        },
+        {
+          "name": "Plus Plan",
+          "price_amount": 20,
+          "price_display": "$20/mo (billed annually)",
+          "features": [
+            "50 minutes AI generation monthly",
+            "No watermarks on exported files",
+            "100GB secure cloud storage",
+            "Unlimited team exports"
+          ],
+          "cta_label": "Buy Plus",
+          "cta_url": "https://invideo.io/pricing",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -16209,9 +16789,24 @@
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://khroma.co",
+      "source_url": "http://khroma.co/",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free Tier",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "AI personalized palette generator",
+            "Train model with 50 favorite colors",
+            "Explore combos, images, and text color displays",
+            "Completely free online tool"
+          ],
+          "cta_label": "Train AI",
+          "cta_url": "http://khroma.co/generator/",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -16290,7 +16885,36 @@
       "last_verified_at": "2026-06-22",
       "source_url": "https://coolors.co/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "Generate infinite palettes",
+            "Up to 5 colors per palette",
+            "Basic color name outputs",
+            "Ad-supported layout"
+          ],
+          "cta_label": "Start Generator",
+          "cta_url": "https://coolors.co",
+          "is_popular": false
+        },
+        {
+          "name": "Pro",
+          "price_amount": 3,
+          "price_display": "$3.00/mo",
+          "features": [
+            "Up to 10 colors per palette",
+            "Unlimited saved palettes",
+            "Ad-free experience",
+            "Custom export formats"
+          ],
+          "cta_label": "Go Pro",
+          "cta_url": "https://coolors.co/pricing",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -16369,7 +16993,22 @@
       "last_verified_at": "2026-06-22",
       "source_url": "https://fontjoy.com",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free Tier",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Generate matched Google font sets",
+            "Visual contrast matching slides",
+            "One-click copy CSS styling",
+            "Completely open interface"
+          ],
+          "cta_label": "Find Pairings",
+          "cta_url": "https://fontjoy.com",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -16446,9 +17085,38 @@
     "pricing_verified_at": "2026-05-18",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://remove.bg/pricing",
+      "source_url": "https://www.remove.bg/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free Tier",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "1 free high-res download credit",
+            "Unlimited low-res preview downloads",
+            "Standard browser editor access",
+            "Integrations plugins support"
+          ],
+          "cta_label": "Remove Background",
+          "cta_url": "https://www.remove.bg",
+          "is_popular": false
+        },
+        {
+          "name": "40 Credits Plan",
+          "price_amount": 9,
+          "price_display": "$9.00/mo",
+          "features": [
+            "40 high-res image credits monthly",
+            "Roll over unused credits limits",
+            "API key access integration",
+            "No resolution restrictions"
+          ],
+          "cta_label": "Buy Credits",
+          "cta_url": "https://www.remove.bg/pricing",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -16530,7 +17198,36 @@
       "last_verified_at": "2026-06-22",
       "source_url": "https://clipdrop.co/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Watermarked generations",
+            "Basic object cleanup tools",
+            "Limited usage limits",
+            "Standard speed queue"
+          ],
+          "cta_label": "Try Clipdrop",
+          "cta_url": "https://clipdrop.co",
+          "is_popular": false
+        },
+        {
+          "name": "Pro",
+          "price_amount": 9,
+          "price_display": "$9.00/mo",
+          "features": [
+            "Unlimited Stable Diffusion generation",
+            "No watermarks",
+            "High-resolution cleanup tools",
+            "Fast-track processing server"
+          ],
+          "cta_label": "Unlock Pro",
+          "cta_url": "https://clipdrop.co/pricing",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -16608,7 +17305,35 @@
       "last_verified_at": "2026-06-22",
       "source_url": "https://mokker.ai/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free Tier",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "30 product photo runs monthly",
+            "Standard template gallery",
+            "Low resolution export files"
+          ],
+          "cta_label": "Try Mokker",
+          "cta_url": "https://mokker.ai",
+          "is_popular": false
+        },
+        {
+          "name": "Pro Plan",
+          "price_amount": 13,
+          "price_display": "$13.00/mo (billed annually)",
+          "features": [
+            "Unlimited photo generation runs",
+            "High-res output downloads",
+            "No watermarked logo branding",
+            "Custom brand kits uploads"
+          ],
+          "cta_label": "Subscribe Pro",
+          "cta_url": "https://mokker.ai/pricing",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -16687,7 +17412,36 @@
       "last_verified_at": "2026-06-22",
       "source_url": "https://durable.co/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Starter",
+          "price_amount": 12,
+          "price_display": "$12/mo (billed annually)",
+          "features": [
+            "1 custom domain name",
+            "AI website assistant writer",
+            "Unlimited storage",
+            "Basic analytics & search stats"
+          ],
+          "cta_label": "Create Website",
+          "cta_url": "https://durable.co",
+          "is_popular": false
+        },
+        {
+          "name": "Business",
+          "price_amount": 20,
+          "price_display": "$20/mo (billed annually)",
+          "features": [
+            "Unlimited page elements",
+            "Premium SEO optimizations",
+            "AI assistant chat responses",
+            "Priority tech support"
+          ],
+          "cta_label": "Get Business",
+          "cta_url": "https://durable.co/pricing",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -16768,7 +17522,21 @@
       "last_verified_at": "2026-06-22",
       "source_url": "https://sketch2react.io",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free Tier",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Convert design layouts to React code",
+            "HTML & CSS export structures",
+            "Requires local desktop companion app"
+          ],
+          "cta_label": "Get Free Tool",
+          "cta_url": "https://sketch2react.io",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -17082,9 +17850,24 @@
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://twelvelabs.io/pricing",
+      "source_url": "https://www.twelvelabs.io/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Developer Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "10 hours of video indexing",
+            "Pegasus video understanding API",
+            "Full access to search endpoints",
+            "Developer community support"
+          ],
+          "cta_label": "Get API Key",
+          "cta_url": "https://www.twelvelabs.io",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -17962,9 +18745,24 @@
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://pollinations.ai/pricing",
+      "source_url": "https://pollinations.ai/",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Open API",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Unlimited image generation API",
+            "Completely open-source endpoints",
+            "Supports custom text inputs",
+            "Zero registration requirements"
+          ],
+          "cta_label": "Use API",
+          "cta_url": "https://pollinations.ai/",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -18042,7 +18840,22 @@
       "last_verified_at": "2026-06-22",
       "source_url": "https://fal.ai/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Developer APIs",
+          "price_amount": 0,
+          "price_display": "Pay-as-you-go",
+          "features": [
+            "Sub-second Flux rendering speed",
+            "Real-time SDXL models pipeline",
+            "Developer starter credits ($1)",
+            "Scale-to-zero server capacity"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://fal.ai",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -19804,7 +20617,21 @@
       "last_verified_at": "2026-06-22",
       "source_url": "https://coolmindmaps.com",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free Tier",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Create 3 mind maps daily",
+            "AI layout engine assistance",
+            "Basic PNG export options"
+          ],
+          "cta_label": "Create Map",
+          "cta_url": "https://coolmindmaps.com",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -20378,9 +21205,24 @@
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://sway.cloud.microsoft",
+      "source_url": "https://www.microsoft.com/en-us/microsoft-365/sway",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Build interactive reports and slideshows",
+            "Integrate videos and images",
+            "Requires active Microsoft account",
+            "Direct cloud hosting storage"
+          ],
+          "cta_label": "Start Swaying",
+          "cta_url": "https://sway.office.com",
+          "is_popular": true
+        }
+      ]
     }
   },
   {
@@ -22665,9 +23507,38 @@
     "pricing_verified_at": "2026-05-18",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://capcut.com",
+      "source_url": "https://www.capcut.com/",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Standard video editing timeline",
+            "AI smart captions & auto-reframe",
+            "Basic transitions & filters",
+            "Cloud space (1GB)"
+          ],
+          "cta_label": "Edit Free",
+          "cta_url": "https://www.capcut.com/",
+          "is_popular": false
+        },
+        {
+          "name": "Pro",
+          "price_amount": 8,
+          "price_display": "$7.99/mo",
+          "features": [
+            "Premium templates & effects",
+            "Advanced voice isolation",
+            "100GB cloud storage space",
+            "High-fidelity exports"
+          ],
+          "cta_label": "Join Pro",
+          "cta_url": "https://www.capcut.com/pro",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -26300,9 +27171,24 @@
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://detexify.kirelabs.org",
+      "source_url": "https://detexify.kirelabs.org/",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Handwritten symbol classification",
+            "Instant LaTeX command outputs",
+            "Open-source codebase package",
+            "Browser sandbox interface"
+          ],
+          "cta_label": "Draw Symbol",
+          "cta_url": "https://detexify.kirelabs.org/",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -27395,9 +28281,24 @@
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://slides.google.com/pricing",
+      "source_url": "https://workspace.google.com/solutions/ai/",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Gemini for Workspace",
+          "price_amount": 20,
+          "price_display": "$20/user/mo",
+          "features": [
+            "Text-to-slide image generations",
+            "Document-to-presentation workflows",
+            "Direct slides sidebar helper",
+            "Enterprise privacy guidelines"
+          ],
+          "cta_label": "Free Trial",
+          "cta_url": "https://workspace.google.com/solutions/ai/",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -28397,9 +29298,24 @@
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://lightroom.adobe.com",
+      "source_url": "https://www.adobe.com/products/photoshop-lightroom.html",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Lightroom Plan",
+          "price_amount": 10,
+          "price_display": "$9.99/mo",
+          "features": [
+            "AI generative remove & masking",
+            "1TB cloud storage",
+            "Lightroom on mobile & desktop",
+            "Advanced editing presets"
+          ],
+          "cta_label": "Get Lightroom",
+          "cta_url": "https://www.adobe.com/products/photoshop-lightroom/compare-plans.html",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -28576,9 +29492,38 @@
     "slug": "luma-dream-machine",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://lumalabs.ai/pricing",
+      "source_url": "https://lumalabs.ai/dream-machine/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free Tier",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "30 generations monthly",
+            "Text & Image-to-video capabilities",
+            "High resolution outputs",
+            "Community sharing permission"
+          ],
+          "cta_label": "Create Video",
+          "cta_url": "https://lumalabs.ai/dream-machine",
+          "is_popular": false
+        },
+        {
+          "name": "Standard Plan",
+          "price_amount": 8,
+          "price_display": "$7.99/mo (billed annually)",
+          "features": [
+            "120 generations monthly",
+            "Priority rendering speed queue",
+            "No watermarked logo prints",
+            "Commercial use distribution license"
+          ],
+          "cta_label": "Get Standard",
+          "cta_url": "https://lumalabs.ai/dream-machine/pricing",
+          "is_popular": true
+        }
+      ]
     },
     "curation_score": 82.0,
     "academic_integrity_rating": "Safe",
@@ -29261,9 +30206,24 @@
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://deepmind.google/technologies/veo/veo-3/",
+      "source_url": "https://deepmind.google/technologies/veo/",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Access Info",
+          "price_amount": 0,
+          "price_display": "Waitlist",
+          "features": [
+            "Ultra-realistic 1080p generation",
+            "Cinematic style capture support",
+            "VideoFX sandbox interface",
+            "Waitlist registry application"
+          ],
+          "cta_label": "Apply Waitlist",
+          "cta_url": "https://deepmind.google/technologies/veo/",
+          "is_popular": true
+        }
+      ]
     }
   },
   {
@@ -29329,9 +30289,24 @@
     "is_ai_native": true,
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://hailuoai.com/pricing",
+      "source_url": "https://www.hailuo.ai/",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free Beta",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "High-fidelity text-to-video generation",
+            "Minimax video generator model",
+            "Generate short 6s loops",
+            "No subscription required"
+          ],
+          "cta_label": "Generate Video",
+          "cta_url": "https://www.hailuo.ai/",
+          "is_popular": true
+        }
+      ]
     },
     "curation_score": 65.0,
     "academic_integrity_rating": "Safe",
@@ -29403,9 +30378,24 @@
     "is_ai_native": true,
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://higgsfield.ai/pricing",
+      "source_url": "https://higgsfield.ai/",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free Preview",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Mobile-first character video generation",
+            "Animate static illustrations",
+            "Custom motion transfer capabilities",
+            "Requires mobile application"
+          ],
+          "cta_label": "Get App Preview",
+          "cta_url": "https://higgsfield.ai/",
+          "is_popular": true
+        }
+      ]
     },
     "curation_score": 65.0,
     "academic_integrity_rating": "Safe",
@@ -29740,9 +30730,24 @@
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://blackforestlabs.ai/pricing",
+      "source_url": "https://blackforestlabs.ai/",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Flux Schnell (Local)",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Apache 2.0 open-weight model",
+            "Runs on consumer GPU cards",
+            "Extremely fast generation speed",
+            "Commercial usage allowed"
+          ],
+          "cta_label": "Get Model Weights",
+          "cta_url": "https://huggingface.co/black-forest-labs/FLUX.1-schnell",
+          "is_popular": true
+        }
+      ]
     }
   },
   {
@@ -29811,7 +30816,36 @@
       "last_verified_at": "2026-06-22",
       "source_url": "https://www.recraft.ai/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free Plan",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Raster & Vector generation options",
+            "Community prompt search lists",
+            "Images are public in gallery",
+            "Commercial usage allowed"
+          ],
+          "cta_label": "Start Recrafting",
+          "cta_url": "https://www.recraft.ai",
+          "is_popular": false
+        },
+        {
+          "name": "Pro Plan",
+          "price_amount": 20,
+          "price_display": "$20/mo",
+          "features": [
+            "Private generation mode",
+            "High definition scaling options",
+            "Fast-track rendering server queue",
+            "Priority customer service"
+          ],
+          "cta_label": "Get Pro",
+          "cta_url": "https://www.recraft.ai/pricing",
+          "is_popular": true
+        }
+      ]
     },
     "curation_score": 51.0,
     "academic_integrity_rating": "Safe",
@@ -29887,9 +30921,23 @@
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://reve.com/pricing",
+      "source_url": "https://reveimage.com",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free Beta",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Generate 10 images daily",
+            "Accurate detail prompt parser",
+            "Community showcase gallery"
+          ],
+          "cta_label": "Start Drawing",
+          "cta_url": "https://reveimage.com",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -30391,9 +31439,37 @@
     "pricing_verified_at": "2026-05-25",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://uizard.io/pricing/",
+      "source_url": "https://uizard.io/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free Plan",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Create up to 2 active projects",
+            "10 theme generation credits",
+            "Access basic templates library"
+          ],
+          "cta_label": "Sign Up Free",
+          "cta_url": "https://uizard.io",
+          "is_popular": false
+        },
+        {
+          "name": "Pro Plan",
+          "price_amount": 12,
+          "price_display": "$12/mo (billed annually)",
+          "features": [
+            "Unlimited active projects creation",
+            "500 AI generation credits monthly",
+            "Export design assets to code",
+            "Dev Mode inspect panel"
+          ],
+          "cta_label": "Get Pro",
+          "cta_url": "https://uizard.io/pricing",
+          "is_popular": true
+        }
+      ]
     },
     "featured": false,
     "logo_emoji": "🤖",
@@ -35063,9 +36139,24 @@
     "slug": "hedra",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://hedra.com/pricing",
+      "source_url": "https://www.hedra.com/",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free Beta",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Generate character audio speech",
+            "Animate faces with high-fidelity lipsync",
+            "Download clips up to 30s",
+            "Community sharing lounge"
+          ],
+          "cta_label": "Animate Character",
+          "cta_url": "https://www.hedra.com/",
+          "is_popular": true
+        }
+      ]
     },
     "curation_score": 87.0,
     "academic_integrity_rating": "Safe",
@@ -35629,9 +36720,38 @@
     "slug": "tella",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://tella.tv/pricing",
+      "source_url": "https://www.tella.tv/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free Trial",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Record unlimited preview drafts",
+            "Export up to 10 completed files",
+            "720p output resolution limits",
+            "Tella watermark print logo"
+          ],
+          "cta_label": "Start Trial",
+          "cta_url": "https://www.tella.tv",
+          "is_popular": false
+        },
+        {
+          "name": "Personal Pro",
+          "price_amount": 15,
+          "price_display": "$15/mo (billed annually)",
+          "features": [
+            "Unlimited video exports",
+            "Remove watermarks completely",
+            "1080p full HD video exports",
+            "Custom layout brand options"
+          ],
+          "cta_label": "Go Pro",
+          "cta_url": "https://www.tella.tv/pricing",
+          "is_popular": true
+        }
+      ]
     },
     "curation_score": 89.0,
     "academic_integrity_rating": "Safe",
@@ -35792,7 +36912,36 @@
       "last_verified_at": "2026-06-22",
       "source_url": "https://cap.so/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Starter",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "10 videos per month",
+            "Up to 5 minutes recording time",
+            "720p output resolution",
+            "Watermarked exports"
+          ],
+          "cta_label": "Start Recording",
+          "cta_url": "https://cap.so",
+          "is_popular": false
+        },
+        {
+          "name": "Pro",
+          "price_amount": 12,
+          "price_display": "$12/mo",
+          "features": [
+            "Unlimited recordings",
+            "4K recording support",
+            "Instant AI transcripts & subtitles",
+            "Custom brand options"
+          ],
+          "cta_label": "Upgrade to Pro",
+          "cta_url": "https://cap.so/pricing",
+          "is_popular": true
+        }
+      ]
     },
     "curation_score": 82.0,
     "academic_integrity_rating": "Safe",
