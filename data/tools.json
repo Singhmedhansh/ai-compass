@@ -2020,7 +2020,36 @@
       "last_verified_at": "2026-06-22",
       "source_url": "https://todoist.com/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "5 active projects spaces",
+            "Set task due dates",
+            "Integrates basic calendar lists",
+            "Priority flags classification"
+          ],
+          "cta_label": "Sign Up Free",
+          "cta_url": "https://todoist.com",
+          "is_popular": false
+        },
+        {
+          "name": "Pro Plan",
+          "price_amount": 4,
+          "price_display": "$4.00/mo (billed annually)",
+          "features": [
+            "300 active projects spaces",
+            "Smart tasks reminders triggers",
+            "AI filter builder scripts",
+            "Upload files & notes attachments"
+          ],
+          "cta_label": "Unlock Pro",
+          "cta_url": "https://todoist.com/pricing",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -3979,7 +4008,35 @@
       "last_verified_at": "2026-06-22",
       "source_url": "https://obsidian.md/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Personal",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "100% free for personal use",
+            "Local-first markdown files",
+            "Access to plugins & themes",
+            "Full offline access"
+          ],
+          "cta_label": "Download Obsidian",
+          "cta_url": "https://obsidian.md",
+          "is_popular": true
+        },
+        {
+          "name": "Commercial Use",
+          "price_amount": 50,
+          "price_display": "$50/user/year",
+          "features": [
+            "Required for commercial activity",
+            "Priority support access",
+            "Supports development of Obsidian"
+          ],
+          "cta_label": "Get License",
+          "cta_url": "https://obsidian.md/pricing",
+          "is_popular": false
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -15053,9 +15110,24 @@
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://logseq.com/pricing",
+      "source_url": "https://logseq.com/",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Open Source",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Privacy-first local outliner notes",
+            "PDF annotator dashboard",
+            "Flashcards & spatial repetition",
+            "Bidirectional page links support"
+          ],
+          "cta_label": "Download Logseq",
+          "cta_url": "https://logseq.com",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -15135,7 +15207,36 @@
       "last_verified_at": "2026-06-22",
       "source_url": "https://capacities.io/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free Tier",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Object-based note-taking",
+            "Unlimited notes and objects",
+            "Daily notes with calendar view",
+            "Local backup storage"
+          ],
+          "cta_label": "Try Free",
+          "cta_url": "https://capacities.io",
+          "is_popular": false
+        },
+        {
+          "name": "Believer",
+          "price_amount": 10,
+          "price_display": "$10/mo",
+          "features": [
+            "Access to Capacities AI assistant",
+            "Visual graph view visualization",
+            "Early features preview",
+            "Priority support lanes"
+          ],
+          "cta_label": "Join Believers",
+          "cta_url": "https://capacities.io/pricing",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -22119,7 +22220,35 @@
       "last_verified_at": "2026-06-22",
       "source_url": "https://n8n.io/pricing/",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Self-Hosted Community",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Fair-code license",
+            "Run locally via Docker container",
+            "Build custom AI agents flows",
+            "Connect to local LLM models"
+          ],
+          "cta_label": "Run Locally",
+          "cta_url": "https://github.com/n8n-io/n8n",
+          "is_popular": true
+        },
+        {
+          "name": "Cloud Starter",
+          "price_amount": 20,
+          "price_display": "$20/mo",
+          "features": [
+            "Hosted execution environment",
+            "20 active workflows",
+            "2,500 monthly workflow runs"
+          ],
+          "cta_label": "Try Cloud",
+          "cta_url": "https://n8n.io/pricing/",
+          "is_popular": false
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -22196,9 +22325,38 @@
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://make.com",
+      "source_url": "https://www.make.com/en/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free Plan",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "1,000 free operations monthly",
+            "Visual editor dashboard",
+            "Connect up to 2 active scenarios",
+            "Unlimited active routing paths"
+          ],
+          "cta_label": "Sign Up Free",
+          "cta_url": "https://www.make.com",
+          "is_popular": false
+        },
+        {
+          "name": "Core Plan",
+          "price_amount": 9,
+          "price_display": "$9/mo (billed annually)",
+          "features": [
+            "10,000 monthly operations",
+            "Unlimited active scenarios",
+            "API endpoint variables access",
+            "Minutely check execution timings"
+          ],
+          "cta_label": "Go Core",
+          "cta_url": "https://www.make.com/en/pricing",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -22541,9 +22699,24 @@
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://roamresearch.com",
+      "source_url": "https://roamresearch.com/#/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Professional",
+          "price_amount": 15,
+          "price_display": "$15.00/mo",
+          "features": [
+            "3 active graphs space",
+            "Collaborative private pages",
+            "Graph view visualization builder",
+            "Offline offline usage mode"
+          ],
+          "cta_label": "Start Trial",
+          "cta_url": "https://roamresearch.com",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -22704,9 +22877,38 @@
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://ticktick.com",
+      "source_url": "https://ticktick.com/about/upgrade",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free Basic",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Task lists & subtasks management",
+            "Pomodoro study timer",
+            "Habit trackers (5 max)",
+            "Requires online login"
+          ],
+          "cta_label": "Use Free",
+          "cta_url": "https://ticktick.com",
+          "is_popular": false
+        },
+        {
+          "name": "Premium",
+          "price_amount": 3,
+          "price_display": "$2.99/mo",
+          "features": [
+            "Full calendar layouts grid",
+            "Smart list filters builder",
+            "Track unlimited active habits",
+            "Priority tasks reminders"
+          ],
+          "cta_label": "Join Premium",
+          "cta_url": "https://ticktick.com/about/upgrade",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -23251,9 +23453,38 @@
     "pricing_verified_at": "2026-05-18",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://raycast.com/pricing",
+      "source_url": "https://www.raycast.com/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free Tier",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Custom script commands builder",
+            "Access to extensions store",
+            "Window management shortcuts",
+            "System controls panel"
+          ],
+          "cta_label": "Download App",
+          "cta_url": "https://www.raycast.com",
+          "is_popular": false
+        },
+        {
+          "name": "Raycast Pro",
+          "price_amount": 8,
+          "price_display": "$8.00/mo (billed annually)",
+          "features": [
+            "Advanced Raycast AI helper",
+            "Cloud sync for settings",
+            "Clipboard history database",
+            "Custom system theme options"
+          ],
+          "cta_label": "Get Pro",
+          "cta_url": "https://www.raycast.com/pricing",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -24069,7 +24300,22 @@
       "last_verified_at": "2026-06-22",
       "source_url": "https://tldraw.com",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free Sandbox",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Infinite drawing canvas",
+            "Multiplayer real-time collaboration",
+            "Local SVG/PNG exports options",
+            "Zero registration required"
+          ],
+          "cta_label": "Start Drawing",
+          "cta_url": "https://tldraw.com",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -25519,7 +25765,22 @@
       "last_verified_at": "2026-06-22",
       "source_url": "https://readwise.io/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Full Plan",
+          "price_amount": 8,
+          "price_display": "$7.99/mo (billed annually)",
+          "features": [
+            "Import Kindle & Apple Books highlight lists",
+            "Export to Obsidian, Notion, Logseq",
+            "Daily review reminder email",
+            "Access to Reader read-it-later"
+          ],
+          "cta_label": "Start Free Trial",
+          "cta_url": "https://readwise.io",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -25601,9 +25862,37 @@
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://getpocket.com",
+      "source_url": "https://getpocket.com/premium",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Save articles & videos",
+            "Clean reading mode layout",
+            "Tags for simple organization"
+          ],
+          "cta_label": "Sign Up",
+          "cta_url": "https://getpocket.com",
+          "is_popular": false
+        },
+        {
+          "name": "Premium",
+          "price_amount": 5,
+          "price_display": "$4.99/mo",
+          "features": [
+            "Permanent library backup copy",
+            "Full-text search indexing",
+            "Suggested tags with AI helper",
+            "Unlimited highlighting options"
+          ],
+          "cta_label": "Go Premium",
+          "cta_url": "https://getpocket.com/premium",
+          "is_popular": true
+        }
+      ]
     }
   },
   {
@@ -26912,7 +27201,36 @@
       "last_verified_at": "2026-06-22",
       "source_url": "https://zoom.us/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Basic Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Up to 100 participants",
+            "40-minute meeting limit",
+            "Basic chat and whiteboard",
+            "No credit card required"
+          ],
+          "cta_label": "Sign Up",
+          "cta_url": "https://zoom.us",
+          "is_popular": false
+        },
+        {
+          "name": "Pro Plan",
+          "price_amount": 15,
+          "price_display": "$14.99/mo (billed annually)",
+          "features": [
+            "Up to 100 participants",
+            "30-hour meeting duration limit",
+            "AI Companion notes summary",
+            "5GB cloud recording storage"
+          ],
+          "cta_label": "Get Pro",
+          "cta_url": "https://zoom.us/pricing",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -34650,9 +34968,24 @@
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://heptabase.com/pricing",
+      "source_url": "https://heptabase.com/",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Standard Plan",
+          "price_amount": 9,
+          "price_display": "$8.99/mo (billed annually)",
+          "features": [
+            "Visual workspace with infinite canvas",
+            "Mindmap and whiteboard views",
+            "PDF annotator helper",
+            "Full sync across desktop & mobile"
+          ],
+          "cta_label": "Start Trial",
+          "cta_url": "https://heptabase.com",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -35402,9 +35735,24 @@
     "slug": "superhuman",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://superhuman.com/plans",
+      "source_url": "https://superhuman.com/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Growth Plan",
+          "price_amount": 30,
+          "price_display": "$30/mo",
+          "features": [
+            "AI write, edit, and reply helper",
+            "Keyboard shortcut workflows",
+            "Read receipts tracker",
+            "Split inbox categorization"
+          ],
+          "cta_label": "Sign Up",
+          "cta_url": "https://superhuman.com",
+          "is_popular": true
+        }
+      ]
     },
     "curation_score": 95.0,
     "academic_integrity_rating": "Safe",
@@ -36227,7 +36575,36 @@
       "last_verified_at": "2026-06-22",
       "source_url": "https://cal.com/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free / Open Source",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "Unlimited booking links",
+            "Self-hosting options",
+            "Cal Video built-in",
+            "Integrate all calendar types"
+          ],
+          "cta_label": "Start Booking",
+          "cta_url": "https://cal.com",
+          "is_popular": true
+        },
+        {
+          "name": "Teams",
+          "price_amount": 15,
+          "price_display": "$15/user/mo",
+          "features": [
+            "Round-robin scheduling",
+            "Team routing forms",
+            "Custom branding themes",
+            "Advanced support lines"
+          ],
+          "cta_label": "Go Team",
+          "cta_url": "https://cal.com/pricing",
+          "is_popular": false
+        }
+      ]
     },
     "curation_score": 95.0,
     "academic_integrity_rating": "Safe",
