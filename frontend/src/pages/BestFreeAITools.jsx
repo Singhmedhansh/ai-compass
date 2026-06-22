@@ -389,6 +389,25 @@ export default function BestFreeAITools() {
           </MotionDiv>
         </div>
 
+        {/* Wizard Banner */}
+        <MotionDiv
+          variants={sectionReveal}
+          initial="initial"
+          whileInView="animate"
+          viewport={{ once: true, margin: '-10% 0px' }}
+          className="mx-auto max-w-[860px] px-6 mb-12"
+        >
+          <div className="rounded-2xl bg-accent-soft/30 border border-accent/20 p-6 flex flex-col sm:flex-row items-center justify-between gap-4 font-sans">
+             <div>
+                <h2 className="text-lg font-semibold text-ink">Not sure which free tool is right for you?</h2>
+                <p className="text-sm text-muted mt-1">Answer 4 quick questions to get custom free recommendations.</p>
+             </div>
+             <Link to="/ai-tool-finder" className="whitespace-nowrap rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-bg transition hover:opacity-90">
+                Find the right free tool for you →
+             </Link>
+          </div>
+        </MotionDiv>
+
         {/* Quick Comparison Table */}
         <div className="mx-auto max-w-[860px] px-6 mb-12">
           <MotionDiv
@@ -582,8 +601,7 @@ export default function BestFreeAITools() {
                               rel="noopener noreferrer"
                               className="inline-flex items-center gap-2 rounded-full bg-ink px-5 py-2.5 text-sm font-medium text-bg transition-all duration-200 hover:gap-3 hover:bg-ink-2"
                             >
-                              Open Tool Site
-                              <ArrowUpRight className="h-4 w-4" />
+                              Try it free →
                             </a>
                           )}
                           <Link
