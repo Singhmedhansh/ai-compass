@@ -74,7 +74,49 @@
       "last_verified_at": "2026-06-22",
       "source_url": "https://openai.com/chatgpt/pricing/",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "Access to GPT-4o mini",
+            "Limited GPT-4o access",
+            "Memory and custom instructions",
+            "Web search and data analysis"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://chatgpt.com",
+          "is_popular": false
+        },
+        {
+          "name": "Plus",
+          "price_amount": 20,
+          "price_display": "$20/mo",
+          "features": [
+            "5x more messages for GPT-4o",
+            "Advanced Voice mode",
+            "Create and use custom GPTs",
+            "DALL-E 3 image generation"
+          ],
+          "cta_label": "Upgrade to Plus",
+          "cta_url": "https://chatgpt.com",
+          "is_popular": true
+        },
+        {
+          "name": "Pro",
+          "price_amount": 200,
+          "price_display": "$200/mo",
+          "features": [
+            "Unlimited access to o1 pro",
+            "Highest model priority limits",
+            "Frontier intelligence reasoning options"
+          ],
+          "cta_label": "Go Pro",
+          "cta_url": "https://chatgpt.com",
+          "is_popular": false
+        }
+      ]
     },
     "curation_score": 100.0,
     "academic_integrity_rating": "Use with Caution",
@@ -156,9 +198,37 @@
     "slug": "claude",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://claude.ai",
+      "source_url": "https://claude.ai/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "Claude 3.5 Sonnet access",
+            "Web & mobile app use",
+            "Basic document analysis"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://claude.ai",
+          "is_popular": false
+        },
+        {
+          "name": "Pro",
+          "price_amount": 20,
+          "price_display": "$20/mo",
+          "features": [
+            "5x more usage limit",
+            "Claude 3.5 Opus (when available)",
+            "Claude Projects feature",
+            "Priority access during high traffic"
+          ],
+          "cta_label": "Subscribe",
+          "cta_url": "https://claude.ai",
+          "is_popular": true
+        }
+      ]
     },
     "curation_score": 100.0,
     "academic_integrity_rating": "Use with Caution",
@@ -238,9 +308,37 @@
     "slug": "grammarly",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://www.grammarly.com/plans",
+      "source_url": "https://www.grammarly.com/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "Spelling & grammar checker",
+            "Punctuation correction",
+            "Tone detection"
+          ],
+          "cta_label": "Sign Up",
+          "cta_url": "https://grammarly.com",
+          "is_popular": false
+        },
+        {
+          "name": "Premium",
+          "price_amount": 12,
+          "price_display": "$12/mo",
+          "features": [
+            "Full-sentence rewrites",
+            "Vocabulary suggestions",
+            "Plagiarism checker",
+            "Formatting & style polish"
+          ],
+          "cta_label": "Go Premium",
+          "cta_url": "https://grammarly.com",
+          "is_popular": true
+        }
+      ]
     },
     "curation_score": 45.0,
     "academic_integrity_rating": "Safe",
@@ -397,20 +495,34 @@
     "slug": "github-copilot",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://github.com/pricing",
+      "source_url": "https://github.com/features/copilot",
       "currency": "USD",
       "tiers": [
         {
-          "name": "Free",
-          "price_amount": 0.0,
-          "price_display": "$0/month",
-          "is_popular": false,
+          "name": "Student",
+          "price_amount": 0,
+          "price_display": "Free",
           "features": [
-            "Unlimited public/private repositories Host open so",
-            "Dependabot security and version updates Keep proje",
-            "2,000 CI/CD minutes/month Free for public reposito",
-            "500MB of Packages storage Free for public reposito"
-          ]
+            "Free for verified students",
+            "IDE code suggestions",
+            "Copilot Chat integration"
+          ],
+          "cta_label": "Apply Free",
+          "cta_url": "https://education.github.com",
+          "is_popular": false
+        },
+        {
+          "name": "Individual",
+          "price_amount": 10,
+          "price_display": "$10/mo",
+          "features": [
+            "IDE autocomplete suggestions",
+            "Multi-turn chat panel",
+            "Secured data privacy"
+          ],
+          "cta_label": "Subscribe",
+          "cta_url": "https://github.com/features/copilot",
+          "is_popular": true
         }
       ]
     },
@@ -757,9 +869,37 @@
     "slug": "perplexity-ai",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://perplexity.ai",
+      "source_url": "https://www.perplexity.ai/pro",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "Unlimited quick searches",
+            "Basic source citation",
+            "No account required"
+          ],
+          "cta_label": "Try Now",
+          "cta_url": "https://perplexity.ai",
+          "is_popular": false
+        },
+        {
+          "name": "Pro",
+          "price_amount": 20,
+          "price_display": "$20/mo",
+          "features": [
+            "300+ Copilot searches/day",
+            "Select Claude/GPT-4o model",
+            "Unlimited file uploads",
+            "API credits included"
+          ],
+          "cta_label": "Get Pro",
+          "cta_url": "https://perplexity.ai",
+          "is_popular": true
+        }
+      ]
     },
     "curation_score": 98.0,
     "academic_integrity_rating": "Safe",
@@ -2011,9 +2151,36 @@
     "slug": "midjourney",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://midjourney.com",
+      "source_url": "https://docs.midjourney.com/docs/plans",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Basic",
+          "price_amount": 10,
+          "price_display": "$10/mo",
+          "features": [
+            "3.3 hours of Fast GPU time",
+            "Commercial usage terms",
+            "Access to member gallery"
+          ],
+          "cta_label": "Choose Basic",
+          "cta_url": "https://midjourney.com",
+          "is_popular": false
+        },
+        {
+          "name": "Standard",
+          "price_amount": 30,
+          "price_display": "$30/mo",
+          "features": [
+            "15 hours of Fast GPU time",
+            "Unlimited Relaxed GPU time",
+            "Commercial usage terms"
+          ],
+          "cta_label": "Choose Standard",
+          "cta_url": "https://midjourney.com",
+          "is_popular": true
+        }
+      ]
     },
     "curation_score": 94.0,
     "academic_integrity_rating": "Safe",
@@ -3179,7 +3346,34 @@
       "last_verified_at": "2026-06-22",
       "source_url": "https://julius.ai/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "15 queries per month",
+            "Data visualization",
+            "Basic analysis tools"
+          ],
+          "cta_label": "Try Julius",
+          "cta_url": "https://julius.ai",
+          "is_popular": false
+        },
+        {
+          "name": "Basic",
+          "price_amount": 20,
+          "price_display": "$20/mo",
+          "features": [
+            "250 queries per month",
+            "Upload CSV, Excel, PDF",
+            "Code sandbox executor"
+          ],
+          "cta_label": "Subscribe",
+          "cta_url": "https://julius.ai/pricing",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -4529,7 +4723,34 @@
       "last_verified_at": "2026-06-22",
       "source_url": "https://huggingface.co/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Download open weights models",
+            "Basic CPU Spaces hosting",
+            "Community forum support"
+          ],
+          "cta_label": "Join Community",
+          "cta_url": "https://huggingface.co",
+          "is_popular": false
+        },
+        {
+          "name": "PRO",
+          "price_amount": 9,
+          "price_display": "$9/mo",
+          "features": [
+            "PRO badge on profile",
+            "Priority GPU Space options",
+            "Autotrain credits included"
+          ],
+          "cta_label": "Subscribe",
+          "cta_url": "https://huggingface.co/join",
+          "is_popular": true
+        }
+      ]
     },
     "curation_score": 79.0,
     "academic_integrity_rating": "Safe",
@@ -5831,9 +6052,36 @@
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://phind.com",
+      "source_url": "https://www.phind.com/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "Default Phind Instant model",
+            "Web-augmented developer search",
+            "Standard latency response"
+          ],
+          "cta_label": "Search Free",
+          "cta_url": "https://phind.com",
+          "is_popular": false
+        },
+        {
+          "name": "Pro",
+          "price_amount": 20,
+          "price_display": "$20/mo",
+          "features": [
+            "500 fast GPT-4o/Claude queries/day",
+            "VS Code extension sync",
+            "Code interpreter sandbox"
+          ],
+          "cta_label": "Go Pro",
+          "cta_url": "https://phind.com/pricing",
+          "is_popular": true
+        }
+      ]
     }
   },
   {
@@ -6067,7 +6315,34 @@
       "last_verified_at": "2026-06-22",
       "source_url": "https://elevenlabs.io/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "10,000 characters/month",
+            "3 custom voices",
+            "High-quality text-to-speech"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://elevenlabs.io",
+          "is_popular": false
+        },
+        {
+          "name": "Starter",
+          "price_amount": 5,
+          "price_display": "$5/mo",
+          "features": [
+            "30,000 characters/month",
+            "Instant voice cloning",
+            "Commercial license"
+          ],
+          "cta_label": "Choose Starter",
+          "cta_url": "https://elevenlabs.io",
+          "is_popular": true
+        }
+      ]
     },
     "curation_score": 62.0,
     "academic_integrity_rating": "Safe",
@@ -10854,7 +11129,34 @@
       "last_verified_at": "2026-06-22",
       "source_url": "https://v0.dev/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "200 free credits/month",
+            "Public project access",
+            "React component export"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://v0.dev",
+          "is_popular": false
+        },
+        {
+          "name": "Premium",
+          "price_amount": 20,
+          "price_display": "$20/mo",
+          "features": [
+            "5,000 monthly credits",
+            "Private generations options",
+            "Commercial usage terms"
+          ],
+          "cta_label": "Choose Plan",
+          "cta_url": "https://v0.dev/pricing",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -11163,9 +11465,24 @@
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://aider.chat",
+      "source_url": "https://aider.chat/",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Open Source",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Fully open-source CLI",
+            "Connect to any model provider",
+            "Local Git auto-commits",
+            "Edit multi-file projects"
+          ],
+          "cta_label": "Install Aider",
+          "cta_url": "https://aider.chat/",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -11321,9 +11638,24 @@
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://langchain.com/pricing",
+      "source_url": "https://www.langchain.com/",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Open Source",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Open-source composition tools",
+            "LCEL routing pipeline",
+            "Community integrations (100+)",
+            "Access to LangSmith free tier"
+          ],
+          "cta_label": "Learn More",
+          "cta_url": "https://www.langchain.com/",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -18539,9 +18871,24 @@
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://trychroma.com/pricing",
+      "source_url": "https://www.trychroma.com/",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Open Source",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Apache 2.0 Open Source",
+            "Local in-memory storage",
+            "Python & JS SDK packages",
+            "Docker container support"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://www.trychroma.com/",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -19422,9 +19769,24 @@
     "pricing_verified_at": "2026-05-18",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://notebooklm.google.com/pricing",
+      "source_url": "https://notebooklm.google/",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Create up to 100 notebooks",
+            "Audio Overviews generation",
+            "Source-grounded RAG answers",
+            "Google Drive sync support"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://notebooklm.google/",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -22456,7 +22818,35 @@
       "last_verified_at": "2026-06-22",
       "source_url": "https://www.figma.com/pricing/",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Starter",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "3 Figma files",
+            "Unlimited collaborators",
+            "Plugins and templates"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://figma.com",
+          "is_popular": false
+        },
+        {
+          "name": "Professional",
+          "price_amount": 15,
+          "price_display": "$15/mo",
+          "features": [
+            "Unlimited Figma files",
+            "Team libraries",
+            "Dev Mode access",
+            "Advanced prototyping"
+          ],
+          "cta_label": "Choose Pro",
+          "cta_url": "https://figma.com",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -22666,9 +23056,37 @@
     "pricing_verified_at": "2026-05-18",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://www.canva.com/en_in/pricing/",
+      "source_url": "https://www.canva.com/pricing/",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "250k+ free templates",
+            "100+ design types",
+            "5GB cloud storage"
+          ],
+          "cta_label": "Sign Up",
+          "cta_url": "https://canva.com",
+          "is_popular": false
+        },
+        {
+          "name": "Pro",
+          "price_amount": 15,
+          "price_display": "$15/mo",
+          "features": [
+            "Unlimited premium content",
+            "100+ million photos/videos",
+            "Brand Kits and Magic Resize",
+            "1TB cloud storage"
+          ],
+          "cta_label": "Try Pro Free",
+          "cta_url": "https://canva.com",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -29004,7 +29422,34 @@
       "last_verified_at": "2026-06-22",
       "source_url": "https://bolt.new/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "200 free tokens daily",
+            "Full-stack browser environment",
+            "Netlify deployment links"
+          ],
+          "cta_label": "Sign Up",
+          "cta_url": "https://bolt.new",
+          "is_popular": false
+        },
+        {
+          "name": "Pro",
+          "price_amount": 20,
+          "price_display": "$20/mo",
+          "features": [
+            "Unlimited deployment runs",
+            "Larger credit allocations",
+            "Fast performance speeds"
+          ],
+          "cta_label": "Get Pro",
+          "cta_url": "https://bolt.new/pricing",
+          "is_popular": true
+        }
+      ]
     },
     "curation_score": 65.0,
     "academic_integrity_rating": "Safe",
@@ -35047,7 +35492,34 @@
       "last_verified_at": "2026-06-22",
       "source_url": "https://supermaven.com/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "Blazing-fast code autocomplete",
+            "300,000 token context window",
+            "VS Code & JetBrains extensions"
+          ],
+          "cta_label": "Install Free",
+          "cta_url": "https://supermaven.com",
+          "is_popular": false
+        },
+        {
+          "name": "Pro",
+          "price_amount": 10,
+          "price_display": "$10/mo",
+          "features": [
+            "Priority autocomplete latency",
+            "Enhanced reasoning models",
+            "Chat inside IDE"
+          ],
+          "cta_label": "Get Pro",
+          "cta_url": "https://supermaven.com/pricing",
+          "is_popular": true
+        }
+      ]
     },
     "curation_score": 90.0,
     "academic_integrity_rating": "Safe",
@@ -35117,9 +35589,24 @@
     "slug": "crewai",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://crewai.com",
+      "source_url": "https://www.crewai.com/",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Open Source",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Open-source Python framework",
+            "Local agent roles configuration",
+            "Custom task assignments",
+            "OpenAI/Ollama integration"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://www.crewai.com/",
+          "is_popular": true
+        }
+      ]
     },
     "curation_score": 88.0,
     "academic_integrity_rating": "Safe",
