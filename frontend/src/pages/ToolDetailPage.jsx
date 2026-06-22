@@ -621,7 +621,6 @@ function ToolDetailPage() {
                     </span>
                   )}
                 </div>
-                <p className="mt-3 text-sm text-muted">{tool.shortDescription}</p>
 
                 <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <a
@@ -630,7 +629,7 @@ function ToolDetailPage() {
                     rel={OUTBOUND_REL}
                     className="w-full"
                   >
-                    <Button className="w-full">Visit Tool</Button>
+                    <Button className="w-full font-bold">Visit Tool</Button>
                   </a>
                   <Button variant="ghost" className="w-full gap-2" onClick={handleFavoriteToggle}>
                     <AnimatePresence mode="wait" initial={false}>
@@ -645,9 +644,11 @@ function ToolDetailPage() {
                         <Heart className={clsx('h-4 w-4', isFavorite ? 'fill-danger text-danger' : 'text-muted')} />
                       </motion.span>
                     </AnimatePresence>
-                    {isFavorite ? 'Saved to Favorites' : 'Save to Favorites'}
+                    {isFavorite ? 'Saved' : 'Save'}
                   </Button>
                 </div>
+
+                <p className="mt-5 text-sm leading-relaxed text-ink-2">{tool.shortDescription}</p>
 
                 {isFavorite && isLoggedIn && (
                   <div className="mt-4 rounded-xl border border-line bg-bg-elev/40 p-4 shadow-sm backdrop-blur-md">

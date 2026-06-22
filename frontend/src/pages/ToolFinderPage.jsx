@@ -1,7 +1,7 @@
 import { Check, RotateCcw, Save, Code, GraduationCap, PenTool, Mic, Briefcase, Layout, BarChart, Zap, BookOpen, Terminal, Globe, Wand2, Star, SlidersHorizontal, Bug, Search, MessageSquare, Bookmark, Palette, Film, Calendar, FileText, Megaphone, Plug, Bot, FlaskConical } from 'lucide-react'
 import { useEffect, useRef, useState, useMemo } from 'react'
 import { toast } from 'sonner'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 
 import Badge from '../components/ui/Badge'
@@ -193,17 +193,19 @@ function WizardProgress({ answers, activeQuestionId }) {
   const currentStepIndex = QUESTION_FLOW.indexOf(activeQuestionId) + 1
 
   return (
-    <div className="mb-6">
-      <div className="mb-2 flex items-center justify-between">
-        <span className="text-xs font-medium text-muted">Step {currentStepIndex > 0 ? currentStepIndex : 1} of {TOTAL_QUESTIONS} · {answeredCount} answered</span>
-        <span className="text-xs font-semibold text-accent-ink">{Math.round((answeredCount / TOTAL_QUESTIONS) * 100)}%</span>
+    <div className="mb-8">
+      <div className="mb-3 flex items-center justify-between">
+        <span className="text-lg font-bold text-ink">Step {currentStepIndex > 0 ? currentStepIndex : 1} of {TOTAL_QUESTIONS}</span>
+        <Link to="/tools" className="text-sm font-medium text-muted hover:text-ink transition-colors">
+          Skip wizard → Browse tools
+        </Link>
       </div>
-      <div className="flex gap-1.5">
+      <div className="flex gap-2">
         {steps.map((step, i) => (
           <div
             key={i}
             title={step.label}
-            className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${step.isAnswered ? 'bg-accent' : 'bg-line-strong'}`}
+            className={`h-2 flex-1 rounded-full transition-all duration-500 ${step.isAnswered ? 'bg-accent' : currentStepIndex === i + 1 ? 'bg-accent/40' : 'bg-line-strong'}`}
           />
         ))}
       </div>

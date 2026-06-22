@@ -315,6 +315,24 @@ export default function AlternativesPage() {
         </MotionDiv>
 
         <MotionDiv
+          variants={sectionReveal}
+          initial="initial"
+          whileInView="animate"
+          viewport={{ once: true, margin: '-10% 0px' }}
+          className="mx-auto max-w-5xl px-4 mb-12"
+        >
+          <div className="rounded-2xl bg-accent-soft/30 border border-accent/20 p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+             <div>
+               <h2 className="text-lg font-semibold text-ink">Not sure which alternative is right for you?</h2>
+               <p className="text-sm text-muted mt-1">Use our quick wizard to find the perfect tool for your workflow.</p>
+             </div>
+             <Link to="/ai-tool-finder" className="whitespace-nowrap rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-bg transition hover:opacity-90">
+                Find the best alternative →
+             </Link>
+          </div>
+        </MotionDiv>
+
+        <MotionDiv
           variants={staggerParent}
           initial="initial"
           whileInView="animate"
