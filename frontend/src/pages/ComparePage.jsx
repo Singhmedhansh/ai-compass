@@ -168,6 +168,8 @@ function ToolColumn({ slug, status, tool, error, onRemove }) {
   const tagline = tool.tagline || tool.shortDescription || tool.description || ''
   const category = tool.category || tool.subCategory || 'General'
   const url = outboundUrl(tool.slug ? tool : { ...tool, slug })
+  const pricingRaw = String(tool.pricing_tier || tool.pricing || '').toLowerCase()
+  const isFreeOrFreemium = pricingRaw === 'free' || pricingRaw === 'freemium'
   const platforms = Array.isArray(tool.platforms)
     ? tool.platforms.join(', ')
     : tool.platform || 'Web'
@@ -206,6 +208,18 @@ function ToolColumn({ slug, status, tool, error, onRemove }) {
 
       {tagline ? <p className="mt-3 text-sm text-muted">{tagline}</p> : null}
 
+      <div className="mt-5">
+        <a
+          href={url}
+          target="_blank"
+          rel={OUTBOUND_REL}
+          className="group flex w-full items-center justify-between rounded-xl bg-accent p-4 text-sm font-bold text-bg shadow-sm outline-none transition hover:opacity-90 hover:shadow-md focus-visible:ring-2 focus-visible:ring-accent"
+        >
+          <span>Try {name}{isFreeOrFreemium ? ' free' : ''}</span>
+          <span aria-hidden="true" className="transition-transform group-hover:translate-x-1">→</span>
+        </a>
+      </div>
+
       {studentFriendly ? (
         <div className="mt-4 rounded-xl border border-accent-soft bg-accent-soft/20 p-3">
           <p className="text-sm font-semibold text-accent-ink flex items-center gap-1.5">
@@ -226,23 +240,7 @@ function ToolColumn({ slug, status, tool, error, onRemove }) {
         </div>
       )}
 
-      <div className="mt-4 flex flex-col gap-2">
-        <a
-          href={url}
-          target="_blank"
-          rel={OUTBOUND_REL}
-          className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-bg outline-none transition hover:opacity-90 focus-visible:ring-2 focus-visible:ring-accent"
-        >
-          Try {name}
-          <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
-        </a>
-        <Link
-          to={`/tools/${slug}/alternatives`}
-          className="inline-flex w-full items-center justify-center rounded-lg border border-line bg-transparent px-4 py-2 text-sm font-medium text-ink transition hover:bg-bg-sunk focus-visible:ring-2 focus-visible:ring-accent"
-        >
-          View alternatives
-        </Link>
-      </div>
+      {/* Moved CTA up and View alternatives down */}
 
       <div className="mt-6">
         <SectionHeading>Pricing</SectionHeading>
@@ -325,6 +323,15 @@ function ToolColumn({ slug, status, tool, error, onRemove }) {
           </div>
         </div>
       ) : null}
+
+      <div className="mt-6 flex-grow flex items-end">
+        <Link
+          to={`/tools/${slug}/alternatives`}
+          className="inline-flex w-full items-center justify-center rounded-lg border border-line bg-transparent px-4 py-3 text-sm font-medium text-ink transition hover:bg-bg-sunk focus-visible:ring-2 focus-visible:ring-accent"
+        >
+          View alternatives for {name}
+        </Link>
+      </div>
     </div>
   )
 }
