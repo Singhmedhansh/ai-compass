@@ -51,15 +51,14 @@ export default function Hero() {
             </div>
 
             <h1 className="mt-4 mb-3.5 text-balance text-3xl font-semibold leading-[1.1] tracking-tight text-ink md:max-w-[16ch] md:text-[56px] lg:text-[64px]">
-              <ShinyText text="A hand-picked AI finder." className="leading-[1.1]" />
+              <ShinyText text="Find the perfect AI tool." className="leading-[1.1]" />
               <br className="hidden md:block" />
-              <span className="text-muted-2 text-3xl md:text-[56px] lg:text-[64px]">Made for <FlipWords words={audienceWords} className="text-ink" /></span>
+              <span className="text-muted-2 text-3xl md:text-[56px] lg:text-[64px]">For <FlipWords words={audienceWords} className="text-ink" /></span>
             </h1>
 
             <p className="mb-5 max-w-[36ch] text-pretty text-[15px] text-muted md:max-w-[48ch] md:text-lg">
-              Answer 4 questions about your situation — use case, level, budget, platform —
-              and get <strong className="font-medium text-ink-2">5–6 AI tools chosen for you</strong>,
-              each with a one-line reason. Free. No login. No directory spam.
+              Stop endlessly searching. Tell us your use case, budget, and platform,
+              and get <strong className="font-medium text-ink-2">the exact AI tools you need in 30 seconds</strong>. Hand-tested. Free. No login required.
             </p>
 
             <div className="flex flex-wrap items-center gap-2.5">
@@ -102,10 +101,18 @@ export default function Hero() {
               aria-label="Quick facts"
             >
               <span className="inline-flex items-center gap-1.5">
-                <b className="font-semibold text-ink">~1 min</b> · to a shortlist
+                <b className="font-semibold text-ink">30 sec</b> · to a shortlist
               </span>
               <span className="inline-flex items-center gap-1.5">
                 <b className="font-semibold text-ink">0</b> · accounts required
+              </span>
+              <span className="inline-flex items-center gap-1.5 border-l border-line pl-4">
+                <span className="flex -space-x-2 mr-1">
+                  <img className="inline-block h-5 w-5 rounded-full ring-2 ring-bg" src="https://i.pravatar.cc/100?img=1" alt=""/>
+                  <img className="inline-block h-5 w-5 rounded-full ring-2 ring-bg" src="https://i.pravatar.cc/100?img=2" alt=""/>
+                  <img className="inline-block h-5 w-5 rounded-full ring-2 ring-bg" src="https://i.pravatar.cc/100?img=3" alt=""/>
+                </span>
+                <b className="font-semibold text-ink">10,000+</b> · users finding tools
               </span>
             </div>
 
