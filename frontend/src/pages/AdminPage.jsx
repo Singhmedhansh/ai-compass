@@ -168,6 +168,7 @@ function AdminPage() {
   const [catalogDiff, setCatalogDiff] = useState({ db_only: [], json_only: [], matched_count: 0, db_total: 0, json_total: 0 })
   const [catalogDiffLoading, setCatalogDiffLoading] = useState(false)
   const [cacheBusy, setCacheBusy] = useState(false)
+  const [syncAllBusy, setSyncAllBusy] = useState(false)
 
   const [toolsQuery, setToolsQuery] = useState('')
   const [toolsPage, setToolsPage] = useState(1)
@@ -307,6 +308,21 @@ function AdminPage() {
       toast.error(e.message)
     } finally {
       setCacheBusy(false)
+    }
+  }, [reloadTools, reloadCatalogDiff])
+
+  const syncAllUpdates = useCallback(async () => {
+    if (!window.confirm('Are you sure you want to overwrite/update all database tools with data from tools.json?')) return
+    setSyncAllBusy(true)
+    try {
+      const d = await api('/api/v1/admin/catalog-sync-all-updates', { method: 'POST' })
+      toast.success(`Successfully synced database: ${d.applied} applied, ${d.failed} failed.`)
+      reloadTools()
+      reloadCatalogDiff()
+    } catch (e) {
+      toast.error(e.message)
+    } finally {
+      setSyncAllBusy(false)
     }
   }, [reloadTools, reloadCatalogDiff])
 
@@ -920,6 +936,18 @@ function AdminPage() {
               </div>
               <button onClick={clearCache} disabled={cacheBusy} className={`${BTN_PRIMARY} shrink-0`}>
                 {cacheBusy ? 'Reloading…' : 'Clear cache'}
+              </button>
+            </div>
+
+            <div className="mt-4 flex flex-col gap-3 rounded-xl border border-line bg-bg-sunk/40 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h3 className="text-sm font-semibold text-ink">Sync all updates from tools.json</h3>
+                <p className="mt-0.5 text-xs text-muted">
+                  Reads tools.json (seed file containing verified pricing, tags, etc.) and overwrites/updates the corresponding rows in the database catalog.
+                </p>
+              </div>
+              <button onClick={syncAllUpdates} disabled={syncAllBusy} className={`${BTN_PRIMARY} shrink-0`}>
+                {syncAllBusy ? 'Syncing…' : 'Sync all updates'}
               </button>
             </div>
 

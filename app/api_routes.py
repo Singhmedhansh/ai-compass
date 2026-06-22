@@ -4692,3 +4692,32 @@ def admin_catalog_import_from_json(slug: str):
     return jsonify({"success": True, "slug": slug_l, "name": record.get("name")})
 
 
+@api_bp.post("/admin/catalog-sync-all-updates")
+@csrf.exempt
+@login_required
+def admin_catalog_sync_all_updates():
+    """Bulk sync all tool details and pricing updates from tools.json to the DB."""
+    if not _is_admin():
+        return jsonify({"error": "Forbidden"}), 403
+    from app.catalog_store import upsert_tool
+    from app.tool_cache import _load_tools_from_disk, refresh_tools_cache
+
+    try:
+        json_records = _load_tools_from_disk() or []
+    except Exception as exc:
+        return jsonify({"error": f"Failed to load tools.json: {exc}"}), 500
+
+    applied = 0
+    failed = 0
+    for record in json_records:
+        if upsert_tool(record):
+            applied += 1
+        else:
+            failed += 1
+
+    db.session.commit()
+    refresh_tools_cache(DATA_PATH)
+    return jsonify({"success": True, "applied": applied, "failed": failed})
+
+
+
