@@ -999,13 +999,14 @@ _CARD_FIELDS = (
     "slug", "name", "shortDescription", "summary", "category", "subCategory",
     "rating", "averageRating", "average_rating",
     "review_count", "reviewCount", "reviews", "total_reviews",
-    "pricing", "pricingType", "pricing_type", "pricing_tier",
+    "pricing", "pricingType", "pricing_type", "pricing_tier", "pricingDetail",
     "createdAt", "created_at", "publishedAt", "published_at",
     "logo", "emoji", "icon", "logo_url", "logoUrl", "logo_emoji",
     "url", "website", "link", "accent_color", "tagline",
     "featured", "student_friendly", "trending",
-    "curation_score", "popularity_score",
+    "curation_score", "popularity_score", "openSource", "open_source", "platforms",
 )
+
 
 
 def _card_projection(tool: dict) -> dict:
