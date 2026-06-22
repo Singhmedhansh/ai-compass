@@ -73,12 +73,12 @@ export default function PricingSection({ tool }) {
               ))}
             </ul>
             <a
-              href={tier.cta_url}
+              href={tier.cta_url || pricingTiers.source_url || tool.link}
               target="_blank"
               rel="noopener noreferrer"
               className="mt-5 inline-flex w-full items-center justify-center rounded-lg bg-accent px-3 py-2 text-sm font-semibold text-bg outline-none transition hover:opacity-90 focus-visible:ring-2 focus-visible:ring-accent"
             >
-              {tier.cta_label}
+              {tier.cta_label || (tier.price_amount === 0 ? 'Get Started' : 'Choose Plan')}
             </a>
           </article>
         ))}
