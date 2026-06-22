@@ -405,8 +405,8 @@ export default function ModelComparisonPage() {
   return (
     <>
       <SEO
-        title="AI API Model Pricing & Context Comparison 2026"
-        description="Compare tokens pricing, context windows, and strengths across GPT-4.5, Claude 3.7 Sonnet, Claude 4.7 Opus, Gemini 2.0 Flash, and Llama 3.3. Calculate API costs instantly."
+        title="LLM API Cost Calculator & Pricing Comparison 2026"
+        description="Calculate and estimate your LLM API billing costs. Compare token pricing, context windows, and latency across GPT-4o, Claude 3.7, Gemini 2.0, DeepSeek R1, and Llama 3.3."
         path="/model-comparison"
       />
 
@@ -418,14 +418,14 @@ export default function ModelComparisonPage() {
         {/* Hero */}
         <div className="mx-auto max-w-5xl px-4 pt-16 pb-6 text-center relative z-10">
           <div className="inline-flex items-center gap-1.5 rounded-full border border-accent/25 bg-accent-soft px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-accent-ink mb-6">
-            <Cpu className="h-3.5 w-3.5" />
-            Frontier AI Pricing Database · 2026 Updates
+            <Calculator className="h-3.5 w-3.5" />
+            LLM API Cost Calculator · 2026 Updates
           </div>
           <h1 className="text-[clamp(2.2rem,5vw,3.5rem)] font-extrabold leading-[1.15] tracking-tight text-ink mb-5 bg-gradient-to-r from-ink via-accent to-brand-600 bg-clip-text">
-            Compare API Models & Costs
+            LLM API Cost Calculator
           </h1>
           <p className="text-[1.15rem] leading-[1.75] text-muted max-w-[700px] mx-auto mb-8 font-normal">
-            Analyze pricing, context size limits, and capability strengths across proprietary and open-weights models. Run mock parameters to simulate production billing.
+            Calculate your production LLM API billing. Simulate prompt sizes, completion lengths, and traffic across OpenAI, Anthropic, Google, DeepSeek, and Meta.
           </p>
         </div>
 
@@ -654,9 +654,14 @@ export default function ModelComparisonPage() {
                               {m.provider}
                             </span>
                           </div>
-                          <span className="font-extrabold text-ink shrink-0">
-                            {currentSymbol}{(m.totalCost * rate).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
-                          </span>
+                          <div className="text-right shrink-0">
+                            <span className="font-extrabold text-ink block">
+                              {currentSymbol}{(m.totalCost * rate).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </span>
+                            <span className="text-[10px] text-muted-2 block">
+                              {currentSymbol}{((m.totalCost / requestsCount) * rate).toLocaleString(undefined, { minimumFractionDigits: 4, maximumFractionDigits: 4 })}/run
+                            </span>
+                          </div>
                         </div>
                         <div className="w-full bg-bg-sunk rounded-full h-3.5 overflow-hidden relative border border-line shadow-inner">
                           <MotionDiv

@@ -350,7 +350,7 @@ function Navbar() {
 
           <Link to="/model-comparison">
             <Button variant="ghost" size="sm" className="text-ink-2">
-              Model Comparison
+              LLM Cost Calculator
             </Button>
           </Link>
 
@@ -761,7 +761,7 @@ function Navbar() {
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
                 >
-                  Model Comparison
+                  LLM Cost Calculator
                 </Link>
 
                 {/* ── STUDENT HUB ── */}

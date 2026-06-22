@@ -228,6 +228,9 @@ function DirectoryPage() {
   const categoryFromParams = searchParams.get('category') || 'All'
   const actuallyFreeOnly = searchParams.get('actually_free') === 'true'
   const studentOnly = searchParams.get('student_only') === 'true'
+  const openSourceOnly = searchParams.get('open_source') === 'true'
+  const selfHostedOnly = searchParams.get('self_hosted') === 'true'
+  const payAsYouGoOnly = searchParams.get('pay_as_you_go') === 'true'
 
   const [tools, setTools] = useState([])
   const [directorySummary, setDirectorySummary] = useState(null)
@@ -284,7 +287,7 @@ function DirectoryPage() {
     }
   }, [queryFromParams, categoryFromParams, category])
 
-  const updateUrlParams = (nextCategory, nextQuery, nextTags = null, nextFree = null, nextStudent = null) => {
+  const updateUrlParams = (nextCategory, nextQuery, nextTags = null, nextFree = null, nextStudent = null, nextOpenSource = null, nextSelfHosted = null, nextPayAsYouGo = null) => {
     const nextParams = new URLSearchParams(searchParams)
     const query = (nextQuery || '').trim()
     const tags = (nextTags || '').trim()
@@ -319,6 +322,27 @@ function DirectoryPage() {
       nextParams.set('student_only', 'true')
     } else {
       nextParams.delete('student_only')
+    }
+
+    const openSourceVal = nextOpenSource !== null ? nextOpenSource : openSourceOnly
+    if (openSourceVal) {
+      nextParams.set('open_source', 'true')
+    } else {
+      nextParams.delete('open_source')
+    }
+
+    const selfHostedVal = nextSelfHosted !== null ? nextSelfHosted : selfHostedOnly
+    if (selfHostedVal) {
+      nextParams.set('self_hosted', 'true')
+    } else {
+      nextParams.delete('self_hosted')
+    }
+
+    const payAsYouGoVal = nextPayAsYouGo !== null ? nextPayAsYouGo : payAsYouGoOnly
+    if (payAsYouGoVal) {
+      nextParams.set('pay_as_you_go', 'true')
+    } else {
+      nextParams.delete('pay_as_you_go')
     }
 
     // Record what we pushed so the sync effect treats this as our own write,
@@ -361,7 +385,7 @@ function DirectoryPage() {
     const normalizedTags = (searchParams.get('tags') || '').trim()
     const isRemoteSearch = Boolean(normalizedQuery)
     const isTaggedSearch = Boolean(normalizedTags)
-    const shouldLoadSummary = !isRemoteSearch && normalizedCategory === 'All' && !actuallyFreeOnly && !studentOnly && !showAllOpened
+    const shouldLoadSummary = !isRemoteSearch && normalizedCategory === 'All' && !actuallyFreeOnly && !studentOnly && !openSourceOnly && !selfHostedOnly && !payAsYouGoOnly && !showAllOpened
 
 
     // WHY 300ms: hit the backend after the user stops typing for one quarter
@@ -385,12 +409,18 @@ function DirectoryPage() {
               ...(canonicalCategory !== 'All' ? { category: canonicalCategory } : {}),
               ...(actuallyFreeOnly ? { actually_free: 'true' } : {}),
               ...(studentOnly ? { student_only: 'true' } : {}),
+              ...(openSourceOnly ? { open_source: 'true' } : {}),
+              ...(selfHostedOnly ? { self_hosted: 'true' } : {}),
+              ...(payAsYouGoOnly ? { pay_as_you_go: 'true' } : {}),
             }).toString()}`
           : shouldLoadSummary
             ? `${API}/api/v1/tools?fields=summary`
             : `${API}/api/v1/tools?fields=card&${new URLSearchParams({
                 ...(actuallyFreeOnly ? { actually_free: 'true' } : {}),
                 ...(studentOnly ? { student_only: 'true' } : {}),
+                ...(openSourceOnly ? { open_source: 'true' } : {}),
+                ...(selfHostedOnly ? { self_hosted: 'true' } : {}),
+                ...(payAsYouGoOnly ? { pay_as_you_go: 'true' } : {}),
               }).toString()}`
 
 
@@ -473,7 +503,7 @@ function DirectoryPage() {
       clearTimeout(debounceTimer)
       controller.abort()
     }
-  }, [queryFromParams, category, retryNonce, searchParams, showAllOpened, actuallyFreeOnly, studentOnly])
+  }, [queryFromParams, category, retryNonce, searchParams, showAllOpened, actuallyFreeOnly, studentOnly, openSourceOnly, selfHostedOnly, payAsYouGoOnly])
 
 
   const filteredTools = useMemo(() => {
@@ -494,9 +524,25 @@ function DirectoryPage() {
 
     const byStudent = studentOnly ? byFree.filter((tool) => tool.student_friendly) : byFree
 
+    const byOpenSource = openSourceOnly ? byStudent.filter((tool) => tool.openSource === true || tool.open_source === true) : byStudent
+
+    const bySelfHosted = selfHostedOnly ? byOpenSource.filter((tool) => {
+      const platforms = Array.isArray(tool.platforms) ? tool.platforms : [];
+      return platforms.some(p => {
+        const pl = String(p || '').toLowerCase();
+        return pl.includes('self-hosted') || pl.includes('local') || pl.includes('docker') || pl.includes('linux') || pl.includes('local os');
+      });
+    }) : byOpenSource
+
+    const byPayAsYouGo = payAsYouGoOnly ? bySelfHosted.filter((tool) => {
+      const pricingDetail = String(tool.pricingDetail || '').toLowerCase();
+      const pricing = String(tool.pricing || '').toLowerCase();
+      return pricingDetail.includes('pay-as-you-go') || pricing.includes('pay-as-you-go') || pricingDetail.includes('usage-based');
+    }) : bySelfHosted
+
     // 2. If it's a remote search, skip substring filtering (which breaks semantic matches)
     //    If it's NOT a remote search, do standard substring filtering.
-    const bySearch = hasSearchQuery ? byStudent : byStudent.filter((tool) => {
+    const bySearch = hasSearchQuery ? byPayAsYouGo : byPayAsYouGo.filter((tool) => {
       if (!normalizedSearch) {
         return true
       }
@@ -539,7 +585,7 @@ function DirectoryPage() {
     })
 
     return sorted
-  }, [category, queryFromParams, hasSearchQuery, sortBy, tools, actuallyFreeOnly, studentOnly])
+  }, [category, queryFromParams, hasSearchQuery, sortBy, tools, actuallyFreeOnly, studentOnly, openSourceOnly, selfHostedOnly, payAsYouGoOnly])
 
   const hubSections = useMemo(() => {
     if (directorySummary?.sections?.length) {
@@ -575,7 +621,7 @@ function DirectoryPage() {
 
   const handleReset = () => {
     setSortBy('Trending')
-    updateUrlParams('All', '', null, false, false)
+    updateUrlParams('All', '', null, false, false, false, false, false)
   }
 
 
@@ -618,7 +664,7 @@ function DirectoryPage() {
   }
 
   const trimmedSearchTerm = queryFromParams.trim()
-  const hasFilter = category !== 'All' || actuallyFreeOnly || studentOnly
+  const hasFilter = category !== 'All' || actuallyFreeOnly || studentOnly || openSourceOnly || selfHostedOnly || payAsYouGoOnly
   const viewMode = hasSearchQuery ? 'search' : hasFilter ? 'filter' : 'hub'
 
   useEffect(() => {
@@ -795,7 +841,7 @@ function DirectoryPage() {
                 <div className="flex gap-2">
                   <button
                     type="button"
-                    onClick={() => updateUrlParams(category, searchQuery, null, !actuallyFreeOnly, studentOnly)}
+                    onClick={() => updateUrlParams(category, searchQuery, null, !actuallyFreeOnly, studentOnly, openSourceOnly, selfHostedOnly, payAsYouGoOnly)}
                     className={`flex flex-1 justify-center items-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-semibold transition ${
                       actuallyFreeOnly
                         ? 'border-emerald-500 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
@@ -806,7 +852,7 @@ function DirectoryPage() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => updateUrlParams(category, searchQuery, null, actuallyFreeOnly, !studentOnly)}
+                    onClick={() => updateUrlParams(category, searchQuery, null, actuallyFreeOnly, !studentOnly, openSourceOnly, selfHostedOnly, payAsYouGoOnly)}
                     className={`flex flex-1 justify-center items-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-semibold transition ${
                       studentOnly
                         ? 'border-accent bg-accent-soft text-accent-ink'
@@ -814,6 +860,44 @@ function DirectoryPage() {
                     }`}
                   >
                     Student Perks
+                  </button>
+                </div>
+              </div>
+              <div className="mb-4 flex flex-col gap-2">
+                <label className="block text-xs font-semibold text-ink-2">Developer Filters</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => updateUrlParams(category, searchQuery, null, actuallyFreeOnly, studentOnly, !openSourceOnly, selfHostedOnly, payAsYouGoOnly)}
+                    className={`flex justify-center items-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-semibold transition ${
+                      openSourceOnly
+                        ? 'border-blue-500 bg-blue-500/10 text-blue-600 dark:text-blue-400'
+                        : 'border-line bg-bg-elev text-ink-2'
+                    }`}
+                  >
+                    Open Source
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => updateUrlParams(category, searchQuery, null, actuallyFreeOnly, studentOnly, openSourceOnly, !selfHostedOnly, payAsYouGoOnly)}
+                    className={`flex justify-center items-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-semibold transition ${
+                      selfHostedOnly
+                        ? 'border-purple-500 bg-purple-500/10 text-purple-600 dark:text-purple-400'
+                        : 'border-line bg-bg-elev text-ink-2'
+                    }`}
+                  >
+                    Local OS
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => updateUrlParams(category, searchQuery, null, actuallyFreeOnly, studentOnly, openSourceOnly, selfHostedOnly, !payAsYouGoOnly)}
+                    className={`flex justify-center items-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-semibold transition col-span-2 ${
+                      payAsYouGoOnly
+                        ? 'border-amber-500 bg-amber-500/10 text-amber-600 dark:text-amber-400'
+                        : 'border-line bg-bg-elev text-ink-2'
+                    }`}
+                  >
+                    Pay-As-You-Go
                   </button>
                 </div>
               </div>
@@ -909,7 +993,7 @@ function DirectoryPage() {
               <div className="flex flex-wrap items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => updateUrlParams(category, searchQuery, null, !actuallyFreeOnly, studentOnly)}
+                  onClick={() => updateUrlParams(category, searchQuery, null, !actuallyFreeOnly, studentOnly, openSourceOnly, selfHostedOnly, payAsYouGoOnly)}
                   className={`flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
                     actuallyFreeOnly
                       ? 'border-emerald-500 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
@@ -920,7 +1004,7 @@ function DirectoryPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => updateUrlParams(category, searchQuery, null, actuallyFreeOnly, !studentOnly)}
+                  onClick={() => updateUrlParams(category, searchQuery, null, actuallyFreeOnly, !studentOnly, openSourceOnly, selfHostedOnly, payAsYouGoOnly)}
                   className={`flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
                     studentOnly
                       ? 'border-accent bg-accent-soft text-accent-ink'
@@ -928,6 +1012,39 @@ function DirectoryPage() {
                   }`}
                 >
                   Student Perks
+                </button>
+                <button
+                  type="button"
+                  onClick={() => updateUrlParams(category, searchQuery, null, actuallyFreeOnly, studentOnly, !openSourceOnly, selfHostedOnly, payAsYouGoOnly)}
+                  className={`flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+                    openSourceOnly
+                      ? 'border-blue-500 bg-blue-500/10 text-blue-600 dark:text-blue-400'
+                      : 'border-line bg-bg-elev text-ink-2 hover:bg-bg-sunk'
+                  }`}
+                >
+                  Open Source
+                </button>
+                <button
+                  type="button"
+                  onClick={() => updateUrlParams(category, searchQuery, null, actuallyFreeOnly, studentOnly, openSourceOnly, !selfHostedOnly, payAsYouGoOnly)}
+                  className={`flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+                    selfHostedOnly
+                      ? 'border-purple-500 bg-purple-500/10 text-purple-600 dark:text-purple-400'
+                      : 'border-line bg-bg-elev text-ink-2 hover:bg-bg-sunk'
+                  }`}
+                >
+                  Local OS
+                </button>
+                <button
+                  type="button"
+                  onClick={() => updateUrlParams(category, searchQuery, null, actuallyFreeOnly, studentOnly, openSourceOnly, selfHostedOnly, !payAsYouGoOnly)}
+                  className={`flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+                    payAsYouGoOnly
+                      ? 'border-amber-500 bg-amber-500/10 text-amber-600 dark:text-amber-400'
+                      : 'border-line bg-bg-elev text-ink-2 hover:bg-bg-sunk'
+                  }`}
+                >
+                  Pay-As-You-Go
                 </button>
               </div>
             </div>

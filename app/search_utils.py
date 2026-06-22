@@ -264,7 +264,8 @@ def weighted_search(query: str, tools: list) -> list:
     return scored
 
 def search_tools(raw_query, category_filter="All", pricing_filter_ui="All",
-                 student_only=False, trending_only=False, sort_by="Relevance", limit=50, actually_free=False):
+                 student_only=False, trending_only=False, sort_by="Relevance", limit=50, actually_free=False,
+                 open_source=False, self_hosted=False, pay_as_you_go=False):
 
     from app.tool_cache import SEARCH_INDEX, get_cached_tools
 
@@ -334,6 +335,12 @@ def search_tools(raw_query, category_filter="All", pricing_filter_ui="All",
                     continue
                 if trending_only and not tool.get("trending"):
                     continue
+                if open_source and not (tool.get("openSource") or tool.get("open_source")):
+                    continue
+                if self_hosted and not any(p.lower() in ("self-hosted", "local", "docker", "local os", "linux") for p in tool.get("platforms", [])):
+                    continue
+                if pay_as_you_go and not ("pay-as-you-go" in str(tool.get("pricingDetail") or "").lower() or "pay-as-you-go" in str(tool.get("pricing") or "").lower() or "usage-based" in str(tool.get("pricingDetail") or "").lower()):
+                    continue
                 slug_key = tool.get("slug")
                 if slug_key and slug_key in seen_slugs:
                     continue
@@ -353,7 +360,7 @@ def search_tools(raw_query, category_filter="All", pricing_filter_ui="All",
                 # intended tool name more confidently and prefer it if so.
                 top_semantic_score = semantic_pool[0].get("_score", 0)
                 if top_semantic_score < SEMANTIC_STRONG_THRESHOLD and not (
-                    effective_pricing or selected_category or student_only or trending_only
+                    effective_pricing or selected_category or student_only or trending_only or open_source or self_hosted or pay_as_you_go
                 ):
                     fuzzy_results = fuzzy_search_tools(raw_query, threshold=FUZZY_OVERRIDE_THRESHOLD, limit=limit)
                     if fuzzy_results:
@@ -395,6 +402,12 @@ def search_tools(raw_query, category_filter="All", pricing_filter_ui="All",
         if actually_free and tool_pricing not in ("free", "freemium"):
             continue
         if trending_only and not tool.get("trending"):
+            continue
+        if open_source and not (tool.get("openSource") or tool.get("open_source")):
+            continue
+        if self_hosted and not any(p.lower() in ("self-hosted", "local", "docker", "local os", "linux") for p in tool.get("platforms", [])):
+            continue
+        if pay_as_you_go and not ("pay-as-you-go" in str(tool.get("pricingDetail") or "").lower() or "pay-as-you-go" in str(tool.get("pricing") or "").lower() or "usage-based" in str(tool.get("pricingDetail") or "").lower()):
             continue
 
         # ── SCORING ─────────────────────────────────────────

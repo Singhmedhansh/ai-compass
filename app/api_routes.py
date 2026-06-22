@@ -190,7 +190,7 @@ def _local_fuzzy_search(raw_query: str, limit: int = 10, threshold: float = 0.72
     return [{**tool, "_score": round(score * 100, 2), "_match_type": "fuzzy"} for score, tool in ranked[:limit]]
 
 
-def _search_catalog_tools(raw_query: str, category: str, pricing: str, student_only: bool, trending_only: bool, sort_by: str, actually_free: bool = False) -> dict:
+def _search_catalog_tools(raw_query: str, category: str, pricing: str, student_only: bool, trending_only: bool, sort_by: str, actually_free: bool = False, open_source: bool = False, self_hosted: bool = False, pay_as_you_go: bool = False) -> dict:
     if not raw_query:
         return search_tools(
             raw_query=raw_query,
@@ -200,6 +200,9 @@ def _search_catalog_tools(raw_query: str, category: str, pricing: str, student_o
             trending_only=trending_only,
             sort_by=sort_by,
             actually_free=actually_free,
+            open_source=open_source,
+            self_hosted=self_hosted,
+            pay_as_you_go=pay_as_you_go,
         )
 
     try:
@@ -222,6 +225,12 @@ def _search_catalog_tools(raw_query: str, category: str, pricing: str, student_o
         if actually_free and tool_pricing not in ("free", "freemium"):
             continue
         if trending_only and not tool.get("trending"):
+            continue
+        if open_source and not (tool.get("openSource") or tool.get("open_source")):
+            continue
+        if self_hosted and not any(p.lower() in ("self-hosted", "local", "docker", "local os", "linux") for p in tool.get("platforms", [])):
+            continue
+        if pay_as_you_go and not ("pay-as-you-go" in str(tool.get("pricingDetail") or "").lower() or "pay-as-you-go" in str(tool.get("pricing") or "").lower() or "usage-based" in str(tool.get("pricingDetail") or "").lower()):
             continue
         filtered_tools.append(tool)
 
@@ -1071,11 +1080,20 @@ def list_tools():
 
     student_only = request.args.get("student_only", "false") == "true"
     actually_free = request.args.get("actually_free", "false") == "true"
+    open_source = request.args.get("open_source", "false") == "true"
+    self_hosted = request.args.get("self_hosted", "false") == "true"
+    pay_as_you_go = request.args.get("pay_as_you_go", "false") == "true"
 
     if student_only:
         tools = [t for t in tools if t.get("student_perk") or t.get("studentPerk") or t.get("student_friendly")]
     if actually_free:
         tools = [t for t in tools if str(t.get("pricing", "freemium")).lower() in ("free", "freemium")]
+    if open_source:
+        tools = [t for t in tools if t.get("openSource") or t.get("open_source")]
+    if self_hosted:
+        tools = [t for t in tools if any(p.lower() in ("self-hosted", "local", "docker", "local os", "linux") for p in t.get("platforms", []))]
+    if pay_as_you_go:
+        tools = [t for t in tools if "pay-as-you-go" in str(t.get("pricingDetail") or "").lower() or "pay-as-you-go" in str(t.get("pricing") or "").lower() or "usage-based" in str(t.get("pricingDetail") or "").lower()]
 
     fields = request.args.get("fields")
     if fields == "summary":
@@ -1654,6 +1672,9 @@ def api_search():
     actually_f  = request.args.get('actually_free', 'false') == 'true'
     trending    = request.args.get('trending_only', 'false') == 'true'
     sort_by     = request.args.get('sort', 'Relevance')
+    open_source = request.args.get('open_source', 'false') == 'true'
+    self_hosted = request.args.get('self_hosted', 'false') == 'true'
+    pay_as_you_go = request.args.get('pay_as_you_go', 'false') == 'true'
 
     output = _search_catalog_tools(
         raw_query=raw_query,
@@ -1663,6 +1684,9 @@ def api_search():
         trending_only=trending,
         sort_by=sort_by,
         actually_free=actually_f,
+        open_source=open_source,
+        self_hosted=self_hosted,
+        pay_as_you_go=pay_as_you_go,
     )
     return jsonify(output)
 
