@@ -24,8 +24,8 @@ jobs:
     timeout-minutes: 15
 
     steps:
-      - name: Install postgresql-client matching Neon's server version
-        # Neon is currently on Postgres 16. The Ubuntu runner ships an
+      - name: Install postgresql-client matching Postgres server version
+        # Postgres 16 is currently used. The Ubuntu runner ships an
         # older client by default, which will fail with "server version
         # mismatch" against newer servers. Pull pg_dump 16 from the
         # PGDG apt repo.
@@ -38,8 +38,8 @@ jobs:
           sudo apt-get install -y postgresql-client-16
           pg_dump --version
 
-      - name: Dump Neon Postgres to a gzipped .sql.gz
-        # The DATABASE_URL secret should be Neon's *External* connection
+      - name: Dump Postgres to a gzipped .sql.gz
+        # The DATABASE_URL secret should be Postgres' *External* connection
         # string with ?sslmode=require. The dump is plain SQL (not custom
         # format) so it can be restored with `gunzip ... | psql ...` in
         # any environment without needing a matching pg_restore.

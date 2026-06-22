@@ -50,9 +50,9 @@ Automated weekly snapshot via GitHub Actions: see [.github/workflows/backup-db.y
 
 1. GitHub repo → **Settings** → **Secrets and variables** → **Actions** → **New repository secret**.
 2. Name: `DATABASE_URL`.
-3. Value: your Neon *External* connection string with `?sslmode=require` on the end. Looks like:
+3. Value: your Render Postgres connection string with `?sslmode=require` on the end. Looks like:
    ```
-   postgresql://neondb_owner:***@ep-mute-rice-anXXXXX-pooler.c-6.us-east-1.aws.neon.tech/aicompass?sslmode=require
+   postgresql://aicompass_user:***@dpg-cxxxxxxxxxxxx-a.singapore-postgres.render.com/aicompass?sslmode=require
    ```
 4. Save.
 
@@ -69,8 +69,8 @@ Automated weekly snapshot via GitHub Actions: see [.github/workflows/backup-db.y
 #    Actions tab → click the run → "Artifacts" section at the bottom → download the .zip,
 #    unzip it, you'll have a single .sql.gz inside.
 
-# 2. Restore against a fresh Neon database (create a new one in the
-#    Neon console to avoid clobbering the current state).
+# 2. Restore against a fresh Render database (create a new one in the
+#    Render console to avoid clobbering the current state).
 gunzip -c ai-compass-2026-MM-DDTHH-MM-SSZ.sql.gz \
   | psql "postgresql://<user>:<pass>@<host>/<new-db>?sslmode=require"
 
@@ -97,6 +97,6 @@ If those things ever start mattering (e.g., you move session storage to disk-bac
 These aren't urgent but worth a line so future-you remembers.
 
 - **Off-site backups** to Backblaze B2 (free 10 GB) instead of GitHub artifacts, for retention beyond 90 days.
-- **Backup verification** — a follow-up cron that downloads the latest dump, restores into a throwaway Neon branch, and asserts the catalog row count is sane.
+- **Backup verification** — a follow-up cron that downloads the latest dump, restores into a throwaway Postgres instance, and asserts the catalog row count is sane.
 - **Sentry or PostHog `captureException`** wired into the Flask side as well as the React side — right now backend stack traces only live in Render's logs.
 - **Per-tool rate limit** on `/api/v1/feedback` is in place (5/hour) but every other public endpoint relies on Cloudflare for DDoS protection. If we ever leave Cloudflare, add `flask-limiter` properly.

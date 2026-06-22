@@ -209,22 +209,22 @@ def create_app(config: dict | None = None) -> Flask:
     database_uri = str(app.config.get("SQLALCHEMY_DATABASE_URI") or "")
     engine_options = {
         "pool_pre_ping": True,
-        # Recycle every 30 minutes instead of 5 — 6× fewer round-trips to Neon
-        # per idle connection, which helps the compute endpoint auto-suspend.
+        # Recycle every 30 minutes instead of 5 — 6× fewer round-trips to Postgres
+        # per idle connection, which helps the database auto-suspend.
         "pool_recycle": 1800,
-        # Small pool: Neon bills for compute while ANY connection is open and
+        # Small pool: Postgres bills for compute while ANY connection is open and
         # active. 2 persistent + 2 overflow is plenty for a single-worker app
-        # and lets Neon's auto-suspend kick in during quiet periods.
+        # and lets auto-suspend kick in during quiet periods.
         "pool_size": 2,
         "max_overflow": 2,
         "pool_timeout": 30,
     }
     if database_uri.startswith("postgres://") or database_uri.startswith("postgresql://"):
-        # connect_timeout=10 — if Neon is cold and unreachable, fail
+        # connect_timeout=10 — if Postgres is cold and unreachable, fail
         # the connection attempt in 10s instead of letting psycopg's
         # default (which is unbounded for libpq) hang gunicorn and
         # cause Render's port scan to time out. 10s is enough for a
-        # cold Neon free-tier dyno to wake (~5s typical).
+        # cold Postgres free-tier dyno to wake (~5s typical).
         engine_options["connect_args"] = {"sslmode": "require", "connect_timeout": 10}
     app.config["SQLALCHEMY_ENGINE_OPTIONS"] = engine_options
 
@@ -591,7 +591,7 @@ def create_app(config: dict | None = None) -> Flask:
         return response
 
     # ── Defer ALL DB-touching startup to a background thread ─────────────
-    # On Neon's free tier the DB sometimes wakes from sleep on first
+    # On Postgres' free tier the DB sometimes wakes from sleep on first
     # connection (5-10s), and unpickling the recommender model adds
     # another second or two. Doing both inline at create_app() time used
     # to push total import-to-port-bind past Render's port-scan timeout
@@ -613,9 +613,9 @@ def create_app(config: dict | None = None) -> Flask:
             "error": None
         }
         def _warm_up():
-            with app.app_context():
-                # Phase 1 — DB schema bootstrap. Used to run inline in
-                # create_app() but a cold Neon connection could take 30+s
+             with app.app_context():
+                 # Phase 1 — DB schema bootstrap. Used to run inline in
+                 # create_app() but a cold Postgres connection could take 30+s
                 # to wake, which pushed total startup past Render's
                 # port-scan timeout. Running here lets gunicorn bind the
                 # port immediately and serve /health (which has its own

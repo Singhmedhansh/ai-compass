@@ -22,7 +22,7 @@
 ![Vite](https://img.shields.io/badge/Vite-8-646CFF?style=flat-square&logo=vite&logoColor=white)
 ![Tailwind](https://img.shields.io/badge/Tailwind-CSS-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)
 ![scikit-learn](https://img.shields.io/badge/scikit--learn-TF--IDF-F7931E?style=flat-square&logo=scikitlearn&logoColor=white)
-![Postgres](https://img.shields.io/badge/PostgreSQL-Neon-4169E1?style=flat-square&logo=postgresql&logoColor=white)
+![Postgres](https://img.shields.io/badge/PostgreSQL-Render-4169E1?style=flat-square&logo=postgresql&logoColor=white)
 ![Render](https://img.shields.io/badge/Deploy-Render-46E3B7?style=flat-square&logo=render&logoColor=white)
 
 </div>
@@ -260,7 +260,7 @@ flowchart LR
 <td>
 
 ![Render](https://img.shields.io/badge/Render-46E3B7?style=flat-square&logo=render&logoColor=white)
-![Neon](https://img.shields.io/badge/Neon_Postgres-00E599?style=flat-square&logo=neon&logoColor=black)
+![Render Postgres](https://img.shields.io/badge/Render_Postgres-46E3B7?style=flat-square&logo=postgresql&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white)
 ![Alembic](https://img.shields.io/badge/Flask--Migrate-blue?style=flat-square)
 
@@ -450,7 +450,7 @@ flowchart LR
 
 ## 🌐 Deployment
 
-Deployed on **Render** (web service + managed **Neon** Postgres).
+Deployed on **Render** (web service + managed **Render** Postgres).
 
 ```bash
 # Build  →  npm run build (frontend)  +  pip install (backend)   [build.sh]

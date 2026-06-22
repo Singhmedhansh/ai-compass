@@ -16,7 +16,7 @@ slugs. It targets whatever database DATABASE_URL points to:
     python import_catalog_drift.py            # dry run, shows drift
     python import_catalog_drift.py --apply    # perform the upserts
 
-    # Production (Neon/Postgres):
+    # Production (Render/Postgres):
     DATABASE_URL='postgresql://...' python import_catalog_drift.py --apply
 """
 
