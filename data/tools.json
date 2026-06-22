@@ -705,9 +705,37 @@
     "slug": "tabnine",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://tabnine.com/pricing",
+      "source_url": "https://www.tabnine.com/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free Starter",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Basic line completion",
+            "Local model execution",
+            "Standard code language integrations"
+          ],
+          "cta_label": "Install Free",
+          "cta_url": "https://www.tabnine.com",
+          "is_popular": false
+        },
+        {
+          "name": "Pro Plan",
+          "price_amount": 12,
+          "price_display": "$12/user/mo (billed annually)",
+          "features": [
+            "Full-function code completions",
+            "Natural language chat assistant",
+            "Zero data retention logs policy",
+            "Advanced context indexing"
+          ],
+          "cta_label": "Upgrade Pro",
+          "cta_url": "https://www.tabnine.com/pricing",
+          "is_popular": true
+        }
+      ]
     },
     "curation_score": 51.2,
     "academic_integrity_rating": "Safe",
@@ -789,7 +817,36 @@
       "last_verified_at": "2026-06-22",
       "source_url": "https://codeium.com/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Individual",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Unlimited autocomplete suggestions",
+            "In-IDE chat helper",
+            "Support for 70+ languages",
+            "End-to-end data encryption"
+          ],
+          "cta_label": "Install Free",
+          "cta_url": "https://codeium.com",
+          "is_popular": true
+        },
+        {
+          "name": "Teams",
+          "price_amount": 15,
+          "price_display": "$15/user/mo",
+          "features": [
+            "Up to 100 seats limit",
+            "Admin dashboard control",
+            "Advanced context awareness integrations",
+            "Docstrings generator engine"
+          ],
+          "cta_label": "Get Teams",
+          "cta_url": "https://codeium.com/pricing",
+          "is_popular": false
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -5132,9 +5189,24 @@
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://ollama.com/pricing",
+      "source_url": "https://ollama.com/",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Open Source",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Local model runner CLI",
+            "Run Llama, Mistral, Qwen models",
+            "OpenAI-compatible local API",
+            "GPU hardware acceleration support"
+          ],
+          "cta_label": "Download Ollama",
+          "cta_url": "https://ollama.com",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -12102,9 +12174,24 @@
     "slug": "windsurf",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://codeium.com/pricing",
+      "source_url": "https://codeium.com/windsurf",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free Tier",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "AI flow-state editor platform",
+            "Interactive terminal autocomplete",
+            "Cascade AI reasoning commands",
+            "Supports public API configurations"
+          ],
+          "cta_label": "Download Editor",
+          "cta_url": "https://codeium.com/windsurf",
+          "is_popular": true
+        }
+      ]
     },
     "curation_score": 73.8,
     "academic_integrity_rating": "Safe",
@@ -12183,9 +12270,24 @@
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://continue.dev/pricing",
+      "source_url": "https://github.com/continuedev/continue",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Open Source",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Fully open-source IDE extension",
+            "Connect any local/remote model provider",
+            "Custom slash commands editor",
+            "Tab autocomplete support"
+          ],
+          "cta_label": "Install Continue",
+          "cta_url": "https://continue.dev",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -37854,9 +37956,38 @@
     "slug": "langsmith",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://www.langchain.com/pricing",
+      "source_url": "https://www.langchain.com/langsmith",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Developer Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "5,000 free tracing runs/month",
+            "Full debugging visual traces",
+            "Prompt playground sandbox",
+            "Basic evaluations suite"
+          ],
+          "cta_label": "Start Free",
+          "cta_url": "https://smith.langchain.com",
+          "is_popular": true
+        },
+        {
+          "name": "Plus Plan",
+          "price_amount": 39,
+          "price_display": "$39/user/mo",
+          "features": [
+            "Up to 100k tracing runs limit",
+            "Extended data retention days",
+            "Advanced metrics dashboards",
+            "Custom evaluators scripts"
+          ],
+          "cta_label": "Upgrade Plus",
+          "cta_url": "https://www.langchain.com/langsmith",
+          "is_popular": false
+        }
+      ]
     },
     "curation_score": 85.0,
     "academic_integrity_rating": "Safe",
@@ -37927,9 +38058,38 @@
     "slug": "qdrant",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://qdrant.tech/pricing",
+      "source_url": "https://qdrant.tech/pricing/",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Open Source",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Self-host vector database",
+            "Fast HNSW indexing pipeline",
+            "Full payload filter capabilities",
+            "Rust-powered scaling engine"
+          ],
+          "cta_label": "Install Qdrant",
+          "cta_url": "https://github.com/qdrant/qdrant",
+          "is_popular": false
+        },
+        {
+          "name": "Cloud Free Sandbox",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "1 cluster instance space",
+            "1GB storage RAM allocation",
+            "Included vector metadata search",
+            "Hosted maintenance operations"
+          ],
+          "cta_label": "Create Sandbox",
+          "cta_url": "https://qdrant.tech",
+          "is_popular": true
+        }
+      ]
     },
     "curation_score": 86.0,
     "academic_integrity_rating": "Safe",
@@ -37999,9 +38159,24 @@
     "slug": "open-webui",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://openwebui.com",
+      "source_url": "https://github.com/open-webui/open-webui",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Open Source",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Self-hosted local chat UI",
+            "Connects to Ollama & OpenAI APIs",
+            "RAG query pipeline built-in",
+            "Multi-user authentication support"
+          ],
+          "cta_label": "Install UI",
+          "cta_url": "https://github.com/open-webui/open-webui",
+          "is_popular": true
+        }
+      ]
     },
     "curation_score": 92.0,
     "academic_integrity_rating": "Safe",
@@ -38071,7 +38246,22 @@
       "last_verified_at": "2026-06-22",
       "source_url": "https://github.com/stanfordnlp/dspy",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Open Source",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Stanford open-source framework",
+            "Programmatic prompt compiler",
+            "Automatic prompt optimizer algorithms",
+            "Supports major API & local LLMs"
+          ],
+          "cta_label": "View GitHub",
+          "cta_url": "https://github.com/stanfordnlp/dspy",
+          "is_popular": true
+        }
+      ]
     },
     "curation_score": 87.0,
     "academic_integrity_rating": "Safe",
@@ -38142,9 +38332,24 @@
     "slug": "langflow",
     "pricing_tiers": {
       "last_verified_at": "2026-06-22",
-      "source_url": "https://langflow.org",
+      "source_url": "https://www.langflow.org/",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Open Source",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Visual workflow editor IDE",
+            "Drag-and-drop RAG pipeline",
+            "Export custom API chains",
+            "Supports local/remote model connections"
+          ],
+          "cta_label": "Self-Host Free",
+          "cta_url": "https://github.com/langflow-ai/langflow",
+          "is_popular": true
+        }
+      ]
     },
     "curation_score": 85.0,
     "academic_integrity_rating": "Safe",
@@ -38217,7 +38422,22 @@
       "last_verified_at": "2026-06-22",
       "source_url": "https://github.com/vllm-project/vllm",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Open Source",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "High-throughput LLM serving engine",
+            "PagedAttention memory allocation",
+            "OpenAI-compatible server endpoint",
+            "Distributed tensor parallel execution"
+          ],
+          "cta_label": "View Project",
+          "cta_url": "https://github.com/vllm-project/vllm",
+          "is_popular": true
+        }
+      ]
     },
     "curation_score": 91.0,
     "academic_integrity_rating": "Safe",
@@ -38289,7 +38509,22 @@
       "last_verified_at": "2026-06-22",
       "source_url": "https://github.com/BerriAI/litellm",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Open Source",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Unified OpenAI SDK standard router",
+            "Supports 100+ LLM APIs",
+            "Automatic retry/fallback mechanisms",
+            "Local CLI proxy server"
+          ],
+          "cta_label": "Install SDK",
+          "cta_url": "https://github.com/BerriAI/litellm",
+          "is_popular": true
+        }
+      ]
     },
     "curation_score": 88.0,
     "academic_integrity_rating": "Safe",
