@@ -1378,6 +1378,14 @@ function ToolFinderPage() {
     setViewMode('wizard')
   }
 
+  const handleAdjustFilters = () => {
+    setHasStarted(true)
+    setActiveQuestion('goal')
+    setViewMode('wizard')
+    setResults([])
+    setPendingCompletion(null)
+  }
+
   const handlePredefinedStack = (stackId) => {
     setSelectedStackId(stackId)
     if (stackId === 'custom') {
@@ -1539,9 +1547,12 @@ function ToolFinderPage() {
             </p>
           </div>
           {hasStarted && (
-            <div className="sm:w-[260px] shrink-0 flex justify-end">
-              <Button variant="secondary" onClick={handleRestart} size="sm">
-                <RotateCcw className="mr-2 h-4 w-4" /> Start Over
+            <div className="sm:w-[280px] shrink-0 flex justify-end gap-2">
+              <Button variant="secondary" onClick={handleAdjustFilters} size="sm">
+                <SlidersHorizontal className="mr-1.5 h-4 w-4" /> Adjust filters
+              </Button>
+              <Button variant="ghost" onClick={handleRestart} size="sm" className="text-muted hover:text-danger hover:bg-danger/10">
+                <RotateCcw className="mr-1.5 h-4 w-4" /> Start fresh
               </Button>
             </div>
           )}

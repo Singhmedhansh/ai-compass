@@ -97,9 +97,25 @@ function SectionHeading({ children }) {
 
 function QuickInfoRow({ label, value }) {
   return (
-    <div className="flex items-center justify-between gap-2">
-      <dt className="text-xs text-muted">{label}</dt>
-      <dd className="text-sm text-ink">{value || '—'}</dd>
+    <div className="flex items-center justify-between gap-2 border-b border-line/50 pb-2">
+      <dt className="text-xs font-medium text-muted">{label}</dt>
+      <dd className="text-sm font-semibold text-ink text-right">{value || '—'}</dd>
+    </div>
+  )
+}
+
+function CompareRow({ title, columns, renderCell }) {
+  if (columns.length === 0) return null
+  return (
+    <div className="border-t border-line py-8">
+      <h3 className="text-lg font-bold text-ink mb-6">{title}</h3>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-3">
+        {columns.map((col) => (
+          <div key={col.slug} className="min-w-0">
+            {col.status === 'ok' && col.tool ? renderCell(col.tool) : <div className="text-sm text-muted">No data</div>}
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
@@ -240,89 +256,7 @@ function ToolColumn({ slug, status, tool, error, onRemove }) {
         </div>
       )}
 
-      {/* Moved CTA up and View alternatives down */}
 
-      <div className="mt-6">
-        <SectionHeading>Pricing</SectionHeading>
-        <div className="mt-2">
-          <PricingBlock tool={tool} />
-        </div>
-      </div>
-
-      <div className="mt-6">
-        <SectionHeading>Rating</SectionHeading>
-        <div className="mt-2 flex items-center gap-2">
-          <StarRow rating={rating} />
-          <span className="text-xs text-muted">
-            {rating ? rating.toFixed(1) : '—'} out of 5
-            {ratingCount > 0 ? ` · ${ratingCount} review${ratingCount === 1 ? '' : 's'}` : ''}
-          </span>
-        </div>
-      </div>
-
-      <div className="mt-6">
-        <SectionHeading>Academic Safety</SectionHeading>
-        <div className="mt-2">
-          {tool.academic_integrity_rating ? (
-            <div className="space-y-1.5">
-              <span className={clsx(
-                "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider",
-                tool.academic_integrity_rating === 'Safe' && 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20',
-                tool.academic_integrity_rating === 'Use with Caution' && 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20',
-                tool.academic_integrity_rating === 'High Risk' && 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20'
-              )}>
-                <Shield className="h-3.5 w-3.5" /> {tool.academic_integrity_rating}
-              </span>
-              <p className="text-xs text-muted leading-relaxed">{tool.academic_warning}</p>
-            </div>
-          ) : (
-            <span className="text-xs text-muted">No safety details available.</span>
-          )}
-        </div>
-      </div>
-
-      <div className="mt-6">
-        <SectionHeading>Quick info</SectionHeading>
-        <dl className="mt-2 space-y-2">
-          <QuickInfoRow label="Platform" value={platforms} />
-          <QuickInfoRow label="Category" value={category} />
-          <QuickInfoRow label="Student friendly" value={studentFriendly ? 'Yes' : 'No'} />
-          <QuickInfoRow label="API available" value={apiAvailable ? 'Yes' : 'No'} />
-        </dl>
-      </div>
-
-      {features.length > 0 ? (
-        <div className="mt-6">
-          <SectionHeading>Key features</SectionHeading>
-          <ul className="mt-2 space-y-1.5">
-            {features.slice(0, 5).map((feature, index) => (
-              <li key={`${slug}-feature-${index}`} className="flex items-start gap-2 text-sm text-ink-2">
-                <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent" aria-hidden="true" />
-                <span>{feature}</span>
-              </li>
-            ))}
-          </ul>
-          {features.length > 5 ? (
-            <p className="mt-1.5 text-xs text-muted">+{features.length - 5} more</p>
-          ) : null}
-        </div>
-      ) : null}
-
-      {tags.length > 0 ? (
-        <div className="mt-6">
-          <SectionHeading>Tags</SectionHeading>
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {tags.slice(0, 5).map((tag) => (
-              <span
-                key={`${slug}-tag-${tag}`}
-                className="rounded-full border border-line bg-bg-sunk px-2 py-0.5 text-xs text-muted"
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
-        </div>
-      ) : null}
 
       <div className="mt-6 flex-grow flex items-end">
         <Link
@@ -550,6 +484,88 @@ export default function ComparePage() {
           </MotionDiv>
         ))}
       </MotionDiv>
+
+      {/* MATRIX */}
+      {allLoaded && (
+        <div className="mt-16 mb-20 space-y-2">
+          <CompareRow
+            title="Pricing"
+            columns={columns}
+            renderCell={(tool) => <PricingBlock tool={tool} />}
+          />
+          <CompareRow
+            title="Platform & Access"
+            columns={columns}
+            renderCell={(tool) => {
+               const platforms = Array.isArray(tool.platforms) ? tool.platforms.join(', ') : tool.platform || 'Web'
+               const apiAvailable = Boolean(tool.apiAvailable ?? tool.api_available)
+               return (
+                 <dl className="space-y-4">
+                   <QuickInfoRow label="Platform" value={platforms} />
+                   <QuickInfoRow label="API available" value={apiAvailable ? 'Yes' : 'No'} />
+                 </dl>
+               )
+            }}
+          />
+          <CompareRow
+            title="Key Features"
+            columns={columns}
+            renderCell={(tool) => {
+               const features = Array.isArray(tool.features) ? tool.features : []
+               if (!features.length) return <span className="text-sm text-muted">—</span>
+               return (
+                  <ul className="space-y-2.5">
+                    {features.map((feature, index) => (
+                      <li key={index} className="flex items-start gap-2 text-sm text-ink-2">
+                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-accent" aria-hidden="true" />
+                        <span>{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+               )
+            }}
+          />
+          <CompareRow
+            title="Academic Safety"
+            columns={columns}
+            renderCell={(tool) => {
+              if (!tool.academic_integrity_rating) return <span className="text-sm text-muted">No safety details available.</span>
+              return (
+                <div className="space-y-2">
+                  <span className={clsx(
+                    "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold uppercase tracking-wider",
+                    tool.academic_integrity_rating === 'Safe' && 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20',
+                    tool.academic_integrity_rating === 'Use with Caution' && 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20',
+                    tool.academic_integrity_rating === 'High Risk' && 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20'
+                  )}>
+                    <Shield className="h-4 w-4" /> {tool.academic_integrity_rating}
+                  </span>
+                  <p className="text-xs text-muted leading-relaxed">{tool.academic_warning}</p>
+                </div>
+              )
+            }}
+          />
+          <CompareRow
+            title="Community Rating"
+            columns={columns}
+            renderCell={(tool) => {
+              const ratingCount = Number(tool.review_count || tool.reviewCount || tool.ratingCount || 0)
+              const rating = Number(tool.rating || tool.averageRating || 0)
+              return (
+                <div className="flex items-center gap-2 bg-bg-sunk rounded-lg p-3 w-fit">
+                  <StarRow rating={rating} />
+                  <span className="text-sm font-medium text-ink">
+                    {rating ? rating.toFixed(1) : '—'}
+                    <span className="text-muted font-normal ml-1">
+                      {ratingCount > 0 ? `(${ratingCount})` : ''}
+                    </span>
+                  </span>
+                </div>
+              )
+            }}
+          />
+        </div>
+      )}
     </div>
   )
 }
