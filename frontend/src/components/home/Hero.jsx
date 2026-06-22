@@ -112,7 +112,7 @@ export default function Hero() {
                   <img className="inline-block h-5 w-5 rounded-full ring-2 ring-bg" src="https://i.pravatar.cc/100?img=2" alt=""/>
                   <img className="inline-block h-5 w-5 rounded-full ring-2 ring-bg" src="https://i.pravatar.cc/100?img=3" alt=""/>
                 </span>
-                <b className="font-semibold text-ink">10,000+</b> · users finding tools
+                <b className="font-semibold text-ink">1,000+</b> · users finding tools
               </span>
             </div>
 
