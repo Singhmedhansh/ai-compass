@@ -11,11 +11,12 @@ except (TypeError, ValueError):
 
 bind = f"0.0.0.0:{_port}"
 
-# Workers — 1 keeps memory under Render's free-tier 512 MB limit.
-workers = 1
+# Workers — 2 workers keeps memory safe while ensuring redundancy
+workers = 2
 
-# Worker class — sync is the most stable for a single-worker Flask app.
-worker_class = "sync"
+# Worker class — gthread allows concurrent thread execution (essential to prevent startup freezes)
+worker_class = "gthread"
+threads = 4
 
 # Timeouts
 # graceful_timeout: how long gunicorn waits for in-flight requests to
