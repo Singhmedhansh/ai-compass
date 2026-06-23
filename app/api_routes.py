@@ -4746,3 +4746,122 @@ def admin_catalog_sync_all_updates():
 
 
 
+
+
+# ---------------------------------------------------------------------------
+# Upstash Vector -- semantic tool recommendation
+# ---------------------------------------------------------------------------
+# Lazy import: the app remains bootable even if upstash-vector is not
+# installed (CI / contributor environments that skip optional deps).
+try:
+    from upstash_vector import Index as _UpstashIndex
+    _UPSTASH_AVAILABLE = True
+except ImportError:
+    _UpstashIndex = None
+    _UPSTASH_AVAILABLE = False
+
+_upstash_index = None  # module-level singleton
+
+
+def _get_upstash_index():
+    """
+    Return a cached Upstash Vector Index connection.
+
+    The Index is initialised lazily on the first call so that missing env
+    variables only cause an error when the route is actually hit, not at
+    import time.
+    """
+    global _upstash_index
+    if _upstash_index is None:
+        url = os.environ.get("UPSTASH_VECTOR_REST_URL")
+        token = os.environ.get("UPSTASH_VECTOR_REST_TOKEN")
+        if not url or not token:
+            raise EnvironmentError(
+                "UPSTASH_VECTOR_REST_URL and UPSTASH_VECTOR_REST_TOKEN "
+                "must be set to use /api/recommend."
+            )
+        _upstash_index = _UpstashIndex(url=url, token=token)
+    return _upstash_index
+
+
+@api_bp.route("/recommend", methods=["GET"])
+def recommend_tools():
+    """
+    GET /api/recommend?q=<natural-language query>
+
+    Perform a semantic similarity search over the Upstash Vector index and
+    return the top-3 most relevant AI tools with their metadata and score.
+
+    Query parameters
+    ----------------
+    q : str  (required)
+        Natural-language description of what the user is looking for.
+
+    Response (200)
+    --------------
+    {
+        "query": "coding assistant for students",
+        "results": [
+            {
+                "id": "cursor-ai",
+                "name": "Cursor",
+                "category": "Coding",
+                "pricing": "Free tier available",
+                "url": "https://cursor.sh",
+                "score": 0.91
+            },
+            ...
+        ]
+    }
+
+    Error responses
+    ---------------
+    400  - q parameter is missing or empty
+    501  - upstash-vector package is not installed
+    503  - Upstash index is unreachable or misconfigured
+    """
+    if not _UPSTASH_AVAILABLE:
+        return (
+            jsonify({
+                "error": "upstash-vector is not installed on this server.",
+                "hint": "Run: pip install upstash-vector",
+            }),
+            501,
+        )
+
+    user_query = request.args.get("q", "").strip()
+    if not user_query:
+        return (
+            jsonify({
+                "error": "Missing required query parameter: q",
+                "example": "/api/recommend?q=coding+assistant+for+students",
+            }),
+            400,
+        )
+
+    try:
+        index = _get_upstash_index()
+        matches = index.query(
+            data=user_query,
+            top_k=3,
+            include_metadata=True,
+        )
+    except EnvironmentError as env_err:
+        return jsonify({"error": str(env_err)}), 503
+    except Exception as exc:
+        current_app.logger.error("Upstash Vector query failed: %s", exc)
+        return jsonify({"error": "Semantic search unavailable. Try again later."}), 503
+
+    results = []
+    for match in matches:
+        meta = match.metadata or {}
+        results.append({
+            "id": match.id,
+            "name": meta.get("name", match.id),
+            "category": meta.get("category", ""),
+            "pricing": meta.get("pricing", ""),
+            "url": meta.get("url", ""),
+            "score": round(float(match.score), 4),
+        })
+
+    return jsonify({"query": user_query, "results": results})
