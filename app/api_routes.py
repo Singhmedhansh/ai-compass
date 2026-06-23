@@ -4883,7 +4883,7 @@ def recommend_tools():
         return jsonify({"error": str(env_err)}), 503
     except Exception as exc:
         current_app.logger.error("Upstash Vector query failed: %s", exc)
-        return jsonify({"error": "Semantic search unavailable. Try again later."}), 503
+        return jsonify({"error": f"Upstash/Transformer Error: {str(exc)}"}), 503
 
     from app.tool_cache import get_visible_tools
     try:
