@@ -48,13 +48,29 @@ function LoginPage() {
       navigate('/login', { replace: true })
     } else if (queryParams.get('error')) {
       const errorMsg = queryParams.get('error')
-      let friendlyMsg = 'Verification failed.'
+      let friendlyMsg = 'Authentication or verification failed.'
       if (errorMsg === 'invalid-or-expired-verification-token') {
         friendlyMsg = 'The verification link is invalid or has expired.'
       } else if (errorMsg === 'user-not-found') {
         friendlyMsg = 'User not found.'
       } else if (errorMsg === 'database-error') {
         friendlyMsg = 'A database error occurred during verification.'
+      } else if (errorMsg === 'google_not_configured') {
+        friendlyMsg = 'Google login is not configured on the server.'
+      } else if (errorMsg === 'google_failed') {
+        friendlyMsg = 'Google authentication failed. Please try again.'
+      } else if (errorMsg === 'github_not_configured') {
+        friendlyMsg = 'GitHub login is not configured on the server.'
+      } else if (errorMsg === 'github_failed') {
+        friendlyMsg = 'GitHub authentication failed. Please try again.'
+      } else if (errorMsg === 'github_no_email') {
+        friendlyMsg = 'GitHub did not return a valid public email address. Please check your GitHub profile.'
+      } else if (errorMsg === 'linkedin_not_configured') {
+        friendlyMsg = 'LinkedIn login is not configured on the server.'
+      } else if (errorMsg === 'linkedin_failed') {
+        friendlyMsg = 'LinkedIn authentication failed. Please try again.'
+      } else if (errorMsg === 'linkedin_no_email') {
+        friendlyMsg = 'LinkedIn did not return a valid email address.'
       }
       toast.error(friendlyMsg, {
         duration: 5000,

@@ -928,7 +928,7 @@ function PreviewCard({ tool, rank }) {
   )
 }
 
-function ResultCard({ tool, index, navigate }) {
+function ResultCard({ tool, index, navigate, onCardClick }) {
   const [showBreakdown, setShowBreakdown] = useState(false)
   const isTopMatch = index === 0
   const tierBits = [tool.pricing, tool.platformLabel].filter(Boolean).join(' · ')
@@ -937,7 +937,10 @@ function ResultCard({ tool, index, navigate }) {
 
   return (
     <article
-      onClick={() => navigate(`/tools/${tool.slug || ''}`)}
+      onClick={() => {
+        onCardClick?.()
+        navigate(`/tools/${tool.slug || ''}`)
+      }}
       className="group relative flex h-full min-w-0 flex-col rounded-2xl border border-line bg-bg-elev p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:border-accent hover:shadow-md cursor-pointer"
     >
       <div className="flex items-start justify-between gap-2">
@@ -990,7 +993,10 @@ function ResultCard({ tool, index, navigate }) {
           href={getToolUrl(tool)}
           target="_blank"
           rel={OUTBOUND_REL}
-          onClick={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            e.stopPropagation()
+            onCardClick?.()
+          }}
           className="inline-flex items-center gap-1 text-accent font-semibold hover:opacity-85 transition-opacity"
         >
           Visit Tool
@@ -1156,6 +1162,27 @@ function ToolFinderPage() {
   const wizardStartedRef = useRef(false)
   const wizardCompletedRef = useRef(false)
   const useCaseInputRef = useRef(null)
+
+  const surveyTriggerRef = useRef(false)
+
+  const triggerSurveyPopup = useCallback(() => {
+    if (surveyTriggerRef.current) return
+    surveyTriggerRef.current = true
+    try {
+      window.posthog?.capture?.('wizard_completed_survey_trigger')
+    } catch (e) {
+      /* telemetry must never break the wizard */
+    }
+  }, [])
+
+  useEffect(() => {
+    if (viewMode === 'results') {
+      const timer = setTimeout(() => {
+        triggerSurveyPopup()
+      }, 30000)
+      return () => clearTimeout(timer)
+    }
+  }, [viewMode, triggerSurveyPopup])
 
   // Helper to go to previous question
   const handlePrevQuestion = (currentId) => {
@@ -1522,6 +1549,7 @@ function ToolFinderPage() {
                 tool={tool}
                 index={index}
                 navigate={navigate}
+                onCardClick={triggerSurveyPopup}
               />
             ))}
           </div>

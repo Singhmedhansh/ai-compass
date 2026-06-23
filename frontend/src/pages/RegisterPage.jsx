@@ -17,7 +17,6 @@ function RegisterPage() {
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [serverError, setServerError] = useState('')
   const shakeControls = useAnimationControls()
@@ -36,7 +35,6 @@ function RegisterPage() {
       fullName: '',
       email: '',
       password: '',
-      confirmPassword: '',
     }
 
     if (fullName.trim().length === 0) {
@@ -51,12 +49,8 @@ function RegisterPage() {
       errors.password = 'Password must be at least 8 characters.'
     }
 
-    if (confirmPassword.length > 0 && confirmPassword !== password) {
-      errors.confirmPassword = 'Passwords must match.'
-    }
-
     return errors
-  }, [fullName, email, password, confirmPassword])
+  }, [fullName, email, password])
 
   const hasErrors = Object.values(fieldErrors).some(Boolean)
 
@@ -82,7 +76,7 @@ function RegisterPage() {
     setServerError('')
     setSubmitted(true)
 
-    if (hasErrors || !email || !password || !confirmPassword || !fullName.trim()) {
+    if (hasErrors || !email || !password || !fullName.trim()) {
       shakeControls.start({
         x: [0, -6, 6, -4, 4, 0],
         transition: { duration: 0.28, ease: 'easeInOut' },
@@ -201,26 +195,6 @@ function RegisterPage() {
           />
           {errorFor('password') ? (
             <p className="mt-1 text-xs text-danger">{errorFor('password')}</p>
-          ) : null}
-        </div>
-
-        <div>
-          <label htmlFor="register-confirm-password" className="mb-1.5 block text-sm font-medium text-ink-2">
-            Confirm password
-          </label>
-          <input
-            id="register-confirm-password"
-            type="password"
-            value={confirmPassword}
-            onChange={(event) => setConfirmPassword(event.target.value)}
-            onBlur={() => markTouched('confirmPassword')}
-            required
-            autoComplete="new-password"
-            className={`${inputClass} ${errorFor('confirmPassword') ? 'border-danger focus:border-danger focus:ring-danger' : ''}`}
-            placeholder="Re-enter your password"
-          />
-          {errorFor('confirmPassword') ? (
-            <p className="mt-1 text-xs text-danger">{errorFor('confirmPassword')}</p>
           ) : null}
         </div>
 

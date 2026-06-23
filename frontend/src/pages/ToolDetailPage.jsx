@@ -198,6 +198,19 @@ function ToolDetailPage() {
   const navigate = useNavigate()
   const location = useLocation()
 
+  const [lastDirectorySearch, setLastDirectorySearch] = useState('/tools')
+
+  useEffect(() => {
+    try {
+      const saved = sessionStorage.getItem('last_directory_search')
+      if (saved && saved.startsWith('/tools')) {
+        setLastDirectorySearch(saved)
+      }
+    } catch (e) {
+      // ignore
+    }
+  }, [])
+
   const [tool, setTool] = useState(null)
   const [relatedTools, setRelatedTools] = useState([])
   const [isFavorite, setIsFavorite] = useState(false)
@@ -558,10 +571,10 @@ function ToolDetailPage() {
           </nav>
  
           <Link
-            to="/tools"
+            to={lastDirectorySearch}
             className="inline-flex items-center gap-1.5 rounded-xl border border-line bg-bg-elev px-4 py-2 text-xs font-semibold text-ink-2 hover:bg-bg-sunk hover:text-ink transition"
           >
-            ← Back to Directory
+            {lastDirectorySearch !== '/tools' ? '← Back to results' : '← Back to Directory'}
           </Link>
         </div>
       )}

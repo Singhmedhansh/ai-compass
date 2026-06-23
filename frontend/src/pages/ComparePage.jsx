@@ -282,6 +282,19 @@ export default function ComparePage() {
   const { pair } = useParams()
   const isPathMode = Boolean(pair)
 
+  const [lastDirectorySearch, setLastDirectorySearch] = useState('/tools')
+
+  useEffect(() => {
+    try {
+      const saved = sessionStorage.getItem('last_directory_search')
+      if (saved && saved.startsWith('/tools')) {
+        setLastDirectorySearch(saved)
+      }
+    } catch (e) {
+      // ignore
+    }
+  }, [])
+
   const slugs = useMemo(
     () => (isPathMode ? parsePairPath(pair) : parseSlugs(searchParams.get('tools'))),
     [isPathMode, pair, searchParams],
@@ -443,11 +456,11 @@ export default function ComparePage() {
         </Helmet>
       ) : null}
       <Link
-        to="/tools"
+        to={lastDirectorySearch}
         className="inline-flex items-center gap-1.5 rounded text-sm text-muted outline-none transition hover:text-ink focus-visible:ring-2 focus-visible:ring-accent"
       >
         <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-        Back to directory
+        {lastDirectorySearch !== '/tools' ? '← Back to results' : 'Back to directory'}
       </Link>
 
       <h1 className="mt-4 text-2xl font-bold tracking-tight text-ink sm:text-3xl">

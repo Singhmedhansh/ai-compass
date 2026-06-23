@@ -290,6 +290,15 @@ function DirectoryPage() {
     }
   }, [queryFromParams, categoryFromParams, category])
 
+  useEffect(() => {
+    try {
+      const currentUrl = window.location.pathname + window.location.search
+      sessionStorage.setItem('last_directory_search', currentUrl)
+    } catch (e) {
+      // ignore
+    }
+  }, [searchParams, category, queryFromParams])
+
   const updateUrlParams = (nextCategory, nextQuery, nextTags = null, nextFree = null, nextStudent = null, nextOpenSource = null, nextSelfHosted = null, nextPayAsYouGo = null) => {
     const nextParams = new URLSearchParams(searchParams)
     const query = (nextQuery || '').trim()
@@ -386,7 +395,7 @@ function DirectoryPage() {
     const normalizedCategory = category?.trim() || 'All'
     const canonicalCategory = toCanonicalCategory(normalizedCategory)
     const normalizedTags = (searchParams.get('tags') || '').trim()
-    const isRemoteSearch = Boolean(normalizedQuery)
+    const isRemoteSearch = Boolean(normalizedQuery) || canonicalCategory !== 'All'
     const isTaggedSearch = Boolean(normalizedTags)
     const shouldLoadSummary = !isRemoteSearch && normalizedCategory === 'All' && !actuallyFreeOnly && !studentOnly && !openSourceOnly && !selfHostedOnly && !payAsYouGoOnly && !showAllOpened
 
@@ -395,7 +404,7 @@ function DirectoryPage() {
     // second — short enough that the page feels live, long enough that a
     // 12-character query fires 1 request instead of 12. No delay on the bare
     // directory load (empty query) since that's a single page-init fetch.
-    const debounceDelay = isRemoteSearch ? 300 : 0
+    const debounceDelay = Boolean(normalizedQuery) ? 300 : 0
 
     async function loadTools() {
       setIsLoading(true)
