@@ -5,18 +5,19 @@
   top: 0;
   left: 0;
   width: 100%;
+  height: 60px;
   z-index: 50;
   box-sizing: border-box;
-  background-color: rgba(250, 250, 247, 0.75);
+  background-color: rgba(250, 250, 247, 0.8);
   border-bottom: 1px solid var(--line);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   box-shadow: var(--shadow-sm);
-  transition: all 0.3s var(--ease-standard);
+  transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 html[data-theme='dark'] .card-nav-container {
-  background-color: rgba(22, 27, 25, 0.75);
+  background-color: rgba(14, 19, 17, 0.8);
 }
 
 .card-nav-container.scrolled {
@@ -30,8 +31,7 @@ html[data-theme='dark'] .card-nav-container {
   padding: 0;
   background-color: transparent;
   position: relative;
-  overflow: hidden;
-  will-change: height;
+  overflow: visible; /* Allow floating dropdown to display outside */
 }
 
 .card-nav-top {
@@ -46,7 +46,7 @@ html[data-theme='dark'] .card-nav-container {
   align-items: center;
   justify-content: space-between;
   padding: 0.5rem 1.5rem;
-  z-index: 2;
+  z-index: 12;
   gap: 1rem;
 }
 
@@ -131,52 +131,67 @@ html[data-theme='dark'] .card-nav-container {
   transform: scale(0.98);
 }
 
+/* Premium Floating Dropdown Panel */
 .card-nav-content {
   position: absolute;
   left: 50%;
-  transform: translateX(-50%);
-  width: 100%;
-  max-width: 1280px;
-  top: 60px;
-  bottom: 0;
-  padding: 1rem 1.5rem;
+  transform: translateX(-50%) translateY(-10px);
+  width: 95%;
+  max-width: 900px;
+  top: 70px;
+  padding: 1.5rem;
   display: flex;
   align-items: stretch;
-  gap: 16px;
+  gap: 24px;
   visibility: hidden;
   pointer-events: none;
-  z-index: 1;
+  z-index: 10;
+  opacity: 0;
+  background-color: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(22, 27, 25, 0.08);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.15);
+  transition: transform 0.3s var(--ease-standard), opacity 0.3s var(--ease-standard), visibility 0.3s var(--ease-standard);
+}
+
+html[data-theme='dark'] .card-nav-content {
+  background-color: rgba(22, 27, 25, 0.8);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
 }
 
 .card-nav.open .card-nav-content {
   visibility: visible;
   pointer-events: auto;
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
 }
 
+/* Individual Columns (Clean Lists) */
 .nav-card {
   height: 100%;
   flex: 1 1 0;
   min-width: 0;
-  border-radius: var(--radius);
   position: relative;
   display: flex;
   flex-direction: column;
-  padding: 1rem;
+  padding: 0.5rem;
   gap: 8px;
   user-select: none;
-  border: 1px solid var(--line);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  transition: border-color 0.3s ease, background-color 0.3s ease;
+  background-color: transparent !important; /* Let panel handle glass effect */
+  border: none !important;
 }
 
 .nav-card-label {
-  font-weight: 600;
-  font-size: 1.25rem;
-  letter-spacing: -0.5px;
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: -0.3px;
   margin-bottom: 0.5rem;
+  color: var(--ink);
   border-bottom: 1px solid var(--line);
-  padding-bottom: 0.25rem;
+  padding-bottom: 0.35rem;
 }
 
 .nav-card-links {
@@ -193,23 +208,29 @@ html[data-theme='dark'] .card-nav-container {
   color: var(--ink-2);
   cursor: pointer;
   text-decoration: none;
-  transition: color 0.2s ease, padding-left 0.2s ease;
+  transition: color 0.2s ease, padding-left 0.2s ease, background-color 0.2s ease;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 6px;
-  border-radius: 6px;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 8px;
 }
 
 .nav-card-link:hover {
   color: var(--accent);
   background-color: var(--bg-sunk);
-  padding-left: 10px;
+  padding-left: 14px;
 }
 
 .nav-card-link-icon {
   font-size: 0.8rem;
-  opacity: 0.7;
+  opacity: 0.5;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.nav-card-link:hover .nav-card-link-icon {
+  transform: translate(2px, -2px);
+  opacity: 1;
 }
 
 /* Dropdowns Overlay styling */
@@ -258,10 +279,11 @@ html[data-theme='dark'] .card-nav-container {
   .card-nav-content {
     flex-direction: column;
     align-items: stretch;
-    gap: 8px;
-    padding: 0.5rem;
-    bottom: 0;
-    justify-content: flex-start;
+    gap: 16px;
+    padding: 1rem;
+    top: 60px;
+    width: 90%;
+    max-height: calc(100vh - 80px);
     overflow-y: auto;
   }
 
@@ -270,7 +292,7 @@ html[data-theme='dark'] .card-nav-container {
     min-height: auto;
     flex: 0 0 auto;
     max-height: none;
-    padding: 0.75rem;
+    padding: 0;
   }
 
   .nav-card-label {
@@ -280,6 +302,6 @@ html[data-theme='dark'] .card-nav-container {
 
   .nav-card-link {
     font-size: 0.85rem;
-    padding: 3px 5px;
+    padding: 5px 8px;
   }
 }
