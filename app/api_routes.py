@@ -4850,7 +4850,7 @@ def recommend_tools():
         return jsonify({"error": str(env_err)}), 503
     except Exception as exc:
         current_app.logger.error("Upstash Vector query failed: %s", exc)
-        return jsonify({"error": "Semantic search unavailable. Try again later."}), 503
+        return jsonify({"error": f"Upstash Error: {str(exc)}"}), 503
 
     results = []
     for match in matches:
