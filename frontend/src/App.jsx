@@ -7,7 +7,7 @@ import ErrorBoundary from './components/ErrorBoundary'
 import Footer from './components/Footer'
 import RouteTransition from './components/RouteTransition'
 import CompassLoader from './components/ui/CompassLoader'
-import Navbar from './components/ui/Navbar'
+import CardNav from './components/ui/CardNav'
 import ScrollProgress from './components/ui/ScrollProgress'
 // HomePage stays eager — it's the most common first paint
 import HomePage from './pages/HomePage'
@@ -238,7 +238,7 @@ export default function App() {
             >
               Skip to main content
             </a>
-            <Navbar />
+            <CardNav />
             <main id="main-content" tabIndex={-1} className="flex-1 outline-none">
               <AnimatedRoutes />
             </main>
