@@ -227,7 +227,9 @@ function DirectoryPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const initialCategory = searchParams.get('category') || 'All'
   const queryFromParams = searchParams.get('q') || ''
+  const semanticFromParams = searchParams.get('semantic') === 'true'
   const [searchQuery, setSearchQuery] = useState(queryFromParams)
+  const [isSemantic, setIsSemantic] = useState(semanticFromParams)
   const categoryFromParams = searchParams.get('category') || 'All'
   const actuallyFreeOnly = searchParams.get('actually_free') === 'true'
   const studentOnly = searchParams.get('student_only') === 'true'
@@ -288,7 +290,12 @@ function DirectoryPage() {
     if (category !== normalizedCategory) {
       setCategory(normalizedCategory)
     }
-  }, [queryFromParams, categoryFromParams, category])
+
+    const semanticVal = searchParams.get('semantic') === 'true'
+    if (isSemantic !== semanticVal) {
+      setIsSemantic(semanticVal)
+    }
+  }, [queryFromParams, categoryFromParams, category, searchParams, isSemantic])
 
   useEffect(() => {
     try {
@@ -299,7 +306,7 @@ function DirectoryPage() {
     }
   }, [searchParams, category, queryFromParams])
 
-  const updateUrlParams = (nextCategory, nextQuery, nextTags = null, nextFree = null, nextStudent = null, nextOpenSource = null, nextSelfHosted = null, nextPayAsYouGo = null) => {
+  const updateUrlParams = (nextCategory, nextQuery, nextTags = null, nextFree = null, nextStudent = null, nextOpenSource = null, nextSelfHosted = null, nextPayAsYouGo = null, nextSemantic = null) => {
     const nextParams = new URLSearchParams(searchParams)
     const query = (nextQuery || '').trim()
     const tags = (nextTags || '').trim()
@@ -355,6 +362,13 @@ function DirectoryPage() {
       nextParams.set('pay_as_you_go', 'true')
     } else {
       nextParams.delete('pay_as_you_go')
+    }
+
+    const semanticVal = nextSemantic !== null ? nextSemantic : isSemantic
+    if (semanticVal) {
+      nextParams.set('semantic', 'true')
+    } else {
+      nextParams.delete('semantic')
     }
 
     // Record what we pushed so the sync effect treats this as our own write,
@@ -416,15 +430,19 @@ function DirectoryPage() {
               tags: normalizedTags,
             }).toString()}`
           : isRemoteSearch
-          ? `${API}/api/v1/search?${new URLSearchParams({
-              q: normalizedQuery,
-              ...(canonicalCategory !== 'All' ? { category: canonicalCategory } : {}),
-              ...(actuallyFreeOnly ? { actually_free: 'true' } : {}),
-              ...(studentOnly ? { student_only: 'true' } : {}),
-              ...(openSourceOnly ? { open_source: 'true' } : {}),
-              ...(selfHostedOnly ? { self_hosted: 'true' } : {}),
-              ...(payAsYouGoOnly ? { pay_as_you_go: 'true' } : {}),
-            }).toString()}`
+          ? isSemantic && normalizedQuery
+            ? `${API}/api/v1/recommend?${new URLSearchParams({
+                q: normalizedQuery,
+              }).toString()}`
+            : `${API}/api/v1/search?${new URLSearchParams({
+                q: normalizedQuery,
+                ...(canonicalCategory !== 'All' ? { category: canonicalCategory } : {}),
+                ...(actuallyFreeOnly ? { actually_free: 'true' } : {}),
+                ...(studentOnly ? { student_only: 'true' } : {}),
+                ...(openSourceOnly ? { open_source: 'true' } : {}),
+                ...(selfHostedOnly ? { self_hosted: 'true' } : {}),
+                ...(payAsYouGoOnly ? { pay_as_you_go: 'true' } : {}),
+              }).toString()}`
           : shouldLoadSummary
             ? `${API}/api/v1/tools?fields=summary`
             : `${API}/api/v1/tools?fields=card&${new URLSearchParams({
@@ -515,7 +533,7 @@ function DirectoryPage() {
       clearTimeout(debounceTimer)
       controller.abort()
     }
-  }, [queryFromParams, category, retryNonce, searchParams, showAllOpened, actuallyFreeOnly, studentOnly, openSourceOnly, selfHostedOnly, payAsYouGoOnly])
+  }, [queryFromParams, category, retryNonce, searchParams, showAllOpened, actuallyFreeOnly, studentOnly, openSourceOnly, selfHostedOnly, payAsYouGoOnly, isSemantic])
 
 
   const filteredTools = useMemo(() => {
@@ -923,14 +941,35 @@ function DirectoryPage() {
         )}
       </AnimatePresence>
 
-      <div className="mb-4">
-        <SearchInput
-          value={searchQuery}
-          onChange={handleSearchChange}
-          onClear={() => handleSearchChange('')}
-          placeholder="Search or describe what you need..."
-          style={{ fontSize: 16 }}
-        />
+      <div className="mb-4 flex flex-col md:flex-row gap-3">
+        <div className="flex-1">
+          <SearchInput
+            value={searchQuery}
+            onChange={handleSearchChange}
+            onClear={() => handleSearchChange('')}
+            placeholder="Search or describe what you need..."
+            style={{ fontSize: 16 }}
+          />
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            const nextSemantic = !isSemantic
+            setIsSemantic(nextSemantic)
+            updateUrlParams(category, searchQuery, null, actuallyFreeOnly, studentOnly, openSourceOnly, selfHostedOnly, payAsYouGoOnly, nextSemantic)
+          }}
+          className={`flex items-center justify-center gap-2 px-4 py-3 rounded-2xl border text-sm font-semibold transition-all duration-300 shadow-sm ${
+            isSemantic
+              ? 'border-indigo-500 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 ring-2 ring-indigo-500/20'
+              : 'border-line bg-bg-elev text-ink-2 hover:border-accent hover:text-accent'
+          }`}
+        >
+          <span className="text-base">✨</span>
+          <span>AI Search</span>
+          {isSemantic && (
+            <span className="flex h-2 rounded-full bg-indigo-500 animate-pulse ml-1" style={{ width: '8px', height: '8px' }}></span>
+          )}
+        </button>
       </div>
 
       {/* Task pills for quick-search */}

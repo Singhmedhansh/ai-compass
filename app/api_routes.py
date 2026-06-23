@@ -4852,16 +4852,35 @@ def recommend_tools():
         current_app.logger.error("Upstash Vector query failed: %s", exc)
         return jsonify({"error": "Semantic search unavailable. Try again later."}), 503
 
+    from app.tool_cache import get_visible_tools
+    try:
+        all_tools = get_visible_tools(DATA_PATH)
+    except Exception:
+        all_tools = []
+
     results = []
     for match in matches:
-        meta = match.metadata or {}
-        results.append({
-            "id": match.id,
-            "name": meta.get("name", match.id),
-            "category": meta.get("category", ""),
-            "pricing": meta.get("pricing", ""),
-            "url": meta.get("url", ""),
-            "score": round(float(match.score), 4),
-        })
+        # Find matching tool by slug or ID (case-insensitive) in our cache
+        tool = next(
+            (t for t in all_tools if str(t.get("slug", "")).lower() == str(match.id).lower() or str(t.get("id", "")).lower() == str(match.id).lower()),
+            None
+        )
+        if tool:
+            results.append({
+                **tool,
+                "_score": round(float(match.score), 4),
+                "_match_type": "semantic"
+            })
+        else:
+            meta = match.metadata or {}
+            results.append({
+                "id": match.id,
+                "name": meta.get("name", match.id),
+                "category": meta.get("category", ""),
+                "pricing": meta.get("pricing", ""),
+                "url": meta.get("url", ""),
+                "_score": round(float(match.score), 4),
+                "_match_type": "semantic"
+            })
 
     return jsonify({"query": user_query, "results": results})
