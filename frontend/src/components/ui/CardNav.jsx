@@ -342,7 +342,7 @@ const CardNav = ({ className = '', ease = 'power3.out' }) => {
           </Link>
 
           {hideSearchOnRoute ? null : (
-            <div className="flex-1 max-w-xs hide-mobile">
+            <div className="flex-1 max-w-xs hide-mobile-search">
               <SearchInput
                 value={searchValue}
                 onChange={setSearchValue}

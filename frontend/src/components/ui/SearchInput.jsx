@@ -86,8 +86,7 @@ function SearchInput({
     setShowDropdown(false)
     
     if (item.type === 'tool') {
-      // Slugify the name to navigate to details page directly
-      const slug = item.label
+      const slug = item.slug || item.label
         .toLowerCase()
         .trim()
         .replace(/[^a-z0-9]+/g, '-')

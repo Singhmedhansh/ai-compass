@@ -367,7 +367,13 @@ def search_suggestions():
         name_lower = name.lower()
         if any(token in name_lower for token in tokens):
             if name_lower not in seen_tools:
-                suggestions.append({"type": "tool", "label": name, "sub": tool.get("category", ""), "icon": tool.get("logo_emoji", "")})
+                suggestions.append({
+                    "type": "tool",
+                    "label": name,
+                    "slug": tool.get("slug") or _tool_slug(tool),
+                    "sub": tool.get("category", ""),
+                    "icon": tool.get("logo_emoji", "")
+                })
                 seen_tools.add(name_lower)
             if len([s for s in suggestions if s["type"] == "tool"]) >= 2:
                 break

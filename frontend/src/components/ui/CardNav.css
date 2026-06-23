@@ -272,7 +272,8 @@ html[data-theme='dark'] .card-nav-content {
     display: none;
   }
 
-  .right-controls .hide-mobile {
+  .right-controls .hide-mobile,
+  .hide-mobile-search {
     display: none !important;
   }
 
