@@ -1,12 +1,12 @@
 /* CardNav.css */
 
 .card-nav-container {
-  position: sticky;
+  position: fixed;
   top: 1rem;
   left: 50%;
+  transform: translateX(-50%);
   width: 95%;
   max-width: 1200px;
-  margin: 0 auto;
   z-index: 50;
   box-sizing: border-box;
   transition: all 0.3s var(--ease-standard);
