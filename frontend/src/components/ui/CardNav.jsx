@@ -15,7 +15,6 @@ import {
 } from 'lucide-react'
 import { AnimatePresence, motion } from 'framer-motion'
 
-import Button from './Button'
 import CompassMark from './CompassMark'
 import SearchInput from './SearchInput'
 import useClickOutside from '../../hooks/useClickOutside'
@@ -415,8 +414,8 @@ const CardNav = ({ className = '', ease = 'power3.out' }) => {
           )}
 
           <div className="right-controls">
-            {/* Currency Selector (Desktop) */}
-            <div className="relative hide-mobile" ref={currencyMenuRef}>
+            {/* Currency Selector Trigger */}
+            <div className="relative hide-mobile">
               <button
                 type="button"
                 onClick={() => setIsCurrencyMenuOpen(prev => !prev)}
@@ -427,41 +426,6 @@ const CardNav = ({ className = '', ease = 'power3.out' }) => {
                 <span>{selectedCurrency} ({currencies.find(c => c.code === selectedCurrency)?.symbol})</span>
                 <ChevronDown className="h-3.5 w-3.5 text-muted transition-transform duration-200" style={{ transform: isCurrencyMenuOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
               </button>
-
-              <AnimatePresence>
-                {isCurrencyMenuOpen && (
-                  <MotionDiv
-                    role="listbox"
-                    aria-label="Currency selection"
-                    initial={{ opacity: 0, y: -6, scale: 0.97 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -4, scale: 0.98 }}
-                    transition={dropdownTransition}
-                    className="absolute right-0 mt-2 w-40 origin-top-right overflow-hidden rounded-xl border border-line bg-bg-elev p-1 shadow-lg z-50"
-                  >
-                    {currencies.map(curr => (
-                      <button
-                        key={curr.code}
-                        type="button"
-                        onClick={() => {
-                          setSelectedCurrency(curr.code)
-                          setIsCurrencyMenuOpen(false)
-                        }}
-                        className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs font-medium transition ${
-                          selectedCurrency === curr.code
-                            ? 'bg-accent-soft text-accent-ink'
-                            : 'text-ink-2 hover:bg-bg-sunk hover:text-ink'
-                        }`}
-                        role="option"
-                        aria-selected={selectedCurrency === curr.code}
-                      >
-                        <span>{curr.name}</span>
-                        <span className="font-semibold text-muted">{curr.symbol}</span>
-                      </button>
-                    ))}
-                  </MotionDiv>
-                )}
-              </AnimatePresence>
             </div>
 
             {/* Dark Mode Toggle */}
@@ -476,7 +440,7 @@ const CardNav = ({ className = '', ease = 'power3.out' }) => {
 
             {/* Authentication Avatar or CTA */}
             {user && isAuthenticated ? (
-              <div className="relative" ref={menuRef}>
+              <div>
                 <button
                   type="button"
                   onClick={() => setIsProfileMenuOpen(val => !val)}
@@ -504,93 +468,6 @@ const CardNav = ({ className = '', ease = 'power3.out' }) => {
                   </div>
                   <ChevronDown className="h-4 w-4 text-muted" />
                 </button>
-
-                <AnimatePresence>
-                  {isProfileMenuOpen && (
-                    <MotionDiv
-                      role="menu"
-                      aria-label="Profile menu"
-                      initial={{ opacity: 0, y: -6, scale: 0.97 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: -4, scale: 0.98 }}
-                      transition={dropdownTransition}
-                      className="absolute right-0 mt-2 w-64 origin-top-right overflow-hidden rounded-2xl border border-line bg-bg-elev p-2 shadow-2xl z-50"
-                    >
-                      <div className="px-3 py-2">
-                        <p className="truncate text-sm font-semibold text-ink">{user?.name || 'My account'}</p>
-                        <p className="truncate text-xs text-muted">{user?.email || ''}</p>
-                      </div>
-
-                      <div className="my-2 border-t border-line" />
-
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsProfileMenuOpen(false)
-                          navigate('/dashboard')
-                        }}
-                        className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-ink-2 transition hover:bg-bg-sunk"
-                        role="menuitem"
-                      >
-                        <LayoutDashboard className="h-4 w-4" />
-                        My Dashboard
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsProfileMenuOpen(false)
-                          navigate('/profile')
-                        }}
-                        className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-ink-2 transition hover:bg-bg-sunk"
-                        role="menuitem"
-                      >
-                        <UserCircle2 className="h-4 w-4" />
-                        Profile &amp; Settings
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsProfileMenuOpen(false)
-                          navigate('/ai-tool-finder')
-                        }}
-                        className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-ink-2 transition hover:bg-bg-sunk"
-                        role="menuitem"
-                      >
-                        <Sparkles className="h-4 w-4" />
-                        AI Stack Architect
-                      </button>
-
-                      {isAdmin && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setIsProfileMenuOpen(false)
-                            navigate('/admin')
-                          }}
-                          className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-ink-2 transition hover:bg-bg-sunk"
-                          role="menuitem"
-                        >
-                          <Shield className="h-4 w-4" />
-                          Admin Panel
-                        </button>
-                      )}
-
-                      <div className="my-2 border-t border-line" />
-
-                      <button
-                        type="button"
-                        onClick={handleLogout}
-                        className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold text-danger transition hover:bg-danger-soft"
-                        role="menuitem"
-                      >
-                        <LogOut className="h-4 w-4" />
-                        Logout
-                      </button>
-                    </MotionDiv>
-                  )}
-                </AnimatePresence>
               </div>
             ) : (
               <button
@@ -631,6 +508,135 @@ const CardNav = ({ className = '', ease = 'power3.out' }) => {
           ))}
         </div>
       </nav>
+
+      {/* Render Dropdowns in transparent overlay to prevent overflow:hidden clipping */}
+      <div className="dropdowns-overlay-container">
+        {/* Currency Menu Dropdown */}
+        <AnimatePresence>
+          {isCurrencyMenuOpen && (
+            <MotionDiv
+              ref={currencyMenuRef}
+              role="listbox"
+              aria-label="Currency selection"
+              initial={{ opacity: 0, y: -6, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -4, scale: 0.98 }}
+              transition={dropdownTransition}
+              className="overlay-dropdown-wrapper currency-dropdown-pos w-40 overflow-hidden rounded-xl border border-line bg-bg-elev p-1 shadow-lg"
+            >
+              {currencies.map(curr => (
+                <button
+                  key={curr.code}
+                  type="button"
+                  onClick={() => {
+                    setSelectedCurrency(curr.code)
+                    setIsCurrencyMenuOpen(false)
+                  }}
+                  className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs font-medium transition ${
+                    selectedCurrency === curr.code
+                      ? 'bg-accent-soft text-accent-ink'
+                      : 'text-ink-2 hover:bg-bg-sunk hover:text-ink'
+                  }`}
+                  role="option"
+                  aria-selected={selectedCurrency === curr.code}
+                >
+                  <span>{curr.name}</span>
+                  <span className="font-semibold text-muted">{curr.symbol}</span>
+                </button>
+              ))}
+            </MotionDiv>
+          )}
+        </AnimatePresence>
+
+        {/* Profile Menu Dropdown */}
+        <AnimatePresence>
+          {isProfileMenuOpen && user && isAuthenticated && (
+            <MotionDiv
+              ref={menuRef}
+              role="menu"
+              aria-label="Profile menu"
+              initial={{ opacity: 0, y: -6, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -4, scale: 0.98 }}
+              transition={dropdownTransition}
+              className="overlay-dropdown-wrapper profile-dropdown-pos w-64 overflow-hidden rounded-2xl border border-line bg-bg-elev p-2 shadow-2xl"
+            >
+              <div className="px-3 py-2">
+                <p className="truncate text-sm font-semibold text-ink">{user?.name || 'My account'}</p>
+                <p className="truncate text-xs text-muted">{user?.email || ''}</p>
+              </div>
+
+              <div className="my-2 border-t border-line" />
+
+              <button
+                type="button"
+                onClick={() => {
+                  setIsProfileMenuOpen(false)
+                  navigate('/dashboard')
+                }}
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-ink-2 transition hover:bg-bg-sunk"
+                role="menuitem"
+              >
+                <LayoutDashboard className="h-4 w-4" />
+                My Dashboard
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setIsProfileMenuOpen(false)
+                  navigate('/profile')
+                }}
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-ink-2 transition hover:bg-bg-sunk"
+                role="menuitem"
+              >
+                <UserCircle2 className="h-4 w-4" />
+                Profile &amp; Settings
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setIsProfileMenuOpen(false)
+                  navigate('/ai-tool-finder')
+                }}
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-ink-2 transition hover:bg-bg-sunk"
+                role="menuitem"
+              >
+                <Sparkles className="h-4 w-4" />
+                AI Stack Architect
+              </button>
+
+              {isAdmin && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsProfileMenuOpen(false)
+                    navigate('/admin')
+                  }}
+                  className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-ink-2 transition hover:bg-bg-sunk"
+                  role="menuitem"
+                >
+                  <Shield className="h-4 w-4" />
+                  Admin Panel
+                </button>
+              )}
+
+              <div className="my-2 border-t border-line" />
+
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold text-danger transition hover:bg-danger-soft"
+                role="menuitem"
+              >
+                <LogOut className="h-4 w-4" />
+                Logout
+              </button>
+            </MotionDiv>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   )
 }

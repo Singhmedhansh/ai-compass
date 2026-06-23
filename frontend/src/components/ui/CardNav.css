@@ -2,51 +2,46 @@
 
 .card-nav-container {
   position: fixed;
-  top: 1rem;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 95%;
-  max-width: 1200px;
+  top: 0;
+  left: 0;
+  width: 100%;
   z-index: 50;
   box-sizing: border-box;
+  background-color: var(--bg-elev);
+  border-bottom: 1px solid var(--line);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: var(--shadow-sm);
   transition: all 0.3s var(--ease-standard);
 }
 
 .card-nav-container.scrolled {
-  top: 0.5rem;
+  box-shadow: var(--shadow-md);
+  border-bottom-color: var(--line-strong);
 }
 
 .card-nav {
   display: block;
   height: 60px;
   padding: 0;
-  background-color: var(--bg-elev);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
+  background-color: transparent;
   position: relative;
   overflow: hidden;
   will-change: height;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-.card-nav-container.scrolled .card-nav {
-  box-shadow: var(--shadow-lg);
-  border-color: var(--line-strong);
 }
 
 .card-nav-top {
   position: absolute;
   top: 0;
-  left: 0;
-  right: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 1280px;
   height: 60px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 1.5rem;
   z-index: 2;
   gap: 1rem;
 }
@@ -134,14 +129,16 @@
 
 .card-nav-content {
   position: absolute;
-  left: 0;
-  right: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 1280px;
   top: 60px;
   bottom: 0;
-  padding: 0.75rem;
+  padding: 1rem 1.5rem;
   display: flex;
   align-items: stretch;
-  gap: 12px;
+  gap: 16px;
   visibility: hidden;
   pointer-events: none;
   z-index: 1;
@@ -208,14 +205,38 @@
   opacity: 0.7;
 }
 
-@media (max-width: 768px) {
-  .card-nav-container {
-    width: 95%;
-    top: 0.5rem;
-  }
+/* Dropdowns Overlay styling */
+.dropdowns-overlay-container {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 1280px;
+  height: 60px;
+  pointer-events: none;
+  z-index: 60;
+  overflow: visible;
+}
 
+.overlay-dropdown-wrapper {
+  position: absolute;
+  top: 55px;
+  pointer-events: auto;
+  z-index: 100;
+}
+
+.currency-dropdown-pos {
+  right: 7.5rem;
+}
+
+.profile-dropdown-pos {
+  right: 1.5rem;
+}
+
+@media (max-width: 768px) {
   .card-nav-top {
-    padding: 0.5rem;
+    padding: 0.5rem 1rem;
     gap: 0.25rem;
   }
 
