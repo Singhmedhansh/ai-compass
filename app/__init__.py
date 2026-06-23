@@ -746,13 +746,8 @@ def create_app(config: dict | None = None) -> Flask:
                     print(f"[WARMUP] ML model auto-train skipped: {exc}", flush=True)
 
     if not app.config.get("TESTING"):
-        @app.before_request
-        def trigger_warmup_on_first_request():
-            if request.path in ('/healthz', '/healthz-detailed', '/debug-threads'):
-                return
-            if not getattr(app, "_warmup_started", False):
-                app._warmup_started = True
-                threading.Thread(target=_warm_up, name="warmup", daemon=True).start()
+        app._warmup_started = True
+        threading.Thread(target=_warm_up, name="warmup", daemon=True).start()
 
     @app.context_processor
     def inject_global_template_vars():
