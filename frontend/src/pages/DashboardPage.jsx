@@ -1177,7 +1177,7 @@ function DashboardPage() {
                                   {resolvedTool ? (
                                     <button
                                       type="button"
-                                      onClick={() => navigate(`/tool/${resolvedTool.slug}`)}
+                                      onClick={() => navigate(`/tools/${resolvedTool.slug}`)}
                                       className="text-xs font-bold text-ink hover:text-accent hover:underline text-left truncate"
                                     >
                                       {rec.name}

@@ -1272,21 +1272,53 @@ function DirectoryPage() {
           )}
 
           {!isLoading && !error && filteredTools.length === 0 && !zeroResultsFallbackActive && (
-            <div className="flex flex-col gap-8">
+            <div className="flex flex-col gap-10">
               <section
                 role="status"
                 aria-live="polite"
-                className="rounded-2xl border border-line bg-bg-sunk px-6 py-16 text-center"
+                className="relative overflow-hidden rounded-[28px] border border-line bg-bg-elev p-8 md:p-12 text-center shadow-lg"
               >
-                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-line bg-bg-elev shadow-sm" aria-hidden="true">
-                  <SearchX className="h-7 w-7 text-muted" />
-                </div>
-                <h2 className="mt-5 text-xl font-semibold text-ink">{emptyHeading}</h2>
-                <p className="mt-2 text-sm text-muted">{emptyBody}</p>
-                <div className="mt-6">
-                  <Button variant="secondary" onClick={handleReset}>
-                    Reset filters
-                  </Button>
+                <div
+                  className="absolute inset-0 bg-[radial-gradient(circle_at_top,var(--accent-soft),transparent_60%)]"
+                  aria-hidden="true"
+                />
+                <div className="relative z-10 mx-auto max-w-xl">
+                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-accent-soft text-accent border border-accent/20 shadow-inner" aria-hidden="true">
+                    <SearchX className="h-6 w-6" />
+                  </div>
+                  <h2 className="mt-6 text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">{emptyHeading}</h2>
+                  <p className="mt-3 text-sm text-ink-2 leading-relaxed">{emptyBody}</p>
+
+                  <div className="mt-8 flex flex-wrap justify-center gap-3">
+                    <Button variant="primary" onClick={() => navigate('/ai-tool-finder')}>
+                      Try AI Stack Architect
+                    </Button>
+                    <Button variant="secondary" onClick={handleReset}>
+                      Reset all filters
+                    </Button>
+                  </div>
+
+                  <div className="mt-8 border-t border-line/60 pt-6 text-left">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-muted mb-3">Search tips:</h4>
+                    <ul className="grid gap-2 text-xs text-ink-2 sm:grid-cols-2">
+                      <li className="flex items-center gap-2">
+                        <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+                        Check your query for typos
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+                        Use general keywords (e.g. "writing")
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+                        Remove filters like "Actually Free"
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+                        Search by category tabs above
+                      </li>
+                    </ul>
+                  </div>
                 </div>
               </section>
 

@@ -358,24 +358,132 @@ export default function ComparePage() {
     }
   }
 
-  if (slugs.length === 0) {
+  // Helper to trigger navigation for pre-configured cards
+  const startComparison = (pairSlugs) => {
+    navigate(`/compare/${pairSlugs.join('-vs-')}`)
+  }
+
+  if (slugs.length < 2) {
+    const isSingleTool = slugs.length === 1;
+
     return (
-      <div className="mx-auto max-w-md px-4 py-20 text-center">
-        <div
-          aria-hidden="true"
-          className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-line bg-bg-elev shadow-sm"
-        >
-          <LayoutGrid className="h-5 w-5 text-muted" />
+      <div className="mx-auto max-w-4xl px-4 py-16">
+        <Helmet>
+          <title>Compare AI Tools Side-by-Side | AI Compass</title>
+          <meta name="description" content="Compare the best AI tools, writing helpers, coding editors, and research search engines side-by-side on pricing, features, ratings, and platforms." />
+        </Helmet>
+        
+        {/* Top Hero Card */}
+        <div className="relative overflow-hidden rounded-[28px] border border-line bg-bg-elev p-8 md:p-12 text-center shadow-lg">
+          <div
+            className="absolute inset-0 bg-[radial-gradient(circle_at_top,var(--accent-soft),transparent_60%)]"
+            aria-hidden="true"
+          />
+          <div className="relative z-10 mx-auto max-w-xl">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-accent-soft text-accent border border-accent/20 shadow-inner">
+              <LayoutGrid className="h-6 w-6" />
+            </div>
+            <h1 className="mt-6 text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">
+              {isSingleTool ? "Select a second tool to compare" : "AI Tool Comparison Builder"}
+            </h1>
+            <p className="mt-3 text-base text-ink-2 leading-relaxed">
+              {isSingleTool 
+                ? `You've selected ${columns[0]?.tool?.name || slugs[0]}. Select another tool from the catalog to run a side-by-side comparison on pricing, features, limits, and ratings.`
+                : `Choose two or more tools to match features, community ratings, pricing structures, and academic integrity policies side-by-side.`
+              }
+            </p>
+            <div className="mt-8 flex flex-wrap justify-center gap-3">
+              <Button variant="primary" onClick={() => navigate('/tools')}>
+                {isSingleTool ? "Browse matching tools" : "Browse all tools"}
+              </Button>
+              {isSingleTool && (
+                <Button variant="secondary" onClick={() => setSearchParams({})}>
+                  Clear selection
+                </Button>
+              )}
+            </div>
+          </div>
         </div>
-        <h1 className="mt-4 text-base font-semibold text-ink">No tools to compare</h1>
-        <p className="mt-1.5 text-sm text-muted">
-          Add tools from the directory to start comparing — up to {MAX_COMPARE} side by side.
-        </p>
-        <div className="mt-6">
-          <Button variant="primary" onClick={() => navigate('/tools')}>
-            Browse tools
-          </Button>
-        </div>
+
+        {/* Popular Comparisons Quick Links */}
+        {!isSingleTool && (
+          <div className="mt-16">
+            <h2 className="text-xl font-bold text-ink mb-6 flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-accent animate-pulse" /> Popular side-by-side comparisons
+            </h2>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {[
+                {
+                  title: "ChatGPT vs Claude",
+                  desc: "Compare writing flow, reasoning, and context window differences.",
+                  slugs: ["chatgpt", "claude"],
+                  tags: ["Writing", "Chat"]
+                },
+                {
+                  title: "Cursor vs GitHub Copilot",
+                  desc: "Find the best AI coding assistant for your student projects.",
+                  slugs: ["cursor", "github-copilot"],
+                  tags: ["Coding"]
+                },
+                {
+                  title: "Perplexity vs ChatGPT",
+                  desc: "Research & citations vs general brainstorming capabilities.",
+                  slugs: ["perplexity-ai", "chatgpt"],
+                  tags: ["Research"]
+                },
+                {
+                  title: "v0 vs Bolt.new",
+                  desc: "Compare instant web UI code builders and full stack platforms.",
+                  slugs: ["v0", "bolt-new"],
+                  tags: ["UI Dev"]
+                },
+                {
+                  title: "Grammarly vs Quillbot",
+                  desc: "Essay editing vs advanced paragraph paraphrasing.",
+                  slugs: ["grammarly", "quillbot"],
+                  tags: ["Writing"]
+                },
+                {
+                  title: "NotebookLM vs Claude",
+                  desc: "Document briefing and audio synthesis vs long context files.",
+                  slugs: ["notebooklm", "claude"],
+                  tags: ["Research"]
+                }
+              ].map((battle, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => startComparison(battle.slugs)}
+                  className="group relative flex flex-col justify-between rounded-2xl border border-line bg-bg-elev p-5 text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-accent hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                >
+                  <div>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="flex gap-1">
+                        {battle.tags.map((t, i) => (
+                          <span key={i} className="rounded bg-accent-soft/60 px-1.5 py-0.5 text-[10px] font-semibold text-accent-ink border border-accent/10">
+                            {t}
+                          </span>
+                        ))}
+                      </span>
+                      <span className="rounded-full bg-bg-sunk p-1.5 text-muted transition group-hover:text-accent group-hover:bg-accent-soft">
+                        <ArrowLeft className="h-3 w-3 rotate-180" />
+                      </span>
+                    </div>
+                    <h3 className="mt-3 font-bold text-ink group-hover:text-accent transition-colors">
+                      {battle.title}
+                    </h3>
+                    <p className="mt-1.5 text-xs text-muted leading-relaxed">
+                      {battle.desc}
+                    </p>
+                  </div>
+                  <div className="mt-4 text-[11px] font-semibold text-accent opacity-0 group-hover:opacity-100 transition-opacity">
+                    Compare now &rarr;
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     )
   }
