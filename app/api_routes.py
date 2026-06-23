@@ -4762,6 +4762,25 @@ except ImportError:
 
 _upstash_index = None  # module-level singleton
 
+try:
+    from sentence_transformers import SentenceTransformer as _SentenceTransformer
+    _TRANSFORMERS_AVAILABLE = True
+except ImportError:
+    _SentenceTransformer = None
+    _TRANSFORMERS_AVAILABLE = False
+
+_transformer_model = None  # module-level model singleton
+
+
+def _get_transformer_model():
+    """
+    Return a cached SentenceTransformer model instance.
+    """
+    global _transformer_model
+    if _transformer_model is None:
+        _transformer_model = _SentenceTransformer("all-MiniLM-L6-v2")
+    return _transformer_model
+
 
 def _get_upstash_index():
     """
@@ -4820,11 +4839,16 @@ def recommend_tools():
     501  - upstash-vector package is not installed
     503  - Upstash index is unreachable or misconfigured
     """
-    if not _UPSTASH_AVAILABLE:
+    if not _UPSTASH_AVAILABLE or not _TRANSFORMERS_AVAILABLE:
+        missing = []
+        if not _UPSTASH_AVAILABLE:
+            missing.append("upstash-vector")
+        if not _TRANSFORMERS_AVAILABLE:
+            missing.append("sentence-transformers")
         return (
             jsonify({
-                "error": "upstash-vector is not installed on this server.",
-                "hint": "Run: pip install upstash-vector",
+                "error": f"Required packages missing: {', '.join(missing)}",
+                "hint": f"Run: pip install {' '.join(missing)}",
             }),
             501,
         )
@@ -4846,9 +4870,12 @@ def recommend_tools():
         return jsonify({"error": "Too many requests. Please slow down."}), 429
 
     try:
+        model = _get_transformer_model()
+        query_vector = model.encode(user_query).tolist()
+
         index = _get_upstash_index()
         matches = index.query(
-            data=user_query,
+            vector=query_vector,
             top_k=3,
             include_metadata=True,
         )
