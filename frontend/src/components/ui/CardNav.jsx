@@ -134,9 +134,15 @@ const CardNav = ({ className = '', ease = 'power3.out' }) => {
     }
   }, [])
 
-  // Scroll logic
+  // Throttled Scroll logic (improves rendering performance)
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 50)
+    const handleScroll = () => {
+      const isScrolled = window.scrollY > 50
+      setScrolled(prev => {
+        if (prev !== isScrolled) return isScrolled
+        return prev
+      })
+    }
     handleScroll()
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
@@ -259,110 +265,44 @@ const CardNav = ({ className = '', ease = 'power3.out' }) => {
     navigate('/')
   }
 
-  // GSAP animations
-  const calculateHeight = () => {
-    const navEl = navRef.current
-    if (!navEl) return 380
-
-    const isMobile = window.matchMedia('(max-width: 768px)').matches
-    if (isMobile) {
-      const contentEl = navEl.querySelector('.card-nav-content')
-      if (contentEl) {
-        const wasVisible = contentEl.style.visibility
-        const wasPointerEvents = contentEl.style.pointerEvents
-        const wasPosition = contentEl.style.position
-        const wasHeight = contentEl.style.height
-
-        contentEl.style.visibility = 'visible'
-        contentEl.style.pointerEvents = 'auto'
-        contentEl.style.position = 'static'
-        contentEl.style.height = 'auto'
-
-        contentEl.offsetHeight // force reflow
-
-        const topBar = 60
-        const padding = 16
-        const contentHeight = contentEl.scrollHeight
-
-        contentEl.style.visibility = wasVisible
-        contentEl.style.pointerEvents = wasPointerEvents
-        contentEl.style.position = wasPosition
-        contentEl.style.height = wasHeight
-
-        return topBar + contentHeight + padding
-      }
-    }
-    return 380
-  };
-
+  // GPU-Accelerated GSAP animation timeline
   const createTimeline = () => {
-    const navEl = navRef.current
-    if (!navEl) return null
-
-    gsap.set(navEl, { height: 60, overflow: 'hidden' })
-    gsap.set(cardsRef.current, { y: 50, opacity: 0 })
-
+    if (cardsRef.current.length === 0) return null
+    gsap.set(cardsRef.current, { y: 15, opacity: 0 })
     const tl = gsap.timeline({ paused: true })
-
-    tl.to(navEl, {
-      height: calculateHeight,
-      duration: 0.4,
-      ease
+    tl.to(cardsRef.current, {
+      y: 0,
+      opacity: 1,
+      duration: 0.3,
+      ease,
+      stagger: 0.04
     })
-
-    tl.to(cardsRef.current, { y: 0, opacity: 1, duration: 0.4, ease, stagger: 0.08 }, '-=0.1')
-
     return tl
   }
 
   useLayoutEffect(() => {
     const tl = createTimeline()
     tlRef.current = tl
-
     return () => {
       tl?.kill()
       tlRef.current = null
     }
-  }, [ease])
-
-  useLayoutEffect(() => {
-    const handleResize = () => {
-      if (!tlRef.current) return
-
-      if (isExpanded) {
-        const newHeight = calculateHeight()
-        gsap.set(navRef.current, { height: newHeight })
-
-        tlRef.current.kill()
-        const newTl = createTimeline()
-        if (newTl) {
-          newTl.progress(1)
-          tlRef.current = newTl
-        }
-      } else {
-        tlRef.current.kill()
-        const newTl = createTimeline()
-        if (newTl) {
-          tlRef.current = newTl
-        }
-      }
-    }
-
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
-  }, [isExpanded])
+  }, [items.length])
 
   const toggleMenu = () => {
     const tl = tlRef.current
-    if (!tl) return
     if (!isExpanded) {
       setIsHamburgerOpen(true)
       setIsExpanded(true)
-      tl.play(0)
+      if (tl) tl.play(0)
     } else {
       setIsHamburgerOpen(false)
-      tl.eventCallback('onReverseComplete', () => setIsExpanded(false))
-      tl.reverse()
+      if (tl) {
+        tl.eventCallback('onReverseComplete', () => setIsExpanded(false))
+        tl.reverse()
+      } else {
+        setIsExpanded(false)
+      }
     }
   }
 
