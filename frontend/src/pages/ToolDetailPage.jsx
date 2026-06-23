@@ -1,13 +1,29 @@
 import clsx from 'clsx'
 import { AnimatePresence, motion } from 'framer-motion'
-import { BadgeCheck, Check, Folder, Heart, Star, Shield, X } from 'lucide-react'
+import {
+  BadgeCheck,
+  Check,
+  Folder,
+  Heart,
+  Star,
+  Shield,
+  X,
+  Globe,
+  Share2,
+  Calendar,
+  Laptop,
+  Languages,
+  Zap,
+  Bookmark,
+  TrendingUp,
+} from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 
 import RatingWidget from '../components/ui/RatingWidget'
 import ReviewsSection from '../components/ui/ReviewsSection'
-import { Badge, Button, PricingSection, SkeletonToolDetail, ToolLogo } from '../components/ui'
+import { Badge, Button, PricingSection, SkeletonToolDetail, ToolLogo, SpotlightCard } from '../components/ui'
 import ErrorState from '../components/ErrorState'
 import { sectionReveal, staggerChild, staggerParent } from '../lib/motion'
 import { classifyStudentOffer } from '../utils/student'
@@ -21,16 +37,12 @@ import { inferErrorVariant } from '../utils/errorState'
 
 const MotionDiv = motion.div
 
-// Shown to users who arrive directly on a tool page (empty referrer or external
-// referrer). Gives cold visitors instant site context before they bounce.
-// Dismissed per-session via sessionStorage so repeat visitors never see it.
+// Shown to users who arrive directly on a tool page
 function DirectLandingStrip() {
   const [show, setShow] = useState(() => {
-    // Don't re-show after dismissal within the same session
     if (typeof sessionStorage !== 'undefined') {
       if (sessionStorage.getItem('ai_compass_strip_dismissed')) return false
     }
-    // Show if referrer is empty (direct link) or from an external domain
     try {
       const ref = document.referrer
       if (!ref) return true
@@ -55,7 +67,7 @@ function DirectLandingStrip() {
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -6 }}
         transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-        className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-accent/25 bg-accent-soft px-4 py-2.5 text-sm"
+        className="mb-6 flex items-center justify-between gap-3 rounded-xl border border-accent/25 bg-accent-soft px-4 py-2.5 text-sm"
       >
         <p className="text-accent-ink">
           You&rsquo;re on{' '}
@@ -84,9 +96,9 @@ function DirectLandingStrip() {
 }
 
 const pricingBadgeClasses = {
-  free: 'bg-accent-soft text-accent-ink',
-  freemium: 'bg-bg-sunk text-ink-2',
-  paid: 'bg-bg-sunk text-ink-2',
+  free: 'bg-accent-soft text-accent-ink border border-accent/25',
+  freemium: 'bg-bg-sunk text-ink-2 border border-line',
+  paid: 'bg-bg-sunk text-ink-2 border border-line',
 }
 
 function toSlug(value = '') {
@@ -99,33 +111,10 @@ function toSlug(value = '') {
 }
 
 function formatDate(value) {
-  if (!value) {
-    return new Date().toLocaleDateString()
-  }
-
+  if (!value) return new Date().toLocaleDateString()
   const parsed = new Date(value)
-  if (Number.isNaN(parsed.getTime())) {
-    return new Date().toLocaleDateString()
-  }
-
+  if (Number.isNaN(parsed.getTime())) return new Date().toLocaleDateString()
   return parsed.toLocaleDateString()
-}
-
-// Kept for future use — not currently called. Prefixed to satisfy
-// no-unused-vars (the repo's ESLint rule allows underscore-prefixed names).
-function _buildStarNodes(rating, className = 'h-4 w-4') {
-  const clamped = Math.max(0, Math.min(5, Number(rating) || 0))
-
-  return Array.from({ length: 5 }, (_, index) => {
-    const active = index < Math.round(clamped)
-
-    return (
-      <Star
-        key={`star-${index}`}
-        className={clsx(className, active ? 'fill-amber-400 text-amber-400' : 'text-line-strong')}
-      />
-    )
-  })
 }
 
 function normalizeTool(rawTool) {
@@ -151,9 +140,8 @@ function normalizeTool(rawTool) {
     website: rawTool?.website || rawTool?.url || rawTool?.link,
     isAffiliateLink: Boolean(rawTool?.affiliate_url),
     platform: rawTool?.platform || (Array.isArray(rawTool?.platforms) ? rawTool.platforms.join(', ') : null),
+    platforms: Array.isArray(rawTool?.platforms) ? rawTool.platforms : ['Web'],
     lastUpdated: rawTool?.last_updated || rawTool?.updatedAt || rawTool?.updated_at || rawTool?.lastUpdated,
-    // ISO date string of the most recent hand-test pass. Drives the
-    // "Verified <Month Year>" chip; missing = chip hidden.
     lastVerifiedAt: rawTool?.last_verified_at || rawTool?.lastVerifiedAt || null,
     studentFriendly: Boolean(rawTool?.student_friendly ?? rawTool?.studentPerk ?? rawTool?.student_perk),
     student_friendly: rawTool?.student_friendly,
@@ -161,16 +149,9 @@ function normalizeTool(rawTool) {
     pricingDetail: rawTool?.pricingDetail || rawTool?.pricing_detail || '',
     uniHack: rawTool?.uniHack || '',
     pricing_tiers: rawTool?.pricing_tiers || null,
-    // Fields below feed structured data (SoftwareApplication JSON-LD).
-    // They're surfaced here so the JSON-LD block doesn't have to dig into
-    // raw payload shapes — and so we have one source of truth for what
-    // the SERP sees vs. what the visible UI renders.
     maker: rawTool?.maker || rawTool?.company || null,
     features: Array.isArray(rawTool?.features) ? rawTool.features : [],
     useCases: Array.isArray(rawTool?.use_cases) ? rawTool.use_cases : [],
-    // Cheapest non-zero tier from pricing_tiers.tiers[], if any. Powers
-    // a real Offer in JSON-LD — Google requires a numeric `price`, so
-    // labels like "Freemium" alone aren't enough.
     academic_integrity_rating: rawTool?.academic_integrity_rating || null,
     academic_warning: rawTool?.academic_warning || null,
     lowestPaidTier: (() => {
@@ -184,8 +165,6 @@ function normalizeTool(rawTool) {
   }
 }
 
-// "2026-05-21" -> "Verified May 2026". Returns null for missing or
-// unparseable values so the chip can be conditionally rendered.
 function formatVerifiedDate(value) {
   if (!value) return null
   const d = new Date(value)
@@ -211,11 +190,12 @@ function ToolDetailPage() {
     }
   })
   const [loading, setLoading] = useState(true)
-  // error is null when fine, otherwise one of 'offline' | 'server' |
-  // 'notfound' — see utils/errorState.js. retryNonce re-triggers the
-  // effect when the user hits "Try again" without reloading the page.
   const [error, setError] = useState(null)
   const [retryNonce, setRetryNonce] = useState(0)
+
+  // Tab state
+  const [activeTab, setActiveTab] = useState(0)
+  const tabs = ['Overview', 'Pricing', 'Student Perks']
 
   useEffect(() => {
     const toolController = new AbortController()
@@ -228,8 +208,6 @@ function ToolDetailPage() {
         const toolResponse = await fetch(`/api/v1/tools/${slug}`, { signal: toolController.signal })
 
         if (!toolResponse.ok) {
-          // Tag the error with its HTTP status so inferErrorVariant can
-          // distinguish a real 404 (bad slug) from a 5xx (server hiccup).
           const httpErr = new Error(`Unable to load tool (${toolResponse.status})`)
           httpErr.status = toolResponse.status
           throw httpErr
@@ -297,9 +275,7 @@ function ToolDetailPage() {
 
       try {
         const response = await fetch('/api/v1/favorites')
-        if (!response.ok) {
-          return
-        }
+        if (!response.ok) return
 
         const payload = await response.json()
         const favorites = Array.isArray(payload) ? payload : []
@@ -367,15 +343,12 @@ function ToolDetailPage() {
         console.error('Error adding to folder', err)
       }
     }
-    // Navigate to dashboard and activate this folder
     navigate(`/dashboard?folder=${encodeURIComponent(folderName)}`)
   }
 
   useEffect(() => {
     const normalizedSlug = String(slug || '').trim().toLowerCase()
-    if (!normalizedSlug) {
-      return
-    }
+    if (!normalizedSlug) return
 
     try {
       const raw = localStorage.getItem('recentlyViewed')
@@ -431,8 +404,6 @@ function ToolDetailPage() {
     }
   }
 
-  // Gate Helmet on `tool` being present so we don't briefly render a generic
-  // title before the fetch completes (which would otherwise flicker in tab title).
   const helmetDescription = tool
     ? (tool.tagline
         ? `${tool.name}: ${tool.tagline}. Read our review, pricing breakdown, and alternatives on AI Compass.`
@@ -442,8 +413,6 @@ function ToolDetailPage() {
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      {/* Context strip for direct / external-referrer landings — renders even
-          during skeleton load so cold visitors see site value immediately */}
       <DirectLandingStrip />
       {tool ? (
         <Helmet>
@@ -470,21 +439,9 @@ function ToolDetailPage() {
               ...(tool.maker
                 ? { brand: { '@type': 'Brand', name: tool.maker } }
                 : {}),
-              // featureList capped at 12 to keep payload reasonable and
-              // avoid Google's "keyword-stuffed structured data" flag.
               ...(tool.features.length > 0
                 ? { featureList: tool.features.slice(0, 12) }
                 : {}),
-              // Offer logic, in priority order:
-              //   1. If pricing_tiers has a real paid tier with a numeric
-              //      price_amount, emit Offer at the cheapest paid tier.
-              //      Google needs a number; "Freemium" alone won't render.
-              //   2. Else if pricingTier label is "Free" (case-insensitive),
-              //      emit a $0 Offer. Earlier code used `=== 'free'` which
-              //      never matched the API's capitalised labels — Offer has
-              //      effectively been dead on every tool until now.
-              //   3. Else omit Offer entirely (better no Offer than a wrong
-              //      one — Google penalises misleading price markup).
               ...(tool.lowestPaidTier
                 ? {
                     offers: {
@@ -507,11 +464,6 @@ function ToolDetailPage() {
                       },
                     }
                   : {}),
-              // AggregateRating: previously referenced tool.review_count
-              // (undefined on the normalised object) so reviewCount always
-              // fell through to the hardcoded 1. Use tool.ratingCount and
-              // gate on both fields being real numbers so we don't claim
-              // "1 review" when there are zero.
               ...(Number(tool.rating) > 0 && Number(tool.ratingCount) > 0
                 ? {
                     aggregateRating: {
@@ -525,9 +477,6 @@ function ToolDetailPage() {
               image: `https://ai-compass.in/og/${tool.slug}.png`,
             })}
           </script>
-          {/* Breadcrumb structured data — Google renders this as the
-              breadcrumb trail under the SERP title. Two visible hops
-              (Home > Tools) plus the current tool. */}
           <script type="application/ld+json">
             {JSON.stringify({
               '@context': 'https://schema.org',
@@ -541,6 +490,7 @@ function ToolDetailPage() {
           </script>
         </Helmet>
       ) : null}
+      
       {tool && !loading && (
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4 text-sm border-b border-line pb-4">
           <nav className="flex items-center space-x-2 text-muted" aria-label="Breadcrumb">
@@ -559,6 +509,7 @@ function ToolDetailPage() {
           </Link>
         </div>
       )}
+
       {loading ? (
         <SkeletonToolDetail />
       ) : error || !tool ? (
@@ -569,344 +520,432 @@ function ToolDetailPage() {
         />
       ) : (
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
-        <div className="flex-1 space-y-6">
-          <MotionDiv variants={sectionReveal} initial="initial" animate="animate">
-          <section className="rounded-2xl border border-line bg-bg-elev p-6 shadow-lg">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-              <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-bg-sunk">
-                <ToolLogo tool={tool} size={64} />
-              </div>
- 
-              <div className="min-w-0 flex-1">
-                <h1 className="text-2xl font-bold tracking-tight text-ink sm:text-3xl lg:text-4xl">{tool.name}</h1>
-                <div className="mt-3 flex flex-wrap items-center gap-2">
-                  <Badge label={tool.category} variant={tool.category} />
-                  <span
-                    className={clsx(
-                      'inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold uppercase tracking-wide',
-                      pricingBadgeClasses[priceKey],
-                    )}
-                  >
-                    {tool.pricing}
-                  </span>
-                  <span className="inline-flex items-center rounded-full bg-accent-soft/50 px-2.5 py-1 text-xs font-semibold text-accent-ink border border-accent/20">
-                    👍 Recommended for Students
-                  </span>
-                  <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                    ⚡ Free tier available
-                  </span>
-                  {(() => {
-                    const studentTag = classifyStudentOffer(tool)
-                    return studentTag && (
-                      <span className={clsx(
-                        "inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold uppercase tracking-wide border",
-                        studentTag === 'Student Discount' && 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
-                        studentTag === 'Student Perks' && 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
-                        studentTag === 'Student Hacks' && 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
-                      )}>
-                        {studentTag}
-                      </span>
-                    )
-                  })()}
-                  {/* Trust signal: when the tool was last hand-tested.
-                      Distinct from the pricing/category badges so users
-                      read it as editorial provenance, not metadata. */}
-                  {formatVerifiedDate(tool.lastVerifiedAt) && (
-                    <span
-                      className="inline-flex items-center gap-1 rounded-full border border-accent/40 bg-accent-soft px-2.5 py-1 text-xs font-medium text-accent-ink"
-                      title={`Hand-tested on ${tool.lastVerifiedAt}`}
-                    >
-                      <BadgeCheck className="h-3.5 w-3.5" aria-hidden="true" />
-                      {formatVerifiedDate(tool.lastVerifiedAt)}
-                    </span>
-                  )}
-                </div>
-
-                <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  <a
-                    href={outboundUrl(tool)}
-                    target="_blank"
-                    rel={OUTBOUND_REL}
-                    className="w-full"
-                  >
-                    <Button className="w-full font-bold">Visit Tool</Button>
-                  </a>
-                  <Button variant="ghost" className="w-full gap-2" onClick={handleFavoriteToggle}>
-                    <AnimatePresence mode="wait" initial={false}>
-                      <motion.span
-                        key={isFavorite ? 'fav-on' : 'fav-off'}
-                        initial={{ opacity: 0, scale: 0.7, rotate: -12 }}
-                        animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                        exit={{ opacity: 0, scale: 0.8, rotate: 12 }}
-                        transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-                        className="flex items-center justify-center"
-                      >
-                        <Heart className={clsx('h-4 w-4', isFavorite ? 'fill-danger text-danger' : 'text-muted')} />
-                      </motion.span>
-                    </AnimatePresence>
-                    {isFavorite ? 'Saved' : 'Save'}
-                  </Button>
-                </div>
-
-                <p className="mt-5 text-sm leading-relaxed text-ink-2">{tool.shortDescription}</p>
-
-                {isFavorite && isLoggedIn && (
-                  <div className="mt-4 rounded-xl border border-line bg-bg-elev/40 p-4 shadow-sm backdrop-blur-md">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-muted mb-2 flex items-center gap-1.5">
-                      <Folder className="h-3.5 w-3.5" /> Organize to Folder
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {folders.length === 0 ? (
-                        <div className="text-xs text-muted flex flex-col gap-1.5">
-                          <span>You don't have any folders yet. Create folders on your Dashboard to organize favorites.</span>
-                          <Link to="/dashboard" className="text-accent hover:underline font-semibold w-fit">Go to Dashboard →</Link>
-                        </div>
-                      ) : (
-                        folders.map((folder) => {
-                          const isMember = Array.isArray(folder.tools) && folder.tools.map(t => String(t).toLowerCase()).includes(String(tool?.slug).toLowerCase())
-                          
-                          return (
-                            <button
-                              key={folder.name}
-                              type="button"
-                              onClick={() => handleFolderClick(folder.name, isMember)}
-                              className={clsx(
-                                "rounded-lg px-3 py-1.5 text-xs font-semibold transition-all flex items-center gap-1.5 border cursor-pointer",
-                                isMember 
-                                  ? "bg-accent/10 border-accent/30 text-accent hover:bg-accent/20"
-                                  : "bg-bg-sunk/50 border-line text-ink-2 hover:bg-bg-sunk hover:text-ink"
-                              )}
-                            >
-                              <span>{folder.name}</span>
-                              {isMember && <Check className="h-3 w-3" />}
-                            </button>
-                          )
-                        })
+          {/* Main Left Section */}
+          <div className="flex-1 space-y-6">
+            <MotionDiv variants={sectionReveal} initial="initial" animate="animate">
+              {/* Premium Glassmorphic Header Card */}
+              <section className="rounded-2xl border border-line bg-bg-elev/95 backdrop-blur-md p-6 shadow-md relative overflow-hidden">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+                  <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-bg-sunk shadow-inner">
+                    <ToolLogo tool={tool} size={64} />
+                  </div>
+   
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                      <h1 className="text-2xl font-bold tracking-tight text-ink sm:text-3xl lg:text-4xl">{tool.name}</h1>
+                      {tool.maker && (
+                        <span className="text-xs font-medium text-muted">by {tool.maker}</span>
                       )}
                     </div>
-                  </div>
-                )}
-                {tool.isAffiliateLink ? (
-                  <p className="mt-2 text-xs text-muted-2">
-                    AI Compass may earn a commission when you sign up through this link, at no extra cost to you.
-                  </p>
-                ) : null}
-                <Link
-                  to={`/alternatives/${tool.slug}`}
-                  {...alternativesHoverHandlers(tool.slug)}
-                  className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-ink-2 hover:gap-2 hover:text-ink"
-                >
-                  See alternatives to {tool.name} →
-                </Link>
-
-                {showLoginPrompt ? (
-                  <div className="mt-4 rounded-xl border border-accent bg-accent-soft p-3 text-sm">
-                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                      <p className="font-medium text-accent-ink">Log in to save favorites</p>
-                      <button
-                        type="button"
-                        className="self-start text-xs font-semibold text-accent-ink hover:underline"
-                        onClick={() => setShowLoginPrompt(false)}
-                      >
-                        Close
-                      </button>
-                    </div>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      <Link
-                        to="/login"
-                        state={{ from: location.pathname }}
-                        className="rounded-lg bg-accent px-3 py-1.5 text-xs font-semibold text-bg hover:opacity-90"
-                      >
-                        Log In
-                      </Link>
-                      <Link
-                        to="/register"
-                        state={{ from: location.pathname }}
-                        className="rounded-lg border border-accent px-3 py-1.5 text-xs font-semibold text-accent-ink hover:bg-bg-elev"
-                      >
-                        Register Free
-                      </Link>
-                    </div>
-                  </div>
-                ) : null}
-              </div>
-            </div>
-
-            <div className="mt-5 flex flex-wrap gap-2">
-              {tool.tags.length > 0 ? (
-                tool.tags.map((tag) => (
-                  <span
-                    key={`${tool.slug}-tag-${tag}`}
-                    className="rounded-full border border-line bg-bg-sunk px-2.5 py-1 text-xs font-medium text-muted"
-                  >
-                    {tag}
-                  </span>
-                ))
-              ) : (
-                <span className="text-xs text-muted-2">No tags yet</span>
-              )}
-            </div>
-          </section>
-          </MotionDiv>
-
-          {tool.academic_integrity_rating && (
-            <MotionDiv variants={sectionReveal} initial="initial" animate="animate">
-              <section className={clsx(
-                "rounded-2xl border p-6 shadow-sm relative overflow-hidden backdrop-blur-sm",
-                tool.academic_integrity_rating === 'Safe' && 'bg-emerald-500/5 border-emerald-500/20 text-ink-2',
-                tool.academic_integrity_rating === 'Use with Caution' && 'bg-amber-500/5 border-amber-500/20 text-ink-2',
-                tool.academic_integrity_rating === 'High Risk' && 'bg-rose-500/5 border-rose-500/20 text-ink-2'
-              )}>
-                <h3 className="text-base font-bold flex items-center gap-2 mb-3">
-                  <Shield className="h-5 w-5 text-accent" />
-                  <span>Academic Integrity:</span>
-                  <span className={clsx(
-                    "px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider",
-                    tool.academic_integrity_rating === 'Safe' && 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
-                    tool.academic_integrity_rating === 'Use with Caution' && 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
-                    tool.academic_integrity_rating === 'High Risk' && 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
-                  )}>
-                    {tool.academic_integrity_rating}
-                  </span>
-                </h3>
-                <p className="text-sm leading-relaxed">{tool.academic_warning}</p>
-              </section>
-            </MotionDiv>
-          )}
-
-          <MotionDiv variants={sectionReveal} initial="initial" animate="animate">
-          <section className="rounded-2xl border border-line bg-bg-elev p-6">
-            <h2 className="text-lg font-semibold text-ink">About this tool</h2>
-            <p className="mt-3 leading-relaxed text-ink-2">{tool.description}</p>
-          </section>
-          </MotionDiv>
-
-          <MotionDiv variants={sectionReveal} initial="initial" animate="animate">
-            <PricingSection tool={tool} />
-          </MotionDiv>
-
-          <MotionDiv variants={sectionReveal} initial="initial" animate="animate">
-            <RatingWidget slug={tool.slug} isLoggedIn={isLoggedIn} />
-          </MotionDiv>
-          <MotionDiv variants={sectionReveal} initial="initial" animate="animate">
-            <ReviewsSection slug={tool.slug} isLoggedIn={isLoggedIn} />
-          </MotionDiv>
-        </div>
-
-        <aside className="space-y-6 lg:sticky lg:top-24 lg:h-fit lg:w-80">
-          <MotionDiv variants={sectionReveal} initial="initial" animate="animate">
-          <section className="rounded-2xl border border-line bg-bg-elev p-5">
-            <h3 className="text-base font-semibold text-ink">Quick info</h3>
-            <dl className="mt-4 space-y-3 text-sm">
-              <div className="flex items-center justify-between gap-4">
-                <dt className="text-muted">Pricing</dt>
-                <dd className="text-ink">{tool.pricing}</dd>
-              </div>
-              <div className="flex items-center justify-between gap-4">
-                <dt className="text-muted">Platform</dt>
-                <dd className="text-ink">{tool.platform || 'Web'}</dd>
-              </div>
-              <div className="flex items-center justify-between gap-4">
-                <dt className="text-muted">Category</dt>
-                <dd className="text-ink">{tool.category}</dd>
-              </div>
-              <div className="flex items-center justify-between gap-4">
-                <dt className="text-muted">Last updated</dt>
-                <dd className="text-ink">{formatDate(tool.lastUpdated)}</dd>
-              </div>
-              <div className="flex items-center justify-between gap-4">
-                <dt className="text-muted">Student friendly</dt>
-                <dd>
-                  {(() => {
-                    const studentTag = classifyStudentOffer(tool)
-                    return (
+                    
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                      <Badge label={tool.category} variant={tool.category} />
                       <span
                         className={clsx(
-                          'inline-flex rounded-full px-2 py-1 text-xs font-semibold',
-                          studentTag
-                            ? 'bg-accent-soft text-accent-ink'
-                            : 'bg-bg-sunk text-ink-2',
+                          'inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold uppercase tracking-wide',
+                          pricingBadgeClasses[priceKey],
                         )}
                       >
-                        {studentTag || 'No'}
+                        {tool.pricing}
                       </span>
-                    )
-                  })()}
-                </dd>
-              </div>
-            </dl>
-          </section>
-          </MotionDiv>
+                      <span className="inline-flex items-center rounded-full bg-accent-soft px-2.5 py-1 text-xs font-semibold text-accent-ink border border-accent/20">
+                        👍 Recommended for Students
+                      </span>
+                      <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                        ⚡ Free tier available
+                      </span>
+                      {(() => {
+                        const studentTag = classifyStudentOffer(tool)
+                        return studentTag && (
+                          <span className={clsx(
+                            "inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold uppercase tracking-wide border",
+                            studentTag === 'Student Discount' && 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+                            studentTag === 'Student Perks' && 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+                            studentTag === 'Student Hacks' && 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
+                          )}>
+                            {studentTag}
+                          </span>
+                        )
+                      })()}
+                      {formatVerifiedDate(tool.lastVerifiedAt) && (
+                        <span
+                          className="inline-flex items-center gap-1 rounded-full border border-accent/40 bg-accent-soft px-2.5 py-1 text-xs font-medium text-accent-ink"
+                          title={`Hand-tested on ${tool.lastVerifiedAt}`}
+                        >
+                          <BadgeCheck className="h-3.5 w-3.5" aria-hidden="true" />
+                          {formatVerifiedDate(tool.lastVerifiedAt)}
+                        </span>
+                      )}
+                    </div>
 
-          {/* Compare-with-X link list. Surfaces the /compare/<a>-vs-<b>
-              route so users can jump from a tool page straight into a
-              side-by-side view, AND so crawlers find the dynamic compare
-              pages via an editorial link (not just the sitemap). Anchor
-              text contains both tool names — exactly the long-tail query
-              shape ("X vs Y") we're targeting. */}
-          {relatedTools.length > 0 ? (
-            <MotionDiv variants={sectionReveal} initial="initial" animate="animate">
-              <section className="rounded-2xl border border-line bg-bg-elev p-5">
-                <h3 className="text-base font-semibold text-ink">Compare {tool.name} with</h3>
-                <ul className="mt-3 space-y-1.5">
-                  {relatedTools.slice(0, 4).map((rt) => (
-                    <li key={`compare-${rt.slug}`}>
-                      <Link
-                        to={`/compare/${tool.slug}-vs-${rt.slug}`}
-                        {...compareHoverHandlers()}
-                        className="inline-flex items-center gap-1 text-sm text-ink-2 hover:gap-2 hover:text-ink transition-all"
+                    <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      <a
+                        href={outboundUrl(tool)}
+                        target="_blank"
+                        rel={OUTBOUND_REL}
+                        className="w-full"
                       >
-                        {tool.name} vs {rt.name} →
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
+                        <Button className="w-full font-bold group flex items-center justify-center gap-1.5 transition-all">
+                          <span>Visit Website</span>
+                          <span className="group-hover:translate-x-0.5 transition-transform">→</span>
+                        </Button>
+                      </a>
+                      <Button variant="ghost" className="w-full gap-2 border border-line" onClick={handleFavoriteToggle}>
+                        <AnimatePresence mode="wait" initial={false}>
+                          <motion.span
+                            key={isFavorite ? 'fav-on' : 'fav-off'}
+                            initial={{ opacity: 0, scale: 0.7 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.8 }}
+                            transition={{ duration: 0.18 }}
+                            className="flex items-center justify-center"
+                          >
+                            <Heart className={clsx('h-4 w-4', isFavorite ? 'fill-danger text-danger' : 'text-muted')} />
+                          </motion.span>
+                        </AnimatePresence>
+                        {isFavorite ? 'Saved' : 'Save'}
+                      </Button>
+                    </div>
+
+                    <p className="mt-5 text-sm leading-relaxed text-ink-2">{tool.shortDescription}</p>
+
+                    {isFavorite && isLoggedIn && (
+                      <div className="mt-4 rounded-xl border border-line bg-bg-elev/40 p-4 shadow-sm backdrop-blur-md">
+                        <p className="text-xs font-semibold uppercase tracking-wider text-muted mb-2 flex items-center gap-1.5">
+                          <Folder className="h-3.5 w-3.5" /> Organize to Folder
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {folders.length === 0 ? (
+                            <div className="text-xs text-muted flex flex-col gap-1.5">
+                              <span>You don't have any folders yet. Create folders on your Dashboard to organize favorites.</span>
+                              <Link to="/dashboard" className="text-accent hover:underline font-semibold w-fit">Go to Dashboard →</Link>
+                            </div>
+                          ) : (
+                            folders.map((folder) => {
+                              const isMember = Array.isArray(folder.tools) && folder.tools.map(t => String(t).toLowerCase()).includes(String(tool?.slug).toLowerCase())
+                              
+                              return (
+                                <button
+                                  key={folder.name}
+                                  type="button"
+                                  onClick={() => handleFolderClick(folder.name, isMember)}
+                                  className={clsx(
+                                    "rounded-lg px-3 py-1.5 text-xs font-semibold transition-all flex items-center gap-1.5 border cursor-pointer",
+                                    isMember 
+                                      ? "bg-accent/10 border-accent/30 text-accent hover:bg-accent/20"
+                                      : "bg-bg-sunk/50 border-line text-ink-2 hover:bg-bg-sunk hover:text-ink"
+                                  )}
+                                >
+                                  <span>{folder.name}</span>
+                                  {isMember && <Check className="h-3 w-3" />}
+                                </button>
+                              )
+                            })
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    {tool.isAffiliateLink ? (
+                      <p className="mt-2 text-xs text-muted-2">
+                        AI Compass may earn a commission when you sign up through this link, at no extra cost to you.
+                      </p>
+                    ) : null}
+                    <Link
+                      to={`/alternatives/${tool.slug}`}
+                      {...alternativesHoverHandlers(tool.slug)}
+                      className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-ink-2 hover:gap-2 hover:text-ink transition-all"
+                    >
+                      See alternatives to {tool.name} →
+                    </Link>
+
+                    {showLoginPrompt ? (
+                      <div className="mt-4 rounded-xl border border-accent bg-accent-soft p-3 text-sm">
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                          <p className="font-medium text-accent-ink">Log in to save favorites</p>
+                          <button
+                            type="button"
+                            className="self-start text-xs font-semibold text-accent-ink hover:underline"
+                            onClick={() => setShowLoginPrompt(false)}
+                          >
+                            Close
+                          </button>
+                        </div>
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          <Link
+                            to="/login"
+                            state={{ from: location.pathname }}
+                            className="rounded-lg bg-accent px-3 py-1.5 text-xs font-semibold text-bg hover:opacity-90"
+                          >
+                            Log In
+                          </Link>
+                          <Link
+                            to="/register"
+                            state={{ from: location.pathname }}
+                            className="rounded-lg border border-accent px-3 py-1.5 text-xs font-semibold text-accent-ink hover:bg-bg-elev"
+                          >
+                            Register Free
+                          </Link>
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+
+                <div className="mt-5 flex flex-wrap gap-2">
+                  {tool.tags.length > 0 ? (
+                    tool.tags.map((tag) => (
+                      <span
+                        key={`${tool.slug}-tag-${tag}`}
+                        className="rounded-full border border-line bg-bg-sunk px-2.5 py-1 text-xs font-medium text-muted transition hover:border-accent"
+                      >
+                        {tag}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-xs text-muted-2">No tags yet</span>
+                  )}
+                </div>
               </section>
             </MotionDiv>
-          ) : null}
 
-          <MotionDiv variants={sectionReveal} initial="initial" animate="animate">
-          <section className="rounded-2xl border border-line bg-bg-elev p-5">
-            <h3 className="text-base font-semibold text-ink">Related Tools</h3>
-
-            {relatedTools.length === 0 ? (
-              <p className="mt-3 text-sm text-muted">No related tools found.</p>
-            ) : (
-              <MotionDiv
-                variants={staggerParent}
-                initial="initial"
-                animate="animate"
-                className="mt-4 space-y-3"
-              >
-                {relatedTools.map((relatedTool, i) => (
-                  <MotionDiv
-                    key={relatedTool.slug}
-                    variants={staggerChild}
-                    custom={Math.min(i, 5) * 0.04}
+            {/* TAB SYSTEM (Overview, Pricing, Student Perks) */}
+            <MotionDiv className="border-b border-line" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.1 }}>
+              <div className="flex gap-8 relative">
+                {tabs.map((tab, idx) => (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(idx)}
+                    className={clsx(
+                      "pb-4 font-semibold text-sm transition-colors cursor-pointer relative",
+                      activeTab === idx
+                        ? 'text-accent'
+                        : 'text-muted hover:text-ink'
+                    )}
                   >
-                    <button
-                      type="button"
-                      onClick={() => navigate(`/tools/${relatedTool.slug}`)}
-                      {...toolHoverHandlers(relatedTool.slug)}
-                      className="flex w-full items-center gap-3 rounded-xl border border-line bg-bg-elev p-3 text-left transition hover:border-accent hover:bg-bg-sunk focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-                    >
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-bg-sunk">
-                        <ToolLogo tool={relatedTool} size={40} />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-semibold text-ink">{relatedTool.name}</p>
-                        <p className="mt-0.5 truncate text-xs text-muted">
-                          {relatedTool.category || relatedTool.pricing || 'Curated pick'}
-                        </p>
-                      </div>
-                    </button>
-                  </MotionDiv>
+                    {tab}
+                    {activeTab === idx && (
+                      <motion.div
+                        layoutId="activeTabUnderline"
+                        className="absolute bottom-0 left-0 right-0 h-1 bg-accent rounded-full"
+                        transition={{ duration: 0.2 }}
+                      />
+                    )}
+                  </button>
                 ))}
+              </div>
+            </MotionDiv>
+
+            {/* TAB CONTENTS */}
+            <AnimatePresence mode="wait">
+              {activeTab === 0 && (
+                <MotionDiv
+                  key="tab-overview"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.2 }}
+                  className="space-y-6"
+                >
+                  {tool.academic_integrity_rating && (
+                    <section className={clsx(
+                      "rounded-2xl border p-6 shadow-sm relative overflow-hidden backdrop-blur-sm",
+                      tool.academic_integrity_rating === 'Safe' && 'bg-emerald-500/5 border-emerald-500/20 text-ink-2',
+                      tool.academic_integrity_rating === 'Use with Caution' && 'bg-amber-500/5 border-amber-500/20 text-ink-2',
+                      tool.academic_integrity_rating === 'High Risk' && 'bg-rose-500/5 border-rose-500/20 text-ink-2'
+                    )}>
+                      <h3 className="text-base font-bold flex items-center gap-2 mb-3">
+                        <Shield className="h-5 w-5 text-accent" />
+                        <span>Academic Integrity:</span>
+                        <span className={clsx(
+                          "px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider",
+                          tool.academic_integrity_rating === 'Safe' && 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+                          tool.academic_integrity_rating === 'Use with Caution' && 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
+                          tool.academic_integrity_rating === 'High Risk' && 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
+                        )}>
+                          {tool.academic_integrity_rating}
+                        </span>
+                      </h3>
+                      <p className="text-sm leading-relaxed">{tool.academic_warning}</p>
+                    </section>
+                  )}
+
+                  <SpotlightCard className="rounded-2xl border border-line bg-bg-elev p-6" spotlightColor="rgba(22, 179, 137, 0.08)">
+                    <h2 className="text-lg font-semibold text-ink">About {tool.name}</h2>
+                    <p className="mt-3 leading-relaxed text-ink-2">{tool.description}</p>
+                  </SpotlightCard>
+
+                  {tool.useCases.length > 0 && (
+                    <section className="rounded-2xl border border-line bg-bg-elev p-6">
+                      <h2 className="text-lg font-semibold text-ink">Primary Use Cases</h2>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+                        {tool.useCases.map((useCase, idx) => (
+                          <div key={useCase} className="flex items-center gap-3 p-3 bg-bg-sunk rounded-xl border border-line transition hover:translate-x-1">
+                            <Check className="w-4 h-4 text-accent shrink-0" />
+                            <span className="text-sm font-medium text-ink-2">{useCase}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </section>
+                  )}
+                </MotionDiv>
+              )}
+
+              {activeTab === 1 && (
+                <MotionDiv
+                  key="tab-pricing"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <PricingSection tool={tool} />
+                </MotionDiv>
+              )}
+
+              {activeTab === 2 && (
+                <MotionDiv
+                  key="tab-perks"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.2 }}
+                  className="space-y-6"
+                >
+                  {tool.uniHack ? (
+                    <section className="rounded-2xl border border-line bg-accent-soft/30 p-6 relative overflow-hidden">
+                      <h4 className="text-base font-semibold text-ink flex items-center gap-2 mb-3">
+                        <Zap className="h-5 w-5 text-accent" />
+                        <span>UniHack / Student Tip</span>
+                      </h4>
+                      <p className="text-sm text-ink-2 leading-relaxed">{tool.uniHack}</p>
+                    </section>
+                  ) : null}
+
+                  {classifyStudentOffer(tool) ? (
+                    <section className="rounded-2xl border border-line bg-bg-elev p-6">
+                      <h4 className="text-base font-semibold text-ink mb-3">Active Student Perk Available</h4>
+                      <p className="text-sm text-ink-2 leading-relaxed">
+                        This tool is flagged as student friendly and has custom discounts, templates, or educational accounts available. Click "Visit Tool" to review their verification instructions.
+                      </p>
+                    </section>
+                  ) : (
+                    <section className="rounded-2xl border border-line bg-bg-elev p-6 text-center py-10">
+                      <p className="text-sm text-muted">No explicit student perk or UniHack custom tips registered for this tool yet.</p>
+                    </section>
+                  )}
+                </MotionDiv>
+              )}
+            </AnimatePresence>
+
+            <MotionDiv variants={sectionReveal} initial="initial" animate="animate">
+              <RatingWidget slug={tool.slug} isLoggedIn={isLoggedIn} />
+            </MotionDiv>
+            <MotionDiv variants={sectionReveal} initial="initial" animate="animate">
+              <ReviewsSection slug={tool.slug} isLoggedIn={isLoggedIn} />
+            </MotionDiv>
+          </div>
+
+          {/* Right Sidebar Section */}
+          <aside className="space-y-6 lg:sticky lg:top-24 lg:h-fit lg:w-80">
+            <MotionDiv variants={sectionReveal} initial="initial" animate="animate">
+              <section className="rounded-2xl border border-line bg-bg-elev p-5 shadow-sm">
+                <h3 className="text-base font-semibold text-ink">Quick Info</h3>
+                <dl className="mt-4 space-y-4 text-sm">
+                  <div className="flex flex-col gap-1 border-b border-line pb-2.5">
+                    <dt className="text-xs font-semibold uppercase tracking-wider text-muted">Pricing Status</dt>
+                    <dd className="text-sm font-medium text-ink">{tool.pricing}</dd>
+                  </div>
+                  <div className="flex flex-col gap-1 border-b border-line pb-2.5">
+                    <dt className="text-xs font-semibold uppercase tracking-wider text-muted">Platforms</dt>
+                    <dd className="flex flex-wrap gap-1.5 mt-1">
+                      {tool.platforms.map((platform) => (
+                        <span key={platform} className="inline-flex items-center gap-1 rounded-md bg-bg-sunk px-2 py-0.5 text-xs text-ink-2 border border-line">
+                          {platform === 'Web' ? <Globe className="h-3 w-3" /> : <Laptop className="h-3 w-3" />}
+                          {platform}
+                        </span>
+                      ))}
+                    </dd>
+                  </div>
+                  <div className="flex flex-col gap-1 border-b border-line pb-2.5">
+                    <dt className="text-xs font-semibold uppercase tracking-wider text-muted">Languages</dt>
+                    <dd className="text-sm font-medium text-ink flex items-center gap-1.5">
+                      <Languages className="h-3.5 w-3.5 text-muted" />
+                      <span>Supported across web viewports</span>
+                    </dd>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <dt className="text-xs font-semibold uppercase tracking-wider text-muted">Last Verified</dt>
+                    <dd className="text-sm font-medium text-ink">{formatDate(tool.lastUpdated)}</dd>
+                  </div>
+                </dl>
+              </section>
+            </MotionDiv>
+
+            {relatedTools.length > 0 ? (
+              <MotionDiv variants={sectionReveal} initial="initial" animate="animate">
+                <section className="rounded-2xl border border-line bg-bg-elev p-5 shadow-sm">
+                  <h3 className="text-base font-semibold text-ink">Compare {tool.name} with</h3>
+                  <ul className="mt-3 space-y-2">
+                    {relatedTools.slice(0, 4).map((rt) => (
+                      <li key={`compare-${rt.slug}`}>
+                        <Link
+                          to={`/compare/${tool.slug}-vs-${rt.slug}`}
+                          {...compareHoverHandlers()}
+                          className="inline-flex items-center gap-1 text-sm text-ink-2 hover:gap-2 hover:text-ink transition-all font-medium"
+                        >
+                          <TrendingUp className="h-3.5 w-3.5 text-accent" />
+                          <span>{tool.name} vs {rt.name}</span>
+                          <span className="text-muted">→</span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
               </MotionDiv>
-            )}
-          </section>
-          </MotionDiv>
-        </aside>
+            ) : null}
+
+            <MotionDiv variants={sectionReveal} initial="initial" animate="animate">
+              <section className="rounded-2xl border border-line bg-bg-elev p-5 shadow-sm">
+                <h3 className="text-base font-semibold text-ink">Related Tools</h3>
+
+                {relatedTools.length === 0 ? (
+                  <p className="mt-3 text-sm text-muted">No related tools found.</p>
+                ) : (
+                  <MotionDiv
+                    variants={staggerParent}
+                    initial="initial"
+                    animate="animate"
+                    className="mt-4 space-y-3"
+                  >
+                    {relatedTools.slice(0, 5).map((relatedTool, i) => (
+                      <MotionDiv
+                        key={relatedTool.slug}
+                        variants={staggerChild}
+                        custom={Math.min(i, 5) * 0.04}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => navigate(`/tools/${relatedTool.slug}`)}
+                          {...toolHoverHandlers(relatedTool.slug)}
+                          className="flex w-full items-center gap-3 rounded-xl border border-line bg-bg-elev p-3 text-left transition hover:border-accent hover:bg-bg-sunk focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent cursor-pointer"
+                        >
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-bg-sunk border border-line">
+                            <ToolLogo tool={relatedTool} size={40} />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-semibold text-ink">{relatedTool.name}</p>
+                            <p className="mt-0.5 truncate text-xs text-muted">
+                              {relatedTool.category || relatedTool.pricing || 'Curated pick'}
+                            </p>
+                          </div>
+                        </button>
+                      </MotionDiv>
+                    ))}
+                  </MotionDiv>
+                )}
+              </section>
+            </MotionDiv>
+          </aside>
         </div>
       )}
     </div>
