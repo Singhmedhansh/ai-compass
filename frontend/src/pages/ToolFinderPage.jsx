@@ -1,5 +1,5 @@
 import { Check, RotateCcw, Save, Code, GraduationCap, PenTool, Mic, Briefcase, Layout, BarChart, Zap, BookOpen, Terminal, Globe, Wand2, Star, SlidersHorizontal, Bug, Search, MessageSquare, Bookmark, Palette, Film, Calendar, FileText, Megaphone, Plug, Bot, FlaskConical } from 'lucide-react'
-import { useEffect, useRef, useState, useMemo } from 'react'
+import { useEffect, useRef, useState, useMemo, useCallback } from 'react'
 import { toast } from 'sonner'
 import { useNavigate, Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -1375,10 +1375,23 @@ function ToolFinderPage() {
       goToQuestionAfter(question, selectedAnswer ?? (question.type === 'text' ? '' : selectedAnswer), answers)
     } catch (error) {
       try {
-        posthog?.captureException?.(error, {
-          location: 'ToolFinderPage.handleQuestionContinue',
-          question_id: question?.id
-        })
+        const ph = typeof window !== 'undefined' ? window.posthog : null
+        if (ph) {
+          if (typeof ph.captureException === 'function') {
+            ph.captureException(error, {
+              location: 'ToolFinderPage.handleQuestionContinue',
+              question_id: question?.id
+            })
+          }
+          if (typeof ph.capture === 'function') {
+            ph.capture('frontend_error_boundary', {
+              message: String(error?.message || error),
+              stack: String(error?.stack || ''),
+              location: 'ToolFinderPage.handleQuestionContinue',
+              question_id: question?.id
+            })
+          }
+        }
       } catch (e) {
         /* noop */
       }

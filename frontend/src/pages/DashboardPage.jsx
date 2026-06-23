@@ -1199,7 +1199,7 @@ function DashboardPage() {
                               <div className="mt-3 flex justify-end">
                                 <button
                                   type="button"
-                                  onClick={() => navigate(`/tool/${resolvedTool.slug}`)}
+                                  onClick={() => navigate(`/tools/${resolvedTool.slug}`)}
                                   className="text-[10px] font-bold text-accent hover:underline flex items-center gap-0.5"
                                 >
                                   View Tool Details &rarr;

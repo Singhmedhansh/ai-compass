@@ -1759,7 +1759,7 @@ function ProfilePage() {
                                           <div className="flex items-center gap-1.5 flex-wrap">
                                             <button
                                               type="button"
-                                              onClick={() => navigate(`/tool/${resolvedTool.slug}`)}
+                                              onClick={() => navigate(`/tools/${resolvedTool.slug}`)}
                                               className="text-xs font-bold text-ink hover:text-accent hover:underline text-left truncate"
                                             >
                                               {resolvedTool.name}
@@ -1975,7 +1975,7 @@ function ProfilePage() {
                                   {resolvedTool ? (
                                     <button
                                       type="button"
-                                      onClick={() => navigate(`/tool/${resolvedTool.slug}`)}
+                                      onClick={() => navigate(`/tools/${resolvedTool.slug}`)}
                                       className="text-xs font-bold text-ink hover:text-accent hover:underline text-left truncate"
                                     >
                                       {rec.name}
@@ -1997,7 +1997,7 @@ function ProfilePage() {
                               <div className="mt-3 flex justify-end">
                                 <button
                                   type="button"
-                                  onClick={() => navigate(`/tool/${resolvedTool.slug}`)}
+                                  onClick={() => navigate(`/tools/${resolvedTool.slug}`)}
                                   className="text-[10px] font-bold text-accent hover:underline flex items-center gap-0.5"
                                 >
                                   View Tool Details &rarr;
@@ -2326,7 +2326,7 @@ function ProfilePage() {
                             <div className="flex items-center gap-2">
                               <button
                                 type="button"
-                                onClick={() => navigate(`/tool/${tool.slug}`)}
+                                onClick={() => navigate(`/tools/${tool.slug}`)}
                                 className="text-sm font-semibold text-ink hover:text-accent hover:underline text-left truncate"
                               >
                                 {tool.name}
@@ -2344,7 +2344,7 @@ function ProfilePage() {
                         <div className="flex items-center gap-2 shrink-0">
                           <button
                             type="button"
-                            onClick={() => navigate(`/tool/${tool.slug}`)}
+                            onClick={() => navigate(`/tools/${tool.slug}`)}
                             className="hidden sm:inline-flex items-center rounded-xl bg-bg-sunk px-3 py-1.5 text-xs font-semibold text-ink hover:bg-line transition"
                           >
                             View Details
