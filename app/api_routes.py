@@ -4839,6 +4839,12 @@ def recommend_tools():
             400,
         )
 
+    # Rate limiting: max 10 requests per minute per IP to protect Upstash free tier quota
+    forwarded = str(request.headers.get("X-Forwarded-For") or "").strip()
+    ip = forwarded.split(",")[0].strip() if forwarded else str(request.remote_addr or "unknown")
+    if is_rate_limited(f"rate_limit:recommend:{ip}", limit=10, window_seconds=60):
+        return jsonify({"error": "Too many requests. Please slow down."}), 429
+
     try:
         index = _get_upstash_index()
         matches = index.query(

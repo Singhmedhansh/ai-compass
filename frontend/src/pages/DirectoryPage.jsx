@@ -414,11 +414,9 @@ function DirectoryPage() {
     const shouldLoadSummary = !isRemoteSearch && normalizedCategory === 'All' && !actuallyFreeOnly && !studentOnly && !openSourceOnly && !selfHostedOnly && !payAsYouGoOnly && !showAllOpened
 
 
-    // WHY 300ms: hit the backend after the user stops typing for one quarter
-    // second — short enough that the page feels live, long enough that a
-    // 12-character query fires 1 request instead of 12. No delay on the bare
-    // directory load (empty query) since that's a single page-init fetch.
-    const debounceDelay = Boolean(normalizedQuery) ? 300 : 0
+    // WHY 300ms/600ms: hit the backend after the user stops typing. We increase the
+    // delay to 600ms for semantic search to protect our serverless API request quota.
+    const debounceDelay = Boolean(normalizedQuery) ? (isSemantic ? 600 : 300) : 0
 
     async function loadTools() {
       setIsLoading(true)
@@ -964,7 +962,6 @@ function DirectoryPage() {
               : 'border-line bg-bg-elev text-ink-2 hover:border-accent hover:text-accent'
           }`}
         >
-          <span className="text-base">✨</span>
           <span>AI Search</span>
           {isSemantic && (
             <span className="flex h-2 rounded-full bg-indigo-500 animate-pulse ml-1" style={{ width: '8px', height: '8px' }}></span>
