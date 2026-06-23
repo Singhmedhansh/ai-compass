@@ -141,6 +141,15 @@ def _weighted_search_tokens(raw_query):
     ]
 
 
+def tokenize_and_expand_query(raw_query):
+    query = (raw_query or "").lower()
+    return [
+        token
+        for token in re.split(r"[\W_]+", query)
+        if token
+    ]
+
+
 def _tool_slug_value(tool):
     slug = str(tool.get("slug") or "").strip().lower()
     if slug:

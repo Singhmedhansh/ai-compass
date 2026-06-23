@@ -4766,6 +4766,12 @@ except ImportError:
     _UpstashIndex = None
     _UPSTASH_AVAILABLE = False
 
+try:
+    import sentence_transformers
+    _TRANSFORMERS_AVAILABLE = True
+except ImportError:
+    _TRANSFORMERS_AVAILABLE = False
+
 _upstash_index = None  # module-level singleton
 _transformer_model = None  # module-level model singleton
 
