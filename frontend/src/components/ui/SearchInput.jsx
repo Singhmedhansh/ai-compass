@@ -150,7 +150,7 @@ function SearchInput({
                 key={idx}
                 type="button"
                 onClick={() => handleSuggestionClick(item)}
-                className="flex w-full items-center justify-between px-3.5 py-2.5 text-left text-sm transition-colors hover:bg-bg-sunk/80 focus:bg-bg-sunk outline-none"
+                className="group flex w-full items-center justify-between px-3.5 py-2.5 text-left text-sm transition-colors hover:bg-bg-sunk/80 focus:bg-bg-sunk outline-none"
               >
                 <div className="flex items-center gap-3 min-w-0">
                   <span className="flex h-5 w-5 shrink-0 items-center justify-center text-base">

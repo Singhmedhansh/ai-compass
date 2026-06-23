@@ -119,7 +119,6 @@ function Card({ tool = {}, layoutType = 'standard', glass = false, folders = nul
 
   const displayReason = tool.relevance_reason || tool.reason || `Highly rated ${category.toLowerCase()} tool recommended for students.`
   const baseMinHeight = isLarge ? 450 : 260
-  const hoverMinHeight = isLarge ? 480 : 284
 
   const isInAnyFolder = folders ? folders.some(f => Array.isArray(f.tools) && f.tools.map(t => String(t).toLowerCase()).includes(String(slug).toLowerCase())) : false
 
@@ -146,7 +145,7 @@ function Card({ tool = {}, layoutType = 'standard', glass = false, folders = nul
       }}
       whileHover={{ y: -4, boxShadow: 'var(--shadow-lg)' }}
       whileTap={{ scale: 0.98 }}
-      animate={{ minHeight: isHovered ? hoverMinHeight : baseMinHeight }}
+      style={{ minHeight: baseMinHeight }}
       transition={{ type: 'spring', stiffness: 300, damping: 20 }}
       className={clsx(
         "group relative flex w-full flex-col gap-4 overflow-hidden rounded-2xl border border-line text-left shadow-sm cursor-pointer transition-all hover:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg",

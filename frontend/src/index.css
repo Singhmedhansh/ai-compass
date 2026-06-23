@@ -82,12 +82,15 @@ html[data-theme='dark'] {
 	html { scroll-behavior: smooth; }
 }
 
-/* Custom scrollbar */
+/* Custom scrollbar — uses brand accent (green) not indigo */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #4f46e5; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #6366f1; }
-* { scrollbar-width: thin; scrollbar-color: #4f46e5 transparent; }
+::-webkit-scrollbar-thumb { background: #168358; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #0f5f47; }
+* { scrollbar-width: thin; scrollbar-color: #168358 transparent; }
+html[data-theme='dark'] ::-webkit-scrollbar-thumb { background: #2FB389; }
+html[data-theme='dark'] ::-webkit-scrollbar-thumb:hover { background: #6fd2b0; }
+html[data-theme='dark'] * { scrollbar-color: #2FB389 transparent; }
 
 /* Global adaptive layout tokens driven by html[data-aspect] from main.jsx */
 :root {

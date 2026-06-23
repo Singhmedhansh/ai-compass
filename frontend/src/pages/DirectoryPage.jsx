@@ -414,9 +414,10 @@ function DirectoryPage() {
     const shouldLoadSummary = !isRemoteSearch && normalizedCategory === 'All' && !actuallyFreeOnly && !studentOnly && !openSourceOnly && !selfHostedOnly && !payAsYouGoOnly && !showAllOpened
 
 
-    // WHY 300ms/600ms: hit the backend after the user stops typing. We increase the
-    // delay to 600ms for semantic search to protect our serverless API request quota.
-    const debounceDelay = Boolean(normalizedQuery) ? (isSemantic ? 600 : 300) : 0
+    // WHY 200ms/350ms: hit the backend after the user stops typing. We use a
+    // slightly longer delay for semantic search to protect API request quota,
+    // but keep it under 400ms so search still feels snappy and responsive.
+    const debounceDelay = Boolean(normalizedQuery) ? (isSemantic ? 350 : 200) : 0
 
     async function loadTools() {
       setIsLoading(true)
