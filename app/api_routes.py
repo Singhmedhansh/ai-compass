@@ -4767,14 +4767,6 @@ except ImportError:
     _UPSTASH_AVAILABLE = False
 
 _upstash_index = None  # module-level singleton
-
-try:
-    from sentence_transformers import SentenceTransformer as _SentenceTransformer
-    _TRANSFORMERS_AVAILABLE = True
-except ImportError:
-    _SentenceTransformer = None
-    _TRANSFORMERS_AVAILABLE = False
-
 _transformer_model = None  # module-level model singleton
 
 
@@ -4784,7 +4776,11 @@ def _get_transformer_model():
     """
     global _transformer_model
     if _transformer_model is None:
-        _transformer_model = _SentenceTransformer("all-MiniLM-L6-v2")
+        try:
+            from sentence_transformers import SentenceTransformer as _SentenceTransformer
+            _transformer_model = _SentenceTransformer("all-MiniLM-L6-v2")
+        except ImportError:
+            _transformer_model = None
     return _transformer_model
 
 
