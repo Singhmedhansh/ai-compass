@@ -406,6 +406,17 @@ export default function HelpPage() {
             </div>
           </a>
         </MotionDiv>
+
+        {/* Bottom Call to Action */}
+        <section className="mt-12 text-center border-t border-line pt-8">
+          <h3 className="text-lg font-semibold text-ink">Ready to explore?</h3>
+          <p className="mt-2 text-sm text-muted">Discover 400+ hand-tested AI tools curated for your studies.</p>
+          <div className="mt-6">
+            <Link to="/ai-tool-finder" className="inline-flex items-center rounded-xl bg-accent px-6 py-3 text-sm font-semibold text-bg hover:bg-accent/95 shadow-sm transition-colors">
+              Find my AI tool →
+            </Link>
+          </div>
+        </section>
       </div>
     </>
   )

@@ -183,12 +183,9 @@ export default function AboutPage() {
             <section className="mt-12 text-center border-t border-line pt-8">
               <h3 className="text-lg font-semibold text-ink">Ready to explore?</h3>
               <p className="mt-2 text-sm text-muted">Discover 400+ hand-tested AI tools curated for your studies.</p>
-              <div className="mt-6 flex flex-wrap justify-center gap-4">
-                <Link to="/tools" className="rounded-xl bg-accent px-5 py-2.5 text-sm font-semibold text-bg hover:bg-accent/95 shadow-sm transition-colors">
-                  Browse Catalog
-                </Link>
-                <Link to="/ai-tool-finder" className="rounded-xl border border-line bg-bg-elev px-5 py-2.5 text-sm font-semibold text-ink hover:bg-bg-elev/80 transition-colors">
-                  Build Your AI Stack
+              <div className="mt-6">
+                <Link to="/ai-tool-finder" className="inline-flex items-center rounded-xl bg-accent px-6 py-3 text-sm font-semibold text-bg hover:bg-accent/95 shadow-sm transition-colors">
+                  Find my AI tool →
                 </Link>
               </div>
             </section>
