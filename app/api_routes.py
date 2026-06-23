@@ -4849,15 +4849,8 @@ def recommend_tools():
     except EnvironmentError as env_err:
         return jsonify({"error": str(env_err)}), 503
     except Exception as exc:
-        url = os.environ.get("UPSTASH_VECTOR_REST_URL", "")
-        url_prefix = url[:25] if url else "NOT_SET"
-        url_len = len(url) if url else 0
         current_app.logger.error("Upstash Vector query failed: %s", exc)
-        return jsonify({
-            "error": f"Upstash Error: {str(exc)}",
-            "debug_url_prefix": url_prefix,
-            "debug_url_len": url_len
-        }), 503
+        return jsonify({"error": "Semantic search unavailable. Try again later."}), 503
 
     results = []
     for match in matches:
