@@ -75,7 +75,7 @@ const CardNav = ({ className = '', ease = 'power3.out' }) => {
   const items = [
     {
       label: 'Explore',
-      bgColor: isDark ? '#161B19' : '#FFFFFF',
+      bgColor: isDark ? 'rgba(22, 27, 25, 0.45)' : 'rgba(255, 255, 255, 0.45)',
       textColor: 'var(--ink)',
       links: [
         { label: 'Catalog', ariaLabel: 'Browse All AI Tools', href: '/tools' },
@@ -86,7 +86,7 @@ const CardNav = ({ className = '', ease = 'power3.out' }) => {
     },
     {
       label: 'Student Hub',
-      bgColor: isDark ? '#0A0E0C' : '#F2F1EB',
+      bgColor: isDark ? 'rgba(10, 14, 12, 0.45)' : 'rgba(242, 241, 235, 0.45)',
       textColor: 'var(--ink)',
       links: [
         { label: 'Syllabus Parser', ariaLabel: 'Parse syllabus with AI', href: '/syllabus-parser' },
@@ -97,7 +97,7 @@ const CardNav = ({ className = '', ease = 'power3.out' }) => {
     },
     {
       label: 'Guides',
-      bgColor: isDark ? '#122A22' : '#E4F2EC',
+      bgColor: isDark ? 'rgba(18, 42, 34, 0.45)' : 'rgba(228, 242, 236, 0.45)',
       textColor: 'var(--ink)',
       links: [
         { label: 'For Students', ariaLabel: 'Best tools for students', href: '/best-ai-tools-for-students' },
