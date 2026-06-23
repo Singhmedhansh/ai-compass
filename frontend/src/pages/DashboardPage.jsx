@@ -3,7 +3,7 @@ import { Calendar, Check, Edit3, Eye, FolderPlus, Grid3X3, Heart, Home, Sparkles
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 
-import { Button, Card, CompassLoader, CountUp, ToolLogo } from '../components/ui'
+import { Button, Card, CompassLoader, CountUp, ToolLogo, ChromaGrid } from '../components/ui'
 
 const fadeUp = {
   hidden: { opacity: 0, y: 16 },
@@ -646,11 +646,7 @@ function DashboardPage() {
             </div>
 
             {recommendations.length > 0 ? (
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-                {recommendations.map((tool) => (
-                  <Card key={tool.slug || tool.name} tool={tool} glass={true} />
-                ))}
-              </div>
+              <ChromaGrid items={recommendations} glass={true} />
             ) : (
               <div className="rounded-xl border border-dashed border-line-strong bg-bg-sunk p-5 text-sm text-muted">
                 No recommendations yet.
@@ -845,16 +841,12 @@ function DashboardPage() {
                   )}
                 </div>
               ) : (
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-                  {displayedFavorites.map((tool) => (
-                    <Card 
-                      key={tool.slug || tool.name} 
-                      tool={tool} 
-                      folders={folders}
-                      onFoldersUpdated={fetchFolders}
-                    />
-                  ))}
-                </div>
+                <ChromaGrid 
+                  items={displayedFavorites} 
+                  folders={folders} 
+                  onFoldersUpdated={fetchFolders}
+                  glass={false}
+                />
               )}
             </div>
           </MotionSection>

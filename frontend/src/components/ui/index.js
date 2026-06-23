@@ -3,6 +3,7 @@ export { default as Button } from './Button'
 export { default as Card } from './Card'
 export { default as CountUp } from './CountUp'
 export { default as CompareToggleButton } from './CompareToggleButton'
+export { default as ChromaGrid } from './ChromaGrid'
 
 export { default as CompassLoader } from './CompassLoader'
 export { default as DenseToolCard } from './DenseToolCard'
