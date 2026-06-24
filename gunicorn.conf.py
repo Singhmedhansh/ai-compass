@@ -11,8 +11,12 @@ except (TypeError, ValueError):
 
 bind = f"0.0.0.0:{_port}"
 
-# Workers — 2 workers keeps memory safe while ensuring redundancy
-workers = 2
+# Workers — 1 worker is the ONLY safe choice on Render's 512 MB free-tier.
+# Two workers × ~250 MB each = 500+ MB → OOM kill before the first request
+# is ever served. A single gthread worker with 4 threads still handles
+# concurrent requests; the added parallelism just lives in OS threads
+# instead of OS processes, costing zero extra RSS.
+workers = 1
 
 # Worker class — gthread allows concurrent thread execution (essential to prevent startup freezes)
 worker_class = "gthread"
@@ -30,16 +34,17 @@ accesslog = "-"
 errorlog = "-"
 loglevel = "info"
 
-# Preload the application before forking workers. This:
+# Preload the application before forking workers.
 #   1. Catches import errors immediately at startup (not after a fork).
-#   2. Lets gunicorn bind the port BEFORE running app code — critical for
-#      Render's port-scan probe which times out if the port isn't open
-#      within ~30s.
+#   2. With workers=1 there is no fork-safety concern for the DB pool.
+#   3. If workers is ever raised back to 2, add a @worker_init hook that
+#      calls db.engine.dispose() so each worker gets its own pool.
 #
-# NOTE: preload=True shares the DB connection pool across workers. With
-# workers=1 this is fine. If workers is ever raised, add a
-# @worker_init signal hook to reconnect the pool after fork.
-preload_app = False
+# MEMORY NOTE: preload_app=True loads the app once in the master process
+# and fork()-shares pages copy-on-write. Even with workers=1 this is
+# preferred because it binds the port BEFORE _warm_up() runs, so Render's
+# port-scan probe never sees a timeout.
+preload_app = True
 
 # Print a clear marker once gunicorn has bound — useful for debugging
 # port-scan failures in Render logs.

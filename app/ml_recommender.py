@@ -259,7 +259,7 @@ def get_recommendations(goal=None, budget=None, platform=None, level=None, use_c
 
     return results
 
-@lru_cache(maxsize=2048)
+@lru_cache(maxsize=128)
 def get_similar_tools(slug, limit=4):
     slug = str(slug or "").strip().lower()
     try:

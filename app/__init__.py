@@ -604,6 +604,16 @@ def create_app(config: dict | None = None) -> Flask:
     # binding to the port, so the first user request hits a warm cache
     # without blocking startup.
     if not app.config.get("TESTING"):
+        # Guard: only run the heavy warmup phases once per deployment.
+        # With preload_app=True, create_app() is called in the gunicorn
+        # master process and then forked to workers. If a worker is
+        # recycled, gunicorn calls create_app() again — the env sentinel
+        # prevents the expensive DB + model work from repeating.
+        _WARMUP_SENTINEL = "AI_COMPASS_WARMUP_DONE"
+        _first_warmup = os.environ.get(_WARMUP_SENTINEL) != "1"
+        if _first_warmup:
+            os.environ[_WARMUP_SENTINEL] = "1"  # set before thread starts
+
         app.warmup_status = {
             "migrate": "pending",
             "db_create": "pending",
@@ -745,9 +755,13 @@ def create_app(config: dict | None = None) -> Flask:
                 except Exception as exc:  # noqa: BLE001
                     print(f"[WARMUP] ML model auto-train skipped: {exc}", flush=True)
 
-    if not app.config.get("TESTING"):
+    if not app.config.get("TESTING") and _first_warmup:
         app._warmup_started = True
         threading.Thread(target=_warm_up, name="warmup", daemon=True).start()
+    elif not app.config.get("TESTING"):
+        print("[WARMUP] Skipped — already ran in this process (worker recycle).", flush=True)
+        app.warmup_status = {k: "skipped" for k in app.warmup_status}
+
 
     @app.context_processor
     def inject_global_template_vars():
