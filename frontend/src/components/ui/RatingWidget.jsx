@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Star } from 'lucide-react'
+import { Star, StarHalf } from 'lucide-react'
 
 export default function RatingWidget({ slug, isLoggedIn }) {
   const location = useLocation()
@@ -136,23 +136,61 @@ export default function RatingWidget({ slug, isLoggedIn }) {
       ) : (
         <>
           <div className="mt-4 flex items-center gap-1">
-            {[1, 2, 3, 4, 5].map((star) => {
-              const isFilled = star <= activeValue
+            {[1, 2, 3, 4, 5].map((starIndex) => {
+              const index = starIndex - 1
+              let starComponent = null
+
+              if (hovered > 0 || ratingData.userRating > 0) {
+                // User is actively hovering to rate or has rated: show discrete stars
+                const active = starIndex <= activeValue
+                starComponent = (
+                  <Star
+                    className={`h-6 w-6 ${active ? 'fill-amber-400 text-amber-400' : 'text-line-strong'}`}
+                    fill={active ? 'currentColor' : 'none'}
+                  />
+                )
+              } else {
+                // Showing community average rating: support half stars
+                const avg = ratingData.average || 0
+                const floor = Math.floor(avg)
+                if (index < floor) {
+                  starComponent = (
+                    <Star className="h-6 w-6 fill-amber-400 text-amber-400" />
+                  )
+                } else if (index === floor) {
+                  const remainder = avg - floor
+                  if (remainder >= 0.75) {
+                    starComponent = (
+                      <Star className="h-6 w-6 fill-amber-400 text-amber-400" />
+                    )
+                  } else if (remainder >= 0.25) {
+                    starComponent = (
+                      <StarHalf className="h-6 w-6 fill-amber-400 text-amber-400" />
+                    )
+                  } else {
+                    starComponent = (
+                      <Star className="h-6 w-6 text-line-strong" fill="none" />
+                    )
+                  }
+                } else {
+                  starComponent = (
+                    <Star className="h-6 w-6 text-line-strong" fill="none" />
+                  )
+                }
+              }
+
               return (
                 <button
-                  key={star}
+                  key={starIndex}
                   type="button"
-                  aria-label={`Rate ${star} ${star === 1 ? 'star' : 'stars'}`}
+                  aria-label={`Rate ${starIndex} ${starIndex === 1 ? 'star' : 'stars'}`}
                   disabled={isSubmitting}
-                  onMouseEnter={() => isLoggedIn && !isSubmitting && setHovered(star)}
+                  onMouseEnter={() => isLoggedIn && !isSubmitting && setHovered(starIndex)}
                   onMouseLeave={() => setHovered(0)}
-                  onClick={() => handleRate(star)}
+                  onClick={() => handleRate(starIndex)}
                   className="cursor-pointer rounded-md p-1 outline-none transition focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  <Star
-                    className={`h-6 w-6 ${isFilled ? 'text-amber-400' : 'text-line-strong'}`}
-                    fill={isFilled ? 'currentColor' : 'none'}
-                  />
+                  {starComponent}
                 </button>
               )
             })}
