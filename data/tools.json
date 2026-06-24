@@ -39091,5 +39091,74 @@
     "reviews": 120,
     "last_verified_at": "2026-06-22",
     "id": 639
+  },
+  {
+    "name": "Recapo.ai",
+    "slug": "recapo-ai",
+    "icon": "/static/icons/default.png",
+    "maker": "Recapo",
+    "tagline": "Turn long videos into publish-ready short clips with AI",
+    "category": "Video & Audio",
+    "subCategory": "AI Video Editing",
+    "price": "Freemium",
+    "pricingDetail": "Free tier available; paid pro features starting at $9/month",
+    "bestFor": "Repurposing podcasts, webinars, and long-form videos into viral short clips",
+    "tags": [
+      "video-editing",
+      "ai-video",
+      "shorts",
+      "repurpose",
+      "content-creation",
+      "freemium"
+    ],
+    "trending": true,
+    "featured": false,
+    "rating": 4.5,
+    "weeklyUsers": "5k+",
+    "link": "https://recapo.ai",
+    "apiAvailable": false,
+    "openSource": false,
+    "studentPerk": true,
+    "student_perk": true,
+    "uniHack": "Use the free tier to clip and edit class presentations and study videos",
+    "features": [
+      "AI Clip Selection",
+      "Auto Subtitles",
+      "Active Speaker Detection",
+      "Multi-platform export"
+    ],
+    "platforms": [
+      "Web"
+    ],
+    "languages": "English",
+    "launchYear": 2024,
+    "description": "Recapo.ai is an AI-powered video editing tool designed to help creators and students turn long-form recordings into engaging, social-media-ready short videos. It automatically identifies the most interesting moments, crops to vertical aspect ratios, adds animated subtitles, and highlights active speakers.",
+    "use_cases": [
+      "Creating viral vertical clips from long videos",
+      "Adding animated auto-subtitles to videos",
+      "Extracting key highlights from webinars and lectures",
+      "Reformatting horizontal footage for TikTok and Reels"
+    ],
+    "difficulty": "beginner",
+    "student_friendly": true,
+    "review_count": 12,
+    "company": "Recapo",
+    "logo_emoji": "🎬",
+    "pricing_tier": "freemium",
+    "popularity_score": 0.65,
+    "weekly_users_estimate": "5k+",
+    "pricing": "Freemium",
+    "strengths": [
+      "Auto-clipping AI",
+      "Accurate subtitles",
+      "Quick templates"
+    ],
+    "curation_score": 85.0,
+    "academic_integrity_rating": "Safe",
+    "academic_warning": "No academic warnings. Safe to use for presentation video editing.",
+    "reviewCount": 12,
+    "reviews": 12,
+    "last_verified_at": "2026-06-24",
+    "id": 640
   }
 ]
