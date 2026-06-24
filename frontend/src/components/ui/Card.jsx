@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import { motion } from 'framer-motion'
-import { Folder, Sparkles, Star, Shield } from 'lucide-react'
+import { Folder, Sparkles, Star, StarHalf, Shield } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -71,12 +71,38 @@ function Card({ tool = {}, layoutType = 'standard', glass = false, folders = nul
   const slug = tool.slug || slugify(name)
 
   const ratingStars = Array.from({ length: 5 }, (_, index) => {
-    const active = index < Math.round(rating)
-
+    const floor = Math.floor(rating)
+    if (index < floor) {
+      return (
+        <Star
+          key={`${name}-star-${index}`}
+          className="h-4 w-4 fill-amber-400 text-amber-400"
+        />
+      )
+    }
+    if (index === floor) {
+      const remainder = rating - floor
+      if (remainder >= 0.75) {
+        return (
+          <Star
+            key={`${name}-star-${index}`}
+            className="h-4 w-4 fill-amber-400 text-amber-400"
+          />
+        )
+      }
+      if (remainder >= 0.25) {
+        return (
+          <StarHalf
+            key={`${name}-star-${index}`}
+            className="h-4 w-4 fill-amber-400 text-amber-400"
+          />
+        )
+      }
+    }
     return (
       <Star
         key={`${name}-star-${index}`}
-        className={clsx('h-4 w-4', active ? 'fill-amber-400 text-amber-400' : 'text-line-strong')}
+        className="h-4 w-4 text-line-strong"
       />
     )
   })

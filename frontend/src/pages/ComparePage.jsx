@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import { motion } from 'framer-motion'
-import { AlertTriangle, ArrowLeft, Check, ExternalLink, LayoutGrid, Star, X, Shield } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, Check, ExternalLink, LayoutGrid, Star, StarHalf, X, Shield } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
@@ -41,15 +41,42 @@ function StarRow({ rating }) {
   const value = Math.max(0, Math.min(5, Number(rating) || 0))
   return (
     <div className="flex items-center gap-0.5" aria-label={`Rated ${value} out of 5`}>
-      {Array.from({ length: 5 }, (_, index) => (
-        <Star
-          key={`star-${index}`}
-          className={clsx(
-            'h-4 w-4',
-            index < Math.round(value) ? 'fill-amber-400 text-amber-400' : 'text-line-strong',
-          )}
-        />
-      ))}
+      {Array.from({ length: 5 }, (_, index) => {
+        const floor = Math.floor(value)
+        if (index < floor) {
+          return (
+            <Star
+              key={`star-${index}`}
+              className="h-4 w-4 fill-amber-400 text-amber-400"
+            />
+          )
+        }
+        if (index === floor) {
+          const remainder = value - floor
+          if (remainder >= 0.75) {
+            return (
+              <Star
+                key={`star-${index}`}
+                className="h-4 w-4 fill-amber-400 text-amber-400"
+              />
+            )
+          }
+          if (remainder >= 0.25) {
+            return (
+              <StarHalf
+                key={`star-${index}`}
+                className="h-4 w-4 fill-amber-400 text-amber-400"
+              />
+            )
+          }
+        }
+        return (
+          <Star
+            key={`star-${index}`}
+            className="h-4 w-4 text-line-strong"
+          />
+        )
+      })}
     </div>
   )
 }
