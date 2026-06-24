@@ -35,16 +35,10 @@ errorlog = "-"
 loglevel = "info"
 
 # Preload the application before forking workers.
-#   1. Catches import errors immediately at startup (not after a fork).
-#   2. With workers=1 there is no fork-safety concern for the DB pool.
-#   3. If workers is ever raised back to 2, add a @worker_init hook that
-#      calls db.engine.dispose() so each worker gets its own pool.
-#
-# MEMORY NOTE: preload_app=True loads the app once in the master process
-# and fork()-shares pages copy-on-write. Even with workers=1 this is
-# preferred because it binds the port BEFORE _warm_up() runs, so Render's
-# port-scan probe never sees a timeout.
-preload_app = True
+# Set to False so Gunicorn binds to the port immediately at startup (before
+# loading any application code). The single worker then boots, loads the app,
+# and runs the background warmup thread safely inside its own process context.
+preload_app = False
 
 # Print a clear marker once gunicorn has bound — useful for debugging
 # port-scan failures in Render logs.
