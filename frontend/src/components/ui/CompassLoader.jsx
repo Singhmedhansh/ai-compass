@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react'
+
 /**
  * Brand loading state: a compass whose needle sweeps while the dial
  * stays fixed. Used by the lazy-route Suspense fallback and any
@@ -7,16 +9,50 @@
  * Colors use the --accent token so it adapts to light/dark. The spin
  * lives in index.css (.compass-needle) and respects reduced-motion.
  *
- * @param {number} size - SVG size in px. Default 56.
- * @param {string} label - Optional caption shown under the compass.
- * @param {boolean} full - If true, fills a tall centered region
- *   (used as a route fallback). Otherwise renders inline.
+ * @param {number}  size      - SVG size in px. Default 56.
+ * @param {string}  label     - Fixed caption (overrides rotating messages).
+ * @param {boolean} full      - If true, fills a tall centered region.
+ * @param {boolean} messages  - Show rotating witty loading messages (default true when full).
+ * @param {string}  className - Extra Tailwind classes.
  */
-function CompassLoader({ size = 56, label = '', full = false, className = '' }) {
+
+const LOADING_MESSAGES = [
+  'Finding your tools…',
+  'Scanning the AI universe…',
+  'Hold on a sec ✦',
+  'Almost there…',
+  'Ranking the best picks…',
+  'Sorting through 400+ tools…',
+  'Your results are brewing ☕',
+  'Nearly done…',
+  'Polishing the results…',
+  'Just a moment…',
+]
+
+function CompassLoader({ size = 56, label = '', full = false, messages, className = '' }) {
+  const showMessages = messages !== undefined ? messages : full
+  const [msgIndex, setMsgIndex] = useState(() => Math.floor(Math.random() * LOADING_MESSAGES.length))
+  const [visible, setVisible] = useState(true)
+
+  useEffect(() => {
+    if (!showMessages) return
+    const interval = setInterval(() => {
+      // Fade out → swap text → fade in
+      setVisible(false)
+      setTimeout(() => {
+        setMsgIndex((i) => (i + 1) % LOADING_MESSAGES.length)
+        setVisible(true)
+      }, 300)
+    }, 2200)
+    return () => clearInterval(interval)
+  }, [showMessages])
+
+  const currentMsg = label || (showMessages ? LOADING_MESSAGES[msgIndex] : '')
+
   const compass = (
     <span
       role="status"
-      aria-label={label || 'Loading'}
+      aria-label={currentMsg || 'Loading'}
       className={`inline-flex flex-col items-center gap-3 ${className}`}
     >
       <svg
@@ -40,8 +76,15 @@ function CompassLoader({ size = 56, label = '', full = false, className = '' }) 
           <circle cx="32" cy="32" r="2.6" fill="var(--bg-elev)" stroke="var(--accent)" strokeWidth="1" />
         </g>
       </svg>
-      {label ? (
-        <span className="text-sm font-medium text-muted">{label}</span>
+      {currentMsg ? (
+        <span
+          className="text-sm font-medium text-muted transition-opacity duration-300"
+          style={{ opacity: visible ? 1 : 0 }}
+          aria-live="polite"
+          aria-atomic="true"
+        >
+          {currentMsg}
+        </span>
       ) : null}
     </span>
   )

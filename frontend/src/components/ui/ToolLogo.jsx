@@ -8,10 +8,7 @@ import { useState } from 'react'
 // genuine miss so the chain still degrades:
 //   /icon proxy -> emoji tile -> letter tile.
 function getDomain(url) {
-  if (!url) {
-    return null
-  }
-
+  if (!url) return null
   try {
     return new URL(url).hostname.replace(/^www\./, '')
   } catch {
@@ -33,21 +30,32 @@ function getFallbackLetter(tool) {
   return name ? name[0].toUpperCase() : '?'
 }
 
+// Deterministic pastel color from tool name — no two adjacent cards look identical
+function getAccentColor(name = '') {
+  const hues = [210, 160, 280, 340, 30, 190, 130, 260, 50, 310]
+  let hash = 0
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash)
+  return hues[Math.abs(hash) % hues.length]
+}
+
 function ToolLogo({ tool, size = 48 }) {
   let customIcon = tool?.icon || tool?.logoUrl || tool?.logo_url
   if (customIcon) {
     const isLocalStatic = customIcon.startsWith('/static/icons/') && !customIcon.endsWith('default.png')
     const isClearbit = customIcon.includes('clearbit.com')
-    if (isLocalStatic || isClearbit) {
-      customIcon = null
-    }
+    if (isLocalStatic || isClearbit) customIcon = null
   }
+
   const domain = getDomain(tool?.website || tool?.link || tool?.url)
-  
+
   // 'custom' -> 'favicon' -> 'emoji' -> 'letter'
   const [stage, setStage] = useState(
     customIcon ? 'custom' : (domain ? 'favicon' : (getEmoji(tool) ? 'emoji' : 'letter'))
   )
+  // Track whether the image has finished loading (for shimmer effect)
+  const [imgLoaded, setImgLoaded] = useState(false)
+
+  const hue = getAccentColor(tool?.name)
 
   const boxStyle = {
     width: size,
@@ -57,39 +65,88 @@ function ToolLogo({ tool, size = 48 }) {
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
+    flexShrink: 0,
   }
+
+  // Shimmer placeholder shown while image fetches
+  const shimmer = (
+    <div
+      style={{
+        ...boxStyle,
+        position: 'relative',
+        background: 'var(--bg-sunk)',
+        overflow: 'hidden',
+      }}
+      aria-hidden="true"
+    >
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.12) 50%, transparent 100%)',
+          animation: 'shimmer-logo 1.4s infinite',
+        }}
+      />
+    </div>
+  )
 
   if (stage === 'custom' && customIcon) {
     return (
-      <img
-        src={customIcon}
-        alt={tool?.name ? `${tool.name} logo` : 'Tool logo'}
-        loading="lazy"
-        style={{
-          ...boxStyle,
-          objectFit: 'contain',
-          background: '#fff',
-          padding: 3,
-        }}
-        onError={() => setStage(domain ? 'favicon' : (getEmoji(tool) ? 'emoji' : 'letter'))}
-      />
+      <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
+        {!imgLoaded && shimmer}
+        <img
+          src={customIcon}
+          alt={tool?.name ? `${tool.name} logo` : 'Tool logo'}
+          loading="lazy"
+          decoding="async"
+          style={{
+            ...boxStyle,
+            objectFit: 'contain',
+            background: '#fff',
+            padding: 3,
+            position: imgLoaded ? 'static' : 'absolute',
+            top: 0,
+            left: 0,
+            opacity: imgLoaded ? 1 : 0,
+            transition: 'opacity 0.2s ease',
+          }}
+          onLoad={() => setImgLoaded(true)}
+          onError={() => {
+            setImgLoaded(true)
+            setStage(domain ? 'favicon' : (getEmoji(tool) ? 'emoji' : 'letter'))
+          }}
+        />
+      </div>
     )
   }
 
   if (stage === 'favicon' && domain) {
     return (
-      <img
-        src={`/icon/${domain}`}
-        alt={tool?.name ? `${tool.name} logo` : 'Tool logo'}
-        loading="lazy"
-        style={{
-          ...boxStyle,
-          objectFit: 'contain',
-          background: '#fff',
-          padding: 3,
-        }}
-        onError={() => setStage(getEmoji(tool) ? 'emoji' : 'letter')}
-      />
+      <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
+        {!imgLoaded && shimmer}
+        <img
+          src={`/icon/${domain}`}
+          alt={tool?.name ? `${tool.name} logo` : 'Tool logo'}
+          loading="lazy"
+          decoding="async"
+          style={{
+            ...boxStyle,
+            objectFit: 'contain',
+            background: '#fff',
+            padding: 3,
+            position: imgLoaded ? 'static' : 'absolute',
+            top: 0,
+            left: 0,
+            opacity: imgLoaded ? 1 : 0,
+            transition: 'opacity 0.2s ease',
+          }}
+          onLoad={() => setImgLoaded(true)}
+          onError={() => {
+            setImgLoaded(true)
+            setStage(getEmoji(tool) ? 'emoji' : 'letter')
+          }}
+        />
+      </div>
     )
   }
 
@@ -108,8 +165,8 @@ function ToolLogo({ tool, size = 48 }) {
     <div
       style={{
         ...boxStyle,
-        background: 'var(--accent)',
-        color: 'var(--bg)',
+        background: `hsl(${hue} 55% 48%)`,
+        color: '#fff',
         fontWeight: 700,
         fontSize: size * 0.42,
       }}

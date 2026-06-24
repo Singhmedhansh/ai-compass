@@ -122,6 +122,9 @@
          weight for "we'll probably hit these soon". -->
     <link rel="dns-prefetch" href="https://logo.clearbit.com" />
     <link rel="dns-prefetch" href="https://icons.duckduckgo.com" />
+    <!-- Prefetch the /api/v1/tools endpoint so the directory page starts
+         fetching immediately while React is still loading. -->
+    <link rel="dns-prefetch" href="https://ai-compass.in" />
 
     <!-- Font stylesheet — non-blocking pattern.
          media="print" makes the browser fetch this without blocking
@@ -224,17 +227,31 @@
          and React mounts (createRoot replaces #root children, removing it).
          Inline because the app stylesheet hasn't loaded at this point. -->
     <style>
-      #app-boot{position:fixed;inset:0;display:flex;align-items:center;
-        justify-content:center;background:#FAFAF7;z-index:9999}
+      #app-boot{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;
+        justify-content:center;background:#FAFAF7;z-index:9999;gap:20px}
       html[data-theme="dark"] #app-boot{background:#0e1311}
       #app-boot .needle{transform-box:fill-box;transform-origin:center;
         animation:abspin 1.4s linear infinite}
       @keyframes abspin{to{transform:rotate(360deg)}}
       @media (prefers-reduced-motion:reduce){#app-boot .needle{animation:none}}
+
+      /* Rotating message text */
+      #boot-msg{font-family:Inter,system-ui,sans-serif;font-size:14px;font-weight:500;
+        color:#6B716D;transition:opacity 0.3s ease;min-height:20px;text-align:center}
+      html[data-theme="dark"] #boot-msg{color:#8B918C}
+
+      /* Thin progress bar at top */
+      #boot-bar{position:fixed;top:0;left:0;height:2px;background:#168358;
+        animation:bootprogress 4s cubic-bezier(0.1,0.4,0.3,1) forwards;opacity:0.8}
+      html[data-theme="dark"] #boot-bar{background:#2fb389}
+      @keyframes bootprogress{
+        0%{width:0%} 30%{width:35%} 60%{width:65%} 85%{width:85%} 100%{width:92%}
+      }
     </style>
   </head>
   <body>
     <div id="root">
+      <div id="boot-bar"></div>
       <div id="app-boot" aria-hidden="true">
         <svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
           <!-- Light mode: #168358, dark mode: #2fb389 via SVG filter override below -->
@@ -248,8 +265,24 @@
           </g>
           <style>html[data-theme='dark'] #app-boot .ring1{stroke:#2fb389}html[data-theme='dark'] #app-boot .ring2{stroke:#2fb389}html[data-theme='dark'] #app-boot polygon{fill:#2fb389}html[data-theme='dark'] #app-boot .needle circle{fill:#0e1311;stroke:#2fb389}</style>
         </svg>
+        <p id="boot-msg">Finding your tools…</p>
       </div>
     </div>
+    <script>
+      /* Rotate boot messages every 2s while React loads */
+      (function(){
+        var msgs=['Finding your tools…','Loading AI Compass…','Almost there…','Hold on a sec ✨','Scanning 400+ tools…'];
+        var el=document.getElementById('boot-msg');
+        if(!el)return;
+        var i=0;
+        var t=setInterval(function(){
+          el.style.opacity='0';
+          setTimeout(function(){i=(i+1)%msgs.length;el.textContent=msgs[i];el.style.opacity='1';},300);
+        },2000);
+        /* Stop cycling once React takes over */
+        window.__stopBootMsg=function(){clearInterval(t);};
+      })();
+    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

@@ -96,6 +96,9 @@ const applyAspectRatioFlag = () => {
 applyAspectRatioFlag()
 window.addEventListener('resize', applyAspectRatioFlag)
 
+// Kill the rotating boot-screen messages the moment React takes over
+try { if (typeof window.__stopBootMsg === 'function') window.__stopBootMsg() } catch {}
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <HelmetProvider>
