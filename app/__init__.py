@@ -751,33 +751,16 @@ def create_app(config: dict | None = None) -> Flask:
                 except Exception as exc:  # noqa: BLE001
                     print(f"[WARMUP] Tools prime skipped: {exc}", flush=True)
 
-                try:
-                    from app.ml_recommender import load_model as _load_recommender_model
-                    _load_recommender_model()
-                    print("[WARMUP] Recommender model loaded", flush=True)
-                except Exception as exc:  # noqa: BLE001
-                    print(f"[WARMUP] Recommender preload skipped: {exc}", flush=True)
 
-                # Train the recommender on first boot if the .pkl is
-                # missing. Subprocess can take up to 120s, so it
-                # ABSOLUTELY can't be on the request-serving path.
-                try:
-                    model_path = os.path.join(project_root, 'data', 'recommendation_model.pkl')
-                    if not os.path.exists(model_path):
-                        print("[WARMUP] Training ML model on first startup...", flush=True)
-                        train_script = os.path.join(project_root, 'scripts', 'train_model.py')
-                        if os.path.exists(train_script):
-                            import subprocess
-                            result = subprocess.run(
-                                [sys.executable, train_script],
-                                capture_output=True, text=True, cwd=project_root, timeout=120
-                            )
-                            if result.returncode == 0:
-                                print("[WARMUP] ML model trained successfully", flush=True)
-                            else:
-                                print("[WARMUP] ML model training failed:", result.stderr[:500], flush=True)
-                except Exception as exc:  # noqa: BLE001
-                    print(f"[WARMUP] ML model auto-train skipped: {exc}", flush=True)
+                # ML model preloading intentionally disabled on free-tier.
+                # Unpickling the 443-tool TF-IDF + cosine similarity matrix
+                # expands from 2.8 MB on disk to 150-250 MB in RAM, pushing
+                # a 512 MB instance over its limit before the first request.
+                # get_similar_tools() and semantic_search() both have graceful
+                # fallbacks (category/keyword search) when model is None.
+                # Train the model locally and commit the pkl to the repo;
+                # it will be available at runtime without the memory spike.
+                print("[WARMUP] ML model loading skipped (memory budget: free-tier 512MB)", flush=True)
 
     if not app.config.get("TESTING") and _first_warmup:
         app._warmup_started = True
