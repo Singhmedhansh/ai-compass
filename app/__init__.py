@@ -706,10 +706,11 @@ def create_app(config: dict | None = None) -> Flask:
                 # catalog. Idempotent — no-ops once seeded. If this
                 # fails, the cache will fall back to tools.json.
                 try:
-                    from app.catalog_store import seed_from_json_if_empty, sync_ratings_and_verifications_from_json
+                    from app.catalog_store import seed_from_json_if_empty, sync_catalog_from_json, sync_ratings_and_verifications_from_json
                     seeded = seed_from_json_if_empty()
-                    print(f"[WARMUP] catalog seed: {seeded} rows inserted", flush=True)
-                    app.warmup_status["seed"] = f"success ({seeded} inserted)"
+                    synced_count = sync_catalog_from_json()
+                    print(f"[WARMUP] catalog seed: {seeded} inserted, synced: {synced_count} tools", flush=True)
+                    app.warmup_status["seed"] = f"success ({seeded} inserted, {synced_count} synced)"
                     synced = sync_ratings_and_verifications_from_json()
                     print(f"[WARMUP] catalog ratings/verifications sync: {synced} rows updated", flush=True)
                     app.warmup_status["sync"] = f"success ({synced} synced)"

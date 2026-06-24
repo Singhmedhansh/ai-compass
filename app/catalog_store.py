@@ -113,6 +113,31 @@ def seed_from_json_if_empty() -> int:
         except Exception:  # noqa: BLE001
             pass
         return 0
+def sync_catalog_from_json() -> int:
+    """Read all tools from tools.json and upsert them to CatalogTool table
+    so that any new tools or field updates (pricing, ratings, descriptions)
+    propagate automatically. Returns count of upserted rows."""
+    try:
+        from app import db
+        from app.tool_cache import _load_tools_from_disk
+
+        tools = _load_tools_from_disk() or []
+        count = 0
+        for t in tools:
+            if upsert_tool(t):
+                count += 1
+        db.session.commit()
+        log.info("Synced catalog_tools: upserted %s tools from tools.json", count)
+        return count
+    except Exception as exc:  # noqa: BLE001
+        log.warning("catalog_store.sync_catalog_from_json failed: %s", exc)
+        try:
+            from app import db
+            db.session.rollback()
+        except Exception:  # noqa: BLE001
+            pass
+        return 0
+
 
 
 def upsert_tool(record: dict) -> bool:
