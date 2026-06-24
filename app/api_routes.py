@@ -4769,6 +4769,30 @@ import importlib.util
 
 _TRANSFORMERS_AVAILABLE = importlib.util.find_spec("sentence_transformers") is not None
 
+def _get_semantic_embedding(text: str) -> list[float] | None:
+    """
+    Get 384-dimension embedding for text using Hugging Face Inference API
+    to avoid loading massive PyTorch model in memory (preventing Render OOM).
+    """
+    url = "https://api-inference.huggingface.co/pipeline/feature-extraction/sentence-transformers/all-MiniLM-L6-v2"
+    headers = {}
+    token = os.environ.get("HF_API_TOKEN")
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+        
+    try:
+        response = requests.post(url, json={"inputs": text}, headers=headers, timeout=10)
+        if response.status_code == 200:
+            embedding = response.json()
+            if isinstance(embedding, list) and len(embedding) > 0:
+                if isinstance(embedding[0], list):
+                    return embedding[0]
+                return embedding
+    except Exception as e:
+        current_app.logger.error("Hugging Face embedding generation failed: %s", e)
+    return None
+
+
 _upstash_index = None  # module-level singleton
 _transformer_model = None  # module-level model singleton
 
@@ -4875,8 +4899,14 @@ def recommend_tools():
         return jsonify({"error": "Too many requests. Please slow down."}), 429
 
     try:
-        model = _get_transformer_model()
-        query_vector = model.encode(user_query).tolist()
+        query_vector = _get_semantic_embedding(user_query)
+        if not query_vector:
+            model = _get_transformer_model()
+            if model:
+                query_vector = model.encode(user_query).tolist()
+                
+        if not query_vector:
+            raise RuntimeError("Failed to compute embedding via Hugging Face API or local model fallback.")
 
         index = _get_upstash_index()
         matches = index.query(
