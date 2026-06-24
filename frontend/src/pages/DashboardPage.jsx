@@ -272,8 +272,8 @@ function DashboardPage() {
         const data = await res.json()
         setFolders(data)
       }
-    } catch (err) {
-      console.error('Failed to fetch folders', err)
+    } catch {
+      // Non-critical background fetch — silently ignore; folders show empty state
     }
   }
 

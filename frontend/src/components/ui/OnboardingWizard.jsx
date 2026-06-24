@@ -42,6 +42,7 @@ export default function OnboardingWizard() {
   const [active, setActive] = useState(false)
   const [step, setStep] = useState(0)
   const [saving, setSaving] = useState(false)
+  const [transitioning, setTransitioning] = useState(false)
   
   // Selection States
   const [selectedInterests, setSelectedInterests] = useState([])
@@ -87,16 +88,24 @@ export default function OnboardingWizard() {
   }
 
   const handleNext = () => {
+    // Guard against rapid clicks: ignore if already saving or mid-transition
+    if (saving || transitioning) return
     if (step < 2) {
+      setTransitioning(true)
       setStep(prev => prev + 1)
+      // AnimatePresence exit animation is ~200ms; re-enable after it clears
+      setTimeout(() => setTransitioning(false), 300)
     } else {
       handleSubmit()
     }
   }
 
   const handleBack = () => {
+    if (saving || transitioning) return
     if (step > 0) {
+      setTransitioning(true)
       setStep(prev => prev - 1)
+      setTimeout(() => setTransitioning(false), 300)
     }
   }
 
@@ -341,8 +350,8 @@ export default function OnboardingWizard() {
               <button
                 type="button"
                 onClick={handleBack}
-                disabled={saving}
-                className="inline-flex items-center gap-1 rounded-full border border-line bg-bg-sunk px-3.5 py-1.5 text-xs font-semibold text-ink hover:bg-line transition-colors disabled:opacity-50"
+                disabled={saving || transitioning}
+                className="inline-flex items-center gap-1 rounded-full border border-line bg-bg-sunk px-3.5 py-1.5 text-xs font-semibold text-ink hover:bg-line transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <ChevronLeft className="h-3.5 w-3.5" /> Back
               </button>
@@ -351,8 +360,8 @@ export default function OnboardingWizard() {
             <button
               type="button"
               onClick={handleNext}
-              disabled={saving}
-              className="inline-flex items-center gap-1 rounded-full bg-accent px-5 py-1.5 text-xs font-semibold text-white hover:opacity-90 shadow-sm transition-all disabled:opacity-50"
+              disabled={saving || transitioning}
+              className="inline-flex items-center gap-1 rounded-full bg-accent px-5 py-1.5 text-xs font-semibold text-white hover:opacity-90 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {saving ? (
                 <>

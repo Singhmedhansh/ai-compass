@@ -370,13 +370,14 @@ const PLATFORM_CLAUSE = {
   api: 'working through API or code',
 }
 
-const posthog = typeof window !== 'undefined' ? window.posthog : undefined
-
+// Always look up window.posthog lazily — PostHog loads async, so capturing
+// it at module-load time returns undefined and silently drops all events.
 function captureWizardEvent(event, properties) {
   try {
+    const ph = typeof window !== 'undefined' ? window.posthog : null
     // Debug log to confirm the wizard event fires locally
     try { console.debug && console.debug('captureWizardEvent', event, properties) } catch {}
-    posthog?.capture?.(event, properties)
+    ph?.capture?.(event, properties)
   } catch (err) {
     /* telemetry must never break the wizard */
     try { console.warn && console.warn('captureWizardEvent error', err && err.message) } catch {}
@@ -1277,7 +1278,19 @@ function ToolFinderPage() {
           body: JSON.stringify(answers),
           signal: controller.signal,
         })
-        const responsePayload = await response.json().catch(() => ({}))
+        // Safely parse JSON — server may return HTML on errors (e.g. Render
+        // cold-start splash, 502 gateway page). Treat non-JSON as an error.
+        let responsePayload = {}
+        try {
+          const text = await response.text()
+          responsePayload = JSON.parse(text)
+        } catch {
+          if (!response.ok) {
+            throw new Error('Server error — please try again in a moment.')
+          }
+          // 200 but non-JSON: treat as empty results
+          responsePayload = { tools: [] }
+        }
         if (!response.ok) {
           throw new Error(responsePayload.error || 'Unable to generate preview right now.')
         }
