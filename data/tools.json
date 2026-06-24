@@ -39159,6 +39159,71 @@
     "reviewCount": 12,
     "reviews": 12,
     "last_verified_at": "2026-06-24",
-    "id": 640
+    "id": 640,
+    "pricing_tiers": {
+      "last_verified_at": "2026-06-24",
+      "source_url": "https://recapo.ai",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free Quota",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "Free clip generations",
+            "AI auto-captions",
+            "720p HD exports",
+            "Vertical layout formatting"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://recapo.ai",
+          "is_popular": false
+        },
+        {
+          "name": "Starter",
+          "price_amount": 9.99,
+          "price_display": "$9.99/mo",
+          "features": [
+            "2,500 credits per month",
+            "Edit ~3 films/month",
+            "3 videos per upload limit",
+            "Premium voice library access"
+          ],
+          "cta_label": "Upgrade to Starter",
+          "cta_url": "https://recapo.ai",
+          "is_popular": false
+        },
+        {
+          "name": "Basic",
+          "price_amount": 16.99,
+          "price_display": "$16.99/mo",
+          "features": [
+            "5,000 credits per month",
+            "Edit ~6 films/month",
+            "5 videos per upload limit",
+            "720p HD video output"
+          ],
+          "cta_label": "Upgrade to Basic",
+          "cta_url": "https://recapo.ai",
+          "is_popular": false
+        },
+        {
+          "name": "Pro",
+          "price_amount": 38.99,
+          "price_display": "$38.99/mo",
+          "features": [
+            "15,000 credits per month",
+            "Edit ~17 films/month",
+            "10 videos per upload limit",
+            "1080p Full HD video output",
+            "Custom narration voice option"
+          ],
+          "cta_label": "Upgrade to Pro",
+          "cta_url": "https://recapo.ai",
+          "is_popular": true,
+          "highlight_label": "Recommended"
+        }
+      ]
+    }
   }
 ]
