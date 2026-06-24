@@ -4765,12 +4765,9 @@ try:
 except ImportError:
     _UpstashIndex = None
     _UPSTASH_AVAILABLE = False
+import importlib.util
 
-try:
-    import sentence_transformers
-    _TRANSFORMERS_AVAILABLE = True
-except ImportError:
-    _TRANSFORMERS_AVAILABLE = False
+_TRANSFORMERS_AVAILABLE = importlib.util.find_spec("sentence_transformers") is not None
 
 _upstash_index = None  # module-level singleton
 _transformer_model = None  # module-level model singleton
