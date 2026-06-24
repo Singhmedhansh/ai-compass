@@ -53,3 +53,20 @@ def on_starting(server):
 
 def when_ready(server):
     print(f"[gunicorn] ready and listening on {bind}", flush=True)
+
+def post_fork(server, worker):
+    """Dispose the DB connection pool inherited from the master process.
+
+    With preload_app=True, the master loads the app (and potentially opens DB
+    connections during warmup) before forking workers. The forked worker
+    inherits copies of those file descriptors. If the master closes a
+    connection the worker is still 'holding', subsequent DB calls in the worker
+    silently fail. Calling engine.dispose() in post_fork gives each worker a
+    fresh, private pool — no shared file descriptors.
+    """
+    try:
+        from app import db
+        db.engine.dispose()
+        print(f"[gunicorn] worker {worker.pid}: DB engine disposed after fork", flush=True)
+    except Exception as exc:
+        print(f"[gunicorn] worker {worker.pid}: post_fork engine.dispose() skipped: {exc}", flush=True)

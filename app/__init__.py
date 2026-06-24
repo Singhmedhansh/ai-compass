@@ -215,8 +215,8 @@ def create_app(config: dict | None = None) -> Flask:
         # Small pool: Postgres bills for compute while ANY connection is open and
         # active. 2 persistent + 2 overflow is plenty for a single-worker app
         # and lets auto-suspend kick in during quiet periods.
-        "pool_size": 2,
-        "max_overflow": 2,
+        "pool_size": 3,
+        "max_overflow": 5,
         "pool_timeout": 30,
     }
     if database_uri.startswith("postgres://") or database_uri.startswith("postgresql://"):
@@ -456,41 +456,45 @@ def create_app(config: dict | None = None) -> Flask:
 
         if request.path.startswith('/static') or request.path.startswith('/assets') or request.path in ('/healthz', '/health'):
             return None
-        if current_user and current_user.is_authenticated:
-            session_uuid = session.get('user_uuid')
+        if not (current_user and current_user.is_authenticated):
+            return None
 
+        # Determine client IP
+        forwarded = str(request.headers.get("X-Forwarded-For") or "").strip()
+        ip = forwarded.split(",")[0].strip() if forwarded else str(request.remote_addr or "unknown")
 
+        session_uuid = session.get('user_uuid')
 
-            # Determine client IP
-            forwarded = str(request.headers.get("X-Forwarded-For") or "").strip()
-            ip = forwarded.split(",")[0].strip() if forwarded else str(request.remote_addr or "unknown")
+        if not session_uuid:
+            # ── New session ─────────────────────────────────────────────────
+            # CRITICAL: resolve geolocation BEFORE opening any DB connection.
+            # ip-api.com blocks up to 0.8 s. If called inside a DB transaction
+            # the connection stays open the whole time. With pool_size=2 +
+            # overflow=2 (4 slots) and 4 gthreads this deadlocks the pool and
+            # makes every request stall ("keeps loading" symptom).
+            location = "Unknown"
+            if app.config.get("TESTING") or ip in ("127.0.0.1", "localhost", "::1", "unknown"):
+                location = "Local Network"
+            else:
+                try:
+                    import requests as _geo_req
+                    resp = _geo_req.get(f"http://ip-api.com/json/{ip}", timeout=0.8)
+                    if resp.status_code == 200:
+                        data = resp.json()
+                        city = data.get("city")
+                        country = data.get("country")
+                        if city and country:
+                            location = f"{city}, {country}"
+                        elif country:
+                            location = country
+                except Exception:
+                    pass
 
-            if not session_uuid:
-                # generate new session
-                session_uuid = str(uuid.uuid4())
-                session['user_uuid'] = session_uuid
-
-                user_agent = request.headers.get("User-Agent", "Unknown Browser")[:500]
-
-                # location geolocator helper
-                location = "Unknown"
-                if app.config.get("TESTING") or ip in ("127.0.0.1", "localhost", "::1", "unknown"):
-                    location = "Local Network"
-                else:
-                    try:
-                        import requests
-                        resp = requests.get(f"http://ip-api.com/json/{ip}", timeout=0.8)
-                        if resp.status_code == 200:
-                            data = resp.json()
-                            city = data.get("city")
-                            country = data.get("country")
-                            if city and country:
-                                location = f"{city}, {country}"
-                            elif country:
-                                location = country
-                    except Exception:
-                        pass
-
+            # Geolocation resolved — now open DB, write, and release quickly.
+            session_uuid = str(uuid.uuid4())
+            session['user_uuid'] = session_uuid
+            user_agent = request.headers.get("User-Agent", "Unknown Browser")[:500]
+            try:
                 new_sess = UserSession(
                     session_uuid=session_uuid,
                     user_id=current_user.id,
@@ -498,50 +502,70 @@ def create_app(config: dict | None = None) -> Flask:
                     user_agent=user_agent,
                     location=location,
                     last_active_at=datetime.now(timezone.utc),
-                    created_at=datetime.now(timezone.utc)
+                    created_at=datetime.now(timezone.utc),
                 )
                 db.session.add(new_sess)
                 db.session.commit()
-            else:
-                db_session = UserSession.query.filter_by(session_uuid=session_uuid, user_id=current_user.id).first()
-                if not db_session:
-                    # Session has been revoked! Log out the user.
-                    logout_user()
-                    session.pop('user_uuid', None)
-                    if request.path.startswith('/api/'):
-                        return jsonify({"error": "Session revoked"}), 401
-                    return redirect('/')
-                else:
-                    now = datetime.now(timezone.utc)
-                    # Update at most once per 60 seconds
-                    last_active = db_session.last_active_at
-                    if last_active.tzinfo is None:
-                        last_active = last_active.replace(tzinfo=timezone.utc)
-                    if (now - last_active).total_seconds() > 60:
-                        db_session.last_active_at = now
-                        if db_session.ip_address != ip:
-                            db_session.ip_address = ip
-                            # location geolocator helper
-                            location = "Unknown"
-                            if app.config.get("TESTING") or ip in ("127.0.0.1", "localhost", "::1", "unknown"):
-                                location = "Local Network"
-                            else:
-                                try:
-                                    import requests
-                                    resp = requests.get(f"http://ip-api.com/json/{ip}", timeout=0.8)
-                                    if resp.status_code == 200:
-                                        data = resp.json()
-                                        city = data.get("city")
-                                        country = data.get("country")
-                                        if city and country:
-                                            location = f"{city}, {country}"
-                                        elif country:
-                                            location = country
-                                except Exception:
-                                    pass
-                            db_session.location = location
-                        db_session.user_agent = request.headers.get("User-Agent", "Unknown Browser")[:500]
-                        db.session.commit()
+            except Exception:
+                db.session.rollback()
+        else:
+            # ── Existing session: verify still valid ─────────────────────────
+            try:
+                db_session = UserSession.query.filter_by(
+                    session_uuid=session_uuid, user_id=current_user.id
+                ).first()
+            except Exception:
+                db.session.rollback()
+                return None
+
+            if not db_session:
+                # Session revoked — log out.
+                logout_user()
+                session.pop('user_uuid', None)
+                if request.path.startswith('/api/'):
+                    return jsonify({"error": "Session revoked"}), 401
+                return redirect('/')
+
+            now = datetime.now(timezone.utc)
+            last_active = db_session.last_active_at
+            if last_active.tzinfo is None:
+                last_active = last_active.replace(tzinfo=timezone.utc)
+
+            if (now - last_active).total_seconds() > 60:
+                ip_changed = db_session.ip_address != ip
+
+                # Resolve geolocation BEFORE touching the DB (same reason above).
+                new_location = None
+                if ip_changed:
+                    if app.config.get("TESTING") or ip in ("127.0.0.1", "localhost", "::1", "unknown"):
+                        new_location = "Local Network"
+                    else:
+                        try:
+                            import requests as _geo_req
+                            resp = _geo_req.get(f"http://ip-api.com/json/{ip}", timeout=0.8)
+                            if resp.status_code == 200:
+                                data = resp.json()
+                                city = data.get("city")
+                                country = data.get("country")
+                                if city and country:
+                                    new_location = f"{city}, {country}"
+                                elif country:
+                                    new_location = country
+                        except Exception:
+                            pass
+
+                # Short DB update — connection acquired and released in <5 ms.
+                try:
+                    db_session.last_active_at = now
+                    if ip_changed:
+                        db_session.ip_address = ip
+                        if new_location:
+                            db_session.location = new_location
+                    db_session.user_agent = request.headers.get("User-Agent", "Unknown Browser")[:500]
+                    db.session.commit()
+                except Exception:
+                    db.session.rollback()
+
         return None
 
     @app.before_request
