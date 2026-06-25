@@ -353,3 +353,110 @@ def refresh_tools_cache(data_path: str = DEFAULT_TOOLS_PATH) -> List[Dict[str, A
     except Exception:
         pass
     return list(_TOOLS_CACHE)
+
+
+CURATED_ALTERNATIVES = {
+    "chatgpt": [
+        {
+            "slug": "claude",
+            "why": "Claude offers unmatched reasoning and nuanced writing capabilities. Its longer context window and clean artifacts interface make it exceptionally strong for coding, complex text analysis, and creative writing."
+        },
+        {
+            "slug": "gemini",
+            "why": "Gemini features deep integration with Google Workspace and a massive context window. It excels at web-connected research, processing complex multimodal files (documents, images, audio), and fast information retrieval."
+        },
+        {
+            "slug": "manus-ai",
+            "why": "Manus is an autonomous AI agent that goes beyond chat. It accepts high-level task descriptions and independently plans and executes multi-step workflows like running code, browsing the web, and compiling reports."
+        },
+        {
+            "slug": "perplexity-ai",
+            "why": "Perplexity is optimized specifically for conversational search. It synthesizes real-time web results and academic papers, providing clickable citations and structured answers that make fact-checking seamless."
+        },
+        {
+            "slug": "microsoft-copilot",
+            "why": "Copilot integrates directly into Word, Excel, PowerPoint, and Teams. It is powered by GPT-4 and is often available completely free for students via university Microsoft 365 licenses."
+        },
+        {
+            "slug": "poe",
+            "why": "Poe is an aggregator that allows you to access multiple top models (Claude, GPT-4, Llama) inside a single interface and build custom bots, making it a great budget-friendly utility."
+        },
+        {
+            "slug": "mistral-ai",
+            "why": "Mistral AI is a privacy-conscious, developer-focused alternative offering strong open-weights models and excellent multilingual support for European languages."
+        }
+    ]
+}
+
+
+def get_alternatives_for_tool(slug_value: str, tools: list = None) -> tuple[dict | None, list[dict]]:
+    if tools is None:
+        tools = get_cached_tools() or []
+
+    slug_value = str(slug_value or "").strip().lower()
+    main_tool = next((t for t in tools if str(t.get('slug', '')).strip().lower() == slug_value), None)
+    if not main_tool:
+        return None, []
+
+    curated = CURATED_ALTERNATIVES.get(slug_value)
+    if curated:
+        alternatives = []
+        for item in curated:
+            alt_slug = item["slug"]
+            alt_tool = next((t for t in tools if str(t.get('slug', '')).strip().lower() == alt_slug), None)
+            if alt_tool:
+                alt_copy = dict(alt_tool)
+                alt_copy["why_alternative"] = item["why"]
+                alternatives.append(alt_copy)
+        return main_tool, alternatives
+
+    # Fallback to dynamic category/similarity matching
+    main_category = (main_tool.get('category') or '').strip().lower()
+    TARGET = 10
+
+    recommender_results = []
+    try:
+        from app.ml_recommender import get_similar_tools
+        similar = get_similar_tools(slug_value, limit=20)
+        slug_lookup = {t['slug']: t for t in tools if t.get('slug')}
+        name_lookup = {(t.get('name') or '').strip().lower(): t for t in tools if t.get('name')}
+        if similar and isinstance(similar[0], str):
+            recommender_results = [slug_lookup[s] for s in similar if s in slug_lookup]
+        elif similar:
+            for entry in similar:
+                if entry.get('slug') and entry['slug'] in slug_lookup:
+                    recommender_results.append(slug_lookup[entry['slug']])
+                    continue
+                name_key = (entry.get('name') or '').strip().lower()
+                if name_key and name_key in name_lookup:
+                    recommender_results.append(name_lookup[name_key])
+    except Exception:
+        recommender_results = []
+
+    if main_category:
+        alternatives = [
+            t for t in recommender_results
+            if (t.get('category') or '').strip().lower() == main_category
+            and (t.get('slug') or '').strip().lower() != slug_value
+        ]
+
+        if len(alternatives) < TARGET:
+            seen = {(t.get('slug') or '').strip().lower() for t in alternatives}
+            seen.add(slug_value)
+            for t in tools:
+                if len(alternatives) >= TARGET:
+                    break
+                if (t.get('category') or '').strip().lower() != main_category:
+                    continue
+                s = (t.get('slug') or '').strip().lower()
+                if not s or s in seen:
+                    continue
+                alternatives.append(t)
+                seen.add(s)
+    else:
+        alternatives = [
+            t for t in recommender_results
+            if (t.get('slug') or '').strip().lower() != slug_value
+        ]
+
+    return main_tool, alternatives[:TARGET]

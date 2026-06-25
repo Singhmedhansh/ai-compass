@@ -606,20 +606,11 @@ def _meta_for_request_path(path: str):
     # canonical tag" and refused to index it.
     if normalized.startswith('alternatives/') and normalized.count('/') == 1:
         slug = normalized.split('/', 1)[1]
+        from app.tool_cache import get_alternatives_for_tool
         tools = get_cached_tools() or []
-        tool = next(
-            (t for t in tools if str(t.get('slug', '')).strip().lower() == slug.strip().lower()),
-            None,
-        )
+        tool, alts = get_alternatives_for_tool(slug, tools)
         if tool:
             name = tool.get('name') or slug
-            tool_cat = str(tool.get('category') or '').strip().lower()
-            alts = [
-                t for t in tools
-                if t is not tool
-                and str(t.get('category') or '').strip().lower() == tool_cat
-                and t.get('slug') and t.get('name')
-            ][:12]
             html = _inject_meta(
                 base,
                 title=f'{len(alts)} Best {name} Alternatives 2026 (Free Options) | AI Compass',
