@@ -52,6 +52,15 @@ function Navbar() {
       return null
     }
   })
+  const [showProfileTooltip, setShowProfileTooltip] = useState(() => {
+    try {
+      const userObj = localStorage.getItem('user')
+      const dismissed = localStorage.getItem('ai-compass-profile-tooltip-dismissed') === 'true'
+      return !!userObj && !dismissed
+    } catch {
+      return false
+    }
+  })
   const avatarFailed = failedAvatarUrl != null && failedAvatarUrl === user?.picture
   const [scrolled, setScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -132,9 +141,12 @@ function Navbar() {
         setUser(storedUser)
         setIsAuthenticated(Boolean(storedUser))
         setAuthRefreshKey((value) => value + 1)
+        const dismissed = localStorage.getItem('ai-compass-profile-tooltip-dismissed') === 'true'
+        setShowProfileTooltip(Boolean(storedUser) && !dismissed)
       } catch {
         setUser(null)
         setIsAuthenticated(false)
+        setShowProfileTooltip(false)
       }
     }
 
@@ -254,6 +266,7 @@ function Navbar() {
     }
     setUser(null)
     setIsAuthenticated(false)
+    setShowProfileTooltip(false)
     window.dispatchEvent(new Event('userLoggedIn'))
     setIsProfileMenuOpen(false)
     navigate('/')
@@ -680,6 +693,72 @@ function Navbar() {
                 </MotionDiv>
                 ) : null}
               </AnimatePresence>
+
+              {showProfileTooltip && !isProfileMenuOpen && (
+                <MotionDiv
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 5, scale: 0.95 }}
+                  className="absolute right-0 top-full mt-3 z-50 w-80 rounded-2xl border border-accent bg-bg-elev p-4 shadow-2xl backdrop-blur-md"
+                  style={{
+                    borderColor: 'rgba(22, 131, 88, 0.45)',
+                    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.15), 0 10px 10px -5px rgba(0, 0, 0, 0.1)'
+                  }}
+                >
+                  {/* Arrow pointing up */}
+                  <div 
+                    className="absolute right-6 -top-1.5 h-3 w-3 rotate-45 border-l border-t border-accent bg-bg-elev" 
+                    style={{ borderColor: 'rgba(22, 131, 88, 0.45) transparent transparent rgba(22, 131, 88, 0.45)' }} 
+                  />
+
+                  {/* Close button */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowProfileTooltip(false)
+                      localStorage.setItem('ai-compass-profile-tooltip-dismissed', 'true')
+                    }}
+                    className="absolute right-3 top-3 text-muted hover:text-ink transition p-1 rounded-full hover:bg-bg-sunk"
+                    aria-label="Close onboarding tooltip"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+
+                  <div className="flex items-start gap-3 mt-1">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent-ink border border-accent/20">
+                      <Sparkles className="h-4.5 w-4.5 animate-pulse" />
+                    </div>
+                    <div className="flex-1 min-w-0 pr-4">
+                      <h4 className="text-xs font-bold text-ink tracking-tight">Meet your new AI Profile!</h4>
+                      <p className="mt-1 text-[11px] leading-relaxed text-ink-2">
+                        Customize recommendation goals, verify student status to claim discounts, and get a Gemini audit of your tool stack.
+                      </p>
+                      <div className="mt-3 flex items-center justify-between gap-2 pt-2 border-t border-line/45">
+                        <Link
+                          to="/profile"
+                          onClick={() => {
+                            setShowProfileTooltip(false)
+                            localStorage.setItem('ai-compass-profile-tooltip-dismissed', 'true')
+                          }}
+                          className="text-[11px] font-bold text-accent hover:text-accent-ink hover:underline"
+                        >
+                          Customize Profile &rarr;
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowProfileTooltip(false)
+                            localStorage.setItem('ai-compass-profile-tooltip-dismissed', 'true')
+                          }}
+                          className="text-[11px] font-semibold text-muted hover:text-ink transition"
+                        >
+                          Dismiss
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </MotionDiv>
+              )}
             </div>
           ) : (
             <>

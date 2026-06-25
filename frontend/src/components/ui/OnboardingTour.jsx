@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, ChevronLeft, ChevronRight, Compass, Sparkles, Layers, HelpCircle, Check, HelpCircle as HelpIcon } from 'lucide-react'
+import { X, ChevronLeft, ChevronRight, Compass, Sparkles, Layers, HelpCircle, Check, HelpCircle as HelpIcon, UserCircle2, BarChart3 } from 'lucide-react'
 
 const MotionDiv = motion.div
 
@@ -18,6 +18,30 @@ export default function OnboardingTour() {
       return true
     }
   })
+  const [user, setUser] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('user') || 'null')
+    } catch {
+      return null
+    }
+  })
+
+  // Sync user state on login/logout
+  useEffect(() => {
+    const handleUserChange = () => {
+      try {
+        setUser(JSON.parse(localStorage.getItem('user') || 'null'))
+      } catch {
+        setUser(null)
+      }
+    }
+    window.addEventListener('storage', handleUserChange)
+    window.addEventListener('userLoggedIn', handleUserChange)
+    return () => {
+      window.removeEventListener('storage', handleUserChange)
+      window.removeEventListener('userLoggedIn', handleUserChange)
+    }
+  }, [])
 
   // Listener for manual tour trigger and auto-trigger delayed by 45s
   useEffect(() => {
@@ -47,7 +71,7 @@ export default function OnboardingTour() {
   }, [location.pathname, active])
 
   const handleNext = () => {
-    if (currentStep < 3) {
+    if (currentStep < steps.length - 1) {
       setCurrentStep(prev => prev + 1)
     } else {
       handleComplete()
@@ -171,6 +195,28 @@ export default function OnboardingTour() {
     }
   ]
 
+  if (user) {
+    steps.push({
+      title: 'Your AI Profile & Analytics',
+      description: 'Unlock personalized tool suggestions, verify your student status to access exclusive discounts, manage your saved toolkits, and get a Gemini-powered audit of your AI workflow.',
+      icon: UserCircle2,
+      renderIllustration: () => (
+        <div className="flex h-32 w-full items-center gap-3 p-4 rounded-2xl border border-line/40 bg-bg-sunk/30 overflow-hidden relative">
+          <div className="w-full rounded-xl border border-line bg-bg-elev p-3 shadow-md text-left flex items-start gap-2.5 backdrop-blur">
+            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent-ink border border-accent/20">
+              <BarChart3 className="h-3.5 w-3.5" />
+            </div>
+            <div className="min-w-0">
+              <span className="text-[9px] font-bold uppercase tracking-wider text-accent-ink">Gemini Audit</span>
+              <span className="block text-[11px] font-bold text-ink mt-0.5 truncate">Developer Persona</span>
+              <p className="text-[10px] leading-tight text-ink-2 mt-0.5">Customized recommendations & toolkit distribution analysis.</p>
+            </div>
+          </div>
+        </div>
+      )
+    })
+  }
+
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       {/* Dimmed backdrop */}
@@ -255,7 +301,7 @@ export default function OnboardingTour() {
                 onClick={handleNext}
                 className="inline-flex items-center gap-1 rounded-full bg-accent px-4 py-1.5 text-xs font-semibold text-white hover:opacity-90 shadow-sm transition-all"
               >
-                {currentStep === 3 ? 'Finish' : 'Next'} <ChevronRight className="h-3.5 w-3.5" />
+                {currentStep === steps.length - 1 ? 'Finish' : 'Next'} <ChevronRight className="h-3.5 w-3.5" />
               </button>
             </div>
           </div>
