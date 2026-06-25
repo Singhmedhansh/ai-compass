@@ -2,6 +2,41 @@ import { useState, useEffect, useRef } from 'react'
 import { Search, X, Tag, Lightbulb, ExternalLink } from 'lucide-react'
 import { useNavigate, useLocation } from 'react-router-dom'
 
+function SearchBrandIcon({ item }) {
+  const [failed, setFailed] = useState(false)
+  
+  const domain = (() => {
+    if (!item.link) return null
+    try {
+      return new URL(item.link).hostname.replace(/^www\./, '')
+    } catch {
+      try {
+        return new URL(`https://${item.link}`).hostname.replace(/^www\./, '')
+      } catch {
+        return null
+      }
+    }
+  })()
+
+  if (failed || !domain) {
+    return (
+      <span className="flex h-5 w-5 shrink-0 items-center justify-center text-base">
+        {item.icon || '🛠️'}
+      </span>
+    )
+  }
+
+  return (
+    <img
+      src={`https://icons.duckduckgo.com/ip3/${domain}.ico`}
+      alt=""
+      loading="lazy"
+      className="h-5 w-5 shrink-0 rounded-md border border-line bg-white object-contain p-0.5"
+      onError={() => setFailed(true)}
+    />
+  )
+}
+
 function SearchInput({
   value,
   onChange,
@@ -153,15 +188,17 @@ function SearchInput({
                 className="group flex w-full items-center justify-between px-3.5 py-2.5 text-left text-sm transition-colors hover:bg-bg-sunk/80 focus:bg-bg-sunk outline-none"
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <span className="flex h-5 w-5 shrink-0 items-center justify-center text-base">
-                    {item.type === 'tool' ? (
-                      item.icon || '🛠️'
-                    ) : item.type === 'tag' ? (
-                      <Tag className="h-3.5 w-3.5 text-accent-ink" aria-hidden="true" />
-                    ) : (
-                      <Lightbulb className="h-3.5 w-3.5 text-amber-400" aria-hidden="true" />
-                    )}
-                  </span>
+                  {item.type === 'tool' ? (
+                    <SearchBrandIcon item={item} />
+                  ) : (
+                    <span className="flex h-5 w-5 shrink-0 items-center justify-center text-base">
+                      {item.type === 'tag' ? (
+                        <Tag className="h-3.5 w-3.5 text-accent-ink" aria-hidden="true" />
+                      ) : (
+                        <Lightbulb className="h-3.5 w-3.5 text-amber-400" aria-hidden="true" />
+                      )}
+                    </span>
+                  )}
                   <div className="min-w-0">
                     <span className="block font-semibold text-ink truncate">{item.label}</span>
                     <span className="block text-[11px] text-muted truncate">{item.sub}</span>

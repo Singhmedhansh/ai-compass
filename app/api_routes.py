@@ -372,7 +372,8 @@ def search_suggestions():
                     "label": name,
                     "slug": tool.get("slug") or _tool_slug(tool),
                     "sub": tool.get("category", ""),
-                    "icon": tool.get("logo_emoji", "")
+                    "icon": tool.get("logo_emoji", ""),
+                    "link": tool.get("link", "")
                 })
                 seen_tools.add(name_lower)
             if len([s for s in suggestions if s["type"] == "tool"]) >= 2:
