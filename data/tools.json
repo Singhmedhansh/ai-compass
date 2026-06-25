@@ -414,10 +414,39 @@
     ],
     "slug": "quillbot",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
-      "source_url": "https://quillbot.com/upgrade?referrer=footer",
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://quillbot.com/upgrade",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "125 words Paraphraser limit",
+            "Standard & Fluency modes",
+            "Limited synonym options"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://quillbot.com",
+          "is_popular": false
+        },
+        {
+          "name": "Premium",
+          "price_amount": 9.95,
+          "price_display": "$9.95/mo",
+          "features": [
+            "Unlimited words Paraphraser limit",
+            "Academic, Creative & custom modes",
+            "Plagiarism checker & Tone detector",
+            "Compare Modes (Desktop only)"
+          ],
+          "cta_label": "Go Premium",
+          "cta_url": "https://quillbot.com/upgrade",
+          "is_popular": true,
+          "highlight_label": "Best Value"
+        }
+      ]
     },
     "curation_score": 63.0,
     "academic_integrity_rating": "High Risk",
@@ -1553,10 +1582,39 @@
     "pricing_source_url": "https://apps.ankiweb.net/",
     "pricing_verified_at": "2026-05-18",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
-      "source_url": "https://apps.ankiweb.net",
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://apps.ankiweb.net/",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Anki Web & Desktop",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Fully open-source",
+            "Spaced repetition flashcards",
+            "Synchronization across devices",
+            "Add-on ecosystem support"
+          ],
+          "cta_label": "Download Free",
+          "cta_url": "https://apps.ankiweb.net/",
+          "is_popular": true,
+          "highlight_label": "Open Source"
+        },
+        {
+          "name": "AnkiMobile (iOS)",
+          "price_amount": 24.99,
+          "price_display": "$24.99 one-time",
+          "features": [
+            "Offline database access on iPhone/iPad",
+            "Supports developer maintenance",
+            "Full feature parity with desktop"
+          ],
+          "cta_label": "Buy on App Store",
+          "cta_url": "https://apps.apple.com/us/app/ankimobile-flashcards/id373363361",
+          "is_popular": false
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -1632,10 +1690,39 @@
     ],
     "slug": "quizlet",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
-      "source_url": "https://quizlet.com",
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://quizlet.com/upgrade",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "Basic flashcards & learn mode",
+            "Match study game",
+            "Ad-supported access"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://quizlet.com",
+          "is_popular": false
+        },
+        {
+          "name": "Quizlet Plus",
+          "price_amount": 7.99,
+          "price_display": "$7.99/mo",
+          "features": [
+            "Expert solutions & explanations",
+            "Smart grading options",
+            "Ad-free studying",
+            "Custom images & offline access"
+          ],
+          "cta_label": "Upgrade to Plus",
+          "cta_url": "https://quizlet.com/upgrade",
+          "is_popular": true,
+          "highlight_label": "Recommended"
+        }
+      ]
     },
     "curation_score": 45.0,
     "academic_integrity_rating": "Safe",
@@ -1716,10 +1803,38 @@
     "pricing_source_url": "https://www.khanmigo.ai/pricing",
     "pricing_verified_at": "2026-05-18",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
-      "source_url": "https://khanacademy.org/pricing",
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://www.khanacademy.org/khanmigo",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "US Teachers",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Free for verified US teachers",
+            "Classroom setup & lesson planning",
+            "Student progress analytics"
+          ],
+          "cta_label": "Claim Free Access",
+          "cta_url": "https://www.khanacademy.org/khanmigo",
+          "is_popular": true,
+          "highlight_label": "Teachers Only"
+        },
+        {
+          "name": "Individual",
+          "price_amount": 4.0,
+          "price_display": "$4/mo",
+          "features": [
+            "Personalized student tutor",
+            "Homework & coding helper",
+            "Parent dashboard overview"
+          ],
+          "cta_label": "Subscribe",
+          "cta_url": "https://www.khanacademy.org/khanmigo",
+          "is_popular": false
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -1908,10 +2023,52 @@
     "pricing_source_url": "https://www.wolframalpha.com/pro/pricing/",
     "pricing_verified_at": "2026-05-18",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
-      "source_url": "https://wolframalpha.com",
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://www.wolframalpha.com/pro/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "Standard query solving",
+            "Tabular and graphic outputs",
+            "Standard computational time"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://www.wolframalpha.com",
+          "is_popular": false
+        },
+        {
+          "name": "Pro (Student)",
+          "price_amount": 4.75,
+          "price_display": "$4.75/mo",
+          "features": [
+            "Step-by-step solutions",
+            "Custom file uploads (CSV, image)",
+            "Increased calculation timeout",
+            "No ads"
+          ],
+          "cta_label": "Get Student Discount",
+          "cta_url": "https://www.wolframalpha.com/pro/pricing",
+          "is_popular": true,
+          "highlight_label": "Student Value"
+        },
+        {
+          "name": "Pro Premium",
+          "price_amount": 9.99,
+          "price_display": "$9.99/mo",
+          "features": [
+            "Double runtime computational time",
+            "Priority server calculations",
+            "Early beta features access"
+          ],
+          "cta_label": "Go Premium",
+          "cta_url": "https://www.wolframalpha.com/pro/pricing",
+          "is_popular": false
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -1990,10 +2147,25 @@
     "pricing_source_url": "https://socratic.org/",
     "pricing_verified_at": "2026-05-18",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
-      "source_url": "https://socratic.org/pricing",
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://socratic.org",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free App",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Multi-subject schoolwork helper",
+            "Step-by-step visual explanations",
+            "Voice & photo question scanner",
+            "Powered by Google AI"
+          ],
+          "cta_label": "Download App",
+          "cta_url": "https://socratic.org",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -3596,10 +3768,39 @@
     ],
     "slug": "tome",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
-      "source_url": "https://tome.app",
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://tome.app/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "Free trial credits",
+            "Slide deck generator",
+            "Interactive web layouts"
+          ],
+          "cta_label": "Try for Free",
+          "cta_url": "https://tome.app",
+          "is_popular": false
+        },
+        {
+          "name": "Pro",
+          "price_amount": 8.0,
+          "price_display": "$8.00/mo",
+          "features": [
+            "Unlimited presentations & docs",
+            "Custom brand assets",
+            "PDF exports",
+            "Priority AI generations"
+          ],
+          "cta_label": "Upgrade to Pro",
+          "cta_url": "https://tome.app/pricing",
+          "is_popular": true,
+          "highlight_label": "Popular"
+        }
+      ]
     },
     "curation_score": 54.5,
     "academic_integrity_rating": "Safe",
@@ -3894,10 +4095,39 @@
     ],
     "slug": "gemini",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
-      "source_url": "https://gemini.google.com",
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://one.google.com/explore-plan/gemini-advanced",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "Access to Gemini Flash",
+            "Multimodal input and generation",
+            "Standard web search grounding"
+          ],
+          "cta_label": "Chat Now",
+          "cta_url": "https://gemini.google.com",
+          "is_popular": false
+        },
+        {
+          "name": "Gemini Advanced",
+          "price_amount": 19.99,
+          "price_display": "$19.99/mo",
+          "features": [
+            "Access to Gemini 1.5 Pro model",
+            "2TB Google One cloud storage",
+            "Integrates in Gmail, Docs & Slides",
+            "Priority response times"
+          ],
+          "cta_label": "Try for 2 Months Free",
+          "cta_url": "https://one.google.com/explore-plan/gemini-advanced",
+          "is_popular": true,
+          "highlight_label": "Power User"
+        }
+      ]
     },
     "curation_score": 67.0,
     "academic_integrity_rating": "Safe",
@@ -3981,10 +4211,40 @@
     "pricing_verified_at": "2026-05-25",
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
-      "source_url": "https://copilot.microsoft.com/pricing",
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://www.microsoft.com/copilot/copilot-pro",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "Access to GPT-4 and GPT-4o mini",
+            "DALL-E 3 image generation",
+            "Web search grounding",
+            "Copilot in browser/web apps"
+          ],
+          "cta_label": "Try Free",
+          "cta_url": "https://copilot.microsoft.com",
+          "is_popular": false
+        },
+        {
+          "name": "Copilot Pro",
+          "price_amount": 20.0,
+          "price_display": "$20.00/mo",
+          "features": [
+            "Priority access to GPT-4 and GPT-4o",
+            "Faster image generation credits",
+            "Copilot inside Word, Excel & PPT",
+            "Create custom Copilot GPTs"
+          ],
+          "cta_label": "Subscribe Pro",
+          "cta_url": "https://www.microsoft.com/copilot/copilot-pro",
+          "is_popular": true,
+          "highlight_label": "Office Pro"
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -4168,10 +4428,39 @@
     ],
     "slug": "speechify",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
-      "source_url": "https://speechify.com/pricing/",
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://speechify.com/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "Standard reading voices",
+            "Web browser extension reader",
+            "Import text documents"
+          ],
+          "cta_label": "Try Free",
+          "cta_url": "https://speechify.com",
+          "is_popular": false
+        },
+        {
+          "name": "Premium",
+          "price_amount": 11.58,
+          "price_display": "$11.58/mo",
+          "features": [
+            "130+ ultra-realistic natural voices",
+            "Scan paper docs with OCR",
+            "Adjust speed up to 900wpm",
+            "Translate text to 30+ languages"
+          ],
+          "cta_label": "Go Premium",
+          "cta_url": "https://speechify.com/pricing",
+          "is_popular": true,
+          "highlight_label": "Billed $139/yr"
+        }
+      ]
     },
     "curation_score": 61.2,
     "academic_integrity_rating": "Safe",
@@ -4249,10 +4538,39 @@
     "pricing_verified_at": "2026-05-25",
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
+      "last_verified_at": "2026-06-25",
       "source_url": "https://mindgrasp.ai/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Scholar",
+          "price_amount": 9.99,
+          "price_display": "$9.99/mo",
+          "features": [
+            "Summarize documents & web pages",
+            "Generate flashcards & quizzes",
+            "Standard AI Q&A chat helper"
+          ],
+          "cta_label": "Choose Scholar",
+          "cta_url": "https://mindgrasp.ai/pricing",
+          "is_popular": false
+        },
+        {
+          "name": "Scholar Premium",
+          "price_amount": 12.99,
+          "price_display": "$12.99/mo",
+          "features": [
+            "Summarize audio, video & YouTube links",
+            "Batch multiple uploads at once",
+            "Create custom notes & Q&A guides",
+            "Priority processing"
+          ],
+          "cta_label": "Choose Premium",
+          "cta_url": "https://mindgrasp.ai/pricing",
+          "is_popular": true,
+          "highlight_label": "Popular"
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -4936,10 +5254,39 @@
     ],
     "slug": "deepl",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
-      "source_url": "https://deepl.com/en/pro#api",
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://www.deepl.com/pro",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "Text translation up to 1,500 chars",
+            "Translate 3 files/mo (PDF, Docx)",
+            "Standard language dictionary"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://www.deepl.com/translator",
+          "is_popular": false
+        },
+        {
+          "name": "Pro Starter",
+          "price_amount": 8.74,
+          "price_display": "$8.74/mo",
+          "features": [
+            "Unlimited text translation",
+            "Translate 5 files/mo (up to 10MB)",
+            "Zero-data logging privacy guarantee",
+            "Custom formal/informal tone settings"
+          ],
+          "cta_label": "Start Pro Trial",
+          "cta_url": "https://www.deepl.com/pro",
+          "is_popular": true,
+          "highlight_label": "Privacy Shield"
+        }
+      ]
     },
     "curation_score": 67.0,
     "academic_integrity_rating": "Safe",
@@ -5013,10 +5360,39 @@
     ],
     "slug": "lex",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
+      "last_verified_at": "2026-06-25",
       "source_url": "https://lex.page/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "Basic AI writing editor",
+            "Draft text generation helper",
+            "Standard templates & notes"
+          ],
+          "cta_label": "Write for Free",
+          "cta_url": "https://lex.page",
+          "is_popular": false
+        },
+        {
+          "name": "Lex Premium",
+          "price_amount": 12.0,
+          "price_display": "$12/mo",
+          "features": [
+            "Unlimited AI text generation",
+            "Write with advanced models (GPT-4o/Claude)",
+            "Collaborative document edit",
+            "Advanced search & semantic lookup"
+          ],
+          "cta_label": "Go Premium",
+          "cta_url": "https://lex.page/pricing",
+          "is_popular": true,
+          "highlight_label": "Pro Writer"
+        }
+      ]
     },
     "curation_score": 52.5,
     "academic_integrity_rating": "Safe",
@@ -5558,10 +5934,38 @@
     "pricing_verified_at": "2026-05-25",
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
-      "source_url": "https://gradescope.com/pricing",
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://www.gradescope.com",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Student",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Submit assignments & worksheets online",
+            "Review grade details & rubrics",
+            "Standard scan uploads"
+          ],
+          "cta_label": "Student Login",
+          "cta_url": "https://www.gradescope.com",
+          "is_popular": true
+        },
+        {
+          "name": "Institutional / Teacher",
+          "price_amount": 0.01,
+          "price_display": "Custom Quote",
+          "features": [
+            "AI homework sorting",
+            "Auto-graders for code submissions",
+            "Bubble sheet scanning",
+            "Canvas/LMS integration"
+          ],
+          "cta_label": "Request Demo",
+          "cta_url": "https://www.gradescope.com",
+          "is_popular": false
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -5639,10 +6043,38 @@
     "pricing_verified_at": "2026-05-25",
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
-      "source_url": "https://poe.com",
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://poe.com/subscribe",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "Daily compute points allocation",
+            "Chat with Claude Flash & Llama 3",
+            "Create customized custom bots"
+          ],
+          "cta_label": "Start Chatting",
+          "cta_url": "https://poe.com",
+          "is_popular": false
+        },
+        {
+          "name": "Poe Pro",
+          "price_amount": 19.99,
+          "price_display": "$19.99/mo",
+          "features": [
+            "Higher daily points limit",
+            "Priority access to GPT-4o & Claude 3.5 Sonnet",
+            "Higher context window support"
+          ],
+          "cta_label": "Subscribe to Pro",
+          "cta_url": "https://poe.com/subscribe",
+          "is_popular": true,
+          "highlight_label": "Developer Option"
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -6109,10 +6541,39 @@
     "pricing_verified_at": "2026-05-25",
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
-      "source_url": "https://slidesai.io/pricing",
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://www.slidesai.io/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "3 presentations per month",
+            "2,500 characters/slide limit",
+            "Standard template designs"
+          ],
+          "cta_label": "Start Free",
+          "cta_url": "https://www.slidesai.io",
+          "is_popular": false
+        },
+        {
+          "name": "Pro",
+          "price_amount": 10.0,
+          "price_display": "$10.00/mo",
+          "features": [
+            "10 presentations per month",
+            "6,000 characters/slide limit",
+            "Premium slide exports",
+            "No watermark logo"
+          ],
+          "cta_label": "Upgrade to Pro",
+          "cta_url": "https://www.slidesai.io/pricing",
+          "is_popular": true,
+          "highlight_label": "Popular"
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -6270,10 +6731,23 @@
     "pricing_verified_at": "2026-05-25",
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
+      "last_verified_at": "2026-06-25",
       "source_url": "https://public.tableau.com",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Full access to standard features",
+            "No hidden subscription costs"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://public.tableau.com",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -6349,10 +6823,23 @@
     "pricing_verified_at": "2026-05-25",
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
+      "last_verified_at": "2026-06-25",
       "source_url": "https://orangedatamining.com",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Full access to standard features",
+            "No hidden subscription costs"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://orangedatamining.com",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -6522,10 +7009,38 @@
     "pricing_verified_at": "2026-05-25",
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
-      "source_url": "https://colab.research.google.com",
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://colab.research.google.com/signup",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Standard CPU/GPU resource access",
+            "Share Jupyter notebooks directly",
+            "Google Drive integration"
+          ],
+          "cta_label": "Open Colab",
+          "cta_url": "https://colab.research.google.com",
+          "is_popular": false
+        },
+        {
+          "name": "Colab Pro",
+          "price_amount": 9.99,
+          "price_display": "$9.99/mo",
+          "features": [
+            "Priority access to T4 & V100 GPUs",
+            "Background code run options",
+            "Increased RAM allocation memory"
+          ],
+          "cta_label": "Subscribe Pro",
+          "cta_url": "https://colab.research.google.com/signup",
+          "is_popular": true,
+          "highlight_label": "Compute Priority"
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -6601,10 +7116,23 @@
     "pricing_verified_at": "2026-05-25",
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
-      "source_url": "https://kaggle.com/pricing",
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://kaggle.com",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Full access to standard features",
+            "No hidden subscription costs"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://kaggle.com",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -7271,10 +7799,23 @@
     "reviews": 165,
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
-      "source_url": "https://explainlikeimfive.io/pricing",
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://explainlikeimfive.io",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Full access to standard features",
+            "No hidden subscription costs"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://explainlikeimfive.io",
+          "is_popular": true
+        }
+      ]
     }
   },
   {
@@ -7428,10 +7969,39 @@
     "pricing_verified_at": "2026-05-25",
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
-      "source_url": "https://duolingo.com/pricing",
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://www.duolingo.com",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "Full language course curriculum",
+            "Daily heart limit restrictions",
+            "Ad-supported learning"
+          ],
+          "cta_label": "Start Learning",
+          "cta_url": "https://www.duolingo.com",
+          "is_popular": false
+        },
+        {
+          "name": "Super Duolingo",
+          "price_amount": 6.99,
+          "price_display": "$6.99/mo",
+          "features": [
+            "Unlimited hearts",
+            "Ad-free experience",
+            "Mistake review quiz tracking",
+            "Personalized study tips"
+          ],
+          "cta_label": "Try Super",
+          "cta_url": "https://www.duolingo.com",
+          "is_popular": true,
+          "highlight_label": "Billed Annually"
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -7588,10 +8158,26 @@
     "pricing_verified_at": "2026-05-25",
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
-      "source_url": "https://caktus.ai",
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://www.caktus.ai/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Premium Plan",
+          "price_amount": 9.99,
+          "price_display": "$9.99/mo",
+          "features": [
+            "Essay Writer & content expander",
+            "AI code helper (Python/JS)",
+            "Math solver steps",
+            "Automatic citation formatter"
+          ],
+          "cta_label": "Start Study Plus",
+          "cta_url": "https://www.caktus.ai/pricing",
+          "is_popular": true,
+          "highlight_label": "Billed Annually"
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -9465,10 +10051,23 @@
     "pricing_source_url": "https://www.opera.com/features/aria",
     "pricing_verified_at": "2026-05-18",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
+      "last_verified_at": "2026-06-25",
       "source_url": "https://opera.com/features/aria",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Full access to standard features",
+            "No hidden subscription costs"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://opera.com/features/aria",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -10040,10 +10639,51 @@
     ],
     "slug": "suno",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
+      "last_verified_at": "2026-06-25",
       "source_url": "https://suno.com/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Basic",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "50 daily credits (~10 songs)",
+            "Non-commercial license usage",
+            "Shared queue priority"
+          ],
+          "cta_label": "Start Free",
+          "cta_url": "https://suno.com",
+          "is_popular": false
+        },
+        {
+          "name": "Pro",
+          "price_amount": 10.0,
+          "price_display": "$10.00/mo",
+          "features": [
+            "2,500 credits monthly (~500 songs)",
+            "Commercial license ownership",
+            "General generation queue speed"
+          ],
+          "cta_label": "Choose Pro",
+          "cta_url": "https://suno.com/pricing",
+          "is_popular": true,
+          "highlight_label": "Most Popular"
+        },
+        {
+          "name": "Premium",
+          "price_amount": 30.0,
+          "price_display": "$30.00/mo",
+          "features": [
+            "10,000 credits monthly (~2,000 songs)",
+            "Commercial license ownership",
+            "Maximum priority generation speed"
+          ],
+          "cta_label": "Choose Premium",
+          "cta_url": "https://suno.com/pricing",
+          "is_popular": false
+        }
+      ]
     },
     "curation_score": 76.2,
     "academic_integrity_rating": "Safe",
@@ -10120,10 +10760,23 @@
     "pricing_verified_at": "2026-05-25",
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
-      "source_url": "https://ahrefs.com/pricing",
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://ahrefs.com/writing-tools",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Full access to standard features",
+            "No hidden subscription costs"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://ahrefs.com/writing-tools",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -11331,10 +11984,23 @@
     "pricing_verified_at": "2026-05-25",
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
-      "source_url": "https://workspace.google.com/pricing",
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://workspace.google.com/marketplace/app/claude_for_sheets_and_docs",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Full access to standard features",
+            "No hidden subscription costs"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://workspace.google.com/marketplace/app/claude_for_sheets_and_docs",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -11512,10 +12178,38 @@
     "pricing_source_url": "https://www.chatpdf.com/",
     "pricing_verified_at": "2026-05-18",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
-      "source_url": "https://chatpdf.com",
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://www.chatpdf.com",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "Up to 120 pages PDF size",
+            "3 PDFs limit daily",
+            "50 questions limit daily"
+          ],
+          "cta_label": "Try Free",
+          "cta_url": "https://www.chatpdf.com",
+          "is_popular": false
+        },
+        {
+          "name": "Plus",
+          "price_amount": 5.0,
+          "price_display": "$5.00/mo",
+          "features": [
+            "Up to 2,000 pages PDF size",
+            "Unlimited PDF uploads",
+            "Unlimited questions daily"
+          ],
+          "cta_label": "Upgrade to Plus",
+          "cta_url": "https://www.chatpdf.com",
+          "is_popular": true,
+          "highlight_label": "Research Bundle"
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -11889,10 +12583,23 @@
     "pricing_source_url": "https://www.llama.com/",
     "pricing_verified_at": "2026-05-18",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
+      "last_verified_at": "2026-06-25",
       "source_url": "https://llama.meta.com",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Full access to standard features",
+            "No hidden subscription costs"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://llama.meta.com",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -12725,10 +13432,23 @@
     "pricing_verified_at": "2026-05-25",
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
-      "source_url": "https://glasp.co/pricing",
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://glasp.co",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Full access to standard features",
+            "No hidden subscription costs"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://glasp.co",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -12969,10 +13689,23 @@
     "pricing_verified_at": "2026-05-25",
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
+      "last_verified_at": "2026-06-25",
       "source_url": "https://arxiv-sanity-lite.com",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Full access to standard features",
+            "No hidden subscription costs"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://arxiv-sanity-lite.com",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -13565,10 +14298,23 @@
     "pricing_verified_at": "2026-05-25",
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
+      "last_verified_at": "2026-06-25",
       "source_url": "https://mermaid.js.org",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Full access to standard features",
+            "No hidden subscription costs"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://mermaid.js.org",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -13644,10 +14390,23 @@
     "pricing_verified_at": "2026-05-25",
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
-      "source_url": "https://plasmo.com/#pricing",
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://plasmo.com",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Full access to standard features",
+            "No hidden subscription costs"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://plasmo.com",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -14010,10 +14769,23 @@
     "pricing_verified_at": "2026-05-25",
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
+      "last_verified_at": "2026-06-25",
       "source_url": "https://rawgraphs.io",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Full access to standard features",
+            "No hidden subscription costs"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://rawgraphs.io",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -15416,10 +16188,23 @@
     "pricing_verified_at": "2026-05-25",
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
+      "last_verified_at": "2026-06-25",
       "source_url": "https://goblin.tools",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Full access to standard features",
+            "No hidden subscription costs"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://goblin.tools",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -18869,10 +19654,23 @@
     "pricing_verified_at": "2026-05-25",
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
+      "last_verified_at": "2026-06-25",
       "source_url": "https://pandas-ai.com",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Full access to standard features",
+            "No hidden subscription costs"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://pandas-ai.com",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -19391,10 +20189,23 @@
     "reviews": 108,
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
+      "last_verified_at": "2026-06-25",
       "source_url": "https://peergrade.io",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Full access to standard features",
+            "No hidden subscription costs"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://peergrade.io",
+          "is_popular": true
+        }
+      ]
     }
   },
   {
@@ -19468,10 +20279,23 @@
     "reviews": 148,
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
+      "last_verified_at": "2026-06-25",
       "source_url": "https://paperbrain.study",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Full access to standard features",
+            "No hidden subscription costs"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://paperbrain.study",
+          "is_popular": true
+        }
+      ]
     }
   },
   {
@@ -19659,10 +20483,23 @@
     "pricing_verified_at": "2026-05-25",
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
+      "last_verified_at": "2026-06-25",
       "source_url": "https://haystack.deepset.ai",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Full access to standard features",
+            "No hidden subscription costs"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://haystack.deepset.ai",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -19739,10 +20576,23 @@
     "pricing_verified_at": "2026-05-25",
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
-      "source_url": "https://promptfoo.dev/pricing/",
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://promptfoo.dev",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Full access to standard features",
+            "No hidden subscription costs"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://promptfoo.dev",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -20240,10 +21090,23 @@
     "pricing_verified_at": "2026-05-25",
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
+      "last_verified_at": "2026-06-25",
       "source_url": "https://ray.io",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Full access to standard features",
+            "No hidden subscription costs"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://ray.io",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -20413,10 +21276,23 @@
     "pricing_verified_at": "2026-05-25",
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
+      "last_verified_at": "2026-06-25",
       "source_url": "https://dvc.org",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Full access to standard features",
+            "No hidden subscription costs"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://dvc.org",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -21749,10 +22625,23 @@
     "pricing_verified_at": "2026-05-25",
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
+      "last_verified_at": "2026-06-25",
       "source_url": "https://aihomeworkhelper.com",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Full access to standard features",
+            "No hidden subscription costs"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://aihomeworkhelper.com",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -22148,10 +23037,23 @@
     "pricing_verified_at": "2026-05-25",
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
-      "source_url": "https://explainx.ai/pricing",
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://explainx.ai",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Full access to standard features",
+            "No hidden subscription costs"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://explainx.ai",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -22641,10 +23543,23 @@
     "pricing_verified_at": "2026-05-25",
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
-      "source_url": "https://kaggle.com/pricing",
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://kaggle.com/learn",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Full access to standard features",
+            "No hidden subscription costs"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://kaggle.com/learn",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -22720,10 +23635,23 @@
     "pricing_verified_at": "2026-05-25",
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
+      "last_verified_at": "2026-06-25",
       "source_url": "https://fast.ai",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Full access to standard features",
+            "No hidden subscription costs"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://fast.ai",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -23086,10 +24014,23 @@
     "pricing_verified_at": "2026-05-25",
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
+      "last_verified_at": "2026-06-25",
       "source_url": "https://readaloud.app",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Full access to standard features",
+            "No hidden subscription costs"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://readaloud.app",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -23243,10 +24184,23 @@
     "pricing_verified_at": "2026-05-25",
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
-      "source_url": "https://inciteful.xyz/pricing",
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://inciteful.xyz",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Full access to standard features",
+            "No hidden subscription costs"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://inciteful.xyz",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -23398,10 +24352,23 @@
     "pricing_source_url": "https://scholar.google.com/",
     "pricing_verified_at": "2026-05-18",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
+      "last_verified_at": "2026-06-25",
       "source_url": "https://scholar.google.com",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Full access to standard features",
+            "No hidden subscription costs"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://scholar.google.com",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -23480,10 +24447,23 @@
     "reviews": 153,
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
-      "source_url": "https://unpaywall.org/pricing",
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://unpaywall.org",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Full access to standard features",
+            "No hidden subscription costs"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://unpaywall.org",
+          "is_popular": true
+        }
+      ]
     }
   },
   {
@@ -24932,10 +25912,23 @@
     "pricing_verified_at": "2026-05-25",
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
+      "last_verified_at": "2026-06-25",
       "source_url": "https://jetbrains.com/student",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Full access to standard features",
+            "No hidden subscription costs"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://jetbrains.com/student",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -25012,10 +26005,23 @@
     "pricing_verified_at": "2026-05-25",
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
+      "last_verified_at": "2026-06-25",
       "source_url": "https://code.visualstudio.com",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Full access to standard features",
+            "No hidden subscription costs"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://code.visualstudio.com",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -25182,10 +26188,38 @@
     "pricing_verified_at": "2026-05-25",
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
-      "source_url": "https://stackblitz.com/pricing",
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://stackblitz.com/membership",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "Unlimited public workspaces",
+            "In-browser node run environment",
+            "GitHub integration import"
+          ],
+          "cta_label": "Start Coding",
+          "cta_url": "https://stackblitz.com",
+          "is_popular": false
+        },
+        {
+          "name": "Premium",
+          "price_amount": 9.0,
+          "price_display": "$9.00/mo",
+          "features": [
+            "Unlimited private workspaces",
+            "Custom subdomains hosting",
+            "Offline browser container running"
+          ],
+          "cta_label": "Upgrade to Pro",
+          "cta_url": "https://stackblitz.com/membership",
+          "is_popular": true,
+          "highlight_label": "Pro Coder"
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -25261,10 +26295,39 @@
     "pricing_verified_at": "2026-05-25",
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
-      "source_url": "https://leetcode.com",
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://leetcode.com/subscribe",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "Access to standard coding questions",
+            "Online compiler & interpreter",
+            "Community discussion forums"
+          ],
+          "cta_label": "Start Coding",
+          "cta_url": "https://leetcode.com",
+          "is_popular": false
+        },
+        {
+          "name": "Premium",
+          "price_amount": 35.0,
+          "price_display": "$35.00/mo",
+          "features": [
+            "Access to premium question bank",
+            "Auto-complete compiler tools",
+            "Company-specific mock interviews",
+            "Detailed official solution walkthroughs"
+          ],
+          "cta_label": "Subscribe Premium",
+          "cta_url": "https://leetcode.com/subscribe",
+          "is_popular": true,
+          "highlight_label": "Interview Prep"
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -25339,10 +26402,39 @@
     "pricing_source_url": "https://neetcode.io/pro",
     "pricing_verified_at": "2026-05-18",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
-      "source_url": "https://neetcode.io/pricing",
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://neetcode.io/practice",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "NeetCode 150 study roadmap",
+            "Video solutions to basic problems",
+            "Standard progress tracking"
+          ],
+          "cta_label": "Start Learning",
+          "cta_url": "https://neetcode.io",
+          "is_popular": false
+        },
+        {
+          "name": "NeetCode Pro",
+          "price_amount": 15.0,
+          "price_display": "$15.00/mo",
+          "features": [
+            "Access to all study courses",
+            "System Design & Algorithms prep",
+            "Lifetime updates support",
+            "Billed annually at $99"
+          ],
+          "cta_label": "Upgrade to Pro",
+          "cta_url": "https://neetcode.io/practice",
+          "is_popular": true,
+          "highlight_label": "Lifetime Available"
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -25518,10 +26610,23 @@
     "pricing_verified_at": "2026-05-25",
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
+      "last_verified_at": "2026-06-25",
       "source_url": "https://cs50.harvard.edu",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Full access to standard features",
+            "No hidden subscription costs"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://cs50.harvard.edu",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -26649,10 +27754,23 @@
     "reviews": 121,
     "last_verified_at": "2026-06-22",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
+      "last_verified_at": "2026-06-25",
       "source_url": "https://semanticscholar.org/me/research-feeds",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Full access to standard features",
+            "No hidden subscription costs"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://semanticscholar.org/me/research-feeds",
+          "is_popular": true
+        }
+      ]
     }
   },
   {
@@ -31751,10 +32869,23 @@
     "pricing_source_url": "https://stitch.withgoogle.com",
     "pricing_verified_at": "2026-05-25",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
-      "source_url": "https://stitch.withgoogle.com/pricing",
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://stitch.withgoogle.com",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Full access to standard features",
+            "No hidden subscription costs"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://stitch.withgoogle.com",
+          "is_popular": true
+        }
+      ]
     },
     "featured": false,
     "logo_emoji": "🤖",
@@ -31806,10 +32937,23 @@
     "pricing_source_url": "https://aistudio.google.com",
     "pricing_verified_at": "2026-05-25",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
-      "source_url": "https://aistudio.google.com/pricing",
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://aistudio.google.com",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Full access to standard features",
+            "No hidden subscription costs"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://aistudio.google.com",
+          "is_popular": true
+        }
+      ]
     },
     "featured": false,
     "logo_emoji": "🤖",
@@ -35626,10 +36770,23 @@
     "strengths": [],
     "price": "Free",
     "pricing_tiers": {
-      "last_verified_at": "2026-06-22",
+      "last_verified_at": "2026-06-25",
       "source_url": "https://rxresu.me/",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Full access to standard features",
+            "No hidden subscription costs"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://rxresu.me/",
+          "is_popular": true
+        }
+      ]
     }
   },
   {
@@ -38671,7 +39828,26 @@
     "reviewCount": 112,
     "reviews": 112,
     "last_verified_at": "2026-06-22",
-    "id": 633
+    "id": 633,
+    "pricing_tiers": {
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://www.fast.ai",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Full access to standard features",
+            "No hidden subscription costs"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://www.fast.ai",
+          "is_popular": true
+        }
+      ]
+    }
   },
   {
     "name": "DeepLearning.AI",
@@ -38880,7 +40056,26 @@
     "reviewCount": 245,
     "reviews": 245,
     "last_verified_at": "2026-06-22",
-    "id": 636
+    "id": 636,
+    "pricing_tiers": {
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://www.autodesk.com/products/fusion-360",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Full access to standard features",
+            "No hidden subscription costs"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://www.autodesk.com/products/fusion-360",
+          "is_popular": true
+        }
+      ]
+    }
   },
   {
     "name": "ANSYS",
