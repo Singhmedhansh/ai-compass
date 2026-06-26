@@ -96,14 +96,14 @@ export default function CookieConsent() {
             <button
               type="button"
               onClick={handleDecline}
-              className="w-full sm:w-auto px-4 py-2 text-sm font-semibold rounded-token border border-line bg-transparent text-muted hover:text-ink hover:bg-bg-sunk transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-bg focus-visible:ring-accent text-center"
+              className="flex-1 sm:flex-initial sm:w-auto px-4 py-2 text-sm font-semibold rounded-token border border-line bg-transparent text-muted hover:text-ink hover:bg-bg-sunk transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-bg focus-visible:ring-accent text-center"
             >
               Decline
             </button>
             <button
               type="button"
               onClick={handleAccept}
-              className="w-full sm:w-auto px-5 py-2 text-sm font-semibold rounded-token bg-[#10b981] text-white hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#10b981] focus-visible:ring-offset-2 focus-visible:ring-offset-bg transition-all shrink-0 shadow-sm text-center"
+              className="flex-1 sm:flex-initial sm:w-auto px-5 py-2 text-sm font-semibold rounded-token bg-[#10b981] text-white hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#10b981] focus-visible:ring-offset-2 focus-visible:ring-offset-bg transition-all shadow-sm text-center"
             >
               Accept
             </button>

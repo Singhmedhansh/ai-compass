@@ -453,13 +453,42 @@ function DirectoryPage() {
               }).toString()}`
 
 
-        const response = await fetch(endpoint, { signal: controller.signal })
+        let response = await fetch(endpoint, { signal: controller.signal })
         clearTimeout(abortTimeout)
 
-        if (!response.ok) {
-          throw new Error(`API returned ${response.status}`)
+        let data
+        let isFallbackTriggered = false
+
+        if (response.ok) {
+          data = await response.json()
+          if (isSemantic && normalizedQuery && !isTaggedSearch && (!data.results || data.results.length === 0)) {
+            isFallbackTriggered = true
+          }
+        } else {
+          if (isSemantic && normalizedQuery && !isTaggedSearch) {
+            isFallbackTriggered = true
+          } else {
+            throw new Error(`API returned ${response.status}`)
+          }
         }
-        const data = await response.json()
+
+        if (isFallbackTriggered) {
+          console.warn('Recommend API returned empty or failed. Falling back to standard search...')
+          const fallbackEndpoint = `${API}/api/v1/search?${new URLSearchParams({
+            q: normalizedQuery,
+            ...(canonicalCategory !== 'All' ? { category: canonicalCategory } : {}),
+            ...(actuallyFreeOnly ? { actually_free: 'true' } : {}),
+            ...(studentOnly ? { student_only: 'true' } : {}),
+            ...(openSourceOnly ? { open_source: 'true' } : {}),
+            ...(selfHostedOnly ? { self_hosted: 'true' } : {}),
+            ...(payAsYouGoOnly ? { pay_as_you_go: 'true' } : {}),
+          }).toString()}`
+          const fallbackResponse = await fetch(fallbackEndpoint, { signal: controller.signal })
+          if (!fallbackResponse.ok) {
+            throw new Error(`API returned ${fallbackResponse.status}`)
+          }
+          data = await fallbackResponse.json()
+        }
         if (requestId !== latestRequestIdRef.current || controller.signal.aborted) {
           return
         }
@@ -819,7 +848,7 @@ function DirectoryPage() {
               animate="animate"
               exit="exit"
               onClick={closeDrawer}
-              className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm md:hidden"
+              className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm md:hidden"
             />
             <MotionDiv
               key="mobile-drawer-panel"
@@ -833,7 +862,7 @@ function DirectoryPage() {
               aria-labelledby="mobile-filters-title"
               id="mobile-filters-drawer"
               onKeyDown={handlePanelKeyDown}
-              className="fixed bottom-0 left-0 right-0 z-50 rounded-t-2xl bg-bg-elev px-6 pt-6 shadow-2xl md:hidden"
+              className="fixed bottom-0 left-0 right-0 z-[60] rounded-t-2xl bg-bg-elev px-6 pt-6 shadow-2xl md:hidden"
               style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}
             >
               <div className="mb-4 flex items-center justify-between">
