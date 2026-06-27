@@ -18,9 +18,9 @@ export default function FlipWords({ words, duration = 3000, className = "" }) {
       <AnimatePresence mode="wait">
         <motion.span
           key={currentWord}
-          initial={{ opacity: 0, y: 10, filter: "blur(4px)" }}
-          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-          exit={{ opacity: 0, y: -10, filter: "blur(4px)" }}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
           transition={{ duration: 0.4, type: "spring", stiffness: 100, damping: 10 }}
           className="inline-block whitespace-nowrap"
         >
