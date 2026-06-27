@@ -70,6 +70,7 @@ function Navbar() {
   const studentHubMenuRef = useClickOutside(() => setIsStudentHubMenuOpen(false))
   const currencyMenuRef = useClickOutside(() => setIsCurrencyMenuOpen(false))
   const toolsMenuRef = useClickOutside(() => setIsToolsMenuOpen(false))
+  const headerRef = useClickOutside(() => setIsMobileMenuOpen(false))
   const isAdmin = Boolean(user && (user.is_admin || ADMIN_EMAILS.includes(user.email)))
   const avatarLetter = useMemo(
     () => String(user?.name || user?.email || 'U').charAt(0).toUpperCase(),
@@ -274,6 +275,7 @@ function Navbar() {
 
   return (
     <header
+      ref={headerRef}
       className={`sticky top-0 z-50 transition-all duration-300 ${
         scrolled
           ? 'border-b border-line glass-nav shadow-lg backdrop-blur-md'
@@ -305,7 +307,7 @@ function Navbar() {
         </Link>
 
         {hideSearchOnRoute ? null : (
-          <div className="order-3 w-full sm:order-2 sm:flex-1">
+          <div className="order-3 w-full sm:order-2 sm:flex-1 sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl">
             <SearchInput
               value={searchValue}
               onChange={setSearchValue}
