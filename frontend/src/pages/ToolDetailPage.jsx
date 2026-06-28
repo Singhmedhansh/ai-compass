@@ -1064,47 +1064,7 @@ function ToolDetailPage() {
             </MotionDiv>
           ) : null}
 
-          <MotionDiv variants={sectionReveal} initial="initial" animate="animate">
-          <section className="rounded-2xl border border-line bg-bg-elev p-5">
-            <h3 className="text-base font-semibold text-ink">Related Tools</h3>
 
-            {relatedTools.length === 0 ? (
-              <p className="mt-3 text-sm text-muted">No related tools found.</p>
-            ) : (
-              <MotionDiv
-                variants={staggerParent}
-                initial="initial"
-                animate="animate"
-                className="mt-4 space-y-3"
-              >
-                {relatedTools.map((relatedTool, i) => (
-                  <MotionDiv
-                    key={relatedTool.slug}
-                    variants={staggerChild}
-                    custom={Math.min(i, 5) * 0.04}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => navigate(`/tools/${relatedTool.slug}`)}
-                      {...toolHoverHandlers(relatedTool.slug)}
-                      className="flex w-full items-center gap-3 rounded-xl border border-line bg-bg-elev p-3 text-left transition hover:border-accent hover:bg-bg-sunk focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-                    >
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-bg-sunk">
-                        <ToolLogo tool={relatedTool} size={40} />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-semibold text-ink">{relatedTool.name}</p>
-                        <p className="mt-0.5 truncate text-xs text-muted">
-                          {relatedTool.category || relatedTool.pricing || 'Curated pick'}
-                        </p>
-                      </div>
-                    </button>
-                  </MotionDiv>
-                ))}
-              </MotionDiv>
-            )}
-          </section>
-          </MotionDiv>
         </aside>
         </div>
       )}
