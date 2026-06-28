@@ -1,3 +1,5 @@
+import { useCatalogStats } from '../../hooks/useCatalogStats'
+
 // Visible FAQ for the homepage. Exported FAQS is also consumed by HomePage
 // to emit matching FAQPage JSON-LD — keep the two in sync (Google requires the
 // schema to mirror visible on-page content). The same Q&A is server-rendered
@@ -30,6 +32,15 @@ export const FAQS = [
 ]
 
 export default function FAQ() {
+  const { roundedToolsText } = useCatalogStats() // {/* Dynamic — do not hardcode */}
+
+  const dynamicFaqs = FAQS.map(faq => ({
+    ...faq,
+    a: faq.a
+      .replace('400+', roundedToolsText) // {/* Dynamic — do not hardcode */}
+      .replace('400', roundedToolsText) // {/* Dynamic — do not hardcode */}
+  }))
+
   return (
     <section id="faq" className="py-12 md:py-20">
       <div className="mx-auto max-w-6xl px-5">
@@ -43,7 +54,7 @@ export default function FAQ() {
         </h2>
 
         <dl className="border-t border-line">
-          {FAQS.map(({ q, a }) => (
+          {dynamicFaqs.map(({ q, a }) => (
             <div key={q} className="border-b border-line py-5">
               <dt className="text-base font-semibold text-ink md:text-lg">{q}</dt>
               <dd className="mt-2 max-w-[68ch] text-[15px] leading-relaxed text-muted md:text-base">

@@ -67,11 +67,11 @@ def _get_lock_path(path: str) -> str:
 def _tool_slug(tool: Dict[str, Any]) -> str:
     explicit_slug = str(tool.get("slug") or "").strip().lower()
     if explicit_slug:
-        return explicit_slug
+        return explicit_slug.replace(".", "-")
 
     tool_key = str(tool.get("tool_key") or "").strip().lower()
     if tool_key:
-        return tool_key
+        return tool_key.replace(".", "-")
 
     name = str(tool.get("name") or "").strip().lower()
     return re.sub(r"[^a-z0-9]+", "-", name).strip("-")

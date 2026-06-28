@@ -1,9 +1,10 @@
 import clsx from 'clsx'
 import { AnimatePresence, motion } from 'framer-motion'
-import { BadgeCheck, Check, Folder, Heart, Star, Shield, X } from 'lucide-react'
+import { BadgeCheck, Check, Folder, Heart, Star, Shield, X, Zap, Gift, GraduationCap } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
+import { useCatalogStats } from '../hooks/useCatalogStats'
 
 import RatingWidget from '../components/ui/RatingWidget'
 import ReviewsSection from '../components/ui/ReviewsSection'
@@ -25,6 +26,7 @@ const MotionDiv = motion.div
 // referrer). Gives cold visitors instant site context before they bounce.
 // Dismissed per-session via sessionStorage so repeat visitors never see it.
 function DirectLandingStrip() {
+  const { roundedToolsText } = useCatalogStats() // {/* Dynamic — do not hardcode */}
   const [show, setShow] = useState(() => {
     // Don't re-show after dismissal within the same session
     if (typeof sessionStorage !== 'undefined') {
@@ -62,7 +64,7 @@ function DirectLandingStrip() {
           <Link to="/" className="font-bold text-accent hover:underline underline-offset-2">
             AI Compass
           </Link>
-          {' '}— 400+ free AI tools, hand-tested for students.{' '}
+          {' '}— {roundedToolsText} free AI tools, hand-tested for students.{' '} {/* Dynamic — do not hardcode */}
           <Link
             to="/tools"
             className="font-semibold text-accent hover:underline underline-offset-2"
@@ -94,6 +96,7 @@ function toSlug(value = '') {
     .toString()
     .toLowerCase()
     .trim()
+    .replace(/\./g, '-')
     .replace(/[^a-z0-9\s-]/g, '')
     .replace(/\s+/g, '-')
 }
@@ -181,6 +184,12 @@ function normalizeTool(rawTool) {
       return paid.reduce((a, b) => (a.price_amount <= b.price_amount ? a : b))
     })(),
     pricingCurrency: rawTool?.pricing_tiers?.currency || 'USD',
+    ease_of_use: rawTool?.ease_of_use ?? rawTool?.easeOfUse ?? null,
+    free_tier_value: rawTool?.free_tier_value ?? rawTool?.freeTierValue ?? null,
+    student_relevance: rawTool?.student_relevance ?? rawTool?.studentRelevance ?? null,
+    free_tier_summary: rawTool?.free_tier_summary ?? rawTool?.freeTierSummary ?? null,
+    student_note: rawTool?.student_note ?? rawTool?.studentNote ?? null,
+    last_verified: rawTool?.last_verified ?? rawTool?.lastVerified ?? rawTool?.last_verified_at ?? rawTool?.lastVerifiedAt ?? null,
   }
 }
 
@@ -191,6 +200,14 @@ function formatVerifiedDate(value) {
   const d = new Date(value)
   if (isNaN(d.getTime())) return null
   return `Verified ${d.toLocaleString('en-US', { month: 'long', year: 'numeric' })}`
+}
+
+function formatLastVerifiedDate(value) {
+  if (!value) return null
+  const d = new Date(value)
+  if (isNaN(d.getTime())) return null
+  // Return just "Month Year", e.g., "June 2026"
+  return d.toLocaleString('en-US', { month: 'long', year: 'numeric' })
 }
 
 function ToolDetailPage() {
@@ -598,6 +615,57 @@ function ToolDetailPage() {
  
               <div className="min-w-0 flex-1">
                 <h1 className="text-2xl font-bold tracking-tight text-ink sm:text-3xl lg:text-4xl">{tool.name}</h1>
+                {(() => {
+                  const hasVerdict = tool.ease_of_use != null || tool.free_tier_value != null || tool.student_relevance != null
+                  if (!hasVerdict) return null
+                  
+                  const renderCard = (title, score, icon, gradientClasses) => {
+                    if (score == null) return null
+                    const pct = (Number(score) / 5) * 100
+                    return (
+                      <div className="flex flex-col justify-between rounded-xl border border-line bg-bg-elev/50 p-4 shadow-sm backdrop-blur-md hover:border-accent/30 hover:scale-[1.01] transition-all">
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-2">
+                            <span className="p-1.5 rounded-lg bg-bg-sunk/60 text-ink">
+                              {icon}
+                            </span>
+                            <span className="text-xs font-bold text-muted-2 tracking-wide uppercase">{title}</span>
+                          </div>
+                          <span className="text-sm font-bold text-ink">{score}/5</span>
+                        </div>
+                        <div className="mt-3.5 w-full h-1.5 bg-bg-sunk rounded-full overflow-hidden">
+                          <div
+                            className={clsx("h-full rounded-full transition-all duration-500", gradientClasses)}
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                      </div>
+                    )
+                  }
+
+                  return (
+                    <div className="mt-4 mb-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      {renderCard(
+                        "Ease of Use",
+                        tool.ease_of_use,
+                        <Zap className="h-4 w-4 text-cyan-400 fill-cyan-400/10" />,
+                        "bg-gradient-to-r from-cyan-400 to-blue-500 shadow-[0_0_12px_rgba(34,211,238,0.3)]"
+                      )}
+                      {renderCard(
+                        "Free Tier Value",
+                        tool.free_tier_value,
+                        <Gift className="h-4 w-4 text-emerald-400 fill-emerald-400/10" />,
+                        "bg-gradient-to-r from-emerald-400 to-teal-500 shadow-[0_0_12px_rgba(52,211,153,0.3)]"
+                      )}
+                      {renderCard(
+                        "Student Relevance",
+                        tool.student_relevance,
+                        <GraduationCap className="h-4 w-4 text-purple-400 fill-purple-400/10" />,
+                        "bg-gradient-to-r from-purple-400 to-indigo-500 shadow-[0_0_12px_rgba(192,132,252,0.3)]"
+                      )}
+                    </div>
+                  )
+                })()}
                 <div className="mt-3 flex flex-wrap items-center gap-2">
                   <Badge label={tool.category} variant={tool.category} />
                   <span
@@ -642,14 +710,21 @@ function ToolDetailPage() {
                 </div>
 
                 <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  <a
-                    href={outboundUrl(tool)}
-                    target="_blank"
-                    rel={OUTBOUND_REL}
-                    className="w-full"
-                  >
-                    <Button className="w-full font-bold">Visit Tool</Button>
-                  </a>
+                  <div>
+                    <a
+                      href={outboundUrl(tool)}
+                      target="_blank"
+                      rel={OUTBOUND_REL}
+                      className="w-full"
+                    >
+                      <Button className="w-full font-bold">Visit Tool</Button>
+                    </a>
+                    {tool.last_verified && (
+                      <p className="mt-1.5 text-center text-xs text-muted-2">
+                        Last verified: {formatLastVerifiedDate(tool.last_verified)}
+                      </p>
+                    )}
+                  </div>
                   <Button variant="ghost" className="w-full gap-2" onClick={handleFavoriteToggle}>
                     <AnimatePresence mode="wait" initial={false}>
                       <motion.span
@@ -668,6 +743,13 @@ function ToolDetailPage() {
                 </div>
 
                 <p className="mt-5 text-sm leading-relaxed text-ink-2">{tool.shortDescription}</p>
+
+                {tool.student_note && (
+                  <div className="mt-5 pt-4 border-t border-line/30">
+                    <h3 className="text-sm font-bold text-ink">For students</h3>
+                    <p className="mt-1.5 text-sm leading-relaxed text-ink-2">{tool.student_note}</p>
+                  </div>
+                )}
 
                 {isFavorite && isLoggedIn && (
                   <div className="mt-4 rounded-xl border border-line bg-bg-elev/40 p-4 shadow-sm backdrop-blur-md">
@@ -710,13 +792,54 @@ function ToolDetailPage() {
                     AI Compass may earn a commission when you sign up through this link, at no extra cost to you.
                   </p>
                 ) : null}
-                <Link
-                  to={`/alternatives/${tool.slug}`}
-                  {...alternativesHoverHandlers(tool.slug)}
-                  className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-ink-2 hover:gap-2 hover:text-ink"
-                >
-                  See alternatives to {tool.name} →
-                </Link>
+                {relatedTools.length > 0 ? (
+                  <div className="mt-4 border-t border-line/30 pt-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="text-sm font-bold text-ink">Alternatives to {tool.name}</h4>
+                      <Link
+                        to={`/alternatives/${tool.slug}`}
+                        {...alternativesHoverHandlers(tool.slug)}
+                        className="text-xs font-semibold text-accent hover:underline"
+                      >
+                        Compare All →
+                      </Link>
+                    </div>
+                    <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-none">
+                      {relatedTools.slice(0, 4).map((alt) => (
+                        <div
+                          key={alt.slug}
+                          className="flex flex-col justify-between w-60 shrink-0 rounded-xl border border-line bg-bg-elev/60 p-4 hover:border-accent hover:bg-bg-sunk transition-all"
+                        >
+                          <div>
+                            <div className="flex items-center gap-2 mb-2">
+                              <div className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-md bg-bg-sunk">
+                                <ToolLogo tool={alt} size={28} />
+                              </div>
+                              <h5 className="text-sm font-semibold text-ink truncate">{alt.name}</h5>
+                            </div>
+                            <p className="text-xs text-ink-2 line-clamp-2 leading-normal mb-3">
+                              {alt.tagline || alt.shortDescription}
+                            </p>
+                          </div>
+                          <Link
+                            to={`/tools/${alt.slug}`}
+                            className="text-xs font-bold text-accent hover:underline mt-auto"
+                          >
+                            View Details →
+                          </Link>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <Link
+                    to={`/alternatives/${tool.slug}`}
+                    {...alternativesHoverHandlers(tool.slug)}
+                    className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-ink-2 hover:gap-2 hover:text-ink"
+                  >
+                    See alternatives to {tool.name} →
+                  </Link>
+                )}
 
                 {showLoginPrompt ? (
                   <div className="mt-4 rounded-xl border border-accent bg-accent-soft p-3 text-sm">
@@ -831,6 +954,13 @@ function ToolDetailPage() {
                   <h2 className="text-lg font-semibold text-ink">About this tool</h2>
                   <p className="mt-3 leading-relaxed text-ink-2">{tool.description}</p>
                 </section>
+
+                {tool.free_tier_summary && (
+                  <section className="rounded-2xl border border-accent/25 bg-accent-soft/30 p-6 shadow-sm backdrop-blur-sm">
+                    <h3 className="text-sm font-bold text-accent-ink uppercase tracking-wider mb-2">Free Tier Details</h3>
+                    <p className="text-sm leading-relaxed text-ink-2">{tool.free_tier_summary}</p>
+                  </section>
+                )}
               </motion.div>
             )}
 

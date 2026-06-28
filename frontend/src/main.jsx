@@ -7,9 +7,11 @@ import 'sonner/dist/styles.css'
 import App from './App.jsx'
 import { toApiUrl } from './config/api.js'
 import { CurrencyProvider } from './context/CurrencyContext.jsx'
+import { ToolCountProvider } from './context/ToolCountContext.jsx'
 
 
 // --- Stale-deploy recovery -------------------------------------------------
+
 // After a deploy, a tab that was open (or has a cached index.html) still
 // references the OLD hashed chunk filenames. Those files no longer exist
 // on the server, so the dynamic import rejects and the page goes blank
@@ -113,9 +115,11 @@ createRoot(document.getElementById('root')).render(
           },
         }}
       />
-      <CurrencyProvider>
-        <App />
-      </CurrencyProvider>
+      <ToolCountProvider>
+        <CurrencyProvider>
+          <App />
+        </CurrencyProvider>
+      </ToolCountProvider>
     </HelmetProvider>
   </StrictMode>,
 )

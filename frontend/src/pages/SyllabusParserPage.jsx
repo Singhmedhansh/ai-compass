@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Helmet } from 'react-helmet-async'
 import { Upload, FileText, CheckCircle, Share2, Clipboard, ArrowRight, Loader2, Sparkles, BookOpen, AlertTriangle } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { useCatalogStats } from '../hooks/useCatalogStats'
 
 import { Button, Card, WordReveal } from '../components/ui'
 import ToolLogo from '../components/ui/ToolLogo'
@@ -12,6 +13,7 @@ const MotionDiv = motion.div
 
 export default function SyllabusParserPage() {
   const navigate = useNavigate()
+  const { roundedToolsText } = useCatalogStats() // {/* Dynamic — do not hardcode */}
   const [file, setFile] = useState(null)
   const [rawText, setRawText] = useState('')
   const [activeTab, setActiveTab] = useState('upload') // 'upload' | 'text'
@@ -290,7 +292,7 @@ export default function SyllabusParserPage() {
               <h2 className="mt-6 text-xl font-bold text-ink">
                 {status === 'extracting' && 'Extracting syllabus text...'}
                 {status === 'analyzing' && 'Analyzing modules & requirements...'}
-                {status === 'matching' && 'Matching with 400+ curated AI tools...'}
+                {status === 'matching' && `Matching with ${roundedToolsText} curated AI tools...`} {/* Dynamic — do not hardcode */}
               </h2>
               <p className="mt-2 max-w-sm text-sm text-muted">
                 {status === 'extracting' && 'Reading syllabus text structures. This takes a couple of seconds.'}

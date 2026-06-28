@@ -207,18 +207,21 @@ def create_app(config: dict | None = None) -> Flask:
         app.config["SQLALCHEMY_DATABASE_URI"] = _build_database_uri(project_root)
 
     database_uri = str(app.config.get("SQLALCHEMY_DATABASE_URI") or "")
+    is_sqlite = database_uri.startswith("sqlite://")
     engine_options = {
         "pool_pre_ping": True,
         # Recycle every 30 minutes instead of 5 — 6× fewer round-trips to Postgres
         # per idle connection, which helps the database auto-suspend.
         "pool_recycle": 1800,
+    }
+    if not is_sqlite:
         # Small pool: Postgres bills for compute while ANY connection is open and
         # active. 2 persistent + 2 overflow is plenty for a single-worker app
         # and lets auto-suspend kick in during quiet periods.
-        "pool_size": 3,
-        "max_overflow": 5,
-        "pool_timeout": 30,
-    }
+        engine_options["pool_size"] = 3
+        engine_options["max_overflow"] = 5
+        engine_options["pool_timeout"] = 30
+
     if database_uri.startswith("postgres://") or database_uri.startswith("postgresql://"):
         # connect_timeout=10 — if Postgres is cold and unreachable, fail
         # the connection attempt in 10s instead of letting psycopg's

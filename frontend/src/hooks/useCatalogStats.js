@@ -1,24 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useContext } from 'react'
+import { ToolCountContext } from '../context/ToolCountContext'
 
 export function useCatalogStats() {
-  const [totalTools, setTotalTools] = useState(null)
-
-  useEffect(() => {
-    let mounted = true
-    fetch('/api/v1/stats')
-      .then((response) => (response.ok ? response.json() : null))
-      .then((data) => {
-        if (mounted && data && typeof data.total_tools === 'number') {
-          setTotalTools(data.total_tools)
-        }
-      })
-      .catch(() => {
-        // Silent failure — components render a static fallback when totalTools stays null.
-      })
-    return () => {
-      mounted = false
-    }
-  }, [])
-
-  return { totalTools }
+  const context = useContext(ToolCountContext)
+  if (!context) {
+    return { totalTools: 400, roundedToolsCount: 400, roundedToolsText: '400+' }
+  }
+  return context
 }

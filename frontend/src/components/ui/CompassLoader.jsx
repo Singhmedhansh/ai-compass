@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useCatalogStats } from '../../hooks/useCatalogStats'
 
 /**
  * Brand loading state: a compass whose needle sweeps while the dial
@@ -30,6 +31,7 @@ const LOADING_MESSAGES = [
 ]
 
 function CompassLoader({ size = 56, label = '', full = false, messages, className = '' }) {
+  const { roundedToolsText } = useCatalogStats() // {/* Dynamic — do not hardcode */}
   const showMessages = messages !== undefined ? messages : full
   const [msgIndex, setMsgIndex] = useState(() => Math.floor(Math.random() * LOADING_MESSAGES.length))
   const [visible, setVisible] = useState(true)
@@ -47,7 +49,10 @@ function CompassLoader({ size = 56, label = '', full = false, messages, classNam
     return () => clearInterval(interval)
   }, [showMessages])
 
-  const currentMsg = label || (showMessages ? LOADING_MESSAGES[msgIndex] : '')
+  const rawMsg = label || (showMessages ? LOADING_MESSAGES[msgIndex] : '')
+  const currentMsg = rawMsg.includes('400+') 
+    ? rawMsg.replace('400+', roundedToolsText) // {/* Dynamic — do not hardcode */}
+    : rawMsg
 
   const compass = (
     <span

@@ -3,6 +3,7 @@ import { ChevronDown, Search, Sparkles, Layers, BookOpen, User, Settings, AlertC
 import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
+import { useCatalogStats } from '../hooks/useCatalogStats'
 
 import Button from '../components/ui/Button'
 import { WordReveal, SEO } from '../components/ui'
@@ -204,17 +205,36 @@ function FAQItem({ question, answer, isOpen, onToggle }) {
 export default function HelpPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [openFAQQuestion, setOpenFAQQuestion] = useState(null)
+  const { roundedToolsText } = useCatalogStats() // {/* Dynamic — do not hardcode */}
+
+  const dynamicFaqs = useMemo(() => {
+    return FAQS.map(faq => {
+      if (faq.answer.includes('400+')) {
+        return {
+          ...faq,
+          answer: faq.answer.replace('400+', roundedToolsText) // {/* Dynamic — do not hardcode */}
+        }
+      }
+      if (faq.answer.includes('Over 400')) {
+        return {
+          ...faq,
+          answer: faq.answer.replace('Over 400', `Over ${roundedToolsText}`) // {/* Dynamic — do not hardcode */}
+        }
+      }
+      return faq
+    })
+  }, [roundedToolsText])
 
   const filteredFAQs = useMemo(() => {
-    if (!searchQuery.trim()) return FAQS
+    if (!searchQuery.trim()) return dynamicFaqs
     const query = searchQuery.toLowerCase()
-    return FAQS.filter(
+    return dynamicFaqs.filter(
       faq => 
         faq.question.toLowerCase().includes(query) || 
         faq.answer.toLowerCase().includes(query) ||
         faq.category.toLowerCase().includes(query)
     )
-  }, [searchQuery])
+  }, [searchQuery, dynamicFaqs])
 
   const toggleFAQ = (question) => {
     setOpenFAQQuestion(prevQuestion => prevQuestion === question ? null : question)

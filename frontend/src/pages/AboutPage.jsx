@@ -3,12 +3,14 @@ import { Helmet } from 'react-helmet-async'
 import { Link } from 'react-router-dom'
 import { WordReveal } from '../components/ui'
 import { sectionReveal } from '../lib/motion'
+import { useCatalogStats } from '../hooks/useCatalogStats'
 
 const MotionDiv = motion.div
 
 const REVEAL_VIEWPORT = { once: true, margin: '-10% 0px' }
 
 export default function AboutPage() {
+  const { roundedToolsText } = useCatalogStats() // {/* Dynamic — do not hardcode */}
   return (
     <>
       <Helmet>
@@ -182,7 +184,7 @@ export default function AboutPage() {
             {/* Bottom Call to Action */}
             <section className="mt-12 text-center border-t border-line pt-8">
               <h3 className="text-lg font-semibold text-ink">Ready to explore?</h3>
-              <p className="mt-2 text-sm text-muted">Discover 400+ hand-tested AI tools curated for your studies.</p>
+              <p className="mt-2 text-sm text-muted">Discover {roundedToolsText} hand-tested AI tools curated for your studies. {/* Dynamic — do not hardcode */}</p>
               <div className="mt-6">
                 <Link to="/ai-tool-finder" className="inline-flex items-center rounded-xl bg-accent px-6 py-3 text-sm font-semibold text-bg hover:bg-accent/95 shadow-sm transition-colors">
                   Find my AI tool →

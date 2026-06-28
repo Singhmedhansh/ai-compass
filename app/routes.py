@@ -26,6 +26,12 @@ def _total_tools() -> int:
     except Exception:
         return 0
 
+
+def _rounded_tools_text() -> str:
+    count = _total_tools()
+    rounded = (count // 10) * 10
+    return f"{rounded}+"
+
 DIST_DIR = os.path.join(
     os.path.dirname(os.path.dirname(__file__)),
     'static', 'dist'
@@ -288,10 +294,20 @@ _HOME_FAQ = [
 ]
 
 
+def _format_faq(faqs: list[tuple[str, str]]) -> list[tuple[str, str]]:
+    count_str = _rounded_tools_text()
+    res = []
+    for q, a in faqs:
+        a_formatted = a.replace("400+", count_str).replace("400", count_str)
+        res.append((q, a_formatted))
+    return res
+
+
 def _home_faq_block() -> str:
     """Crawler-visible FAQ (heading + <dl>) plus matching FAQPage JSON-LD."""
+    formatted_faq = _format_faq(_HOME_FAQ)
     rows = ''.join(
-        f'<div><dt>{_esc(q)}</dt><dd>{_esc(a)}</dd></div>' for q, a in _HOME_FAQ
+        f'<div><dt>{_esc(q)}</dt><dd>{_esc(a)}</dd></div>' for q, a in formatted_faq
     )
     jsonld = {
         '@context': 'https://schema.org',
@@ -299,7 +315,7 @@ def _home_faq_block() -> str:
         'mainEntity': [
             {'@type': 'Question', 'name': q,
              'acceptedAnswer': {'@type': 'Answer', 'text': a}}
-            for q, a in _HOME_FAQ
+            for q, a in formatted_faq
         ],
     }
     script = (
@@ -308,6 +324,8 @@ def _home_faq_block() -> str:
         + '</script>'
     )
     return f'<h2>Frequently asked questions</h2><dl>{rows}</dl>{script}'
+
+
 _TOOLS_FAQ = [
     ("Are all tools on AI Compass free?",
      "Most tools have a free tier. We label every tool as Free, Freemium, or Paid. You can filter by 'Free' to see only zero-cost tools."),
@@ -387,14 +405,14 @@ def _seo_body(normalized: str, tool: dict | None = None) -> str:
         parts.append(
             f'<p><a href="/alternatives/{_esc(tool.get("slug"))}">'
             f'See {name} alternatives</a> · '
-            f'<a href="/tools">Browse all {_total_tools()} curated AI tools on AI Compass</a></p>'
+            f'<a href="/tools">Browse all {_rounded_tools_text()} curated AI tools on AI Compass</a></p>'
         )
         return ''.join(parts)
 
     if normalized in ('', 'tools'):
         tools = get_cached_tools() or []
         is_home = normalized == ''
-        total_count = _total_tools()
+        total_count = _rounded_tools_text()
         if is_home:
             heading = f'AI Compass — {total_count} Free AI Tools for Students (No Signup)'
             desc_text = (
@@ -500,7 +518,7 @@ def _seo_body(normalized: str, tool: dict | None = None) -> str:
 
     if normalized in _ROUTE_META:
         title, desc = _ROUTE_META[normalized]
-        count = _total_tools()
+        count = _rounded_tools_text()
         # /tools description carries {count} as a template — sub in the
         # live figure so the SSR body stays in sync with /api/v1/stats.
         if normalized == 'tools':
@@ -531,7 +549,7 @@ def _seo_alternatives(tool: dict, alts: list[dict]) -> str:
         'free tiers, and use cases compared. Curated by AI Compass.</p>'
         f'<ul>{"".join(items)}</ul>'
         f'<p><a href="/tools/{slug}">See {name} details</a> · '
-        f'<a href="/tools">Browse all {_total_tools()} curated AI tools</a></p>'
+        f'<a href="/tools">Browse all {_rounded_tools_text()} curated AI tools</a></p>'
     )
 
 
@@ -545,7 +563,7 @@ def _not_found_html(base: str, path: str) -> str:
     homepage's content.
     """
     safe_path = _esc(f'/{path}' if path else '/')
-    count = _total_tools()
+    count = _rounded_tools_text()
     html = _inject_meta(
         base,
         title='Page not found — AI Compass',
@@ -673,7 +691,7 @@ def _meta_for_request_path(path: str):
     # Homepage — keep server title/description identical to the client
     # (HomePage.jsx <Helmet>) so crawlers and users never see a mismatch.
     if normalized == '':
-        count = _total_tools()
+        count = _rounded_tools_text()
         title = f'AI Compass — {count} Free AI Tools for Students (No Signup)'
         desc = (
             f'The student AI toolkit. {count} tools tested & ranked — writing, coding, '
@@ -689,8 +707,8 @@ def _meta_for_request_path(path: str):
         # live figure so the crawler-visible meta stays in sync with
         # /api/v1/stats. Other routes' descriptions don't reference count.
         if normalized == 'tools':
-            title = title.format(count=_total_tools())
-            desc = desc.format(count=_total_tools())
+            title = title.format(count=_rounded_tools_text())
+            desc = desc.format(count=_rounded_tools_text())
         html = _inject_meta(base, title=title, description=desc, canonical_path=f'/{normalized}')
         return _inject_seo_root(html, _seo_body(normalized)), 200
 

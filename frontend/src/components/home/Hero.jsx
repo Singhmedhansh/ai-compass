@@ -27,8 +27,7 @@ const MARQUEE_LOGOS = [
 ]
 
 export default function Hero() {
-  const { totalTools } = useCatalogStats()
-  const displayCount = totalTools ?? FALLBACK_TOOL_COUNT
+  const { roundedToolsText } = useCatalogStats() // {/* Dynamic — do not hardcode */}
   
   const audienceWords = ["Students.", "Researchers.", "Coders.", "Writers.", "Designers."]
 
@@ -47,7 +46,7 @@ export default function Hero() {
                 className="h-1.5 w-1.5 rounded-full bg-accent"
                 style={{ boxShadow: '0 0 0 3px color-mix(in oklab, var(--accent) 25%, transparent)' }}
               />
-              For undergraduates · {displayCount} tools curated
+              For undergraduates · {roundedToolsText} tools curated {/* Dynamic — do not hardcode */}
             </div>
 
             <h1 className="mt-4 mb-3.5 text-balance text-3xl font-semibold leading-[1.1] tracking-tight text-ink md:max-w-[16ch] md:text-[56px] lg:text-[64px]">
@@ -143,7 +142,7 @@ export default function Hero() {
         {/* Horizontal Looping Marquee */}
         <div className="mt-20 md:mt-24 w-full relative z-10 hidden md:block">
           <p className="text-center text-xs font-bold uppercase tracking-widest text-muted-2 mb-5">
-            Discover & Compare 400+ Hand-Tested AI Tools
+            Discover & Compare {roundedToolsText} Hand-Tested AI Tools {/* Dynamic — do not hardcode */}
           </p>
           <div className="py-3">
             <InfiniteMarquee
