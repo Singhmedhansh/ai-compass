@@ -9,6 +9,9 @@ __pycache__/
 *.egg-info/
 dist/
 build/
+# Exception: pre-built frontend assets must be committed so Render
+# doesn't have to npm build during deploy (avoids port-scan timeout).
+!static/dist/
 
 # Virtual environments
 .venv/

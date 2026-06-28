@@ -1,12 +1,8 @@
 #!/bin/bash
-# In Render dashboard add this env var:
-# RENDER_EXTERNAL_URL=https://ai-compass-1.onrender.com
+# Frontend assets are pre-built locally and committed to static/dist/
+# so we skip npm install/build here entirely. This keeps Render deploys
+# fast and avoids the port-scan timeout on the free tier.
 set -e
-echo Building React frontend...
-cd frontend
-npm install
-npm run build
-cd ..
 echo Installing Python dependencies...
 pip install -r requirements.txt
 echo Build complete!

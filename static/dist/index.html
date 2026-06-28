@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <script>
+      var isBot = /bot|googlebot|crawler|spider|robot|crawling|lighthouse/i.test(navigator.userAgent);
+      if (!isBot) {
+        var script = document.createElement('script');
+        script.async = true;
+        script.src = "https://www.googletagmanager.com/gtag/js?id=G-TCNMKMXKEM";
+        document.head.appendChild(script);
+
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-TCNMKMXKEM', {
+          'cookie_flags': 'SameSite=None;Secure'
+        });
+      }
+    </script>
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#fafaf9" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)" />
+    <meta name='impact-site-verification' value='04a8c3be-b344-4fff-8e56-6a6b192b9ac2'>
+
+    <!-- Apply persisted theme before paint to avoid flash-of-wrong-theme -->
+    <script>
+      try {
+        var stored = localStorage.getItem('ai-compass-theme');
+        if (stored === 'dark') {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      } catch (e) {}
+    </script>
+
+    <!-- Primary -->
+    <title>AI Compass — 400+ Free AI Tools for Students (No Signup)</title>
+    <meta name="description"
+          content="The student AI toolkit. 400+ tools tested & ranked — writing, coding, research, design. Free tiers & student plans. No login. Updated 2026." />
+    <meta name="keywords"
+          content="AI tools, best AI tools, free AI tools, AI for students, coding AI, writing AI, ChatGPT alternatives" />
+    <!-- Default canonical. Rewritten PER-ROUTE server-side by
+         app/routes.py::_inject_meta, so no-JS crawlers get the correct
+         canonical for every URL. HomePage.jsx intentionally does NOT set a
+         canonical via Helmet, so the homepage ends up with exactly one. -->
+    <link rel="canonical" href="https://ai-compass.in/" />
+
+    <!-- Structured data (JSON-LD) — lets search engines and AI assistants
+         (ChatGPT, Perplexity, Google AI) understand the entity and offer a
+         sitelinks search box. Lives in the static shell so non-JS crawlers
+         can read it. -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://ai-compass.in/#organization",
+            "name": "AI Compass",
+            "url": "https://ai-compass.in",
+            "logo": "https://ai-compass.in/apple-touch-icon.png",
+            "description": "AI Compass is a hand-tested directory of 400+ free and freemium AI tools for students — find the right one in 30 seconds, no login or signup required."
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://ai-compass.in/#website",
+            "url": "https://ai-compass.in",
+            "name": "AI Compass",
+            "description": "400+ free and freemium AI tools, hand-tested for students.",
+            "publisher": { "@id": "https://ai-compass.in/#organization" },
+            "potentialAction": {
+              "@type": "SearchAction",
+              "target": {
+                "@type": "EntryPoint",
+                "urlTemplate": "https://ai-compass.in/tools?q={search_term_string}"
+              },
+              "query-input": "required name=search_term_string"
+            }
+          }
+        ]
+      }
+    </script>
+
+    <!-- Open Graph (Facebook / LinkedIn) -->
+    <meta property="og:type"        content="website" />
+    <meta property="og:url"         content="https://ai-compass.in" />
+    <meta property="og:title"       content="AI Compass — 400+ Free AI Tools for Students (No Signup)" />
+    <meta property="og:description" content="The student AI toolkit. 400+ tools tested & ranked — writing, coding, research, design. Free tiers & student plans. No login. Updated 2026." />
+    <meta property="og:image"       content="https://ai-compass.in/og-image.png" />
+    <meta property="og:image:width"  content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:site_name"   content="AI Compass" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card"        content="summary_large_image" />
+    <meta name="twitter:url"         content="https://ai-compass.in" />
+    <meta name="twitter:title"       content="AI Compass — 400+ Free AI Tools for Students (No Signup)" />
+    <meta name="twitter:description" content="The student AI toolkit. 400+ tools tested & ranked. Free. No login." />
+    <meta name="twitter:image"       content="https://ai-compass.in/og-image.png" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!-- iOS home-screen icon: Apple does not render SVG here, so a 180x180
+         PNG is required. Generated from the same compass-mark geometry as
+         the SVG favicon. -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+
+    <!-- Resource hints — kick off the TCP+TLS handshake for third-party
+         origins we KNOW we'll hit, before the parser gets to the actual
+         <script>/<link> that needs them. Saves ~150-300ms on the LCP
+         on mobile 3G/4G connections. preconnect does DNS+TCP+TLS;
+         dns-prefetch is the lighter cousin for origins we MIGHT use. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!-- dns-prefetch (lighter than preconnect — DNS lookup only) for the
+         tool-logo CDNs hit by every listicle and the directory page.
+         Saves the DNS round-trip (~20-100ms per domain) on the FIRST logo
+         that needs fetching. preconnect is heavier and we don't want to
+         claim those resources are critical; dns-prefetch is the right
+         weight for "we'll probably hit these soon". -->
+    <link rel="dns-prefetch" href="https://logo.clearbit.com" />
+    <link rel="dns-prefetch" href="https://icons.duckduckgo.com" />
+    <!-- Prefetch the /api/v1/tools endpoint so the directory page starts
+         fetching immediately while React is still loading. -->
+    <link rel="dns-prefetch" href="https://ai-compass.in" />
+
+    <!-- Font stylesheet — non-blocking pattern.
+         media="print" makes the browser fetch this without blocking
+         the render path (it's "only for printing", so render is
+         unblocked). The onload handler then flips it back to media=all
+         which applies it to the screen. The <noscript> fallback covers
+         the (vanishingly small) no-JS audience. Lighthouse measured
+         the OLD blocking variant as costing ~950ms on mobile 4G. -->
+    <link
+      rel="preload"
+      as="style"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      media="print"
+      onload="this.media='all'"
+    />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      />
+    </noscript>
+
+        <!-- PostHog (production only — proxied through /ingest so browser
+          blockers are less likely to interfere. Load asynchronously so
+          the shell and app scripts stay unblocked.) -->
+    <script>
+      try {
+        var host = window.location.hostname;
+        var isProd = host.endsWith('ai-compass.in') || host.endsWith('onrender.com');
+        var isBot = /bot|googlebot|crawler|spider|robot|crawling|lighthouse/i.test(navigator.userAgent);
+        if (isProd && !isBot) {
+          !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="Ei Ni init zi Gi Nr Ui Xi Vi capture calculateEventProperties tn register register_once register_for_session unregister unregister_for_session an getFeatureFlag getFeatureFlagPayload getFeatureFlagResult isFeatureEnabled reloadFeatureFlags updateFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSurveysLoaded onSessionId getSurveys getActiveMatchingSurveys renderSurvey displaySurvey cancelPendingSurvey canRenderSurvey canRenderSurveyAsync ln identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset setIdentity clearIdentity get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException addExceptionStep captureLog startExceptionAutocapture stopExceptionAutocapture loadToolbar get_property getSessionProperty nn Qi createPersonProfile setInternalOrTestUser sn qi cn opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing get_explicit_consent_status is_capturing clear_opt_in_out_capturing Ji debug Fr rn getPageViewId captureTraceFeedback captureTraceMetric Bi".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+
+          posthog.init('phc_kMaYwCVYoqvo2DdSSYeJa9TqYFyarnSSLwJn4NhpCGmU', {
+            api_host: '/ingest',
+            ui_host: 'https://us.posthog.com',
+            defaults: '2026-01-30',
+            person_profiles: 'identified_only',
+            persistence: 'memory',
+            capture_pageview: true,
+            capture_pageleave: true,
+            capture_exceptions: true,
+            session_recording: {
+              maskAllInputs: false,
+            },
+          });
+        }
+      } catch (e) {
+        console.warn('PostHog init skipped:', e && e.message);
+      }
+    </script>
+
+    <!-- PostHog fallback: if the proxied /ingest asset fails to load
+         (common in preview environments), attempt to load the upstream
+         assets and init PostHog directly so surveys/toolbar can appear
+         for testing. This only runs if the initial init did not attach
+         the expected stub (__SV). -->
+    <script>
+      (function(){
+        try {
+          setTimeout(function(){
+            if (typeof window.posthog === 'undefined' || !window.posthog.__SV) {
+              console.info('PostHog probe: attempting fallback asset load')
+              var s = document.createElement('script')
+              s.type = 'text/javascript'
+              s.async = true
+              s.crossOrigin = 'anonymous'
+              s.src = 'https://us-assets.i.posthog.com/static/array.js'
+              s.onload = function(){
+                try {
+                  // Direct-init using upstream host
+                  posthog && posthog.init && posthog.init('phc_kMaYwCVYoqvo2DdSSYeJa9TqYFyarnSSLwJn4NhpCGmU', {
+                    api_host: 'https://us.i.posthog.com',
+                    ui_host: 'https://us.posthog.com',
+                    defaults: '2026-01-30',
+                    person_profiles: 'identified_only',
+                    persistence: 'memory',
+                    capture_pageview: true,
+                    capture_pageleave: true,
+                    capture_exceptions: true,
+                    session_recording: { maskAllInputs: false },
+                  })
+                  console.info('PostHog fallback init attempted')
+                } catch (err) {
+                  console.warn('PostHog fallback init failed', err && err.message)
+                }
+              }
+              s.onerror = function(){ console.warn('PostHog fallback asset failed to load') }
+              document.head.appendChild(s)
+            }
+          }, 1500)
+        } catch (e) { console.warn('PostHog fallback probe error', e && e.message) }
+      })()
+    </script>
+    <!-- Critical CSS for the boot loader: shown until the JS bundle parses
+         and React mounts (createRoot replaces #root children, removing it).
+         Inline because the app stylesheet hasn't loaded at this point. -->
+    <style>
+      #app-boot{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;
+        justify-content:center;background:#FAFAF7;z-index:9999;gap:20px}
+      html[data-theme="dark"] #app-boot{background:#0e1311}
+      #app-boot .needle{transform-box:fill-box;transform-origin:center;
+        animation:abspin 1.4s linear infinite}
+      @keyframes abspin{to{transform:rotate(360deg)}}
+      @media (prefers-reduced-motion:reduce){#app-boot .needle{animation:none}}
+
+      /* Rotating message text */
+      #boot-msg{font-family:Inter,system-ui,sans-serif;font-size:14px;font-weight:500;
+        color:#6B716D;transition:opacity 0.3s ease;min-height:20px;text-align:center}
+      html[data-theme="dark"] #boot-msg{color:#8B918C}
+
+      /* Thin progress bar at top */
+      #boot-bar{position:fixed;top:0;left:0;height:2px;background:#168358;
+        animation:bootprogress 4s cubic-bezier(0.1,0.4,0.3,1) forwards;opacity:0.8}
+      html[data-theme="dark"] #boot-bar{background:#2fb389}
+      @keyframes bootprogress{
+        0%{width:0%} 30%{width:35%} 60%{width:65%} 85%{width:85%} 100%{width:92%}
+      }
+    </style>
+    <script type="module" crossorigin src="/assets/index-erwfMIXp.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/rolldown-runtime-COnpUsM8.js">
+    <link rel="modulepreload" crossorigin href="/assets/framer-motion-Ds0ts4nr.js">
+    <link rel="modulepreload" crossorigin href="/assets/react-vendor-CyihErsJ.js">
+    <link rel="modulepreload" crossorigin href="/assets/index.esm-DBtP1oKF.js">
+    <link rel="modulepreload" crossorigin href="/assets/createLucideIcon-WFYeQIC-.js">
+    <link rel="modulepreload" crossorigin href="/assets/external-link-C5hA1Ir2.js">
+    <link rel="modulepreload" crossorigin href="/assets/CompassMark-Qe9CDQ1y.js">
+    <link rel="modulepreload" crossorigin href="/assets/ToolLogo-H8zayTNw.js">
+    <link rel="modulepreload" crossorigin href="/assets/useCatalogStats-BDTYT_Ye.js">
+    <link rel="stylesheet" crossorigin href="/assets/index-B49xStAt.css">
+  </head>
+  <body>
+    <div id="root">
+      <div id="boot-bar"></div>
+      <div id="app-boot" aria-hidden="true">
+        <svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+          <!-- Light mode: #168358, dark mode: #2fb389 via SVG filter override below -->
+          <style>#app-boot svg circle,#app-boot svg polygon{--c:#168358}html[data-theme='dark'] #app-boot svg circle,html[data-theme='dark'] #app-boot svg polygon{--c:#2fb389}</style>
+          <circle cx="32" cy="32" r="23" fill="none" stroke="#168358" stroke-width="2.5" class="ring1"/>
+          <circle cx="32" cy="32" r="16" fill="none" stroke="#168358" stroke-opacity=".3" stroke-width="1" class="ring2"/>
+          <g class="needle">
+            <polygon points="32,12 27,33 32,31 37,33" fill="#168358"/>
+            <polygon points="32,52 28,31 32,33 36,31" fill="#168358" fill-opacity=".4"/>
+            <circle cx="32" cy="32" r="2.6" fill="#FAFAF7" stroke="#168358" stroke-width="1"/>
+          </g>
+          <style>html[data-theme='dark'] #app-boot .ring1{stroke:#2fb389}html[data-theme='dark'] #app-boot .ring2{stroke:#2fb389}html[data-theme='dark'] #app-boot polygon{fill:#2fb389}html[data-theme='dark'] #app-boot .needle circle{fill:#0e1311;stroke:#2fb389}</style>
+        </svg>
+        <p id="boot-msg">Finding your tools…</p>
+      </div>
+    </div>
+    <script>
+      /* Rotate boot messages every 2s while React loads */
+      (function(){
+        var msgs=['Finding your tools…','Loading AI Compass…','Almost there…','Hold on a sec ✨','Scanning 400+ tools…'];
+        var el=document.getElementById('boot-msg');
+        if(!el)return;
+        var i=0;
+        var t=setInterval(function(){
+          el.style.opacity='0';
+          setTimeout(function(){i=(i+1)%msgs.length;el.textContent=msgs[i];el.style.opacity='1';},300);
+        },2000);
+        /* Stop cycling once React takes over */
+        window.__stopBootMsg=function(){clearInterval(t);};
+      })();
+    </script>
+  </body>
+</html>
