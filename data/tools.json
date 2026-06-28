@@ -43027,5 +43027,2010 @@
     "free_tier_summary": "Free tier available; paid pro features starting at $9/month",
     "student_note": "Use the free tier to clip and edit class presentations and study videos",
     "last_verified": "2026-06-24"
+  },
+  {
+    "id": 641,
+    "name": "Mixo",
+    "icon": "emoji:🌐",
+    "maker": "Mixo",
+    "tagline": "Launch websites in seconds with AI",
+    "category": "Design & Creative",
+    "subCategory": "Website Builder",
+    "price": "Freemium",
+    "pricingDetail": "Free basic plan; Premium starts at $9/month",
+    "bestFor": "Quickly launching landing pages and testing project ideas",
+    "tags": [
+      "design",
+      "website",
+      "no-code",
+      "startup",
+      "landing-page",
+      "ai"
+    ],
+    "trending": false,
+    "featured": false,
+    "rating": 0.0,
+    "weeklyUsers": "10K+",
+    "link": "https://mixo.io",
+    "apiAvailable": false,
+    "openSource": false,
+    "studentPerk": true,
+    "uniHack": "Verify free/student options on Mixo directly.",
+    "features": [
+      "AI-powered copy generation",
+      "Automatic image placement",
+      "Integrated email capture",
+      "Custom domain connection"
+    ],
+    "platforms": [
+      "Web"
+    ],
+    "languages": "English",
+    "launchYear": 2023,
+    "description": "Mixo is an AI-powered website builder designed to help entrepreneurs, startups, and students launch landing pages in seconds. By simply describing an idea, Mixo generates the entire website copy, images, and an email collection form.",
+    "use_cases": [
+      "Generating landing pages for class projects",
+      "Creating email collection pages for startup ideas",
+      "Setting up simple portfolio sites without coding"
+    ],
+    "difficulty": "beginner",
+    "student_friendly": true,
+    "review_count": 0,
+    "company": "Mixo",
+    "logo_emoji": "🌐",
+    "pricing_tier": "freemium",
+    "popularity_score": 0.75,
+    "weekly_users_estimate": "10K+",
+    "pricing": "Freemium",
+    "student_perk": true,
+    "strengths": [
+      "AI-powered copy generation",
+      "Automatic image placement",
+      "Integrated email capture",
+      "Custom domain connection"
+    ],
+    "slug": "mixo",
+    "pricing_tiers": {
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://mixo.io",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free Tier / Trial",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "AI-powered copy generation",
+            "Automatic image placement"
+          ],
+          "cta_label": "Try for Free",
+          "cta_url": "https://mixo.io",
+          "is_popular": true
+        }
+      ]
+    },
+    "curation_score": 8.0,
+    "academic_integrity_rating": "SAFE",
+    "academic_warning": null,
+    "reviewCount": 0,
+    "reviews": [],
+    "last_verified_at": "2026-06-25",
+    "ease_of_use": 4,
+    "free_tier_value": 4,
+    "student_relevance": 4,
+    "free_tier_summary": "Free basic plan; Premium starts at $9/month",
+    "student_note": "Excellent tool for students. Best for quickly launching landing pages and testing project ideas.",
+    "last_verified": "2026-06-25"
+  },
+  {
+    "id": 642,
+    "name": "DoNotPay",
+    "icon": "emoji:⚖️",
+    "maker": "DoNotPay",
+    "tagline": "The world's first AI lawyer and consumer rights advocate",
+    "category": "Research & Productivity",
+    "subCategory": "AI Legal Assistant",
+    "price": "Paid",
+    "pricingDetail": "Subscription model at $36/quarter",
+    "bestFor": "Contesting traffic/parking tickets and canceling subscriptions",
+    "tags": [
+      "productivity",
+      "legal",
+      "advocate",
+      "finance",
+      "ai"
+    ],
+    "trending": false,
+    "featured": false,
+    "rating": 0.0,
+    "weeklyUsers": "10K+",
+    "link": "https://donotpay.com",
+    "apiAvailable": false,
+    "openSource": false,
+    "studentPerk": true,
+    "uniHack": "Verify free/student options on DoNotPay directly.",
+    "features": [
+      "Automated legal dispute drafting",
+      "One-click subscription manager",
+      "Customer service queue bypasser"
+    ],
+    "platforms": [
+      "Web"
+    ],
+    "languages": "English",
+    "launchYear": 2023,
+    "description": "DoNotPay uses AI to help users fight corporations, beat bureaucracy, find hidden money, and sue anyone at the press of a button. It is a useful consumer rights app helping students contest parking tickets and cancel unwanted subscriptions.",
+    "use_cases": [
+      "Appealing college parking tickets",
+      "Canceling trial subscriptions before charge dates",
+      "Finding unclaimed refunds or loyalty program payouts"
+    ],
+    "difficulty": "beginner",
+    "student_friendly": true,
+    "review_count": 0,
+    "company": "DoNotPay",
+    "logo_emoji": "⚖️",
+    "pricing_tier": "paid",
+    "popularity_score": 0.75,
+    "weekly_users_estimate": "10K+",
+    "pricing": "Paid",
+    "student_perk": true,
+    "strengths": [
+      "Automated legal dispute drafting",
+      "One-click subscription manager",
+      "Customer service queue bypasser"
+    ],
+    "slug": "donotpay",
+    "pricing_tiers": {
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://donotpay.com",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free Tier / Trial",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Automated legal dispute drafting",
+            "One-click subscription manager"
+          ],
+          "cta_label": "Try for Free",
+          "cta_url": "https://donotpay.com",
+          "is_popular": true
+        }
+      ]
+    },
+    "curation_score": 8.0,
+    "academic_integrity_rating": "SAFE",
+    "academic_warning": null,
+    "reviewCount": 0,
+    "reviews": [],
+    "last_verified_at": "2026-06-25",
+    "ease_of_use": 4,
+    "free_tier_value": 3,
+    "student_relevance": 4,
+    "free_tier_summary": "Subscription model at $36/quarter",
+    "student_note": "Excellent tool for students. Best for contesting traffic/parking tickets and canceling subscriptions.",
+    "last_verified": "2026-06-25"
+  },
+  {
+    "id": 643,
+    "name": "Predis.ai",
+    "icon": "emoji:📱",
+    "maker": "Predis",
+    "tagline": "AI social media post generator and scheduler",
+    "category": "Design & Creative",
+    "subCategory": "Social Media Content",
+    "price": "Freemium",
+    "pricingDetail": "Free tier available; starter at $29/month",
+    "bestFor": "Creating social media reels, carousels, and video posts automatically",
+    "tags": [
+      "social-media",
+      "content-creation",
+      "video",
+      "marketing",
+      "ai"
+    ],
+    "trending": false,
+    "featured": false,
+    "rating": 0.0,
+    "weeklyUsers": "10K+",
+    "link": "https://predis.ai",
+    "apiAvailable": false,
+    "openSource": false,
+    "studentPerk": true,
+    "uniHack": "Verify free/student options on Predis.ai directly.",
+    "features": [
+      "Reel and short-form video generator",
+      "Content scheduling dashboard",
+      "AI brand kit application"
+    ],
+    "platforms": [
+      "Web"
+    ],
+    "languages": "English",
+    "launchYear": 2023,
+    "description": "Predis.ai is an all-in-one AI tool for social media creation, allowing users to generate high-quality Instagram reels, TikTok videos, carousel posts, and captions from simple text descriptions.",
+    "use_cases": [
+      "Quickly building promotional posts for student clubs",
+      "Scheduling social campaigns",
+      "Generating hashtags and captions"
+    ],
+    "difficulty": "beginner",
+    "student_friendly": true,
+    "review_count": 0,
+    "company": "Predis",
+    "logo_emoji": "📱",
+    "pricing_tier": "freemium",
+    "popularity_score": 0.75,
+    "weekly_users_estimate": "10K+",
+    "pricing": "Freemium",
+    "student_perk": true,
+    "strengths": [
+      "Reel and short-form video generator",
+      "Content scheduling dashboard",
+      "AI brand kit application"
+    ],
+    "slug": "predis-ai",
+    "pricing_tiers": {
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://predis.ai",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free Tier / Trial",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Reel and short-form video generator",
+            "Content scheduling dashboard"
+          ],
+          "cta_label": "Try for Free",
+          "cta_url": "https://predis.ai",
+          "is_popular": true
+        }
+      ]
+    },
+    "curation_score": 8.0,
+    "academic_integrity_rating": "SAFE",
+    "academic_warning": null,
+    "reviewCount": 0,
+    "reviews": [],
+    "last_verified_at": "2026-06-25",
+    "ease_of_use": 4,
+    "free_tier_value": 4,
+    "student_relevance": 4,
+    "free_tier_summary": "Free tier available; starter at $29/month",
+    "student_note": "Excellent tool for students. Best for creating social media reels, carousels, and video posts automatically.",
+    "last_verified": "2026-06-25"
+  },
+  {
+    "id": 644,
+    "name": "Tango",
+    "icon": "emoji:📝",
+    "maker": "Tango",
+    "tagline": "Create step-by-step guides and documentation automatically",
+    "category": "Research & Productivity",
+    "subCategory": "Documentation & Guides",
+    "price": "Freemium",
+    "pricingDetail": "Free up to 25 guides; Pro at $20/month",
+    "bestFor": "Interactive screenshots, user guides, and tutorials",
+    "tags": [
+      "productivity",
+      "documentation",
+      "guides",
+      "education",
+      "ai"
+    ],
+    "trending": false,
+    "featured": false,
+    "rating": 0.0,
+    "weeklyUsers": "10K+",
+    "link": "https://tango.us",
+    "apiAvailable": false,
+    "openSource": false,
+    "studentPerk": true,
+    "uniHack": "Verify free/student options on Tango directly.",
+    "features": [
+      "Automatic workflow capture Chrome extension",
+      "Auto-cropped screenshot editor",
+      "Shareable web links and PDF exports"
+    ],
+    "platforms": [
+      "Web"
+    ],
+    "languages": "English",
+    "launchYear": 2023,
+    "description": "Tango automatically captures your screen workflow and converts it into a clean, step-by-step guide with cropped screenshots, annotations, and text directions. Excellent for sharing instructions, tutorial guides, or onboarding documents.",
+    "use_cases": [
+      "Creating step-by-step tutorial guides for group projects",
+      "Creating software manuals",
+      "Onboarding new team members for student organizations"
+    ],
+    "difficulty": "beginner",
+    "student_friendly": true,
+    "review_count": 0,
+    "company": "Tango",
+    "logo_emoji": "📝",
+    "pricing_tier": "freemium",
+    "popularity_score": 0.75,
+    "weekly_users_estimate": "10K+",
+    "pricing": "Freemium",
+    "student_perk": true,
+    "strengths": [
+      "Automatic workflow capture Chrome extension",
+      "Auto-cropped screenshot editor",
+      "Shareable web links and PDF exports"
+    ],
+    "slug": "tango",
+    "pricing_tiers": {
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://tango.us",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free Tier / Trial",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Automatic workflow capture Chrome extension",
+            "Auto-cropped screenshot editor"
+          ],
+          "cta_label": "Try for Free",
+          "cta_url": "https://tango.us",
+          "is_popular": true
+        }
+      ]
+    },
+    "curation_score": 8.0,
+    "academic_integrity_rating": "SAFE",
+    "academic_warning": null,
+    "reviewCount": 0,
+    "reviews": [],
+    "last_verified_at": "2026-06-25",
+    "ease_of_use": 4,
+    "free_tier_value": 4,
+    "student_relevance": 4,
+    "free_tier_summary": "Free up to 25 guides; Pro at $20/month",
+    "student_note": "Excellent tool for students. Best for interactive screenshots, user guides, and tutorials.",
+    "last_verified": "2026-06-25"
+  },
+  {
+    "id": 645,
+    "name": "Playform",
+    "icon": "emoji:🎨",
+    "maker": "Playform",
+    "tagline": "AI art generator and creative studio for digital artists",
+    "category": "Design & Creative",
+    "subCategory": "AI Art Generator",
+    "price": "Freemium",
+    "pricingDetail": "Free credits upon sign-up; subscription packages available",
+    "bestFor": "Generative art creation, style transfer, and training custom art models",
+    "tags": [
+      "art",
+      "generative-art",
+      "design",
+      "creative",
+      "ai"
+    ],
+    "trending": false,
+    "featured": false,
+    "rating": 0.0,
+    "weeklyUsers": "10K+",
+    "link": "https://playform.io",
+    "apiAvailable": false,
+    "openSource": false,
+    "studentPerk": true,
+    "uniHack": "Verify free/student options on Playform directly.",
+    "features": [
+      "Custom generative model training",
+      "High-resolution art exporting",
+      "Interactive sketching tools"
+    ],
+    "platforms": [
+      "Web"
+    ],
+    "languages": "English",
+    "launchYear": 2023,
+    "description": "Playform is an AI platform designed specifically for artists and creators to experiment with machine learning without coding. It allows users to train custom generative models, sketch to image, and explore style transfers.",
+    "use_cases": [
+      "Generating unique assets for art portfolios",
+      "Experimenting with style transfers in design assignments",
+      "Training custom model aesthetics"
+    ],
+    "difficulty": "intermediate",
+    "student_friendly": true,
+    "review_count": 0,
+    "company": "Playform",
+    "logo_emoji": "🎨",
+    "pricing_tier": "freemium",
+    "popularity_score": 0.75,
+    "weekly_users_estimate": "10K+",
+    "pricing": "Freemium",
+    "student_perk": true,
+    "strengths": [
+      "Custom generative model training",
+      "High-resolution art exporting",
+      "Interactive sketching tools"
+    ],
+    "slug": "playform",
+    "pricing_tiers": {
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://playform.io",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free Tier / Trial",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Custom generative model training",
+            "High-resolution art exporting"
+          ],
+          "cta_label": "Try for Free",
+          "cta_url": "https://playform.io",
+          "is_popular": true
+        }
+      ]
+    },
+    "curation_score": 8.0,
+    "academic_integrity_rating": "SAFE",
+    "academic_warning": null,
+    "reviewCount": 0,
+    "reviews": [],
+    "last_verified_at": "2026-06-25",
+    "ease_of_use": 3,
+    "free_tier_value": 4,
+    "student_relevance": 4,
+    "free_tier_summary": "Free credits upon sign-up; subscription packages available",
+    "student_note": "Excellent tool for students. Best for generative art creation, style transfer, and training custom art models.",
+    "last_verified": "2026-06-25"
+  },
+  {
+    "id": 646,
+    "name": "Monica",
+    "icon": "emoji:💁",
+    "maker": "Monica",
+    "tagline": "All-in-one AI assistant sidebar powered by GPT-4 and Claude",
+    "category": "Writing & Chat",
+    "subCategory": "Browser AI Extension",
+    "price": "Freemium",
+    "pricingDetail": "Free daily queries; premium subscription for unlimited usage",
+    "bestFor": "Web browsing help, summarizing web articles, and quick translations",
+    "tags": [
+      "chatbot",
+      "browser-extension",
+      "writing",
+      "productivity",
+      "ai"
+    ],
+    "trending": false,
+    "featured": false,
+    "rating": 0.0,
+    "weeklyUsers": "10K+",
+    "link": "https://monica.im",
+    "apiAvailable": false,
+    "openSource": false,
+    "studentPerk": true,
+    "uniHack": "Verify free/student options on Monica directly.",
+    "features": [
+      "Multi-LLM access (GPT-4, Claude 3, Gemini)",
+      "Page summary & PDF reader",
+      "Custom prompt shortcuts"
+    ],
+    "platforms": [
+      "Web"
+    ],
+    "languages": "English",
+    "launchYear": 2023,
+    "description": "Monica is a powerful browser extension that acts as your personal AI assistant. It provides search assistance, text translation, summarization, copywriting, and instant answers powered by leading LLMs directly in your web browser.",
+    "use_cases": [
+      "Summarizing lengthy research articles in one click",
+      "Writing emails and answers directly in text boxes",
+      "Translating references on foreign sites"
+    ],
+    "difficulty": "beginner",
+    "student_friendly": true,
+    "review_count": 0,
+    "company": "Monica",
+    "logo_emoji": "💁",
+    "pricing_tier": "freemium",
+    "popularity_score": 0.75,
+    "weekly_users_estimate": "10K+",
+    "pricing": "Freemium",
+    "student_perk": true,
+    "strengths": [
+      "Multi-LLM access (GPT-4, Claude 3, Gemini)",
+      "Page summary & PDF reader",
+      "Custom prompt shortcuts"
+    ],
+    "slug": "monica",
+    "pricing_tiers": {
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://monica.im",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free Tier / Trial",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Multi-LLM access (GPT-4, Claude 3, Gemini)",
+            "Page summary & PDF reader"
+          ],
+          "cta_label": "Try for Free",
+          "cta_url": "https://monica.im",
+          "is_popular": true
+        }
+      ]
+    },
+    "curation_score": 8.0,
+    "academic_integrity_rating": "SAFE",
+    "academic_warning": null,
+    "reviewCount": 0,
+    "reviews": [],
+    "last_verified_at": "2026-06-25",
+    "ease_of_use": 4,
+    "free_tier_value": 4,
+    "student_relevance": 4,
+    "free_tier_summary": "Free daily queries; premium subscription for unlimited usage",
+    "student_note": "Excellent tool for students. Best for web browsing help, summarizing web articles, and quick translations.",
+    "last_verified": "2026-06-25"
+  },
+  {
+    "id": 647,
+    "name": "AI Valley",
+    "icon": "emoji:🌾",
+    "maker": "AI Valley",
+    "tagline": "Curated directory and hub for discovering the latest AI tools",
+    "category": "Research & Productivity",
+    "subCategory": "AI Directory",
+    "price": "Free",
+    "pricingDetail": "Free to browse and search",
+    "bestFor": "Discovering new AI apps and looking up prompts",
+    "tags": [
+      "directory",
+      "hub",
+      "discovery",
+      "resources",
+      "ai"
+    ],
+    "trending": false,
+    "featured": false,
+    "rating": 0.0,
+    "weeklyUsers": "10K+",
+    "link": "https://aivalley.ai",
+    "apiAvailable": false,
+    "openSource": false,
+    "studentPerk": true,
+    "uniHack": "Verify free/student options on AI Valley directly.",
+    "features": [
+      "Curated daily directories",
+      "Filter tools by category",
+      "AI news feed aggregator"
+    ],
+    "platforms": [
+      "Web"
+    ],
+    "languages": "English",
+    "launchYear": 2023,
+    "description": "AI Valley is a comprehensive AI directory that curates daily updates on new AI tools, prompts, and news. It is a discovery platform for finding specialized software for any study or workspace task.",
+    "use_cases": [
+      "Finding specific AI tools for project workflows",
+      "Browsing user prompt collections",
+      "Staying updated on tools news"
+    ],
+    "difficulty": "beginner",
+    "student_friendly": true,
+    "review_count": 0,
+    "company": "AI Valley",
+    "logo_emoji": "🌾",
+    "pricing_tier": "free",
+    "popularity_score": 0.75,
+    "weekly_users_estimate": "10K+",
+    "pricing": "Free",
+    "student_perk": true,
+    "strengths": [
+      "Curated daily directories",
+      "Filter tools by category",
+      "AI news feed aggregator"
+    ],
+    "slug": "aivalley",
+    "pricing_tiers": {
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://aivalley.ai",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free Tier / Trial",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Curated daily directories",
+            "Filter tools by category"
+          ],
+          "cta_label": "Try for Free",
+          "cta_url": "https://aivalley.ai",
+          "is_popular": true
+        }
+      ]
+    },
+    "curation_score": 8.0,
+    "academic_integrity_rating": "SAFE",
+    "academic_warning": null,
+    "reviewCount": 0,
+    "reviews": [],
+    "last_verified_at": "2026-06-25",
+    "ease_of_use": 4,
+    "free_tier_value": 5,
+    "student_relevance": 4,
+    "free_tier_summary": "Free to browse and search",
+    "student_note": "Excellent tool for students. Best for discovering new ai apps and looking up prompts.",
+    "last_verified": "2026-06-25"
+  },
+  {
+    "id": 648,
+    "name": "Promptify.ai",
+    "icon": "emoji:💡",
+    "maker": "Promptify",
+    "tagline": "Discover and optimize high-converting prompts for LLMs",
+    "category": "Writing & Chat",
+    "subCategory": "Prompt Library",
+    "price": "Free",
+    "pricingDetail": "Free library; premium packs available",
+    "bestFor": "Prompt engineering and finding exact templates for chatbot tasks",
+    "tags": [
+      "chatbot",
+      "prompt-engineering",
+      "writing",
+      "templates",
+      "ai"
+    ],
+    "trending": false,
+    "featured": false,
+    "rating": 0.0,
+    "weeklyUsers": "10K+",
+    "link": "https://promptify.ai",
+    "apiAvailable": false,
+    "openSource": false,
+    "studentPerk": true,
+    "uniHack": "Verify free/student options on Promptify.ai directly.",
+    "features": [
+      "User-voted prompt ranking",
+      "Copy-paste ready templates",
+      "Category filters"
+    ],
+    "platforms": [
+      "Web"
+    ],
+    "languages": "English",
+    "launchYear": 2023,
+    "description": "Promptify helps prompt engineers, students, and writers find, share, and optimize high-quality prompts for ChatGPT, Midjourney, and other generative models.",
+    "use_cases": [
+      "Obtaining structured templates for essay outlines",
+      "Finding image prompt ideas for Midjourney",
+      "Saving system prompt lists"
+    ],
+    "difficulty": "beginner",
+    "student_friendly": true,
+    "review_count": 0,
+    "company": "Promptify",
+    "logo_emoji": "💡",
+    "pricing_tier": "free",
+    "popularity_score": 0.75,
+    "weekly_users_estimate": "10K+",
+    "pricing": "Free",
+    "student_perk": true,
+    "strengths": [
+      "User-voted prompt ranking",
+      "Copy-paste ready templates",
+      "Category filters"
+    ],
+    "slug": "promptify-ai",
+    "pricing_tiers": {
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://promptify.ai",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free Tier / Trial",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "User-voted prompt ranking",
+            "Copy-paste ready templates"
+          ],
+          "cta_label": "Try for Free",
+          "cta_url": "https://promptify.ai",
+          "is_popular": true
+        }
+      ]
+    },
+    "curation_score": 8.0,
+    "academic_integrity_rating": "SAFE",
+    "academic_warning": null,
+    "reviewCount": 0,
+    "reviews": [],
+    "last_verified_at": "2026-06-25",
+    "ease_of_use": 4,
+    "free_tier_value": 5,
+    "student_relevance": 4,
+    "free_tier_summary": "Free library; premium packs available",
+    "student_note": "Excellent tool for students. Best for prompt engineering and finding exact templates for chatbot tasks.",
+    "last_verified": "2026-06-25"
+  },
+  {
+    "id": 649,
+    "name": "Manychat",
+    "icon": "emoji:💬",
+    "maker": "Manychat",
+    "tagline": "Chat marketing and automated DM workflows for Instagram and Facebook",
+    "category": "Business & Marketing",
+    "subCategory": "Chat Automation",
+    "price": "Freemium",
+    "pricingDetail": "Free basic automation; Pro starts at $15/month",
+    "bestFor": "Automating Instagram direct messages and comment replies",
+    "tags": [
+      "marketing",
+      "chatbot",
+      "automation",
+      "social-media",
+      "ai"
+    ],
+    "trending": false,
+    "featured": false,
+    "rating": 0.0,
+    "weeklyUsers": "10K+",
+    "link": "https://manychat.com",
+    "apiAvailable": false,
+    "openSource": false,
+    "studentPerk": true,
+    "uniHack": "Verify free/student options on Manychat directly.",
+    "features": [
+      "Drag-and-drop chat flow builder",
+      "Instagram/Facebook DM integration",
+      "Pre-made automation templates"
+    ],
+    "platforms": [
+      "Web"
+    ],
+    "languages": "English",
+    "launchYear": 2023,
+    "description": "Manychat is a leading chat automation platform that allows creators and businesses to automate interactive DM responses, story replies, and customer support workflows on Instagram, WhatsApp, and Facebook Messenger.",
+    "use_cases": [
+      "Delivering automated resource files to followers on Instagram",
+      "Creating interactive chatbot flows for brand pages",
+      "Instantly replying to story comments"
+    ],
+    "difficulty": "beginner",
+    "student_friendly": true,
+    "review_count": 0,
+    "company": "Manychat",
+    "logo_emoji": "💬",
+    "pricing_tier": "freemium",
+    "popularity_score": 0.75,
+    "weekly_users_estimate": "10K+",
+    "pricing": "Freemium",
+    "student_perk": true,
+    "strengths": [
+      "Drag-and-drop chat flow builder",
+      "Instagram/Facebook DM integration",
+      "Pre-made automation templates"
+    ],
+    "slug": "manychat",
+    "pricing_tiers": {
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://manychat.com",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free Tier / Trial",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Drag-and-drop chat flow builder",
+            "Instagram/Facebook DM integration"
+          ],
+          "cta_label": "Try for Free",
+          "cta_url": "https://manychat.com",
+          "is_popular": true
+        }
+      ]
+    },
+    "curation_score": 8.0,
+    "academic_integrity_rating": "SAFE",
+    "academic_warning": null,
+    "reviewCount": 0,
+    "reviews": [],
+    "last_verified_at": "2026-06-25",
+    "ease_of_use": 4,
+    "free_tier_value": 4,
+    "student_relevance": 4,
+    "free_tier_summary": "Free basic automation; Pro starts at $15/month",
+    "student_note": "Excellent tool for students. Best for automating instagram direct messages and comment replies.",
+    "last_verified": "2026-06-25"
+  },
+  {
+    "id": 650,
+    "name": "Tugan.ai",
+    "icon": "emoji:🔄",
+    "maker": "Tugan",
+    "tagline": "Instantly repurpose newsletters, emails, and tweets with AI",
+    "category": "Writing & Chat",
+    "subCategory": "Content Repurposing",
+    "price": "Freemium",
+    "pricingDetail": "Free trial available; premium plans from $29/month",
+    "bestFor": "Converting blog articles and YouTube videos into newsletters or posts",
+    "tags": [
+      "writing",
+      "repurposing",
+      "marketing",
+      "newsletter",
+      "ai"
+    ],
+    "trending": false,
+    "featured": false,
+    "rating": 0.0,
+    "weeklyUsers": "10K+",
+    "link": "https://tugan.ai",
+    "apiAvailable": false,
+    "openSource": false,
+    "studentPerk": true,
+    "uniHack": "Verify free/student options on Tugan.ai directly.",
+    "features": [
+      "URL-to-newsletter converter",
+      "Multi-tone email customizer",
+      "Social copy drafts"
+    ],
+    "platforms": [
+      "Web"
+    ],
+    "languages": "English",
+    "launchYear": 2023,
+    "description": "Tugan.ai allows users to enter any URL, YouTube link, or text and instantly convert it into promotional emails, engaging newsletters, or social media threads.",
+    "use_cases": [
+      "Creating summary threads of informative articles",
+      "Drafting newsletters from reference URLs",
+      "Converting audio summaries to readable social copy"
+    ],
+    "difficulty": "beginner",
+    "student_friendly": true,
+    "review_count": 0,
+    "company": "Tugan",
+    "logo_emoji": "🔄",
+    "pricing_tier": "freemium",
+    "popularity_score": 0.75,
+    "weekly_users_estimate": "10K+",
+    "pricing": "Freemium",
+    "student_perk": true,
+    "strengths": [
+      "URL-to-newsletter converter",
+      "Multi-tone email customizer",
+      "Social copy drafts"
+    ],
+    "slug": "tugan-ai",
+    "pricing_tiers": {
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://tugan.ai",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free Tier / Trial",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "URL-to-newsletter converter",
+            "Multi-tone email customizer"
+          ],
+          "cta_label": "Try for Free",
+          "cta_url": "https://tugan.ai",
+          "is_popular": true
+        }
+      ]
+    },
+    "curation_score": 8.0,
+    "academic_integrity_rating": "SAFE",
+    "academic_warning": null,
+    "reviewCount": 0,
+    "reviews": [],
+    "last_verified_at": "2026-06-25",
+    "ease_of_use": 4,
+    "free_tier_value": 4,
+    "student_relevance": 4,
+    "free_tier_summary": "Free trial available; premium plans from $29/month",
+    "student_note": "Excellent tool for students. Best for converting blog articles and youtube videos into newsletters or posts.",
+    "last_verified": "2026-06-25"
+  },
+  {
+    "id": 651,
+    "name": "TinyWow",
+    "icon": "emoji:🛠️",
+    "maker": "TinyWow",
+    "tagline": "Free online tools for PDF, video, image, and writing conversion",
+    "category": "Research & Productivity",
+    "subCategory": "Document & File Utility",
+    "price": "Free",
+    "pricingDetail": "100% free with ads; ad-free option at $5/month",
+    "bestFor": "PDF conversions, file compression, and quick image editing",
+    "tags": [
+      "pdf",
+      "utility",
+      "converter",
+      "image-editing",
+      "free",
+      "ai"
+    ],
+    "trending": false,
+    "featured": false,
+    "rating": 0.0,
+    "weeklyUsers": "10K+",
+    "link": "https://tinywow.com",
+    "apiAvailable": false,
+    "openSource": false,
+    "studentPerk": true,
+    "uniHack": "Verify free/student options on TinyWow directly.",
+    "features": [
+      "PDF merge, split, and edit suite",
+      "Background remover",
+      "Bulk file convert utilities"
+    ],
+    "platforms": [
+      "Web"
+    ],
+    "languages": "English",
+    "launchYear": 2023,
+    "description": "TinyWow offers an extensive collection of free online tools for converting documents, removing backgrounds, editing PDFs, converting file formats, and generating text with AI.",
+    "use_cases": [
+      "Compressing video submissions for class portals",
+      "Converting JPGs to PDFs for submission templates",
+      "Extracting text from scanned documents"
+    ],
+    "difficulty": "beginner",
+    "student_friendly": true,
+    "review_count": 0,
+    "company": "TinyWow",
+    "logo_emoji": "🛠️",
+    "pricing_tier": "free",
+    "popularity_score": 0.75,
+    "weekly_users_estimate": "10K+",
+    "pricing": "Free",
+    "student_perk": true,
+    "strengths": [
+      "PDF merge, split, and edit suite",
+      "Background remover",
+      "Bulk file convert utilities"
+    ],
+    "slug": "tinywow",
+    "pricing_tiers": {
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://tinywow.com",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free Tier / Trial",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "PDF merge, split, and edit suite",
+            "Background remover"
+          ],
+          "cta_label": "Try for Free",
+          "cta_url": "https://tinywow.com",
+          "is_popular": true
+        }
+      ]
+    },
+    "curation_score": 8.0,
+    "academic_integrity_rating": "SAFE",
+    "academic_warning": null,
+    "reviewCount": 0,
+    "reviews": [],
+    "last_verified_at": "2026-06-25",
+    "ease_of_use": 4,
+    "free_tier_value": 5,
+    "student_relevance": 4,
+    "free_tier_summary": "100% free with ads; ad-free option at $5/month",
+    "student_note": "Excellent tool for students. Best for pdf conversions, file compression, and quick image editing.",
+    "last_verified": "2026-06-25"
+  },
+  {
+    "id": 652,
+    "name": "Filmora",
+    "icon": "emoji:🎬",
+    "maker": "Wondershare",
+    "tagline": "Easy-to-use video editor with built-in AI tools",
+    "category": "Design & Creative",
+    "subCategory": "Video Editor",
+    "price": "Paid",
+    "pricingDetail": "Free trial with watermark; license starts at $49.99/year",
+    "bestFor": "Video editing, YouTube creation, and applying creative filters",
+    "tags": [
+      "video",
+      "video-editing",
+      "creative",
+      "design",
+      "ai"
+    ],
+    "trending": false,
+    "featured": false,
+    "rating": 0.0,
+    "weeklyUsers": "10K+",
+    "link": "https://filmora.wondershare.com",
+    "apiAvailable": false,
+    "openSource": false,
+    "studentPerk": true,
+    "uniHack": "Verify free/student options on Filmora directly.",
+    "features": [
+      "AI audio stretch & denoiser",
+      "Chroma key green-screen removal",
+      "Built-in media template library"
+    ],
+    "platforms": [
+      "Web"
+    ],
+    "languages": "English",
+    "launchYear": 2023,
+    "description": "Wondershare Filmora is a powerful, user-friendly video editing software equipped with AI smart cutout, audio ducking, auto reframe, and AI portrait effects to create professional videos.",
+    "use_cases": [
+      "Editing high-quality presentations and project videos",
+      "Creating video shorts and reels",
+      "Applying background noise removal for voiceovers"
+    ],
+    "difficulty": "intermediate",
+    "student_friendly": true,
+    "review_count": 0,
+    "company": "Wondershare",
+    "logo_emoji": "🎬",
+    "pricing_tier": "paid",
+    "popularity_score": 0.75,
+    "weekly_users_estimate": "10K+",
+    "pricing": "Paid",
+    "student_perk": true,
+    "strengths": [
+      "AI audio stretch & denoiser",
+      "Chroma key green-screen removal",
+      "Built-in media template library"
+    ],
+    "slug": "filmora",
+    "pricing_tiers": {
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://filmora.wondershare.com",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free Tier / Trial",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "AI audio stretch & denoiser",
+            "Chroma key green-screen removal"
+          ],
+          "cta_label": "Try for Free",
+          "cta_url": "https://filmora.wondershare.com",
+          "is_popular": true
+        }
+      ]
+    },
+    "curation_score": 8.0,
+    "academic_integrity_rating": "SAFE",
+    "academic_warning": null,
+    "reviewCount": 0,
+    "reviews": [],
+    "last_verified_at": "2026-06-25",
+    "ease_of_use": 3,
+    "free_tier_value": 3,
+    "student_relevance": 4,
+    "free_tier_summary": "Free trial with watermark; license starts at $49.99/year",
+    "student_note": "Excellent tool for students. Best for video editing, youtube creation, and applying creative filters.",
+    "last_verified": "2026-06-25"
+  },
+  {
+    "id": 653,
+    "name": "Opus Clip",
+    "icon": "emoji:✂️",
+    "maker": "Opus",
+    "tagline": "Repurpose long videos into viral short-form clips with AI",
+    "category": "Design & Creative",
+    "subCategory": "Video Repurposing",
+    "price": "Freemium",
+    "pricingDetail": "Free credits monthly; Pro starts at $9.50/month",
+    "bestFor": "Converting long podcasts into short viral videos with auto-subtitles",
+    "tags": [
+      "video",
+      "repurposing",
+      "social-media",
+      "content-creation",
+      "ai"
+    ],
+    "trending": false,
+    "featured": false,
+    "rating": 0.0,
+    "weeklyUsers": "10K+",
+    "link": "https://www.opus.pro",
+    "apiAvailable": false,
+    "openSource": false,
+    "studentPerk": true,
+    "uniHack": "Verify free/student options on Opus Clip directly.",
+    "features": [
+      "AI Virality Score rating",
+      "Active speaker tracking (auto reframe)",
+      "Dynamic emoji auto-captioning"
+    ],
+    "platforms": [
+      "Web"
+    ],
+    "languages": "English",
+    "launchYear": 2023,
+    "description": "Opus Clip is a generative AI video tool that repurposes long talking videos (like podcasts or webinars) into short viral clips for TikTok, YouTube Shorts, and Instagram Reels with autogenerated captions and dynamic framing.",
+    "use_cases": [
+      "Slicing lecture recordings into short study summaries",
+      "Repurposing project presentations into promotional reels",
+      "Generating auto-captioned video clips"
+    ],
+    "difficulty": "beginner",
+    "student_friendly": true,
+    "review_count": 0,
+    "company": "Opus",
+    "logo_emoji": "✂️",
+    "pricing_tier": "freemium",
+    "popularity_score": 0.75,
+    "weekly_users_estimate": "10K+",
+    "pricing": "Freemium",
+    "student_perk": true,
+    "strengths": [
+      "AI Virality Score rating",
+      "Active speaker tracking (auto reframe)",
+      "Dynamic emoji auto-captioning"
+    ],
+    "slug": "opus-clip",
+    "pricing_tiers": {
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://www.opus.pro",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free Tier / Trial",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "AI Virality Score rating",
+            "Active speaker tracking (auto reframe)"
+          ],
+          "cta_label": "Try for Free",
+          "cta_url": "https://www.opus.pro",
+          "is_popular": true
+        }
+      ]
+    },
+    "curation_score": 8.0,
+    "academic_integrity_rating": "SAFE",
+    "academic_warning": null,
+    "reviewCount": 0,
+    "reviews": [],
+    "last_verified_at": "2026-06-25",
+    "ease_of_use": 4,
+    "free_tier_value": 4,
+    "student_relevance": 4,
+    "free_tier_summary": "Free credits monthly; Pro starts at $9.50/month",
+    "student_note": "Excellent tool for students. Best for converting long podcasts into short viral videos with auto-subtitles.",
+    "last_verified": "2026-06-25"
+  },
+  {
+    "id": 654,
+    "name": "Submagic",
+    "icon": "emoji:🪄",
+    "maker": "Submagic",
+    "tagline": "Add trending, animated captions and emojis to short videos",
+    "category": "Design & Creative",
+    "subCategory": "Video Captioning",
+    "price": "Freemium",
+    "pricingDetail": "Free trial available; plans start at $16/month",
+    "bestFor": "Adding stylish subtitles and auto-emojis to TikTok and Reels",
+    "tags": [
+      "video",
+      "subtitles",
+      "social-media",
+      "content-creation",
+      "ai"
+    ],
+    "trending": false,
+    "featured": false,
+    "rating": 0.0,
+    "weeklyUsers": "10K+",
+    "link": "https://submagic.co",
+    "apiAvailable": false,
+    "openSource": false,
+    "studentPerk": true,
+    "uniHack": "Verify free/student options on Submagic directly.",
+    "features": [
+      "Auto-subtitles in 48+ languages",
+      "Automatic emoji insertion",
+      "Sound effects and transition editor"
+    ],
+    "platforms": [
+      "Web"
+    ],
+    "languages": "English",
+    "launchYear": 2023,
+    "description": "Submagic is an AI-powered editor designed to generate auto-transcripts, dynamic emojis, and highlight words for short-form videos to boost engagement.",
+    "use_cases": [
+      "Captioning social videos for study clubs",
+      "Creating engaging short projects",
+      "Adding animated transcript overlays"
+    ],
+    "difficulty": "beginner",
+    "student_friendly": true,
+    "review_count": 0,
+    "company": "Submagic",
+    "logo_emoji": "🪄",
+    "pricing_tier": "freemium",
+    "popularity_score": 0.75,
+    "weekly_users_estimate": "10K+",
+    "pricing": "Freemium",
+    "student_perk": true,
+    "strengths": [
+      "Auto-subtitles in 48+ languages",
+      "Automatic emoji insertion",
+      "Sound effects and transition editor"
+    ],
+    "slug": "submagic",
+    "pricing_tiers": {
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://submagic.co",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free Tier / Trial",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Auto-subtitles in 48+ languages",
+            "Automatic emoji insertion"
+          ],
+          "cta_label": "Try for Free",
+          "cta_url": "https://submagic.co",
+          "is_popular": true
+        }
+      ]
+    },
+    "curation_score": 8.0,
+    "academic_integrity_rating": "SAFE",
+    "academic_warning": null,
+    "reviewCount": 0,
+    "reviews": [],
+    "last_verified_at": "2026-06-25",
+    "ease_of_use": 4,
+    "free_tier_value": 4,
+    "student_relevance": 4,
+    "free_tier_summary": "Free trial available; plans start at $16/month",
+    "student_note": "Excellent tool for students. Best for adding stylish subtitles and auto-emojis to tiktok and reels.",
+    "last_verified": "2026-06-25"
+  },
+  {
+    "id": 655,
+    "name": "Insidr.ai",
+    "icon": "emoji:🔍",
+    "maker": "Insidr",
+    "tagline": "Discover secret AI tools and productivity resources",
+    "category": "Research & Productivity",
+    "subCategory": "AI Resource Hub",
+    "price": "Free",
+    "pricingDetail": "Free directory and guides",
+    "bestFor": "Finding specific AI workflows and modern work strategies",
+    "tags": [
+      "directory",
+      "hub",
+      "productivity",
+      "education",
+      "ai"
+    ],
+    "trending": false,
+    "featured": false,
+    "rating": 0.0,
+    "weeklyUsers": "10K+",
+    "link": "https://insidr.ai",
+    "apiAvailable": false,
+    "openSource": false,
+    "studentPerk": true,
+    "uniHack": "Verify free/student options on Insidr.ai directly.",
+    "features": [
+      "Curated AI tools reviews",
+      "Step-by-step prompt guides",
+      "Workflow setup directories"
+    ],
+    "platforms": [
+      "Web"
+    ],
+    "languages": "English",
+    "launchYear": 2023,
+    "description": "Insidr.ai is a curated database and resource hub that catalogs new AI platforms, business utilities, and educational guides to help users maximize productivity.",
+    "use_cases": [
+      "Finding specific AI productivity workflows",
+      "Accessing free guides",
+      "Finding relevant discounts"
+    ],
+    "difficulty": "beginner",
+    "student_friendly": true,
+    "review_count": 0,
+    "company": "Insidr",
+    "logo_emoji": "🔍",
+    "pricing_tier": "free",
+    "popularity_score": 0.75,
+    "weekly_users_estimate": "10K+",
+    "pricing": "Free",
+    "student_perk": true,
+    "strengths": [
+      "Curated AI tools reviews",
+      "Step-by-step prompt guides",
+      "Workflow setup directories"
+    ],
+    "slug": "insidr-ai",
+    "pricing_tiers": {
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://insidr.ai",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free Tier / Trial",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Curated AI tools reviews",
+            "Step-by-step prompt guides"
+          ],
+          "cta_label": "Try for Free",
+          "cta_url": "https://insidr.ai",
+          "is_popular": true
+        }
+      ]
+    },
+    "curation_score": 8.0,
+    "academic_integrity_rating": "SAFE",
+    "academic_warning": null,
+    "reviewCount": 0,
+    "reviews": [],
+    "last_verified_at": "2026-06-25",
+    "ease_of_use": 4,
+    "free_tier_value": 5,
+    "student_relevance": 4,
+    "free_tier_summary": "Free directory and guides",
+    "student_note": "Excellent tool for students. Best for finding specific ai workflows and modern work strategies.",
+    "last_verified": "2026-06-25"
+  },
+  {
+    "id": 656,
+    "name": "AI Image Enlarger",
+    "icon": "emoji:🖼️",
+    "maker": "Imglarger",
+    "tagline": "Upscale and enhance low-resolution images with AI",
+    "category": "Design & Creative",
+    "subCategory": "Image Enhancer",
+    "price": "Freemium",
+    "pricingDetail": "8 free credits monthly; plans from $9/month",
+    "bestFor": "Enhancing blurry photos, upscaling graphics, and image restoration",
+    "tags": [
+      "design",
+      "image-editing",
+      "photography",
+      "ai"
+    ],
+    "trending": false,
+    "featured": false,
+    "rating": 0.0,
+    "weeklyUsers": "10K+",
+    "link": "https://imglarger.com",
+    "apiAvailable": false,
+    "openSource": false,
+    "studentPerk": true,
+    "uniHack": "Verify free/student options on AI Image Enlarger directly.",
+    "features": [
+      "4x/8x image upscale enhancer",
+      "AI face refiner",
+      "Noise and blur remover"
+    ],
+    "platforms": [
+      "Web"
+    ],
+    "languages": "English",
+    "launchYear": 2023,
+    "description": "Imglarger uses deep learning models to upscale and enhance small, low-resolution images without losing details. It includes tools for unblurring, denosing, and sharpening photos.",
+    "use_cases": [
+      "Enhancing historical photo resources for class reports",
+      "Upscaling low-res graphics for presentation slides",
+      "Removing digital noise from smartphone camera shots"
+    ],
+    "difficulty": "beginner",
+    "student_friendly": true,
+    "review_count": 0,
+    "company": "Imglarger",
+    "logo_emoji": "🖼️",
+    "pricing_tier": "freemium",
+    "popularity_score": 0.75,
+    "weekly_users_estimate": "10K+",
+    "pricing": "Freemium",
+    "student_perk": true,
+    "strengths": [
+      "4x/8x image upscale enhancer",
+      "AI face refiner",
+      "Noise and blur remover"
+    ],
+    "slug": "ai-image-enlarger",
+    "pricing_tiers": {
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://imglarger.com",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free Tier / Trial",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "4x/8x image upscale enhancer",
+            "AI face refiner"
+          ],
+          "cta_label": "Try for Free",
+          "cta_url": "https://imglarger.com",
+          "is_popular": true
+        }
+      ]
+    },
+    "curation_score": 8.0,
+    "academic_integrity_rating": "SAFE",
+    "academic_warning": null,
+    "reviewCount": 0,
+    "reviews": [],
+    "last_verified_at": "2026-06-25",
+    "ease_of_use": 4,
+    "free_tier_value": 4,
+    "student_relevance": 4,
+    "free_tier_summary": "8 free credits monthly; plans from $9/month",
+    "student_note": "Excellent tool for students. Best for enhancing blurry photos, upscaling graphics, and image restoration.",
+    "last_verified": "2026-06-25"
+  },
+  {
+    "id": 657,
+    "name": "Podcastle",
+    "icon": "emoji:🎙️",
+    "maker": "Podcastle",
+    "tagline": "AI-powered audio recording, editing, and voice cloning platform",
+    "category": "Design & Creative",
+    "subCategory": "Audio & Podcast Editor",
+    "price": "Freemium",
+    "pricingDetail": "Free basic editor; Storyteller plan starts at $11.99/month",
+    "bestFor": "Studio-quality audio recording, voice enhancement, and editing podcasts",
+    "tags": [
+      "audio",
+      "podcast",
+      "voice-cloning",
+      "recording",
+      "ai"
+    ],
+    "trending": false,
+    "featured": false,
+    "rating": 0.0,
+    "weeklyUsers": "10K+",
+    "link": "https://podcastle.ai",
+    "apiAvailable": false,
+    "openSource": false,
+    "studentPerk": true,
+    "uniHack": "Verify free/student options on Podcastle directly.",
+    "features": [
+      "Magic Dust audio noise cleaner",
+      "Multi-track audio editor",
+      "Realistic text-to-speech voice clone models"
+    ],
+    "platforms": [
+      "Web"
+    ],
+    "languages": "English",
+    "launchYear": 2023,
+    "description": "Podcastle is an all-in-one audio creation platform that allows podcasters, students, and educators to record high-quality studio interviews, edit audio tracks, remove background noise, and generate text-to-speech with realistic voice models.",
+    "use_cases": [
+      "Recording crisp audio interviews for research projects",
+      "Enhancing background audio in raw smartphone voice notes",
+      "Synthesizing speech from scripts using text-to-speech"
+    ],
+    "difficulty": "beginner",
+    "student_friendly": true,
+    "review_count": 0,
+    "company": "Podcastle",
+    "logo_emoji": "🎙️",
+    "pricing_tier": "freemium",
+    "popularity_score": 0.75,
+    "weekly_users_estimate": "10K+",
+    "pricing": "Freemium",
+    "student_perk": true,
+    "strengths": [
+      "Magic Dust audio noise cleaner",
+      "Multi-track audio editor",
+      "Realistic text-to-speech voice clone models"
+    ],
+    "slug": "podcastle",
+    "pricing_tiers": {
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://podcastle.ai",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free Tier / Trial",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Magic Dust audio noise cleaner",
+            "Multi-track audio editor"
+          ],
+          "cta_label": "Try for Free",
+          "cta_url": "https://podcastle.ai",
+          "is_popular": true
+        }
+      ]
+    },
+    "curation_score": 8.0,
+    "academic_integrity_rating": "SAFE",
+    "academic_warning": null,
+    "reviewCount": 0,
+    "reviews": [],
+    "last_verified_at": "2026-06-25",
+    "ease_of_use": 4,
+    "free_tier_value": 4,
+    "student_relevance": 4,
+    "free_tier_summary": "Free basic editor; Storyteller plan starts at $11.99/month",
+    "student_note": "Excellent tool for students. Best for studio-quality audio recording, voice enhancement, and editing podcasts.",
+    "last_verified": "2026-06-25"
+  },
+  {
+    "id": 658,
+    "name": "WhatToTweet",
+    "icon": "emoji:🐦",
+    "maker": "WhatToTweet",
+    "tagline": "AI tweet ideas and inspiration generator",
+    "category": "Writing & Chat",
+    "subCategory": "Social Media Copywriter",
+    "price": "Free",
+    "pricingDetail": "100% free tool",
+    "bestFor": "Generating daily tweet ideas and content hooks",
+    "tags": [
+      "writing",
+      "social-media",
+      "content-creation",
+      "free",
+      "ai"
+    ],
+    "trending": false,
+    "featured": false,
+    "rating": 0.0,
+    "weeklyUsers": "10K+",
+    "link": "https://whattotweet.com",
+    "apiAvailable": false,
+    "openSource": false,
+    "studentPerk": true,
+    "uniHack": "Verify free/student options on WhatToTweet directly.",
+    "features": [
+      "Category templates (news, tech, humor)",
+      "Automated thread generator",
+      "Copy to clipboard"
+    ],
+    "platforms": [
+      "Web"
+    ],
+    "languages": "English",
+    "launchYear": 2023,
+    "description": "WhatToTweet helps content creators and developers generate endless tweet drafts, thread outlines, and engaging hook sentences using customized AI models.",
+    "use_cases": [
+      "Getting content ideas for university projects and portfolios",
+      "Drafting viral thread structures",
+      "Optimizing tweet layouts"
+    ],
+    "difficulty": "beginner",
+    "student_friendly": true,
+    "review_count": 0,
+    "company": "WhatToTweet",
+    "logo_emoji": "🐦",
+    "pricing_tier": "free",
+    "popularity_score": 0.75,
+    "weekly_users_estimate": "10K+",
+    "pricing": "Free",
+    "student_perk": true,
+    "strengths": [
+      "Category templates (news, tech, humor)",
+      "Automated thread generator",
+      "Copy to clipboard"
+    ],
+    "slug": "whattotweet",
+    "pricing_tiers": {
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://whattotweet.com",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free Tier / Trial",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Category templates (news, tech, humor)",
+            "Automated thread generator"
+          ],
+          "cta_label": "Try for Free",
+          "cta_url": "https://whattotweet.com",
+          "is_popular": true
+        }
+      ]
+    },
+    "curation_score": 8.0,
+    "academic_integrity_rating": "SAFE",
+    "academic_warning": null,
+    "reviewCount": 0,
+    "reviews": [],
+    "last_verified_at": "2026-06-25",
+    "ease_of_use": 4,
+    "free_tier_value": 5,
+    "student_relevance": 4,
+    "free_tier_summary": "100% free tool",
+    "student_note": "Excellent tool for students. Best for generating daily tweet ideas and content hooks.",
+    "last_verified": "2026-06-25"
+  },
+  {
+    "id": 659,
+    "name": "IconGenerator",
+    "icon": "emoji:🎨",
+    "maker": "IconGenerator",
+    "tagline": "Custom app and web icons generated from text descriptions",
+    "category": "Design & Creative",
+    "subCategory": "Icon Designer",
+    "price": "Freemium",
+    "pricingDetail": "Free trial credits; purchase packages available",
+    "bestFor": "Creating web icons and app logos quickly without graphic design skills",
+    "tags": [
+      "design",
+      "graphics",
+      "assets",
+      "vector",
+      "ai"
+    ],
+    "trending": false,
+    "featured": false,
+    "rating": 0.0,
+    "weeklyUsers": "10K+",
+    "link": "https://icongenerator.com",
+    "apiAvailable": false,
+    "openSource": false,
+    "studentPerk": true,
+    "uniHack": "Verify free/student options on IconGenerator directly.",
+    "features": [
+      "Text-to-vector design generation",
+      "Transparent background PNG output",
+      "Style variety filters"
+    ],
+    "platforms": [
+      "Web"
+    ],
+    "languages": "English",
+    "launchYear": 2023,
+    "description": "IconGenerator is a simple AI utility to design beautiful vector and PNG icons for mobile applications, Chrome extensions, and websites using text-to-image prompts.",
+    "use_cases": [
+      "Generating app icons for computer science projects",
+      "Creating custom graphics for web designs",
+      "Designing brand logos"
+    ],
+    "difficulty": "beginner",
+    "student_friendly": true,
+    "review_count": 0,
+    "company": "IconGenerator",
+    "logo_emoji": "🎨",
+    "pricing_tier": "freemium",
+    "popularity_score": 0.75,
+    "weekly_users_estimate": "10K+",
+    "pricing": "Freemium",
+    "student_perk": true,
+    "strengths": [
+      "Text-to-vector design generation",
+      "Transparent background PNG output",
+      "Style variety filters"
+    ],
+    "slug": "icongenerator",
+    "pricing_tiers": {
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://icongenerator.com",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free Tier / Trial",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Text-to-vector design generation",
+            "Transparent background PNG output"
+          ],
+          "cta_label": "Try for Free",
+          "cta_url": "https://icongenerator.com",
+          "is_popular": true
+        }
+      ]
+    },
+    "curation_score": 8.0,
+    "academic_integrity_rating": "SAFE",
+    "academic_warning": null,
+    "reviewCount": 0,
+    "reviews": [],
+    "last_verified_at": "2026-06-25",
+    "ease_of_use": 4,
+    "free_tier_value": 4,
+    "student_relevance": 4,
+    "free_tier_summary": "Free trial credits; purchase packages available",
+    "student_note": "Excellent tool for students. Best for creating web icons and app logos quickly without graphic design skills.",
+    "last_verified": "2026-06-25"
+  },
+  {
+    "id": 660,
+    "name": "Pippit",
+    "icon": "emoji:👤",
+    "maker": "Pippit",
+    "tagline": "Turn static portrait images into talking AI videos",
+    "category": "Design & Creative",
+    "subCategory": "AI Avatar Video",
+    "price": "Freemium",
+    "pricingDetail": "Free trial available; premium subscriptions for extended video times",
+    "bestFor": "Animating profile photos and creating talking digital avatars",
+    "tags": [
+      "video",
+      "avatar",
+      "animation",
+      "lip-sync",
+      "ai"
+    ],
+    "trending": false,
+    "featured": false,
+    "rating": 0.0,
+    "weeklyUsers": "10K+",
+    "link": "https://pippit.ai",
+    "apiAvailable": false,
+    "openSource": false,
+    "studentPerk": true,
+    "uniHack": "Verify free/student options on Pippit directly.",
+    "features": [
+      "Portrait lip-sync animator",
+      "Multiple language voices built-in",
+      "Custom audio voice file upload"
+    ],
+    "platforms": [
+      "Web"
+    ],
+    "languages": "English",
+    "launchYear": 2023,
+    "description": "Pippit lets users upload any portrait photo or avatar and enter text or audio to generate a realistic talking video of that person with natural lip-syncing.",
+    "use_cases": [
+      "Creating talking video avatars for digital marketing projects",
+      "Animating presentation avatars",
+      "Designing talking tutorial bots"
+    ],
+    "difficulty": "beginner",
+    "student_friendly": true,
+    "review_count": 0,
+    "company": "Pippit",
+    "logo_emoji": "👤",
+    "pricing_tier": "freemium",
+    "popularity_score": 0.75,
+    "weekly_users_estimate": "10K+",
+    "pricing": "Freemium",
+    "student_perk": true,
+    "strengths": [
+      "Portrait lip-sync animator",
+      "Multiple language voices built-in",
+      "Custom audio voice file upload"
+    ],
+    "slug": "pippit",
+    "pricing_tiers": {
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://pippit.ai",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free Tier / Trial",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Portrait lip-sync animator",
+            "Multiple language voices built-in"
+          ],
+          "cta_label": "Try for Free",
+          "cta_url": "https://pippit.ai",
+          "is_popular": true
+        }
+      ]
+    },
+    "curation_score": 8.0,
+    "academic_integrity_rating": "SAFE",
+    "academic_warning": null,
+    "reviewCount": 0,
+    "reviews": [],
+    "last_verified_at": "2026-06-25",
+    "ease_of_use": 4,
+    "free_tier_value": 4,
+    "student_relevance": 4,
+    "free_tier_summary": "Free trial available; premium subscriptions for extended video times",
+    "student_note": "Excellent tool for students. Best for animating profile photos and creating talking digital avatars.",
+    "last_verified": "2026-06-25"
+  },
+  {
+    "id": 661,
+    "name": "Hunter.io",
+    "icon": "emoji:🎯",
+    "maker": "Hunter",
+    "tagline": "Find and verify professional email addresses in seconds",
+    "category": "Research & Productivity",
+    "subCategory": "Email Outreach",
+    "price": "Freemium",
+    "pricingDetail": "25 free searches monthly; Starter starts at $49/month",
+    "bestFor": "Researching corporate contacts and verifying company email formats",
+    "tags": [
+      "productivity",
+      "outreach",
+      "research",
+      "business",
+      "ai"
+    ],
+    "trending": false,
+    "featured": false,
+    "rating": 0.0,
+    "weeklyUsers": "10K+",
+    "link": "https://hunter.io",
+    "apiAvailable": false,
+    "openSource": false,
+    "studentPerk": true,
+    "uniHack": "Verify free/student options on Hunter.io directly.",
+    "features": [
+      "Domain search explorer",
+      "Email verification assistant",
+      "Outreach campaign tracker"
+    ],
+    "platforms": [
+      "Web"
+    ],
+    "languages": "English",
+    "launchYear": 2023,
+    "description": "Hunter.io is the leading platform for finding professional email addresses associated with any domain, helping students and professionals connect with companies and target outreach.",
+    "use_cases": [
+      "Finding cold email contacts for internship applications",
+      "Verifying target corporate email structures",
+      "Researching company domains"
+    ],
+    "difficulty": "beginner",
+    "student_friendly": true,
+    "review_count": 0,
+    "company": "Hunter",
+    "logo_emoji": "🎯",
+    "pricing_tier": "freemium",
+    "popularity_score": 0.75,
+    "weekly_users_estimate": "10K+",
+    "pricing": "Freemium",
+    "student_perk": true,
+    "strengths": [
+      "Domain search explorer",
+      "Email verification assistant",
+      "Outreach campaign tracker"
+    ],
+    "slug": "hunter-io",
+    "pricing_tiers": {
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://hunter.io",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free Tier / Trial",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Domain search explorer",
+            "Email verification assistant"
+          ],
+          "cta_label": "Try for Free",
+          "cta_url": "https://hunter.io",
+          "is_popular": true
+        }
+      ]
+    },
+    "curation_score": 8.0,
+    "academic_integrity_rating": "SAFE",
+    "academic_warning": null,
+    "reviewCount": 0,
+    "reviews": [],
+    "last_verified_at": "2026-06-25",
+    "ease_of_use": 4,
+    "free_tier_value": 4,
+    "student_relevance": 4,
+    "free_tier_summary": "25 free searches monthly; Starter starts at $49/month",
+    "student_note": "Excellent tool for students. Best for researching corporate contacts and verifying company email formats.",
+    "last_verified": "2026-06-25"
+  },
+  {
+    "id": 662,
+    "name": "Magic Eraser",
+    "icon": "emoji:🧽",
+    "maker": "MagicStudio",
+    "tagline": "Instantly remove unwanted objects or people from any photo",
+    "category": "Design & Creative",
+    "subCategory": "Image Retouching",
+    "price": "Free",
+    "pricingDetail": "Free standard downloads; high-resolution pro subscription available",
+    "bestFor": "Removing watermarks, background distractors, and photobombers",
+    "tags": [
+      "design",
+      "image-editing",
+      "utility",
+      "free",
+      "ai"
+    ],
+    "trending": false,
+    "featured": false,
+    "rating": 0.0,
+    "weeklyUsers": "10K+",
+    "link": "https://magicstudio.com/magiceraser",
+    "apiAvailable": false,
+    "openSource": false,
+    "studentPerk": true,
+    "uniHack": "Verify free/student options on Magic Eraser directly.",
+    "features": [
+      "Brush size customizer",
+      "Instant context-aware fill process",
+      "No sign-up required basic mode"
+    ],
+    "platforms": [
+      "Web"
+    ],
+    "languages": "English",
+    "launchYear": 2023,
+    "description": "Magic Eraser is a simple AI photo utility that allows you to upload any image, brush over an unwanted object or watermark, and instantly remove it with clean context-aware filling.",
+    "use_cases": [
+      "Removing distracting elements in stock photo slides",
+      "Cleaning watermark artifacts from graphics",
+      "Retouching portrait photobombs"
+    ],
+    "difficulty": "beginner",
+    "student_friendly": true,
+    "review_count": 0,
+    "company": "MagicStudio",
+    "logo_emoji": "🧽",
+    "pricing_tier": "free",
+    "popularity_score": 0.75,
+    "weekly_users_estimate": "10K+",
+    "pricing": "Free",
+    "student_perk": true,
+    "strengths": [
+      "Brush size customizer",
+      "Instant context-aware fill process",
+      "No sign-up required basic mode"
+    ],
+    "slug": "magic-eraser",
+    "pricing_tiers": {
+      "last_verified_at": "2026-06-25",
+      "source_url": "https://magicstudio.com/magiceraser",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free Tier / Trial",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Brush size customizer",
+            "Instant context-aware fill process"
+          ],
+          "cta_label": "Try for Free",
+          "cta_url": "https://magicstudio.com/magiceraser",
+          "is_popular": true
+        }
+      ]
+    },
+    "curation_score": 8.0,
+    "academic_integrity_rating": "SAFE",
+    "academic_warning": null,
+    "reviewCount": 0,
+    "reviews": [],
+    "last_verified_at": "2026-06-25",
+    "ease_of_use": 4,
+    "free_tier_value": 5,
+    "student_relevance": 4,
+    "free_tier_summary": "Free standard downloads; high-resolution pro subscription available",
+    "student_note": "Excellent tool for students. Best for removing watermarks, background distractors, and photobombers.",
+    "last_verified": "2026-06-25"
   }
 ]
