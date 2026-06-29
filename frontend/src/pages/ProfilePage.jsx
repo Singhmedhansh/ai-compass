@@ -1768,7 +1768,7 @@ function ProfilePage() {
                                               {resolvedTool.category}
                                             </span>
                                           </div>
-                                          <p className="text-[11px] text-muted truncate max-w-xs sm:max-w-md">
+                                          <p className="text-[11px] text-muted truncate max-w-[200px] sm:max-w-md">
                                             {resolvedTool.shortDescription || resolvedTool.description}
                                           </p>
                                         </div>
@@ -2335,7 +2335,7 @@ function ProfilePage() {
                                 {tool.category}
                               </span>
                             </div>
-                            <p className="mt-0.5 text-xs text-muted truncate max-w-sm sm:max-w-md md:max-w-lg">
+                            <p className="mt-0.5 text-xs text-muted truncate max-w-[200px] sm:max-w-md md:max-w-lg">
                               {tool.shortDescription || tool.description}
                             </p>
                           </div>

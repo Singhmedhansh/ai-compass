@@ -278,6 +278,7 @@ html[data-theme='dark'] .card-nav-content {
   }
 
   .card-nav-content {
+    display: none;
     flex-direction: column;
     align-items: stretch;
     gap: 16px;
@@ -286,6 +287,10 @@ html[data-theme='dark'] .card-nav-content {
     width: 90%;
     max-height: calc(100vh - 80px);
     overflow-y: auto;
+  }
+
+  .card-nav.open .card-nav-content {
+    display: flex;
   }
 
   .nav-card {
