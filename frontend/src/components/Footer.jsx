@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { ArrowUp } from 'lucide-react'
 
 import CompassMark from './ui/CompassMark'
 
@@ -98,6 +99,38 @@ function LinkedinIcon(props) {
     <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" {...props}>
       <path d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.13 1.45-2.13 2.95v5.66H9.36V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29ZM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12Zm1.78 13.02H3.56V9h3.56v11.45ZM22.22 0H1.77C.79 0 0 .77 0 1.72v20.55C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.72C24 .77 23.2 0 22.22 0Z" />
     </svg>
+  )
+}
+
+function BackToTopButton() {
+  const [isVisible, setIsVisible] = useState(false)
+
+  useEffect(() => {
+    const handleScroll = () => {
+      // Show button when user scrolls down 300px
+      if (window.scrollY > 300) {
+        setIsVisible(true)
+      } else {
+        setIsVisible(false)
+      }
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  if (!isVisible) return null
+
+  return (
+    <button
+      type="button"
+      onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+      className="fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-full border border-line bg-bg-elev/80 px-4 py-2.5 text-sm font-semibold text-ink shadow-lg backdrop-blur-md transition-all hover:scale-105 hover:border-accent/40 hover:bg-bg-elev/90 hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent group"
+      aria-label="Back to Top"
+    >
+      <span>Back to Top</span>
+      <ArrowUp className="h-4 w-4 transition-transform group-hover:-translate-y-0.5" />
+    </button>
   )
 }
 
@@ -212,15 +245,9 @@ export default function Footer() {
           </div>
           <PeerlistBadge />
           <span className="font-mono text-xs">Made with care, not scrapers.</span>
-          <button 
-            type="button"
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="flex items-center gap-1.5 text-xs font-medium text-ink hover:text-accent transition"
-          >
-            Back to Top
-          </button>
         </div>
       </div>
+      <BackToTopButton />
     </footer>
   )
 }

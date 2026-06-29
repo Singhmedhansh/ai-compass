@@ -883,19 +883,21 @@ function ToolDetailPage() {
               </div>
             </div>
 
-            <div className="mt-5 flex flex-wrap gap-2">
-              {tool.tags.length > 0 ? (
-                tool.tags.map((tag) => (
-                  <span
-                    key={`${tool.slug}-tag-${tag}`}
-                    className="rounded-full border border-line bg-bg-sunk px-2.5 py-1 text-xs font-medium text-muted"
-                  >
-                    {tag}
-                  </span>
-                ))
-              ) : (
-                <span className="text-xs text-muted-2">No tags yet</span>
-              )}
+            <div className="mt-5">
+              <div className="flex flex-wrap gap-2 max-h-24 overflow-y-auto sm:max-h-none custom-scrollbar">
+                {tool.tags.length > 0 ? (
+                  tool.tags.map((tag) => (
+                    <span
+                      key={`${tool.slug}-tag-${tag}`}
+                      className="rounded-full border border-line bg-bg-sunk px-2.5 py-1 text-xs font-medium text-muted"
+                    >
+                      {tag}
+                    </span>
+                  ))
+                ) : (
+                  <span className="text-xs text-muted-2">No tags yet</span>
+                )}
+              </div>
             </div>
           </section>
           </MotionDiv>

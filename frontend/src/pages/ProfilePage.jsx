@@ -1,8 +1,8 @@
-import { Bell, Check, CheckCircle2, Download, GraduationCap, Loader2, ShieldAlert, Sparkles, Trash2, UserRound, Copy, Globe, Lock, Edit2, X, Library, History, Search, ChevronDown, ChevronUp, BarChart3, RefreshCw, AlertCircle } from 'lucide-react'
+import { Bell, Check, CheckCircle2, Download, GraduationCap, Loader2, ShieldAlert, Sparkles, Trash2, UserRound, Copy, Globe, Lock, Edit2, X, Library, History, Search, ChevronDown, ChevronUp, BarChart3, RefreshCw, AlertCircle, MoreVertical } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { Button, ToolLogo } from '../components/ui'
+import { Button, ToolLogo, ConfirmModal } from '../components/ui'
 
 const THEME_STORAGE_KEY = 'ai-compass-theme'
 const NOTIFICATIONS_STORAGE_KEY = 'ai-compass-email-notifications'
@@ -138,6 +138,17 @@ function ProfilePage() {
   const [editingStackName, setEditingStackName] = useState('')
   const [savingStackId, setSavingStackId] = useState(null)
   const [deletingStackId, setDeletingStackId] = useState(null)
+  
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    confirmText: 'Confirm',
+    onConfirm: () => {},
+    isDanger: false
+  })
+
+  const [activeMenuStackId, setActiveMenuStackId] = useState(null)
 
   const [schoolEmail, setSchoolEmail] = useState('')
   const [schoolName, setSchoolName] = useState('')
@@ -519,28 +530,34 @@ function ProfilePage() {
     }
   }
 
-  const handleDeleteStack = async (stackId) => {
-    if (!window.confirm('Are you sure you want to delete this toolkit?')) {
-      return
-    }
-    setDeletingStackId(stackId)
-    try {
-      const response = await fetch(`/api/v1/profile/stacks/${stackId}`, {
-        method: 'DELETE',
-      })
+  const handleDeleteStack = async (id) => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Delete Toolkit',
+      message: 'Are you sure you want to delete this toolkit?',
+      confirmText: 'Delete',
+      isDanger: true,
+      onConfirm: async () => {
+        setDeletingStackId(id)
+        try {
+          const response = await fetch(`/api/v1/profile/stacks/${id}`, {
+            method: 'DELETE',
+          })
 
-      if (!response.ok) {
-        const payload = await response.json().catch(() => ({}))
-        throw new Error(payload.error || 'Failed to delete toolkit.')
+          if (!response.ok) {
+            const payload = await response.json().catch(() => ({}))
+            throw new Error(payload.error || 'Failed to delete toolkit.')
+          }
+
+          setStacks(prev => prev.filter(s => s.id !== id))
+          showToast('Toolkit deleted successfully.')
+        } catch (error) {
+          showToast(error.message || 'Failed to delete toolkit.', 'error')
+        } finally {
+          setDeletingStackId(null)
+        }
       }
-
-      setStacks(prev => prev.filter(s => s.id !== stackId))
-      showToast('Toolkit deleted successfully.')
-    } catch (error) {
-      showToast(error.message || 'Failed to delete toolkit.', 'error')
-    } finally {
-      setDeletingStackId(null)
-    }
+    })
   }
 
   const handleShareStack = (stackId, isPrivate) => {
@@ -850,34 +867,39 @@ function ProfilePage() {
   }
 
   const handleResetStudentVerification = async () => {
-    if (!window.confirm('Are you sure you want to unlink and reset your student verification status?')) {
-      return
-    }
+    setConfirmModal({
+      isOpen: true,
+      title: 'Reset Verification',
+      message: 'Are you sure you want to unlink and reset your student verification status?',
+      confirmText: 'Reset Status',
+      isDanger: true,
+      onConfirm: async () => {
+        setIsResettingStudent(true)
+        try {
+          const res = await fetch('/api/v1/profile/verify-student', {
+            method: 'DELETE'
+          })
 
-    setIsResettingStudent(true)
-    try {
-      const res = await fetch('/api/v1/profile/verify-student', {
-        method: 'DELETE'
-      })
+          const data = await res.json()
+          if (!res.ok) {
+            throw new Error(data.error || 'Failed to reset student status')
+          }
 
-      const data = await res.json()
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to reset student status')
+          const mergedUser = {
+            ...profile,
+            ...data,
+          }
+          setProfile(mergedUser)
+          localStorage.setItem('user', JSON.stringify(mergedUser))
+          window.dispatchEvent(new Event('userLoggedIn'))
+          showToast('Student verification reset successfully.')
+        } catch (err) {
+          showToast(err.message, 'error')
+        } finally {
+          setIsResettingStudent(false)
+        }
       }
-
-      const mergedUser = {
-        ...profile,
-        ...data,
-      }
-      setProfile(mergedUser)
-      localStorage.setItem('user', JSON.stringify(mergedUser))
-      window.dispatchEvent(new Event('userLoggedIn'))
-      showToast('Student verification reset successfully.')
-    } catch (err) {
-      showToast(err.message, 'error')
-    } finally {
-      setIsResettingStudent(false)
-    }
+    })
   }
 
   const handleDeleteAccount = async () => {
@@ -960,61 +982,71 @@ function ProfilePage() {
   }, [navigate])
 
   const handleUnlinkProvider = async (provider) => {
-    if (!window.confirm(`Are you sure you want to unlink your ${provider} account?`)) {
-      return
-    }
+    setConfirmModal({
+      isOpen: true,
+      title: `Unlink ${provider}`,
+      message: `Are you sure you want to unlink your ${provider} account?`,
+      confirmText: 'Unlink',
+      isDanger: true,
+      onConfirm: async () => {
+        setUnlinkingProvider(provider.toLowerCase())
+        try {
+          const response = await fetch(`/api/v1/profile/security/unlink/${provider.toLowerCase()}`, {
+            method: 'POST',
+          })
 
-    setUnlinkingProvider(provider.toLowerCase())
-    try {
-      const response = await fetch(`/api/v1/profile/security/unlink/${provider.toLowerCase()}`, {
-        method: 'POST',
-      })
+          if (!response.ok) {
+            const payload = await response.json().catch(() => ({}))
+            throw new Error(payload.error || `Failed to unlink ${provider}.`)
+          }
 
-      if (!response.ok) {
-        const payload = await response.json().catch(() => ({}))
-        throw new Error(payload.error || `Failed to unlink ${provider}.`)
+          showToast(`Successfully unlinked ${provider}.`)
+          await fetchSecurityInfo()
+        } catch (error) {
+          showToast(error.message || `Failed to unlink ${provider}.`, 'error')
+        } finally {
+          setUnlinkingProvider(null)
+        }
       }
-
-      showToast(`Successfully unlinked ${provider}.`)
-      await fetchSecurityInfo()
-    } catch (error) {
-      showToast(error.message || `Failed to unlink ${provider}.`, 'error')
-    } finally {
-      setUnlinkingProvider(null)
-    }
+    })
   }
 
   const handleRevokeSession = async (sessionUuid) => {
-    if (!window.confirm('Are you sure you want to revoke this session? You will be logged out of that device.')) {
-      return
-    }
+    setConfirmModal({
+      isOpen: true,
+      title: 'Revoke Session',
+      message: 'Are you sure you want to revoke this session? You will be logged out of that device.',
+      confirmText: 'Revoke',
+      isDanger: true,
+      onConfirm: async () => {
+        setRevokingSessionUuid(sessionUuid)
+        try {
+          const response = await fetch(`/api/v1/profile/security/sessions/${sessionUuid}`, {
+            method: 'DELETE',
+          })
 
-    setRevokingSessionUuid(sessionUuid)
-    try {
-      const response = await fetch(`/api/v1/profile/security/sessions/${sessionUuid}`, {
-        method: 'DELETE',
-      })
+          if (!response.ok) {
+            const payload = await response.json().catch(() => ({}))
+            throw new Error(payload.error || 'Failed to revoke session.')
+          }
 
-      if (!response.ok) {
-        const payload = await response.json().catch(() => ({}))
-        throw new Error(payload.error || 'Failed to revoke session.')
+          const data = await response.json()
+          if (data.logged_out) {
+            localStorage.removeItem('user')
+            window.dispatchEvent(new Event('userLoggedIn'))
+            navigate('/login', { replace: true })
+            return
+          }
+
+          showToast('Session revoked successfully.')
+          await fetchSecurityInfo()
+        } catch (error) {
+          showToast(error.message || 'Failed to revoke session.', 'error')
+        } finally {
+          setRevokingSessionUuid(null)
+        }
       }
-
-      const data = await response.json()
-      if (data.logged_out) {
-        localStorage.removeItem('user')
-        window.dispatchEvent(new Event('userLoggedIn'))
-        navigate('/login', { replace: true })
-        return
-      }
-
-      showToast('Session revoked successfully.')
-      await fetchSecurityInfo()
-    } catch (error) {
-      showToast(error.message || 'Failed to revoke session.', 'error')
-    } finally {
-      setRevokingSessionUuid(null)
-    }
+    })
   }
 
   const handleChangePassword = async (e) => {
@@ -1134,7 +1166,7 @@ function ProfilePage() {
               </h2>
             )}
 
-            <p className="mt-2 break-all text-sm text-muted">{profile?.email || ''}</p>
+            <p className="mt-2 truncate text-sm text-muted" title={profile?.email || ''}>{profile?.email || ''}</p>
             <p className="mt-2 text-sm text-muted">Member since {profile?.member_since || 'New member'}</p>
             
             {profile?.student_status && (
@@ -1558,7 +1590,7 @@ function ProfilePage() {
                 </div>
               ) : stacks.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-line-strong bg-bg-sunk p-6 text-center text-sm text-muted animate-fade-in">
-                  <p>You don&apos;t have any saved toolkits yet.</p>
+                  <p>No toolkits yet — save a stack from the AI Finder</p>
                   <Button
                     variant="secondary"
                     size="sm"
@@ -1641,44 +1673,87 @@ function ProfilePage() {
                           </div>
 
                           {/* Toolkit controls */}
-                          <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
-                            {/* Privacy Pill Toggle */}
-                            <button
-                              type="button"
-                              onClick={() => handleTogglePrivacy(stack.id, stack.is_private)}
-                              className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold border transition ${
-                                stack.is_private
-                                  ? 'border-amber-500/20 bg-amber-500/10 text-amber-500 hover:bg-amber-500/20'
-                                  : 'border-emerald-500/20 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20'
-                              }`}
-                              title="Click to toggle visibility"
-                            >
-                              {stack.is_private ? (
-                                <>
-                                  <Lock className="h-3 w-3" />
-                                  Private
-                                </>
-                              ) : (
-                                <>
-                                  <Globe className="h-3 w-3" />
-                                  Public
-                                </>
-                              )}
-                            </button>
-
-                            {/* Share Copy Button with tooltip */}
-                            <div className="group relative">
+                          <div className="flex items-center gap-2">
+                            {/* Desktop controls */}
+                            <div className="hidden sm:flex items-center gap-2">
+                              {/* Privacy Pill Toggle */}
                               <button
-                                disabled={stack.is_private}
-                                onClick={() => handleShareStack(stack.id, stack.is_private)}
-                                className="flex h-9 w-9 items-center justify-center rounded-xl border border-line bg-bg-elev text-ink transition hover:border-accent hover:bg-accent-soft/20 hover:text-accent-ink disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-bg-elev disabled:hover:text-ink disabled:hover:border-line"
+                                type="button"
+                                onClick={() => handleTogglePrivacy(stack.id, stack.is_private)}
+                                className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold border transition ${
+                                  stack.is_private
+                                    ? 'border-amber-500/20 bg-amber-500/10 text-amber-500 hover:bg-amber-500/20'
+                                    : 'border-emerald-500/20 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20'
+                                }`}
+                                title="Click to toggle visibility"
                               >
-                                <Copy className="h-4 w-4" />
+                                {stack.is_private ? (
+                                  <>
+                                    <Lock className="h-3 w-3" />
+                                    Private
+                                  </>
+                                ) : (
+                                  <>
+                                    <Globe className="h-3 w-3" />
+                                    Public
+                                  </>
+                                )}
                               </button>
-                              {stack.is_private && (
-                                <span className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 -translate-x-1/2 whitespace-nowrap rounded-lg bg-black/90 px-2.5 py-1.5 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100 shadow-md">
-                                  Make toolkit public to share link
-                                </span>
+
+                              {/* Share Copy Button with tooltip */}
+                              <div className="group relative">
+                                <button
+                                  disabled={stack.is_private}
+                                  onClick={() => handleShareStack(stack.id, stack.is_private)}
+                                  className="flex h-9 w-9 items-center justify-center rounded-xl border border-line bg-bg-elev text-ink transition hover:border-accent hover:bg-accent-soft/20 hover:text-accent-ink disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-bg-elev disabled:hover:text-ink disabled:hover:border-line"
+                                >
+                                  <Copy className="h-4 w-4" />
+                                </button>
+                                {stack.is_private && (
+                                  <span className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 -translate-x-1/2 whitespace-nowrap rounded-lg bg-black/90 px-2.5 py-1.5 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100 shadow-md">
+                                    Make toolkit public to share link
+                                  </span>
+                                )}
+                              </div>
+
+                              {/* Delete Button */}
+                              <button
+                                onClick={() => handleDeleteStack(stack.id)}
+                                disabled={isDeletingThisStack}
+                                className="flex h-9 w-9 items-center justify-center rounded-xl border border-line bg-bg-elev text-muted transition hover:border-danger hover:bg-danger-soft hover:text-danger disabled:opacity-50"
+                                title="Delete toolkit"
+                              >
+                                {isDeletingThisStack ? (
+                                  <Loader2 className="h-4 w-4 animate-spin text-danger" />
+                                ) : (
+                                  <Trash2 className="h-4 w-4" />
+                                )}
+                              </button>
+                            </div>
+
+                            {/* Mobile More dropdown */}
+                            <div className="relative sm:hidden">
+                              <button
+                                onClick={() => setActiveMenuStackId(activeMenuStackId === stack.id ? null : stack.id)}
+                                className="flex h-9 w-9 items-center justify-center rounded-xl border border-line bg-bg-elev text-ink transition hover:border-accent hover:bg-accent-soft/20 hover:text-accent-ink"
+                              >
+                                <MoreVertical className="h-4 w-4" />
+                              </button>
+                              
+                              {activeMenuStackId === stack.id && (
+                                <div className="absolute right-0 top-full mt-2 w-48 rounded-xl border border-line bg-bg-elev shadow-lg z-50 p-1.5 flex flex-col gap-1">
+                                  <button onClick={() => { handleTogglePrivacy(stack.id, stack.is_private); setActiveMenuStackId(null) }} className="flex items-center gap-2.5 px-3 py-2 text-sm text-ink hover:bg-bg-sunk rounded-lg font-medium transition">
+                                    {stack.is_private ? <Globe className="h-4 w-4 text-emerald-500" /> : <Lock className="h-4 w-4 text-amber-500" />}
+                                    {stack.is_private ? 'Make Public' : 'Make Private'}
+                                  </button>
+                                  <button disabled={stack.is_private} onClick={() => { handleShareStack(stack.id, stack.is_private); setActiveMenuStackId(null) }} className="flex items-center gap-2.5 px-3 py-2 text-sm text-ink hover:bg-bg-sunk rounded-lg font-medium transition disabled:opacity-50">
+                                    <Copy className="h-4 w-4 text-ink-2" /> Share Link
+                                  </button>
+                                  <button onClick={() => { handleDeleteStack(stack.id); setActiveMenuStackId(null) }} disabled={isDeletingThisStack} className="flex items-center gap-2.5 px-3 py-2 text-sm text-danger hover:bg-danger-soft rounded-lg font-medium transition disabled:opacity-50">
+                                    {isDeletingThisStack ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                                    Delete Toolkit
+                                  </button>
+                                </div>
                               )}
                             </div>
 
@@ -1693,20 +1768,6 @@ function ProfilePage() {
                                 <ChevronUp className="h-4 w-4" />
                               ) : (
                                 <ChevronDown className="h-4 w-4" />
-                              )}
-                            </button>
-
-                            {/* Delete Button */}
-                            <button
-                              onClick={() => handleDeleteStack(stack.id)}
-                              disabled={isDeletingThisStack}
-                              className="flex h-9 w-9 items-center justify-center rounded-xl border border-line bg-bg-elev text-muted transition hover:border-danger hover:bg-danger-soft hover:text-danger disabled:opacity-50"
-                              title="Delete toolkit"
-                            >
-                              {isDeletingThisStack ? (
-                                <Loader2 className="h-4 w-4 animate-spin text-danger" />
-                              ) : (
-                                <Trash2 className="h-4 w-4" />
                               )}
                             </button>
                           </div>
@@ -2807,6 +2868,19 @@ function ProfilePage() {
           <p className="text-sm font-medium">{toast.message}</p>
         </div>
       ) : null}
+
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={() => {
+          confirmModal.onConfirm()
+          setConfirmModal(prev => ({ ...prev, isOpen: false }))
+        }}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmText={confirmModal.confirmText}
+        isDanger={confirmModal.isDanger}
+      />
     </div>
   )
 }
