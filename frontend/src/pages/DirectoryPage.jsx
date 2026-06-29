@@ -1038,7 +1038,7 @@ function DirectoryPage() {
           </div>
         ) : (
           <>
-            <div className="filters-row flex gap-2 overflow-x-auto pb-1">
+            <div className="filters-row flex w-full gap-2 overflow-x-auto scrollbar-none pb-1">
               {CATEGORY_OPTIONS.map((option) => {
                 const active = option === category
 
@@ -1047,7 +1047,7 @@ function DirectoryPage() {
                     key={option}
                     type="button"
                     onClick={() => handleCategoryChange(option)}
-                    className={`whitespace-nowrap rounded-full border px-3 py-1.5 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+                    className={`whitespace-nowrap rounded-full border px-4 py-2 min-h-[44px] text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
                       active
                         ? 'border-accent bg-accent-soft text-accent-ink'
                         : 'border-transparent bg-bg-sunk text-ink-2 hover:bg-bg-elev'
@@ -1072,7 +1072,7 @@ function DirectoryPage() {
                 <button
                   type="button"
                   onClick={() => updateUrlParams(category, searchQuery, null, !actuallyFreeOnly, studentOnly, openSourceOnly, selfHostedOnly, payAsYouGoOnly)}
-                  className={`flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+                  className={`flex items-center gap-1.5 rounded-full border px-4 py-2 min-h-[44px] text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
                     actuallyFreeOnly
                       ? 'border-emerald-500 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
                       : 'border-line bg-bg-elev text-ink-2 hover:bg-bg-sunk'
@@ -1083,7 +1083,7 @@ function DirectoryPage() {
                 <button
                   type="button"
                   onClick={() => updateUrlParams(category, searchQuery, null, actuallyFreeOnly, !studentOnly, openSourceOnly, selfHostedOnly, payAsYouGoOnly)}
-                  className={`flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+                  className={`flex items-center gap-1.5 rounded-full border px-4 py-2 min-h-[44px] text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
                     studentOnly
                       ? 'border-accent bg-accent-soft text-accent-ink'
                       : 'border-line bg-bg-elev text-ink-2 hover:bg-bg-sunk'
@@ -1094,7 +1094,7 @@ function DirectoryPage() {
                 <button
                   type="button"
                   onClick={() => updateUrlParams(category, searchQuery, null, actuallyFreeOnly, studentOnly, !openSourceOnly, selfHostedOnly, payAsYouGoOnly)}
-                  className={`flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+                  className={`flex items-center gap-1.5 rounded-full border px-4 py-2 min-h-[44px] text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
                     openSourceOnly
                       ? 'border-blue-500 bg-blue-500/10 text-blue-600 dark:text-blue-400'
                       : 'border-line bg-bg-elev text-ink-2 hover:bg-bg-sunk'

@@ -615,57 +615,7 @@ function ToolDetailPage() {
  
               <div className="min-w-0 flex-1">
                 <h1 className="text-2xl font-bold tracking-tight text-ink sm:text-3xl lg:text-4xl">{tool.name}</h1>
-                {(() => {
-                  const hasVerdict = tool.ease_of_use != null || tool.free_tier_value != null || tool.student_relevance != null
-                  if (!hasVerdict) return null
-                  
-                  const renderCard = (title, score, icon, gradientClasses) => {
-                    if (score == null) return null
-                    const pct = (Number(score) / 5) * 100
-                    return (
-                      <div className="flex flex-col justify-between rounded-xl border border-line bg-bg-elev/50 p-4 shadow-sm backdrop-blur-md hover:border-accent/30 hover:scale-[1.01] transition-all">
-                        <div className="flex items-center justify-between gap-3">
-                          <div className="flex items-center gap-2">
-                            <span className="p-1.5 rounded-lg bg-bg-sunk/60 text-ink">
-                              {icon}
-                            </span>
-                            <span className="text-xs font-bold text-muted-2 tracking-wide uppercase">{title}</span>
-                          </div>
-                          <span className="text-sm font-bold text-ink">{score}/5</span>
-                        </div>
-                        <div className="mt-3.5 w-full h-1.5 bg-bg-sunk rounded-full overflow-hidden">
-                          <div
-                            className={clsx("h-full rounded-full transition-all duration-500", gradientClasses)}
-                            style={{ width: `${pct}%` }}
-                          />
-                        </div>
-                      </div>
-                    )
-                  }
 
-                  return (
-                    <div className="mt-4 mb-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
-                      {renderCard(
-                        "Ease of Use",
-                        tool.ease_of_use,
-                        <Zap className="h-4 w-4 text-cyan-400 fill-cyan-400/10" />,
-                        "bg-gradient-to-r from-cyan-400 to-blue-500 shadow-[0_0_12px_rgba(34,211,238,0.3)]"
-                      )}
-                      {renderCard(
-                        "Free Tier Value",
-                        tool.free_tier_value,
-                        <Gift className="h-4 w-4 text-emerald-400 fill-emerald-400/10" />,
-                        "bg-gradient-to-r from-emerald-400 to-teal-500 shadow-[0_0_12px_rgba(52,211,153,0.3)]"
-                      )}
-                      {renderCard(
-                        "Student Relevance",
-                        tool.student_relevance,
-                        <GraduationCap className="h-4 w-4 text-purple-400 fill-purple-400/10" />,
-                        "bg-gradient-to-r from-purple-400 to-indigo-500 shadow-[0_0_12px_rgba(192,132,252,0.3)]"
-                      )}
-                    </div>
-                  )
-                })()}
                 <div className="mt-3 flex flex-wrap items-center gap-2">
                   <Badge label={tool.category} variant={tool.category} />
                   <span
@@ -676,12 +626,16 @@ function ToolDetailPage() {
                   >
                     {tool.pricing}
                   </span>
-                  <span className="inline-flex items-center rounded-full bg-accent-soft/50 px-2.5 py-1 text-xs font-semibold text-accent-ink border border-accent/20">
-                    👍 Recommended for Students
-                  </span>
-                  <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                    ⚡ Free tier available
-                  </span>
+                  {tool.student_friendly && (
+                    <span className="inline-flex items-center rounded-full bg-accent-soft/50 px-2.5 py-1 text-xs font-semibold text-accent-ink border border-accent/20">
+                      👍 Recommended for Students
+                    </span>
+                  )}
+                  {['free', 'freemium'].some(p => String(tool.pricing || '').toLowerCase().includes(p)) && (
+                    <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                      ⚡ Free tier available
+                    </span>
+                  )}
                   {(() => {
                     const studentTag = classifyStudentOffer(tool)
                     return studentTag && (
@@ -743,6 +697,61 @@ function ToolDetailPage() {
                 </div>
 
                 <p className="mt-5 text-sm leading-relaxed text-ink-2">{tool.shortDescription}</p>
+
+                {(() => {
+                  const hasVerdict = tool.ease_of_use != null || tool.free_tier_value != null || tool.student_relevance != null
+                  if (!hasVerdict) return null
+                  
+                  const renderCard = (title, score, icon, gradientClasses) => {
+                    if (score == null) return null
+                    const pct = (Number(score) / 5) * 100
+                    return (
+                      <div className="flex flex-col justify-between rounded-xl border border-line bg-bg-elev/50 p-4 shadow-sm backdrop-blur-md hover:border-accent/30 hover:scale-[1.01] transition-all">
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-2">
+                            <span className="p-1.5 rounded-lg bg-bg-sunk/60 text-ink">
+                              {icon}
+                            </span>
+                            <span className="text-xs font-bold text-muted-2 tracking-wide uppercase">{title}</span>
+                          </div>
+                          <span className="text-sm font-bold text-ink">{score}/5</span>
+                        </div>
+                        <div className="mt-3.5 w-full h-1.5 bg-bg-sunk rounded-full overflow-hidden">
+                          <div
+                            className={clsx("h-full rounded-full transition-all duration-500", gradientClasses)}
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                      </div>
+                    )
+                  }
+
+                  return (
+                    <div className="mt-5 pt-4 border-t border-line/30">
+                      <h3 className="text-sm font-bold text-ink mb-3">AI Compass Verdict</h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        {renderCard(
+                          "Ease of Use",
+                          tool.ease_of_use,
+                          <Zap className="h-4 w-4 text-cyan-400 fill-cyan-400/10" />,
+                          "bg-gradient-to-r from-cyan-400 to-blue-500 shadow-[0_0_12px_rgba(34,211,238,0.3)]"
+                        )}
+                        {renderCard(
+                          "Free Tier Value",
+                          tool.free_tier_value,
+                          <Gift className="h-4 w-4 text-emerald-400 fill-emerald-400/10" />,
+                          "bg-gradient-to-r from-emerald-400 to-teal-500 shadow-[0_0_12px_rgba(52,211,153,0.3)]"
+                        )}
+                        {renderCard(
+                          "Student Relevance",
+                          tool.student_relevance,
+                          <GraduationCap className="h-4 w-4 text-purple-400 fill-purple-400/10" />,
+                          "bg-gradient-to-r from-purple-400 to-indigo-500 shadow-[0_0_12px_rgba(192,132,252,0.3)]"
+                        )}
+                      </div>
+                    </div>
+                  )
+                })()}
 
                 {tool.student_note && (
                   <div className="mt-5 pt-4 border-t border-line/30">

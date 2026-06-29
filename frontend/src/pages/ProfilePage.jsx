@@ -1093,7 +1093,7 @@ function ProfilePage() {
         </p>
       </div>
 
-      <section className="grid gap-6 lg:grid-cols-[20rem_minmax(0,1fr)]">
+      <section className="grid gap-6 md:grid-cols-[16rem_minmax(0,1fr)] lg:grid-cols-[20rem_minmax(0,1fr)]">
         <aside className="rounded-3xl border border-line bg-bg-elev p-6 shadow-sm">
           <div
             className={`mx-auto flex h-24 w-24 items-center justify-center overflow-hidden rounded-full ${profile?.picture && profile.picture.length > 10 ? 'bg-bg-sunk' : 'bg-accent'}`}
