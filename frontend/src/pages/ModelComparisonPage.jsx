@@ -894,8 +894,10 @@ export default function ModelComparisonPage() {
           </div>
 
           {/* Models Table */}
-          <div className="overflow-x-auto rounded-3xl border border-line bg-bg-elev/90 shadow-md">
-            <table className="w-full border-collapse text-left text-sm">
+          <div className="relative rounded-3xl border border-line bg-bg-elev/90 shadow-md">
+            <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-bg-elev to-transparent pointer-events-none z-10 lg:hidden rounded-r-3xl" />
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse text-left text-sm whitespace-nowrap lg:whitespace-normal">
               <thead>
                 <tr className="border-b border-line bg-bg-sunk text-[10px] font-bold uppercase tracking-wider text-muted">
                   <th className="px-6 py-4">Compare</th>
@@ -970,6 +972,7 @@ export default function ModelComparisonPage() {
                 )}
               </tbody>
             </table>
+            </div>
           </div>
         </div>
       </div>

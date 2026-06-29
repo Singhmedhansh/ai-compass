@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import { motion } from 'framer-motion'
-import { AlertTriangle, ArrowLeft, Check, ExternalLink, LayoutGrid, Star, StarHalf, X, Shield } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, Check, ExternalLink, LayoutGrid, Star, StarHalf, X, Shield, Search } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
@@ -635,6 +635,7 @@ export default function ComparePage() {
 
       {/* MATRIX */}
       {allLoaded && (
+        <>
         <div className="mt-16 mb-20 space-y-2">
           <CompareRow
             title="Pricing"
@@ -713,6 +714,23 @@ export default function ComparePage() {
             }}
           />
         </div>
+
+        {/* Add another tool action */}
+        <div className="mt-12 flex justify-center pb-8 animate-in fade-in duration-500">
+          <Link
+            to="/tools"
+            className="group flex items-center justify-center gap-4 rounded-2xl border border-line bg-bg-elev px-6 py-4 shadow-sm transition hover:border-accent hover:shadow-md w-full sm:w-auto"
+          >
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-bg-sunk text-muted transition group-hover:bg-accent-soft group-hover:text-accent-ink">
+              <Search className="h-5 w-5" />
+            </div>
+            <div className="text-left min-w-0 pr-2">
+              <p className="text-sm font-bold text-ink transition group-hover:text-accent-ink">Compare with another tool</p>
+              <p className="text-xs text-muted mt-0.5 hidden sm:block">Browse the directory to add more tools to your tray</p>
+            </div>
+          </Link>
+        </div>
+        </>
       )}
     </div>
   )

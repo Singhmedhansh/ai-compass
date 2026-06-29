@@ -121,19 +121,25 @@ function TemplateGallery({ onSelect }) {
   return (
     <div className="w-full flex flex-col items-center animate-in fade-in duration-500">
       <div className="mb-8 flex flex-wrap justify-center gap-2">
-        {categories.map((cat) => (
-          <button
-            key={cat}
-            onClick={() => setActiveFilter(cat)}
-            className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
-              activeFilter === cat 
-                ? 'bg-ink text-bg shadow-sm' 
-                : 'bg-bg-elev text-ink-2 hover:bg-bg-sunk ring-1 ring-inset ring-line'
-            }`}
-          >
-            {cat}
-          </button>
-        ))}
+        {categories.map((cat) => {
+          const count = cat === 'All' 
+            ? PREDEFINED_STACKS.length 
+            : PREDEFINED_STACKS.filter(s => s.category === cat).length;
+          
+          return (
+            <button
+              key={cat}
+              onClick={() => setActiveFilter(cat)}
+              className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+                activeFilter === cat 
+                  ? 'bg-ink text-bg shadow-sm' 
+                  : 'bg-bg-elev text-ink-2 hover:bg-bg-sunk ring-1 ring-inset ring-line'
+              }`}
+            >
+              {cat} <span className="opacity-70 ml-1 text-xs">({count})</span>
+            </button>
+          )
+        })}
       </div>
       
       <motion.div 
@@ -565,7 +571,7 @@ function QuestionRow({ index, question, answer, isActive, onActivate, onSelect, 
                 ) : (
                   <>
                     {/* Primary sub-category cards */}
-                    <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 mt-1">
+                    <div className="grid grid-cols-2 gap-2.5 mt-1">
                       {primarySubs.map((sub) => {
                         const SubIcon = sub.icon
                         const isSelected = answer === sub.label
@@ -613,7 +619,7 @@ function QuestionRow({ index, question, answer, isActive, onActivate, onSelect, 
                     {showOther && (
                       <div className="mt-2 space-y-3 pt-3 border-t border-dashed border-line animate-in fade-in duration-200">
                         {nicheSubs.length > 0 && (
-                          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+                          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-2">
                             {nicheSubs.map((sub) => {
                               const SubIcon = sub.icon
                               const isSelected = answer === sub.label
@@ -1578,6 +1584,11 @@ function ToolFinderPage() {
                 onCardClick={triggerSurveyPopup}
               />
             ))}
+          </div>
+          <div className="mt-12 flex justify-center pb-8">
+            <Button variant="secondary" onClick={handleRestart} size="lg" className="rounded-full px-8 shadow-sm hover:shadow-md transition-shadow">
+              <RotateCcw className="mr-2 h-5 w-5" /> Start Over
+            </Button>
           </div>
         </section>
       </div>

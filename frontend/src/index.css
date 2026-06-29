@@ -183,11 +183,14 @@ html[data-theme='dark'] .glass-box {
   width: max-content;
   animation: marquee 45s linear infinite;
 }
+.animate-marquee:hover, .animate-marquee:active {
+  animation-play-state: paused;
+}
 
 /* Premium Fade-out Edge Masks */
 .mask-gradient {
-  mask-image: linear-gradient(to right, transparent, #000 15%, #000 85%, transparent);
-  -webkit-mask-image: linear-gradient(to right, transparent, #000 15%, #000 85%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 5%, #000 95%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 5%, #000 95%, transparent);
 }
 
 .mask-gradient-b {

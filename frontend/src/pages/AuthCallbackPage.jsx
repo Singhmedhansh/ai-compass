@@ -26,6 +26,11 @@ export default function AuthCallbackPage() {
       )
     })
 
+    if (params.error) {
+      navigate(`/login?error=${encodeURIComponent(params.error)}`, { replace: true })
+      return
+    }
+
     if (params.name && params.email && params.id) {
       const user = {
         name: params.name,

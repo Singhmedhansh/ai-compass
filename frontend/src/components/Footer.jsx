@@ -103,7 +103,7 @@ function LinkedinIcon(props) {
 
 export default function Footer() {
   return (
-    <footer className="border-t border-line bg-bg py-10 md:py-12">
+    <footer className="border-t border-line dark:border-line-strong bg-bg py-10 md:py-12 relative">
       <div className="mx-auto max-w-6xl px-5">
         <div className="grid grid-cols-2 gap-8 md:grid-cols-[1.5fr_1fr_1fr_1fr_1fr]">
           <div className="col-span-2 md:col-span-1">
@@ -212,6 +212,13 @@ export default function Footer() {
           </div>
           <PeerlistBadge />
           <span className="font-mono text-xs">Made with care, not scrapers.</span>
+          <button 
+            type="button"
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            className="flex items-center gap-1.5 text-xs font-medium text-ink hover:text-accent transition"
+          >
+            Back to Top
+          </button>
         </div>
       </div>
     </footer>

@@ -49,10 +49,10 @@ export default function Hero() {
               For undergraduates · {roundedToolsText} tools curated {/* Dynamic — do not hardcode */}
             </div>
 
-            <h1 className="mt-4 mb-3.5 text-balance text-3xl font-semibold leading-[1.1] tracking-tight text-ink md:max-w-[16ch] md:text-[56px] lg:text-[64px]">
+            <h1 className="mt-4 mb-3.5 text-balance text-4xl sm:text-5xl lg:text-6xl font-semibold leading-[1.1] tracking-tight text-ink md:max-w-[16ch]">
               <ShinyText text="Find the perfect AI tool." className="leading-[1.1]" />
               <br className="hidden md:block" />
-              <span className="text-muted-2 text-3xl md:text-[56px] lg:text-[64px]">For <FlipWords words={audienceWords} className="text-ink" /></span>
+              <span className="text-muted-2 text-4xl sm:text-5xl lg:text-6xl">For <FlipWords words={audienceWords} className="text-ink" /></span>
             </h1>
 
             <p className="mb-5 max-w-[36ch] text-pretty text-[15px] text-muted md:max-w-[48ch] md:text-lg">
@@ -144,7 +144,7 @@ export default function Hero() {
           <p className="text-center text-xs font-bold uppercase tracking-widest text-muted-2 mb-5">
             Discover & Compare {roundedToolsText} Hand-Tested AI Tools {/* Dynamic — do not hardcode */}
           </p>
-          <div className="py-3">
+          <div className="py-3 min-h-[80px]">
             <InfiniteMarquee
               items={MARQUEE_LOGOS}
               speed={40}

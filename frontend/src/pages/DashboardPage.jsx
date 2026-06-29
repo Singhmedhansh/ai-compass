@@ -687,9 +687,15 @@ function DashboardPage() {
             <div className="mt-4 flex flex-wrap items-center gap-2 border-b border-line pb-3">
               <button
                 type="button"
+                id="folder-btn-all"
                 onClick={() => {
                   setActiveFolder('all')
                   setFolderActionError('')
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'ArrowRight' && folders.length > 0) {
+                    document.getElementById('folder-btn-0')?.focus();
+                  }
                 }}
                 className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all ${
                   activeFolder === 'all'
@@ -700,13 +706,22 @@ function DashboardPage() {
                 All Favorites
               </button>
 
-              {folders.map((folder) => (
+              {folders.map((folder, index) => (
                 <button
                   key={folder.name}
                   type="button"
+                  id={`folder-btn-${index}`}
                   onClick={() => {
                     setActiveFolder(folder.name)
                     setFolderActionError('')
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'ArrowRight' && index < folders.length - 1) {
+                      document.getElementById(`folder-btn-${index + 1}`)?.focus();
+                    } else if (e.key === 'ArrowLeft') {
+                      if (index > 0) document.getElementById(`folder-btn-${index - 1}`)?.focus();
+                      else document.getElementById('folder-btn-all')?.focus();
+                    }
                   }}
                   className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all flex items-center gap-1.5 ${
                     activeFolder === folder.name

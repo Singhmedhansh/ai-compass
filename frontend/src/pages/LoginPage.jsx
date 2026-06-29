@@ -200,7 +200,7 @@ function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               required
               autoComplete="current-password"
-              className={`w-full rounded-lg border bg-bg-elev px-3 py-2 pr-10 text-sm text-ink placeholder:text-muted-2 transition-colors focus:outline-none focus:ring-2 ${error ? 'border-danger focus:border-danger focus:ring-danger' : 'border-line focus:border-accent focus:ring-accent'}`}
+              className={`w-full rounded-lg border bg-bg-elev px-3 py-2 pr-12 text-sm text-ink placeholder:text-muted-2 transition-colors focus:outline-none focus:ring-2 ${error ? 'border-danger focus:border-danger focus:ring-danger' : 'border-line focus:border-accent focus:ring-accent'}`}
               placeholder="Enter your password"
             />
             <button
