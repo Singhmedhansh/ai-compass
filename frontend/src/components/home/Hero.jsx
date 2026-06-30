@@ -40,7 +40,7 @@ export default function Hero() {
       <header className="relative pt-9 pb-8 md:pt-20 md:pb-16">
         <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-10 px-5 md:grid-cols-[minmax(0,1fr)_auto] md:gap-16 relative z-10">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-line bg-bg-elev px-2.5 py-1 text-xs font-medium text-muted">
+            <div className="inline-flex items-center gap-2 rounded-full border border-line/40 bg-bg-elev/40 backdrop-blur-sm shadow-sm px-2.5 py-1 text-xs font-medium text-muted">
               <span
                 aria-hidden="true"
                 className="h-1.5 w-1.5 rounded-full bg-accent"
@@ -82,14 +82,14 @@ export default function Hero() {
               </MagneticWrapper>
               <Link
                 to="/tools"
-                className="inline-flex items-center gap-2 rounded-full border border-line-strong px-[18px] py-3 text-sm font-medium text-ink transition-all hover:border-ink hover:bg-bg-elev"
+                className="inline-flex items-center gap-2 rounded-full border border-line/50 bg-bg-elev/30 backdrop-blur-sm shadow-sm px-[18px] py-3 text-sm font-medium text-ink transition-all hover:border-line-strong hover:bg-bg-elev/50 hover:backdrop-blur-md"
               >
                 Browse the catalog
               </Link>
               <button
                 type="button"
                 onClick={handleStartTour}
-                className="inline-flex items-center gap-1.5 rounded-full border border-line px-[18px] py-3 text-sm font-medium text-muted hover:text-ink hover:border-ink hover:bg-bg-elev transition-all"
+                className="inline-flex items-center gap-1.5 rounded-full border border-line/50 bg-bg-elev/30 backdrop-blur-sm shadow-sm px-[18px] py-3 text-sm font-medium text-muted hover:text-ink hover:border-line-strong hover:bg-bg-elev/50 hover:backdrop-blur-md transition-all"
               >
                 <HelpCircle className="h-4 w-4" /> Take a Tour
               </button>
@@ -153,7 +153,7 @@ export default function Hero() {
                 <Link
                   key={`${logo.name}-${index}`}
                   to={`/tools/${logo.slug}`}
-                  className="flex items-center gap-3 rounded-2xl border border-line bg-bg-elev/40 px-5 py-3 shadow-md backdrop-blur-[2px] hover:border-accent/40 hover:bg-bg-elev/80 transition-[background-color,border-color,transform] duration-300 transform hover:scale-[1.05] cursor-pointer"
+                  className="flex items-center gap-3 rounded-2xl border border-line/50 bg-bg-elev/40 backdrop-blur-md px-5 py-3 shadow-lg hover:border-accent/50 hover:bg-bg-elev/60 transition-all duration-300 transform hover:scale-[1.05] cursor-pointer"
                 >
                   <img
                     src={`/icon/${logo.domain}`}

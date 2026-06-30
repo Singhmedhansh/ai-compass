@@ -131,7 +131,7 @@ export default function FeedbackWidget() {
         initial={{ opacity: 0, y: 10, scale: 0.96 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.22, ease: 'easeOut' }}
-        className={`fixed bottom-5 ${isWizardPage ? 'left-5 right-auto' : 'right-5'} z-50 flex items-center gap-2 rounded-full bg-accent px-4 py-3 text-sm font-medium text-white shadow-lg transition-all hover:scale-105 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 ${isWizardPage ? 'text-xs px-3 py-2 sm:text-sm sm:px-4 sm:py-3' : ''} ${recentlySubmitted ? 'opacity-70' : ''}`}
+        className={`fixed bottom-5 ${isWizardPage ? 'left-5 right-auto' : 'right-5'} z-50 flex items-center gap-2 rounded-full border border-accent/30 bg-accent/70 backdrop-blur-md px-4 py-3 text-sm font-medium text-white shadow-lg transition-all hover:scale-105 hover:bg-accent/90 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 ${isWizardPage ? 'text-xs px-3 py-2 sm:text-sm sm:px-4 sm:py-3' : ''} ${recentlySubmitted ? 'opacity-70' : ''}`}
         style={{ boxShadow: '0 6px 24px rgba(47, 179, 137, 0.35)' }}
       >
         <MessageSquare className="h-4 w-4" />
@@ -161,7 +161,7 @@ export default function FeedbackWidget() {
               role="dialog"
               aria-modal="true"
               aria-labelledby="feedback-title"
-              className={`fixed bottom-20 ${isWizardPage ? 'left-5 right-auto' : 'right-5'} z-[70] w-[calc(100vw-2.5rem)] max-w-sm rounded-2xl border border-line bg-bg-elev p-5 shadow-2xl ${isWizardPage ? '' : 'sm:right-5'}`}
+              className={`fixed bottom-20 ${isWizardPage ? 'left-5 right-auto' : 'right-5'} z-[70] w-[calc(100vw-2.5rem)] max-w-sm rounded-2xl border border-line/50 bg-bg-elev/60 backdrop-blur-xl p-5 shadow-2xl ${isWizardPage ? '' : 'sm:right-5'}`}
             >
               <div className="mb-3 flex items-start justify-between gap-3">
                 <div>

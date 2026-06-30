@@ -278,8 +278,8 @@ function Navbar() {
       ref={headerRef}
       className={`sticky top-0 z-50 transition-all duration-300 ${
         scrolled
-          ? 'border-b border-line glass-nav shadow-lg backdrop-blur-md'
-          : 'border-b border-line bg-bg-elev'
+          ? 'bg-bg/40 backdrop-blur-lg shadow-sm border-b border-line/50'
+          : 'bg-transparent border-b border-transparent'
       }`}
     >
       <div
@@ -291,7 +291,7 @@ function Navbar() {
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="group flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-line bg-bg-elev text-ink-2 shadow-sm transition-all duration-300 hover:border-accent hover:text-accent hover:scale-105 active:scale-95"
+            className="group flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-line bg-bg-elev/60 backdrop-blur-lg text-ink-2 shadow-sm transition-all duration-300 hover:border-accent hover:text-accent hover:scale-105 active:scale-95"
             aria-label="Go back"
           >
             <ArrowLeft className="h-4 w-4 transition-transform duration-300 group-hover:-translate-x-0.5" />
@@ -340,7 +340,7 @@ function Navbar() {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -4, scale: 0.98 }}
                   transition={dropdownTransition}
-                  className="absolute left-0 mt-1 w-56 origin-top-left overflow-hidden rounded-xl border border-line bg-bg-elev shadow-lg z-50"
+                  className="absolute left-0 mt-1 w-56 origin-top-left overflow-hidden rounded-xl border border-line bg-bg-elev/60 backdrop-blur-lg shadow-lg z-50"
                 >
                   <Link
                     to="/tools"
@@ -390,7 +390,7 @@ function Navbar() {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -4, scale: 0.98 }}
                   transition={dropdownTransition}
-                  className="absolute left-0 mt-1 w-56 origin-top-left overflow-hidden rounded-xl border border-line bg-bg-elev shadow-lg"
+                  className="absolute left-0 mt-1 w-56 origin-top-left overflow-hidden rounded-xl border border-line bg-bg-elev/60 backdrop-blur-lg shadow-lg"
                 >
                   <Link
                     to="/syllabus-parser"
@@ -435,7 +435,7 @@ function Navbar() {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -4, scale: 0.98 }}
                 transition={dropdownTransition}
-                className="absolute left-0 mt-1 w-56 origin-top-left overflow-hidden rounded-xl border border-line bg-bg-elev shadow-lg"
+                className="absolute left-0 mt-1 w-56 origin-top-left overflow-hidden rounded-xl border border-line bg-bg-elev/60 backdrop-blur-lg shadow-lg"
               >
                 <Link
                   to="/best-ai-tools-for-students"
@@ -511,7 +511,7 @@ function Navbar() {
             <button
               type="button"
               onClick={() => setIsCurrencyMenuOpen((prev) => !prev)}
-              className="flex items-center gap-1.5 h-10 rounded-lg border border-line-strong bg-bg-elev px-3 text-xs font-semibold text-ink-2 transition-colors hover:bg-bg-sunk focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent select-none"
+              className="flex items-center gap-1.5 h-10 rounded-lg border border-line-strong bg-bg-elev/60 backdrop-blur-lg px-3 text-xs font-semibold text-ink-2 transition-colors hover:bg-bg-sunk focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent select-none"
               aria-haspopup="listbox"
               aria-expanded={isCurrencyMenuOpen}
             >
@@ -529,7 +529,7 @@ function Navbar() {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -4, scale: 0.98 }}
                   transition={dropdownTransition}
-                  className="absolute right-0 mt-2 w-40 origin-top-right overflow-hidden rounded-xl border border-line bg-bg-elev p-1 shadow-lg z-50"
+                  className="absolute right-0 mt-2 w-40 origin-top-right overflow-hidden rounded-xl border border-line bg-bg-elev/60 backdrop-blur-lg p-1 shadow-lg z-50"
                 >
                   {currencies.map((curr) => (
                     <button
@@ -559,7 +559,7 @@ function Navbar() {
           <button
             type="button"
             onClick={toggleDarkMode}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-line-strong bg-bg-elev text-ink-2 transition-colors hover:bg-bg-sunk focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-line-strong bg-bg-elev/60 backdrop-blur-lg text-ink-2 transition-colors hover:bg-bg-sunk focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
           >
             <AnimatePresence mode="wait" initial={false}>
@@ -581,7 +581,7 @@ function Navbar() {
               <button
                 type="button"
                 onClick={() => setIsProfileMenuOpen((value) => !value)}
-                className="flex items-center gap-2 rounded-full border border-line-strong bg-bg-elev px-1.5 py-1 text-left shadow-sm transition hover:border-accent hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                className="flex items-center gap-2 rounded-full border border-line-strong bg-bg-elev/60 backdrop-blur-lg px-1.5 py-1 text-left shadow-sm transition hover:border-accent hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                 aria-haspopup="menu"
                 aria-expanded={isProfileMenuOpen}
               >
@@ -618,7 +618,7 @@ function Navbar() {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -4, scale: 0.98 }}
                   transition={dropdownTransition}
-                  className="absolute right-0 mt-2 w-64 origin-top-right overflow-hidden rounded-2xl border border-line bg-bg-elev p-2 shadow-2xl"
+                  className="absolute right-0 mt-2 w-64 origin-top-right overflow-hidden rounded-2xl border border-line bg-bg-elev/60 backdrop-blur-lg p-2 shadow-2xl"
                 >
                   <div className="px-3 py-2">
                     <p className="truncate text-sm font-semibold text-ink">{user?.name || 'My account'}</p>

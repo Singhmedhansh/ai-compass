@@ -157,7 +157,7 @@ function SearchInput({
         placeholder={placeholder}
         style={style}
         autoComplete="off"
-        className="h-10 w-full rounded-xl border border-line bg-bg-elev pl-10 pr-10 text-sm text-ink outline-none transition placeholder:text-muted hover:border-line-strong focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent"
+        className="h-10 w-full rounded-xl border border-line/50 bg-bg-elev/40 backdrop-blur-md shadow-inner pl-10 pr-10 text-sm text-ink outline-none transition-all placeholder:text-muted hover:border-line-strong hover:bg-bg-elev/60 focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent"
       />
 
       {hasValue && (
@@ -173,7 +173,7 @@ function SearchInput({
 
       {/* Suggestion Dropdown */}
       {showDropdown && (suggestions.length > 0 || loading) && (
-        <div className="absolute left-0 right-0 top-full z-50 mt-1.5 max-h-64 overflow-y-auto rounded-xl border border-line bg-bg-elev py-1.5 shadow-lg animate-in fade-in slide-in-from-top-1 duration-150">
+        <div className="absolute left-0 right-0 top-full z-50 mt-1.5 max-h-64 overflow-y-auto rounded-xl border border-line/50 bg-bg-elev/60 backdrop-blur-lg py-1.5 shadow-lg animate-in fade-in slide-in-from-top-1 duration-150">
           {loading && suggestions.length === 0 ? (
             <div className="px-4 py-2 text-xs text-muted flex items-center gap-2">
               <div className="h-3 w-3 animate-spin rounded-full border-2 border-accent border-t-transparent" />
