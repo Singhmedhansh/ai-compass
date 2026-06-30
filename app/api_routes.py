@@ -1808,6 +1808,8 @@ def get_trending_today():
 
 
 @api_bp.post("/trending/vote")
+@csrf.exempt
+@login_required
 def cast_trending_vote():
     from flask_login import current_user
     if not current_user.is_authenticated:
