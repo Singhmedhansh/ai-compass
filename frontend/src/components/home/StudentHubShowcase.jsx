@@ -170,36 +170,36 @@ export default function StudentHubShowcase() {
                 >
                   <div className="flex items-center gap-2 mb-2 text-emerald-600 dark:text-emerald-400">
                     <FileCheck className="h-5 w-5" />
-                    <span className="text-xs font-extrabold uppercase tracking-wider">Analysis Complete — 3 Topics Identified</span>
+                    <span className="text-xs font-semibold uppercase tracking-wider">Analysis Complete — 3 Topics Identified</span>
                   </div>
 
                   <div className="space-y-2.5">
                     <div className="flex items-center justify-between p-3 rounded-xl border border-line bg-bg-sunk/30">
                       <div>
-                        <span className="text-xs font-bold text-ink block">1. Relational Databases</span>
+                        <span className="text-xs font-semibold text-ink block">1. Relational Databases</span>
                         <span className="text-[10px] text-muted">Weeks 1-4</span>
                       </div>
-                      <span className="text-[10px] font-bold bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded">
+                      <span className="text-[10px] font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded">
                         DBeaver (Free)
                       </span>
                     </div>
 
                     <div className="flex items-center justify-between p-3 rounded-xl border border-line bg-bg-sunk/30">
                       <div>
-                        <span className="text-xs font-bold text-ink block">2. Frontend Architecture</span>
+                        <span className="text-xs font-semibold text-ink block">2. Frontend Architecture</span>
                         <span className="text-[10px] text-muted">Weeks 5-8</span>
                       </div>
-                      <span className="text-[10px] font-bold bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded">
+                      <span className="text-[10px] font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded">
                         v0.dev (Free tier)
                       </span>
                     </div>
 
                     <div className="flex items-center justify-between p-3 rounded-xl border border-line bg-bg-sunk/30">
                       <div>
-                        <span className="text-xs font-bold text-ink block">3. Code Refactoring</span>
+                        <span className="text-xs font-semibold text-ink block">3. Code Refactoring</span>
                         <span className="text-[10px] text-muted">Weeks 9-12</span>
                       </div>
-                      <span className="text-[10px] font-bold bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded">
+                      <span className="text-[10px] font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded">
                         Claude Sonnet
                       </span>
                     </div>
@@ -207,7 +207,7 @@ export default function StudentHubShowcase() {
 
                   <button
                     onClick={() => setParserStep('idle')}
-                    className="text-xs font-bold text-accent hover:underline flex items-center gap-1 cursor-pointer"
+                    className="text-xs font-semibold text-accent hover:underline flex items-center gap-1 cursor-pointer"
                   >
                     Reset and parse another syllabus
                   </button>
@@ -223,7 +223,7 @@ export default function StudentHubShowcase() {
             <div className="overflow-hidden rounded-2xl border border-line/40 bg-bg-elev/75 p-5 shadow-sm">
               <div className="flex items-start justify-between gap-4 mb-3">
                 <div>
-                  <h4 className="text-base font-extrabold text-ink">AI Stack for CS Freshman</h4>
+                  <h4 className="text-base font-semibold text-ink">AI Stack for CS Freshman</h4>
                   <p className="text-[10px] text-muted flex items-center gap-1.5 mt-0.5">
                     <Users className="h-3 w-3" /> Shared by StudentMedhansh
                   </p>
@@ -241,9 +241,9 @@ export default function StudentHubShowcase() {
                       setHasUpvoted(true)
                     }
                   }}
-                  className={`flex items-center gap-1 px-2.5 py-1 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                  className={`flex items-center gap-1 px-2.5 py-1 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
                     hasUpvoted
-                      ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-extrabold'
+                      ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-bold'
                       : 'bg-bg-sunk/50 border-line text-muted hover:text-ink hover:bg-bg-sunk'
                   }`}
                 >
@@ -267,7 +267,7 @@ export default function StudentHubShowcase() {
               <div className="flex gap-2">
                 <button
                   onClick={() => setIsCloned(true)}
-                  className="flex-1 text-xs font-bold bg-accent text-bg py-2 rounded-xl transition shadow-sm cursor-pointer"
+                  className="flex-1 text-xs font-semibold bg-accent text-bg py-2 rounded-xl transition shadow-sm cursor-pointer"
                 >
                   {isCloned ? (
                     <span className="flex items-center justify-center gap-1">
@@ -291,19 +291,19 @@ export default function StudentHubShowcase() {
       case 'discounts':
         return (
           <div className="p-6 h-full flex flex-col justify-center min-h-[320px] space-y-3">
-            <span className="text-[10px] font-bold text-muted-2 uppercase tracking-wide block mb-1">Interactive Discount Codes</span>
+            <span className="text-[10px] font-semibold text-muted-2 uppercase tracking-wide block mb-1">Interactive Discount Codes</span>
 
             <div className="p-3.5 rounded-xl border border-line bg-bg-elev flex items-center justify-between hover:border-accent transition">
               <div className="flex items-center gap-3">
-                <div className="h-9 w-9 rounded-lg bg-[#1F2328] flex items-center justify-center text-white text-xs font-extrabold">GH</div>
+                <div className="h-9 w-9 rounded-lg bg-[#1F2328] flex items-center justify-center text-white text-xs font-semibold">GH</div>
                 <div>
-                  <h5 className="text-xs font-bold text-ink">GitHub Student Developer Pack</h5>
-                  <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-extrabold uppercase">100% Free Pro Tools</span>
+                  <h5 className="text-xs font-semibold text-ink">GitHub Student Developer Pack</h5>
+                  <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold uppercase">100% Free Pro Tools</span>
                 </div>
               </div>
               <button
                 onClick={() => setClaimedDiscounts(prev => ({ ...prev, gh: !prev.gh }))}
-                className={`text-[10px] font-bold px-3 py-1.5 rounded-lg border transition cursor-pointer ${
+                className={`text-[10px] font-semibold px-3 py-1.5 rounded-lg border transition cursor-pointer ${
                   claimedDiscounts.gh ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400' : 'bg-bg-sunk hover:bg-line border-line text-ink-2'
                 }`}
               >
@@ -313,15 +313,15 @@ export default function StudentHubShowcase() {
 
             <div className="p-3.5 rounded-xl border border-line bg-bg-elev flex items-center justify-between hover:border-accent transition">
               <div className="flex items-center gap-3">
-                <div className="h-9 w-9 rounded-lg bg-black flex items-center justify-center text-white text-xs font-extrabold">N</div>
+                <div className="h-9 w-9 rounded-lg bg-black flex items-center justify-center text-white text-xs font-semibold">N</div>
                 <div>
-                  <h5 className="text-xs font-bold text-ink">Notion Student Premium</h5>
-                  <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-extrabold uppercase">Free Personal Upgrade</span>
+                  <h5 className="text-xs font-semibold text-ink">Notion Student Premium</h5>
+                  <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold uppercase">Free Personal Upgrade</span>
                 </div>
               </div>
               <button
                 onClick={() => setClaimedDiscounts(prev => ({ ...prev, notion: !prev.notion }))}
-                className={`text-[10px] font-bold px-3 py-1.5 rounded-lg border transition cursor-pointer ${
+                className={`text-[10px] font-semibold px-3 py-1.5 rounded-lg border transition cursor-pointer ${
                   claimedDiscounts.notion ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400' : 'bg-bg-sunk hover:bg-line border-line text-ink-2'
                 }`}
               >
@@ -331,15 +331,15 @@ export default function StudentHubShowcase() {
 
             <div className="p-3.5 rounded-xl border border-line bg-bg-elev flex items-center justify-between hover:border-accent transition">
               <div className="flex items-center gap-3">
-                <div className="h-9 w-9 rounded-lg bg-[#C96442] flex items-center justify-center text-white text-xs font-extrabold">JB</div>
+                <div className="h-9 w-9 rounded-lg bg-[#C96442] flex items-center justify-center text-white text-xs font-semibold">JB</div>
                 <div>
-                  <h5 className="text-xs font-bold text-ink">JetBrains Student Suite</h5>
-                  <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-extrabold uppercase">Free Professional IDEs</span>
+                  <h5 className="text-xs font-semibold text-ink">JetBrains Student Suite</h5>
+                  <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold uppercase">Free Professional IDEs</span>
                 </div>
               </div>
               <button
                 onClick={() => setClaimedDiscounts(prev => ({ ...prev, jb: !prev.jb }))}
-                className={`text-[10px] font-bold px-3 py-1.5 rounded-lg border transition cursor-pointer ${
+                className={`text-[10px] font-semibold px-3 py-1.5 rounded-lg border transition cursor-pointer ${
                   claimedDiscounts.jb ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400' : 'bg-bg-sunk hover:bg-line border-line text-ink-2'
                 }`}
               >
@@ -362,10 +362,10 @@ export default function StudentHubShowcase() {
 
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-accent-soft text-accent text-xs font-bold uppercase tracking-wider mb-4">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-accent-soft text-accent text-xs font-semibold uppercase tracking-wider mb-4">
             <Award className="h-3.5 w-3.5" /> Student Hub Features
           </div>
-          <h2 className="text-3xl font-extrabold text-ink tracking-tight sm:text-4xl">
+          <h2 className="text-3xl font-semibold text-ink tracking-tight sm:text-4xl leading-[1.15]">
             Syllabi, Galleries, and Discounts
           </h2>
           <p className="mt-4 text-muted text-sm md:text-base leading-relaxed">
@@ -396,10 +396,10 @@ export default function StudentHubShowcase() {
                     />
                   )}
 
-                  <span className="text-[10px] font-bold text-accent-ink tracking-wide block mb-1 uppercase">
+                  <span className="text-[10px] font-semibold text-accent-ink tracking-wide block mb-1 uppercase">
                     {tab.tagline}
                   </span>
-                  <h3 className="text-base font-extrabold text-ink transition-colors group-hover:text-accent">
+                  <h3 className="text-base font-semibold text-ink transition-colors group-hover:text-accent">
                     {tab.title}
                   </h3>
                   <p className="mt-2 text-xs leading-relaxed text-muted">
@@ -422,7 +422,7 @@ export default function StudentHubShowcase() {
             <div className="mt-6 flex justify-end">
               <Link
                 to={activeData.ctaLink}
-                className="inline-flex items-center gap-1.5 text-sm font-bold text-accent hover:underline"
+                className="inline-flex items-center gap-1.5 text-sm font-semibold text-accent hover:underline"
               >
                 {activeData.ctaText} <ArrowRight className="h-4 w-4" />
               </Link>

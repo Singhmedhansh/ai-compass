@@ -143,10 +143,10 @@ export default function StackLibraryPage() {
       <section className="relative overflow-hidden rounded-3xl border border-line/40 bg-bg-elev p-6 md:p-8 shadow-xl mb-8">
         <div className="absolute inset-0 bg-gradient-to-r from-accent/5 via-transparent to-transparent pointer-events-none" />
         <div className="relative z-10">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-accent-soft text-accent text-xs font-bold uppercase tracking-wider mb-3">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-accent-soft text-accent text-xs font-semibold uppercase tracking-wider mb-3">
             <Layers className="h-3.5 w-3.5" /> Community Gallery
           </div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">
+          <h1 className="text-3xl font-semibold tracking-tight text-ink sm:text-4xl leading-[1.15]">
             Community Stack Library
           </h1>
           <p className="mt-3 text-muted text-sm md:text-base leading-relaxed max-w-3xl">
@@ -189,7 +189,7 @@ export default function StackLibraryPage() {
               <div>
                 <div className="flex items-start justify-between gap-4 mb-3">
                   <div>
-                    <h3 className="text-lg font-bold text-ink group-hover:text-accent transition-colors line-clamp-1">
+                    <h3 className="text-lg font-semibold text-ink group-hover:text-accent transition-colors line-clamp-1">
                       {stack.name}
                     </h3>
                     <p className="text-xs text-muted flex items-center gap-1.5 mt-0.5">
@@ -201,9 +201,9 @@ export default function StackLibraryPage() {
                   <button
                     type="button"
                     onClick={(e) => handleUpvote(e, stack.id)}
-                    className={`flex items-center gap-1 px-2.5 py-1 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                    className={`flex items-center gap-1 px-2.5 py-1 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
                       stack.has_voted
-                        ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-extrabold'
+                        ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-bold'
                         : 'bg-bg-sunk/50 border-line text-muted hover:text-ink hover:bg-bg-sunk'
                     }`}
                   >
@@ -239,7 +239,7 @@ export default function StackLibraryPage() {
 
                 {/* Toolkit visual representations */}
                 <div className="mb-6">
-                  <span className="text-xs font-bold text-muted-2 uppercase tracking-wide block mb-2">Included Tools ({stack.tools.length})</span>
+                  <span className="text-xs font-semibold text-muted-2 uppercase tracking-wide block mb-2">Included Tools ({stack.tools.length})</span>
                   <div className="flex flex-wrap gap-2">
                     {stack.tools.slice(0, 5).map(slug => (
                       <span
@@ -250,7 +250,7 @@ export default function StackLibraryPage() {
                       </span>
                     ))}
                     {stack.tools.length > 5 && (
-                      <span className="text-xs bg-bg-sunk text-muted rounded-lg px-2 py-1 font-bold">
+                      <span className="text-xs bg-bg-sunk text-muted rounded-lg px-2 py-1 font-semibold">
                         +{stack.tools.length - 5} more
                       </span>
                     )}
@@ -262,14 +262,14 @@ export default function StackLibraryPage() {
               <div className="flex items-center gap-3 pt-4 border-t border-line/20 mt-auto">
                 <Link
                   to={`/stacks/${stack.id}?stack_id=${stack.id}`}
-                  className="flex-1 text-center text-xs font-bold bg-accent hover:opacity-90 text-bg py-2 rounded-xl transition shadow-sm"
+                  className="flex-1 text-center text-xs font-semibold bg-accent hover:opacity-90 text-bg py-2 rounded-xl transition shadow-sm"
                 >
                   View Toolkit
                 </Link>
                 <button
                   type="button"
                   onClick={(e) => handleClone(e, stack.id)}
-                  className="flex-1 text-xs font-bold bg-bg-sunk hover:bg-line border border-line text-ink-2 py-2 rounded-xl transition cursor-pointer"
+                  className="flex-1 text-xs font-semibold bg-bg-sunk hover:bg-line border border-line text-ink-2 py-2 rounded-xl transition cursor-pointer"
                 >
                   Clone to Profile
                 </button>
@@ -280,7 +280,7 @@ export default function StackLibraryPage() {
       ) : (
         <div className="rounded-2xl border border-dashed border-line bg-bg-sunk py-16 text-center">
           <BookOpen className="h-8 w-8 text-muted mx-auto" />
-          <h2 className="mt-4 text-lg font-bold text-ink">No matching toolkits found</h2>
+          <h2 className="mt-4 text-lg font-semibold text-ink">No matching toolkits found</h2>
           <p className="text-sm text-muted mt-1">Try refining your search terms or check back later.</p>
         </div>
       )}
