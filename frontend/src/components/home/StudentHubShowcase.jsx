@@ -2,8 +2,9 @@ import { useEffect, useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  FileText, Star, Tag, UploadCloud, CheckCircle2,
-  FileCheck, Users, Layers, Award, ArrowRight
+  FileText, Star, UploadCloud, CheckCircle2,
+  FileCheck, Users, Layers, Award, ArrowRight,
+  Plus, ShieldCheck, Copy, Check, RotateCcw
 } from 'lucide-react'
 import MockupChrome from '../ui/MockupChrome'
 
@@ -42,17 +43,22 @@ export default function StudentHubShowcase() {
   const [isHovered, setIsHovered] = useState(false)
   const autoRotateTimer = useRef(null)
 
-  // Syllabus parser demo states
+  // Syllabus parser states
   const [parserStep, setParserStep] = useState('idle') // idle, uploading, parsed
   const [uploadProgress, setUploadProgress] = useState(0)
 
-  // Stacks demo states
+  // Stacks states
   const [hasUpvoted, setHasUpvoted] = useState(false)
   const [upvoteCount, setUpvoteCount] = useState(42)
-  const [isCloned, setIsCloned] = useState(false)
+  const [stackTools, setStackTools] = useState(['Google Colab', 'Claude', 'v0.dev'])
+  const [cloneStep, setCloneStep] = useState('idle') // idle, cloning, finished
+  const [cloneProgress, setCloneProgress] = useState(0)
 
-  // Discounts demo states
-  const [claimedDiscounts, setClaimedDiscounts] = useState({})
+  // Discounts states
+  const [activeDiscountItem, setActiveDiscountItem] = useState(null) // null, 'gh', 'notion', 'jb'
+  const [verificationStep, setVerificationStep] = useState('idle') // idle, email_input, checking, code_revealed
+  const [emailInput, setEmailInput] = useState('')
+  const [isCodeCopied, setIsCodeCopied] = useState(false)
 
   // Auto-rotate tabs if user is not interacting
   useEffect(() => {
@@ -67,7 +73,7 @@ export default function StudentHubShowcase() {
         if (prev === 'stacks') return 'discounts'
         return 'parser'
       })
-    }, 8000)
+    }, 10000) // 10s rotation for longer interactive flows
 
     return () => {
       if (autoRotateTimer.current) clearInterval(autoRotateTimer.current)
@@ -93,8 +99,8 @@ export default function StudentHubShowcase() {
             clearInterval(interval)
             setParserStep('parsed')
           }
-        }, 150)
-      }, 1000)
+        }, 120)
+      }, 1200)
       return () => clearTimeout(t1)
     }
   }, [activeTab, parserStep])
@@ -104,14 +110,19 @@ export default function StudentHubShowcase() {
     if (activeTab !== 'stacks') {
       setHasUpvoted(false)
       setUpvoteCount(42)
-      setIsCloned(false)
+      setStackTools(['Google Colab', 'Claude', 'v0.dev'])
+      setCloneStep('idle')
+      setCloneProgress(0)
     }
   }, [activeTab])
 
   // Reset Discounts on tab switch
   useEffect(() => {
     if (activeTab !== 'discounts') {
-      setClaimedDiscounts({})
+      setActiveDiscountItem(null)
+      setVerificationStep('idle')
+      setEmailInput('')
+      setIsCodeCopied(false)
     }
   }, [activeTab])
 
@@ -120,22 +131,72 @@ export default function StudentHubShowcase() {
     setIsHovered(true)
   }
 
+  // Handle simulated upvoting particle animation
+  const triggerUpvote = () => {
+    if (hasUpvoted) {
+      setUpvoteCount(prev => prev - 1)
+      setHasUpvoted(false)
+    } else {
+      setUpvoteCount(prev => prev + 1)
+      setHasUpvoted(true)
+    }
+  }
+
+  // Simulate stack tools adding/toggling
+  const handleAddToolToStack = (toolName) => {
+    if (stackTools.includes(toolName)) {
+      setStackTools(prev => prev.filter(t => t !== toolName))
+    } else {
+      setStackTools(prev => [...prev, toolName])
+    }
+  }
+
+  // Simulate stack cloning sequence
+  const startCloningStack = () => {
+    setCloneStep('cloning')
+    let prog = 0
+    const interval = setInterval(() => {
+      prog += 20
+      setCloneProgress(prog)
+      if (prog >= 100) {
+        clearInterval(interval)
+        setCloneStep('finished')
+      }
+    }, 150)
+  }
+
+  // Simulate Discount Verification Flow
+  const startVerification = (discountId) => {
+    setActiveDiscountItem(discountId)
+    setVerificationStep('email_input')
+  }
+
+  const submitEmailVerification = () => {
+    if (!emailInput.includes('@') || !emailInput.includes('.')) {
+      return // Simple client validator
+    }
+    setVerificationStep('checking')
+    setTimeout(() => {
+      setVerificationStep('code_revealed')
+    }, 1800)
+  }
+
   const renderMockupContent = () => {
     switch (activeTab) {
       case 'parser':
         return (
-          <div className="p-6 h-full flex flex-col justify-center min-h-[320px]">
+          <div className="p-4 sm:p-6 w-full h-full flex flex-col justify-center min-h-[320px]">
             <AnimatePresence mode="wait">
               {parserStep === 'idle' && (
                 <motion.div
                   key="parser-idle"
-                  initial={{ opacity: 0, scale: 0.95 }}
+                  initial={{ opacity: 0, scale: 0.96 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  className="flex flex-col items-center justify-center border-2 border-dashed border-line rounded-2xl p-8 bg-bg-sunk/10 text-center"
+                  exit={{ opacity: 0, scale: 0.96 }}
+                  className="flex flex-col items-center justify-center border-2 border-dashed border-line rounded-2xl p-6 sm:p-8 bg-bg-sunk/10 text-center"
                 >
                   <UploadCloud className="h-10 w-10 text-accent mb-3 animate-bounce" />
-                  <p className="text-sm font-bold text-ink mb-1">Drag & Drop Syllabus PDF</p>
+                  <p className="text-sm font-semibold text-ink mb-1">Drag & Drop Syllabus PDF</p>
                   <p className="text-xs text-muted">Supports CS, Math, and Engineering course layouts</p>
                 </motion.div>
               )}
@@ -146,10 +207,10 @@ export default function StudentHubShowcase() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="flex flex-col items-center justify-center p-8 text-center"
+                  className="flex flex-col items-center justify-center p-6 text-center w-full"
                 >
                   <FileText className="h-10 w-10 text-accent mb-4 animate-pulse" />
-                  <p className="text-sm font-bold text-ink mb-2">Analyzing CS_101_Algorithms.pdf...</p>
+                  <p className="text-sm font-semibold text-ink mb-2">Analyzing CS_101_Algorithms.pdf...</p>
                   <div className="w-full max-w-xs h-2 bg-line rounded-full overflow-hidden">
                     <div
                       className="h-full bg-accent transition-all duration-150"
@@ -166,14 +227,14 @@ export default function StudentHubShowcase() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
-                  className="space-y-3.5"
+                  className="space-y-3"
                 >
-                  <div className="flex items-center gap-2 mb-2 text-emerald-600 dark:text-emerald-400">
-                    <FileCheck className="h-5 w-5" />
+                  <div className="flex items-center gap-2 mb-1 text-emerald-600 dark:text-emerald-400">
+                    <FileCheck className="h-4 w-4" />
                     <span className="text-xs font-semibold uppercase tracking-wider">Analysis Complete — 3 Topics Identified</span>
                   </div>
 
-                  <div className="space-y-2.5">
+                  <div className="space-y-2">
                     <div className="flex items-center justify-between p-3 rounded-xl border border-line bg-bg-sunk/30">
                       <div>
                         <span className="text-xs font-semibold text-ink block">1. Relational Databases</span>
@@ -219,133 +280,310 @@ export default function StudentHubShowcase() {
 
       case 'stacks':
         return (
-          <div className="p-6 h-full flex flex-col justify-center min-h-[320px]">
-            <div className="overflow-hidden rounded-2xl border border-line/40 bg-bg-elev/75 p-5 shadow-sm">
-              <div className="flex items-start justify-between gap-4 mb-3">
-                <div>
-                  <h4 className="text-base font-semibold text-ink">AI Stack for CS Freshman</h4>
-                  <p className="text-[10px] text-muted flex items-center gap-1.5 mt-0.5">
-                    <Users className="h-3 w-3" /> Shared by StudentMedhansh
-                  </p>
-                </div>
-
-                {/* Simulated Upvote Button */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (hasUpvoted) {
-                      setUpvoteCount(42)
-                      setHasUpvoted(false)
-                    } else {
-                      setUpvoteCount(43)
-                      setHasUpvoted(true)
-                    }
-                  }}
-                  className={`flex items-center gap-1 px-2.5 py-1 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
-                    hasUpvoted
-                      ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-bold'
-                      : 'bg-bg-sunk/50 border-line text-muted hover:text-ink hover:bg-bg-sunk'
-                  }`}
+          <div className="p-4 sm:p-6 w-full h-full flex flex-col justify-center min-h-[320px]">
+            <AnimatePresence mode="wait">
+              {cloneStep === 'idle' && (
+                <motion.div
+                  key="stack-builder"
+                  initial={{ opacity: 0, scale: 0.98 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="overflow-hidden rounded-2xl border border-line/40 bg-bg-elev/75 p-4 sm:p-5 shadow-sm space-y-4 w-full"
                 >
-                  <Star className={`h-3.5 w-3.5 ${hasUpvoted ? 'fill-emerald-500 text-emerald-500' : ''}`} />
-                  <span>{upvoteCount}</span>
-                </button>
-              </div>
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <h4 className="text-sm sm:text-base font-semibold text-ink">AI Stack for CS Freshman</h4>
+                      <p className="text-[10px] text-muted flex items-center gap-1.5 mt-0.5">
+                        <Users className="h-3 w-3" /> Shared by StudentMedhansh
+                      </p>
+                    </div>
 
-              <p className="text-xs text-ink-2 mb-4 leading-normal italic">
-                &ldquo;curated selection of completely free AI developer modules for starting algorithms courses.&rdquo;
-              </p>
+                    <button
+                      type="button"
+                      onClick={triggerUpvote}
+                      className={`relative flex items-center gap-1 px-2.5 py-1 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
+                        hasUpvoted
+                          ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-bold scale-105'
+                          : 'bg-bg-sunk/50 border-line text-muted hover:text-ink hover:bg-bg-sunk'
+                      }`}
+                    >
+                      <Star className={`h-3.5 w-3.5 ${hasUpvoted ? 'fill-emerald-500 text-emerald-500' : ''}`} />
+                      <span>{upvoteCount}</span>
+                      
+                      {/* Floating Upvote particle feedback */}
+                      {hasUpvoted && (
+                        <motion.span
+                          initial={{ opacity: 1, y: 0 }}
+                          animate={{ opacity: 0, y: -20 }}
+                          className="absolute -top-3 right-2 text-[10px] font-bold text-emerald-500"
+                        >
+                          +1
+                        </motion.span>
+                      )}
+                    </button>
+                  </div>
 
-              {/* Tools display */}
-              <div className="flex flex-wrap gap-1.5 mb-5">
-                <span className="text-[10px] bg-bg-sunk/60 border border-line/40 rounded-lg px-2 py-0.5 text-ink-2 font-medium">Google Colab</span>
-                <span className="text-[10px] bg-bg-sunk/60 border border-line/40 rounded-lg px-2 py-0.5 text-ink-2 font-medium">Claude</span>
-                <span className="text-[10px] bg-bg-sunk/60 border border-line/40 rounded-lg px-2 py-0.5 text-ink-2 font-medium">v0.dev</span>
-              </div>
+                  {/* Included Tools listing display */}
+                  <div>
+                    <span className="text-[10px] font-bold text-muted-2 uppercase tracking-wide block mb-1.5">Stack Contents ({stackTools.length})</span>
+                    <div className="flex flex-wrap gap-1.5 min-h-[32px]">
+                      {stackTools.map(t => (
+                        <span key={t} className="text-[10px] bg-bg-sunk/60 border border-line/40 rounded-lg px-2 py-0.5 text-ink-2 font-medium">
+                          {t}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
 
-              {/* Action buttons simulation */}
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setIsCloned(true)}
-                  className="flex-1 text-xs font-semibold bg-accent text-bg py-2 rounded-xl transition shadow-sm cursor-pointer"
-                >
-                  {isCloned ? (
-                    <span className="flex items-center justify-center gap-1">
-                      <CheckCircle2 className="h-3.5 w-3.5" /> Cloned to Profile!
-                    </span>
-                  ) : 'Clone Stack'}
-                </button>
-                {isCloned && (
+                  {/* Interactive: allow toggling mock options */}
+                  <div className="pt-2 border-t border-line/20">
+                    <span className="text-[10px] font-bold text-muted-2 uppercase tracking-wide block mb-2">Interactive: Customize Stack</span>
+                    <div className="flex flex-wrap gap-1">
+                      {['Cursor', 'Notion', 'NotebookLM'].map(tool => {
+                        const active = stackTools.includes(tool)
+                        return (
+                          <button
+                            key={tool}
+                            onClick={() => handleAddToolToStack(tool)}
+                            className={`text-[10px] font-semibold px-2 py-1 rounded-md border flex items-center gap-1 cursor-pointer transition ${
+                              active
+                                ? 'bg-accent-soft border-accent/25 text-accent-ink'
+                                : 'bg-bg-sunk/30 border-line text-muted hover:text-ink'
+                            }`}
+                          >
+                            <Plus className={`h-3 w-3 transition-transform ${active ? 'rotate-45' : ''}`} /> {tool}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+
                   <button
-                    onClick={() => setIsCloned(false)}
-                    className="text-xs text-muted hover:text-ink"
+                    onClick={startCloningStack}
+                    className="w-full text-xs font-semibold bg-accent text-bg py-2.5 rounded-xl transition shadow-sm cursor-pointer hover:opacity-90"
                   >
-                    Reset
+                    Clone to Dashboard
                   </button>
-                )}
-              </div>
-            </div>
+                </motion.div>
+              )}
+
+              {cloneStep === 'cloning' && (
+                <motion.div
+                  key="stack-cloning"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="flex flex-col items-center justify-center p-6 text-center w-full"
+                >
+                  <Layers className="h-10 w-10 text-accent mb-4 animate-spin" />
+                  <p className="text-sm font-semibold text-ink mb-2">Configuring cloned stack on profile...</p>
+                  <div className="w-full max-w-xs h-2 bg-line rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-accent transition-all duration-100"
+                      style={{ width: `${cloneProgress}%` }}
+                    />
+                  </div>
+                  <span className="text-xs text-muted mt-1.5">{cloneProgress}% complete</span>
+                </motion.div>
+              )}
+
+              {cloneStep === 'finished' && (
+                <motion.div
+                  key="stack-cloned-success"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="flex flex-col items-center justify-center p-6 text-center border border-emerald-500/20 bg-emerald-500/5 rounded-2xl w-full"
+                >
+                  <CheckCircle2 className="h-12 w-12 text-emerald-500 mb-3" />
+                  <h4 className="text-sm font-semibold text-ink mb-1">Cloning Successful!</h4>
+                  <p className="text-xs text-muted max-w-xs leading-relaxed mb-4">
+                    The custom stack containing {stackTools.join(', ')} has been saved to your workspace profile dashboard.
+                  </p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setCloneStep('idle')}
+                      className="text-xs font-semibold border border-line bg-bg-elev px-3 py-1.5 rounded-xl text-muted hover:text-ink cursor-pointer flex items-center gap-1.5"
+                    >
+                      <RotateCcw className="h-3.5 w-3.5" /> Start Over
+                    </button>
+                    <Link
+                      to="/dashboard"
+                      className="text-xs font-semibold bg-accent text-bg px-3 py-1.5 rounded-xl transition hover:opacity-90"
+                    >
+                      View Dashboard
+                    </Link>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         )
 
       case 'discounts':
         return (
-          <div className="p-6 h-full flex flex-col justify-center min-h-[320px] space-y-3">
-            <span className="text-[10px] font-semibold text-muted-2 uppercase tracking-wide block mb-1">Interactive Discount Codes</span>
+          <div className="p-4 sm:p-6 w-full h-full flex flex-col justify-center min-h-[320px] w-full">
+            <AnimatePresence mode="wait">
+              {verificationStep === 'idle' && (
+                <motion.div
+                  key="discounts-list"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="space-y-2.5 w-full text-left"
+                >
+                  <span className="text-[10px] font-semibold text-muted-2 uppercase tracking-wide block mb-1">Interactive Discount Codes</span>
 
-            <div className="p-3.5 rounded-xl border border-line bg-bg-elev flex items-center justify-between hover:border-accent transition">
-              <div className="flex items-center gap-3">
-                <div className="h-9 w-9 rounded-lg bg-[#1F2328] flex items-center justify-center text-white text-xs font-semibold">GH</div>
-                <div>
-                  <h5 className="text-xs font-semibold text-ink">GitHub Student Developer Pack</h5>
-                  <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold uppercase">100% Free Pro Tools</span>
-                </div>
-              </div>
-              <button
-                onClick={() => setClaimedDiscounts(prev => ({ ...prev, gh: !prev.gh }))}
-                className={`text-[10px] font-semibold px-3 py-1.5 rounded-lg border transition cursor-pointer ${
-                  claimedDiscounts.gh ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400' : 'bg-bg-sunk hover:bg-line border-line text-ink-2'
-                }`}
-              >
-                {claimedDiscounts.gh ? 'Claimed!' : 'Claim Pack'}
-              </button>
-            </div>
+                  {/* GitHub card */}
+                  <div className="p-3 rounded-xl border border-line bg-bg-elev flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-accent transition">
+                    <div className="flex items-center gap-3">
+                      <div className="h-8 w-8 rounded-lg bg-[#1F2328] flex items-center justify-center text-white text-xs font-semibold shrink-0">GH</div>
+                      <div>
+                        <h5 className="text-xs font-semibold text-ink">GitHub Student Pack</h5>
+                        <span className="text-[9px] text-emerald-600 dark:text-emerald-400 font-semibold uppercase">100% Free Developer Suite</span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => startVerification('gh')}
+                      className="text-[10px] font-semibold bg-bg-sunk hover:bg-line border border-line text-ink-2 px-3 py-1.5 rounded-lg transition cursor-pointer w-full sm:w-auto text-center"
+                    >
+                      Claim Pack
+                    </button>
+                  </div>
 
-            <div className="p-3.5 rounded-xl border border-line bg-bg-elev flex items-center justify-between hover:border-accent transition">
-              <div className="flex items-center gap-3">
-                <div className="h-9 w-9 rounded-lg bg-black flex items-center justify-center text-white text-xs font-semibold">N</div>
-                <div>
-                  <h5 className="text-xs font-semibold text-ink">Notion Student Premium</h5>
-                  <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold uppercase">Free Personal Upgrade</span>
-                </div>
-              </div>
-              <button
-                onClick={() => setClaimedDiscounts(prev => ({ ...prev, notion: !prev.notion }))}
-                className={`text-[10px] font-semibold px-3 py-1.5 rounded-lg border transition cursor-pointer ${
-                  claimedDiscounts.notion ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400' : 'bg-bg-sunk hover:bg-line border-line text-ink-2'
-                }`}
-              >
-                {claimedDiscounts.notion ? 'Claimed!' : 'Claim Upgrade'}
-              </button>
-            </div>
+                  {/* Notion card */}
+                  <div className="p-3 rounded-xl border border-line bg-bg-elev flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-accent transition">
+                    <div className="flex items-center gap-3">
+                      <div className="h-8 w-8 rounded-lg bg-black flex items-center justify-center text-white text-xs font-semibold shrink-0">N</div>
+                      <div>
+                        <h5 className="text-xs font-semibold text-ink">Notion Student Premium</h5>
+                        <span className="text-[9px] text-emerald-600 dark:text-emerald-400 font-semibold uppercase">Free Block Upgrades</span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => startVerification('notion')}
+                      className="text-[10px] font-semibold bg-bg-sunk hover:bg-line border border-line text-ink-2 px-3 py-1.5 rounded-lg transition cursor-pointer w-full sm:w-auto text-center"
+                    >
+                      Claim Code
+                    </button>
+                  </div>
 
-            <div className="p-3.5 rounded-xl border border-line bg-bg-elev flex items-center justify-between hover:border-accent transition">
-              <div className="flex items-center gap-3">
-                <div className="h-9 w-9 rounded-lg bg-[#C96442] flex items-center justify-center text-white text-xs font-semibold">JB</div>
-                <div>
-                  <h5 className="text-xs font-semibold text-ink">JetBrains Student Suite</h5>
-                  <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold uppercase">Free Professional IDEs</span>
-                </div>
-              </div>
-              <button
-                onClick={() => setClaimedDiscounts(prev => ({ ...prev, jb: !prev.jb }))}
-                className={`text-[10px] font-semibold px-3 py-1.5 rounded-lg border transition cursor-pointer ${
-                  claimedDiscounts.jb ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400' : 'bg-bg-sunk hover:bg-line border-line text-ink-2'
-                }`}
-              >
-                {claimedDiscounts.jb ? 'Claimed!' : 'Claim License'}
-              </button>
-            </div>
+                  {/* JetBrains card */}
+                  <div className="p-3 rounded-xl border border-line bg-bg-elev flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-accent transition">
+                    <div className="flex items-center gap-3">
+                      <div className="h-8 w-8 rounded-lg bg-[#C96442] flex items-center justify-center text-white text-xs font-semibold shrink-0">JB</div>
+                      <div>
+                        <h5 className="text-xs font-semibold text-ink">JetBrains Student Suite</h5>
+                        <span className="text-[9px] text-emerald-600 dark:text-emerald-400 font-semibold uppercase">Free Professional IDEs</span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => startVerification('jb')}
+                      className="text-[10px] font-semibold bg-bg-sunk hover:bg-line border border-line text-ink-2 px-3 py-1.5 rounded-lg transition cursor-pointer w-full sm:w-auto text-center"
+                    >
+                      Claim Pack
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+
+              {verificationStep === 'email_input' && (
+                <motion.div
+                  key="email-input-form"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  className="space-y-4 w-full text-left"
+                >
+                  <div>
+                    <h4 className="text-sm font-semibold text-ink mb-1">Verify Academic Status</h4>
+                    <p className="text-xs text-muted">Enter your university/school email to unlock the discount code.</p>
+                  </div>
+
+                  <div className="space-y-3">
+                    <input
+                      type="email"
+                      value={emailInput}
+                      onChange={(e) => setEmailInput(e.target.value)}
+                      placeholder="e.g. student@harvard.edu"
+                      className="block w-full rounded-xl border border-line bg-bg-elev px-3 py-2 text-xs text-ink placeholder-muted shadow-sm focus:border-accent focus:ring-1 focus:ring-accent outline-none"
+                    />
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={submitEmailVerification}
+                        disabled={!emailInput.includes('@')}
+                        className={`flex-1 text-xs font-semibold py-2 rounded-xl transition shadow-sm cursor-pointer text-center text-bg bg-accent ${
+                          !emailInput.includes('@') ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
+                      >
+                        Verify & Unlock
+                      </button>
+                      <button
+                        onClick={() => setVerificationStep('idle')}
+                        className="text-xs font-semibold border border-line px-3 py-2 rounded-xl text-muted hover:text-ink cursor-pointer"
+                      >
+                        Back
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {verificationStep === 'checking' && (
+                <motion.div
+                  key="verifying-status"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="flex flex-col items-center justify-center p-6 text-center w-full"
+                >
+                  <ShieldCheck className="h-10 w-10 text-accent mb-3 animate-pulse" />
+                  <p className="text-sm font-semibold text-ink mb-1">Verifying academic credentials...</p>
+                  <p className="text-xs text-muted">Connecting to academic registrar database</p>
+                </motion.div>
+              )}
+
+              {verificationStep === 'code_revealed' && (
+                <motion.div
+                  key="promo-code-revealed"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="flex flex-col items-center justify-center p-6 text-center border border-emerald-500/20 bg-emerald-500/5 rounded-2xl w-full"
+                >
+                  <CheckCircle2 className="h-10 w-10 text-emerald-500 mb-3" />
+                  <h4 className="text-sm font-semibold text-ink mb-1">Verification Successful!</h4>
+                  <p className="text-xs text-muted mb-4">Your student discount code is ready to copy.</p>
+
+                  <div className="flex w-full max-w-xs items-center justify-between rounded-xl border border-line bg-bg-elev p-2.5 mb-4">
+                    <span className="font-mono text-xs text-emerald-600 dark:text-emerald-400 font-extrabold tracking-wider pl-1.5">
+                      AICOMPASS-STU-2026
+                    </span>
+                    <button
+                      onClick={() => {
+                        setIsCodeCopied(true)
+                        setTimeout(() => setIsCodeCopied(false), 2000)
+                      }}
+                      className="rounded-lg p-1.5 border border-line bg-bg-sunk hover:bg-line transition text-ink-2 cursor-pointer"
+                      title="Copy code"
+                    >
+                      {isCodeCopied ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
+                    </button>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      setVerificationStep('idle')
+                      setEmailInput('')
+                    }}
+                    className="text-xs font-semibold text-accent hover:underline flex items-center gap-1 cursor-pointer"
+                  >
+                    View other discounts
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         )
 
