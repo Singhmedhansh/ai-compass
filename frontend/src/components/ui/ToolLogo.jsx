@@ -102,7 +102,7 @@ function ToolLogo({ tool, size = 48 }) {
           style={{
             ...boxStyle,
             objectFit: 'contain',
-            background: '#fff',
+            background: 'var(--logo-bg, #fff)',
             padding: 3,
             position: imgLoaded ? 'static' : 'absolute',
             top: 0,
@@ -132,7 +132,7 @@ function ToolLogo({ tool, size = 48 }) {
           style={{
             ...boxStyle,
             objectFit: 'contain',
-            background: '#fff',
+            background: 'var(--logo-bg, #fff)',
             padding: 3,
             position: imgLoaded ? 'static' : 'absolute',
             top: 0,

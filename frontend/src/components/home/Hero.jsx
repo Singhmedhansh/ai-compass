@@ -158,7 +158,8 @@ export default function Hero() {
                   <img
                     src={`/icon/${logo.domain}`}
                     alt={logo.name}
-                    className="h-7 w-7 rounded-lg bg-white p-0.5 object-contain shadow-[0_1px_4px_rgba(0,0,0,0.10)] border border-line/30"
+                    className="h-7 w-7 rounded-lg p-0.5 object-contain shadow-[0_1px_4px_rgba(0,0,0,0.10)] border border-line/30"
+                    style={{ backgroundColor: 'var(--logo-bg)' }}
                     loading="lazy"
                   />
                   <span className="font-semibold text-ink-2">{logo.name}</span>
