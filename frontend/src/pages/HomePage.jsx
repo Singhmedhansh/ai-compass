@@ -8,6 +8,7 @@ import NewsletterCapture from '../components/home/NewsletterCapture'
 import SubmitInvite from '../components/home/SubmitInvite'
 import SunoStory from '../components/home/SunoStory'
 import WizardDemo from '../components/home/WizardDemo'
+import StudentHubShowcase from '../components/home/StudentHubShowcase'
 
 export default function HomePage() {
   const { roundedToolsText } = useCatalogStats() // {/* Dynamic — do not hardcode */}
@@ -25,6 +26,7 @@ export default function HomePage() {
 
       <Hero />
       <WizardDemo />
+      <StudentHubShowcase />
       <CurationDiscipline />
       <NewsletterCapture />
       <SunoStory />

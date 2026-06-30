@@ -1,2 +1,0 @@
-import{t as e}from"./createLucideIcon-BT1wa7_C.js";var t=e(`chevron-left`,[[`path`,{d:`m15 18-6-6 6-6`,key:`1wnfg3`}]]),n=e(`chevron-right`,[[`path`,{d:`m9 18 6-6-6-6`,key:`mthhwq`}]]);export{t as n,n as t};
-//# sourceMappingURL=chevron-right-BIcAq-gG.js.map
