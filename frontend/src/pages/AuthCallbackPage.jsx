@@ -32,21 +32,30 @@ export default function AuthCallbackPage() {
     }
 
     if (params.name && params.email && params.id) {
+      const onboardingCompleted = params.onboarding_completed !== 'false'
       const user = {
         name: params.name,
         email: params.email,
         id: params.id,
-        picture: params.picture || ''
+        picture: params.picture || '',
+        onboarding_completed: onboardingCompleted,
+        is_verified: true, // OAuth users are always verified
       }
       localStorage.setItem('user', JSON.stringify(user))
       if (window.posthog && user) {
         window.posthog.identify(user.id, {
           email: user.email,
-          is_verified: user.is_verified || false
+          is_verified: true,
+          onboarding_completed: onboardingCompleted,
         });
       }
       window.dispatchEvent(new Event('userLoggedIn'))
-      toast.success(`Welcome back, ${params.name.split(' ')[0]}!`)
+      const firstName = params.name.split(' ')[0]
+      toast.success(
+        onboardingCompleted
+          ? `Welcome back, ${firstName}!`
+          : `Account created! Let's set up your experience, ${firstName} 🎉`
+      )
       navigate('/dashboard', { replace: true })
     } else {
       navigate('/login?error=missing_params', { replace: true })

@@ -119,14 +119,22 @@ def _provider_redirect_uri(callback_endpoint: str, prod_path: str) -> str:
 def _spa_success_redirect(user, provider_name: str, name: str | None = None, picture: str | None = None):
     """Centralized success handler for OAuth providers.
 
-    Performs the app login, marks onboarding, commits DB changes,
-    attaches Sentry telemetry (best-effort) and returns the SPA
-    redirect. All Sentry calls are defensive and non-blocking.
+    Performs the app login, commits DB changes, attaches Sentry telemetry
+    (best-effort) and returns the SPA redirect. All Sentry calls are
+    defensive and non-blocking.
+
+    Note: onboarding_completed is intentionally NOT force-set to True for
+    first-time OAuth users. They should go through the onboarding wizard
+    just like email-registered users. The flag is passed in the redirect
+    URL params so the frontend wizard can fire when needed.
+    Returning users who already completed onboarding are unaffected.
     """
     _clear_stale_login_flash_errors()
     login_user(user, remember=True)
     user.first_login = False
-    user.onboarding_completed = True
+    # Only mark completed if it already was — never force-set it to True on
+    # a fresh OAuth signup, so first-time OAuth users see the wizard.
+    onboarding_done = bool(getattr(user, "onboarding_completed", False))
     db.session.commit()
 
     # Best-effort Sentry telemetry: non-blocking and defensive
@@ -150,6 +158,7 @@ def _spa_success_redirect(user, provider_name: str, name: str | None = None, pic
         "email": user.email,
         "id": user.id,
         "picture": user.oauth_picture_url or (picture or "") or "",
+        "onboarding_completed": "true" if onboarding_done else "false",
     })
     return redirect(f"{_frontend_base_url()}/auth/callback?{params}")
 

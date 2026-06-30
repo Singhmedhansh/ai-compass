@@ -1,2 +1,0 @@
-function e(e){let t=e?.slug;return t?`/go/${encodeURIComponent(t)}`:e?.affiliate_url||e?.url||e?.website||e?.link||`#`}var t=`sponsored nofollow noopener noreferrer`;export{e as n,t};
-//# sourceMappingURL=outbound-zlO6dy79.js.map

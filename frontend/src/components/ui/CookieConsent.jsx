@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Cookie } from 'lucide-react'
+import { ShieldCheck } from 'lucide-react'
 
 const MotionDiv = motion.div
 
@@ -79,7 +79,7 @@ export default function CookieConsent() {
         >
           <div className="flex items-start sm:items-center gap-3">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent-soft text-accent">
-              <Cookie className="h-5 w-5" aria-hidden="true" />
+              <ShieldCheck className="h-5 w-5" aria-hidden="true" />
             </div>
             <p className="text-sm leading-relaxed text-ink">
               We strictly use essential session tokens and minimal telemetry to optimize your tool search workflows. Learn more in our{' '}
