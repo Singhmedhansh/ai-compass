@@ -22,6 +22,41 @@ import { inferErrorVariant } from '../utils/errorState'
 
 const MotionDiv = motion.div
 
+const TRENDING_LOOKUP = {
+  "cursor": { rank: 1, category: "Coding" },
+  "claude": { rank: 1, category: "Writing & Chat" },
+  "v0": { rank: 3, category: "Coding" },
+  "github-copilot": { rank: 4, category: "Coding" },
+  "windsurf": { rank: 5, category: "Coding" },
+  "chatgpt": { rank: 2, category: "Writing & Chat" },
+  "notebooklm": { rank: 1, category: "Research" },
+  "notion": { rank: 2, category: "Productivity" },
+  "editgpt": { rank: 5, category: "Writing & Chat" },
+  "consensus": { rank: 2, category: "Research" },
+  "perplexity-ai": { rank: 3, category: "Research" },
+  "elicit": { rank: 4, category: "Research" },
+  "scite": { rank: 5, category: "Research" },
+  "granola": { rank: 1, category: "Productivity" },
+  "fireflies-ai": { rank: 3, category: "Productivity" },
+  "speechify": { rank: 4, category: "Productivity" },
+  "krisp": { rank: 5, category: "Productivity" },
+  "midjourney": { rank: 1, category: "Image Generation" },
+  "stable-diffusion": { rank: 2, category: "Image Generation" },
+  "adobe-firefly": { rank: 3, category: "Image Generation" },
+  "canva": { rank: 4, category: "Image Generation" },
+  "dall-e-3": { rank: 5, category: "Image Generation" },
+  "kling-ai": { rank: 1, category: "Video Generation" },
+  "runway": { rank: 2, category: "Video Generation" },
+  "luma-dream-machine": { rank: 3, category: "Video Generation" },
+  "heygen": { rank: 4, category: "Video Generation" },
+  "sora": { rank: 5, category: "Video Generation" },
+  "elevenlabs": { rank: 1, category: "Audio & Voice" },
+  "suno": { rank: 2, category: "Audio & Voice" },
+  "udio": { rank: 3, category: "Audio & Voice" },
+  "descript": { rank: 4, category: "Audio & Voice" },
+  "deepgram": { rank: 5, category: "Audio & Voice" }
+}
+
 // Shown to users who arrive directly on a tool page (empty referrer or external
 // referrer). Gives cold visitors instant site context before they bounce.
 // Dismissed per-session via sessionStorage so repeat visitors never see it.
@@ -626,14 +661,26 @@ function ToolDetailPage() {
                   >
                     {tool.pricing}
                   </span>
+                  {(() => {
+                    const tr = TRENDING_LOOKUP[tool.slug]
+                    return tr && (
+                      <Link
+                        to="/trending"
+                        state={{ category: tr.category }}
+                        className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-600 dark:text-amber-400 border border-amber-500/20 hover:bg-amber-500/20 hover:border-amber-500/30 hover:opacity-90 transition-all cursor-pointer"
+                      >
+                        Ranked #{tr.rank} in {tr.category}
+                      </Link>
+                    )
+                  })()}
                   {tool.student_friendly && (
                     <span className="inline-flex items-center rounded-full bg-accent-soft/50 px-2.5 py-1 text-xs font-semibold text-accent-ink border border-accent/20">
-                      👍 Recommended for Students
+                      Recommended for Students
                     </span>
                   )}
                   {['free', 'freemium'].some(p => String(tool.pricing || '').toLowerCase().includes(p)) && (
                     <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                      ⚡ Free tier available
+                      Free tier available
                     </span>
                   )}
                   {(() => {

@@ -1251,21 +1251,27 @@ def get_tool(slug: str):
 
         # Aggregate live user ratings into the payload so the tool detail page
         # and its SoftwareApplication JSON-LD render real numbers instead of
-        # the static rating: 0 / review_count: 0 from tools.json. Only overwrite
-        # when at least one rating exists; the static fields stay otherwise
-        # (no rating is honestly better than a fabricated "0 of 5").
+        # the static rating from tools.json.
         try:
             agg = (
                 db.session.query(
-                    func.avg(Rating.value).label("avg"),
                     func.count(Rating.id).label("count"),
+                    func.sum(Rating.value).label("sum"),
                 )
                 .filter(Rating.tool_slug == slug_value)
                 .first()
             )
-            if agg and agg.count and int(agg.count) > 0:
-                tool_payload["rating"] = round(float(agg.avg), 1)
-                tool_payload["review_count"] = int(agg.count)
+            db_count = int(agg.count or 0) if agg else 0
+            db_sum = float(agg.sum or 0) if agg and agg.sum is not None else 0
+
+            seed_avg = float(tool.get("rating") or 0.0)
+            seed_count = int(tool.get("review_count") or tool.get("reviewCount") or tool.get("reviews") or 0)
+
+            combined_count = seed_count + db_count
+            if combined_count > 0:
+                combined_avg = round(((seed_avg * seed_count) + db_sum) / combined_count, 1)
+                tool_payload["rating"] = combined_avg
+                tool_payload["review_count"] = combined_count
         except Exception:
             # Ratings table missing or unreachable — fall back to static fields.
             db.session.rollback()
@@ -1353,27 +1359,34 @@ def get_tool_ratings(slug: str):
     current_app.logger.info(f"[PERF] ratings start: {slug_value}")
     result = (
         db.session.query(
-            func.avg(Rating.value).label("avg"),
             func.count(Rating.id).label("count"),
+            func.sum(Rating.value).label("sum"),
         )
         .filter(Rating.tool_slug == slug_value)
         .first()
     )
     current_app.logger.info(f"[PERF] after ratings query: {time.time() - t0:.2f}s")
 
-    avg = round(float(result.avg), 1) if result and result.avg is not None else 0
-    count = int(result.count or 0) if result else 0
+    db_count = int(result.count or 0) if result else 0
+    db_sum = float(result.sum or 0) if result and result.sum is not None else 0
 
-    if count == 0:
-        from app.models import CatalogTool
-        row = CatalogTool.query.filter_by(slug=slug_value).first()
-        if row:
-            try:
-                rec = json.loads(row.data) if row.data else {}
-                avg = float(rec.get("rating") or 0.0)
-                count = int(rec.get("review_count") or rec.get("reviewCount") or rec.get("reviews") or 0)
-            except Exception:
-                pass
+    seed_avg = 0.0
+    seed_count = 0
+    from app.models import CatalogTool
+    row = CatalogTool.query.filter_by(slug=slug_value).first()
+    if row:
+        try:
+            rec = json.loads(row.data) if row.data else {}
+            seed_avg = float(rec.get("rating") or 0.0)
+            seed_count = int(rec.get("review_count") or rec.get("reviewCount") or rec.get("reviews") or 0)
+        except Exception:
+            pass
+
+    combined_count = seed_count + db_count
+    if combined_count > 0:
+        combined_avg = round(((seed_avg * seed_count) + db_sum) / combined_count, 1)
+    else:
+        combined_avg = 0.0
 
     user_rating = None
     if current_user.is_authenticated:
@@ -1383,10 +1396,10 @@ def get_tool_ratings(slug: str):
     current_app.logger.info(f"[PERF] total ratings: {time.time() - t0:.2f}s")
 
     return jsonify({
-        "average": avg,
-        "count": count,
+        "average": combined_avg,
+        "count": combined_count,
         "user_rating": user_rating,
-        "message": "Be the first to rate this tool!" if count == 0 else None,
+        "message": "Be the first to rate this tool!" if combined_count == 0 else None,
     })
 
 
@@ -1745,6 +1758,101 @@ def get_collection(slug: str):
     # via /admin, the collection should reflect it on next nav.
     response.headers["Cache-Control"] = "no-cache, must-revalidate"
     return response
+
+
+@api_bp.get("/trending")
+def get_trending_today():
+    from app.services.trending_data import resolve_trending_tools
+    from app.models import TrendingVote
+    from flask_login import current_user
+    try:
+        data = resolve_trending_tools()
+        all_votes = TrendingVote.query.all()
+        
+        votes_by_slug = {}
+        for vote in all_votes:
+            slug = str(vote.tool_slug).strip().lower()
+            if slug not in votes_by_slug:
+                votes_by_slug[slug] = {"upvotes": 0, "downvotes": 0, "user_vote": 0}
+            
+            if vote.vote_type == 1:
+                votes_by_slug[slug]["upvotes"] += 1
+            elif vote.vote_type == -1:
+                votes_by_slug[slug]["downvotes"] += 1
+                
+            if current_user.is_authenticated and vote.user_id == current_user.id:
+                votes_by_slug[slug]["user_vote"] = vote.vote_type
+
+        for category, items in data.items():
+            for item in items:
+                slug = str(item["slug"]).strip().lower()
+                vote_info = votes_by_slug.get(slug, {"upvotes": 0, "downvotes": 0, "user_vote": 0})
+                
+                baseline = 100 - (item["rank"] * 10)
+                net_votes = vote_info["upvotes"] - vote_info["downvotes"]
+                item["final_score"] = baseline + net_votes
+                item["upvotes"] = vote_info["upvotes"]
+                item["downvotes"] = vote_info["downvotes"]
+                item["user_vote"] = vote_info["user_vote"]
+                item["net_votes"] = net_votes
+                
+            items.sort(key=lambda x: x["final_score"], reverse=True)
+            
+            for index, sorted_item in enumerate(items):
+                sorted_item["display_rank"] = index + 1
+
+        return jsonify(data)
+    except Exception as e:
+        current_app.logger.exception("Failed to get trending tools: %s", e)
+        return jsonify({"error": "Failed to load trending tools"}), 500
+
+
+@api_bp.post("/trending/vote")
+def cast_trending_vote():
+    from flask_login import current_user
+    if not current_user.is_authenticated:
+        return jsonify({"error": "Authentication required"}), 401
+
+    data = request.get_json() or {}
+    tool_slug = str(data.get("slug", "")).strip().lower()
+    vote_type = data.get("vote_type")
+
+    if not tool_slug or vote_type not in (1, -1):
+        return jsonify({"error": "Invalid payload"}), 400
+
+    from app.models import TrendingVote
+    existing = TrendingVote.query.filter_by(user_id=current_user.id, tool_slug=tool_slug).first()
+
+    if existing:
+        if existing.vote_type == vote_type:
+            db.session.delete(existing)
+            user_vote = 0
+        else:
+            existing.vote_type = vote_type
+            user_vote = vote_type
+    else:
+        new_vote = TrendingVote(user_id=current_user.id, tool_slug=tool_slug, vote_type=vote_type)
+        db.session.add(new_vote)
+        user_vote = vote_type
+
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.exception("Failed to commit trending vote: %s", e)
+        return jsonify({"error": "Database error"}), 500
+
+    upvotes = TrendingVote.query.filter_by(tool_slug=tool_slug, vote_type=1).count()
+    downvotes = TrendingVote.query.filter_by(tool_slug=tool_slug, vote_type=-1).count()
+
+    return jsonify({
+        "success": True,
+        "user_vote": user_vote,
+        "upvotes": upvotes,
+        "downvotes": downvotes,
+        "net_votes": upvotes - downvotes
+    })
+
 
 @api_bp.get("/admin/users")
 def admin_users():

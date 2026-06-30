@@ -384,3 +384,21 @@ class UserSession(db.Model):
     user = db.relationship("User", back_populates="sessions")
 
 
+class TrendingVote(db.Model):
+    __tablename__ = "trending_votes"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
+    tool_slug = db.Column(db.String(120), nullable=False, index=True)
+    vote_type = db.Column(db.Integer, nullable=False)  # 1 for upvote, -1 for downvote
+    created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+
+    user = db.relationship("User", backref=db.backref("trending_votes", cascade="all, delete-orphan"))
+
+    __table_args__ = (
+        db.UniqueConstraint("user_id", "tool_slug", name="uq_trending_user_vote"),
+        db.CheckConstraint("vote_type = 1 OR vote_type = -1", name="ck_trending_vote_type"),
+    )
+
+
+
