@@ -56,6 +56,7 @@ _ROUTE_META = {
     'reset-password': ('Reset Password — AI Compass', 'Enter a new password for your account.'),
     'help': ('FAQ & Support — AI Compass', 'Get answers to frequently asked questions, learn how the AI Stack Architect works, or contact support.'),
     'student-discounts': ('Student AI Discounts & UNiDAYS Deals — AI Compass', 'Explore the best student discounts and UNiDAYS deals on top AI tools. Save on writing, coding, research, and productivity tools with your student status.'),
+    'syllabus-parser': ('Course Syllabus Parser — AI Semester Toolkit | AI Compass', 'Upload your course syllabus PDF or Docx. Automatically scan your assignments, grading criteria, and tech requirements to build a personalized AI toolpack.'),
 }
 
 # Routes the React SPA actually renders. Anything not in this set (and
