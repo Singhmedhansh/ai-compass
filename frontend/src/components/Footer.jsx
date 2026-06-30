@@ -67,6 +67,7 @@ const PRODUCT_LINKS = [
   { label: 'AI Stack Architect', to: '/ai-tool-finder' },
   { label: 'Catalog', to: '/tools' },
   { label: 'Collections', to: '/collections' },
+  { label: 'Community Stacks', to: '/stacks' },
   { label: 'LLM Cost Calculator', to: '/model-comparison' },
   { label: 'Submit a tool', to: '/submit' },
   { label: 'FAQ & Support', to: '/help' },
