@@ -183,6 +183,7 @@ function AnimatedRoutes() {
             <Route path="/ai-tool-finder" element={<ToolFinderPage />} />
             <Route path="/collections" element={<CollectionsPage />} />
             <Route path="/collections/:slug" element={<CollectionPage />} />
+            <Route path="/trending" element={<CollectionPage />} />
             <Route path="/compare" element={<ComparePage />} />
             {/* Path-based comparisons (indexable, SEO-targeted). Slug format
                 is "<a>-vs-<b>"; the same component handles both URL shapes. */}

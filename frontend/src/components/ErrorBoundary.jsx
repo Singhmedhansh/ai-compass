@@ -175,4 +175,5 @@ function ErrorFallback({ onReset }) {
   )
 }
 
+export { MaintenancePage }
 export default ErrorBoundary

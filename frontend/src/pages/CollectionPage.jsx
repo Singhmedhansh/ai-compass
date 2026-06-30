@@ -1,14 +1,17 @@
 import { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet-async'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useLocation } from 'react-router-dom'
 import { Inbox } from 'lucide-react'
 
 import { Button, Card, SkeletonCard } from '../components/ui'
 import ErrorState from '../components/ErrorState'
 import { inferErrorVariant } from '../utils/errorState'
+import { MaintenancePage } from '../components/ErrorBoundary'
 
 function CollectionPage() {
-  const { slug } = useParams()
+  const { slug: urlSlug } = useParams()
+  const location = useLocation()
+  const slug = urlSlug || (location.pathname === '/trending' ? 'trending' : '')
   const [collection, setCollection] = useState(null)
   const [loading, setLoading] = useState(true)
   // error is null when fine, otherwise 'offline' | 'server' | 'notfound'.
@@ -50,6 +53,22 @@ function CollectionPage() {
 
     return () => controller.abort()
   }, [slug, retryNonce])
+
+  if (slug === 'trending') {
+    return (
+      <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <Helmet>
+          <title>Trending Today — AI Tools | AI Compass</title>
+          <meta
+            name="description"
+            content="The Trending Today page is currently undergoing maintenance. We're working on updates and will be back shortly."
+          />
+          <link rel="canonical" href="https://ai-compass.in/trending" />
+        </Helmet>
+        <MaintenancePage />
+      </div>
+    )
+  }
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
