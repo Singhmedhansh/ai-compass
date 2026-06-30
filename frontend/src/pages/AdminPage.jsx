@@ -14,7 +14,7 @@ const MotionSpan = motion.span
 
 const ADMIN_EMAILS = ['singhmedhansh07@gmail.com']
 const TOOLS_PAGE_SIZE = 15
-const TABS = ['Overview', 'Tools', 'Sync', 'Submissions', 'Feedback', 'Analytics', 'Email', 'Newsletter', 'Flags', 'Users', 'Reviews']
+const TABS = ['Overview', 'Tools', 'Sync', 'Submissions', 'Feedback', 'Analytics', 'Email', 'Newsletter', 'Flags', 'Users', 'Reviews', 'Links']
 
 const EMPTY_TOOL = {
   slug: '', name: '', tagline: '', description: '', category: '',
@@ -169,6 +169,13 @@ function AdminPage() {
   const [catalogDiffLoading, setCatalogDiffLoading] = useState(false)
   const [cacheBusy, setCacheBusy] = useState(false)
   const [syncAllBusy, setSyncAllBusy] = useState(false)
+  const [linkAudit, setLinkAudit] = useState({
+    is_running: false,
+    current_index: 0,
+    total_count: 0,
+    broken_links: [],
+    last_completed: null
+  })
 
   const [toolsQuery, setToolsQuery] = useState('')
   const [toolsPage, setToolsPage] = useState(1)
@@ -273,7 +280,31 @@ function AdminPage() {
         .catch(() => setCatalogDiff({ db_only: [], json_only: [], matched_count: 0, db_total: 0, json_total: 0 }))
         .finally(() => setCatalogDiffLoading(false))
     }
+    if (activeTab === 'Links') {
+      api('/api/v1/admin/audit-links')
+        .then(setLinkAudit)
+        .catch(() => {})
+    }
   }, [activeTab, authed])
+
+  useEffect(() => {
+    if (!authed || activeTab !== 'Links') return
+
+    let intervalId = null
+    const checkState = () => {
+      api('/api/v1/admin/audit-links')
+        .then(setLinkAudit)
+        .catch(() => {})
+    }
+
+    if (linkAudit.is_running) {
+      intervalId = setInterval(checkState, 2000)
+    }
+    return () => {
+      if (intervalId) clearInterval(intervalId)
+    }
+  }, [authed, activeTab, linkAudit.is_running])
+
 
   const reloadCatalogDiff = useCallback(async () => {
     setCatalogDiffLoading(true)
@@ -1158,6 +1189,133 @@ function AdminPage() {
                 </div>
               ))}
               {reviews.length === 0 && <p className="text-sm text-muted">No reviews.</p>}
+            </div>
+          </Card>
+        )}
+
+        {activeTab === 'Links' && (
+          <Card>
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <h2 className="text-xl font-semibold text-ink">Broken Link Checker</h2>
+                <p className="mt-1 text-sm text-muted">
+                  Periodically audits external link health across the catalog. Pings URLs in the background and flags 400+ status codes or connection errors.
+                </p>
+              </div>
+              <div className="flex gap-2">
+                {linkAudit.is_running ? (
+                  <button
+                    onClick={async () => {
+                      try {
+                        await api('/api/v1/admin/audit-links/cancel', { method: 'POST' })
+                        toast.info('Cancellation requested...')
+                      } catch (e) {
+                        toast.error(e.message)
+                      }
+                    }}
+                    className="rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-bold px-4 py-2 text-sm shadow-sm transition"
+                  >
+                    Cancel Audit
+                  </button>
+                ) : (
+                  <button
+                    onClick={async () => {
+                      try {
+                        await api('/api/v1/admin/audit-links', { method: 'POST' })
+                        toast.success('Audit started in background')
+                        setLinkAudit(prev => ({ ...prev, is_running: true }))
+                      } catch (e) {
+                        toast.error(e.message)
+                      }
+                    }}
+                    className="rounded-xl bg-accent hover:opacity-90 text-bg font-bold px-4 py-2 text-sm shadow-sm transition"
+                  >
+                    Start Audit
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Audit Status / Progress */}
+            {linkAudit.is_running && (
+              <div className="mb-6 p-4 rounded-xl border border-line bg-bg-sunk/30">
+                <div className="flex justify-between text-xs font-bold text-muted-2 uppercase tracking-wide mb-1">
+                  <span>Auditing Catalog Tools...</span>
+                  <span>{linkAudit.current_index} / {linkAudit.total_count} ({Math.round((linkAudit.current_index / linkAudit.total_count) * 100)}%)</span>
+                </div>
+                <div className="h-2 w-full bg-bg-sunk rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-accent rounded-full transition-all duration-300"
+                    style={{ width: `${(linkAudit.current_index / linkAudit.total_count) * 100}%` }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {!linkAudit.is_running && linkAudit.last_completed && (
+              <p className="text-xs text-muted mb-4">
+                Last audit completed: <strong>{new Date(linkAudit.last_completed).toLocaleString()}</strong>. Detected <strong>{linkAudit.broken_links.length}</strong> broken links.
+              </p>
+            )}
+
+            {/* Broken Links Table */}
+            <div className="overflow-x-auto">
+              <h3 className="text-lg font-semibold text-ink mb-3">Broken Links Flagged ({linkAudit.broken_links.length})</h3>
+              <table className="min-w-full text-left text-sm">
+                <thead>
+                  <tr className="border-b border-line text-muted">
+                    <th className="px-3 py-2 font-semibold">Tool Name</th>
+                    <th className="px-3 py-2 font-semibold">URL Checked</th>
+                    <th className="px-3 py-2 font-semibold">HTTP Status / Error</th>
+                    <th className="px-3 py-2 font-semibold w-24">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {linkAudit.broken_links.map((item, idx) => (
+                    <tr key={`${item.slug}-${idx}`} className="border-b border-line/60">
+                      <td className="px-3 py-2">
+                        <span className="font-semibold text-ink block">{item.name}</span>
+                        <span className="text-[10px] text-muted-2 block">{item.slug}</span>
+                      </td>
+                      <td className="px-3 py-2">
+                        <a
+                          href={item.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-xs text-accent hover:underline break-all"
+                        >
+                          {item.url}
+                        </a>
+                      </td>
+                      <td className="px-3 py-2">
+                        <span className="inline-flex items-center rounded bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 text-xs font-bold text-rose-600 dark:text-rose-400">
+                          {item.error}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2">
+                        <button
+                          onClick={async () => {
+                            try {
+                              const detail = await api(`/api/v1/admin/tools/${item.slug}`)
+                              setEditing({ tool: detail, isNew: false })
+                            } catch (e) {
+                              toast.error('Failed to load tool details')
+                            }
+                          }}
+                          className="rounded-md border border-line bg-bg-sunk hover:bg-line text-ink-2 px-2.5 py-1 text-xs font-bold transition cursor-pointer"
+                        >
+                          Edit URL
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {linkAudit.broken_links.length === 0 && !linkAudit.is_running && (
+                <p className="mt-4 text-sm text-muted">
+                  No broken links detected! Catalog health looks clean.
+                </p>
+              )}
             </div>
           </Card>
         )}

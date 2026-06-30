@@ -32,6 +32,7 @@ const DashboardPage = lazy(() => import('./pages/DashboardPage'))
 const ProfilePage = lazy(() => import('./pages/ProfilePage'))
 const PublicProfilePage = lazy(() => import('./pages/PublicProfilePage'))
 const ShareStackPage = lazy(() => import('./pages/ShareStackPage'))
+const StackLibraryPage = lazy(() => import('./pages/StackLibraryPage'))
 const LoginPage = lazy(() => import('./pages/LoginPage'))
 const RegisterPage = lazy(() => import('./pages/RegisterPage'))
 const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'))
@@ -191,6 +192,7 @@ function AnimatedRoutes() {
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/u/:username" element={<PublicProfilePage />} />
+            <Route path="/stacks" element={<StackLibraryPage />} />
             <Route path="/stacks/:userId" element={<ShareStackPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />

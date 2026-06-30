@@ -401,4 +401,21 @@ class TrendingVote(db.Model):
     )
 
 
+class StackVote(db.Model):
+    __tablename__ = "stack_votes"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
+    stack_id = db.Column(db.Integer, db.ForeignKey("saved_stacks.id"), nullable=False, index=True)
+    created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+
+    user = db.relationship("User", backref=db.backref("stack_votes", cascade="all, delete-orphan"))
+    stack = db.relationship("SavedStack", backref=db.backref("votes", cascade="all, delete-orphan"))
+
+    __table_args__ = (
+        db.UniqueConstraint("user_id", "stack_id", name="uq_stack_user_vote"),
+    )
+
+
+
 

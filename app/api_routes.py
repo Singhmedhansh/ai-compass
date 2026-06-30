@@ -1854,6 +1854,213 @@ def cast_trending_vote():
     })
 
 
+@api_bp.route('/public-stacks', methods=['GET'])
+def get_public_stacks():
+    from app.models import SavedStack, User, StackVote
+    from flask_login import current_user
+
+    rows = SavedStack.query.all()
+    results = []
+
+    # Pre-map votes
+    votes = StackVote.query.all()
+    votes_by_stack = {}
+    for vote in votes:
+        if vote.stack_id not in votes_by_stack:
+            votes_by_stack[vote.stack_id] = {"count": 0, "users": set()}
+        votes_by_stack[vote.stack_id]["count"] += 1
+        votes_by_stack[vote.stack_id]["users"].add(vote.user_id)
+
+    for row in rows:
+        stack_data = {}
+        if row.tools_json:
+            try:
+                stack_data = json.loads(row.tools_json)
+            except Exception:
+                pass
+
+        is_private = bool(stack_data.get('is_private', False))
+        if is_private:
+            continue
+
+        vote_info = votes_by_stack.get(row.id, {"count": 0, "users": set()})
+        has_voted = False
+        if current_user.is_authenticated and current_user.id in vote_info["users"]:
+            has_voted = True
+
+        creator = User.query.get(row.user_id)
+        creator_name = creator.display_name or creator.email.split('@')[0] if creator else "Student"
+
+        results.append({
+            'id': row.id,
+            'name': row.name or 'default',
+            'created_at': row.created_at.isoformat() if row.created_at else None,
+            'tools': stack_data.get('tools', []),
+            'goal': stack_data.get('goal', ''),
+            'budget': stack_data.get('budget', ''),
+            'platform': stack_data.get('platform', ''),
+            'level': stack_data.get('level', ''),
+            'creator_name': creator_name,
+            'upvotes': vote_info["count"],
+            'has_voted': has_voted
+        })
+
+    results.sort(key=lambda x: (x['upvotes'], x['created_at'] or ''), reverse=True)
+    return jsonify(results), 200
+
+
+@csrf.exempt
+@api_bp.route('/public-stacks/<int:stack_id>/upvote', methods=['POST'])
+@login_required
+def upvote_stack(stack_id):
+    from app.models import StackVote, SavedStack
+    SavedStack.query.get_or_404(stack_id)
+
+    existing = StackVote.query.filter_by(user_id=current_user.id, stack_id=stack_id).first()
+    if existing:
+        db.session.delete(existing)
+        user_voted = False
+    else:
+        db.session.add(StackVote(user_id=current_user.id, stack_id=stack_id))
+        user_voted = True
+
+    db.session.commit()
+    upvotes = StackVote.query.filter_by(stack_id=stack_id).count()
+    return jsonify({
+        "success": True,
+        "upvotes": upvotes,
+        "has_voted": user_voted
+    }), 200
+
+
+@csrf.exempt
+@api_bp.route('/public-stacks/<int:stack_id>/clone', methods=['POST'])
+@login_required
+def clone_stack(stack_id):
+    from app.models import SavedStack
+    original = SavedStack.query.get_or_404(stack_id)
+
+    # Prepend 'Cloned: ' to distinguish the clone
+    cloned = SavedStack(
+        user_id=current_user.id,
+        name=f"Cloned: {original.name}",
+        tools_json=original.tools_json
+    )
+    db.session.add(cloned)
+    db.session.commit()
+
+    return jsonify({
+        "success": True,
+        "id": cloned.id,
+        "name": cloned.name
+    }), 201
+
+
+# Link Finder Admin Background Task State
+import threading
+import requests
+
+link_audit_state = {
+    "is_running": False,
+    "current_index": 0,
+    "total_count": 0,
+    "broken_links": [],
+    "last_completed": None
+}
+link_audit_lock = threading.Lock()
+
+
+def bg_link_audit_task(app_context):
+    global link_audit_state
+    with app_context:
+        from app.tool_cache import get_cached_tools
+        tools = get_cached_tools()
+
+        with link_audit_lock:
+            link_audit_state["is_running"] = True
+            link_audit_state["total_count"] = len(tools)
+            link_audit_state["current_index"] = 0
+            link_audit_state["broken_links"] = []
+
+        for tool in tools:
+            with link_audit_lock:
+                if not link_audit_state["is_running"]:
+                    break
+                link_audit_state["current_index"] += 1
+
+            url = tool.get("affiliate_url") or tool.get("website") or tool.get("link") or tool.get("url")
+            if not url:
+                continue
+
+            try:
+                headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
+                res = requests.head(url, timeout=4, headers=headers, allow_redirects=True)
+                if res.status_code in (405, 403, 401):
+                    res = requests.get(url, timeout=4, headers=headers, allow_redirects=True, stream=True)
+
+                if res.status_code >= 400:
+                    with link_audit_lock:
+                        link_audit_state["broken_links"].append({
+                            "slug": tool.get("slug"),
+                            "name": tool.get("name"),
+                            "url": url,
+                            "status": res.status_code,
+                            "error": f"HTTP {res.status_code}"
+                        })
+            except Exception as e:
+                with link_audit_lock:
+                    link_audit_state["broken_links"].append({
+                        "slug": tool.get("slug"),
+                        "name": tool.get("name"),
+                        "url": url,
+                        "status": "Error",
+                        "error": str(type(e).__name__)
+                    })
+
+        with link_audit_lock:
+            link_audit_state["is_running"] = False
+            link_audit_state["last_completed"] = datetime.now(timezone.utc).isoformat()
+
+
+@api_bp.get("/admin/audit-links")
+@login_required
+def admin_get_audit_links():
+    if not getattr(current_user, "is_admin", False):
+        return jsonify({"error": "Admin required"}), 403
+    return jsonify(link_audit_state), 200
+
+
+@csrf.exempt
+@api_bp.post("/admin/audit-links")
+@login_required
+def admin_start_audit_links():
+    if not getattr(current_user, "is_admin", False):
+        return jsonify({"error": "Admin required"}), 403
+
+    global link_audit_state
+    with link_audit_lock:
+        if link_audit_state["is_running"]:
+            return jsonify({"message": "Audit is already running"}), 400
+
+    app_context = current_app._get_current_object().app_context()
+    threading.Thread(target=bg_link_audit_task, args=(app_context,), daemon=True).start()
+    return jsonify({"success": True, "message": "Audit started"}), 200
+
+
+@csrf.exempt
+@api_bp.post("/admin/audit-links/cancel")
+@login_required
+def admin_cancel_audit_links():
+    if not getattr(current_user, "is_admin", False):
+        return jsonify({"error": "Admin required"}), 403
+
+    global link_audit_state
+    with link_audit_lock:
+        link_audit_state["is_running"] = False
+
+    return jsonify({"success": True, "message": "Audit cancellation requested"}), 200
+
+
 @api_bp.get("/admin/users")
 def admin_users():
     users = User.query.all()
