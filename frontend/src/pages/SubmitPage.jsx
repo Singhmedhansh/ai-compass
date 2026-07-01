@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { CreditCard, Sparkles, CheckCircle2, ShieldCheck, ArrowRight, User, Wallet, QrCode, ArrowUpRight } from 'lucide-react'
+import { CreditCard, Sparkles, CheckCircle2, ShieldCheck, ArrowRight, User, Wallet, QrCode, ArrowUpRight, Lock } from 'lucide-react'
 
 import Button from '../components/ui/Button'
 
@@ -185,30 +185,33 @@ export default function SubmitPage() {
             </p>
           </div>
 
-          {/* Sponsored Inclusion Card (Paid) */}
+          {/* Sponsored Inclusion Card (Paid - Under Maintenance) */}
           <div
-            onClick={() => {
-              setSubmissionType('sponsor')
-              setError('')
-            }}
-            className={`group rounded-2xl border p-5 cursor-pointer transition duration-300 relative overflow-hidden ${
-              submissionType === 'sponsor'
-                ? 'border-accent bg-accent-soft/20 shadow-md ring-2 ring-accent/15'
-                : 'border-line bg-bg-elev hover:border-line-strong hover:shadow-sm'
-            }`}
+            className="group rounded-2xl border border-line bg-bg-elev p-5 transition duration-300 relative overflow-hidden cursor-not-allowed select-none"
           >
+            {/* Frosted Maintenance Overlay */}
+            <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-bg-elev/80 backdrop-blur-[2px] text-center p-5">
+              <Lock className="h-5 w-5 text-muted mb-2 animate-pulse" />
+              <span className="inline-flex items-center gap-1 rounded-full bg-danger-soft px-2.5 py-0.5 text-[8px] font-black uppercase tracking-wider text-danger shadow-sm mb-1.5">
+                Under Maintenance
+              </span>
+              <span className="text-[10px] text-muted-2 font-normal leading-relaxed max-w-[220px]">
+                Integrating Stripe, PayPal, and Razorpay. Fast-track inclusion is temporarily offline.
+              </span>
+            </div>
+
             <div className="absolute top-0 right-0 h-24 w-24 bg-accent/5 rounded-full blur-2xl pointer-events-none" />
 
             <div className="flex items-center justify-between gap-2">
-              <span className="inline-flex items-center gap-1 rounded-full bg-accent px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-bg shadow-sm">
+              <span className="inline-flex items-center gap-1 rounded-full bg-accent/40 px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-muted-2 shadow-sm">
                 <Sparkles className="h-2.5 w-2.5" /> Founder / Co-Founder
               </span>
-              <span className="text-sm font-black text-accent">$75 + taxes</span>
+              <span className="text-sm font-semibold text-muted-2">$75 + taxes</span>
             </div>
-            <h3 className="mt-3 text-base font-bold text-ink group-hover:text-accent transition-colors">
-              Fast-Track Sponsored Inclusion
+            <h3 className="mt-3 text-base font-semibold text-muted-2">
+              Fast-Track Sponsored Curation
             </h3>
-            <p className="mt-1 text-xs text-ink-2 leading-relaxed font-normal">
+            <p className="mt-1 text-xs text-muted-2 leading-relaxed font-normal">
               Guaranteed priority review and permanent inclusion within 24 hours. Ideal for builders seeking visibility.
             </p>
           </div>
