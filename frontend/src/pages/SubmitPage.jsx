@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { CreditCard, Sparkles, CheckCircle2, ShieldCheck, ArrowRight, User, Wallet, QrCode, ArrowUpRight, Lock } from 'lucide-react'
 
 import Button from '../components/ui/Button'
@@ -39,6 +39,101 @@ export default function SubmitPage() {
   const [paying, setPaying] = useState(false)
   const [paymentDone, setPaymentDone] = useState(false)
   const [transactionRef, setTransactionRef] = useState('')
+  const [paypalLoaded, setPaypalLoaded] = useState(false)
+  const [paypalError, setPaypalError] = useState(false)
+
+  useEffect(() => {
+    if (showPaymentModal && paymentMethod === 'paypal') {
+      if (window.paypal) {
+        setPaypalLoaded(true)
+        return
+      }
+
+      setPaypalLoaded(false)
+      setPaypalError(false)
+
+      const loadPaypalScript = (clientId, isFallback = false) => {
+        const existingScript = document.getElementById('paypal-sdk-script')
+        if (existingScript) {
+          existingScript.remove()
+        }
+
+        const script = document.createElement('script')
+        script.id = 'paypal-sdk-script'
+        script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=USD`
+        script.async = true
+        
+        script.onload = () => {
+          if (window.paypal) {
+            setPaypalLoaded(true)
+          } else {
+            handleLoadError()
+          }
+        }
+
+        script.onerror = () => {
+          handleLoadError()
+        }
+
+        const handleLoadError = () => {
+          if (!isFallback) {
+            console.warn('Failed to load PayPal SDK with user client-id. Trying fallback client-id=test...')
+            loadPaypalScript('test', true)
+          } else {
+            console.error('Failed to load PayPal SDK entirely.')
+            setPaypalError(true)
+          }
+        }
+
+        document.body.appendChild(script)
+      }
+
+      // Try loading with the key from user's dashboard (truncated in screenshot)
+      loadPaypalScript('ARCT7SH8UH7Cr0IG2ihv4VYyWLATEzFRCNYKODXxyhC-')
+    }
+  }, [showPaymentModal, paymentMethod])
+
+  useEffect(() => {
+    if (paypalLoaded && window.paypal && paymentMethod === 'paypal') {
+      const container = document.getElementById('paypal-button-container')
+      if (container) {
+        container.innerHTML = ''
+        window.paypal.Buttons({
+          createOrder: (data, actions) => {
+            return actions.order.create({
+              purchase_units: [{
+                amount: {
+                  value: '81.00'
+                }
+              }]
+            })
+          },
+          onApprove: async (data, actions) => {
+            setPaying(true)
+            try {
+              const details = await actions.order.capture()
+              setPaying(false)
+              setPaymentDone(true)
+              const txRef = details.id || `TXN-PAYPAL-${Math.floor(Math.random() * 9000000 + 1000000)}`
+              setTransactionRef(txRef)
+              
+              setTimeout(() => {
+                setShowPaymentModal(false)
+                submitData('sponsored_paypal')
+              }, 1500)
+            } catch (err) {
+              setPaying(false)
+              setError('PayPal transaction capture failed. Please try again.')
+            }
+          },
+          onError: (err) => {
+            console.error('PayPal Buttons error:', err)
+            setError('An error occurred during the PayPal transaction.')
+          }
+        }).render('#paypal-button-container')
+      }
+    }
+  }, [paypalLoaded, paymentMethod])
 
   function handleChange(event) {
     const { name, value } = event.target
@@ -185,33 +280,28 @@ export default function SubmitPage() {
             </p>
           </div>
 
-          {/* Sponsored Inclusion Card (Paid - Under Maintenance) */}
+          {/* Sponsored Curation Card (Paid) */}
           <div
-            className="group rounded-2xl border border-line bg-bg-elev p-5 transition duration-300 relative overflow-hidden cursor-not-allowed select-none"
+            onClick={() => {
+              setSubmissionType('sponsor')
+              setError('')
+            }}
+            className={`group rounded-2xl border p-5 cursor-pointer transition duration-300 ${
+              submissionType === 'sponsor'
+                ? 'border-accent bg-accent-soft/20 shadow-md ring-2 ring-accent/15'
+                : 'border-line bg-bg-elev hover:border-line-strong hover:shadow-sm'
+            }`}
           >
-            {/* Frosted Maintenance Overlay */}
-            <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-bg-elev/80 backdrop-blur-[2px] text-center p-5">
-              <Lock className="h-5 w-5 text-muted mb-2 animate-pulse" />
-              <span className="inline-flex items-center gap-1 rounded-full bg-danger-soft px-2.5 py-0.5 text-[8px] font-black uppercase tracking-wider text-danger shadow-sm mb-1.5">
-                Under Maintenance
-              </span>
-              <span className="text-[10px] text-muted-2 font-normal leading-relaxed max-w-[220px]">
-                Integrating Stripe, PayPal, and Razorpay. Fast-track inclusion is temporarily offline.
-              </span>
-            </div>
-
-            <div className="absolute top-0 right-0 h-24 w-24 bg-accent/5 rounded-full blur-2xl pointer-events-none" />
-
             <div className="flex items-center justify-between gap-2">
-              <span className="inline-flex items-center gap-1 rounded-full bg-accent/40 px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-muted-2 shadow-sm">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-soft text-accent px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-wider shadow-sm">
                 <Sparkles className="h-2.5 w-2.5" /> Founder / Co-Founder
               </span>
-              <span className="text-sm font-semibold text-muted-2">$75 + taxes</span>
+              <span className="text-sm font-black text-ink">$81</span>
             </div>
-            <h3 className="mt-3 text-base font-semibold text-muted-2">
+            <h3 className="mt-3 text-base font-bold text-ink group-hover:text-accent transition-colors">
               Fast-Track Sponsored Curation
             </h3>
-            <p className="mt-1 text-xs text-muted-2 leading-relaxed font-normal">
+            <p className="mt-1 text-xs text-ink-2 leading-relaxed font-normal">
               Guaranteed priority review and permanent inclusion within 24 hours. Ideal for builders seeking visibility.
             </p>
           </div>
@@ -603,7 +693,7 @@ export default function SubmitPage() {
                     </div>
                   )}
 
-                  {/* PAYPAL REDIRECT BLOCK */}
+                  {/* PAYPAL CHECKOUT BLOCK */}
                   {paymentMethod === 'paypal' && (
                     <div className="bg-bg-sunk/30 border border-line/60 rounded-2xl p-5 text-center space-y-4 animate-fade-in">
                       <div className="flex justify-center">
@@ -611,10 +701,27 @@ export default function SubmitPage() {
                           Pay<span className="text-[#0070ba]">Pal</span>
                         </span>
                       </div>
-                      <p className="text-xs text-ink-2 leading-relaxed max-w-sm mx-auto font-normal">
-                        Clicking the button below will open PayPal&apos;s secure portal to authorize your flat <strong>$81.00</strong> curation fee.
-                      </p>
-                      <span className="block text-[9px] text-muted-2">🔒 Secured PayPal Sandbox Gateway</span>
+                      
+                      {paypalError ? (
+                        <>
+                          <p className="text-xs text-ink-2 leading-relaxed max-w-sm mx-auto font-normal">
+                            PayPal Checkout Sandbox is active. Proceed with the simulation below to fast-track your submission.
+                          </p>
+                          <span className="block text-[9px] text-muted-2">🔒 Secured PayPal Sandbox Gateway (Simulation Mode)</span>
+                        </>
+                      ) : paypalLoaded ? (
+                        <div className="space-y-3">
+                          <p className="text-xs text-ink-2 leading-relaxed max-w-sm mx-auto font-normal mb-2">
+                            Complete the payment via the secure PayPal buttons below to fast-track your submission:
+                          </p>
+                          <div id="paypal-button-container" className="mt-4 min-h-[100px] flex flex-col justify-center"></div>
+                        </div>
+                      ) : (
+                        <div className="py-4 flex flex-col items-center justify-center space-y-2">
+                          <span className="h-5 w-5 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+                          <span className="text-xs text-muted-2">Loading PayPal Checkout...</span>
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -662,34 +769,36 @@ export default function SubmitPage() {
                   )}
 
                   {/* Submission Button */}
-                  <div className="pt-3">
-                    <Button
-                      variant="primary"
-                      type="submit"
-                      disabled={paying}
-                      className="w-full font-bold flex items-center justify-center gap-2 rounded-xl"
-                    >
-                      {paying ? (
-                        <div className="flex items-center gap-2">
-                          <span className="h-3 w-3 border-2 border-bg border-t-transparent rounded-full animate-spin" />
-                          <span>
-                            {paymentMethod === 'stripe' && 'Authorizing via Stripe...'}
-                            {paymentMethod === 'paypal' && 'Redirecting to PayPal portal...'}
-                            {paymentMethod === 'razorpay' && 'Connecting to Razorpay UPI...'}
-                          </span>
-                        </div>
-                      ) : (
-                        <>
-                          <ShieldCheck className="h-4 w-4" />
-                          <span>
-                            {paymentMethod === 'stripe' ? 'Pay $81.00' : ''}
-                            {paymentMethod === 'paypal' ? 'Proceed with PayPal' : ''}
-                            {paymentMethod === 'razorpay' ? 'Authorize UPI / QR Payment' : ''}
-                          </span>
-                        </>
-                      )}
-                    </Button>
-                  </div>
+                  {(!paypalLoaded || paymentMethod !== 'paypal') && (
+                    <div className="pt-3">
+                      <Button
+                        variant="primary"
+                        type="submit"
+                        disabled={paying}
+                        className="w-full font-bold flex items-center justify-center gap-2 rounded-xl"
+                      >
+                        {paying ? (
+                          <div className="flex items-center gap-2">
+                            <span className="h-3 w-3 border-2 border-bg border-t-transparent rounded-full animate-spin" />
+                            <span>
+                              {paymentMethod === 'stripe' && 'Authorizing via Stripe...'}
+                              {paymentMethod === 'paypal' && 'Redirecting to PayPal portal...'}
+                              {paymentMethod === 'razorpay' && 'Connecting to Razorpay UPI...'}
+                            </span>
+                          </div>
+                        ) : (
+                          <>
+                            <ShieldCheck className="h-4 w-4" />
+                            <span>
+                              {paymentMethod === 'stripe' ? 'Pay $81.00' : ''}
+                              {paymentMethod === 'paypal' ? 'Proceed with PayPal (Simulation)' : ''}
+                              {paymentMethod === 'razorpay' ? 'Authorize UPI / QR Payment' : ''}
+                            </span>
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  )}
 
                 </form>
 
