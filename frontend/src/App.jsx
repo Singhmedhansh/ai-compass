@@ -242,7 +242,7 @@ export default function App() {
               Skip to main content
             </a>
             <CardNav />
-            <main id="main-content" tabIndex={-1} className="flex-1 outline-none pt-24 sm:pt-28">
+            <main id="main-content" tabIndex={-1} className="flex-1 outline-none pt-[60px]">
               <AnimatedRoutes />
             </main>
             <Footer />

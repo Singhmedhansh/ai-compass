@@ -549,12 +549,26 @@ def _tool_supports_platform(tool: dict, platform) -> bool:
 
 
 FINDER_GOAL_CATEGORY_MAP = {
-    "learning": ["courses & tutorials", "research", "productivity"],
-    "coding": ["coding"],
-    "writing": ["writing & chat"],
-    "research": ["research"],
-    "creating": ["image generation", "video generation", "audio & voice", "design & graphics"],
-    "productivity": ["productivity"],
+    "learning": [
+        "courses & tutorials", "research", "productivity", "education",
+        "research & study", "research & productivity", "study tools"
+    ],
+    "coding": [
+        "coding", "coding & programming", "development", "developer tools"
+    ],
+    "writing": [
+        "writing & chat", "email & communication", "writing & docs"
+    ],
+    "research": [
+        "research", "research & study", "research & productivity", "education"
+    ],
+    "creating": [
+        "image generation", "video generation", "audio & voice", "design & graphics",
+        "video & animation", "design & creative", "video & audio", "audio & video", "design"
+    ],
+    "productivity": [
+        "productivity", "research & productivity", "email & communication", "business operations"
+    ]
 }
 
 
@@ -717,7 +731,14 @@ def _tool_passes_category_keyword_veto(tool: dict, goal: str) -> bool:
     if (len(tags) + len(use_cases)) < 3 and str(tool.get("description") or "").strip():
         return True
 
-    blob = " ".join(str(item).lower() for item in (*tags, *use_cases))
+    blob = " ".join(
+        str(item).lower() for item in (
+            tool.get("name") or "",
+            tool.get("description") or "",
+            *(tags or []),
+            *(use_cases or [])
+        )
+    )
     return any(keyword in blob for keyword in keywords)
 
 
@@ -811,7 +832,7 @@ def _finder_tool_score(tool: dict, goal, budget: str, platform, level: str, use_
     category = _normalize_text(tool.get("category"))
     allowed_categories = set()
     for g in goals:
-        allowed_categories.update(FINDER_GOAL_CATEGORY_MAP.get(g, []))
+        allowed_categories.update(_normalize_text(cat) for cat in FINDER_GOAL_CATEGORY_MAP.get(g, []))
 
     breakdown = {
         "category": False,
@@ -833,38 +854,53 @@ def _finder_tool_score(tool: dict, goal, budget: str, platform, level: str, use_
         score += 45.0
         breakdown["category"] = True
 
+    tool_tags = [str(tag).lower() for tag in (tool.get("tags") or [])]
     tool_text = " ".join(
         [
             str(tool.get("name") or ""),
             str(tool.get("description") or ""),
-            " ".join(str(tag) for tag in (tool.get("tags") or [])),
+            " ".join(tool_tags),
             " ".join(str(item) for item in (tool.get("use_cases") or [])),
         ]
     ).lower()
 
     if use_case:
         use_case_lower = use_case.lower().strip()
-        use_case_tokens = [token for token in re.split(r"[^a-z0-9]+", use_case_lower) if token]
-        
         matched_use_case = False
-        if use_case_lower in tool_text:
-            score += 28.0
-            matched_use_case = True
-        elif any(token in tool_text for token in use_case_tokens):
-            score += 14.0
-            matched_use_case = True
-            
-        synonym_boosted = False
-        for token in use_case_tokens:
-            if token in SYNONYM_MAP:
-                for syn in SYNONYM_MAP[token]:
-                    if syn in tool_text:
-                        score += 10.0
-                        synonym_boosted = True
-                        matched_use_case = True
+        
+        # Fuzzy match using rapidfuzz token_set_ratio
+        try:
+            from rapidfuzz import fuzz
+            sim = fuzz.token_set_ratio(use_case_lower, tool_text)
+            if sim >= 80:
+                score += 35.0
+                matched_use_case = True
+            elif sim >= 50:
+                score += 20.0
+                matched_use_case = True
+            elif sim >= 30:
+                score += 10.0
+                matched_use_case = True
+        except ImportError:
+            use_case_tokens = [token for token in re.split(r"[^a-z0-9]+", use_case_lower) if token]
+            if use_case_lower in tool_text:
+                score += 28.0
+                matched_use_case = True
+            elif any(token in tool_text for token in use_case_tokens):
+                score += 14.0
+                matched_use_case = True
+                
+            synonym_boosted = False
+            for token in use_case_tokens:
+                if token in SYNONYM_MAP:
+                    for syn in SYNONYM_MAP[token]:
+                        if syn in tool_text:
+                            score += 10.0
+                            synonym_boosted = True
+                            matched_use_case = True
+                            break
+                    if synonym_boosted:
                         break
-                if synonym_boosted:
-                    break
         
         if matched_use_case:
             breakdown["use_case"] = True
@@ -909,7 +945,6 @@ def _finder_tool_score(tool: dict, goal, budget: str, platform, level: str, use_
     else:
         breakdown["platform"] = True
 
-    tool_tags = [str(tag).lower() for tag in (tool.get("tags") or [])]
     if level in ("beginner", "novice"):
         if any(tag in tool_tags for tag in ["beginner-friendly", "no-code", "easy"]):
             score += 18.0
@@ -922,6 +957,10 @@ def _finder_tool_score(tool: dict, goal, budget: str, platform, level: str, use_
             breakdown["experience"] = True
     else:
         breakdown["experience"] = True
+
+    # Student Perks Boost
+    if tool.get("studentPerk") or tool.get("student_perk") or any(tag in tool_tags for tag in ["student-discount", "student-deal", "education-discount"]):
+        score += 15.0
 
     score += _rating_value(tool) * 4.0
 
@@ -1508,6 +1547,8 @@ def submit_tool():
         url = str(payload.get("url") or "").strip()
         category = str(payload.get("category") or "").strip()
         reason = str(payload.get("reason") or "").strip()
+        pricing_model = str(payload.get("pricing_model") or "free").strip()
+        student_perks = str(payload.get("student_perks") or "").strip()
 
         if not name or not url or not category or not reason:
             return jsonify({"error": "Name, URL, category, and reason are all required."}), 400
@@ -1519,7 +1560,8 @@ def submit_tool():
             return jsonify({"error": "URL must start with http:// or https://"}), 400
 
         submitted_at = datetime.now(timezone.utc).isoformat()
-        submitter_email = current_user.email if current_user.is_authenticated else None
+        submitter_email_payload = str(payload.get("submitter_email") or "").strip()
+        submitter_email = submitter_email_payload if submitter_email_payload else (current_user.email if current_user.is_authenticated else None)
 
         # Durable record: a Submission row in the DB — this is the table the
         # admin review queue (/admin/submissions) and the approve/reject
@@ -1534,7 +1576,8 @@ def submit_tool():
                 website=url,
                 category=category,
                 description=reason,
-                pricing_model="unknown",
+                pricing_model=pricing_model,
+                student_perks=student_perks,
                 submitter_email=submitter_email,
                 status="pending",
             ))

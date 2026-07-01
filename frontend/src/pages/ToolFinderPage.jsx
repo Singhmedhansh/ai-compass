@@ -1,4 +1,4 @@
-import { Check, RotateCcw, Save, Code, GraduationCap, PenTool, Mic, Briefcase, Layout, BarChart, Zap, BookOpen, Terminal, Globe, Wand2, Star, SlidersHorizontal, Bug, Search, MessageSquare, Bookmark, Palette, Film, Calendar, FileText, Megaphone, Plug, Bot, FlaskConical } from 'lucide-react'
+import { Check, RotateCcw, Save, Code, GraduationCap, PenTool, Mic, Briefcase, Layout, BarChart, Zap, BookOpen, Terminal, Globe, Wand2, Star, SlidersHorizontal, Bug, Search, MessageSquare, Bookmark, Palette, Film, Calendar, FileText, Megaphone, Plug, Bot, FlaskConical, X } from 'lucide-react'
 import { useEffect, useRef, useState, useMemo, useCallback } from 'react'
 import { toast } from 'sonner'
 import { useNavigate, Link } from 'react-router-dom'
@@ -935,143 +935,363 @@ function PreviewCard({ tool, rank }) {
   )
 }
 
-function ResultCard({ tool, index, navigate, onCardClick }) {
-  const [showBreakdown, setShowBreakdown] = useState(false)
-  const isTopMatch = index === 0
-  const tierBits = [tool.pricing, tool.platformLabel].filter(Boolean).join(' · ')
-  const breakdown = tool.match_breakdown || { category: true, budget: true, platform: true, experience: true }
+function ResultCard({ tool, index, navigate, onCardClick, onShowDetails }) {
   const confidence = tool.match_confidence || 85
+  const isStudentPerk = tool.studentPerk || tool.student_perk
 
   return (
     <article
       onClick={() => {
         onCardClick?.()
-        navigate(`/tools/${tool.slug || ''}`)
+        onShowDetails(tool)
       }}
-      className="group relative flex h-full min-w-0 flex-col rounded-2xl border border-line bg-bg-elev p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:border-accent hover:shadow-md cursor-pointer"
+      className="group relative flex h-full min-w-0 flex-col rounded-2xl border border-line bg-bg-elev p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-accent hover:shadow-md cursor-pointer"
     >
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex items-start gap-3">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-bg-sunk" aria-hidden="true">
-            <ToolLogo tool={tool} size={36} />
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-bg-sunk border border-line/45" aria-hidden="true">
+            <ToolLogo tool={tool} size={40} />
           </div>
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              <h3 className="truncate text-sm font-semibold text-ink">{tool.name}</h3>
-              {isTopMatch && (
-                <span className="shrink-0 rounded-full bg-accent-soft px-2 py-0.5 text-[10px] font-semibold text-accent-ink">★ Best</span>
-              )}
-            </div>
-            <p className="mt-0.5 truncate text-xs text-muted">{tool.category || 'General'}</p>
+          <div className="min-w-0">
+            <h3 className="truncate text-base font-bold text-ink group-hover:text-accent transition-colors">{tool.name}</h3>
+            <p className="truncate text-xs text-muted">{tool.category || 'General'}</p>
           </div>
         </div>
 
-        <span className="rounded-full bg-accent-soft px-2.5 py-0.5 text-xs font-bold text-accent-ink shrink-0">
-          {confidence}% Match
-        </span>
+        <div className="flex flex-col items-end gap-1 shrink-0">
+          <span className="rounded-full bg-accent-soft px-2.5 py-0.5 text-xs font-bold text-accent-ink">
+            {confidence}% Match
+          </span>
+        </div>
       </div>
 
-      <p className="mt-3 line-clamp-2 text-xs italic leading-snug text-muted"> {tool.reason || tool._reason}</p>
-      <p className="mt-2 line-clamp-2 text-sm leading-snug text-ink-2">{tool.description}</p>
+      <p className="mt-3 text-xs italic leading-relaxed text-muted line-clamp-2 border-l border-line-strong pl-2">
+        "{tool.reason || tool._reason}"
+      </p>
+      
+      <p className="mt-2 text-xs leading-relaxed text-ink-2 line-clamp-3">
+        {tool.description}
+      </p>
 
-      <div className="mt-3 flex flex-wrap gap-1.5">
-        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${getPricingPillClass(tool.pricing)}`}>
-          {String(tool.pricing || 'Free').toUpperCase()}
-        </span>
-        <span className="inline-flex items-center rounded-full bg-bg-sunk px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-ink-2 ring-1 ring-inset ring-line">
-          {String(tool.platformLabel || 'Web').toUpperCase()}
-        </span>
-      </div>
-
-      {/* Breakdown trigger */}
-      <div className="flex items-center justify-between mt-auto pt-4 border-t border-line/45 w-full text-xs text-muted-2">
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation()
-            setShowBreakdown(prev => !prev)
-          }}
-          className="hover:text-accent font-semibold transition"
-        >
-          {showBreakdown ? 'Hide details' : 'Why this fits →'}
-        </button>
-
-        <a
-          href={getToolUrl(tool)}
-          target="_blank"
-          rel={OUTBOUND_REL}
-          onClick={(e) => {
-            e.stopPropagation()
-            onCardClick?.()
-          }}
-          className="inline-flex items-center gap-1 text-accent font-semibold hover:opacity-85 transition-opacity"
-        >
-          Visit Tool
-        </a>
-      </div>
-
-      {showBreakdown && (
-        <div 
-          onClick={(e) => e.stopPropagation()} 
-          className="mt-3 rounded-xl bg-bg-sunk/45 p-3 border border-line/25 text-[11px] leading-relaxed text-ink-2"
-        >
-          <div className="mb-2 font-semibold uppercase tracking-wider text-[9px] text-muted-2">Fit Analysis</div>
-          <div className="grid grid-cols-2 gap-x-3 gap-y-2">
-            <div className="flex items-center gap-2">
-              <span className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[9px] font-bold ${breakdown.category ? 'bg-accent-soft text-accent-ink' : 'bg-bg-elev text-muted-2'}`}>
-                {breakdown.category ? '✓' : '—'}
-              </span>
-              <div className="min-w-0">
-                <p className="font-medium text-ink truncate">Goal Alignment</p>
-                <p className="text-[10px] text-muted truncate">{breakdown.category ? 'Category match' : 'No match'}</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[9px] font-bold ${breakdown.budget ? 'bg-accent-soft text-accent-ink' : 'bg-bg-elev text-muted-2'}`}>
-                {breakdown.budget ? '✓' : '—'}
-              </span>
-              <div className="min-w-0">
-                <p className="font-medium text-ink truncate">Pricing Plan</p>
-                <p className="text-[10px] text-muted truncate">{breakdown.budget ? 'Budget match' : 'No match'}</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[9px] font-bold ${breakdown.platform ? 'bg-accent-soft text-accent-ink' : 'bg-bg-elev text-muted-2'}`}>
-                {breakdown.platform ? '✓' : '—'}
-              </span>
-              <div className="min-w-0">
-                <p className="font-medium text-ink truncate">Platforms</p>
-                <p className="text-[10px] text-muted truncate">{breakdown.platform ? 'OS compatible' : 'Incompatible'}</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[9px] font-bold ${breakdown.experience ? 'bg-accent-soft text-accent-ink' : 'bg-bg-elev text-muted-2'}`}>
-                {breakdown.experience ? '✓' : '—'}
-              </span>
-              <div className="min-w-0">
-                <p className="font-medium text-ink truncate">Tech Difficulty</p>
-                <p className="text-[10px] text-muted truncate">{breakdown.experience ? 'Calibrated level' : 'Uncalibrated'}</p>
-              </div>
-            </div>
-
-            {breakdown.use_case && (
-              <div className="col-span-2 flex items-center gap-2 border-t border-line/20 pt-2 mt-1">
-                <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-accent-soft text-[9px] font-bold text-accent-ink">
-                  ✓
-                </span>
-                <div className="min-w-0">
-                  <p className="font-medium text-ink truncate">Custom Use-Case</p>
-                  <p className="text-[10px] text-muted truncate">Targeted task fit</p>
-                </div>
-              </div>
-            )}
-          </div>
+      {isStudentPerk && (
+        <div className="mt-3 rounded-lg bg-accent-soft/30 px-2 py-1 text-[11px] font-semibold text-accent-ink flex items-center gap-1 border border-accent/10">
+          <GraduationCap className="h-3.5 w-3.5 animate-pulse" />
+          <span>Student Perk Available</span>
         </div>
       )}
+
+      {/* Badges and actions */}
+      <div className="mt-auto pt-4 flex items-center justify-between border-t border-line/45 w-full text-xs text-muted-2">
+        <div className="flex gap-1.5">
+          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${getPricingPillClass(tool.pricing)}`}>
+            {String(tool.pricing || 'Free').toUpperCase()}
+          </span>
+          <span className="inline-flex items-center rounded-full bg-bg-sunk px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-ink-2 ring-1 ring-inset ring-line">
+            {String(tool.platformLabel || 'Web').toUpperCase()}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation()
+              onShowDetails(tool)
+            }}
+            className="hover:text-accent font-semibold transition"
+          >
+            Why this fits →
+          </button>
+          
+          <a
+            href={getToolUrl(tool)}
+            target="_blank"
+            rel={OUTBOUND_REL}
+            onClick={(e) => {
+              e.stopPropagation()
+              onCardClick?.()
+            }}
+            className="text-accent font-bold hover:underline"
+          >
+            Visit
+          </a>
+        </div>
+      </div>
     </article>
+  )
+}
+
+function AnchorToolCard({ tool, navigate, onCardClick, onShowDetails }) {
+  const confidence = tool.match_confidence || 98
+  const isStudentPerk = tool.studentPerk || tool.student_perk
+
+  return (
+    <article
+      onClick={() => {
+        onCardClick?.()
+        onShowDetails(tool)
+      }}
+      className="group relative flex w-full flex-col md:flex-row gap-6 rounded-3xl border-2 border-accent bg-gradient-to-br from-accent-soft/20 via-bg-elev to-bg-elev p-6 shadow-md transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 cursor-pointer overflow-hidden"
+    >
+      <div className="absolute top-0 right-0 h-40 w-40 bg-accent/5 rounded-full blur-3xl -z-10 pointer-events-none" />
+
+      <div className="flex flex-col md:flex-1 justify-between min-w-0">
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <span className="inline-flex items-center gap-1 rounded-full bg-accent px-3 py-1 text-[10px] font-black uppercase tracking-wider text-bg shadow-sm">
+              ★ Stack Anchor
+            </span>
+            {isStudentPerk && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-accent-soft px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-accent-ink border border-accent/15">
+                <GraduationCap className="h-3 w-3" />
+                Perk Included
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-start gap-4">
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-bg-elev shadow-sm border border-line" aria-hidden="true">
+              <ToolLogo tool={tool} size={48} />
+            </div>
+            <div className="min-w-0">
+              <h3 className="text-xl font-extrabold text-ink group-hover:text-accent transition-colors truncate">
+                {tool.name}
+              </h3>
+              <p className="text-sm font-medium text-muted">{tool.category || 'General'}</p>
+            </div>
+          </div>
+
+          <p className="mt-4 text-sm italic font-medium leading-relaxed text-ink pl-3 border-l-2 border-accent">
+            "{tool.reason || tool._reason}"
+          </p>
+
+          <p className="mt-3 text-sm leading-relaxed text-ink-2">
+            {tool.description}
+          </p>
+        </div>
+
+        <div className="mt-6 flex flex-wrap items-center gap-3 border-t border-line/45 pt-4">
+          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider ${getPricingPillClass(tool.pricing)}`}>
+            {String(tool.pricing || 'Free').toUpperCase()}
+          </span>
+          <span className="inline-flex items-center rounded-full bg-bg-sunk px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider text-ink-2 ring-1 ring-inset ring-line">
+            {String(tool.platformLabel || 'Web').toUpperCase()}
+          </span>
+        </div>
+      </div>
+
+      <div className="flex flex-row md:flex-col justify-between items-center md:items-end gap-4 shrink-0 md:w-44 border-t md:border-t-0 md:border-l border-line/45 pt-4 md:pt-0 md:pl-6">
+        <div className="text-center md:text-right">
+          <span className="text-[10px] font-extrabold text-muted uppercase tracking-widest block">Match Confidence</span>
+          <span className="text-4xl font-black text-ink block mt-1">{confidence}%</span>
+        </div>
+
+        <div className="flex md:flex-col gap-2 w-full">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation()
+              onShowDetails(tool)
+            }}
+            className="flex-1 text-center bg-bg-sunk hover:bg-line border border-line text-ink font-semibold py-2 px-4 rounded-xl text-xs transition-colors"
+          >
+            Why this fits →
+          </button>
+          
+          <a
+            href={getToolUrl(tool)}
+            target="_blank"
+            rel={OUTBOUND_REL}
+            onClick={(e) => {
+              e.stopPropagation()
+              onCardClick?.()
+            }}
+            className="flex-1 text-center bg-accent hover:bg-accent/90 text-bg font-bold py-2 px-4 rounded-xl text-xs shadow-sm transition-colors"
+          >
+            Visit Tool
+          </a>
+        </div>
+      </div>
+    </article>
+  )
+}
+
+function DetailsDrawer({ tool, onClose, navigate }) {
+  if (!tool) return null
+
+  const breakdown = tool.match_breakdown || { category: true, budget: true, platform: true, experience: true }
+  const confidence = tool.match_confidence || 85
+
+  return (
+    <div 
+      className="fixed inset-0 z-50 flex justify-end bg-black/40 backdrop-blur-sm transition-all duration-300"
+      onClick={onClose}
+    >
+      <div 
+        onClick={(e) => e.stopPropagation()} 
+        className="w-full max-w-lg bg-bg-elev border-l border-line h-full flex flex-col shadow-2xl p-6 overflow-y-auto"
+      >
+        <div className="flex items-center justify-between border-b border-line pb-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-bg-sunk overflow-hidden">
+              <ToolLogo tool={tool} size={40} />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-ink">{tool.name}</h3>
+              <p className="text-xs text-muted">{tool.category || 'General'}</p>
+            </div>
+          </div>
+          <button 
+            type="button" 
+            onClick={onClose} 
+            className="rounded-full p-2 hover:bg-bg-sunk text-muted hover:text-ink transition-colors"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <div className="mt-6 flex-1 space-y-6">
+          {/* Match Score */}
+          <div className="rounded-2xl bg-gradient-to-r from-accent-soft/40 to-bg-sunk p-4 border border-line flex items-center justify-between">
+            <div>
+              <span className="text-[10px] font-bold text-accent-ink uppercase tracking-wider block">Match Confidence</span>
+              <span className="text-3xl font-black text-ink mt-1 block">{confidence}%</span>
+            </div>
+            <span className="rounded-full bg-accent px-3 py-1 text-xs font-bold text-bg">
+              {confidence >= 90 ? 'Perfect Fit' : 'Strong Match'}
+            </span>
+          </div>
+
+          {/* Curation & Student Perks */}
+          {(tool.studentPerk || tool.student_perk) && (
+            <div className="rounded-2xl border border-accent/20 bg-accent-soft/30 p-4">
+              <div className="flex items-center gap-2 text-sm font-bold text-accent-ink">
+                <GraduationCap className="h-5 w-5" />
+                <span>🎓 Student Perk Available!</span>
+              </div>
+              <p className="mt-1.5 text-xs text-ink-2 leading-relaxed">
+                {tool.pricingDetail || "This tool offers specialized student pricing, a free premium tier, or discounts via student validation."}
+              </p>
+              {tool.uniHack && (
+                <div className="mt-3 bg-bg-elev rounded-xl p-3 border border-line/50">
+                  <span className="text-[10px] font-bold text-muted uppercase tracking-wider block">Student Hack</span>
+                  <p className="mt-1 text-xs text-ink leading-relaxed italic">"{tool.uniHack}"</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Fit Analysis */}
+          <div>
+            <h4 className="text-xs font-bold text-muted uppercase tracking-wider mb-3">Fit Analysis</h4>
+            <div className="space-y-3">
+              <div className="flex items-start gap-3 rounded-xl border border-line/45 bg-bg-sunk/30 p-3">
+                <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs font-bold ${breakdown.category ? 'bg-accent-soft text-accent-ink' : 'bg-bg-sunk text-muted-2'}`}>
+                  {breakdown.category ? '✓' : '—'}
+                </span>
+                <div>
+                  <p className="text-xs font-semibold text-ink">Goal Alignment</p>
+                  <p className="text-[11px] text-muted mt-0.5">
+                    {breakdown.category ? 'Matches your selected workspace goal and category.' : 'Does not directly align with chosen goal.'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 rounded-xl border border-line/45 bg-bg-sunk/30 p-3">
+                <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs font-bold ${breakdown.budget ? 'bg-accent-soft text-accent-ink' : 'bg-bg-sunk text-muted-2'}`}>
+                  {breakdown.budget ? '✓' : '—'}
+                </span>
+                <div>
+                  <p className="text-xs font-semibold text-ink">Budget Fit</p>
+                  <p className="text-[11px] text-muted mt-0.5">
+                    {breakdown.budget ? `Fits your preferences. Pricing: ${tool.pricing || 'Free'}.` : 'Pricing is outside your preferred budget.'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 rounded-xl border border-line/45 bg-bg-sunk/30 p-3">
+                <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs font-bold ${breakdown.platform ? 'bg-accent-soft text-accent-ink' : 'bg-bg-sunk text-muted-2'}`}>
+                  {breakdown.platform ? '✓' : '—'}
+                </span>
+                <div>
+                  <p className="text-xs font-semibold text-ink">Platform Support</p>
+                  <p className="text-[11px] text-muted mt-0.5">
+                    {breakdown.platform ? 'Fully compatible with your operating systems.' : 'Not supported on your preferred platforms.'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 rounded-xl border border-line/45 bg-bg-sunk/30 p-3">
+                <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs font-bold ${breakdown.experience ? 'bg-accent-soft text-accent-ink' : 'bg-bg-sunk text-muted-2'}`}>
+                  {breakdown.experience ? '✓' : '—'}
+                </span>
+                <div>
+                  <p className="text-xs font-semibold text-ink">Difficulty Calibration</p>
+                  <p className="text-[11px] text-muted mt-0.5">
+                    {breakdown.experience ? 'Calibrated to your experience level.' : 'Might be too simple or too complex.'}
+                  </p>
+                </div>
+              </div>
+
+              {breakdown.use_case && (
+                <div className="flex items-start gap-3 rounded-xl border border-accent/20 bg-accent-soft/20 p-3">
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent text-bg text-xs font-bold">
+                    ✓
+                  </span>
+                  <div>
+                    <p className="text-xs font-semibold text-ink">Targeted Task Fit</p>
+                    <p className="text-[11px] text-muted mt-0.5">Highly aligned with your custom use case requirements.</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Description */}
+          <div>
+            <h4 className="text-xs font-bold text-muted uppercase tracking-wider mb-2">Description</h4>
+            <p className="text-sm text-ink-2 leading-relaxed">{tool.description}</p>
+          </div>
+
+          {/* Features */}
+          {tool.features && tool.features.length > 0 && (
+            <div>
+              <h4 className="text-xs font-bold text-muted uppercase tracking-wider mb-2">Key Features</h4>
+              <ul className="grid grid-cols-2 gap-2">
+                {tool.features.map((feat, idx) => (
+                  <li key={idx} className="flex items-center gap-2 text-xs text-ink-2">
+                    <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+                    <span className="truncate">{feat}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+
+        {/* Footer buttons */}
+        <div className="mt-8 pt-4 border-t border-line flex gap-3">
+          <a
+            href={getToolUrl(tool)}
+            target="_blank"
+            rel={OUTBOUND_REL}
+            className="flex-1 inline-flex items-center justify-center rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-bg hover:bg-accent/90 transition-colors"
+          >
+            Visit Official Site
+          </a>
+          <button
+            type="button"
+            onClick={() => {
+              onClose()
+              navigate(`/tools/${tool.slug || ''}`)
+            }}
+            className="flex-1 inline-flex items-center justify-center rounded-xl border border-line bg-bg hover:bg-bg-sunk px-4 py-2.5 text-sm font-semibold text-ink transition-colors"
+          >
+            Full Details Page
+          </button>
+        </div>
+      </div>
+    </div>
   )
 }
 
@@ -1166,6 +1386,7 @@ function ToolFinderPage() {
   const [aspectBucket, setAspectBucket] = useState(getAspectBucket)
   const [pendingCompletion, setPendingCompletion] = useState(null)
   const [pendingStackSwitch, setPendingStackSwitch] = useState(false)
+  const [selectedToolForDetails, setSelectedToolForDetails] = useState(null)
   const wizardStartedRef = useRef(false)
   const wizardCompletedRef = useRef(false)
   const useCaseInputRef = useRef(null)
@@ -1533,64 +1754,112 @@ function ToolFinderPage() {
 
   if (viewMode === 'results') {
     const resultsMaxW = aspectBucket === 'ultrawide' ? 'max-w-7xl' : aspectBucket === 'portrait' ? 'max-w-4xl' : 'max-w-6xl'
+    const persona = buildPersona(answers)
+    const anchorTool = results[0]
+    const supportingTools = results.slice(1)
 
     return (
       <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
-        <section className={`mx-auto w-full ${resultsMaxW}`}>
-          <div className="rounded-2xl border border-line bg-bg-elev px-4 py-3 sm:px-5">
-            <h2 className="text-xl font-semibold text-ink sm:text-2xl">{results.length} tools picked for you</h2>
-            <div className="mt-2 flex flex-wrap items-center gap-2">
-              <Button variant="secondary" size="sm" onClick={handleRestart}>
-                <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
-                Start over
-              </Button>
+        <section className={`mx-auto w-full space-y-6 ${resultsMaxW}`}>
+          
+          {/* Custom Premium Header Banner */}
+          <div className="rounded-3xl border border-line bg-gradient-to-br from-bg-elev via-bg-elev to-bg-sunk/30 p-6 shadow-sm animate-fade-in">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+              <div className="space-y-1">
+                <span className="text-[10px] font-black text-accent uppercase tracking-widest block">Your Custom AI Stack</span>
+                <h1 className="text-2xl font-black text-ink tracking-tight sm:text-3xl">AI Stack Dashboard</h1>
+                {persona && (
+                  <p className="mt-2 text-xs font-medium text-ink-2 leading-relaxed max-w-2xl border-l-2 border-accent pl-3 italic">
+                    "{persona.replace(/:$/, '')}"
+                  </p>
+                )}
+              </div>
+              
+              <div className="flex flex-wrap items-center gap-2">
+                <Button variant="secondary" size="sm" onClick={handleRestart}>
+                  <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
+                  Start over
+                </Button>
 
-              <Button 
-                variant="secondary" 
-                size="sm" 
-                onClick={() => {
-                  setViewMode('wizard')
-                  setActiveQuestion(null)
-                }}
-              >
-                <SlidersHorizontal className="mr-1.5 h-3.5 w-3.5" />
-                Refine answers
-              </Button>
+                <Button 
+                  variant="secondary" 
+                  size="sm" 
+                  onClick={() => {
+                    setViewMode('wizard')
+                    setActiveQuestion(null)
+                  }}
+                >
+                  <SlidersHorizontal className="mr-1.5 h-3.5 w-3.5" />
+                  Refine answers
+                </Button>
 
-              <Button variant="secondary" size="sm" onClick={handleClearChoice}>
-                Clear Choice
-              </Button>
+                <Button variant="secondary" size="sm" onClick={handleClearChoice}>
+                  Clear Choice
+                </Button>
 
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={handleSaveStack}
-                disabled={savingStack || results.length === 0}
-                title={isLoggedIn ? undefined : 'Log in to save'}
-              >
-                <Save className="mr-1.5 h-3.5 w-3.5" />
-                {savingStack ? 'Saving...' : isLoggedIn ? 'Save stack' : 'Log in to save'}
-              </Button>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={handleSaveStack}
+                  disabled={savingStack || results.length === 0}
+                  title={isLoggedIn ? undefined : 'Log in to save'}
+                >
+                  <Save className="mr-1.5 h-3.5 w-3.5" />
+                  {savingStack ? 'Saving...' : isLoggedIn ? 'Save stack' : 'Log in to save'}
+                </Button>
+              </div>
             </div>
           </div>
 
-          <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {results.map((tool, index) => (
-              <ResultCard
-                key={tool.slug || tool.name || index}
-                tool={tool}
-                index={index}
-                navigate={navigate}
-                onCardClick={triggerSurveyPopup}
+          {/* Stack Anchor (Hero Tool) */}
+          {anchorTool && (
+            <div className="space-y-3">
+              <h2 className="text-[10px] font-black text-muted uppercase tracking-widest pl-1">Primary Foundation</h2>
+              <AnchorToolCard 
+                tool={anchorTool} 
+                navigate={navigate} 
+                onCardClick={triggerSurveyPopup} 
+                onShowDetails={setSelectedToolForDetails} 
               />
-            ))}
-          </div>
+            </div>
+          )}
+
+          {/* Supporting Tools Grid */}
+          {supportingTools.length > 0 && (
+            <div className="space-y-3 pt-2">
+              <h2 className="text-[10px] font-black text-muted uppercase tracking-widest pl-1">Supporting Stack Components</h2>
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {supportingTools.map((tool, index) => (
+                  <ResultCard
+                    key={tool.slug || tool.name || index}
+                    tool={tool}
+                    index={index + 1}
+                    navigate={navigate}
+                    onCardClick={triggerSurveyPopup}
+                    onShowDetails={setSelectedToolForDetails}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="mt-12 flex justify-center pb-8">
             <Button variant="secondary" onClick={handleRestart} size="lg" className="rounded-full px-8 shadow-sm hover:shadow-md transition-shadow">
-              <RotateCcw className="mr-2 h-5 w-5" /> Start Over
+               <RotateCcw className="mr-2 h-5 w-5" /> Start Over
             </Button>
           </div>
         </section>
+
+        {/* Drawer overlay */}
+        <AnimatePresence>
+          {selectedToolForDetails && (
+            <DetailsDrawer 
+              tool={selectedToolForDetails} 
+              onClose={() => setSelectedToolForDetails(null)} 
+              navigate={navigate}
+            />
+          )}
+        </AnimatePresence>
       </div>
     )
   }

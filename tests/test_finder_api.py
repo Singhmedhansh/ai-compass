@@ -81,3 +81,52 @@ def test_public_stats_returns_total_tools(client):
     assert "total_tools" in payload
     assert isinstance(payload["total_tools"], int)
     assert payload["total_tools"] > 0
+
+
+def test_finder_student_perk_and_fuzzy_match(client, monkeypatch):
+    sample_tools = [
+        {
+            "name": "Generic Writer",
+            "slug": "generic-writer",
+            "category": "Writing & Docs",
+            "pricing": "freemium",
+            "platforms": ["Web"],
+            "tags": ["writing"],
+            "description": "Standard writer app",
+            "rating": 4.0,
+            "link": "https://writer.example",
+            "studentPerk": False,
+        },
+        {
+            "name": "Super Student Writer",
+            "slug": "super-student-writer",
+            "category": "Writing & Docs",
+            "pricing": "freemium",
+            "platforms": ["Web"],
+            "tags": ["writing", "student-discount"],
+            "description": "Writer assistant optimized for academic essay structures",
+            "rating": 4.0,
+            "link": "https://studentwriter.example",
+            "studentPerk": True,
+        },
+    ]
+
+    monkeypatch.setattr(api_routes, "_load_tools", lambda: sample_tools)
+
+    resp = client.post(
+        "/api/v1/finder",
+        json={
+            "goal": "writing",
+            "budget": "any",
+            "platform": "web",
+            "level": "beginner",
+            "use_case": "academic essay structures",
+        },
+    )
+
+    assert resp.status_code == 200
+    tools = resp.get_json()["tools"]
+    assert len(tools) == 2
+    # The one with studentPerk and matching custom use-case should rank first
+    assert tools[0]["slug"] == "super-student-writer"
+

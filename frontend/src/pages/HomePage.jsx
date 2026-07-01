@@ -6,7 +6,7 @@ import FinalCTA from '../components/home/FinalCTA'
 import Hero from '../components/home/Hero'
 import NewsletterCapture from '../components/home/NewsletterCapture'
 import SubmitInvite from '../components/home/SubmitInvite'
-import SunoStory from '../components/home/SunoStory'
+import StatsShowcase from '../components/home/StatsShowcase'
 import WizardDemo from '../components/home/WizardDemo'
 import StudentHubShowcase from '../components/home/StudentHubShowcase'
 
@@ -29,7 +29,7 @@ export default function HomePage() {
       <StudentHubShowcase />
       <CurationDiscipline />
       <NewsletterCapture />
-      <SunoStory />
+      <StatsShowcase />
       <FinalCTA />
       <SubmitInvite />
     </>

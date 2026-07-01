@@ -25,7 +25,7 @@ export default function PrivacyPage() {
             <h1 className="text-3xl font-bold text-ink sm:text-4xl md:text-5xl">
               <WordReveal>Privacy Policy</WordReveal>
             </h1>
-            <p className="mt-3 text-sm text-muted">Last updated: June 11, 2026</p>
+            <p className="mt-3 text-sm text-muted">Last updated: July 1, 2026</p>
             <p className="mt-6 text-base leading-relaxed text-ink-2">
               This Privacy Policy explains how AI Compass (&quot;we&quot;, &quot;our&quot;, &quot;us&quot;) collects, uses, and protects your information when you use ai-compass.in (the &quot;Service&quot;). By using the Service, you agree to this policy.
             </p>
@@ -50,6 +50,9 @@ export default function PrivacyPage() {
               </p>
               <p className="mt-3 leading-relaxed text-ink-2">
                 User-generated content: Reviews, ratings, favorites, and collections you create are stored in our database. Reviews and ratings are publicly visible to other users along with your username. Upvotes and downvotes you cast on reviews are recorded to prevent double voting.
+              </p>
+              <p className="mt-3 leading-relaxed text-ink-2">
+                Stack Architect profiles: If you use the AI Stack Architect wizard while logged in, you can choose to save your custom stack selections (goals, budget preferences, platform, experience level, and the list of recommended tools) to your account. This data is stored securely in our database and can be deleted by you at any time from your user dashboard.
               </p>
 
               <p className="mt-3 leading-relaxed text-ink-2">

@@ -25,7 +25,7 @@ export default function TermsPage() {
             <h1 className="text-3xl font-bold text-ink sm:text-4xl md:text-5xl">
               <WordReveal>Terms of Service</WordReveal>
             </h1>
-            <p className="mt-3 text-sm text-muted">Last updated: June 11, 2026</p>
+            <p className="mt-3 text-sm text-muted">Last updated: July 1, 2026</p>
             <p className="mt-6 text-base leading-relaxed text-ink-2">
               Welcome to AI Compass. These Terms of Service (&quot;Terms&quot;) govern your use of ai-compass.in (the &quot;Service&quot;). By using the Service, you agree to these Terms.
             </p>
@@ -43,7 +43,7 @@ export default function TermsPage() {
                 1. About the Service
               </h2>
               <p className="mt-3 leading-relaxed text-ink-2">
-                AI Compass is a hand-curated directory of AI tools, primarily aimed at students. The Service includes tool listings, user reviews and ratings, favorites and collections, and search/filtering features. The Service is operated by Medhansh Pratap Singh from Bengaluru, India.
+                AI Compass is a hand-curated directory of AI tools, primarily aimed at students. The Service includes tool listings, user reviews and ratings, favorites and collections, search/filtering features, and the **AI Stack Architect** wizard, which computes personalized AI tool stacks based on your custom requirements. The Service is operated by Medhansh Pratap Singh from Bengaluru, India.
               </p>
             </section>
 
