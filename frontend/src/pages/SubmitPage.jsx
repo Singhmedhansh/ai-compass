@@ -42,54 +42,156 @@ export default function SubmitPage() {
   const [paypalLoaded, setPaypalLoaded] = useState(false)
   const [paypalError, setPaypalError] = useState(false)
 
+  const [paypalHostedConfig, setPaypalHostedConfig] = useState(null)
+
+  // Restore form state from sessionStorage on page load, and check for redirect callback
+  useEffect(() => {
+    const savedForm = sessionStorage.getItem('submit_form_data')
+    if (savedForm) {
+      try {
+        setFormData(JSON.parse(savedForm))
+      } catch (e) {
+        console.error('Failed to parse saved form data', e)
+      }
+    }
+
+    const savedType = sessionStorage.getItem('submit_submission_type')
+    if (savedType) {
+      setSubmissionType(savedType)
+    }
+
+    const savedMethod = sessionStorage.getItem('submit_payment_method')
+    if (savedMethod) {
+      setPaymentMethod(savedMethod)
+    }
+
+    // Check if redirecting back from PayPal
+    const query = new URLSearchParams(window.location.search)
+    const hasPaypalParams = query.has('tx') || query.has('paymentId') || query.has('token') || query.has('PayerID')
+    if (hasPaypalParams) {
+      const txRef = query.get('tx') || query.get('paymentId') || `TXN-PAYPAL-${Math.floor(Math.random() * 9000000 + 1000000)}`
+      
+      // We retrieve form data immediately to submit it
+      if (savedForm) {
+        try {
+          const parsedForm = JSON.parse(savedForm)
+          
+          setSubmitting(true)
+          
+          fetch('/api/v1/submit-tool', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+              ...parsedForm,
+              pricing_model: 'sponsored_paypal',
+              transaction_ref: txRef,
+            }),
+          })
+          .then(res => {
+            if (!res.ok) throw new Error('API submission failed')
+            return res.json()
+          })
+          .then(() => {
+            setSubmitted(true)
+            sessionStorage.removeItem('submit_form_data')
+            sessionStorage.removeItem('submit_submission_type')
+            sessionStorage.removeItem('submit_payment_method')
+            window.history.replaceState({}, document.title, window.location.pathname)
+          })
+          .catch(err => {
+            console.error('Failed to submit tool after payment:', err)
+            setError('Payment completed but we failed to record your submission. Please contact support with Ref: ' + txRef)
+          })
+          .finally(() => {
+            setSubmitting(false)
+          })
+        } catch (e) {
+          console.error(e)
+        }
+      }
+    }
+  }, [])
+
+  // Persist form state to sessionStorage on inputs
+  useEffect(() => {
+    sessionStorage.setItem('submit_form_data', JSON.stringify(formData))
+  }, [formData])
+
+  useEffect(() => {
+    sessionStorage.setItem('submit_submission_type', submissionType)
+  }, [submissionType])
+
+  useEffect(() => {
+    sessionStorage.setItem('submit_payment_method', paymentMethod)
+  }, [paymentMethod])
+
   useEffect(() => {
     if (showPaymentModal && paymentMethod === 'paypal') {
-      if (window.paypal) {
-        setPaypalLoaded(true)
-        return
-      }
-
-      setPaypalLoaded(false)
-      setPaypalError(false)
-
-      const loadPaypalScript = (clientId, isFallback = false) => {
-        const existingScript = document.getElementById('paypal-sdk-script')
-        if (existingScript) {
-          existingScript.remove()
-        }
-
-        const script = document.createElement('script')
-        script.id = 'paypal-sdk-script'
-        script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=USD`
-        script.async = true
-        
-        script.onload = () => {
+      // Fetch hosted config first to determine script parameters
+      fetch('/api/v1/config/paypal-hosted')
+        .then(res => res.json())
+        .then(data => {
+          setPaypalHostedConfig(data)
+          const clientId = data.client_id || 'BAA5cs6jiQb9N5nwDlMUap1IDvm-Yq3x7labkEcj8TAY1VYvC1aZD7X7nmiKPOEtLh-fHjJoR__eL6VgTY'
+          
           if (window.paypal) {
             setPaypalLoaded(true)
-          } else {
-            handleLoadError()
+            return
           }
-        }
 
-        script.onerror = () => {
-          handleLoadError()
-        }
+          setPaypalLoaded(false)
+          setPaypalError(false)
 
-        const handleLoadError = () => {
-          if (!isFallback) {
-            console.warn('Failed to load PayPal SDK with user client-id. Trying fallback client-id=test...')
-            loadPaypalScript('test', true)
-          } else {
-            console.error('Failed to load PayPal SDK entirely.')
-            setPaypalError(true)
+          const loadPaypalScript = (cid, isFallback = false) => {
+            const existingScript = document.getElementById('paypal-sdk-script')
+            if (existingScript) {
+              existingScript.remove()
+            }
+
+            const script = document.createElement('script')
+            script.id = 'paypal-sdk-script'
+            
+            // Build script src based on whether we have a hosted button ID
+            if (data.hosted_button_id) {
+              script.src = `https://www.paypal.com/sdk/js?client-id=${cid}&components=hosted-buttons&disable-funding=venmo&currency=USD`
+            } else {
+              script.src = `https://www.paypal.com/sdk/js?client-id=${cid}&currency=USD`
+            }
+            script.async = true
+            script.crossOrigin = 'anonymous'
+
+            script.onload = () => {
+              if (window.paypal) {
+                setPaypalLoaded(true)
+              } else {
+                handleLoadError()
+              }
+            }
+
+            script.onerror = () => {
+              handleLoadError()
+            }
+
+            const handleLoadError = () => {
+              if (!isFallback) {
+                console.warn('Failed to load PayPal SDK with client-id. Trying fallback client-id=test...')
+                loadPaypalScript('test', true)
+              } else {
+                console.error('Failed to load PayPal SDK entirely.')
+                setPaypalError(true)
+              }
+            }
+
+            document.body.appendChild(script)
           }
-        }
 
-        document.body.appendChild(script)
-      }
-
-      // Try loading with the key from user's dashboard (truncated in screenshot)
-      loadPaypalScript('ARCT7SH8UH7Cr0IG2ihv4VYyWLATEzFRCNYKODXxyhC-')
+          loadPaypalScript(clientId)
+        })
+        .catch(err => {
+          console.error('Failed to fetch PayPal config:', err)
+          setPaypalError(true)
+        })
     }
   }, [showPaymentModal, paymentMethod])
 
@@ -98,42 +200,60 @@ export default function SubmitPage() {
       const container = document.getElementById('paypal-button-container')
       if (container) {
         container.innerHTML = ''
-        window.paypal.Buttons({
-          createOrder: (data, actions) => {
-            return actions.order.create({
-              purchase_units: [{
-                amount: {
-                  value: '81.00'
-                }
-              }]
-            })
-          },
-          onApprove: async (data, actions) => {
-            setPaying(true)
-            try {
-              const details = await actions.order.capture()
-              setPaying(false)
-              setPaymentDone(true)
-              const txRef = details.id || `TXN-PAYPAL-${Math.floor(Math.random() * 9000000 + 1000000)}`
-              setTransactionRef(txRef)
-              
-              setTimeout(() => {
-                setShowPaymentModal(false)
-                submitData('sponsored_paypal')
-              }, 1500)
-            } catch (err) {
-              setPaying(false)
-              setError('PayPal transaction capture failed. Please try again.')
-            }
-          },
-          onError: (err) => {
-            console.error('PayPal Buttons error:', err)
-            setError('An error occurred during the PayPal transaction.')
+        
+        // If hosted button config is available, render HostedButtons
+        if (paypalHostedConfig && paypalHostedConfig.hosted_button_id) {
+          try {
+            window.paypal.HostedButtons({
+              hostedButtonId: paypalHostedConfig.hosted_button_id
+            }).render('#paypal-button-container')
+          } catch (err) {
+            console.error('Failed to render HostedButtons:', err)
+            setError('Could not load PayPal checkout buttons.')
           }
-        }).render('#paypal-button-container')
+        } else {
+          // Fallback to standard checkout buttons
+          try {
+            window.paypal.Buttons({
+              createOrder: (data, actions) => {
+                return actions.order.create({
+                  purchase_units: [{
+                    amount: {
+                      value: '81.00'
+                    }
+                  }]
+                })
+              },
+              onApprove: async (data, actions) => {
+                setPaying(true)
+                try {
+                  const details = await actions.order.capture()
+                  setPaying(false)
+                  setPaymentDone(true)
+                  const txRef = details.id || `TXN-PAYPAL-${Math.floor(Math.random() * 9000000 + 1000000)}`
+                  setTransactionRef(txRef)
+                  
+                  setTimeout(() => {
+                    setShowPaymentModal(false)
+                    submitData('sponsored_paypal', txRef)
+                  }, 1500)
+                } catch (err) {
+                  setPaying(false)
+                  setError('PayPal transaction capture failed. Please try again.')
+                }
+              },
+              onError: (err) => {
+                console.error('PayPal Buttons error:', err)
+                setError('An error occurred during the PayPal transaction.')
+              }
+            }).render('#paypal-button-container')
+          } catch (err) {
+            console.error('Failed to render standard PayPal buttons:', err)
+          }
+        }
       }
     }
-  }, [paypalLoaded, paymentMethod])
+  }, [paypalLoaded, paymentMethod, paypalHostedConfig])
 
   function handleChange(event) {
     const { name, value } = event.target
@@ -197,12 +317,12 @@ export default function SubmitPage() {
 
       setTimeout(() => {
         setShowPaymentModal(false)
-        submitData(`sponsored_${paymentMethod}`)
+        submitData(`sponsored_${paymentMethod}`, mockRef)
       }, 1500)
     }, 1800)
   }
 
-  async function submitData(pricingModel) {
+  async function submitData(pricingModel, transactionRef = '') {
     setSubmitting(true)
     setSubmitted(false)
 
@@ -219,6 +339,7 @@ export default function SubmitPage() {
           pricing_model: pricingModel,
           student_perks: formData.student_perks,
           submitter_email: formData.submitter_email,
+          transaction_ref: transactionRef,
         }),
       })
 

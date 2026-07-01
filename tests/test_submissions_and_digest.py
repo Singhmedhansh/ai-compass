@@ -107,3 +107,43 @@ def test_maybe_run_digest_noop_without_email(app, monkeypatch):
         db.session.commit()
         digest_mod.maybe_run_digest()
         assert runs == []
+
+
+def test_paypal_config_endpoint(client, monkeypatch):
+    monkeypatch.setenv("PAYPAL_CLIENT_ID", "TEST_CLIENT_ID")
+    monkeypatch.setenv("PAYPAL_MODE", "sandbox")
+    resp = client.get("/api/v1/config/paypal")
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert data["client_id"] == "TEST_CLIENT_ID"
+    assert data["mode"] == "sandbox"
+
+
+def test_submit_tool_with_transaction_ref(client, app):
+    resp = client.post("/api/v1/submit-tool", json={
+        "name": "Sponsored AI Tool",
+        "url": "https://sponsored.example.com",
+        "category": "Productivity",
+        "reason": "Very helpful utility.",
+        "pricing_model": "sponsored_paypal",
+        "transaction_ref": "PAYPAL-TX-123456",
+    })
+    assert resp.status_code == 201
+    with app.app_context():
+        s = Submission.query.filter_by(name="Sponsored AI Tool").first()
+        assert s is not None
+        assert s.pricing_model == "sponsored_paypal:PAYPAL-TX-123456"
+
+
+def test_paypal_hosted_config_endpoint(client, monkeypatch):
+    monkeypatch.setenv("PAYPAL_CLIENT_ID", "TEST_CLIENT_ID")
+    monkeypatch.setenv("PAYPAL_HOSTED_BUTTON_ID", "TEST_BUTTON_ID")
+    monkeypatch.setenv("PAYPAL_MODE", "live")
+    resp = client.get("/api/v1/config/paypal-hosted")
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert data["client_id"] == "TEST_CLIENT_ID"
+    assert data["hosted_button_id"] == "TEST_BUTTON_ID"
+    assert data["mode"] == "live"
+
+

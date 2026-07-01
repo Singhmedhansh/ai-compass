@@ -1533,6 +1533,24 @@ def vote_review(review_id: int):
 
 
 
+@api_bp.get("/config/paypal")
+def get_paypal_config():
+    client_id = os.environ.get("PAYPAL_CLIENT_ID", "")
+    return jsonify({
+        "client_id": client_id,
+        "mode": os.environ.get("PAYPAL_MODE", "sandbox")
+    })
+
+
+@api_bp.get("/config/paypal-hosted")
+def get_paypal_hosted_config():
+    return jsonify({
+        "client_id": os.environ.get("PAYPAL_CLIENT_ID", ""),
+        "hosted_button_id": os.environ.get("PAYPAL_HOSTED_BUTTON_ID", ""),
+        "mode": os.environ.get("PAYPAL_MODE", "sandbox")
+    })
+
+
 @api_bp.post("/submit-tool")
 @csrf.exempt
 def submit_tool():
@@ -1548,6 +1566,11 @@ def submit_tool():
         category = str(payload.get("category") or "").strip()
         reason = str(payload.get("reason") or "").strip()
         pricing_model = str(payload.get("pricing_model") or "free").strip()
+        transaction_ref = str(payload.get("transaction_ref") or "").strip()
+        if transaction_ref and pricing_model.startswith("sponsored"):
+            combined = f"{pricing_model}:{transaction_ref}"
+            pricing_model = combined[:50]
+
         student_perks = str(payload.get("student_perks") or "").strip()
 
         if not name or not url or not category or not reason:
