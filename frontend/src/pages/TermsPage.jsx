@@ -48,6 +48,21 @@ export default function TermsPage() {
             </section>
 
             <section className="mt-12">
+              <h2 id="billing" className="text-xl font-semibold text-ink sm:text-2xl">
+                1a. Paid Subscriptions and Billing
+              </h2>
+              <p className="mt-3 leading-relaxed text-ink-2">
+                <strong>Premium Tiers:</strong> AI Compass offers paid premium features or subscription tiers (&quot;Paid Services&quot;). By signing up for a Paid Service, you agree to pay the specified monthly or annual fees.
+              </p>
+              <p className="mt-3 leading-relaxed text-ink-2">
+                <strong>Billing:</strong> Payments are processed securely via Stripe. All billing cycles automatically renew unless cancelled before the renewal date through your user dashboard.
+              </p>
+              <p className="mt-3 leading-relaxed text-ink-2">
+                <strong>Price Changes:</strong> We reserve the right to change our subscription rates at any time. Any price changes will be communicated to active subscribers via email at least 30 days before taking effect.
+              </p>
+            </section>
+
+            <section className="mt-12">
               <h2 id="eligibility" className="text-xl font-semibold text-ink sm:text-2xl">
                 2. Eligibility
               </h2>

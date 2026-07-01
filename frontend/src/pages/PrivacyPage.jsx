@@ -62,7 +62,10 @@ export default function PrivacyPage() {
                 Usage data: Our hosting provider may collect standard server logs (IP address, user agent, request paths) for security and operational purposes.
               </p>
               <p className="mt-3 leading-relaxed text-ink-2">
-                We do not collect payment information (we don&apos;t process payments), location data beyond standard server logs, or contacts/social media data.
+                Payment Data: We use Stripe to process payments and subscriptions. We never store or see your credit card or billing details on our servers. Stripe collects and processes this data securely according to their privacy policy. We only store transaction statuses (e.g., payment successful, subscription active) linked to your account to unlock premium features.
+              </p>
+              <p className="mt-3 leading-relaxed text-ink-2">
+                We do not collect location data beyond standard server logs, or contacts/social media data.
               </p>
             </section>
 
@@ -92,6 +95,7 @@ export default function PrivacyPage() {
               </p>
               <ul className="mt-3 list-disc space-y-2 pl-6 text-ink-2">
                 <li className="leading-relaxed">Render — hosting and database (PostgreSQL)</li>
+                <li className="leading-relaxed">Stripe — Payment processing and subscription management</li>
               </ul>
               <p className="mt-3 leading-relaxed text-ink-2">
                 These providers process data on our behalf and are bound by their own privacy commitments.

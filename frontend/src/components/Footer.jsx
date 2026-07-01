@@ -87,6 +87,7 @@ const ABOUT_LINKS = [
   { label: 'Contact', to: '/contact' },
   { label: 'Privacy', to: '/privacy' },
   { label: 'Terms', to: '/terms' },
+  { label: 'Refund Policy', to: '/refunds' },
 ]
 
 const HOW_TO_LINKS = [
