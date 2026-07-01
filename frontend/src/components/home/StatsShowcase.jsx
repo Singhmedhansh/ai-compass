@@ -1,18 +1,16 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { TrendingUp, Users, MousePointerClick, Eye, Clock, Activity, BarChart3 } from 'lucide-react'
+import { Users, MousePointerClick, Eye, Activity, BarChart3 } from 'lucide-react'
 
 export default function StatsShowcase() {
   const [activeTab, setActiveTab] = useState('posthog') // 'posthog' | 'gsc'
   const [hoveredPoint, setHoveredPoint] = useState(null)
 
-  // PostHog Data
+  // PostHog Data (Session Duration & Bounce Rate removed)
   const posthogMetrics = [
     { label: 'Unique Visitors', value: '1.25K', change: '+124,400%', icon: Users },
     { label: 'Page Views', value: '1.74K', change: '+28,817%', icon: Eye },
-    { label: 'Sessions', value: '1.33K', change: '+132,800%', icon: Activity },
-    { label: 'Session Duration', value: '1m 37s', change: 'Avg', icon: Clock },
-    { label: 'Bounce Rate', value: '47%', change: 'Low', icon: TrendingUp }
+    { label: 'Sessions', value: '1.33K', change: '+132,800%', icon: Activity }
   ]
 
   const posthogPaths = [
@@ -33,7 +31,7 @@ export default function StatsShowcase() {
   const gscMetrics = [
     { label: 'Total Clicks', value: '494', change: 'Growth', icon: MousePointerClick },
     { label: 'Total Impressions', value: '25.6K', change: 'High', icon: Eye },
-    { label: 'Average CTR', value: '1.9%', change: 'Healthy', icon: TrendingUp },
+    { label: 'Average CTR', value: '1.9%', change: 'Healthy', icon: Users },
     { label: 'Average Position', value: '13.2', change: 'Top 15', icon: BarChart3 }
   ]
 
@@ -59,15 +57,15 @@ export default function StatsShowcase() {
       <div className="mx-auto max-w-6xl px-5">
         <div className="mb-4 inline-flex items-center gap-2 font-mono text-xs tracking-wide text-muted">
           <span aria-hidden="true" className="h-px w-4 bg-line-strong" />
-          04 / GROWTH & TRUST
+          04 / Growth & trust
         </div>
 
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
           <div>
-            <h2 className="text-3xl font-bold tracking-tight text-ink sm:text-4xl">
+            <h2 className="text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
               Verification & Platform Growth
             </h2>
-            <p className="mt-2 text-sm text-ink-2 max-w-2xl">
+            <p className="mt-2 text-sm text-ink-2 max-w-2xl font-normal leading-relaxed">
               Transparency builds trust. Instead of listing arbitrary rankings, we display our verified, interactive platform metrics compiled from PostHog Analytics and Google Search Console.
             </p>
           </div>
@@ -79,10 +77,10 @@ export default function StatsShowcase() {
                 setActiveTab('posthog')
                 setHoveredPoint(null)
               }}
-              className={`rounded-lg px-4 py-1.5 text-xs font-semibold transition ${
+              className={`rounded-lg px-4 py-1.5 text-xs transition duration-200 ${
                 activeTab === 'posthog'
-                  ? 'bg-bg text-ink shadow-sm'
-                  : 'text-muted hover:text-ink'
+                  ? 'bg-bg text-ink shadow-sm font-medium'
+                  : 'text-muted hover:text-ink font-normal'
               }`}
             >
               PostHog Web Analytics
@@ -92,10 +90,10 @@ export default function StatsShowcase() {
                 setActiveTab('gsc')
                 setHoveredPoint(null)
               }}
-              className={`rounded-lg px-4 py-1.5 text-xs font-semibold transition ${
+              className={`rounded-lg px-4 py-1.5 text-xs transition duration-200 ${
                 activeTab === 'gsc'
-                  ? 'bg-bg text-ink shadow-sm'
-                  : 'text-muted hover:text-ink'
+                  ? 'bg-bg text-ink shadow-sm font-medium'
+                  : 'text-muted hover:text-ink font-normal'
               }`}
             >
               Google Search Console
@@ -110,7 +108,7 @@ export default function StatsShowcase() {
           <div className="lg:col-span-1 flex flex-col gap-4">
             <div className="flex items-center gap-2 mb-1">
               <span className="h-2 w-2 rounded-full bg-accent animate-pulse" />
-              <span className="text-[10px] font-bold text-muted uppercase tracking-wider">
+              <span className="text-[10px] font-medium text-muted tracking-wider uppercase">
                 {activeTab === 'posthog' ? 'Live Audience Metrics' : 'Organic Traffic Stats'}
               </span>
             </div>
@@ -122,7 +120,7 @@ export default function StatsShowcase() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.2 }}
-                className="grid grid-cols-2 lg:grid-cols-1 gap-4"
+                className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-4"
               >
                 {(activeTab === 'posthog' ? posthogMetrics : gscMetrics).map((m, idx) => {
                   const Icon = m.icon
@@ -132,13 +130,13 @@ export default function StatsShowcase() {
                       className="rounded-2xl border border-line bg-bg-elev p-4 shadow-sm hover:border-accent/40 transition-colors"
                     >
                       <div className="flex items-center justify-between text-muted mb-2">
-                        <span className="text-xs font-semibold truncate pr-1">{m.label}</span>
+                        <span className="text-xs font-normal text-muted-2 truncate pr-1">{m.label}</span>
                         <Icon className="h-4 w-4 shrink-0 text-muted-2" />
                       </div>
                       <div className="flex items-baseline gap-2">
-                        <span className="text-2xl font-black text-ink">{m.value}</span>
-                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                          m.change.startsWith('+') ? 'bg-accent-soft text-accent-ink' : 'bg-bg-sunk text-muted'
+                        <span className="text-2xl font-semibold text-ink">{m.value}</span>
+                        <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${
+                          m.change.startsWith('+') || m.change === 'Growth' ? 'bg-accent-soft text-accent-ink' : 'bg-bg-sunk text-muted'
                         }`}>
                           {m.change}
                         </span>
@@ -156,10 +154,10 @@ export default function StatsShowcase() {
             {/* Interactive SVG Chart */}
             <div className="rounded-2xl border border-line bg-bg-elev p-5 shadow-sm">
               <div className="flex justify-between items-center mb-4">
-                <span className="text-xs font-bold text-ink uppercase tracking-wider">
+                <span className="text-xs font-semibold text-ink tracking-wider">
                   {activeTab === 'posthog' ? 'Monthly Unique Visitors' : 'Google Search Click Growth'}
                 </span>
-                <span className="text-[10px] text-muted font-medium">Hover nodes for insights</span>
+                <span className="text-[10px] text-muted font-normal">Hover nodes for insights</span>
               </div>
 
               <div className="relative h-48 w-full border-b border-l border-line/75 rounded-bl-lg bg-bg-sunk/10 p-2">
@@ -198,7 +196,7 @@ export default function StatsShowcase() {
                         strokeLinecap="round"
                         strokeLinejoin="round"
                       />
-                      {/* GSC Impressions Path (purple tone representation) */}
+                      {/* GSC Impressions Path */}
                       <path
                         d="M 50 160 L 130 140 L 210 110 L 290 90 L 370 40 L 450 45"
                         fill="none"
@@ -234,8 +232,8 @@ export default function StatsShowcase() {
                     onMouseEnter={() => setHoveredPoint(pt)}
                     onMouseLeave={() => setHoveredPoint(null)}
                   >
-                    <div className="h-4 w-4 rounded-full border-2 border-accent bg-bg shadow-sm transition hover:scale-125 hover:bg-accent" />
-                    <span className="absolute top-5 left-1/2 transform -translate-x-1/2 text-[9px] font-bold text-muted bg-bg px-1 rounded shadow-sm border border-line whitespace-nowrap">
+                    <div className="h-3.5 w-3.5 rounded-full border-2 border-accent bg-bg shadow-sm transition hover:scale-125 hover:bg-accent" />
+                    <span className="absolute top-5 left-1/2 transform -translate-x-1/2 text-[9px] font-medium text-muted bg-bg px-1 rounded shadow-sm border border-line whitespace-nowrap">
                       {pt.label}
                     </span>
                   </div>
@@ -244,7 +242,7 @@ export default function StatsShowcase() {
                 {/* Custom Tooltip */}
                 {hoveredPoint && (
                   <div className="absolute top-2 left-1/2 transform -translate-x-1/2 rounded-lg bg-ink text-bg px-3 py-1.5 text-xs shadow-xl flex flex-col items-center gap-0.5 border border-line z-30">
-                    <span className="font-bold">{hoveredPoint.label}</span>
+                    <span className="font-medium text-bg">{hoveredPoint.label}</span>
                     <span className="text-[10px] opacity-90">
                       {activeTab === 'posthog' 
                         ? hoveredPoint.value 
@@ -257,18 +255,18 @@ export default function StatsShowcase() {
 
             {/* Top Pages/Queries lists */}
             <div className="rounded-2xl border border-line bg-bg-elev p-5 shadow-sm">
-              <h3 className="text-xs font-bold text-ink uppercase tracking-wider mb-4">
+              <h3 className="text-xs font-semibold text-ink tracking-wider mb-4">
                 {activeTab === 'posthog' ? 'Most Visited Path Details' : 'Primary Organic Keywords'}
               </h3>
 
               <div className="space-y-4">
                 {(activeTab === 'posthog' ? posthogPaths : gscQueries).map((row, idx) => (
                   <div key={idx} className="space-y-1">
-                    <div className="flex items-center justify-between text-xs font-semibold">
-                      <span className="font-mono text-ink-2 truncate pr-4">
+                    <div className="flex items-center justify-between text-xs font-normal">
+                      <span className="font-sans text-ink-2 truncate pr-4">
                         {activeTab === 'posthog' ? row.path : row.query}
                       </span>
-                      <span className="text-muted shrink-0">
+                      <span className="text-muted-2 shrink-0">
                         {activeTab === 'posthog' 
                           ? `${row.visitors} visitors · ${row.views} views`
                           : `${row.clicks} clicks · ${row.impressions} imps`}
