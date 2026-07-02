@@ -4233,26 +4233,40 @@
           "price_amount": 0,
           "price_display": "$0/mo",
           "features": [
-            "15 queries per month",
-            "Data visualization",
-            "Basic analysis tools"
+            "100 one-time credits",
+            "2 GB RAM access",
+            "Google Drive connector"
           ],
-          "cta_label": "Try Julius",
+          "cta_label": "Start Coding",
           "cta_url": "https://julius.ai",
           "is_popular": false
         },
         {
-          "name": "Basic",
+          "name": "Plus",
           "price_amount": 20,
           "price_display": "$20/mo",
           "features": [
-            "250 queries per month",
-            "Upload CSV, Excel, PDF",
-            "Code sandbox executor"
+            "2,000 monthly credits",
+            "Advanced reasoning model access",
+            "Saved prompt libraries"
           ],
-          "cta_label": "Subscribe",
+          "cta_label": "Go Plus",
           "cta_url": "https://julius.ai/pricing",
-          "is_popular": true
+          "is_popular": true,
+          "highlight_label": "Most Popular"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 45,
+          "price_display": "$45/mo",
+          "features": [
+            "5,000 monthly credits",
+            "Postgres, Snowflake database connectors",
+            "Increased RAM allocation"
+          ],
+          "cta_label": "Go Pro",
+          "cta_url": "https://julius.ai/pricing",
+          "is_popular": false
         }
       ]
     },
@@ -8472,9 +8486,9 @@
           "price_amount": 0,
           "price_display": "$0/mo",
           "features": [
-            "Full language course curriculum",
-            "Daily heart limit restrictions",
-            "Ad-supported learning"
+            "Standard language learning",
+            "Ad-supported experience",
+            "Limited daily hearts system"
           ],
           "cta_label": "Start Learning",
           "cta_url": "https://www.duolingo.com",
@@ -8485,15 +8499,29 @@
           "price_amount": 6.99,
           "price_display": "$6.99/mo",
           "features": [
-            "Unlimited hearts",
-            "Ad-free experience",
-            "Mistake review quiz tracking",
-            "Personalized study tips"
+            "Ad-free learning environment",
+            "Unlimited hearts system",
+            "Personalized Practice Hub access",
+            "Monthly streak repairs"
           ],
           "cta_label": "Try Super",
           "cta_url": "https://www.duolingo.com",
           "is_popular": true,
-          "highlight_label": "Billed Annually"
+          "highlight_label": "Standard Pro"
+        },
+        {
+          "name": "Duolingo Max",
+          "price_amount": 13.99,
+          "price_display": "$13.99/mo",
+          "features": [
+            "AI Roleplay conversational practice",
+            "Explain My Answer details",
+            "Video Call with Lily AI module",
+            "Everything in Super Duolingo"
+          ],
+          "cta_label": "Try Max",
+          "cta_url": "https://www.duolingo.com",
+          "is_popular": false
         }
       ]
     },
@@ -10769,7 +10797,7 @@
     "languages": "10+",
     "launchYear": 2021,
     "description": "Pictory automatically transforms written scripts, articles, or blog posts into short videos by matching content with relevant stock footage and generating captions. Students use it to create video summaries of their research or to produce video content for communications and journalism courses. The free trial includes three complete project exports.",
-    "pricing_tier": "freemium",
+    "pricing_tier": "paid",
     "difficulty": "advanced",
     "student_friendly": true,
     "use_cases": [
@@ -10779,7 +10807,7 @@
       "Producing educational video content",
       "Repurposing long-form content into clips"
     ],
-    "pricing": "Freemium",
+    "pricing": "Paid",
     "student_perk": true,
     "company": "Pictory AI",
     "review_count": 118,
@@ -10798,20 +10826,51 @@
     "last_verified_at": "2026-07-02",
     "pricing_tiers": {
       "last_verified_at": "2026-07-02",
-      "source_url": "https://pictory.ai/pricing/?nav=mega",
+      "source_url": "https://pictory.ai/pricing",
       "currency": "USD",
       "tiers": [
         {
-          "name": "Free",
-          "price_amount": 25.0,
-          "price_display": "$25/month",
-          "is_popular": false,
+          "name": "Starter",
+          "price_amount": 19,
+          "price_display": "$19/mo",
           "features": [
-            "200 video minutes",
-            "5 GB storage",
-            "1 Brand Kit",
-            "60 minutes of ElevenLab's AI voices in 29 language"
-          ]
+            "30 videos processed per month",
+            "10 minutes max video duration",
+            "1 user seat",
+            "720p resolution export"
+          ],
+          "cta_label": "Choose Starter",
+          "cta_url": "https://pictory.ai",
+          "is_popular": false
+        },
+        {
+          "name": "Professional",
+          "price_amount": 39,
+          "price_display": "$39/mo",
+          "features": [
+            "60 videos processed per month",
+            "20 minutes max video duration",
+            "1080p resolution export",
+            "Hyper-realistic voiceovers"
+          ],
+          "cta_label": "Choose Professional",
+          "cta_url": "https://pictory.ai",
+          "is_popular": true,
+          "highlight_label": "Most Popular"
+        },
+        {
+          "name": "Teams",
+          "price_amount": 99,
+          "price_display": "$99/mo",
+          "features": [
+            "90 videos processed per month",
+            "30 minutes max video duration",
+            "3 user seats",
+            "Team workspaces sharing"
+          ],
+          "cta_label": "Choose Teams",
+          "cta_url": "https://pictory.ai",
+          "is_popular": false
         }
       ]
     },
@@ -12768,14 +12827,16 @@
       "currency": "USD",
       "tiers": [
         {
-          "name": "Free",
+          "name": "Free Extension",
           "price_amount": 0,
-          "price_display": "Free",
+          "price_display": "Free extension",
           "features": [
-            "Full access to standard features",
-            "No hidden subscription costs"
+            "Install from Workspace Marketplace",
+            "Query Claude models inside sheets",
+            "Requires Anthropic API key",
+            "Pay-as-you-go Anthropic pricing"
           ],
-          "cta_label": "Get Started",
+          "cta_label": "Install",
           "cta_url": "https://workspace.google.com/marketplace/app/claude_for_sheets_and_docs",
           "is_popular": true
         }
@@ -13608,30 +13669,47 @@
       "currency": "USD",
       "tiers": [
         {
-          "name": "Free Trial",
+          "name": "Free",
           "price_amount": 0,
           "price_display": "$0/mo",
           "features": [
-            "Basic web application builder",
-            "Limited generation credits",
-            "Deployment previews"
+            "5 daily credits reset (30/mo cap)",
+            "Public-only sandbox projects",
+            "No custom domains",
+            "Standard support"
           ],
-          "cta_label": "Try Free",
+          "cta_label": "Build Free",
           "cta_url": "https://lovable.dev",
           "is_popular": false
         },
         {
-          "name": "Starter",
-          "price_amount": 20,
-          "price_display": "$20/mo",
+          "name": "Pro",
+          "price_amount": 25,
+          "price_display": "$25/mo",
           "features": [
-            "Unlimited application designs",
-            "Higher edit token capacities",
-            "Custom code export support"
+            "100 monthly credits + daily bonuses",
+            "Custom domain connections",
+            "Code Mode advanced editing",
+            "Remove Lovable branding logo"
           ],
-          "cta_label": "Subscribe",
+          "cta_label": "Go Pro",
           "cta_url": "https://lovable.dev/pricing",
-          "is_popular": true
+          "is_popular": true,
+          "highlight_label": "Recommended"
+        },
+        {
+          "name": "Business",
+          "price_amount": 50,
+          "price_display": "$50/mo",
+          "features": [
+            "SSO & advanced user permissions",
+            "Design templates & component kits",
+            "Data training model opt-out",
+            "Everything in Pro"
+          ],
+          "cta_label": "Go Business",
+          "cta_url": "https://lovable.dev/pricing",
+          "is_popular": false
         }
       ]
     },
@@ -13787,7 +13865,7 @@
     "languages": "50+",
     "launchYear": 2023,
     "description": "Continue.dev is an open-source AI coding assistant extension for VS Code and JetBrains that lets students plug in any model provider including OpenAI, Anthropic, Ollama, or Groq. Because it is fully open-source with no usage fees, students can connect free model providers and have an unlimited coding assistant. The community contributes prompt recipes for common coding tasks.",
-    "pricing_tier": "freemium",
+    "pricing_tier": "free",
     "difficulty": "intermediate",
     "student_friendly": true,
     "use_cases": [
@@ -13797,7 +13875,7 @@
       "Reviewing and refactoring code",
       "Generating boilerplate and project scaffolding"
     ],
-    "pricing": "Freemium",
+    "pricing": "Free",
     "student_perk": true,
     "company": "Continue",
     "review_count": 141,
@@ -13820,17 +13898,17 @@
       "currency": "USD",
       "tiers": [
         {
-          "name": "Open Source",
+          "name": "Open Source (Free)",
           "price_amount": 0,
           "price_display": "Free",
           "features": [
-            "Fully open-source IDE extension",
-            "Connect any local/remote model provider",
-            "Custom slash commands editor",
-            "Tab autocomplete support"
+            "Connect local models (Ollama, Llama.cpp)",
+            "Custom inline code completions",
+            "Chat sidebar for codebase indexing",
+            "Free trial keys for cloud models"
           ],
-          "cta_label": "Install Continue",
-          "cta_url": "https://continue.dev",
+          "cta_label": "Get Extension",
+          "cta_url": "https://github.com/continuedev/continue",
           "is_popular": true
         }
       ]
@@ -14955,7 +15033,7 @@
     "languages": "30+",
     "launchYear": 1998,
     "description": "Turnitin is the academic integrity platform used by thousands of universities to check submissions for plagiarism and AI-generated content. Students with access through their institution can self-check drafts before final submission to catch unintentional similarity. Its Feedback Studio also provides inline commenting tools used by professors to deliver detailed writing feedback.",
-    "pricing_tier": "paid",
+    "pricing_tier": "free",
     "difficulty": "beginner",
     "student_friendly": true,
     "use_cases": [
@@ -14965,7 +15043,7 @@
       "Generating blog posts and content",
       "Creating professional emails and communications"
     ],
-    "pricing": "Paid",
+    "pricing": "Free",
     "student_perk": true,
     "company": "Turnitin",
     "review_count": 109,
@@ -14986,7 +15064,22 @@
       "last_verified_at": "2026-07-02",
       "source_url": "https://turnitin.com",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Custom License",
+          "price_amount": 0,
+          "price_display": "Quote-based",
+          "features": [
+            "For schools, universities, and institutions",
+            "SaaS similarity checks & AI writing detection",
+            "Grading tools and feedback options",
+            "No individual plans available"
+          ],
+          "cta_label": "Contact Sales",
+          "cta_url": "https://turnitin.com",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -15849,7 +15942,7 @@
       "Generating insights from research data",
       "Building interactive dashboards and reports"
     ],
-    "pricing": "Paid",
+    "pricing": "Freemium",
     "student_perk": true,
     "company": "Observable",
     "review_count": 93,
@@ -15872,11 +15965,33 @@
       "currency": "USD",
       "tiers": [
         {
+          "name": "Starter (Free)",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "Code-based notebooks",
+            "Database & API connections",
+            "Interactive data visualizations",
+            "AI-assisted notebooks coding"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://observablehq.com",
+          "is_popular": false
+        },
+        {
           "name": "Pro",
-          "price_amount": 22.0,
-          "price_display": "$22/month",
-          "is_popular": false,
-          "features": []
+          "price_amount": 22,
+          "price_display": "$22/user/mo",
+          "features": [
+            "Remove Observable branding watermark",
+            "Workspace viewers support",
+            "Advanced team collaboration",
+            "Priority support access"
+          ],
+          "cta_label": "Go Pro",
+          "cta_url": "https://observablehq.com/pricing",
+          "is_popular": true,
+          "highlight_label": "Recommended"
         }
       ]
     },
@@ -16214,18 +16329,47 @@
       "currency": "USD",
       "tiers": [
         {
-          "name": "Starter Plan",
-          "price_amount": 30,
-          "price_display": "$30/mo (billed annually)",
+          "name": "Free Academic",
+          "price_amount": 0,
+          "price_display": "$0/mo",
           "features": [
-            "Unlimited interactive presentation files",
-            "Create presentation layouts with AI",
-            "1 shared dashboard area",
-            "Basic viewer analytics stats"
+            "For verified academic users",
+            "Requires active .edu email",
+            "Interactive templates gallery",
+            "Basic editing tools"
           ],
-          "cta_label": "Start Trial",
+          "cta_label": "Verify Education",
           "cta_url": "https://storydoc.com",
-          "is_popular": true
+          "is_popular": false
+        },
+        {
+          "name": "Starter",
+          "price_amount": 30,
+          "price_display": "$30/mo",
+          "features": [
+            "1 active presentation",
+            "Basic reader analytics",
+            "Access to template gallery",
+            "24/7 email support"
+          ],
+          "cta_label": "Try Starter",
+          "cta_url": "https://storydoc.com",
+          "is_popular": false
+        },
+        {
+          "name": "Pro",
+          "price_amount": 45,
+          "price_display": "$45/mo",
+          "features": [
+            "3 active presentations",
+            "Advanced reader analytics",
+            "Custom brand kit mapping",
+            "Remove Storydoc watermark"
+          ],
+          "cta_label": "Try Pro",
+          "cta_url": "https://storydoc.com",
+          "is_popular": true,
+          "highlight_label": "Most Popular"
         }
       ]
     },
@@ -21422,7 +21566,7 @@
     "languages": "30+",
     "launchYear": 2011,
     "description": "Learnosity is an assessment infrastructure platform embedded in university LMS systems including Canvas and Blackboard that powers interactive quizzes, adaptive tests, and rich media assessments. Students access it through their existing course platforms. The adaptive algorithm adjusts question difficulty based on performance to identify precise knowledge gaps efficiently.",
-    "pricing_tier": "paid",
+    "pricing_tier": "free",
     "difficulty": "beginner",
     "student_friendly": true,
     "use_cases": [
@@ -21432,7 +21576,7 @@
       "Organizing study schedules",
       "Getting step-by-step explanations of concepts"
     ],
-    "pricing": "Paid",
+    "pricing": "Free",
     "student_perk": true,
     "company": "Learnosity",
     "review_count": 104,
@@ -21451,9 +21595,24 @@
     "last_verified_at": "2026-07-02",
     "pricing_tiers": {
       "last_verified_at": "2026-07-02",
-      "source_url": "https://learnosity.com/licenses/",
+      "source_url": "https://learnosity.com/licenses",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "API License",
+          "price_amount": 0,
+          "price_display": "Quote-based",
+          "features": [
+            "EdTech assessment engine API platform",
+            "Standard, Scale, and Enterprise packages",
+            "Custom integrations, Author, and Analytics APIs",
+            "High-performance SLAs"
+          ],
+          "cta_label": "Contact Sales",
+          "cta_url": "https://learnosity.com",
+          "is_popular": true
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -27548,16 +27707,18 @@
       "currency": "USD",
       "tiers": [
         {
-          "name": "Free",
-          "price_amount": 0.0,
-          "price_display": "$0/month",
-          "is_popular": false,
+          "name": "Student Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
           "features": [
-            "Unlimited public/private repositories Host open so",
-            "Dependabot security and version updates Keep proje",
-            "2,000 CI/CD minutes/month Free for public reposito",
-            "500MB of Packages storage Free for public reposito"
-          ]
+            "GitHub Pro for free while a student",
+            "Free GitHub Copilot access",
+            "Partner credits (Canva, Namecheap, JetBrains)",
+            "Access to developer tools library"
+          ],
+          "cta_label": "Apply Pack",
+          "cta_url": "https://education.github.com/pack",
+          "is_popular": true
         }
       ]
     },
@@ -27749,10 +27910,12 @@
           "price_amount": 0,
           "price_display": "Free",
           "features": [
-            "Full access to standard features",
-            "No hidden subscription costs"
+            "Open-source desktop code editor",
+            "Massive extensions marketplace",
+            "Built-in Git & terminal integration",
+            "Custom keymaps & debugger tools"
           ],
-          "cta_label": "Get Started",
+          "cta_label": "Download",
           "cta_url": "https://code.visualstudio.com",
           "is_popular": true
         }
@@ -29254,7 +29417,7 @@
       "Summarizing meetings and calls",
       "Reducing time on manual administrative work"
     ],
-    "pricing": "Freemium",
+    "pricing": "Paid",
     "student_perk": true,
     "company": "Brain.fm",
     "review_count": 112,
@@ -29277,11 +29440,33 @@
       "currency": "USD",
       "tiers": [
         {
-          "name": "Free",
+          "name": "Monthly",
           "price_amount": 14.99,
-          "price_display": "$14.99/month",
-          "is_popular": false,
-          "features": []
+          "price_display": "$14.99/mo",
+          "features": [
+            "Unlimited neural music sessions",
+            "Focus, relax, sleep, meditate modes",
+            "Offline access on mobile app",
+            "7-day free trial"
+          ],
+          "cta_label": "Try Free",
+          "cta_url": "https://brain.fm",
+          "is_popular": false
+        },
+        {
+          "name": "Annual",
+          "price_amount": 8.33,
+          "price_display": "$8.33/mo",
+          "features": [
+            "Billed annually at $99.99",
+            "14-day free trial",
+            "60-day money-back guarantee",
+            "Everything in Monthly plan"
+          ],
+          "cta_label": "Subscribe Annual",
+          "cta_url": "https://brain.fm",
+          "is_popular": true,
+          "highlight_label": "Save 44%"
         }
       ]
     },
@@ -29636,10 +29821,12 @@
           "price_amount": 0,
           "price_display": "Free",
           "features": [
-            "Full access to standard features",
-            "No hidden subscription costs"
+            "AI-based research paper recommendations",
+            "Personalized literature feeds",
+            "Automatic citation alerts",
+            "Save & categorize publications"
           ],
-          "cta_label": "Get Started",
+          "cta_label": "Start Feeds",
           "cta_url": "https://semanticscholar.org/me/research-feeds",
           "is_popular": true
         }
@@ -30978,7 +31165,37 @@
       "last_verified_at": "2026-07-02",
       "source_url": "https://huggingface.co/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "CPU Basic",
+          "price_amount": 0,
+          "price_display": "Free hosting",
+          "features": [
+            "Free hosting for basic models",
+            "Simple web UI app runs",
+            "16 GB RAM maximum limit",
+            "Community ZeroGPU access"
+          ],
+          "cta_label": "Create Space",
+          "cta_url": "https://huggingface.co/spaces",
+          "is_popular": true,
+          "highlight_label": "Free Standard"
+        },
+        {
+          "name": "Dedicated GPU",
+          "price_amount": 0.4,
+          "price_display": "From $0.40/hr",
+          "features": [
+            "T4 GPU ($0.40/hr) instance options",
+            "A10G GPU ($1.00/hr) instance options",
+            "Billed dynamically by the minute",
+            "No charge when paused"
+          ],
+          "cta_label": "Configure GPU",
+          "cta_url": "https://huggingface.co/pricing",
+          "is_popular": false
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -33446,7 +33663,50 @@
       "last_verified_at": "2026-07-02",
       "source_url": "https://rocket.new/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "20 one-time build credits",
+            "Sandbox project workspace",
+            "Standard templates access"
+          ],
+          "cta_label": "Start Free",
+          "cta_url": "https://rocket.new",
+          "is_popular": false
+        },
+        {
+          "name": "Pro",
+          "price_amount": 25,
+          "price_display": "$25/mo",
+          "features": [
+            "100 monthly build credits",
+            "Personal sandbox MVPs",
+            "Unlimited team collaborators",
+            "Standard support"
+          ],
+          "cta_label": "Get Pro",
+          "cta_url": "https://rocket.new/pricing",
+          "is_popular": true,
+          "highlight_label": "Individual Builder"
+        },
+        {
+          "name": "Rocket",
+          "price_amount": 50,
+          "price_display": "$50/mo",
+          "features": [
+            "250 monthly build credits",
+            "Advanced AI assistance integrations",
+            "Code mode downloads",
+            "Everything in Pro"
+          ],
+          "cta_label": "Get Rocket",
+          "cta_url": "https://rocket.new/pricing",
+          "is_popular": false
+        }
+      ]
     },
     "strengths": [],
     "academic_integrity_rating": "Safe",
@@ -36765,7 +37025,51 @@
       "last_verified_at": "2026-07-02",
       "source_url": "https://www.trinka.ai/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Basic",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "5,000 words processed per month",
+            "Academic grammar & spell checking",
+            "Basic file proofreads limit",
+            "Community support"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://www.trinka.ai",
+          "is_popular": false
+        },
+        {
+          "name": "Premium",
+          "price_amount": 6.67,
+          "price_display": "$6.67/mo",
+          "features": [
+            "Unlimited words proofreading",
+            "Advanced academic writing enhancement",
+            "Auto-citation checker access",
+            "Plagiarism check monthly credits"
+          ],
+          "cta_label": "Go Premium",
+          "cta_url": "https://www.trinka.ai",
+          "is_popular": true,
+          "highlight_label": "Most Popular"
+        },
+        {
+          "name": "Premium Plus",
+          "price_amount": 10,
+          "price_display": "$10/mo",
+          "features": [
+            "Higher plagiarism check credits",
+            "Journal finder helper tools",
+            "Formatting assistant checks",
+            "Everything in Premium"
+          ],
+          "cta_label": "Go Plus",
+          "cta_url": "https://www.trinka.ai",
+          "is_popular": false
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -37683,9 +37987,38 @@
     "last_verified_at": "2026-07-02",
     "pricing_tiers": {
       "last_verified_at": "2026-07-02",
-      "source_url": "https://www.gauthmath.com/",
+      "source_url": "https://www.gauthmath.com",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "11 daily homework questions",
+            "Step-by-step AI mathematics solver",
+            "Basic history search"
+          ],
+          "cta_label": "Solve Now",
+          "cta_url": "https://www.gauthmath.com",
+          "is_popular": false
+        },
+        {
+          "name": "Gauth Plus",
+          "price_amount": 11.99,
+          "price_display": "$11.99/mo",
+          "features": [
+            "Unlimited AI answers",
+            "Priority processing speed",
+            "Ad-free experience",
+            "Complex solver tools"
+          ],
+          "cta_label": "Get Gauth Plus",
+          "cta_url": "https://www.gauthmath.com",
+          "is_popular": true,
+          "highlight_label": "Student Choice"
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -42335,12 +42668,12 @@
           "price_amount": 0,
           "price_display": "Free",
           "features": [
-            "Self-hosted local chat UI",
-            "Connects to Ollama & OpenAI APIs",
-            "RAG query pipeline built-in",
-            "Multi-user authentication support"
+            "Self-hosted local WebUI interface",
+            "Markdown & math typesetting support",
+            "Retrieval Augmented Generation (RAG) tools",
+            "Custom pipelines & auth"
           ],
-          "cta_label": "Install UI",
+          "cta_label": "Get Code",
           "cta_url": "https://github.com/open-webui/open-webui",
           "is_popular": true
         }
@@ -42808,7 +43141,54 @@
     "student_note": "Use the free Hugging Face Spaces (T4 GPU tier) and model API limits for student projects",
     "last_verified": "2026-06-22",
     "pricing_tiers": {
-      "last_verified_at": "2026-07-02"
+      "last_verified_at": "2026-07-02",
+      "source_url": "https://huggingface.co/pricing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "Unlimited public repositories",
+            "Basic Spaces hosting",
+            "Access to community models & datasets",
+            "Community forum support"
+          ],
+          "cta_label": "Sign Up Free",
+          "cta_url": "https://huggingface.co/join",
+          "is_popular": false
+        },
+        {
+          "name": "PRO",
+          "price_amount": 9,
+          "price_display": "$9/user/mo",
+          "features": [
+            "1 TB private LFS storage",
+            "10x public storage limit",
+            "8x ZeroGPU quota quota",
+            "Dev Mode for Spaces access"
+          ],
+          "cta_label": "Upgrade to Pro",
+          "cta_url": "https://huggingface.co/pricing",
+          "is_popular": true,
+          "highlight_label": "Developer Pro"
+        },
+        {
+          "name": "Team",
+          "price_amount": 20,
+          "price_display": "$20/user/mo",
+          "features": [
+            "SAML SSO & OIDC",
+            "Audit logs & organization security",
+            "Resource groups management",
+            "Team usage analytics"
+          ],
+          "cta_label": "Start Team Plan",
+          "cta_url": "https://huggingface.co/pricing",
+          "is_popular": false
+        }
+      ]
     }
   },
   {
