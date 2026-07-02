@@ -1,0 +1,87 @@
+{% extends "emails/base.html" %}
+
+{% block title %}Invoice for Sponsored Curation - AI Compass{% endblock %}
+
+{% block extra_css %}
+.invoice-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  font-size: 14px;
+}
+.invoice-table th {
+  text-align: left;
+  border-bottom: 2px solid #e5e7eb;
+  padding: 8px 0;
+  color: #111827;
+  font-weight: 700;
+}
+.invoice-table td {
+  padding: 10px 0;
+  border-bottom: 1px solid #f3f4f6;
+  color: #4b5563;
+}
+.invoice-meta {
+  margin: 15px 0 25px 0;
+  padding: 15px;
+  background-color: #f9fafb;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #4b5563;
+  line-height: 1.6;
+}
+.invoice-meta strong {
+  color: #111827;
+}
+.total-row td {
+  font-weight: 700;
+  color: #111827 !important;
+  border-top: 2px solid #e5e7eb;
+  border-bottom: none;
+  font-size: 16px;
+  padding-top: 15px;
+}
+{% endblock %}
+
+{% block content %}
+<h1 class="heading">Payment Receipt / Invoice</h1>
+<p class="paragraph">Thank you for your purchase! Your priority fast-track sponsored curation submission has been received and verified. Our editorial team will test and index your tool within 24 hours.</p>
+
+<div class="invoice-meta">
+  <strong>Invoice Number:</strong> {{ invoice_number }}<br />
+  <strong>Date:</strong> {{ date }}<br />
+  <strong>Payment Method:</strong> {{ payment_method }}<br />
+  <strong>Transaction Reference:</strong> {{ transaction_ref }}<br />
+  <strong>Billing To:</strong> {{ customer_email }}
+</div>
+
+<table class="invoice-table">
+  <thead>
+    <tr>
+      <th>Description</th>
+      <th style="text-align: right;">Amount</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <strong>Fast-Track Sponsored Curation</strong><br />
+        <span style="font-size: 12px; color: #6b7280;">Priority audit and permanent listing for "{{ tool_name }}"</span>
+      </td>
+      <td style="text-align: right;">$75.00</td>
+    </tr>
+    <tr>
+      <td>Taxes &amp; Processing Fee (8%)</td>
+      <td style="text-align: right;">$6.00</td>
+    </tr>
+    <tr class="total-row">
+      <td>Total Paid</td>
+      <td style="text-align: right;">$81.00 USD</td>
+    </tr>
+  </tbody>
+</table>
+
+<p class="paragraph" style="margin-top: 30px;">
+  If you have any questions about your submission or billing, please contact us at help@ai-compass.in.
+</p>
+{% endblock %}

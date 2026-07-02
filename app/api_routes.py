@@ -1611,64 +1611,87 @@ def submit_tool():
             # Don't hard-fail the user — the notification email below is
             # the backup channel.
 
-        notify_email = os.environ.get("SUBMIT_NOTIFY_EMAIL", "medhansh.builds@gmail.com")
-        # Render's free/hobby tier blocks outbound SMTP (port 587 etc.) at the
-        # network level — got "OSError: [Errno 101] Network is unreachable"
-        # when the prior SMTP-based send tried to reach smtp.gmail.com. Switched
-        # to Resend's HTTPS API (port 443, always reachable). The existing
-        # requests dependency handles the call — no new package needed.
-        resend_api_key = os.environ.get("RESEND_API_KEY")
+        notify_email = os.environ.get("SUBMIT_NOTIFY_EMAIL", "admin@ai-compass.in")
+        
+        from app.email_utils import send_email
+        from flask import render_template
+        import random
 
-        if resend_api_key:
+        # 1. If it's a paid (sponsored) submission, send invoice to the user
+        is_paid = "sponsored" in pricing_model
+        if is_paid and submitter_email:
             try:
-                # 'from' must be either a verified domain sender or Resend's
-                # shared onboarding@resend.dev (which only delivers back to
-                # your own Resend account email — fine for founder-only
-                # notifications). Override via RESEND_FROM env once the
-                # ai-compass.in domain is verified in Resend.
-                canonical = os.environ.get("CANONICAL_HOST", "ai-compass.in").strip().lower()
-                if not canonical or canonical in {"localhost", "127.0.0.1"}:
-                    default_sender = "AI Compass <onboarding@resend.dev>"
-                else:
-                    default_sender = f"AI Compass <no-reply@{canonical}>"
-
-                from_address = os.environ.get("RESEND_FROM", default_sender)
-
-                resend_response = requests.post(
-                    "https://api.resend.com/emails",
-                    headers={
-                        "Authorization": f"Bearer {resend_api_key}",
-                        "Content-Type": "application/json",
-                    },
-                    json={
-                        "from": from_address,
-                        "to": [notify_email],
-                        "subject": f"[AI Compass] New tool submission: {name}",
-                        "text": (
-                            f"A new tool was submitted via ai-compass.in/submit:\n\n"
-                            f"Name: {name}\n"
-                            f"URL: {url}\n"
-                            f"Category: {category}\n\n"
-                            f"Why it's useful:\n{reason}\n\n"
-                            f"Submitted by: {submitter_email or 'anonymous (not logged in)'}\n"
-                            f"Submitted at: {submitted_at}\n"
-                        ),
-                    },
-                    timeout=10,
+                # Extract clean payment method name
+                pay_method = "PayPal"
+                if "stripe" in pricing_model:
+                    pay_method = "Stripe"
+                elif "razorpay" in pricing_model:
+                    pay_method = "Razorpay"
+                
+                # Extract clean transaction ref
+                clean_ref = transaction_ref or "N/A"
+                if (clean_ref == "N/A" or not clean_ref) and ":" in pricing_model:
+                    clean_ref = pricing_model.split(":", 1)[1]
+                
+                today_str = datetime.now(timezone.utc).strftime("%B %d, %Y")
+                invoice_num = f"INV-{datetime.now(timezone.utc).strftime('%Y%m%d')}-{random.randint(1000, 9999)}"
+                
+                invoice_html = render_template(
+                    'emails/invoice.html',
+                    invoice_number=invoice_num,
+                    date=today_str,
+                    payment_method=pay_method,
+                    transaction_ref=clean_ref,
+                    customer_email=submitter_email,
+                    tool_name=name
                 )
-                if not resend_response.ok:
-                    # Resend returns useful JSON error details — log them so the
-                    # operator can see why a send was rejected (typical causes:
-                    # unverified from address, invalid API key, rate limit).
-                    current_app.logger.error(
-                        "Resend rejected submission email (status %s): %s",
-                        resend_response.status_code,
-                        resend_response.text[:500],
-                    )
+                
+                send_email(
+                    to=submitter_email,
+                    subject=f"AI Compass - Payment Confirmation & Invoice ({invoice_num})",
+                    html=invoice_html,
+                    text=f"Thank you for your purchase! Fast-Track Sponsored Curation payment of $81.00 USD has been received. Invoice Number: {invoice_num}, Transaction Ref: {clean_ref}."
+                )
             except Exception:
-                current_app.logger.exception("Failed to send submission email via Resend — submission still recorded")
-        else:
-            current_app.logger.info("RESEND_API_KEY not set — submission saved to file only, no email sent")
+                current_app.logger.exception("Failed to send user invoice email — submission still recorded")
+
+        # 2. Send submission details to the admin
+        admin_subject = f"[AI Compass] New tool submission: {name}"
+        admin_html = (
+            f"<h3>New Tool Submission</h3>"
+            f"<p>A new tool was submitted via ai-compass.in/submit:</p>"
+            f"<ul>"
+            f"<li><b>Name:</b> {name}</li>"
+            f"<li><b>URL:</b> <a href='{url}'>{url}</a></li>"
+            f"<li><b>Category:</b> {category}</li>"
+            f"<li><b>Pricing Model:</b> {pricing_model}</li>"
+            f"<li><b>Student Perks:</b> {student_perks or 'None'}</li>"
+            f"<li><b>Submitted by:</b> {submitter_email or 'anonymous (not logged in)'}</li>"
+            f"<li><b>Submitted at:</b> {submitted_at}</li>"
+            f"</ul>"
+            f"<p><b>Why it's useful / description:</b><br/>{reason}</p>"
+        )
+        admin_text = (
+            f"A new tool was submitted via ai-compass.in/submit:\n\n"
+            f"Name: {name}\n"
+            f"URL: {url}\n"
+            f"Category: {category}\n"
+            f"Pricing Model: {pricing_model}\n"
+            f"Student Perks: {student_perks or 'None'}\n"
+            f"Submitted by: {submitter_email or 'anonymous (not logged in)'}\n"
+            f"Submitted at: {submitted_at}\n\n"
+            f"Why it's useful:\n{reason}\n"
+        )
+
+        try:
+            send_email(
+                to=notify_email,
+                subject=admin_subject,
+                html=admin_html,
+                text=admin_text
+            )
+        except Exception:
+            current_app.logger.exception("Failed to send admin submission email")
 
         return jsonify({"success": True, "message": "Submission received. Thanks!"}), 201
 

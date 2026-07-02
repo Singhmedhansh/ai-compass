@@ -33,7 +33,7 @@ export default function SubmitPage() {
 
   // Payment states
   const [showPaymentModal, setShowPaymentModal] = useState(false)
-  const [paymentMethod, setPaymentMethod] = useState('stripe') // 'stripe' | 'paypal' | 'razorpay'
+  const [paymentMethod, setPaymentMethod] = useState('paypal') // 'stripe' | 'paypal' | 'razorpay'
   const [cardData, setCardData] = useState({ number: '', expiry: '', cvc: '', name: '' })
   const [upiId, setUpiId] = useState('')
   const [paying, setPaying] = useState(false)
@@ -294,6 +294,10 @@ export default function SubmitPage() {
   async function handlePayment(event) {
     event.preventDefault()
     setError('')
+
+    if (paymentMethod === 'paypal') {
+      return // PayPal must only be paid through the official JS SDK Buttons, not simulation
+    }
 
     if (paymentMethod === 'stripe') {
       if (!cardData.number || !cardData.expiry || !cardData.cvc || !cardData.name) {
@@ -682,23 +686,16 @@ export default function SubmitPage() {
                   </label>
                   <div className="grid grid-cols-3 gap-3">
                     
-                    {/* Stripe Tab */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setPaymentMethod('stripe')
-                        setError('')
-                      }}
-                      className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all ${
-                        paymentMethod === 'stripe'
-                          ? 'border-[#635bff] bg-[#635bff]/5 ring-2 ring-[#635bff]/20'
-                          : 'border-line bg-bg hover:border-line-strong'
-                      }`}
-                    >
-                      <CreditCard className={`h-5 w-5 mb-1 ${paymentMethod === 'stripe' ? 'text-[#635bff]' : 'text-muted-2'}`} />
-                      <span className="text-[10px] font-bold text-ink">Stripe</span>
-                      <span className="text-[8px] text-muted-2 whitespace-nowrap mt-0.5">Cards / Apple Pay</span>
-                    </button>
+                    {/* Stripe Tab (Maintenance) */}
+                     <button
+                       type="button"
+                       disabled
+                       className="flex flex-col items-center justify-center p-3 rounded-xl border border-line bg-bg opacity-50 cursor-not-allowed"
+                     >
+                       <CreditCard className="h-5 w-5 mb-1 text-muted-2" />
+                       <span className="text-[10px] font-bold text-muted-2">Stripe</span>
+                       <span className="text-[8px] text-danger whitespace-nowrap mt-0.5">Maintenance</span>
+                     </button>
 
                     {/* PayPal Tab */}
                     <button
@@ -718,23 +715,16 @@ export default function SubmitPage() {
                       <span className="text-[8px] text-muted-2 whitespace-nowrap mt-0.5">Wallet / Direct</span>
                     </button>
 
-                    {/* Razorpay Tab */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setPaymentMethod('razorpay')
-                        setError('')
-                      }}
-                      className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all ${
-                        paymentMethod === 'razorpay'
-                          ? 'border-[#0b69ff] bg-[#0b69ff]/5 ring-2 ring-[#0b69ff]/20'
-                          : 'border-line bg-bg hover:border-line-strong'
-                      }`}
-                    >
-                      <QrCode className={`h-5 w-5 mb-1 ${paymentMethod === 'razorpay' ? 'text-[#0b69ff]' : 'text-muted-2'}`} />
-                      <span className="text-[10px] font-bold text-ink">Razorpay</span>
-                      <span className="text-[8px] text-muted-2 whitespace-nowrap mt-0.5">UPI / NetBanking</span>
-                    </button>
+                    {/* Razorpay Tab (Maintenance) */}
+                     <button
+                       type="button"
+                       disabled
+                       className="flex flex-col items-center justify-center p-3 rounded-xl border border-line bg-bg opacity-50 cursor-not-allowed"
+                     >
+                       <QrCode className="h-5 w-5 mb-1 text-muted-2" />
+                       <span className="text-[10px] font-bold text-muted-2">Razorpay</span>
+                       <span className="text-[8px] text-danger whitespace-nowrap mt-0.5">Maintenance</span>
+                     </button>
 
                   </div>
                 </div>
@@ -824,12 +814,9 @@ export default function SubmitPage() {
                       </div>
                       
                       {paypalError ? (
-                        <>
-                          <p className="text-xs text-ink-2 leading-relaxed max-w-sm mx-auto font-normal">
-                            PayPal Checkout Sandbox is active. Proceed with the simulation below to fast-track your submission.
-                          </p>
-                          <span className="block text-[9px] text-muted-2">🔒 Secured PayPal Sandbox Gateway (Simulation Mode)</span>
-                        </>
+                        <div className="rounded-xl border border-danger bg-danger-soft px-4 py-3 text-xs text-danger max-w-sm mx-auto">
+                          Failed to load PayPal. Please check your internet connection or choose another payment gateway.
+                        </div>
                       ) : paypalLoaded ? (
                         <div className="space-y-3">
                           <p className="text-xs text-ink-2 leading-relaxed max-w-sm mx-auto font-normal mb-2">
@@ -890,7 +877,7 @@ export default function SubmitPage() {
                   )}
 
                   {/* Submission Button */}
-                  {(!paypalLoaded || paymentMethod !== 'paypal') && (
+                  {(paymentMethod !== 'paypal') && (
                     <div className="pt-3">
                       <Button
                         variant="primary"
@@ -903,7 +890,6 @@ export default function SubmitPage() {
                             <span className="h-3 w-3 border-2 border-bg border-t-transparent rounded-full animate-spin" />
                             <span>
                               {paymentMethod === 'stripe' && 'Authorizing via Stripe...'}
-                              {paymentMethod === 'paypal' && 'Redirecting to PayPal portal...'}
                               {paymentMethod === 'razorpay' && 'Connecting to Razorpay UPI...'}
                             </span>
                           </div>
@@ -912,7 +898,6 @@ export default function SubmitPage() {
                             <ShieldCheck className="h-4 w-4" />
                             <span>
                               {paymentMethod === 'stripe' ? 'Pay $81.00' : ''}
-                              {paymentMethod === 'paypal' ? 'Proceed with PayPal (Simulation)' : ''}
                               {paymentMethod === 'razorpay' ? 'Authorize UPI / QR Payment' : ''}
                             </span>
                           </>
