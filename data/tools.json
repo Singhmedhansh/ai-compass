@@ -214,11 +214,12 @@
           "price_amount": 0,
           "price_display": "$0/mo",
           "features": [
-            "Claude 3.5 Sonnet access",
-            "Web & mobile app use",
-            "Basic document analysis"
+            "Access to Claude 3.5 Sonnet model",
+            "Web, iOS, and Android applications",
+            "Artifacts visualization window",
+            "Standard rate limits"
           ],
-          "cta_label": "Get Started",
+          "cta_label": "Start Free",
           "cta_url": "https://claude.ai",
           "is_popular": false
         },
@@ -227,14 +228,29 @@
           "price_amount": 20,
           "price_display": "$20/mo",
           "features": [
-            "5x more usage limit",
-            "Claude 3.5 Opus (when available)",
-            "Claude Projects feature",
-            "Priority access during high traffic"
+            "5x usage limits on Sonnet & Opus",
+            "Create custom Projects & knowledge bases",
+            "Priority server availability",
+            "Early access to new features"
           ],
-          "cta_label": "Subscribe",
-          "cta_url": "https://claude.ai",
-          "is_popular": true
+          "cta_label": "Upgrade to Pro",
+          "cta_url": "https://claude.ai/pricing",
+          "is_popular": true,
+          "highlight_label": "Power User"
+        },
+        {
+          "name": "Team",
+          "price_amount": 25,
+          "price_display": "$25/user/mo",
+          "features": [
+            "Shared Projects & knowledge bases",
+            "SAML SSO security configurations",
+            "Higher message rate limits",
+            "Billed annually (min. 5 seats)"
+          ],
+          "cta_label": "Contact Sales",
+          "cta_url": "https://claude.ai/pricing",
+          "is_popular": false
         }
       ]
     },
@@ -1032,27 +1048,28 @@
           "price_amount": 0,
           "price_display": "$0/mo",
           "features": [
-            "Unlimited quick searches",
-            "Basic source citation",
-            "No account required"
+            "Standard search engine queries",
+            "Basic Copilot research queries pool",
+            "Standard AI model choices"
           ],
-          "cta_label": "Try Now",
-          "cta_url": "https://perplexity.ai",
+          "cta_label": "Start Searching",
+          "cta_url": "https://www.perplexity.ai",
           "is_popular": false
         },
         {
-          "name": "Pro",
+          "name": "Pro Plan",
           "price_amount": 20,
           "price_display": "$20/mo",
           "features": [
-            "300+ Copilot searches/day",
-            "Select Claude/GPT-4o model",
-            "Unlimited file uploads",
-            "API credits included"
+            "Unlimited Copilot research searches",
+            "Access to models (GPT-4o, Sonnet)",
+            "File upload parsing (PDFs, code)",
+            "$5/month API developer credit"
           ],
           "cta_label": "Get Pro",
-          "cta_url": "https://perplexity.ai",
-          "is_popular": true
+          "cta_url": "https://www.perplexity.ai/pro",
+          "is_popular": true,
+          "highlight_label": "Most Popular"
         }
       ]
     },
@@ -1142,27 +1159,42 @@
           "price_amount": 0,
           "price_display": "$0/mo",
           "features": [
-            "Find search summaries",
-            "5,000 one-time credits",
-            "Extract data from 10 PDFs"
+            "Unlimited academic paper search",
+            "Basic document Q&A & summaries",
+            "Limit 2 automated research reports/month"
           ],
-          "cta_label": "Get Started",
+          "cta_label": "Try Free",
           "cta_url": "https://elicit.com",
           "is_popular": false
         },
         {
-          "name": "Plus",
-          "price_amount": 12,
-          "price_display": "$12/mo (billed annually)",
+          "name": "Pro Plan",
+          "price_amount": 41.58,
+          "price_display": "$41.58/mo",
           "features": [
-            "12,000 monthly credits",
-            "Extract data from unlimited PDFs",
-            "Export results to CSV/BIB",
-            "Priority feature access"
+            "12 automated research reports/month",
+            "Screen up to 5,000 papers in reviews",
+            "High-accuracy data extraction columns",
+            "Billed annually at $499 ($49/mo monthly)"
           ],
-          "cta_label": "Get Plus",
+          "cta_label": "Get Pro",
           "cta_url": "https://elicit.com/pricing",
-          "is_popular": true
+          "is_popular": true,
+          "highlight_label": "Researchers"
+        },
+        {
+          "name": "Team Plan",
+          "price_amount": 65,
+          "price_display": "$65/seat/mo",
+          "features": [
+            "Shared team workspaces collaboration",
+            "Unified billing dashboard",
+            "Priority customer support",
+            "Billed annually (min. 2 seats, $79/mo monthly)"
+          ],
+          "cta_label": "Choose Team",
+          "cta_url": "https://elicit.com/pricing",
+          "is_popular": false
         }
       ]
     },
@@ -1245,7 +1277,7 @@
     "slug": "consensus",
     "pricing_tiers": {
       "last_verified_at": "2026-07-02",
-      "source_url": "https://consensus.app/home/pricing/",
+      "source_url": "https://consensus.app/pricing",
       "currency": "USD",
       "tiers": [
         {
@@ -1253,27 +1285,42 @@
           "price_amount": 0,
           "price_display": "$0/mo",
           "features": [
-            "Unlimited searches",
-            "AI-powered answers",
-            "Basic filters"
+            "Basic academic papers search",
+            "15 Pro message credits/month summaries",
+            "3 Deep reviews/month reports"
           ],
-          "cta_label": "Sign Up",
+          "cta_label": "Try Free",
           "cta_url": "https://consensus.app",
           "is_popular": false
         },
         {
-          "name": "Premium",
+          "name": "Pro Plan",
           "price_amount": 10,
           "price_display": "$10/mo",
           "features": [
-            "Unlimited Copilot queries",
-            "GPT-4o summarizations",
-            "Bookmark & export results",
-            "Quality consensus meter"
+            "Unlimited Pro messages summaries",
+            "15 Deep reviews/month reports",
+            "Unlimited study snapshots",
+            "Billed annually at $120 ($15/mo monthly)"
           ],
-          "cta_label": "Go Premium",
-          "cta_url": "https://consensus.app/home/pricing/",
-          "is_popular": true
+          "cta_label": "Go Pro",
+          "cta_url": "https://consensus.app/pricing",
+          "is_popular": true,
+          "highlight_label": "Recommended"
+        },
+        {
+          "name": "Deep Plan",
+          "price_amount": 45,
+          "price_display": "$45/mo",
+          "features": [
+            "Unlimited Pro messages summaries",
+            "200 Deep reviews/month reports",
+            "Unlimited study snapshots",
+            "Billed annually at $540 ($65/mo monthly)"
+          ],
+          "cta_label": "Go Deep",
+          "cta_url": "https://consensus.app/pricing",
+          "is_popular": false
         }
       ]
     },
@@ -4536,29 +4583,28 @@
           "price_amount": 0,
           "price_display": "$0/mo",
           "features": [
-            "Access to GPT-4 and GPT-4o mini",
-            "DALL-E 3 image generation",
-            "Web search grounding",
-            "Copilot in browser/web apps"
+            "Access to GPT-4 in Bing search",
+            "Image generation (DALL-E 3)",
+            "Copilot chat web, iOS, Android apps"
           ],
-          "cta_label": "Try Free",
+          "cta_label": "Start Chatting",
           "cta_url": "https://copilot.microsoft.com",
           "is_popular": false
         },
         {
           "name": "Copilot Pro",
-          "price_amount": 20.0,
-          "price_display": "$20.00/mo",
+          "price_amount": 20,
+          "price_display": "$20/mo",
           "features": [
-            "Priority access to GPT-4 and GPT-4o",
-            "Faster image generation credits",
-            "Copilot inside Word, Excel & PPT",
+            "Priority access to GPT-4/Turbo peak times",
+            "Integration inside Microsoft 365 Office apps",
+            "100 daily image boosts (DALL-E 3)",
             "Create custom Copilot GPTs"
           ],
-          "cta_label": "Subscribe Pro",
+          "cta_label": "Upgrade to Pro",
           "cta_url": "https://www.microsoft.com/copilot/copilot-pro",
           "is_popular": true,
-          "highlight_label": "Office Pro"
+          "highlight_label": "Pro Power"
         }
       ]
     },
@@ -10857,15 +10903,17 @@
       "currency": "USD",
       "tiers": [
         {
-          "name": "Free",
+          "name": "Free Integration",
           "price_amount": 0,
           "price_display": "Free",
           "features": [
-            "Full access to standard features",
-            "No hidden subscription costs"
+            "Built-in Opera browser assistant",
+            "Live web search integrations",
+            "Draft content & code generation",
+            "100% free with no subscriptions"
           ],
-          "cta_label": "Get Started",
-          "cta_url": "https://opera.com/features/aria",
+          "cta_label": "Download Opera",
+          "cta_url": "https://opera.com",
           "is_popular": true
         }
       ]
@@ -11738,9 +11786,39 @@
     "last_verified_at": "2026-07-02",
     "pricing_tiers": {
       "last_verified_at": "2026-07-02",
-      "source_url": "https://paper-digest.com",
+      "source_url": "https://paper-digest.org",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free Plan",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "Browse daily arXiv paper digests",
+            "Save up to 5 papers max",
+            "5 AI-powered paper summaries/month",
+            "Chat with up to 2 papers/month"
+          ],
+          "cta_label": "Start Reading",
+          "cta_url": "https://paper-digest.com",
+          "is_popular": false
+        },
+        {
+          "name": "Paid Plan",
+          "price_amount": 6.66,
+          "price_display": "$6.66/mo",
+          "features": [
+            "Unlimited literature reviews queries",
+            "Unlimited chat with PDF papers",
+            "Deep research topic analysis reports",
+            "Billed annually at $79.90 ($10.99/mo monthly)"
+          ],
+          "cta_label": "Subscribe Pro",
+          "cta_url": "https://paper-digest.org",
+          "is_popular": true,
+          "highlight_label": "Pro Access"
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -11822,22 +11900,49 @@
     "last_verified_at": "2026-07-02",
     "pricing_tiers": {
       "last_verified_at": "2026-07-02",
-      "source_url": "https://humata.ai/pricing",
+      "source_url": "https://www.humata.ai/pricing",
       "currency": "USD",
       "tiers": [
         {
           "name": "Free",
-          "price_amount": 0.0,
-          "price_display": "$0",
-          "is_popular": false,
-          "features": []
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "Up to 60 pages/month processing",
+            "Basic document Q&A & summaries",
+            "Standard search models"
+          ],
+          "cta_label": "Try Free",
+          "cta_url": "https://www.humata.ai",
+          "is_popular": false
         },
         {
-          "name": "Team",
-          "price_amount": 49.0,
-          "price_display": "$49/month",
-          "is_popular": false,
-          "features": []
+          "name": "Student Plan",
+          "price_amount": 1.99,
+          "price_display": "$1.99/mo",
+          "features": [
+            "Expanded page upload quotas",
+            "Basic document Q&A & summaries",
+            "Designed for student budgets"
+          ],
+          "cta_label": "Get Student",
+          "cta_url": "https://www.humata.ai/pricing",
+          "is_popular": false
+        },
+        {
+          "name": "Pro Plan",
+          "price_amount": 9.99,
+          "price_display": "$9.99/mo",
+          "features": [
+            "500+ pages/month processing",
+            "Access to GPT-4 model",
+            "OCR scanned document parsing",
+            "Multi-member team support"
+          ],
+          "cta_label": "Upgrade Pro",
+          "cta_url": "https://www.humata.ai/pricing",
+          "is_popular": true,
+          "highlight_label": "Expert"
         }
       ]
     },
@@ -12440,32 +12545,47 @@
       "currency": "USD",
       "tiers": [
         {
-          "name": "Free Tier",
+          "name": "Free",
           "price_amount": 0,
-          "price_display": "Free",
+          "price_display": "$0/mo",
           "features": [
-            "Unlimited screen recording runs",
-            "10 minutes export limit monthly",
-            "Veed.io watermark branding logo",
-            "720p output resolution limits"
+            "Watermarked video exports",
+            "10-minute max project duration",
+            "720p maximum export resolution",
+            "Basic auto-subtitles generation"
           ],
-          "cta_label": "Edit Video Free",
+          "cta_label": "Create Video",
           "cta_url": "https://www.veed.io",
           "is_popular": false
         },
         {
-          "name": "Pro Plan",
-          "price_amount": 18,
-          "price_display": "$18/mo (billed annually)",
+          "name": "Lite (Creator)",
+          "price_amount": 12,
+          "price_display": "$12/user/mo",
           "features": [
-            "720 minutes subtitles generation",
-            "No watermarks on exported files",
-            "1080p full HD video exports",
-            "Access premium asset libraries"
+            "Remove VEED watermark",
+            "1080p video export resolution",
+            "Auto-subtitles & translation credits",
+            "Billed annually ($16/mo monthly)"
           ],
-          "cta_label": "Go Pro",
+          "cta_label": "Choose Lite",
           "cta_url": "https://www.veed.io/pricing",
-          "is_popular": true
+          "is_popular": true,
+          "highlight_label": "Individual Creator"
+        },
+        {
+          "name": "Pro Plan",
+          "price_amount": 24,
+          "price_display": "$24/user/mo",
+          "features": [
+            "4K video export resolution",
+            "Advanced AI avatars & voice cloning",
+            "Custom brand kits & presets",
+            "Billed annually ($32/mo monthly)"
+          ],
+          "cta_label": "Choose Pro",
+          "cta_url": "https://www.veed.io/pricing",
+          "is_popular": false
         }
       ]
     },
@@ -14518,7 +14638,7 @@
     "languages": "10+",
     "launchYear": 2021,
     "description": "Glasp is a social web highlighter that saves highlights from webpages and YouTube videos and surfaces what other readers highlight in the same content. Students can discover important passages they may have skipped by seeing community-sourced highlights from researchers in their field. The AI generates daily summaries of all saved highlights.",
-    "pricing_tier": "free",
+    "pricing_tier": "freemium",
     "difficulty": "intermediate",
     "student_friendly": true,
     "use_cases": [
@@ -14528,7 +14648,7 @@
       "Discovering related research and citations",
       "Synthesizing findings from multiple sources"
     ],
-    "pricing": "Free",
+    "pricing": "Freemium",
     "student_perk": true,
     "company": "Glasp",
     "review_count": 90,
@@ -14547,20 +14667,37 @@
     "last_verified_at": "2026-07-02",
     "pricing_tiers": {
       "last_verified_at": "2026-07-02",
-      "source_url": "https://glasp.co",
+      "source_url": "https://glasp.co/pricing",
       "currency": "USD",
       "tiers": [
         {
           "name": "Free",
           "price_amount": 0,
-          "price_display": "Free",
+          "price_display": "$0/mo",
           "features": [
-            "Full access to standard features",
-            "No hidden subscription costs"
+            "Web and PDF public highlighting",
+            "YouTube AI transcript summarizer",
+            "Glasp social community features",
+            "Standard text exports"
           ],
-          "cta_label": "Get Started",
+          "cta_label": "Sign Up Free",
           "cta_url": "https://glasp.co",
-          "is_popular": true
+          "is_popular": false
+        },
+        {
+          "name": "Pro Plan",
+          "price_amount": 4,
+          "price_display": "$4/mo",
+          "features": [
+            "Private Mode highlights toggle",
+            "Advanced AI summaries formatting",
+            "Unlimited highlights storage archive",
+            "Billed annually at $48 ($5/mo monthly)"
+          ],
+          "cta_label": "Go Pro",
+          "cta_url": "https://glasp.co/pricing",
+          "is_popular": true,
+          "highlight_label": "Personal Pro"
         }
       ]
     },
@@ -16220,32 +16357,37 @@
     "last_verified_at": "2026-07-02",
     "pricing_tiers": {
       "last_verified_at": "2026-07-02",
-      "source_url": "https://piktochart.com/pricing/",
+      "source_url": "https://piktochart.com/pricing",
       "currency": "USD",
       "tiers": [
         {
           "name": "Free",
-          "price_amount": 0.0,
-          "price_display": "$0/month",
-          "is_popular": true,
+          "price_amount": 0,
+          "price_display": "$0/mo",
           "features": [
-            "2 PNG downloads",
-            "Unlimited visual projects",
-            "60 AI Credits",
-            "Only Free Templates"
-          ]
+            "Up to 5 active projects limit",
+            "100MB media upload storage space",
+            "Piktochart branded watermark on exports",
+            "Standard resolution exports"
+          ],
+          "cta_label": "Start Free",
+          "cta_url": "https://piktochart.com",
+          "is_popular": false
         },
         {
-          "name": "Pro",
-          "price_amount": 20.0,
-          "price_display": "$20/month",
-          "is_popular": false,
+          "name": "Pro Plan",
+          "price_amount": 14,
+          "price_display": "$14/user/mo",
           "features": [
-            "Unlimited PNG, PDF, PPT downloads",
-            "Brand Kit – Unlimited Brand Colors Schemes, Custom",
-            "1,000 AI Credits",
-            "On-brand templates with Branded Templates"
-          ]
+            "Unlimited active projects creation",
+            "100GB media upload storage space",
+            "Remove Piktochart watermark on exports",
+            "Billed annually at $168 ($29/mo monthly)"
+          ],
+          "cta_label": "Get Pro",
+          "cta_url": "https://piktochart.com/pricing",
+          "is_popular": true,
+          "highlight_label": "Professional"
         }
       ]
     },
@@ -19594,16 +19736,16 @@
       "currency": "USD",
       "tiers": [
         {
-          "name": "Free Tier",
+          "name": "Free Utility",
           "price_amount": 0,
           "price_display": "Free",
           "features": [
-            "Generate matched Google font sets",
-            "Visual contrast matching slides",
-            "One-click copy CSS styling",
-            "Completely open interface"
+            "Generate Google Font pairings",
+            "Deep learning pairing algorithms",
+            "Customize font weight & contrast",
+            "100% free web-based utility"
           ],
-          "cta_label": "Find Pairings",
+          "cta_label": "Generate Pairings",
           "cta_url": "https://fontjoy.com",
           "is_popular": true
         }
@@ -22379,15 +22521,17 @@
       "currency": "USD",
       "tiers": [
         {
-          "name": "Free",
+          "name": "Open Source",
           "price_amount": 0,
           "price_display": "Free",
           "features": [
-            "Full access to standard features",
-            "No hidden subscription costs"
+            "Orchestrate LLM applications",
+            "Build RAG pipelines & search agents",
+            "Integrate databases & vector stores",
+            "Open-source Python framework"
           ],
-          "cta_label": "Get Started",
-          "cta_url": "https://haystack.deepset.ai",
+          "cta_label": "Get Code",
+          "cta_url": "https://github.com/deepset-ai/haystack",
           "is_popular": true
         }
       ]
@@ -24115,7 +24259,7 @@
     "languages": "20+",
     "launchYear": 2024,
     "description": "NotebookLM by Google is a completely free AI research assistant that grounds all its responses in the sources you upload, eliminating hallucinations by only drawing from your provided materials. Its Audio Overview feature generates a realistic two-host podcast discussing your sources that students can listen to on the go. The mind map and study guide outputs structure research instantly.",
-    "pricing_tier": "freemium",
+    "pricing_tier": "free",
     "difficulty": "intermediate",
     "student_friendly": true,
     "use_cases": [
@@ -24125,7 +24269,7 @@
       "Discovering related research and citations",
       "Synthesizing findings from multiple sources"
     ],
-    "pricing": "Freemium",
+    "pricing": "Free",
     "student_perk": true,
     "company": "Google",
     "review_count": 103,
@@ -24143,21 +24287,21 @@
     "pricing_verified_at": "2026-05-18",
     "pricing_tiers": {
       "last_verified_at": "2026-07-02",
-      "source_url": "https://notebooklm.google/",
+      "source_url": "https://notebooklm.google",
       "currency": "USD",
       "tiers": [
         {
-          "name": "Free",
+          "name": "Free Plan",
           "price_amount": 0,
           "price_display": "Free",
           "features": [
-            "Create up to 100 notebooks",
-            "Audio Overviews generation",
-            "Source-grounded RAG answers",
-            "Google Drive sync support"
+            "Upload up to 50 sources per notebook",
+            "500,000 words per source limit",
+            "AI audio summaries (Audio Overviews)",
+            "Private Google Cloud security terms"
           ],
-          "cta_label": "Get Started",
-          "cta_url": "https://notebooklm.google/",
+          "cta_label": "Start Notebook",
+          "cta_url": "https://notebooklm.google",
           "is_popular": true
         }
       ]
@@ -30059,7 +30203,51 @@
       "last_verified_at": "2026-07-02",
       "source_url": "https://endel.io",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free Edition",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "Access to core soundscapes (Sleep, Focus)",
+            "Time-limited 10-minute sound sessions",
+            "Unlimited daily sessions restarts",
+            "Standard app updates"
+          ],
+          "cta_label": "Download Free",
+          "cta_url": "https://endel.io",
+          "is_popular": false
+        },
+        {
+          "name": "Premium Plan",
+          "price_amount": 6.99,
+          "price_display": "$6.99/mo",
+          "features": [
+            "Unlimited session duration",
+            "Offline playback audio modes",
+            "Full soundscape catalog access",
+            "Grimes, James Blake collaborations",
+            "Billed annually at $49.99 ($4.16/mo)"
+          ],
+          "cta_label": "Upgrade Premium",
+          "cta_url": "https://endel.io",
+          "is_popular": true,
+          "highlight_label": "Most Popular"
+        },
+        {
+          "name": "Lifetime",
+          "price_amount": 90,
+          "price_display": "$90 one-time",
+          "features": [
+            "One-time payment lifetime access",
+            "All Premium features included",
+            "All future soundscape updates"
+          ],
+          "cta_label": "Buy Lifetime",
+          "cta_url": "https://endel.io",
+          "is_popular": false
+        }
+      ]
     },
     "ease_of_use": 4,
     "free_tier_value": 4,
@@ -30708,7 +30896,51 @@
       "last_verified_at": "2026-07-02",
       "source_url": "https://workspace.google.com/education",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Education Fundamentals",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "Classroom, Meet, Docs, Sheets, Gmail",
+            "100 TB of shared institutional storage",
+            "Data privacy & security tools",
+            "Qualifying educational institutions only"
+          ],
+          "cta_label": "Sign Up Free",
+          "cta_url": "https://workspace.google.com/education",
+          "is_popular": true,
+          "highlight_label": "Foundational"
+        },
+        {
+          "name": "Teaching & Learning Upgrade",
+          "price_amount": 4,
+          "price_display": "$4/user/mo",
+          "features": [
+            "Enhanced video Meet features",
+            "Classroom add-on integrations",
+            "Enriched originality reports",
+            "Purchasable for individual user seats"
+          ],
+          "cta_label": "Contact Sales",
+          "cta_url": "https://workspace.google.com/education/pricing",
+          "is_popular": false
+        },
+        {
+          "name": "Education Standard",
+          "price_amount": 3,
+          "price_display": "Quote-based",
+          "features": [
+            "Advanced security investigation tools",
+            "Security dashboards & insights",
+            "Mobile device management",
+            "Pricing approx. $3/student/year"
+          ],
+          "cta_label": "Contact Sales",
+          "cta_url": "https://workspace.google.com/education/pricing",
+          "is_popular": false
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -31486,28 +31718,29 @@
       "tiers": [
         {
           "name": "Chegg Study",
-          "price_amount": 16,
+          "price_amount": 15.95,
           "price_display": "$15.95/mo",
           "features": [
             "Step-by-step textbook solutions",
-            "Ask experts 24/7",
-            "Search millions of Q&As"
+            "Expert Q&A 24/7 support",
+            "5 homework questions/month ask"
           ],
           "cta_label": "Subscribe",
           "cta_url": "https://www.chegg.com/study",
-          "is_popular": true
+          "is_popular": true,
+          "highlight_label": "Core"
         },
         {
           "name": "Chegg Study Pack",
-          "price_amount": 20,
+          "price_amount": 19.95,
           "price_display": "$19.95/mo",
           "features": [
-            "All Chegg Study features",
-            "Practice exams and quizzes",
-            "Plagiarism checks and grammar tool",
-            "Math solver scanner"
+            "Everything in Chegg Study plan",
+            "Math solver & writing checker tool",
+            "Video explanations library",
+            "Practice exams & quizzes"
           ],
-          "cta_label": "Get Pack",
+          "cta_label": "Get Study Pack",
           "cta_url": "https://www.chegg.com/study",
           "is_popular": false
         }
@@ -35504,30 +35737,45 @@
         {
           "name": "Free Plan",
           "price_amount": 0,
-          "price_display": "Free",
+          "price_display": "$0/mo",
           "features": [
-            "Raster & Vector generation options",
-            "Community prompt search lists",
-            "Images are public in gallery",
-            "Commercial usage allowed"
+            "50 generation credits daily allowance",
+            "Public generated images gallery",
+            "Standard AI model exports",
+            "No commercial usage rights"
           ],
-          "cta_label": "Start Recrafting",
+          "cta_label": "Create Free",
           "cta_url": "https://www.recraft.ai",
           "is_popular": false
         },
         {
           "name": "Pro Plan",
-          "price_amount": 20,
-          "price_display": "$20/mo",
+          "price_amount": 8,
+          "price_display": "$8/mo",
           "features": [
-            "Private generation mode",
-            "High definition scaling options",
-            "Fast-track rendering server queue",
-            "Priority customer service"
+            "1,000 generation credits monthly pool",
+            "Private image generation settings",
+            "Full commercial usage rights",
+            "Billed annually ($10/mo monthly)"
           ],
-          "cta_label": "Get Pro",
+          "cta_label": "Go Pro",
           "cta_url": "https://www.recraft.ai/pricing",
-          "is_popular": true
+          "is_popular": true,
+          "highlight_label": "Solo Creator"
+        },
+        {
+          "name": "Teams Plan",
+          "price_amount": 20,
+          "price_display": "$20/user/mo",
+          "features": [
+            "Everything in Pro plan",
+            "Shared design workspaces & style kits",
+            "Centralized billing management",
+            "SAML SSO security configurations"
+          ],
+          "cta_label": "Choose Teams",
+          "cta_url": "https://www.recraft.ai/pricing",
+          "is_popular": false
         }
       ]
     },
@@ -36130,16 +36378,33 @@
       "currency": "USD",
       "tiers": [
         {
-          "name": "Free",
+          "name": "Free Tier",
           "price_amount": 0,
           "price_display": "Free",
           "features": [
-            "Full access to standard features",
-            "No hidden subscription costs"
+            "No-charge prototyping & developer keys",
+            "15 RPM / 1M TPM limits Sonnet/Gemini",
+            "Model training opt-in data terms",
+            "API access keys"
           ],
-          "cta_label": "Get Started",
+          "cta_label": "Get API Key",
           "cta_url": "https://aistudio.google.com",
-          "is_popular": true
+          "is_popular": true,
+          "highlight_label": "Developer Free"
+        },
+        {
+          "name": "Pay-as-you-go",
+          "price_amount": 0,
+          "price_display": "Pay-as-you-go",
+          "features": [
+            "Charges based on tokens processed",
+            "Sonnet input: $0.075/1M, output: $0.30/1M",
+            "Data privacy (no model training)",
+            "High rate limits for production use"
+          ],
+          "cta_label": "Setup Billing",
+          "cta_url": "https://aistudio.google.com",
+          "is_popular": false
         }
       ]
     },
@@ -39743,8 +40008,8 @@
     "subCategory": "Visual Notes",
     "price": "Freemium",
     "pricingDetail": "Free (AI Tutor); Pro $8.99/month; Premium $17.99/month; Premium+ $53.99/month (~25% off annual)",
-    "pricing": "Freemium",
-    "pricing_tier": "freemium",
+    "pricing": "Paid",
+    "pricing_tier": "paid",
     "bestFor": "Spatially organizing research, readings and thesis ideas",
     "tags": [
       "notes",
@@ -39804,22 +40069,37 @@
     "last_verified_at": "2026-07-02",
     "pricing_tiers": {
       "last_verified_at": "2026-07-02",
-      "source_url": "https://heptabase.com/",
+      "source_url": "https://heptabase.com",
       "currency": "USD",
       "tiers": [
         {
-          "name": "Standard Plan",
-          "price_amount": 9,
-          "price_display": "$8.99/mo (billed annually)",
+          "name": "Pro",
+          "price_amount": 8.99,
+          "price_display": "$8.99/mo",
           "features": [
-            "Visual workspace with infinite canvas",
-            "Mindmap and whiteboard views",
-            "PDF annotator helper",
-            "Full sync across desktop & mobile"
+            "Unlimited notes & visual whiteboards",
+            "PDF & YouTube media highlighting",
+            "100 AI credits per month",
+            "Billed annually ($11.99/mo monthly)"
           ],
-          "cta_label": "Start Trial",
+          "cta_label": "Start Free Trial",
           "cta_url": "https://heptabase.com",
-          "is_popular": true
+          "is_popular": true,
+          "highlight_label": "Most Popular"
+        },
+        {
+          "name": "Premium",
+          "price_amount": 17.99,
+          "price_display": "$17.99/mo",
+          "features": [
+            "1,800 AI credits per month",
+            "AI Tutor personalized assistant",
+            "Access to multi-model premium LLMs",
+            "Unlimited PDF uploads & OCR parsing"
+          ],
+          "cta_label": "Choose Premium",
+          "cta_url": "https://heptabase.com",
+          "is_popular": false
         }
       ]
     },
