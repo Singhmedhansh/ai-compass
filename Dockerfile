@@ -9,4 +9,6 @@ COPY . .
 
 ENV PYTHONUNBUFFERED=1
 
+EXPOSE 10000
+
 CMD ["sh", "-c", "gunicorn wsgi:app --config gunicorn.conf.py"]

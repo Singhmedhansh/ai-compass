@@ -328,27 +328,28 @@
           "price_amount": 0,
           "price_display": "$0/mo",
           "features": [
-            "Spelling & grammar checker",
-            "Punctuation correction",
-            "Tone detection"
+            "100 generative AI prompts/month",
+            "Basic grammar & spelling checking",
+            "Standard document rewrites"
           ],
-          "cta_label": "Sign Up",
-          "cta_url": "https://grammarly.com",
+          "cta_label": "Get Grammarly Free",
+          "cta_url": "https://www.grammarly.com",
           "is_popular": false
         },
         {
-          "name": "Premium",
+          "name": "Pro",
           "price_amount": 12,
           "price_display": "$12/mo",
           "features": [
-            "Full-sentence rewrites",
-            "Vocabulary suggestions",
-            "Plagiarism checker",
-            "Formatting & style polish"
+            "Billed annually at $144",
+            "2,000 monthly AI prompts",
+            "Full-sentence rewrite suggestions",
+            "Tone matching & plagiarism check"
           ],
-          "cta_label": "Go Premium",
-          "cta_url": "https://grammarly.com",
-          "is_popular": true
+          "cta_label": "Choose Pro",
+          "cta_url": "https://www.grammarly.com/pricing",
+          "is_popular": true,
+          "highlight_label": "Professional"
         }
       ]
     },
@@ -645,7 +646,7 @@
     "pricing_tier": "freemium",
     "popularity_score": 0.72,
     "weekly_users_estimate": "1M+",
-    "pricing": "Paid",
+    "pricing": "Freemium",
     "student_perk": false,
     "company": "Anysphere",
     "review_count": 48,
@@ -660,32 +661,50 @@
     "slug": "cursor",
     "pricing_tiers": {
       "last_verified_at": "2026-07-02",
-      "source_url": "https://cursor.sh/pricing",
+      "source_url": "https://cursor.com/pricing",
       "currency": "USD",
       "tiers": [
         {
-          "name": "Pro",
-          "price_amount": 20.0,
-          "price_display": "$20",
-          "is_popular": false,
+          "name": "Hobby",
+          "price_amount": 0,
+          "price_display": "$0/mo",
           "features": [
-            "✓ Extended limits on Agent",
-            "✓ Access to frontier models",
-            "✓ MCPs, skills, and hooks",
-            "✓ Cloud agents"
-          ]
+            "Basic code completions",
+            "Limited AI agent requests",
+            "Standard model queries"
+          ],
+          "cta_label": "Download Free",
+          "cta_url": "https://cursor.com",
+          "is_popular": false
         },
         {
-          "name": "Plus",
-          "price_amount": 40.0,
-          "price_display": "$40",
-          "is_popular": false,
+          "name": "Pro",
+          "price_amount": 20,
+          "price_display": "$20/mo",
           "features": [
-            "✓ Centralized team billing and administration",
-            "✓ Team marketplace for internal rules, skills, and",
-            "✓ Agentic code reviews with Bugbot",
-            "✓ Cloud agents and automations with shared team co"
-          ]
+            "Unlimited tab completions",
+            "Pro editor tools (Composer, Agent)",
+            "500 fast premium requests/month",
+            "Privacy Mode opt-out training"
+          ],
+          "cta_label": "Get Pro",
+          "cta_url": "https://cursor.com/pricing",
+          "is_popular": true,
+          "highlight_label": "Developer Choice"
+        },
+        {
+          "name": "Teams",
+          "price_amount": 40,
+          "price_display": "$40/user/mo",
+          "features": [
+            "Everything in Pro plan",
+            "Centralized team billing management",
+            "Admin security dashboards",
+            "Shared team rules custom files"
+          ],
+          "cta_label": "Get Teams",
+          "cta_url": "https://cursor.com/pricing",
+          "is_popular": false
         }
       ]
     },
@@ -6733,32 +6752,46 @@
       "currency": "USD",
       "tiers": [
         {
-          "name": "Free Plan",
+          "name": "Free",
           "price_amount": 0,
-          "price_display": "Free",
+          "price_display": "$0/mo",
           "features": [
-            "10 prompt runs daily",
-            "Accurate typography renderer",
-            "Public search gallery",
-            "Standard download sizes"
+            "10 slow generations/day (40 images)",
+            "Public image library access",
+            "Standard resolution exports"
           ],
-          "cta_label": "Sign Up Free",
+          "cta_label": "Start Generating",
           "cta_url": "https://ideogram.ai",
           "is_popular": false
         },
         {
-          "name": "Basic Plan",
+          "name": "Basic",
           "price_amount": 7,
-          "price_display": "$7/mo (billed annually)",
+          "price_display": "$7/mo",
           "features": [
-            "400 prompt runs monthly",
-            "Priority generation speed",
-            "Download original images in high-res",
-            "Private profiles search"
+            "400 priority generations/month",
+            "Access to Ideogram Editor tool",
+            "Image upload & custom aspect ratios",
+            "Full commercial rights"
           ],
-          "cta_label": "Subscribe",
+          "cta_label": "Choose Basic",
           "cta_url": "https://ideogram.ai/pricing",
-          "is_popular": true
+          "is_popular": false
+        },
+        {
+          "name": "Plus",
+          "price_amount": 16,
+          "price_display": "$16/mo",
+          "features": [
+            "1,000 priority generations/month",
+            "Private generation settings",
+            "Bulk download options",
+            "No watermarks"
+          ],
+          "cta_label": "Choose Plus",
+          "cta_url": "https://ideogram.ai/pricing",
+          "is_popular": true,
+          "highlight_label": "Best Value"
         }
       ]
     },
@@ -9808,7 +9841,7 @@
       "Summarizing meetings and calls",
       "Reducing time on manual administrative work"
     ],
-    "pricing": "Free",
+    "pricing": "Freemium",
     "student_perk": true,
     "company": "Mural",
     "review_count": 31,
@@ -9832,27 +9865,46 @@
       "tiers": [
         {
           "name": "Free",
-          "price_amount": 0.0,
-          "price_display": "$0/month",
-          "is_popular": true,
+          "price_amount": 0,
+          "price_display": "$0/mo",
           "features": [
-            "Unlimited murals with 3 editable murals at a time",
-            "Unlimited visitors with view-only rights",
-            "Open rooms for your workspace members",
-            "All visual collaboration tools"
-          ]
+            "3 active murals maximum limit",
+            "Basic real-time collaboration tools",
+            "Standard integrations workspace",
+            "Community templates"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://mural.co",
+          "is_popular": false
         },
         {
-          "name": "Team",
-          "price_amount": 0.0,
-          "price_display": "$0",
-          "is_popular": false,
+          "name": "Team+",
+          "price_amount": 9.99,
+          "price_display": "$9.99/member/mo",
           "features": [
-            "Unlimited murals with 3 editable murals at a time",
-            "Unlimited visitors with view-only rights",
-            "Open rooms for your workspace members",
-            "All visual collaboration tools"
-          ]
+            "Unlimited active murals creation",
+            "Unlimited rooms inside workspace",
+            "Standard integrations workspace",
+            "Email support"
+          ],
+          "cta_label": "Try Team+",
+          "cta_url": "https://mural.co/pricing",
+          "is_popular": true,
+          "highlight_label": "Small Teams"
+        },
+        {
+          "name": "Business",
+          "price_amount": 17.99,
+          "price_display": "$17.99/member/mo",
+          "features": [
+            "Unlimited external guest access",
+            "SAML SSO security configurations",
+            "LUMA framework tools",
+            "Priority customer support"
+          ],
+          "cta_label": "Choose Business",
+          "cta_url": "https://mural.co/pricing",
+          "is_popular": false
         }
       ]
     },
@@ -15257,27 +15309,46 @@
       "tiers": [
         {
           "name": "Free",
-          "price_amount": 0.0,
-          "price_display": "$0/month",
-          "is_popular": false,
+          "price_amount": 0,
+          "price_display": "$0/mo",
           "features": [
-            "Free$0/ Month / EditorFor personal projects and fl",
-            "Unlimited workspace members",
-            "3 team boards",
-            "3 teams"
-          ]
+            "Unlimited private boards creation",
+            "Unlimited workspace members limit",
+            "10 guest seats included",
+            "100 AI actions monthly quota"
+          ],
+          "cta_label": "Sign Up Free",
+          "cta_url": "https://whimsical.com",
+          "is_popular": false
         },
         {
           "name": "Pro",
-          "price_amount": 20.0,
-          "price_display": "$20/month",
-          "is_popular": false,
+          "price_amount": 10,
+          "price_display": "$10/editor/mo",
           "features": [
-            "SSO / SAML",
-            "SCIM and more security controls",
-            "Unlimited teams and 200 guests",
-            "Upload files up to 10GB each"
-          ]
+            "Unlimited shared boards creation",
+            "90-day board version history",
+            "Higher AI action limit quota",
+            "Priority support email"
+          ],
+          "cta_label": "Start Trial",
+          "cta_url": "https://whimsical.com/pricing",
+          "is_popular": true,
+          "highlight_label": "Most Popular"
+        },
+        {
+          "name": "Business",
+          "price_amount": 20,
+          "price_display": "$20/editor/mo",
+          "features": [
+            "SAML SSO & SCIM user provisioning",
+            "4,000 AI actions/editor/month",
+            "Workspace lockdown security",
+            "Theme branding controls"
+          ],
+          "cta_label": "Go Business",
+          "cta_url": "https://whimsical.com/pricing",
+          "is_popular": false
         }
       ]
     },
@@ -16736,9 +16807,38 @@
     "last_verified_at": "2026-07-02",
     "pricing_tiers": {
       "last_verified_at": "2026-07-02",
-      "source_url": "https://numerade.com",
+      "source_url": "https://www.numerade.com",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Study Plan",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "Access to limited textbook videos",
+            "Ad-supported experience",
+            "Standard search answers"
+          ],
+          "cta_label": "Start Learning",
+          "cta_url": "https://www.numerade.com",
+          "is_popular": false
+        },
+        {
+          "name": "Premium Membership",
+          "price_amount": 7.95,
+          "price_display": "$7.95/mo",
+          "features": [
+            "Billed annually at $95.40",
+            "Unlimited step-by-step video answers",
+            "Ace AI tutor personalized assistant",
+            "Ad-free experience"
+          ],
+          "cta_label": "Join Premium",
+          "cta_url": "https://www.numerade.com",
+          "is_popular": true,
+          "highlight_label": "Save 73%"
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -18638,32 +18738,47 @@
       "currency": "USD",
       "tiers": [
         {
-          "name": "Free Starter",
+          "name": "Free",
           "price_amount": 0,
           "price_display": "$0/mo",
           "features": [
-            "10 minutes AI generation weekly",
-            "10GB storage library",
-            "Standard stock assets",
-            "Invideo watermark branding"
+            "10 minutes/week video generations",
+            "Invideo branding watermark",
+            "10GB cloud storage space",
+            "Standard model engines"
           ],
-          "cta_label": "Start Free",
+          "cta_label": "Try Free",
           "cta_url": "https://invideo.io",
           "is_popular": false
         },
         {
-          "name": "Plus Plan",
+          "name": "Plus",
           "price_amount": 20,
-          "price_display": "$20/mo (billed annually)",
+          "price_display": "$20/mo",
           "features": [
-            "50 minutes AI generation monthly",
-            "No watermarks on exported files",
-            "100GB secure cloud storage",
-            "Unlimited team exports"
+            "50 minutes/month video generations",
+            "No video watermarks",
+            "80GB cloud storage space",
+            "Unlimited video exports"
           ],
-          "cta_label": "Buy Plus",
+          "cta_label": "Choose Plus",
           "cta_url": "https://invideo.io/pricing",
-          "is_popular": true
+          "is_popular": true,
+          "highlight_label": "Creator Choice"
+        },
+        {
+          "name": "Max",
+          "price_amount": 48,
+          "price_display": "$48/mo",
+          "features": [
+            "200 minutes/month video generations",
+            "4 user seats included",
+            "400GB cloud storage space",
+            "Advanced model engines"
+          ],
+          "cta_label": "Choose Max",
+          "cta_url": "https://invideo.io/pricing",
+          "is_popular": false
         }
       ]
     },
@@ -18750,7 +18865,37 @@
       "last_verified_at": "2026-07-02",
       "source_url": "https://podcast.adobe.com/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "Enhance Speech audio (max 30 mins, 500 MB)",
+            "1 hour daily processing limit",
+            "Mic Check AI setup analysis",
+            "Basic Studio editing (2 projects/day)"
+          ],
+          "cta_label": "Try Free",
+          "cta_url": "https://podcast.adobe.com",
+          "is_popular": false
+        },
+        {
+          "name": "Premium",
+          "price_amount": 9.99,
+          "price_display": "$9.99/mo",
+          "features": [
+            "Bulk file uploads & video support (MP4, MOV)",
+            "Up to 4 hours daily enhanced audio processing",
+            "Adjustable speech enhancement strength",
+            "Includes Adobe Express Premium access"
+          ],
+          "cta_label": "Go Premium",
+          "cta_url": "https://podcast.adobe.com/pricing",
+          "is_popular": true,
+          "highlight_label": "Full Access"
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -19113,21 +19258,21 @@
     "last_verified_at": "2026-07-02",
     "pricing_tiers": {
       "last_verified_at": "2026-07-02",
-      "source_url": "http://khroma.co/",
+      "source_url": "http://khroma.co",
       "currency": "USD",
       "tiers": [
         {
-          "name": "Free Tier",
+          "name": "Free",
           "price_amount": 0,
           "price_display": "Free",
           "features": [
-            "AI personalized palette generator",
-            "Train model with 50 favorite colors",
-            "Explore combos, images, and text color displays",
-            "Completely free online tool"
+            "Train AI on color preferences",
+            "Generate infinite color palettes",
+            "Search color names & codes",
+            "View color combinations & images"
           ],
-          "cta_label": "Train AI",
-          "cta_url": "http://khroma.co/generator/",
+          "cta_label": "Generate Palettes",
+          "cta_url": "http://khroma.co",
           "is_popular": true
         }
       ]
@@ -19774,32 +19919,47 @@
       "currency": "USD",
       "tiers": [
         {
-          "name": "Starter",
-          "price_amount": 12,
-          "price_display": "$12/mo (billed annually)",
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
           "features": [
-            "1 custom domain name",
-            "AI website assistant writer",
-            "Unlimited storage",
-            "Basic analytics & search stats"
+            "AI website with unlimited pages",
+            "Free .durable.site subdomain",
+            "5 AI generated images/month",
+            "AI Business Partner assistance"
           ],
-          "cta_label": "Create Website",
+          "cta_label": "Build Free Website",
           "cta_url": "https://durable.co",
           "is_popular": false
         },
         {
-          "name": "Business",
-          "price_amount": 20,
-          "price_display": "$20/mo (billed annually)",
+          "name": "Launch",
+          "price_amount": 22,
+          "price_display": "$22/mo",
           "features": [
-            "Unlimited page elements",
-            "Premium SEO optimizations",
-            "AI assistant chat responses",
-            "Priority tech support"
+            "Custom domain connection",
+            "50 AI generated images/month",
+            "Advanced SEO configurations & analytics",
+            "CRM & automated lead responses"
           ],
-          "cta_label": "Get Business",
+          "cta_label": "Get Launch",
           "cta_url": "https://durable.co/pricing",
-          "is_popular": true
+          "is_popular": true,
+          "highlight_label": "Small Business"
+        },
+        {
+          "name": "Grow",
+          "price_amount": 85,
+          "price_display": "$85/mo",
+          "features": [
+            "500 AI generated images/month",
+            "Unlimited team workspace members",
+            "Personalized 1-on-1 expert onboarding",
+            "Higher AI limits content generation"
+          ],
+          "cta_label": "Get Grow",
+          "cta_url": "https://durable.co/pricing",
+          "is_popular": false
         }
       ]
     },
@@ -19890,17 +20050,32 @@
       "currency": "USD",
       "tiers": [
         {
-          "name": "Free Tier",
+          "name": "Free / Plugins",
           "price_amount": 0,
-          "price_display": "Free",
+          "price_display": "Free companion",
           "features": [
-            "Convert design layouts to React code",
-            "HTML & CSS export structures",
-            "Requires local desktop companion app"
+            "Sketch/Lunacy design plugin components",
+            "Standard HTML code exports",
+            "Basic design structure validation"
           ],
-          "cta_label": "Get Free Tool",
+          "cta_label": "Download Plugin",
           "cta_url": "https://sketch2react.io",
-          "is_popular": true
+          "is_popular": false
+        },
+        {
+          "name": "Pro License",
+          "price_amount": 29,
+          "price_display": "$29 one-time",
+          "features": [
+            "Full desktop application download",
+            "Unlimited React / HTML code exports",
+            "Local file system operations",
+            "One-time purchase"
+          ],
+          "cta_label": "Buy Pro License",
+          "cta_url": "https://marketplace.sketch2react.io/",
+          "is_popular": true,
+          "highlight_label": "Full Access"
         }
       ]
     },
@@ -22574,7 +22749,37 @@
       "last_verified_at": "2026-07-02",
       "source_url": "https://modal.com/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Starter",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "$30/month in free compute credits",
+            "Up to 3 workspace seats",
+            "100 max container limits",
+            "10 concurrent GPUs allowed"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://modal.com",
+          "is_popular": true,
+          "highlight_label": "Developer Free"
+        },
+        {
+          "name": "Team",
+          "price_amount": 250,
+          "price_display": "$250+/mo",
+          "features": [
+            "$100/month in free compute credits",
+            "Unlimited workspace seats",
+            "1,000 container limits",
+            "50 concurrent GPUs allowed & custom domains"
+          ],
+          "cta_label": "Choose Team",
+          "cta_url": "https://modal.com/pricing",
+          "is_popular": false
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -24130,9 +24335,53 @@
     "last_verified_at": "2026-07-02",
     "pricing_tiers": {
       "last_verified_at": "2026-07-02",
-      "source_url": "https://slab.com/pricing/",
+      "source_url": "https://slab.com/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "Up to 10 workspace users",
+            "10MB attachment storage limits",
+            "90-day page version history",
+            "Basic internal search engine"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://slab.com",
+          "is_popular": false
+        },
+        {
+          "name": "Startup",
+          "price_amount": 6.67,
+          "price_display": "$6.67/user/mo",
+          "features": [
+            "Unlimited workspace users",
+            "25MB attachment storage limits",
+            "365-day page version history",
+            "Custom domains & private topics"
+          ],
+          "cta_label": "Start Trial",
+          "cta_url": "https://slab.com/pricing",
+          "is_popular": true,
+          "highlight_label": "Popular"
+        },
+        {
+          "name": "Business",
+          "price_amount": 15,
+          "price_display": "$15/user/mo",
+          "features": [
+            "Unlimited version history storage",
+            "100MB attachment storage limits",
+            "Advanced usage analytics",
+            "AI search & Autofix tools"
+          ],
+          "cta_label": "Choose Business",
+          "cta_url": "https://slab.com/pricing",
+          "is_popular": false
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -27590,7 +27839,7 @@
     "pricing_verified_at": "2026-05-18",
     "pricing_tiers": {
       "last_verified_at": "2026-07-02",
-      "source_url": "https://www.canva.com/pricing/",
+      "source_url": "https://www.canva.com/pricing",
       "currency": "USD",
       "tiers": [
         {
@@ -27598,12 +27847,13 @@
           "price_amount": 0,
           "price_display": "$0/mo",
           "features": [
-            "250k+ free templates",
-            "100+ design types",
-            "5GB cloud storage"
+            "1.6M+ free templates & graphics",
+            "5GB cloud storage space",
+            "Drag-and-drop editor tools",
+            "Basic AI-powered functions"
           ],
-          "cta_label": "Sign Up",
-          "cta_url": "https://canva.com",
+          "cta_label": "Get Canva Free",
+          "cta_url": "https://www.canva.com",
           "is_popular": false
         },
         {
@@ -27611,14 +27861,29 @@
           "price_amount": 15,
           "price_display": "$15/mo",
           "features": [
-            "Unlimited premium content",
-            "100+ million photos/videos",
-            "Brand Kits and Magic Resize",
-            "1TB cloud storage"
+            "140M+ premium assets access",
+            "1TB cloud storage space",
+            "Magic Studio AI features",
+            "Custom brand kits setup"
           ],
-          "cta_label": "Try Pro Free",
-          "cta_url": "https://canva.com",
-          "is_popular": true
+          "cta_label": "Upgrade to Pro",
+          "cta_url": "https://www.canva.com/pricing",
+          "is_popular": true,
+          "highlight_label": "Solo Designer"
+        },
+        {
+          "name": "Teams",
+          "price_amount": 10,
+          "price_display": "$10/user/mo",
+          "features": [
+            "Team collaboration tools",
+            "Advanced marketing workflows",
+            "Centralized brand controls",
+            "SSO integrations support"
+          ],
+          "cta_label": "Get Canva Teams",
+          "cta_url": "https://www.canva.com/pricing",
+          "is_popular": false
         }
       ]
     },
@@ -28333,28 +28598,42 @@
           "price_amount": 0,
           "price_display": "$0/mo",
           "features": [
-            "NeetCode 150 study roadmap",
-            "Video solutions to basic problems",
-            "Standard progress tracking"
+            "Access to practice problems lists",
+            "Free video explanations",
+            "NeetCode 150 study map"
           ],
-          "cta_label": "Start Learning",
+          "cta_label": "Practice",
           "cta_url": "https://neetcode.io",
           "is_popular": false
         },
         {
-          "name": "NeetCode Pro",
-          "price_amount": 15.0,
-          "price_display": "$15.00/mo",
+          "name": "Pro (1-Year)",
+          "price_amount": 149,
+          "price_display": "$149/yr",
           "features": [
-            "Access to all study courses",
-            "System Design & Algorithms prep",
-            "Lifetime updates support",
-            "Billed annually at $99"
+            "1-year access to all structured courses",
+            "Complete algorithmic roadmaps",
+            "Interactive in-browser code editor",
+            "Progress trackers"
           ],
-          "cta_label": "Upgrade to Pro",
-          "cta_url": "https://neetcode.io/practice",
+          "cta_label": "Get Pro 1-Year",
+          "cta_url": "https://neetcode.io",
           "is_popular": true,
-          "highlight_label": "Lifetime Available"
+          "highlight_label": "Most Popular"
+        },
+        {
+          "name": "Pro Lifetime",
+          "price_amount": 200,
+          "price_display": "$200 one-time",
+          "features": [
+            "Lifetime access to all current courses",
+            "Free access to all future courses",
+            "In-browser coding environment",
+            "One-time purchase"
+          ],
+          "cta_label": "Get Lifetime",
+          "cta_url": "https://neetcode.io",
+          "is_popular": false
         }
       ]
     },
@@ -29993,7 +30272,50 @@
       "last_verified_at": "2026-07-02",
       "source_url": "https://you.com/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "Access to core AI web search",
+            "Basic AI chat capabilities",
+            "Standard research queries limitations"
+          ],
+          "cta_label": "Start Searching",
+          "cta_url": "https://you.com",
+          "is_popular": false
+        },
+        {
+          "name": "Pro",
+          "price_amount": 15,
+          "price_display": "$15/mo",
+          "features": [
+            "Access to premium models (OpenAI, Anthropic, Gemini)",
+            "Create custom AI agents",
+            "File & image uploads (up to 64k tokens)",
+            "Priority server access"
+          ],
+          "cta_label": "Go Pro",
+          "cta_url": "https://you.com/pricing",
+          "is_popular": true,
+          "highlight_label": "Most Popular"
+        },
+        {
+          "name": "Max",
+          "price_amount": 175,
+          "price_display": "$175/mo",
+          "features": [
+            "Unlimited deep research (ARI) reports",
+            "1M token file upload capacity",
+            "Collaboration tools (up to 25 seats)",
+            "Zero data training and retention"
+          ],
+          "cta_label": "Choose Max",
+          "cta_url": "https://you.com/pricing",
+          "is_popular": false
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -32907,9 +33229,38 @@
     "last_verified_at": "2026-07-02",
     "pricing_tiers": {
       "last_verified_at": "2026-07-02",
-      "source_url": "https://locofy.ai/pricing",
+      "source_url": "https://www.locofy.ai/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "Export real code from Figma & Adobe XD",
+            "Basic developer integrations",
+            "Limited design-to-code screens per month"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://www.locofy.ai",
+          "is_popular": false
+        },
+        {
+          "name": "Pro",
+          "price_amount": 20,
+          "price_display": "$20/mo",
+          "features": [
+            "Unlimited screens export",
+            "Remove Locofy watermark",
+            "Advanced component custom configs",
+            "Full team collaboration tools"
+          ],
+          "cta_label": "Go Pro",
+          "cta_url": "https://www.locofy.ai/pricing",
+          "is_popular": true,
+          "highlight_label": "Recommended"
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -33985,7 +34336,7 @@
     "company": "Anthropic",
     "subCategory": "AI Coding Agent",
     "tagline": "Anthropic's agentic coding tool for the terminal",
-    "pricing_tier": "paid",
+    "pricing_tier": "freemium",
     "pricingDetail": "Free: $17/month, Pro: $100/month, Plus: $20",
     "pricing_source_url": "https://www.anthropic.com/claude-code",
     "pricing_verified_at": "2026-05-25",
@@ -33996,47 +34347,45 @@
       "currency": "USD",
       "tiers": [
         {
-          "name": "Free",
-          "price_amount": 17.0,
-          "price_display": "$17/month",
-          "is_popular": false,
+          "name": "Claude Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
           "features": [
-            "More usage*",
-            "Includes Claude Code",
-            "Includes Claude Cowork",
-            "Includes Claude Design"
-          ]
+            "Basic CLI completions & reviews",
+            "Free evaluation usage limits",
+            "Standard model connections"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://www.anthropic.com/claude",
+          "is_popular": false
         },
         {
-          "name": "Pro",
-          "price_amount": 100.0,
-          "price_display": "$100/month",
-          "is_popular": false,
+          "name": "Claude Pro",
+          "price_amount": 20,
+          "price_display": "$20/mo",
           "features": [
-            "Choose 5x or 20x more usage than Pro*",
-            "Higher output limits for all tasks",
-            "Early access to advanced Claude features",
-            "Priority access at high traffic times"
-          ]
+            "Standard usage limits cross-platform",
+            "Access inside Claude Code CLI tool",
+            "Prioritized server availability"
+          ],
+          "cta_label": "Upgrade to Pro",
+          "cta_url": "https://claude.ai",
+          "is_popular": true,
+          "highlight_label": "Recommended"
         },
         {
-          "name": "Plus",
-          "price_amount": 20.0,
-          "price_display": "$20",
-          "is_popular": false,
+          "name": "API Billing",
+          "price_amount": 0,
+          "price_display": "Pay-as-you-go",
           "features": [
-            "Admins set user and org spend limits",
-            "Role-based access with fine grained permissioning",
-            "System for Cross-domain Identity Management (SCIM)",
-            "Audit logs"
-          ]
-        },
-        {
-          "name": "Enterprise",
-          "price_amount": 5.0,
-          "price_display": "$5",
-          "is_popular": false,
-          "features": []
+            "Charges based on tokens consumed",
+            "Requires ANTHROPIC_API_KEY env var",
+            "Unlimited concurrent workflows",
+            "Developer rate limits apply"
+          ],
+          "cta_label": "Get API Key",
+          "cta_url": "https://console.anthropic.com/",
+          "is_popular": false
         }
       ]
     },
@@ -42254,9 +42603,10 @@
           "price_amount": 0,
           "price_display": "$0/mo",
           "features": [
-            "Blazing-fast code autocomplete",
+            "Fast standalone code autocomplete",
             "300,000 token context window",
-            "VS Code & JetBrains extensions"
+            "Basic AI model responses",
+            "Standard editor extensions"
           ],
           "cta_label": "Install Free",
           "cta_url": "https://supermaven.com",
@@ -42267,13 +42617,15 @@
           "price_amount": 10,
           "price_display": "$10/mo",
           "features": [
-            "Priority autocomplete latency",
-            "Enhanced reasoning models",
-            "Chat inside IDE"
+            "1-million-token context window",
+            "Advanced custom model access",
+            "Coding-style adaptation",
+            "Monthly chat assistant credits"
           ],
-          "cta_label": "Get Pro",
+          "cta_label": "Upgrade to Pro",
           "cta_url": "https://supermaven.com/pricing",
-          "is_popular": true
+          "is_popular": true,
+          "highlight_label": "Solo Developer"
         }
       ]
     },
@@ -42948,11 +43300,11 @@
           "price_display": "Free",
           "features": [
             "High-throughput LLM serving engine",
-            "PagedAttention memory allocation",
-            "OpenAI-compatible server endpoint",
-            "Distributed tensor parallel execution"
+            "PagedAttention memory management",
+            "Supports vLLM server deployment",
+            "Integrated with Hugging Face models"
           ],
-          "cta_label": "View Project",
+          "cta_label": "Get Code",
           "cta_url": "https://github.com/vllm-project/vllm",
           "is_popular": true
         }
