@@ -2266,14 +2266,14 @@
       "currency": "USD",
       "tiers": [
         {
-          "name": "Free App",
+          "name": "Free",
           "price_amount": 0,
           "price_display": "Free",
           "features": [
-            "Multi-subject schoolwork helper",
-            "Step-by-step visual explanations",
-            "Voice & photo question scanner",
-            "Powered by Google AI"
+            "Solve math problems via camera",
+            "Access educational explanations",
+            "Concept animations & videos",
+            "All subjects (Science, History, Math)"
           ],
           "cta_label": "Download App",
           "cta_url": "https://socratic.org",
@@ -3560,32 +3560,47 @@
       "currency": "USD",
       "tiers": [
         {
-          "name": "Free Plan",
+          "name": "Free",
           "price_amount": 0,
           "price_display": "$0/mo",
           "features": [
-            "1 free credit (1 minute total)",
-            "1 custom instant avatar",
-            "120+ public avatars",
-            "300+ voice profiles available"
+            "3 videos/month",
+            "720p resolution with watermark",
+            "3 photo avatars",
+            "120+ public avatars"
           ],
-          "cta_label": "Try HeyGen Free",
-          "cta_url": "https://heygen.com",
+          "cta_label": "Try HeyGen",
+          "cta_url": "https://www.heygen.com",
           "is_popular": false
         },
         {
-          "name": "Creator Plan",
-          "price_amount": 24,
-          "price_display": "$24/mo (billed annually)",
+          "name": "Creator",
+          "price_amount": 29,
+          "price_display": "$29/mo",
           "features": [
-            "15 monthly credits allocation",
-            "Fast-track video processing queue",
-            "Premium 4K video resolution options",
-            "Auto-captions helper script"
+            "15 credits/month",
+            "1080p resolution",
+            "5-min max video duration",
+            "1 instant avatar & 1 voice clone"
           ],
-          "cta_label": "Upgrade Creator",
-          "cta_url": "https://www.heygen.com/pricing",
-          "is_popular": true
+          "cta_label": "Choose Creator",
+          "cta_url": "https://www.heygen.com",
+          "is_popular": true,
+          "highlight_label": "Popular Choice"
+        },
+        {
+          "name": "Pro",
+          "price_amount": 99,
+          "price_display": "$99/mo",
+          "features": [
+            "30 credits/month",
+            "20-min max video duration",
+            "3 instant avatars & 3 voice clones",
+            "API access"
+          ],
+          "cta_label": "Choose Pro",
+          "cta_url": "https://www.heygen.com",
+          "is_popular": false
         }
       ]
     },
@@ -6068,7 +6083,7 @@
       "Organizing study schedules",
       "Getting step-by-step explanations of concepts"
     ],
-    "pricing": "Free",
+    "pricing": "Freemium",
     "student_perk": true,
     "company": "Coggle",
     "review_count": 158,
@@ -6087,20 +6102,37 @@
     "last_verified_at": "2026-07-02",
     "pricing_tiers": {
       "last_verified_at": "2026-07-02",
-      "source_url": "https://coggle.it#pricing",
+      "source_url": "https://coggle.it",
       "currency": "USD",
       "tiers": [
         {
           "name": "Free",
-          "price_amount": 0.0,
-          "price_display": "$0/month",
-          "is_popular": false,
+          "price_amount": 0,
+          "price_display": "$0/mo",
           "features": [
-            "On-premise instances for use behind your firewall",
-            "Active Directory authentication",
-            "Site licenses",
-            "Enterprise level support"
-          ]
+            "3 private mind maps",
+            "Unlimited public diagrams",
+            "Export as PDF/Image",
+            "Markdown text formatting"
+          ],
+          "cta_label": "Sign Up",
+          "cta_url": "https://coggle.it",
+          "is_popular": false
+        },
+        {
+          "name": "Awesome",
+          "price_amount": 5,
+          "price_display": "$5/mo",
+          "features": [
+            "Unlimited private diagrams",
+            "High-res image uploads",
+            "Presentation mode",
+            "Shared folders & history"
+          ],
+          "cta_label": "Get Awesome",
+          "cta_url": "https://coggle.it#pricing",
+          "is_popular": true,
+          "highlight_label": "Individual"
         }
       ]
     },
@@ -6594,10 +6626,10 @@
           "price_amount": 0,
           "price_display": "Free",
           "features": [
-            "DALL-E 3 powered generation",
-            "15 daily boosts for fast generation",
-            "No monthly subscription",
-            "Requires Microsoft account"
+            "Create original images with DALL-E 3",
+            "Daily boost credits for speed",
+            "Access from Copilot or Bing",
+            "High resolution generation"
           ],
           "cta_label": "Create Images",
           "cta_url": "https://www.bing.com/create",
@@ -8855,15 +8887,46 @@
       "tiers": [
         {
           "name": "Free",
-          "price_amount": 79.0,
-          "price_display": "$79/month",
-          "is_popular": false,
+          "price_amount": 0,
+          "price_display": "$0/mo",
           "features": [
-            "Track ChatGPT, Gemini, Google AI Overviews",
-            "50 prompts, 50 answers tracked daily",
-            "Ads monitoring",
-            "Sentiment Analysis (available on Growth)"
-          ]
+            "GPT-4o mini and Claude Haiku access",
+            "Basic AI article drafts",
+            "25 credits limit",
+            "No credit card required"
+          ],
+          "cta_label": "Try for Free",
+          "cta_url": "https://writesonic.com",
+          "is_popular": false
+        },
+        {
+          "name": "Chatsonic Pro",
+          "price_amount": 15,
+          "price_display": "$15/mo",
+          "features": [
+            "Unlimited generations",
+            "GPT-4o and Claude 3.5 Sonnet access",
+            "Latest web search capabilities",
+            "Advanced memory & editing"
+          ],
+          "cta_label": "Get Chatsonic",
+          "cta_url": "https://writesonic.com",
+          "is_popular": true,
+          "highlight_label": "Popular Chat"
+        },
+        {
+          "name": "SEO Starter",
+          "price_amount": 79,
+          "price_display": "$79/mo",
+          "features": [
+            "Generative Engine Optimization (GEO)",
+            "Site audits & keyword tracking",
+            "Full AI Writer access",
+            "1 team user included"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://writesonic.com",
+          "is_popular": false
         }
       ]
     },
@@ -9837,46 +9900,36 @@
     "slug": "krisp",
     "pricing_tiers": {
       "last_verified_at": "2026-07-02",
-      "source_url": "https://krisp.ai/pricing/",
+      "source_url": "https://krisp.ai/pricing",
       "currency": "USD",
       "tiers": [
         {
           "name": "Free",
-          "price_amount": 0.0,
-          "price_display": "$0/month",
-          "is_popular": false,
+          "price_amount": 0,
+          "price_display": "$0/mo",
           "features": [
-            "Bot-free",
-            "Transcription",
-            "Audio & Video Recording",
-            "AI Notes & Action Items"
-          ]
+            "Explore basic features",
+            "Limited daily noise cancellation",
+            "Standard integrations"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://krisp.ai",
+          "is_popular": false
         },
         {
-          "name": "Team",
-          "price_amount": 30.0,
-          "price_display": "$30/month",
-          "is_popular": false,
+          "name": "Pro",
+          "price_amount": 16,
+          "price_display": "$16/mo",
           "features": [
-            "Accent Conversion - Speaker side: 4hrs/day",
-            "Accent Conversion - Listener side: Unlimited",
-            "Salesforce",
-            "Connectwise"
-          ]
-        },
-        {
-          "name": "Plus",
-          "price_amount": 10.0,
-          "price_display": "$10/month",
-          "is_popular": false,
-          "features": []
-        },
-        {
-          "name": "Enterprise",
-          "price_amount": 10.0,
-          "price_display": "$10/month",
-          "is_popular": false,
-          "features": []
+            "Unlimited AI noise cancellation",
+            "Unlimited transcription & meeting history",
+            "Unlimited audio/video recording",
+            "60 min/day accent conversion"
+          ],
+          "cta_label": "Upgrade to Pro",
+          "cta_url": "https://krisp.ai",
+          "is_popular": true,
+          "highlight_label": "Best Value"
         }
       ]
     },
@@ -14165,9 +14218,50 @@
     "last_verified_at": "2026-07-02",
     "pricing_tiers": {
       "last_verified_at": "2026-07-02",
-      "source_url": "https://getliner.com",
+      "source_url": "https://liner.co",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "Basic research assistant",
+            "Core AI copilot features",
+            "Standard text highlights"
+          ],
+          "cta_label": "Try Free",
+          "cta_url": "https://liner.co",
+          "is_popular": false
+        },
+        {
+          "name": "Pro",
+          "price_amount": 17.99,
+          "price_display": "$17.99/mo",
+          "features": [
+            "Full Scholar & Write access",
+            "Regular research limits",
+            "Basic agent credits for deep search"
+          ],
+          "cta_label": "Upgrade to Pro",
+          "cta_url": "https://liner.co",
+          "is_popular": true,
+          "highlight_label": "Most Popular"
+        },
+        {
+          "name": "Max",
+          "price_amount": 35.99,
+          "price_display": "$35.99/mo",
+          "features": [
+            "Highest agent credits allowance",
+            "Deep research agents tool",
+            "Advanced priority integrations"
+          ],
+          "cta_label": "Go Max",
+          "cta_url": "https://liner.co",
+          "is_popular": false
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -24915,7 +25009,7 @@
     "last_verified_at": "2026-07-02",
     "pricing_tiers": {
       "last_verified_at": "2026-07-02",
-      "source_url": "https://www.symbolab.com/subscribe",
+      "source_url": "https://www.symbolab.com",
       "currency": "USD",
       "tiers": [
         {
@@ -24923,25 +25017,28 @@
           "price_amount": 0,
           "price_display": "$0/mo",
           "features": [
-            "Calculate basic answers",
-            "View default formula graphs"
+            "Basic step-by-step calculator",
+            "Standard practice problems",
+            "Limited history tracking"
           ],
-          "cta_label": "Solve Free",
+          "cta_label": "Solve",
           "cta_url": "https://www.symbolab.com",
           "is_popular": false
         },
         {
           "name": "Pro Premium",
-          "price_amount": 7,
+          "price_amount": 6.99,
           "price_display": "$6.99/mo",
           "features": [
-            "Step-by-step math explanations",
-            "Practice chemistry & algebra quizzes",
-            "Ad-free experience"
+            "Unlimited step-by-step solutions",
+            "Detailed concept explanations",
+            "Ad-free experience",
+            "Complete history & notes"
           ],
-          "cta_label": "Get Pro",
+          "cta_label": "Upgrade",
           "cta_url": "https://www.symbolab.com/subscribe",
-          "is_popular": true
+          "is_popular": true,
+          "highlight_label": "Pro Student"
         }
       ]
     },
@@ -28566,22 +28663,46 @@
       "tiers": [
         {
           "name": "Free",
-          "price_amount": 0.0,
-          "price_display": "$0/month",
-          "is_popular": false,
+          "price_amount": 0,
+          "price_display": "$0/mo",
           "features": [
-            "Trial AI capabilities like generating docs, or aut",
-            "Capture, organize, and act on responses right insi",
-            "Publish a Notion page to the webBasic sites",
-            "Connect multiple Calendars to manage work and time"
-          ]
+            "Collaborative workspace",
+            "Basic page history (7 days)",
+            "Share with 10 guests",
+            "Integrations with Slack, Docs"
+          ],
+          "cta_label": "Get Notion Free",
+          "cta_url": "https://notion.so/pricing",
+          "is_popular": false
         },
         {
           "name": "Plus",
-          "price_amount": 10.0,
-          "price_display": "$10/month",
-          "is_popular": false,
-          "features": []
+          "price_amount": 10,
+          "price_display": "$10/user/mo",
+          "features": [
+            "Unlimited blocks for teams",
+            "30-day page history",
+            "Share with 100 guests",
+            "Unlimited file uploads"
+          ],
+          "cta_label": "Upgrade to Plus",
+          "cta_url": "https://notion.so/pricing",
+          "is_popular": true,
+          "highlight_label": "Most Popular"
+        },
+        {
+          "name": "Business",
+          "price_amount": 18,
+          "price_display": "$18/user/mo",
+          "features": [
+            "SAML SSO & advanced security",
+            "Private teamspaces",
+            "90-day page history",
+            "Advanced page analytics"
+          ],
+          "cta_label": "Get Business",
+          "cta_url": "https://notion.so/pricing",
+          "is_popular": false
         }
       ]
     },
@@ -32151,9 +32272,39 @@
     "last_verified_at": "2026-07-02",
     "pricing_tiers": {
       "last_verified_at": "2026-07-02",
-      "source_url": "https://pieces.app/pricing",
+      "source_url": "https://pieces.app",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "Full access to local AI models",
+            "Core snippet manager tools",
+            "Rolling/time-bound memory window",
+            "Community support"
+          ],
+          "cta_label": "Get Pieces",
+          "cta_url": "https://pieces.app",
+          "is_popular": false
+        },
+        {
+          "name": "Pro",
+          "price_amount": 18.99,
+          "price_display": "$18.99/mo",
+          "features": [
+            "Full access to cloud AI models",
+            "Advanced code generation tools",
+            "Unlimited long-term memory",
+            "Full cloud backups & support"
+          ],
+          "cta_label": "Upgrade to Pro",
+          "cta_url": "https://pieces.app/pricing",
+          "is_popular": true,
+          "highlight_label": "Developer Choice"
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -32233,31 +32384,45 @@
       "currency": "USD",
       "tiers": [
         {
-          "name": "Free Tier",
+          "name": "Free",
           "price_amount": 0,
           "price_display": "$0/mo",
           "features": [
-            "Free for open-source repositories",
-            "Basic code reviews",
-            "GitHub/GitLab PR integration"
+            "Open-source public repositories",
+            "Core review & summaries",
+            "Access for individual developers"
           ],
-          "cta_label": "Use Free",
+          "cta_label": "Get Started",
           "cta_url": "https://coderabbit.ai",
           "is_popular": false
         },
         {
-          "name": "Pro Plan",
+          "name": "Lite",
           "price_amount": 15,
           "price_display": "$15/user/mo",
           "features": [
-            "Unlimited private repo reviews",
-            "Detailed chat in PR threads",
-            "Custom instructions support",
-            "Priority reviewer latency"
+            "Unlimited reviews for private repos",
+            "Real-time bot chat inside PR",
+            "Code Graph dependency analysis"
           ],
-          "cta_label": "Try Pro Free",
-          "cta_url": "https://coderabbit.ai/pricing",
-          "is_popular": true
+          "cta_label": "Try Lite",
+          "cta_url": "https://coderabbit.ai",
+          "is_popular": false
+        },
+        {
+          "name": "Pro",
+          "price_amount": 30,
+          "price_display": "$30/user/mo",
+          "features": [
+            "Jira & Linear integrations",
+            "Code quality insights",
+            "Technical debt tracking",
+            "Advanced code generation"
+          ],
+          "cta_label": "Start Free Trial",
+          "cta_url": "https://coderabbit.ai",
+          "is_popular": true,
+          "highlight_label": "Most Popular"
         }
       ]
     },
@@ -35351,9 +35516,39 @@
     "pricing_verified_at": "2026-05-25",
     "pricing_tiers": {
       "last_verified_at": "2026-07-02",
-      "source_url": "https://www.subframe.com/#pricing",
+      "source_url": "https://subframe.com",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "1 active project",
+            "10 pages & 2 prototypes limits",
+            "Limited AI generation runs",
+            "24 hours version history"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://subframe.com",
+          "is_popular": false
+        },
+        {
+          "name": "Pro",
+          "price_amount": 29,
+          "price_display": "$29/editor/mo",
+          "features": [
+            "Unlimited projects & pages",
+            "Unlimited prototypes",
+            "Unlimited AI usage",
+            "7 days version history & custom fonts"
+          ],
+          "cta_label": "Upgrade to Pro",
+          "cta_url": "https://subframe.com",
+          "is_popular": true,
+          "highlight_label": "Professional"
+        }
+      ]
     },
     "featured": false,
     "logo_emoji": "🤖",
@@ -38077,9 +38272,50 @@
     "last_verified_at": "2026-07-02",
     "pricing_tiers": {
       "last_verified_at": "2026-07-02",
-      "source_url": "https://www.wisdolia.com/pricing",
+      "source_url": "https://www.wisdolia.com",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "5 uploads/month limit",
+            "10-page limit per document",
+            "10 minutes of video processing"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://www.wisdolia.com",
+          "is_popular": false
+        },
+        {
+          "name": "Mega Mind",
+          "price_amount": 7.99,
+          "price_display": "$7.99/mo",
+          "features": [
+            "40 uploads/month limit",
+            "100 pages per document",
+            "60 minutes of video processing"
+          ],
+          "cta_label": "Choose Mega Mind",
+          "cta_url": "https://www.wisdolia.com/pricing",
+          "is_popular": true,
+          "highlight_label": "Recommended"
+        },
+        {
+          "name": "Super Learner",
+          "price_amount": 19.99,
+          "price_display": "$19.99/mo",
+          "features": [
+            "Unlimited uploads & page limits",
+            "Unlimited video size processing",
+            "AI image occlusion features"
+          ],
+          "cta_label": "Go Super Learner",
+          "cta_url": "https://www.wisdolia.com/pricing",
+          "is_popular": false
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -39285,9 +39521,53 @@
     "slug": "beehiiv",
     "pricing_tiers": {
       "last_verified_at": "2026-07-02",
-      "source_url": "https://beehiiv.com/pricing",
+      "source_url": "https://www.beehiiv.com/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Launch (Free)",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "Up to 2,500 subscribers",
+            "Basic email editor & newsletters",
+            "Newsletter archive website",
+            "Recommendation network access"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://www.beehiiv.com",
+          "is_popular": false
+        },
+        {
+          "name": "Scale",
+          "price_amount": 43,
+          "price_display": "$43/mo",
+          "features": [
+            "Up to 100k subscribers",
+            "Custom domain setup",
+            "Automations & sequences",
+            "API access & ad network"
+          ],
+          "cta_label": "Start Scale",
+          "cta_url": "https://www.beehiiv.com",
+          "is_popular": true,
+          "highlight_label": "Best for Growth"
+        },
+        {
+          "name": "Max",
+          "price_amount": 96,
+          "price_display": "$96/mo",
+          "features": [
+            "No beehiiv branding",
+            "White-label options",
+            "Priority support channel",
+            "Advanced audience analytics"
+          ],
+          "cta_label": "Go Max",
+          "cta_url": "https://www.beehiiv.com",
+          "is_popular": false
+        }
+      ]
     },
     "curation_score": 92.5,
     "academic_integrity_rating": "Safe",
@@ -39446,18 +39726,33 @@
       "currency": "USD",
       "tiers": [
         {
-          "name": "Growth Plan",
+          "name": "Starter",
           "price_amount": 30,
           "price_display": "$30/mo",
           "features": [
-            "AI write, edit, and reply helper",
-            "Keyboard shortcut workflows",
-            "Read receipts tracker",
-            "Split inbox categorization"
+            "AI-powered writing assistant",
+            "Split Inbox & undo send",
+            "100+ keyboard shortcuts",
+            "Snippets & read receipts"
           ],
-          "cta_label": "Sign Up",
+          "cta_label": "Get Started",
           "cta_url": "https://superhuman.com",
-          "is_popular": true
+          "is_popular": true,
+          "highlight_label": "Individual"
+        },
+        {
+          "name": "Business",
+          "price_amount": 45,
+          "price_display": "$45/mo",
+          "features": [
+            "Full CRM integrations",
+            "Ask AI & automated drafting",
+            "Custom auto-labeling",
+            "Team shared snippets"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://superhuman.com",
+          "is_popular": false
         }
       ]
     },
@@ -40149,29 +40444,49 @@
     "slug": "littlebird",
     "pricing_tiers": {
       "last_verified_at": "2026-07-02",
-      "source_url": "https://littlebird.ai/pricing",
+      "source_url": "https://littlebird.ai",
       "currency": "USD",
       "tiers": [
         {
-          "name": "Free",
-          "price_amount": 17.0,
-          "price_display": "$17/month",
-          "is_popular": false,
-          "features": []
+          "name": "Free (Basic)",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "Get started with assistant",
+            "Limited daily query limits",
+            "Basic summaries"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://littlebird.ai",
+          "is_popular": false
         },
         {
           "name": "Plus",
-          "price_amount": 100.0,
-          "price_display": "$100/month",
-          "is_popular": false,
-          "features": []
+          "price_amount": 17,
+          "price_display": "$17/mo",
+          "features": [
+            "Unlimited meeting notes",
+            "Enhanced memory settings",
+            "Extended query limits",
+            "Daily usage logs"
+          ],
+          "cta_label": "Try Plus",
+          "cta_url": "https://littlebird.ai",
+          "is_popular": true,
+          "highlight_label": "Power User"
         },
         {
-          "name": "Team",
-          "price_amount": 17.0,
-          "price_display": "$17/month",
-          "is_popular": false,
-          "features": []
+          "name": "Pro",
+          "price_amount": 100,
+          "price_display": "$100/mo",
+          "features": [
+            "High usage limits",
+            "Priority support & servers",
+            "Early access to new features"
+          ],
+          "cta_label": "Choose Pro",
+          "cta_url": "https://littlebird.ai",
+          "is_popular": false
         }
       ]
     },
@@ -40344,18 +40659,18 @@
       "currency": "USD",
       "tiers": [
         {
-          "name": "Free / Open Source",
+          "name": "Free",
           "price_amount": 0,
           "price_display": "$0/mo",
           "features": [
-            "Unlimited booking links",
-            "Self-hosting options",
-            "Cal Video built-in",
-            "Integrate all calendar types"
+            "Unlimited calendar connections",
+            "Unlimited event types",
+            "Accept bookings and payments",
+            "Webhooks & workflows"
           ],
-          "cta_label": "Start Booking",
-          "cta_url": "https://cal.com",
-          "is_popular": true
+          "cta_label": "Get Started",
+          "cta_url": "https://cal.com/signup",
+          "is_popular": false
         },
         {
           "name": "Teams",
@@ -40363,12 +40678,27 @@
           "price_display": "$15/user/mo",
           "features": [
             "Round-robin scheduling",
-            "Team routing forms",
-            "Custom branding themes",
-            "Advanced support lines"
+            "Collective event types",
+            "Team analytics & reports",
+            "Remove Cal.com branding"
           ],
-          "cta_label": "Go Team",
-          "cta_url": "https://cal.com/pricing",
+          "cta_label": "Try for Free",
+          "cta_url": "https://cal.com/signup",
+          "is_popular": true,
+          "highlight_label": "Best for Teams"
+        },
+        {
+          "name": "Organizations",
+          "price_amount": 37,
+          "price_display": "$37/user/mo",
+          "features": [
+            "SAML SSO & SCIM provisioning",
+            "Company subdomains",
+            "Unlimited sub-teams",
+            "SOC2 & HIPAA compliance"
+          ],
+          "cta_label": "Contact Sales",
+          "cta_url": "https://cal.com/sales",
           "is_popular": false
         }
       ]
@@ -40754,9 +41084,50 @@
     "slug": "firecrawl",
     "pricing_tiers": {
       "last_verified_at": "2026-07-02",
-      "source_url": "https://firecrawl.dev/pricing",
+      "source_url": "https://www.firecrawl.dev",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "500 credits/month",
+            "10 requests/minute rate limit",
+            "Community support access"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://www.firecrawl.dev",
+          "is_popular": false
+        },
+        {
+          "name": "Hobby",
+          "price_amount": 16,
+          "price_display": "$16/mo",
+          "features": [
+            "3,000 credits/month",
+            "50 requests/minute rate limit",
+            "Email support access"
+          ],
+          "cta_label": "Choose Hobby",
+          "cta_url": "https://www.firecrawl.dev",
+          "is_popular": false
+        },
+        {
+          "name": "Standard",
+          "price_amount": 83,
+          "price_display": "$83/mo",
+          "features": [
+            "100,000 credits/month",
+            "200 requests/minute rate limit",
+            "Priority email support"
+          ],
+          "cta_label": "Choose Standard",
+          "cta_url": "https://www.firecrawl.dev",
+          "is_popular": true,
+          "highlight_label": "Most Popular"
+        }
+      ]
     },
     "curation_score": 92.0,
     "academic_integrity_rating": "Safe",
@@ -41017,22 +41388,46 @@
       "tiers": [
         {
           "name": "Free",
-          "price_amount": 0.0,
-          "price_display": "$0/month",
-          "is_popular": false,
-          "features": []
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "1,000 responses/month",
+            "Unlimited forms",
+            "Notion, Airtable, Sheets integrations",
+            "Accept payments"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://www.fillout.com",
+          "is_popular": false
+        },
+        {
+          "name": "Starter",
+          "price_amount": 15,
+          "price_display": "$15/mo",
+          "features": [
+            "2,000 responses/month",
+            "Remove Fillout branding",
+            "Custom domains",
+            "Add collaborators"
+          ],
+          "cta_label": "Choose Starter",
+          "cta_url": "https://www.fillout.com",
+          "is_popular": false
         },
         {
           "name": "Pro",
-          "price_amount": 75.0,
-          "price_display": "$75/month",
-          "is_popular": false,
+          "price_amount": 75,
+          "price_display": "$75/mo",
           "features": [
-            "Unlimited seats",
-            "Unlimited responses",
-            "Form analytics",
-            "Custom domain"
-          ]
+            "10,000 responses/month",
+            "Advanced logics & features",
+            "Integration styling",
+            "Custom CSS support"
+          ],
+          "cta_label": "Choose Pro",
+          "cta_url": "https://www.fillout.com",
+          "is_popular": true,
+          "highlight_label": "Most Popular"
         }
       ]
     },
@@ -42491,7 +42886,40 @@
     "student_note": "Audit Coursera courses for free to learn deep learning foundations without paying for the certificate",
     "last_verified": "2026-06-22",
     "pricing_tiers": {
-      "last_verified_at": "2026-07-02"
+      "last_verified_at": "2026-07-02",
+      "source_url": "https://www.deeplearning.ai",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free Course Audit",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "Access to all course videos",
+            "Learn from Andrew Ng & experts",
+            "Community forums access",
+            "Weekly AI news via The Batch"
+          ],
+          "cta_label": "Explore Courses",
+          "cta_url": "https://www.deeplearning.ai",
+          "is_popular": false
+        },
+        {
+          "name": "Pro Membership",
+          "price_amount": 30,
+          "price_display": "$30/mo",
+          "features": [
+            "Hands-on labs & coding environments",
+            "Professional Certificates on completion",
+            "Save work & learn at your own pace",
+            "Exclusive monthly live sessions"
+          ],
+          "cta_label": "Go Pro",
+          "cta_url": "https://www.deeplearning.ai",
+          "is_popular": true,
+          "highlight_label": "Learner Choice"
+        }
+      ]
     }
   },
   {
