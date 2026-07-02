@@ -1,4 +1,4 @@
-import { Check, DollarSign } from 'lucide-react'
+import { Check, DollarSign, Clock, ExternalLink, Award } from 'lucide-react'
 import { useCurrency } from '../../context/CurrencyContext'
 
 export default function PricingSection({ tool }) {
@@ -8,23 +8,30 @@ export default function PricingSection({ tool }) {
 
   if (!hasTiers) {
     return (
-      <div className="rounded-2xl border border-line bg-bg-elev p-6">
-        <h2 className="text-lg font-semibold text-ink">Pricing</h2>
+      <div className="rounded-3xl border border-line bg-bg-elev p-6 shadow-sm">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-bold text-ink tracking-tight">Pricing</h2>
+          <span className="inline-flex items-center gap-1 rounded-full bg-bg-sunk px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-2 border border-line/40">
+            Overview
+          </span>
+        </div>
         <section
           role="status"
-          className="mt-4 rounded-xl border border-line bg-bg-sunk px-6 py-10 text-center"
+          className="mt-6 rounded-2xl border border-line border-dashed bg-bg-sunk/30 px-6 py-12 text-center"
         >
           <div
-            className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-line bg-bg-elev shadow-sm"
+            className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-line bg-bg-elev shadow-sm text-muted"
             aria-hidden="true"
           >
-            <DollarSign className="h-5 w-5 text-muted" />
+            <DollarSign className="h-5 w-5" />
           </div>
-          <h3 className="mt-4 text-base font-semibold text-ink">Detailed pricing coming soon</h3>
-          <p className="mt-1.5 text-sm text-muted">
-            Current pricing:{' '}
-            <span className="font-medium capitalize text-ink-2">{tool?.pricing || 'Unknown'}</span>
+          <h3 className="mt-4 text-base font-bold text-ink">Detailed pricing coming soon</h3>
+          <p className="mt-2 text-xs text-ink-2 max-w-sm mx-auto font-normal">
+            We are currently auditing this tool's pricing model. The base pricing tier is classified as:
           </p>
+          <div className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-accent-soft/20 text-accent px-3 py-1 text-xs font-semibold capitalize border border-accent/10">
+            {tool?.pricing || 'Unknown'}
+          </div>
         </section>
       </div>
     )
@@ -47,67 +54,107 @@ export default function PricingSection({ tool }) {
   }
 
   return (
-    <div className="rounded-2xl border border-line bg-bg-elev p-6">
-      <h2 className="text-lg font-semibold text-ink">Pricing</h2>
-      <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {pricingTiers.tiers.map((tier) => (
-          <article
-            key={tier.name}
-            className={`relative rounded-xl bg-bg-sunk p-5 ${
-              tier.is_popular ? 'border-2 border-accent' : 'border border-line'
-            }`}
-          >
-            {tier.is_popular && tier.highlight_label ? (
-              <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 inline-flex rounded-full bg-accent px-2 py-0.5 text-xs font-semibold text-bg">
-                {tier.highlight_label}
-              </span>
-            ) : null}
-            <h3 className="text-base font-semibold text-ink">{tier.name}</h3>
-            <p className="mt-2 text-xl font-bold leading-tight text-ink break-words [overflow-wrap:anywhere]">{convertPrice(tier.price_display)}</p>
-            <ul className="mt-4 space-y-2">
-              {tier.features.map((feature, idx) => (
-                <li key={`${tier.name}-feature-${idx}`} className="flex items-start gap-2 text-sm text-ink-2">
-                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-accent" aria-hidden="true" />
-                  <span>{feature}</span>
-                </li>
-              ))}
-            </ul>
-            <a
-              href={tier.cta_url || pricingTiers.source_url || tool.link}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-5 inline-flex w-full items-center justify-center rounded-lg bg-accent px-3 py-2 text-sm font-semibold text-bg outline-none transition hover:opacity-90 focus-visible:ring-2 focus-visible:ring-accent"
-            >
-              {tier.cta_label || (tier.price_amount === 0 ? 'Get Started' : 'Choose Plan')}
-            </a>
-          </article>
-        ))}
+    <div className="rounded-3xl border border-line bg-bg-elev p-6 shadow-sm space-y-6">
+      <div className="space-y-1">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-bold text-ink tracking-tight">Pricing Plans</h2>
+          {verifiedDate && (
+            <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-muted">
+              <Clock className="h-3 w-3" /> Verified {verifiedDate}
+            </span>
+          )}
+        </div>
+        <p className="text-xs text-ink-2 max-w-lg font-normal">
+          Explore student-friendly subscription rates and options. Select the plan that matches your project requirements.
+        </p>
       </div>
 
-      {selectedCurrency !== 'USD' && (
-        <div className="mt-4 rounded-xl border border-accent-soft bg-accent-soft/20 p-3 text-xs text-ink-2 font-medium">
-          Pricing is dynamically converted from USD. Kindly check the tool's official website for actual pricing in your country.
-        </div>
-      )}
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {pricingTiers.tiers.map((tier) => {
+          const priceStr = convertPrice(tier.price_display)
+          const hasSlash = priceStr.includes('/')
+          const priceParts = hasSlash ? priceStr.split('/') : [priceStr, '']
 
-      {verifiedDate || sourceHostname ? (
-        <p className="mt-6 text-xs text-muted">
-          {verifiedDate ? `Pricing as of ${verifiedDate}.` : null}
-          {sourceHostname ? (
-            <>
-              {verifiedDate ? ' ' : ''}Source:{' '}
-              <a
-                href={pricingTiers.source_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="rounded underline-offset-2 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-accent"
-              >
-                {sourceHostname}
-              </a>
-            </>
-          ) : null}
-        </p>
-      ) : null}
+          return (
+            <article
+              key={tier.name}
+              className={`relative flex flex-col justify-between rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-md ${
+                tier.is_popular
+                  ? 'border-2 border-accent bg-gradient-to-b from-bg-elev via-bg-elev to-accent-soft/5 shadow-sm'
+                  : 'border border-line bg-bg-sunk/35 hover:border-line-strong'
+              }`}
+            >
+              {tier.is_popular && (
+                <span className="absolute -top-3 left-6 inline-flex items-center gap-1 rounded-full bg-accent px-3 py-0.5 text-[9px] font-bold uppercase tracking-wider text-bg shadow-sm">
+                  <Award className="h-2.5 w-2.5" /> {tier.highlight_label || 'Popular'}
+                </span>
+              )}
+
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-sm font-bold text-ink-2 uppercase tracking-wider">{tier.name}</h3>
+                  <div className="mt-2 flex items-baseline gap-0.5">
+                    <span className="text-2xl font-black text-ink tracking-tight break-all [overflow-wrap:anywhere]">{priceParts[0]}</span>
+                    {priceParts[1] && (
+                      <span className="text-xs font-semibold text-muted-2 whitespace-nowrap">/{priceParts[1]}</span>
+                    )}
+                  </div>
+                </div>
+
+                <ul className="space-y-2.5 border-t border-line/60 pt-4">
+                  {tier.features.map((feature, idx) => (
+                    <li key={`${tier.name}-feature-${idx}`} className="flex items-start gap-2.5 text-xs text-ink-2 leading-relaxed">
+                      <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-accent-soft/30 text-accent">
+                        <Check className="h-2.5 w-2.5 font-bold" />
+                      </span>
+                      <span className="font-normal">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="pt-6">
+                <a
+                  href={tier.cta_url || pricingTiers.source_url || tool.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`inline-flex w-full items-center justify-center rounded-xl px-4 py-2.5 text-xs font-bold transition duration-200 outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+                    tier.is_popular
+                      ? 'bg-accent text-bg hover:bg-accent/90 shadow-sm'
+                      : 'border border-line bg-bg hover:border-line-strong hover:bg-bg-sunk text-ink'
+                  }`}
+                >
+                  <span>{tier.cta_label || (tier.price_amount === 0 ? 'Get Started' : 'Choose Plan')}</span>
+                </a>
+              </div>
+            </article>
+          )
+        })}
+      </div>
+
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-line/45 pt-4 text-[10px] text-muted">
+        {selectedCurrency !== 'USD' ? (
+          <span className="font-medium text-accent">
+            ℹ️ Converted dynamically to {selectedCurrency} from USD rates. Check official site for final localized pricing.
+          </span>
+        ) : (
+          <span />
+        )}
+
+        {sourceHostname && (
+          <span className="flex items-center gap-1 sm:self-end">
+            Official Pricing Page:{' '}
+            <a
+              href={pricingTiers.source_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-0.5 font-semibold text-accent hover:underline"
+            >
+              {sourceHostname} <ExternalLink className="h-2.5 w-2.5" />
+            </a>
+          </span>
+        )}
+      </div>
     </div>
   )
 }
