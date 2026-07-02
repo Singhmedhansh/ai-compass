@@ -1409,16 +1409,16 @@
       "currency": "USD",
       "tiers": [
         {
-          "name": "Free",
+          "name": "Free Search",
           "price_amount": 0,
           "price_display": "Free",
           "features": [
-            "Search 200M+ academic papers",
-            "AI-powered TL;DR summaries",
-            "Citation tracking metrics",
-            "Research feeds and library lists"
+            "AI-powered academic search engine",
+            "200M+ research papers indexed",
+            "Citation graph & influence analytics",
+            "Personalized literature feeds"
           ],
-          "cta_label": "Search Papers",
+          "cta_label": "Start Searching",
           "cta_url": "https://www.semanticscholar.org",
           "is_popular": true
         }
@@ -6132,28 +6132,45 @@
         {
           "name": "Free",
           "price_amount": 0,
-          "price_display": "Free",
+          "price_display": "$0/mo",
           "features": [
-            "Download open weights models",
-            "Basic CPU Spaces hosting",
+            "Unlimited public repositories",
+            "Basic Spaces web UI hosting",
+            "Access to community models & datasets",
             "Community forum support"
           ],
-          "cta_label": "Join Community",
-          "cta_url": "https://huggingface.co",
+          "cta_label": "Sign Up Free",
+          "cta_url": "https://huggingface.co/join",
           "is_popular": false
         },
         {
           "name": "PRO",
           "price_amount": 9,
-          "price_display": "$9/mo",
+          "price_display": "$9/user/mo",
           "features": [
-            "PRO badge on profile",
-            "Priority GPU Space options",
-            "Autotrain credits included"
+            "1 TB private LFS storage limit",
+            "10x public storage limit",
+            "8x ZeroGPU quota access",
+            "Dev Mode for Spaces config"
           ],
-          "cta_label": "Subscribe",
-          "cta_url": "https://huggingface.co/join",
-          "is_popular": true
+          "cta_label": "Upgrade to Pro",
+          "cta_url": "https://huggingface.co/pricing",
+          "is_popular": true,
+          "highlight_label": "Developer Pro"
+        },
+        {
+          "name": "Team",
+          "price_amount": 20,
+          "price_display": "$20/user/mo",
+          "features": [
+            "SAML SSO & OIDC authentication",
+            "Audit logs & organization security",
+            "Resource groups management",
+            "Team usage analytics"
+          ],
+          "cta_label": "Start Team Plan",
+          "cta_url": "https://huggingface.co/pricing",
+          "is_popular": false
         }
       ]
     },
@@ -7602,13 +7619,13 @@
         {
           "name": "Free",
           "price_amount": 0,
-          "price_display": "Free",
+          "price_display": "$0/mo",
           "features": [
-            "Standard CPU/GPU resource access",
-            "Share Jupyter notebooks directly",
+            "Access to standard CPUs/GPUs",
+            "Dynamic timeouts & resource pooling",
             "Google Drive integration"
           ],
-          "cta_label": "Open Colab",
+          "cta_label": "Start Notebook",
           "cta_url": "https://colab.research.google.com",
           "is_popular": false
         },
@@ -7617,14 +7634,29 @@
           "price_amount": 9.99,
           "price_display": "$9.99/mo",
           "features": [
-            "Priority access to T4 & V100 GPUs",
-            "Background code run options",
-            "Increased RAM allocation memory"
+            "100 compute units per month",
+            "Priority access to faster GPUs",
+            "Terminal access support",
+            "Longer background execution"
           ],
-          "cta_label": "Subscribe Pro",
+          "cta_label": "Get Pro",
           "cta_url": "https://colab.research.google.com/signup",
           "is_popular": true,
-          "highlight_label": "Compute Priority"
+          "highlight_label": "Most Popular"
+        },
+        {
+          "name": "Colab Pro+",
+          "price_amount": 49.99,
+          "price_display": "$49.99/mo",
+          "features": [
+            "500 compute units per month",
+            "Access to ultra-fast GPUs",
+            "Background execution up to 24 hours",
+            "Highest compute priority"
+          ],
+          "cta_label": "Get Pro+",
+          "cta_url": "https://colab.research.google.com/signup",
+          "is_popular": false
         }
       ]
     },
@@ -8031,7 +8063,23 @@
       "last_verified_at": "2026-07-02",
       "source_url": "https://glean.com/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Enterprise Plan",
+          "price_amount": 50,
+          "price_display": "Quote-based",
+          "features": [
+            "Centralized enterprise search index",
+            "Work AI generative assistant bots",
+            "Granular data access permissions",
+            "Typically starts at $50-$75/user/mo"
+          ],
+          "cta_label": "Request Demo",
+          "cta_url": "https://glean.com/pricing",
+          "is_popular": true,
+          "highlight_label": "Enterprise"
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -12027,9 +12075,38 @@
     "last_verified_at": "2026-07-02",
     "pricing_tiers": {
       "last_verified_at": "2026-07-02",
-      "source_url": "https://pdf.ai/pricing",
+      "source_url": "https://pdf.ai",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "1 PDF document upload limit",
+            "Max 10MB file size limit",
+            "10 questions per day quota"
+          ],
+          "cta_label": "Upload PDF",
+          "cta_url": "https://pdf.ai",
+          "is_popular": false
+        },
+        {
+          "name": "Pro Plan",
+          "price_amount": 10,
+          "price_display": "$10/mo",
+          "features": [
+            "Unlimited PDF uploads",
+            "Unlimited questions quota",
+            "OCR scanned document parsing",
+            "Billed annually at $120 ($15/mo monthly)"
+          ],
+          "cta_label": "Upgrade Pro",
+          "cta_url": "https://pdf.ai",
+          "is_popular": true,
+          "highlight_label": "Best Value"
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -12458,7 +12535,50 @@
       "last_verified_at": "2026-07-02",
       "source_url": "https://rows.com/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free Plan",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "Unlimited spreadsheets creation",
+            "5 AI Analyst tasks per month",
+            "Up to 10 integrations/members"
+          ],
+          "cta_label": "Start Spreadsheet",
+          "cta_url": "https://rows.com",
+          "is_popular": false
+        },
+        {
+          "name": "Plus Plan",
+          "price_amount": 8,
+          "price_display": "$8/mo",
+          "features": [
+            "200 AI Analyst tasks per month",
+            "Unlimited integrations access",
+            "Automated data refresh tasks",
+            "Billed annually at $96 ($10/mo monthly)"
+          ],
+          "cta_label": "Choose Plus",
+          "cta_url": "https://rows.com/pricing",
+          "is_popular": true,
+          "highlight_label": "Recommended"
+        },
+        {
+          "name": "Pro Plan",
+          "price_amount": 24,
+          "price_display": "$24/mo",
+          "features": [
+            "1,000 AI Analyst tasks per month",
+            "Unlimited integrations access",
+            "Advanced data exports",
+            "Billed annually at $288 ($29/mo monthly)"
+          ],
+          "cta_label": "Choose Pro",
+          "cta_url": "https://rows.com/pricing",
+          "is_popular": false
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -15648,15 +15768,17 @@
       "currency": "USD",
       "tiers": [
         {
-          "name": "Free",
+          "name": "Open Source",
           "price_amount": 0,
           "price_display": "Free",
           "features": [
-            "Full access to standard features",
-            "No hidden subscription costs"
+            "JavaScript-based diagramming tool",
+            "Generate flowcharts, sequence diagrams",
+            "Markdown-like text definitions",
+            "100% free open-source software"
           ],
-          "cta_label": "Get Started",
-          "cta_url": "https://mermaid.js.org",
+          "cta_label": "Get Code",
+          "cta_url": "https://github.com/mermaid-js/mermaid",
           "is_popular": true
         }
       ]
@@ -16938,7 +17060,37 @@
       "last_verified_at": "2026-07-02",
       "source_url": "https://goformative.com/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free Teacher",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "Unlimited assessments creation",
+            "Real-time student tracking",
+            "Basic class management tools",
+            "Standard Luna AI features"
+          ],
+          "cta_label": "Sign Up Free",
+          "cta_url": "https://goformative.com",
+          "is_popular": false
+        },
+        {
+          "name": "Pro Teacher",
+          "price_amount": 12.5,
+          "price_display": "$12.50/mo",
+          "features": [
+            "Advanced differentiation grading tools",
+            "Scheduling assessments controls",
+            "Enhanced grading features",
+            "Billed annually at $150 ($15/mo monthly)"
+          ],
+          "cta_label": "Upgrade to Pro",
+          "cta_url": "https://goformative.com/pricing",
+          "is_popular": true,
+          "highlight_label": "Solo Teacher"
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -18316,20 +18468,22 @@
     "last_verified_at": "2026-07-02",
     "pricing_tiers": {
       "last_verified_at": "2026-07-02",
-      "source_url": "https://github.com/pricing",
+      "source_url": "https://github.com/comfyanonymous/ComfyUI",
       "currency": "USD",
       "tiers": [
         {
-          "name": "Free",
-          "price_amount": 0.0,
-          "price_display": "$0/month",
-          "is_popular": false,
+          "name": "Open Source",
+          "price_amount": 0,
+          "price_display": "Free",
           "features": [
-            "Unlimited public/private repositories Host open so",
-            "Dependabot security and version updates Keep proje",
-            "2,000 CI/CD minutes/month Free for public reposito",
-            "500MB of Packages storage Free for public reposito"
-          ]
+            "Node-based Stable Diffusion GUI",
+            "Build custom image generation pipelines",
+            "Save & load complete workflows",
+            "100% free open-source software"
+          ],
+          "cta_label": "Get Code",
+          "cta_url": "https://github.com/comfyanonymous/ComfyUI",
+          "is_popular": true
         }
       ]
     },
@@ -21074,7 +21228,7 @@
     "languages": "10+",
     "launchYear": 2022,
     "description": "Together AI provides cloud inference for over 100 open-source AI models at competitive prices, with a free starting credit for new accounts. Students who need to run large models like Llama 70B that won't fit on their hardware use Together as a cost-effective alternative to OpenAI. The fine-tuning service lets students adapt models for custom research tasks.",
-    "pricing_tier": "freemium",
+    "pricing_tier": "free",
     "difficulty": "intermediate",
     "student_friendly": true,
     "use_cases": [
@@ -21084,7 +21238,7 @@
       "Reviewing and refactoring code",
       "Generating boilerplate and project scaffolding"
     ],
-    "pricing": "Freemium",
+    "pricing": "Free",
     "student_perk": true,
     "company": "Together AI",
     "review_count": 79,
@@ -21111,14 +21265,29 @@
           "price_amount": 0,
           "price_display": "Pay-as-you-go",
           "features": [
-            "Llama, Mistral, Qwen models",
-            "$5 free starter credits",
-            "Billed per 1M tokens",
-            "Fast serverless inference"
+            "Billed per million tokens processed",
+            "Llama 3 8B: $0.20/1M, 70B: $0.90/1M",
+            "50% discount on Batch API runs",
+            "Cached input prompt discount"
           ],
-          "cta_label": "Get Started",
-          "cta_url": "https://together.ai",
-          "is_popular": true
+          "cta_label": "Get API Keys",
+          "cta_url": "https://www.together.ai/pricing",
+          "is_popular": true,
+          "highlight_label": "Flexible"
+        },
+        {
+          "name": "Dedicated Endpoints",
+          "price_amount": 0,
+          "price_display": "Pay-per-minute",
+          "features": [
+            "Flat minute-rate hardware reservation",
+            "Deploy private custom models",
+            "Guaranteed throughput & zero cold starts",
+            "Support for H100, A100 GPU instances"
+          ],
+          "cta_label": "Configure Endpoint",
+          "cta_url": "https://www.together.ai/pricing",
+          "is_popular": false
         }
       ]
     },
@@ -21300,27 +21469,47 @@
       "currency": "USD",
       "tiers": [
         {
-          "name": "Free",
-          "price_amount": 0.0,
-          "price_display": "$0/month",
-          "is_popular": false,
+          "name": "Sandbox",
+          "price_amount": 0,
+          "price_display": "$0/mo",
           "features": [
-            "✓Always free — 1 cluster per user, upgrade to paid",
-            "✓100,000 objects · 1 GB memory · 10 GB disk.",
-            "✓1 collection, up to 3 tenants.",
-            "✓Embeddings (2,000 req/day) + Query Agent (1,000 r"
-          ]
+            "Free cloud sandbox database",
+            "Designed for prototypes & testing",
+            "Limited cluster life (auto-pause)",
+            "Standard web console access"
+          ],
+          "cta_label": "Create Sandbox",
+          "cta_url": "https://console.weaviate.cloud",
+          "is_popular": false
         },
         {
-          "name": "Team",
-          "price_amount": 45.0,
-          "price_display": "$45/month",
-          "is_popular": false,
+          "name": "Flex Plan",
+          "price_amount": 45,
+          "price_display": "From $45/mo",
           "features": [
-            "flex",
-            "plus",
-            "premium"
-          ]
+            "Shared cloud hosting deployment",
+            "Pay-as-you-go vector volume billing",
+            "99.5% availability SLA",
+            "Email-based customer support"
+          ],
+          "cta_label": "Choose Flex",
+          "cta_url": "https://weaviate.io/pricing",
+          "is_popular": true,
+          "highlight_label": "Startup"
+        },
+        {
+          "name": "Plus Plan",
+          "price_amount": 280,
+          "price_display": "From $280/mo",
+          "features": [
+            "Shared or dedicated cloud option",
+            "99.9% availability SLA",
+            "Annual commitment billing",
+            "Enhanced security & operations"
+          ],
+          "cta_label": "Choose Plus",
+          "cta_url": "https://weaviate.io/pricing",
+          "is_popular": false
         }
       ]
     },
@@ -23400,12 +23589,14 @@
       "currency": "USD",
       "tiers": [
         {
-          "name": "Free",
+          "name": "Open Source",
           "price_amount": 0,
           "price_display": "Free",
           "features": [
-            "Full access to standard features",
-            "No hidden subscription costs"
+            "Data Version Control for ML models",
+            "Git-compatible pipeline workflows",
+            "Connect S3, GCS, Azure storage",
+            "100% free open-source software"
           ],
           "cta_label": "Get Started",
           "cta_url": "https://dvc.org",
@@ -26467,7 +26658,37 @@
       "last_verified_at": "2026-07-02",
       "source_url": "https://litmaps.com/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free Plan",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "1-2 visual maps creation limit",
+            "Max 100 articles saved per map",
+            "Basic search filters",
+            "Up to 20 reference inputs"
+          ],
+          "cta_label": "Start Mapping",
+          "cta_url": "https://litmaps.com",
+          "is_popular": false
+        },
+        {
+          "name": "Pro Plan",
+          "price_amount": 10,
+          "price_display": "$10/mo",
+          "features": [
+            "Unlimited maps & articles saved",
+            "Monitor paper notifications alerts",
+            "Zotero direct sync import",
+            "Billed annually at $120 ($15/mo monthly)"
+          ],
+          "cta_label": "Get Pro",
+          "cta_url": "https://litmaps.com/pricing",
+          "is_popular": true,
+          "highlight_label": "Academic Pro"
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -30299,7 +30520,7 @@
     "languages": "10+",
     "launchYear": 2015,
     "description": "LinkedIn Learning provides professional skills courses whose completion certificates automatically display on LinkedIn profiles, giving students immediate professional-facing credentials. Many public libraries and universities provide free access that most students are unaware of. The AI recommendation engine suggests courses aligned with stated career goals and current skill gaps.",
-    "pricing_tier": "paid",
+    "pricing_tier": "freemium",
     "difficulty": "beginner",
     "student_friendly": true,
     "use_cases": [
@@ -30309,7 +30530,7 @@
       "Organizing study schedules",
       "Getting step-by-step explanations of concepts"
     ],
-    "pricing": "Paid",
+    "pricing": "Freemium",
     "student_perk": true,
     "company": "LinkedIn",
     "review_count": 61,
@@ -30330,7 +30551,51 @@
       "last_verified_at": "2026-07-02",
       "source_url": "https://linkedin.com/learning",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free Trial",
+          "price_amount": 0,
+          "price_display": "Free trial",
+          "features": [
+            "30-day unlimited course access",
+            "Full learning library access",
+            "Exercise files & practice materials",
+            "Certification badge completion"
+          ],
+          "cta_label": "Start Trial",
+          "cta_url": "https://linkedin.com/learning",
+          "is_popular": false
+        },
+        {
+          "name": "Monthly Plan",
+          "price_amount": 39.99,
+          "price_display": "$39.99/mo",
+          "features": [
+            "Unlimited course library access",
+            "Professional certificate badges",
+            "Hands-on practice files",
+            "Cancel at any time"
+          ],
+          "cta_label": "Get Monthly",
+          "cta_url": "https://linkedin.com/learning",
+          "is_popular": false
+        },
+        {
+          "name": "Annual Plan",
+          "price_amount": 19.99,
+          "price_display": "$19.99/mo",
+          "features": [
+            "Unlimited course library access",
+            "Professional certificate badges",
+            "Hands-on practice files",
+            "Billed annually at $239.88 (Save 50%)"
+          ],
+          "cta_label": "Get Annual",
+          "cta_url": "https://linkedin.com/learning",
+          "is_popular": true,
+          "highlight_label": "Best Value"
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -36070,15 +36335,15 @@
         {
           "name": "Open Source",
           "price_amount": 0,
-          "price_display": "Free",
+          "price_display": "Free extension",
           "features": [
-            "Fully open-source VS Code extension",
-            "Autonomous agent workflows",
-            "Read/Write files with CLI integration",
-            "Support for any API key model"
+            "VS Code AI coding agent extension",
+            "Connect to any API or local model",
+            "Read/write files & run CLI commands",
+            "100% free open-source software"
           ],
-          "cta_label": "Install Cline",
-          "cta_url": "https://marketplace.visualstudio.com/items?itemName=saoudrizwan.claude-dev",
+          "cta_label": "Install Extension",
+          "cta_url": "https://github.com/cline/cline",
           "is_popular": true
         }
       ]
@@ -36771,7 +37036,48 @@
       "last_verified_at": "2026-07-02",
       "source_url": "https://www.animaapp.com/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "5 chat messages daily AI Playground",
+            "5 Figma design imports / clones",
+            "5 code generation runs per month"
+          ],
+          "cta_label": "Get Started",
+          "cta_url": "https://www.animaapp.com",
+          "is_popular": false
+        },
+        {
+          "name": "Starter",
+          "price_amount": 20,
+          "price_display": "$20/seat/mo",
+          "features": [
+            "Higher AI Playground limits",
+            "Figma inspect design attributes",
+            "Collaborative team roles & support"
+          ],
+          "cta_label": "Choose Starter",
+          "cta_url": "https://www.animaapp.com/pricing",
+          "is_popular": true,
+          "highlight_label": "Small Teams"
+        },
+        {
+          "name": "Pro Plan",
+          "price_amount": 40,
+          "price_display": "$40/seat/mo",
+          "features": [
+            "Thousands of code exports monthly",
+            "Unlimited Figma design imports",
+            "Advanced code styling settings"
+          ],
+          "cta_label": "Choose Pro",
+          "cta_url": "https://www.animaapp.com/pricing",
+          "is_popular": false
+        }
+      ]
     },
     "featured": false,
     "logo_emoji": "🤖",
@@ -37191,33 +37497,36 @@
     "last_verified_at": "2026-07-02",
     "pricing_tiers": {
       "last_verified_at": "2026-07-02",
-      "source_url": "https://www.scribbr.com/pricing/",
+      "source_url": "https://www.scribbr.com/pricing",
       "currency": "USD",
       "tiers": [
         {
           "name": "Free Tools",
           "price_amount": 0,
-          "price_display": "$0",
+          "price_display": "Free",
           "features": [
-            "Citation generator (APA/MLA)",
-            "Basic grammar & spelling check"
+            "Academic citation generator (APA, MLA)",
+            "Browser grammar checker extension",
+            "Academic writing guides"
           ],
-          "cta_label": "Use Free Tools",
+          "cta_label": "Try Tools",
           "cta_url": "https://www.scribbr.com",
           "is_popular": false
         },
         {
-          "name": "Plagiarism Checker",
-          "price_amount": 20,
+          "name": "Plagiarism Check",
+          "price_amount": 19.95,
           "price_display": "From $19.95",
           "features": [
-            "Partnership with Turnitin database",
-            "Matches against 99.3B web sources",
-            "Full similarity report score"
+            "Check against Turnitin database",
+            "Small doc (<7.5k words): $19.95",
+            "Medium doc (<50k words): $29.95",
+            "Pay-per-document basis"
           ],
-          "cta_label": "Run Plagiarism Check",
-          "cta_url": "https://www.scribbr.com/plagiarism-checker/",
-          "is_popular": true
+          "cta_label": "Check Plagiarism",
+          "cta_url": "https://www.scribbr.com/plagiarism-checker",
+          "is_popular": true,
+          "highlight_label": "Pay Per Doc"
         }
       ]
     },
@@ -41640,7 +41949,23 @@
       "last_verified_at": "2026-07-02",
       "source_url": "https://scaledmail.com/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Custom Infrastructure",
+          "price_amount": 199,
+          "price_display": "Custom volume",
+          "features": [
+            "Google Workspace: $3.50/mailbox/mo",
+            "Outlook: $50/domain covering 25 seats",
+            "DMARC, SPF, DKIM auto setup",
+            "Deliverability monitoring & warmup"
+          ],
+          "cta_label": "Calculate Quote",
+          "cta_url": "https://scaledmail.com",
+          "is_popular": true,
+          "highlight_label": "Enterprise"
+        }
+      ]
     },
     "curation_score": 78.0,
     "academic_integrity_rating": "Safe",
@@ -43093,7 +43418,50 @@
       "last_verified_at": "2026-07-02",
       "source_url": "https://trycomp.ai/vanta-pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Self-Hosted",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Open-source compliance engine",
+            "Run your own local infrastructure",
+            "Community support & docs"
+          ],
+          "cta_label": "Get Code",
+          "cta_url": "https://github.com/trycomp/comp",
+          "is_popular": false
+        },
+        {
+          "name": "Starter",
+          "price_amount": 199,
+          "price_display": "$199/mo",
+          "features": [
+            "Automated compliance checks (SOC 2)",
+            "Real-time security warnings",
+            "Centralized security settings",
+            "Billed annually ($2,388/yr)"
+          ],
+          "cta_label": "Go Starter",
+          "cta_url": "https://trycomp.ai/vanta-pricing",
+          "is_popular": true,
+          "highlight_label": "SaaS Starter"
+        },
+        {
+          "name": "Pro Plan",
+          "price_amount": 997,
+          "price_display": "$997/mo",
+          "features": [
+            "Includes third-party audit bundles",
+            "All frameworks automated checks",
+            "SAML SSO security configurations",
+            "Billed annually ($12,000/yr)"
+          ],
+          "cta_label": "Go Pro",
+          "cta_url": "https://trycomp.ai/vanta-pricing",
+          "is_popular": false
+        }
+      ]
     },
     "curation_score": 85.0,
     "academic_integrity_rating": "Safe",
@@ -44042,14 +44410,15 @@
           "price_amount": 0,
           "price_display": "Free",
           "features": [
-            "Unified OpenAI SDK standard router",
-            "Supports 100+ LLM APIs",
-            "Automatic retry/fallback mechanisms",
-            "Local CLI proxy server"
+            "Call 100+ LLMs using OpenAI format",
+            "Centralized load balancing proxy",
+            "Centralized error tracking & fallback",
+            "100% free open-source software"
           ],
-          "cta_label": "Install SDK",
+          "cta_label": "Get Code",
           "cta_url": "https://github.com/BerriAI/litellm",
-          "is_popular": true
+          "is_popular": true,
+          "highlight_label": "Developer"
         }
       ]
     },
