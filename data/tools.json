@@ -72,7 +72,7 @@
     "slug": "chatgpt",
     "pricing_tiers": {
       "last_verified_at": "2026-07-02",
-      "source_url": "https://openai.com/chatgpt/pricing/",
+      "source_url": "https://openai.com/chatgpt/pricing",
       "currency": "USD",
       "tiers": [
         {
@@ -80,12 +80,12 @@
           "price_amount": 0,
           "price_display": "$0/mo",
           "features": [
-            "Access to GPT-4o mini",
-            "Limited GPT-4o access",
-            "Memory and custom instructions",
-            "Web search and data analysis"
+            "Access to GPT-4o mini and limited GPT-4o",
+            "Web, desktop, and mobile app access",
+            "Custom GPTs marketplace access",
+            "Memory features & file uploads"
           ],
-          "cta_label": "Get Started",
+          "cta_label": "Start Chatting",
           "cta_url": "https://chatgpt.com",
           "is_popular": false
         },
@@ -94,26 +94,28 @@
           "price_amount": 20,
           "price_display": "$20/mo",
           "features": [
-            "5x more messages for GPT-4o",
-            "Advanced Voice mode",
-            "Create and use custom GPTs",
-            "DALL-E 3 image generation"
+            "5x usage limits on GPT-4o",
+            "Advanced Data Analysis & Custom GPT builder",
+            "DALL-E 3 image generation",
+            "Advanced Voice Mode features"
           ],
           "cta_label": "Upgrade to Plus",
-          "cta_url": "https://chatgpt.com",
-          "is_popular": true
+          "cta_url": "https://openai.com/chatgpt/pricing",
+          "is_popular": true,
+          "highlight_label": "Most Popular"
         },
         {
           "name": "Pro",
           "price_amount": 200,
           "price_display": "$200/mo",
           "features": [
-            "Unlimited access to o1 pro",
-            "Highest model priority limits",
-            "Frontier intelligence reasoning options"
+            "Full access to OpenAI o1-pro",
+            "Unlimited o1-pro queries/mo",
+            "Priority GPU compute allocations",
+            "Highest server availability"
           ],
-          "cta_label": "Go Pro",
-          "cta_url": "https://chatgpt.com",
+          "cta_label": "Get Pro",
+          "cta_url": "https://openai.com/chatgpt/pricing",
           "is_popular": false
         }
       ]
@@ -2035,34 +2037,37 @@
     "pricing_verified_at": "2026-05-18",
     "pricing_tiers": {
       "last_verified_at": "2026-07-02",
-      "source_url": "https://photomath.com/",
+      "source_url": "https://photomath.com",
       "currency": "USD",
       "tiers": [
         {
-          "name": "Free",
+          "name": "Free Plan",
           "price_amount": 0,
-          "price_display": "Free",
+          "price_display": "$0/mo",
           "features": [
-            "Camera scan math recognition",
-            "Basic solution outlines",
-            "Interactive graph calculations"
+            "Scan math problems with camera",
+            "Basic step-by-step solutions",
+            "Built-in mathematical calculator",
+            "Ad-free experience"
           ],
-          "cta_label": "Get App",
-          "cta_url": "https://photomath.com/",
-          "is_popular": true
+          "cta_label": "Start Scanning",
+          "cta_url": "https://photomath.com",
+          "is_popular": false
         },
         {
           "name": "Photomath Plus",
-          "price_amount": 10,
+          "price_amount": 9.99,
           "price_display": "$9.99/mo",
           "features": [
-            "Animated tutorial helper",
-            "Textbook solution matches",
-            "Deep conceptual math tips"
+            "AI-powered animated tutorials",
+            "Textbook-specific solutions",
+            "Deeper contextual hints & explanations",
+            "Billed annually at $69.99 ($5.83/mo)"
           ],
-          "cta_label": "Try Plus",
-          "cta_url": "https://photomath.com/",
-          "is_popular": false
+          "cta_label": "Get Plus",
+          "cta_url": "https://photomath.com",
+          "is_popular": true,
+          "highlight_label": "Most Popular"
         }
       ]
     },
@@ -3677,7 +3682,7 @@
     "languages": "140+",
     "launchYear": 2017,
     "description": "Synthesia turns text scripts into professional presenter videos using realistic AI avatars, requiring no camera, actors, or recording equipment. Students can create polished explainer videos for any subject in over 140 languages. It is widely used in education for creating multilingual instructional content.",
-    "pricing_tier": "paid",
+    "pricing_tier": "freemium",
     "difficulty": "advanced",
     "student_friendly": true,
     "use_cases": [
@@ -3687,7 +3692,7 @@
       "Producing educational video content",
       "Repurposing long-form content into clips"
     ],
-    "pricing": "Paid",
+    "pricing": "Freemium",
     "student_perk": true,
     "company": "Synthesia",
     "review_count": 1180,
@@ -3702,22 +3707,51 @@
     "slug": "synthesia",
     "pricing_tiers": {
       "last_verified_at": "2026-07-02",
-      "source_url": "https://synthesia.io/pricing",
+      "source_url": "https://www.synthesia.io/pricing",
       "currency": "USD",
       "tiers": [
         {
-          "name": "Starter",
-          "price_amount": 29.0,
-          "price_display": "$29/month",
-          "is_popular": true,
-          "features": []
+          "name": "Free (Basic)",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "10 minutes of video per month",
+            "9 custom AI avatars",
+            "Watermarked exports",
+            "Basic templates gallery"
+          ],
+          "cta_label": "Create Free Video",
+          "cta_url": "https://www.synthesia.io",
+          "is_popular": false
         },
         {
-          "name": "Team",
-          "price_amount": 29.0,
-          "price_display": "$29/month",
-          "is_popular": false,
-          "features": []
+          "name": "Starter",
+          "price_amount": 18,
+          "price_display": "$18/mo",
+          "features": [
+            "10 minutes of video per month",
+            "125+ avatars access",
+            "Remove Synthesia logo watermark",
+            "Billed annually at $216 ($29/mo monthly)"
+          ],
+          "cta_label": "Choose Starter",
+          "cta_url": "https://www.synthesia.io/pricing",
+          "is_popular": true,
+          "highlight_label": "Solo Creators"
+        },
+        {
+          "name": "Creator",
+          "price_amount": 64,
+          "price_display": "$64/mo",
+          "features": [
+            "30 minutes of video per month",
+            "180+ avatars access",
+            "API developer access",
+            "Billed annually at $768 ($89/mo monthly)"
+          ],
+          "cta_label": "Choose Creator",
+          "cta_url": "https://www.synthesia.io/pricing",
+          "is_popular": false
         }
       ]
     },
@@ -5165,39 +5199,50 @@
     "pricing_verified_at": "2026-05-18",
     "pricing_tiers": {
       "last_verified_at": "2026-07-02",
-      "source_url": "https://napkin.ai/pricing/",
+      "source_url": "https://napkin.ai/pricing",
       "currency": "USD",
       "tiers": [
         {
           "name": "Free",
-          "price_amount": 0.0,
-          "price_display": "$0/month",
-          "is_popular": true,
+          "price_amount": 0,
+          "price_display": "$0/mo",
           "features": [
-            "500 AI credits per week AI credits are used to gen",
-            "Unlimited visuals editing",
-            "Unlimited file import (PPT, DOC, PDF, HTML, MD)",
-            "Unlimited PNG & PDF export"
-          ]
+            "500 AI credits per week",
+            "Unlimited visual editors layout",
+            "PNG and PDF file exports"
+          ],
+          "cta_label": "Start Free",
+          "cta_url": "https://napkin.ai",
+          "is_popular": false
         },
         {
           "name": "Plus",
-          "price_amount": 9.0,
-          "price_display": "$9/month",
+          "price_amount": 8,
+          "price_display": "$8/mo",
+          "features": [
+            "10,000 AI credits per month",
+            "PPT & SVG file export support",
+            "Custom brand color palettes",
+            "Billed annually at $96 ($9/mo monthly)"
+          ],
+          "cta_label": "Choose Plus",
+          "cta_url": "https://napkin.ai/pricing",
           "is_popular": true,
-          "features": []
+          "highlight_label": "Solo Creator"
         },
         {
           "name": "Pro",
-          "price_amount": 22.0,
-          "price_display": "$22/month",
-          "is_popular": false,
+          "price_amount": 18,
+          "price_display": "$18/mo",
           "features": [
-            "30,000 AI credits per month AI credits are used to",
-            "Exclusive designs",
-            "Unlimited Custom Branding",
-            "Upload your fonts"
-          ]
+            "30,000 AI credits per month",
+            "Advanced team workspace permissions",
+            "Workspace-wide brand controls",
+            "Billed annually at $216 ($22/mo monthly)"
+          ],
+          "cta_label": "Choose Pro",
+          "cta_url": "https://napkin.ai/pricing",
+          "is_popular": false
         }
       ]
     },
@@ -5601,15 +5646,15 @@
       "currency": "USD",
       "tiers": [
         {
-          "name": "Free",
+          "name": "Free Plan",
           "price_amount": 0,
           "price_display": "$0/mo",
           "features": [
-            "Text translation up to 1,500 chars",
-            "Translate 3 files/mo (PDF, Docx)",
-            "Standard language dictionary"
+            "50,000 characters/month translation",
+            "1 editable file translation/month",
+            "Standard translation quality"
           ],
-          "cta_label": "Get Started",
+          "cta_label": "Translate Free",
           "cta_url": "https://www.deepl.com/translator",
           "is_popular": false
         },
@@ -5618,15 +5663,29 @@
           "price_amount": 8.74,
           "price_display": "$8.74/mo",
           "features": [
-            "Unlimited text translation",
-            "Translate 5 files/mo (up to 10MB)",
-            "Zero-data logging privacy guarantee",
-            "Custom formal/informal tone settings"
+            "300,000 characters/month translation",
+            "3 editable file translations/month",
+            "Highest data security (texts deleted)",
+            "Billed annually at $104.88"
           ],
-          "cta_label": "Start Pro Trial",
-          "cta_url": "https://www.deepl.com/pro",
+          "cta_label": "Go Pro Starter",
+          "cta_url": "https://www.deepl.com/pro#developer",
           "is_popular": true,
-          "highlight_label": "Privacy Shield"
+          "highlight_label": "Individual Choice"
+        },
+        {
+          "name": "Pro Team",
+          "price_amount": 28.74,
+          "price_display": "$28.74/user/mo",
+          "features": [
+            "1M characters/user/month translation",
+            "20 editable file translations/month",
+            "Centralized team seat administration",
+            "Billed annually at $344.88"
+          ],
+          "cta_label": "Go Pro Team",
+          "cta_url": "https://www.deepl.com/pro#developer",
+          "is_popular": false
         }
       ]
     },
@@ -10096,35 +10155,50 @@
     "last_verified_at": "2026-07-02",
     "pricing_tiers": {
       "last_verified_at": "2026-07-02",
-      "source_url": "https://www.mymap.ai/pricing",
+      "source_url": "https://www.mymap.ai",
       "currency": "USD",
       "tiers": [
         {
           "name": "Free",
           "price_amount": 0,
-          "price_display": "Free",
+          "price_display": "$0/mo",
           "features": [
-            "60 credits per sign-up",
-            "Create interactive mind maps",
-            "Basic PDF export capabilities"
+            "5 AI generation credits daily",
+            "Basic design structures mind map",
+            "Standard PNG file exports"
           ],
-          "cta_label": "Start Drawing",
+          "cta_label": "Try Free",
           "cta_url": "https://www.mymap.ai",
           "is_popular": false
         },
         {
-          "name": "Pro",
-          "price_amount": 9,
-          "price_display": "$9.00/mo (billed annually)",
+          "name": "Pro Plan",
+          "price_amount": 12,
+          "price_display": "$12/mo",
           "features": [
-            "1,000 monthly credits allocation",
-            "Collaborative project areas",
-            "High definition exports options",
-            "Priority generation speed queue"
+            "Unlimited GPT-4/Claude map requests",
+            "Up to 5 team collaborators",
+            "Increased daily AI credits pool",
+            "Billed annually at $144 ($20/mo monthly)"
           ],
           "cta_label": "Go Pro",
           "cta_url": "https://www.mymap.ai/pricing",
-          "is_popular": true
+          "is_popular": true,
+          "highlight_label": "Recommended"
+        },
+        {
+          "name": "Team Pro",
+          "price_amount": 15,
+          "price_display": "$15/user/mo",
+          "features": [
+            "Unlimited team collaborators",
+            "Increased DALL-E 3 image credits",
+            "Brand identity presets",
+            "Billed annually at $180 ($25/mo monthly)"
+          ],
+          "cta_label": "Go Team Pro",
+          "cta_url": "https://www.mymap.ai/pricing",
+          "is_popular": false
         }
       ]
     },
@@ -19065,7 +19139,51 @@
       "last_verified_at": "2026-07-02",
       "source_url": "https://murf.ai/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "10 projects creation max",
+            "10 minutes of voice generation total",
+            "No audio file downloads allowed",
+            "No commercial licensing rights"
+          ],
+          "cta_label": "Try Free",
+          "cta_url": "https://murf.ai",
+          "is_popular": false
+        },
+        {
+          "name": "Creator",
+          "price_amount": 19,
+          "price_display": "$19/mo",
+          "features": [
+            "100 projects creation max",
+            "24 hours voice generation per year",
+            "200+ AI voices & unlimited downloads",
+            "Billed annually at $228 ($29/mo monthly)"
+          ],
+          "cta_label": "Choose Creator",
+          "cta_url": "https://murf.ai/pricing",
+          "is_popular": true,
+          "highlight_label": "Solo Creator"
+        },
+        {
+          "name": "Business",
+          "price_amount": 66,
+          "price_display": "$66/mo",
+          "features": [
+            "500 projects creation max",
+            "96 hours voice generation per year",
+            "Centralized team billing & collaboration",
+            "Billed annually at $792 ($99/mo monthly)"
+          ],
+          "cta_label": "Choose Business",
+          "cta_url": "https://murf.ai/pricing",
+          "is_popular": false
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -20162,9 +20280,38 @@
     "last_verified_at": "2026-07-02",
     "pricing_tiers": {
       "last_verified_at": "2026-07-02",
-      "source_url": "https://musi.co",
+      "source_url": "https://www.musi-co.com",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free Demo",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Test adaptive music generation on web",
+            "Basic musical customization sliders",
+            "Listen to AI generative playbacks"
+          ],
+          "cta_label": "Try Demo",
+          "cta_url": "https://www.musi-co.com",
+          "is_popular": false
+        },
+        {
+          "name": "Monthly Plan",
+          "price_amount": 9.99,
+          "price_display": "$9.99/mo",
+          "features": [
+            "Full application desktop download",
+            "Generate unlimited adaptive tracks",
+            "Export tracks in WAV, MIDI, MP3",
+            "Commercial project licensing rights"
+          ],
+          "cta_label": "Get Monthly",
+          "cta_url": "https://www.musi-co.com",
+          "is_popular": true,
+          "highlight_label": "Creator"
+        }
+      ]
     },
     "ease_of_use": 3,
     "free_tier_value": 4,
@@ -20386,7 +20533,7 @@
     "languages": "10+",
     "launchYear": 2021,
     "description": "Twelve Labs provides multimodal video understanding APIs that enable searching within videos by content, generating video summaries, and answering questions about video content. CS students building video-centric applications for capstone or research projects use it as the AI layer. The free tier provides enough index minutes for student-scale video collections.",
-    "pricing_tier": "freemium",
+    "pricing_tier": "free",
     "difficulty": "advanced",
     "student_friendly": true,
     "use_cases": [
@@ -20396,7 +20543,7 @@
       "Reviewing and refactoring code",
       "Generating boilerplate and project scaffolding"
     ],
-    "pricing": "Freemium",
+    "pricing": "Free",
     "student_perk": true,
     "company": "Twelve Labs",
     "review_count": 147,
@@ -20423,14 +20570,29 @@
           "price_amount": 0,
           "price_display": "Free",
           "features": [
-            "10 hours of video indexing",
-            "Pegasus video understanding API",
-            "Full access to search endpoints",
-            "Developer community support"
+            "600 minutes of video indexing free/mo",
+            "multimodal video embeddings API",
+            "basic Pegasus analysis engine",
+            "API developer portal trial"
           ],
-          "cta_label": "Get API Key",
-          "cta_url": "https://www.twelvelabs.io",
-          "is_popular": true
+          "cta_label": "Get API Keys",
+          "cta_url": "https://twelvelabs.io",
+          "is_popular": true,
+          "highlight_label": "Evaluation"
+        },
+        {
+          "name": "Developer Plan",
+          "price_amount": 0,
+          "price_display": "Pay-as-you-go",
+          "features": [
+            "Billed per minute of video indexed",
+            "Marengo indexing: $0.05/min",
+            "Pegasus analysis: $0.15/min",
+            "Search queries: $0.001/query"
+          ],
+          "cta_label": "Add Billing",
+          "cta_url": "https://twelvelabs.io/pricing",
+          "is_popular": false
         }
       ]
     },
@@ -20486,7 +20648,7 @@
     "languages": "10+",
     "launchYear": 2019,
     "description": "Cohere provides enterprise-grade NLP APIs for text generation, semantic embeddings, classification, and reranking used in production applications. CS and data science students use the free trial to build NLP course projects and learn about embedding-based retrieval. The Command model and Embed API are particularly useful for building semantic search and question-answering systems.",
-    "pricing_tier": "freemium",
+    "pricing_tier": "free",
     "difficulty": "advanced",
     "student_friendly": true,
     "use_cases": [
@@ -20496,7 +20658,7 @@
       "Reviewing and refactoring code",
       "Generating boilerplate and project scaffolding"
     ],
-    "pricing": "Freemium",
+    "pricing": "Free",
     "student_perk": true,
     "company": "Cohere",
     "review_count": 175,
@@ -20517,7 +20679,36 @@
       "last_verified_at": "2026-07-02",
       "source_url": "https://cohere.com/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Trial Plan",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Access for prototyping & evaluation",
+            "Strict rate limits (20 requests/min)",
+            "Use of all generative & embed models"
+          ],
+          "cta_label": "Get Trial Key",
+          "cta_url": "https://dashboard.cohere.com/welcome/register",
+          "is_popular": true,
+          "highlight_label": "Evaluation"
+        },
+        {
+          "name": "Production",
+          "price_amount": 0,
+          "price_display": "Pay-as-you-go",
+          "features": [
+            "Billed per million tokens processed",
+            "Command R: $0.15/1M input, $0.60/1M output",
+            "Rerank: $1.00 per 1,000 queries",
+            "High rate limits for production use"
+          ],
+          "cta_label": "Get Production Key",
+          "cta_url": "https://cohere.com/pricing",
+          "is_popular": false
+        }
+      ]
     },
     "academic_integrity_rating": "Safe",
     "academic_warning": "Always verify with your syllabus or professor regarding the specific academic integrity policies for using AI tools on assignments.",
@@ -26772,7 +26963,7 @@
       "Summarizing meetings and calls",
       "Reducing time on manual administrative work"
     ],
-    "pricing": "Paid",
+    "pricing": "Freemium",
     "student_perk": true,
     "company": "Loom",
     "review_count": 1350,
@@ -26791,20 +26982,51 @@
     "last_verified_at": "2026-07-02",
     "pricing_tiers": {
       "last_verified_at": "2026-07-02",
-      "source_url": "https://loom.com/pricing",
+      "source_url": "https://www.loom.com/pricing",
       "currency": "USD",
       "tiers": [
         {
-          "name": "Team",
-          "price_amount": 24.0,
-          "price_display": "$24/month",
-          "is_popular": true,
+          "name": "Starter",
+          "price_amount": 0,
+          "price_display": "$0/mo",
           "features": [
-            "Auto-video enhancement",
-            "Advanced editing",
-            "Video-to-text automation",
-            "Auto-meeting recap emailsNEW"
-          ]
+            "Up to 25 videos per person",
+            "5-minute recording limit/video",
+            "Basic screen & camera recording",
+            "Viewer insights & transcriptions"
+          ],
+          "cta_label": "Get Starter Free",
+          "cta_url": "https://www.loom.com/signup",
+          "is_popular": false
+        },
+        {
+          "name": "Business",
+          "price_amount": 12.5,
+          "price_display": "$12.50/user/mo",
+          "features": [
+            "Unlimited videos & recording duration",
+            "High-definition 4K recording",
+            "Advanced editing tools (trimming, stitching)",
+            "Billed annually at $150 ($15.00/mo monthly)"
+          ],
+          "cta_label": "Get Business",
+          "cta_url": "https://www.loom.com/pricing",
+          "is_popular": true,
+          "highlight_label": "Best Value"
+        },
+        {
+          "name": "Business + AI",
+          "price_amount": 24,
+          "price_display": "$24/user/mo",
+          "features": [
+            "Everything in Business plan",
+            "AI-generated titles & summaries",
+            "AI chapters & auto filler word removal",
+            "Billed annually at $288 ($30.00/mo monthly)"
+          ],
+          "cta_label": "Get Business + AI",
+          "cta_url": "https://www.loom.com/pricing",
+          "is_popular": false
         }
       ]
     },
@@ -31754,7 +31976,7 @@
       "Summarizing meetings and calls",
       "Reducing time on manual administrative work"
     ],
-    "pricing": "Free",
+    "pricing": "Freemium",
     "student_perk": true,
     "company": "Fathom Video",
     "review_count": 169,
@@ -31778,15 +32000,46 @@
       "tiers": [
         {
           "name": "Free",
-          "price_amount": 0.0,
-          "price_display": "$0/month",
-          "is_popular": false,
+          "price_amount": 0,
+          "price_display": "$0/mo",
           "features": [
-            "Unlimited recordings + transcriptions",
-            "Choice of bot-free* or bot capture type (*in beta)",
-            "Instant AI call summaries",
-            "Clips, playlists, + search across calls"
-          ]
+            "Unlimited meeting recordings & storage",
+            "Unlimited transcription in 38 languages",
+            "5 advanced AI summaries per month",
+            "Integrations with Slack, Notion"
+          ],
+          "cta_label": "Sign Up Free",
+          "cta_url": "https://fathom.video",
+          "is_popular": true,
+          "highlight_label": "Free Forever"
+        },
+        {
+          "name": "Premium",
+          "price_amount": 15,
+          "price_display": "$15/user/mo",
+          "features": [
+            "Unlimited advanced AI summaries",
+            "Ask Fathom AI meeting search engine",
+            "Custom AI bot naming (remove branding)",
+            "Billed annually ($19/mo monthly)"
+          ],
+          "cta_label": "Upgrade to Premium",
+          "cta_url": "https://fathom.video/pricing",
+          "is_popular": false
+        },
+        {
+          "name": "Team",
+          "price_amount": 24,
+          "price_display": "$24/user/mo",
+          "features": [
+            "Shared team spaces library",
+            "Centralized CRM syncing (HubSpot/Salesforce)",
+            "Centralized team billing & SSO",
+            "Billed annually ($29/mo monthly)"
+          ],
+          "cta_label": "Upgrade to Team",
+          "cta_url": "https://fathom.video/pricing",
+          "is_popular": false
         }
       ]
     },
@@ -31876,39 +32129,46 @@
       "tiers": [
         {
           "name": "Free",
-          "price_amount": 8.0,
-          "price_display": "$8/month",
-          "is_popular": false,
+          "price_amount": 0,
+          "price_display": "$0/mo",
           "features": [
-            "10 AI credits / mo",
-            "Everything in Free, and",
-            "Unlimited transcripts",
-            "Disable transcript notification"
-          ]
+            "10 meeting transcripts/month",
+            "5 AI credits/month for summaries",
+            "Live transcription on Zoom, Meet, Teams",
+            "No-bot browser extension"
+          ],
+          "cta_label": "Get Tactiq Free",
+          "cta_url": "https://tactiq.io",
+          "is_popular": false
         },
         {
           "name": "Pro",
-          "price_amount": 16.67,
-          "price_display": "$16.67/month",
-          "is_popular": false,
+          "price_amount": 8,
+          "price_display": "$8/mo",
           "features": [
-            "Unlimited AI credits",
-            "Everything in Pro, and",
-            "Unlimited transcripts",
-            "Priority customer support"
-          ]
+            "Unlimited meeting transcripts",
+            "10 AI credits/month for summaries",
+            "Save & export transcripts (Notion, PDF)",
+            "Billed annually at $96 ($12/mo monthly)"
+          ],
+          "cta_label": "Choose Pro",
+          "cta_url": "https://tactiq.io/buy",
+          "is_popular": false
         },
         {
           "name": "Team",
-          "price_amount": 29.17,
-          "price_display": "$29.17/month",
-          "is_popular": false,
+          "price_amount": 16.67,
+          "price_display": "$16.67/mo",
           "features": [
-            "Unlimited AI credits",
-            "Everything in Team, and",
-            "Advanced Data Retention",
-            "SAML SSO"
-          ]
+            "Unlimited meeting transcripts",
+            "Unlimited AI credits for summaries",
+            "Auto-share transcripts with team",
+            "Billed annually at $200 ($20/mo monthly)"
+          ],
+          "cta_label": "Choose Team",
+          "cta_url": "https://tactiq.io/buy",
+          "is_popular": true,
+          "highlight_label": "Most Popular"
         }
       ]
     },
@@ -34837,7 +35097,37 @@
       "last_verified_at": "2026-07-02",
       "source_url": "https://granola.ai/pricing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Basic",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "Unlimited bot-free meeting recording",
+            "AI chat query features",
+            "Custom note templates",
+            "30 days meeting history archive"
+          ],
+          "cta_label": "Try Free",
+          "cta_url": "https://granola.ai",
+          "is_popular": false
+        },
+        {
+          "name": "Business",
+          "price_amount": 14,
+          "price_display": "$14/user/mo",
+          "features": [
+            "Unlimited meeting history archives",
+            "Advanced AI reasoning models",
+            "Integrations (Notion, Slack, CRM)",
+            "Centralized billing dashboard"
+          ],
+          "cta_label": "Upgrade to Business",
+          "cta_url": "https://granola.ai/pricing",
+          "is_popular": true,
+          "highlight_label": "Teams"
+        }
+      ]
     },
     "curation_score": 89.5,
     "academic_integrity_rating": "Caution",
@@ -39415,21 +39705,21 @@
     "last_verified_at": "2026-07-02",
     "pricing_tiers": {
       "last_verified_at": "2026-07-02",
-      "source_url": "https://exercism.org/",
+      "source_url": "https://exercism.org",
       "currency": "USD",
       "tiers": [
         {
-          "name": "Free",
+          "name": "Free / Open Source",
           "price_amount": 0,
           "price_display": "Free",
           "features": [
             "70+ programming language tracks",
-            "Human mentoring reviews",
-            "Coding challenges database",
-            "Fully non-profit, zero ads"
+            "Human mentoring reviews & feedback",
+            "Interactive command line client",
+            "100% free with no advertisements"
           ],
-          "cta_label": "Start Learning",
-          "cta_url": "https://exercism.org/",
+          "cta_label": "Start Coding",
+          "cta_url": "https://exercism.org",
           "is_popular": true
         }
       ]
@@ -40756,44 +41046,65 @@
     "slug": "chatbase",
     "pricing_tiers": {
       "last_verified_at": "2026-07-02",
-      "source_url": "https://chatbase.co/pricing",
+      "source_url": "https://www.chatbase.co/pricing",
       "currency": "USD",
       "tiers": [
         {
           "name": "Free",
-          "price_amount": 0.0,
-          "price_display": "$0/month",
-          "is_popular": false,
+          "price_amount": 0,
+          "price_display": "$0/mo",
           "features": [
-            "Limited access to models",
-            "50 message credits/month",
-            "1 member",
-            "400 KB per AI agent"
-          ]
+            "50 message credits per month",
+            "1 chatbot agent slot",
+            "2M characters per chatbot limit",
+            "14-day inactivity auto-deletion"
+          ],
+          "cta_label": "Build Free",
+          "cta_url": "https://www.chatbase.co",
+          "is_popular": false
         },
         {
           "name": "Hobby",
-          "price_amount": 120.0,
-          "price_display": "$120/month",
-          "is_popular": true,
+          "price_amount": 32,
+          "price_display": "$32/mo",
           "features": [
-            "4,000 message credits/month",
-            "8 enabled AI Actions per AI agent",
-            "20 MB per AI agent",
-            "3 members"
-          ]
+            "500 message credits per month",
+            "1 chatbot agent slot",
+            "2M characters per chatbot limit",
+            "Billed annually at $384 ($39/mo monthly)"
+          ],
+          "cta_label": "Choose Hobby",
+          "cta_url": "https://www.chatbase.co/pricing",
+          "is_popular": true,
+          "highlight_label": "Personal Use"
+        },
+        {
+          "name": "Standard",
+          "price_amount": 120,
+          "price_display": "$120/mo",
+          "features": [
+            "4,000 message credits per month",
+            "2 chatbot agent slots",
+            "10M characters per chatbot limit",
+            "Billed annually at $1,440 ($149/mo monthly)"
+          ],
+          "cta_label": "Choose Standard",
+          "cta_url": "https://www.chatbase.co/pricing",
+          "is_popular": false
         },
         {
           "name": "Pro",
-          "price_amount": 400.0,
-          "price_display": "$400/month",
-          "is_popular": false,
+          "price_amount": 399,
+          "price_display": "$399/mo",
           "features": [
-            "15,000 message credits/month",
-            "12 enabled AI Actions per AI agent",
-            "40 MB per AI agent",
-            "5 members"
-          ]
+            "15,000 message credits per month",
+            "5 chatbot agent slots",
+            "30M characters per chatbot limit",
+            "Billed annually at $4,788 ($499/mo monthly)"
+          ],
+          "cta_label": "Choose Pro",
+          "cta_url": "https://www.chatbase.co/pricing",
+          "is_popular": false
         }
       ]
     },
@@ -41540,7 +41851,51 @@
       "last_verified_at": "2026-07-02",
       "source_url": "https://superwhisper.com/billing",
       "currency": "USD",
-      "tiers": []
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0/mo",
+          "features": [
+            "Unlimited use of small local AI models",
+            "Voice-to-text input in any app",
+            "Direct audio/meeting recording",
+            "100+ languages translation support"
+          ],
+          "cta_label": "Install Free",
+          "cta_url": "https://superwhisper.com",
+          "is_popular": false
+        },
+        {
+          "name": "Pro",
+          "price_amount": 8.49,
+          "price_display": "$8.49/mo",
+          "features": [
+            "Unlimited cloud & local models access",
+            "Bring-Your-Own-Key (BYOK) API support",
+            "Audio file transcription upload",
+            "Premium support & 40% student discount"
+          ],
+          "cta_label": "Upgrade to Pro",
+          "cta_url": "https://superwhisper.com/billing",
+          "is_popular": true,
+          "highlight_label": "Recommended"
+        },
+        {
+          "name": "Lifetime",
+          "price_amount": 250,
+          "price_display": "$250 one-time",
+          "features": [
+            "One-time payment lifetime access",
+            "All Pro features included",
+            "All future software updates",
+            "30-day money-back guarantee"
+          ],
+          "cta_label": "Buy Lifetime",
+          "cta_url": "https://superwhisper.com/billing",
+          "is_popular": false
+        }
+      ]
     },
     "curation_score": 88.0,
     "academic_integrity_rating": "Safe",
@@ -41965,30 +42320,45 @@
         {
           "name": "Free Trial",
           "price_amount": 0,
-          "price_display": "Free",
+          "price_display": "Free trial",
           "features": [
-            "Record unlimited preview drafts",
-            "Export up to 10 completed files",
-            "720p output resolution limits",
-            "Tella watermark print logo"
+            "Record up to 10 videos max limit",
+            "Basic online editor tools",
+            "Standard resolutions export",
+            "Private video sharing links"
           ],
           "cta_label": "Start Trial",
           "cta_url": "https://www.tella.tv",
           "is_popular": false
         },
         {
-          "name": "Personal Pro",
+          "name": "Pro Plan",
           "price_amount": 15,
-          "price_display": "$15/mo (billed annually)",
+          "price_display": "$15/mo",
           "features": [
-            "Unlimited video exports",
-            "Remove watermarks completely",
-            "1080p full HD video exports",
-            "Custom layout brand options"
+            "Unlimited videos recording",
+            "4K high-quality video exports",
+            "AI generated subtitles & edits",
+            "Billed annually at $180 ($19/mo monthly)"
           ],
-          "cta_label": "Go Pro",
+          "cta_label": "Choose Pro",
           "cta_url": "https://www.tella.tv/pricing",
-          "is_popular": true
+          "is_popular": true,
+          "highlight_label": "Recommended"
+        },
+        {
+          "name": "Team Plan",
+          "price_amount": 32,
+          "price_display": "$32/user/mo",
+          "features": [
+            "Shared team workspaces library",
+            "Custom domain branding setup",
+            "Advanced video viewer analytics",
+            "Billed annually at $384 ($39/mo monthly)"
+          ],
+          "cta_label": "Choose Team",
+          "cta_url": "https://www.tella.tv/pricing",
+          "is_popular": false
         }
       ]
     },
@@ -43786,10 +44156,10 @@
     "review_count": 245,
     "company": "Autodesk",
     "logo_emoji": "📐",
-    "pricing_tier": "free",
+    "pricing_tier": "freemium",
     "popularity_score": 0.86,
     "weekly_users_estimate": "1.5M+",
-    "pricing": "Free",
+    "pricing": "Freemium",
     "strengths": [
       "Free student access",
       "Generative design AI",
@@ -43808,16 +44178,33 @@
       "currency": "USD",
       "tiers": [
         {
-          "name": "Free",
+          "name": "Personal Use",
           "price_amount": 0,
           "price_display": "Free",
           "features": [
-            "Full access to standard features",
-            "No hidden subscription costs"
+            "Non-commercial personal projects",
+            "Basic CAD & 3D design features",
+            "Restricted file import/export",
+            "3-year term, fully renewable"
           ],
-          "cta_label": "Get Started",
+          "cta_label": "Get Personal License",
+          "cta_url": "https://www.autodesk.com/products/fusion-360/personal",
+          "is_popular": false
+        },
+        {
+          "name": "Commercial Subscription",
+          "price_amount": 490,
+          "price_display": "$490/yr",
+          "features": [
+            "Full professional CAM & PCB toolsets",
+            "Generative design AI simulations",
+            "Team collaboration & cloud data",
+            "Standard business commercial rights"
+          ],
+          "cta_label": "Buy Fusion",
           "cta_url": "https://www.autodesk.com/products/fusion-360",
-          "is_popular": true
+          "is_popular": true,
+          "highlight_label": "Professional"
         }
       ]
     },
@@ -43985,7 +44372,54 @@
     "student_note": "Ask your university library for the Matlab Campus-Wide License code to get access for free",
     "last_verified": "2026-06-22",
     "pricing_tiers": {
-      "last_verified_at": "2026-07-02"
+      "last_verified_at": "2026-07-02",
+      "source_url": "https://www.mathworks.com/pricing-licensing",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Student Suite",
+          "price_amount": 119,
+          "price_display": "$119/yr",
+          "features": [
+            "MATLAB & Simulink Student Suite",
+            "11 common add-on toolboxes",
+            "For degree-granting courses",
+            "Accredited educational use only"
+          ],
+          "cta_label": "Buy Student",
+          "cta_url": "https://www.mathworks.com/pricing-licensing",
+          "is_popular": false
+        },
+        {
+          "name": "Home License",
+          "price_amount": 165,
+          "price_display": "$165/yr",
+          "features": [
+            "MATLAB, Simulink, and 12 toolboxes",
+            "Personal, non-commercial use only",
+            "Full desktop & web interface",
+            "Annual subscription updates"
+          ],
+          "cta_label": "Buy Home",
+          "cta_url": "https://www.mathworks.com/pricing-licensing",
+          "is_popular": true,
+          "highlight_label": "Personal Use"
+        },
+        {
+          "name": "Professional",
+          "price_amount": 1050,
+          "price_display": "$1,050/yr",
+          "features": [
+            "Standard commercial usage license",
+            "Dedicated corporate support SLA",
+            "Custom toolboxes quote-based",
+            "Perpetual license options available"
+          ],
+          "cta_label": "Request Quote",
+          "cta_url": "https://www.mathworks.com/pricing-licensing",
+          "is_popular": false
+        }
+      ]
     }
   },
   {
