@@ -11,4 +11,4 @@ ENV PYTHONUNBUFFERED=1
 
 EXPOSE 10000
 
-CMD ["sh", "-c", "gunicorn wsgi:app --bind 0.0.0.0:${PORT:-10000} --workers 1 --worker-class gthread --threads 4 --timeout 120 --access-logfile - --error-logfile -"]
+CMD ["gunicorn", "wsgi:app", "--config", "gunicorn.conf.py"]

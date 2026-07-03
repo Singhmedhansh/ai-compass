@@ -1,11 +1,11 @@
 import os
 
-# Bind — read PORT from Render's injected env var; fall back to 10000
-# (Render's default) so the literal string "$PORT" never gets passed
-# if the shell substitution somehow fails.
-_port = os.environ.get("PORT", "10000")
+# ---------------------------------------------------------------------------
+# Port — Render injects $PORT (usually 10000). Fall back to 10000 so the
+# config works even when the env var is absent (local dev, Docker).
+# ---------------------------------------------------------------------------
 try:
-    _port = int(_port)
+    _port = int(os.environ.get("PORT") or 10000)
 except (TypeError, ValueError):
     _port = 10000
 
