@@ -63,13 +63,15 @@ function QRLightbox({ onClose }) {
             <X className="h-4 w-4" aria-hidden="true" />
           </button>
 
-          {/* Large QR */}
-          <img
-            src={GPAY_QR_IMAGE}
-            alt="GPay UPI QR code — scan with any UPI or camera app to pay Medhansh Singh"
-            className="w-full rounded-xl object-contain"
-            style={{ maxHeight: '70vmin' }}
-          />
+          {/* Large QR — name header cropped via overflow:hidden + translateY */}
+          <div className="w-full overflow-hidden rounded-xl" style={{ maxHeight: '70vmin' }}>
+            <img
+              src={GPAY_QR_IMAGE}
+              alt="GPay UPI QR code — scan with any UPI or camera app to pay"
+              className="w-full block"
+              style={{ transform: 'translateY(-20%)', display: 'block' }}
+            />
+          </div>
 
           {/* UPI hint */}
           <p className="text-center text-xs text-gray-500 leading-relaxed">
@@ -223,13 +225,19 @@ export default function SupportPage() {
                   className="group/qr relative inline-flex rounded-xl border border-line bg-white p-3 shadow-sm transition hover:border-accent/40 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                   title="Click to enlarge and scan"
                 >
-                  <img
-                    src={GPAY_QR_IMAGE}
-                    alt="GPay UPI QR code — click to enlarge"
-                    width={176}
-                    height={176}
-                    className="h-44 w-44 object-contain"
-                  />
+                  {/* QR thumbnail — header cropped via overflow:hidden + translateY */}
+                  <div
+                    className="overflow-hidden rounded-lg"
+                    style={{ width: 176, height: 176 }}
+                  >
+                    <img
+                      src={GPAY_QR_IMAGE}
+                      alt="GPay UPI QR code — click to enlarge and scan"
+                      width={176}
+                      className="w-full block"
+                      style={{ transform: 'translateY(-20%)' }}
+                    />
+                  </div>
                   {/* Hover overlay hint */}
                   <span className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-xl bg-black/0 transition-colors duration-200 group-hover/qr:bg-black/10">
                     <span className="flex items-center gap-1.5 rounded-full bg-black/60 px-3 py-1.5 text-[11px] font-medium text-white opacity-0 transition-opacity duration-200 group-hover/qr:opacity-100">
