@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { Eye, EyeOff, Link2, Pencil, Plus, Trash2 } from 'lucide-react'
+import { Eye, EyeOff, Link2, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -14,7 +14,7 @@ const MotionSpan = motion.span
 
 const ADMIN_EMAILS = ['singhmedhansh07@gmail.com']
 const TOOLS_PAGE_SIZE = 15
-const TABS = ['Overview', 'Tools', 'Sync', 'Submissions', 'Feedback', 'Analytics', 'Email', 'Newsletter', 'Flags', 'Users', 'Reviews', 'Links']
+const TABS = ['Overview', 'Tools', 'Sync', 'Submissions', 'Feedback', 'Analytics', 'Email', 'Newsletter', 'Flags', 'Users', 'Reviews', 'Links', 'Outreach']
 
 const EMPTY_TOOL = {
   slug: '', name: '', tagline: '', description: '', category: '',
@@ -177,6 +177,17 @@ function AdminPage() {
     last_completed: null
   })
 
+  // Outreach pipeline states
+  const [candidates, setCandidates] = useState([])
+  const [outreachLogs, setOutreachLogs] = useState([])
+  const [outreachSubTab, setOutreachSubTab] = useState('candidates')
+  const [outreachFilter, setOutreachFilter] = useState('all')
+  const [selectedCandidateIds, setSelectedCandidateIds] = useState([])
+  const [editingCandidate, setEditingCandidate] = useState(null)
+  const [outreachBusy, setOutreachBusy] = useState(null)
+  const [manualCandidate, setManualCandidate] = useState({ product_name: '', website_url: '', founder_name: '', email: '', tone: 'peer', tagline: '' })
+  const [showManualAdd, setShowManualAdd] = useState(false)
+
   const [toolsQuery, setToolsQuery] = useState('')
   const [toolsPage, setToolsPage] = useState(1)
   const [editing, setEditing] = useState(null)
@@ -285,7 +296,26 @@ function AdminPage() {
         .then(setLinkAudit)
         .catch(() => {})
     }
+    if (activeTab === 'Outreach') {
+      loadOutreachData()
+    }
   }, [activeTab, authed])
+
+  const loadOutreachData = useCallback(async () => {
+    setLoading(true)
+    try {
+      const [candData, logData] = await Promise.all([
+        api('/api/v1/admin/outreach/candidates'),
+        api('/api/v1/admin/outreach/logs')
+      ])
+      setCandidates(candData)
+      setOutreachLogs(logData)
+    } catch (e) {
+      toast.error('Failed to load outreach pipeline data')
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
   useEffect(() => {
     if (!authed || activeTab !== 'Links') return
@@ -1318,6 +1348,668 @@ function AdminPage() {
               )}
             </div>
           </Card>
+        )}
+
+        {activeTab === 'Outreach' && (
+          <div className="space-y-6">
+            {/* Outreach Header Buttons */}
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setOutreachSubTab('candidates')}
+                  className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+                    outreachSubTab === 'candidates' ? 'bg-accent text-bg' : 'bg-bg-elev border border-line text-ink-2 hover:bg-bg-sunk'
+                  }`}
+                >
+                  Candidates
+                </button>
+                <button
+                  onClick={() => setOutreachSubTab('logs')}
+                  className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+                    outreachSubTab === 'logs' ? 'bg-accent text-bg' : 'bg-bg-elev border border-line text-ink-2 hover:bg-bg-sunk'
+                  }`}
+                >
+                  Outreach Email Logs
+                </button>
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  disabled={outreachBusy === 'discovery'}
+                  onClick={async () => {
+                    setOutreachBusy('discovery')
+                    try {
+                      const res = await api('/api/v1/admin/outreach/trigger-discovery', { method: 'POST' })
+                      toast.success(`Discovery complete! Discovered ${res.new_candidates_count} new candidates.`)
+                      loadOutreachData()
+                    } catch (e) {
+                      toast.error(e.message)
+                    } finally {
+                      setOutreachBusy(null)
+                    }
+                  }}
+                  className={BTN_GHOST}
+                >
+                  {outreachBusy === 'discovery' ? 'Discovering launches…' : 'Run PH Discovery'}
+                </button>
+                <button
+                  onClick={() => setShowManualAdd(!showManualAdd)}
+                  className={`flex items-center gap-1.5 ${BTN_PRIMARY}`}
+                >
+                  <Plus className="h-4 w-4" /> Add Candidate
+                </button>
+              </div>
+            </div>
+
+            {/* Manual Add Candidate Card */}
+            {showManualAdd && (
+              <Card>
+                <h3 className="text-lg font-semibold text-ink">Add Outreach Candidate Manually</h3>
+                <p className="text-xs text-muted mt-1">Saves the candidate and automatically drafts a Claude-personalized email.</p>
+                <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  <label className="block">
+                    <span className="text-xs font-medium text-muted">Product Name *</span>
+                    <input
+                      type="text"
+                      value={manualCandidate.product_name}
+                      onChange={(e) => setManualCandidate({ ...manualCandidate, product_name: e.target.value })}
+                      className={INPUT}
+                      placeholder="e.g. Mark"
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="text-xs font-medium text-muted">Website URL *</span>
+                    <input
+                      type="text"
+                      value={manualCandidate.website_url}
+                      onChange={(e) => setManualCandidate({ ...manualCandidate, website_url: e.target.value })}
+                      className={INPUT}
+                      placeholder="e.g. https://airtop.ai"
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="text-xs font-medium text-muted">Founder / Maker Name</span>
+                    <input
+                      type="text"
+                      value={manualCandidate.founder_name}
+                      onChange={(e) => setManualCandidate({ ...manualCandidate, founder_name: e.target.value })}
+                      className={INPUT}
+                      placeholder="e.g. Jijo"
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="text-xs font-medium text-muted">Email (optional)</span>
+                    <input
+                      type="text"
+                      value={manualCandidate.email}
+                      onChange={(e) => setManualCandidate({ ...manualCandidate, email: e.target.value })}
+                      className={INPUT}
+                      placeholder="e.g. founder@domain.com"
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="text-xs font-medium text-muted">Tone</span>
+                    <select
+                      value={manualCandidate.tone}
+                      onChange={(e) => setManualCandidate({ ...manualCandidate, tone: e.target.value })}
+                      className={INPUT}
+                    >
+                      <option value="peer">Peer (Congratulatory / PH Launch)</option>
+                      <option value="formal">Formal ($75/mo Placement Pitch)</option>
+                    </select>
+                  </label>
+                  <label className="block">
+                    <span className="text-xs font-medium text-muted">Tagline / Description</span>
+                    <input
+                      type="text"
+                      value={manualCandidate.tagline}
+                      onChange={(e) => setManualCandidate({ ...manualCandidate, tagline: e.target.value })}
+                      className={INPUT}
+                      placeholder="Tagline or concept"
+                    />
+                  </label>
+                </div>
+                <div className="mt-4 flex justify-end gap-2">
+                  <button onClick={() => setShowManualAdd(false)} className={BTN_GHOST}>Cancel</button>
+                  <button
+                    disabled={outreachBusy === 'add'}
+                    onClick={async () => {
+                      if (!manualCandidate.product_name || !manualCandidate.website_url) {
+                        return toast.error('Product Name and Website URL are required')
+                      }
+                      setOutreachBusy('add')
+                      try {
+                        await api('/api/v1/admin/outreach/candidates', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify(manualCandidate)
+                        })
+                        toast.success('Outreach candidate and draft generated!')
+                        setManualCandidate({ product_name: '', website_url: '', founder_name: '', email: '', tone: 'peer', tagline: '' })
+                        setShowManualAdd(false)
+                        loadOutreachData()
+                      } catch (e) {
+                        toast.error(e.message)
+                      } finally {
+                        setOutreachBusy(null)
+                      }
+                    }}
+                    className={BTN_PRIMARY}
+                  >
+                    {outreachBusy === 'add' ? 'Generating draft…' : 'Generate & Save Draft'}
+                  </button>
+                </div>
+              </Card>
+            )}
+
+            {/* Candidates Sub-Tab */}
+            {outreachSubTab === 'candidates' && (
+              <div className="space-y-4">
+                {/* Filters Row */}
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-8">
+                  {[
+                    ['all', 'All', candidates.length],
+                    ['draft_ready', 'Draft Ready', candidates.filter(c => c.status === 'draft_ready').length],
+                    ['no_email_found', 'No Email', candidates.filter(c => c.status === 'no_email_found').length],
+                    ['sent', 'Sent', candidates.filter(c => c.status === 'sent').length],
+                    ['followed_up', 'Followed Up', candidates.filter(c => c.status === 'followed_up').length],
+                    ['replied', 'Replied', candidates.filter(c => c.status === 'replied').length],
+                    ['bounced', 'Bounced', candidates.filter(c => c.status === 'bounced').length],
+                    ['rejected', 'Rejected', candidates.filter(c => c.status === 'rejected').length]
+                  ].map(([status, label, count]) => (
+                    <button
+                      key={status}
+                      onClick={() => setOutreachFilter(status)}
+                      className={`flex flex-col items-center justify-center rounded-xl border p-3 transition text-center ${
+                        outreachFilter === status
+                          ? 'border-accent bg-accent/5 text-accent-ink'
+                          : 'border-line bg-bg-elev text-ink-2 hover:border-line-strong hover:bg-bg-sunk'
+                      }`}
+                    >
+                      <span className="text-[10px] uppercase tracking-wider text-muted">{label}</span>
+                      <span className="mt-1 text-lg font-bold text-ink">{count}</span>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Bulk Actions Header */}
+                {selectedCandidateIds.length > 0 && (
+                  <div className="flex items-center justify-between rounded-xl border border-accent/20 bg-accent/5 p-4 animate-fade-in">
+                    <span className="text-sm font-semibold text-accent-ink">
+                      {selectedCandidateIds.length} candidate(s) selected
+                    </span>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={async () => {
+                          if (!window.confirm(`Bulk reject ${selectedCandidateIds.length} selected candidate(s)?`)) return
+                          setOutreachBusy('bulk')
+                          try {
+                            await api('/api/v1/admin/outreach/candidates/bulk-reject', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ ids: selectedCandidateIds })
+                            })
+                            toast.success('Bulk rejection successful')
+                            setSelectedCandidateIds([])
+                            loadOutreachData()
+                          } catch (e) {
+                            toast.error(e.message)
+                          } finally {
+                            setOutreachBusy(null)
+                          }
+                        }}
+                        disabled={!!outreachBusy}
+                        className="rounded-lg border border-danger/30 bg-danger-soft px-3 py-1.5 text-xs font-semibold text-danger transition hover:bg-danger/20"
+                      >
+                        Skip Selected
+                      </button>
+                      <button
+                        onClick={async () => {
+                          if (!window.confirm(`Bulk send emails to ${selectedCandidateIds.length} selected candidate(s)? This will send real emails immediately!`)) return
+                          setOutreachBusy('bulk')
+                          try {
+                            const res = await api('/api/v1/admin/outreach/candidates/bulk-send', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ ids: selectedCandidateIds })
+                            })
+                            toast.success(`Bulk send complete: ${res.sent} sent, ${res.failed} failed.`)
+                            setSelectedCandidateIds([])
+                            loadOutreachData()
+                          } catch (e) {
+                            toast.error(e.message)
+                          } finally {
+                            setOutreachBusy(null)
+                          }
+                        }}
+                        disabled={!!outreachBusy}
+                        className="rounded-lg bg-accent px-3 py-1.5 text-xs font-semibold text-bg transition hover:opacity-90"
+                      >
+                        Send Selected
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Candidates List/Table */}
+                <Card>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full text-left text-sm">
+                      <thead>
+                        <tr className="border-b border-line text-muted">
+                          <th className="px-3 py-2 text-center w-10">
+                            <input
+                              type="checkbox"
+                              checked={
+                                candidates.length > 0 &&
+                                candidates
+                                  .filter(c => outreachFilter === 'all' || c.status === outreachFilter)
+                                  .every(c => selectedCandidateIds.includes(c.id))
+                              }
+                              onChange={(e) => {
+                                const visible = candidates.filter(
+                                  c => outreachFilter === 'all' || c.status === outreachFilter
+                                )
+                                if (e.target.checked) {
+                                  setSelectedCandidateIds(prev => [
+                                    ...prev,
+                                    ...visible.map(c => c.id).filter(id => !prev.includes(id))
+                                  ])
+                                } else {
+                                  setSelectedCandidateIds(prev =>
+                                    prev.filter(id => !visible.map(c => c.id).includes(id))
+                                  )
+                                }
+                              }}
+                              className="rounded border-line bg-bg focus:ring-accent"
+                            />
+                          </th>
+                          <th className="px-3 py-2 font-semibold">Product</th>
+                          <th className="px-3 py-2 font-semibold">Founder</th>
+                          <th className="px-3 py-2 font-semibold">Email / Source</th>
+                          <th className="px-3 py-2 font-semibold">Status</th>
+                          <th className="px-3 py-2 font-semibold">Tone</th>
+                          <th className="px-3 py-2 font-semibold">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {candidates
+                          .filter(c => outreachFilter === 'all' || c.status === outreachFilter)
+                          .map((c) => (
+                            <tr key={c.id} className="border-b border-line/60 transition hover:bg-bg-sunk/35">
+                              <td className="px-3 py-2 text-center">
+                                <input
+                                  type="checkbox"
+                                  checked={selectedCandidateIds.includes(c.id)}
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      setSelectedCandidateIds(prev => [...prev, c.id])
+                                    } else {
+                                      setSelectedCandidateIds(prev => prev.filter(id => id !== c.id))
+                                    }
+                                  }}
+                                  className="rounded border-line bg-bg focus:ring-accent"
+                                />
+                              </td>
+                              <td className="px-3 py-2 font-medium text-ink">
+                                <div className="font-semibold">{c.product_name}</div>
+                                <div className="text-[11px] text-muted truncate max-w-xs">{c.tagline || '—'}</div>
+                              </td>
+                              <td className="px-3 py-2 text-ink-2 font-mono text-xs">{c.founder_name || '—'}</td>
+                              <td className="px-3 py-2 text-xs">
+                                <div>{c.email || <span className="text-danger italic">No Email Found</span>}</div>
+                                {c.email && (
+                                  <div className="text-[10px] text-muted">
+                                    via {c.email_source}{' '}
+                                    {c.confidence_score ? `(${c.confidence_score}% score)` : ''}
+                                  </div>
+                                )}
+                              </td>
+                              <td className="px-3 py-2">
+                                <span
+                                  className={`inline-flex rounded px-2 py-0.5 text-xs font-bold ${
+                                    c.status === 'draft_ready'
+                                      ? 'bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400'
+                                      : c.status === 'sent'
+                                      ? 'bg-sky-500/10 border border-sky-500/20 text-sky-600 dark:text-sky-400'
+                                      : c.status === 'followed_up'
+                                      ? 'bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400'
+                                      : c.status === 'replied'
+                                      ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400'
+                                      : c.status === 'no_email_found'
+                                      ? 'bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400'
+                                      : 'bg-gray-500/10 border border-gray-500/20 text-gray-500'
+                                  }`}
+                                >
+                                  {c.status}
+                                </span>
+                              </td>
+                              <td className="px-3 py-2 text-xs text-muted capitalize">{c.tone}</td>
+                              <td className="px-3 py-2">
+                                <div className="flex items-center gap-1.5">
+                                  <button
+                                    onClick={() => setEditingCandidate(c)}
+                                    title="Review & Edit Draft"
+                                    className="rounded-md border border-line bg-bg-sunk hover:bg-line text-ink-2 px-2 py-1 text-xs font-bold transition"
+                                  >
+                                    Review
+                                  </button>
+                                  {c.status !== 'replied' && (c.status === 'sent' || c.status === 'followed_up') && (
+                                    <button
+                                      onClick={async () => {
+                                        try {
+                                          await api(`/api/v1/admin/outreach/candidates/${c.id}`, {
+                                            method: 'PUT',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({ status: 'replied' })
+                                          })
+                                          toast.success('Marked as Replied!')
+                                          loadOutreachData()
+                                        } catch (e) {
+                                          toast.error(e.message)
+                                        }
+                                      }}
+                                      className="rounded-md border border-emerald-500/40 bg-emerald-500/10 text-emerald-600 px-2 py-1 text-xs font-bold transition hover:bg-emerald-500/20"
+                                    >
+                                      Replied
+                                    </button>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        {candidates.filter(c => outreachFilter === 'all' || c.status === outreachFilter).length === 0 && (
+                          <tr>
+                            <td colSpan={7} className="text-center py-6 text-sm text-muted">
+                              No candidates in this status filter.
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </Card>
+              </div>
+            )}
+
+            {/* Email Logs Sub-Tab */}
+            {outreachSubTab === 'logs' && (
+              <Card>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full text-left text-sm">
+                    <thead>
+                      <tr className="border-b border-line text-muted">
+                        <th className="px-3 py-2 font-semibold">Sent to</th>
+                        <th className="px-3 py-2 font-semibold">Product</th>
+                        <th className="px-3 py-2 font-semibold">Subject</th>
+                        <th className="px-3 py-2 font-semibold">Status</th>
+                        <th className="px-3 py-2 font-semibold">Sent At</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {outreachLogs.map((log) => (
+                        <tr key={log.id} className="border-b border-line/60 transition hover:bg-bg-sunk/35">
+                          <td className="px-3 py-2 font-medium text-ink">{log.email}</td>
+                          <td className="px-3 py-2 text-muted">{log.product_name}</td>
+                          <td className="px-3 py-2 text-ink-2 font-mono text-xs">{log.subject}</td>
+                          <td className="px-3 py-2 text-xs">
+                            <span
+                              className={`inline-flex rounded px-2 py-0.5 text-xs font-bold ${
+                                log.status === 'success'
+                                  ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400'
+                                  : 'bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400'
+                              }`}
+                            >
+                              {log.status}
+                            </span>
+                            {log.error_message && (
+                              <div className="text-[10px] text-danger mt-0.5">{log.error_message}</div>
+                            )}
+                          </td>
+                          <td className="px-3 py-2 text-xs text-muted font-mono">
+                            {new Date(log.sent_at).toLocaleString()}
+                          </td>
+                        </tr>
+                      ))}
+                      {outreachLogs.length === 0 && (
+                        <tr>
+                          <td colSpan={5} className="text-center py-6 text-sm text-muted">
+                            No logs found.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </Card>
+            )}
+
+            {/* Editing/Review Proposal Drawer Modal */}
+            <AnimatePresence>
+              {editingCandidate && (
+                <MotionDiv
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+                >
+                  <MotionDiv
+                    initial={{ opacity: 0, scale: 0.96, y: 12 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.98, y: 10 }}
+                    className="max-h-[95vh] w-full max-w-4xl overflow-y-auto rounded-2xl border border-line bg-bg-elev p-6 shadow-2xl flex flex-col"
+                  >
+                    <div className="flex items-center justify-between border-b border-line pb-4">
+                      <div>
+                        <h3 className="text-xl font-semibold text-ink">
+                          Review Proposal: {editingCandidate.product_name}
+                        </h3>
+                        <p className="text-xs text-muted mt-0.5">
+                          Domain: <a href={editingCandidate.website_url} target="_blank" rel="noopener noreferrer" className="text-accent-ink underline">{editingCandidate.website_url}</a>
+                          {editingCandidate.founder_name && ` • Founder: ${editingCandidate.founder_name}`}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => setEditingCandidate(null)}
+                        className="rounded-full bg-bg-sunk hover:bg-line text-ink-2 p-1.5 transition"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+
+                    <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3 flex-1 overflow-y-auto py-2">
+                      {/* Left Sidebar Info */}
+                      <div className="space-y-4 lg:border-r lg:border-line lg:pr-4">
+                        <label className="block">
+                          <span className="text-xs font-medium text-muted">Founder / Contact Name</span>
+                          <input
+                            type="text"
+                            value={editingCandidate.founder_name || ''}
+                            onChange={(e) => setEditingCandidate({ ...editingCandidate, founder_name: e.target.value })}
+                            className={INPUT}
+                          />
+                        </label>
+                        <label className="block">
+                          <span className="text-xs font-medium text-muted">Contact Email</span>
+                          <input
+                            type="text"
+                            value={editingCandidate.email || ''}
+                            onChange={(e) => setEditingCandidate({ ...editingCandidate, email: e.target.value })}
+                            className={INPUT}
+                          />
+                        </label>
+                        <label className="block">
+                          <span className="text-xs font-medium text-muted">Tone</span>
+                          <select
+                            value={editingCandidate.tone}
+                            onChange={(e) => setEditingCandidate({ ...editingCandidate, tone: e.target.value })}
+                            className={INPUT}
+                          >
+                            <option value="peer">Peer</option>
+                            <option value="formal">Formal</option>
+                          </select>
+                        </label>
+                        <div className="rounded-xl border border-line bg-bg-sunk p-3 text-xs text-muted space-y-1">
+                          <div><b>Email Source:</b> {editingCandidate.email_source}</div>
+                          {editingCandidate.confidence_score && (
+                            <div><b>Hunter.io Score:</b> {editingCandidate.confidence_score}%</div>
+                          )}
+                          <div><b>Status:</b> {editingCandidate.status}</div>
+                        </div>
+
+                        <div className="space-y-2 pt-2">
+                          <button
+                            disabled={outreachBusy === 'regenerate'}
+                            onClick={async () => {
+                              setOutreachBusy('regenerate')
+                              try {
+                                const d = await api(`/api/v1/admin/outreach/candidates/${editingCandidate.id}`, {
+                                  method: 'PUT',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({
+                                    founder_name: editingCandidate.founder_name,
+                                    email: editingCandidate.email,
+                                    tone: editingCandidate.tone,
+                                    regenerate_draft: true
+                                  })
+                                })
+                                toast.success('Draft proposal regenerated via Claude!')
+                                // Fetch latest draft values
+                                const fresh = await api('/api/v1/admin/outreach/candidates')
+                                const updated = fresh.find(x => x.id === editingCandidate.id)
+                                if (updated) setEditingCandidate(updated)
+                              } catch (e) {
+                                toast.error(e.message)
+                              } finally {
+                                setOutreachBusy(null)
+                              }
+                            }}
+                            className={`${BTN_GHOST} w-full`}
+                          >
+                            {outreachBusy === 'regenerate' ? 'Regenerating draft…' : 'Regenerate Draft'}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Right Editor content */}
+                      <div className="lg:col-span-2 space-y-4">
+                        <label className="block">
+                          <span className="text-xs font-medium text-muted">Subject</span>
+                          <input
+                            type="text"
+                            value={editingCandidate.draft_subject || ''}
+                            onChange={(e) => setEditingCandidate({ ...editingCandidate, draft_subject: e.target.value })}
+                            className={INPUT}
+                          />
+                        </label>
+                        <label className="block">
+                          <span className="text-xs font-medium text-muted">Email Body (HTML)</span>
+                          <textarea
+                            value={editingCandidate.draft_body || ''}
+                            onChange={(e) => setEditingCandidate({ ...editingCandidate, draft_body: e.target.value })}
+                            rows={15}
+                            className="w-full resize-y rounded-lg border border-line bg-bg-sunk p-3 font-mono text-xs text-ink-2"
+                          />
+                        </label>
+                      </div>
+                    </div>
+
+                    <div className="mt-6 flex justify-between border-t border-line pt-4">
+                      <div>
+                        {editingCandidate.status !== 'rejected' && (
+                          <button
+                            onClick={async () => {
+                              if (!window.confirm('Reject this candidate? It will be skipped from outreach.')) return
+                              try {
+                                await api(`/api/v1/admin/outreach/candidates/${editingCandidate.id}`, {
+                                  method: 'PUT',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ status: 'rejected' })
+                                })
+                                toast.success('Candidate skipped')
+                                setEditingCandidate(null)
+                                loadOutreachData()
+                              } catch (e) {
+                                toast.error(e.message)
+                              }
+                            }}
+                            className="rounded-lg border border-danger/30 bg-danger-soft px-4 py-2 text-sm font-semibold text-danger transition hover:bg-danger/20"
+                          >
+                            Skip/Reject
+                          </button>
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={async () => {
+                            try {
+                              await api(`/api/v1/admin/outreach/candidates/${editingCandidate.id}`, {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                  founder_name: editingCandidate.founder_name,
+                                  email: editingCandidate.email,
+                                  tone: editingCandidate.tone,
+                                  draft_subject: editingCandidate.draft_subject,
+                                  draft_body: editingCandidate.draft_body
+                                })
+                              })
+                              toast.success('Changes saved successfully!')
+                              loadOutreachData()
+                            } catch (e) {
+                              toast.error(e.message)
+                            }
+                          }}
+                          className={BTN_GHOST}
+                        >
+                          Save changes
+                        </button>
+                        <button
+                          disabled={outreachBusy === 'send' || !editingCandidate.email}
+                          onClick={async () => {
+                            if (!window.confirm(`Send email to ${editingCandidate.email} now?`)) return
+                            setOutreachBusy('send')
+                            try {
+                              // First save local changes
+                              await api(`/api/v1/admin/outreach/candidates/${editingCandidate.id}`, {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                  founder_name: editingCandidate.founder_name,
+                                  email: editingCandidate.email,
+                                  tone: editingCandidate.tone,
+                                  draft_subject: editingCandidate.draft_subject,
+                                  draft_body: editingCandidate.draft_body
+                                })
+                              })
+                              // Then trigger send
+                              const sendRes = await api(`/api/v1/admin/outreach/candidates/${editingCandidate.id}/send`, {
+                                method: 'POST'
+                              })
+                              if (sendRes.success) {
+                                toast.success('Email sent successfully!')
+                                setEditingCandidate(null)
+                                loadOutreachData()
+                              } else {
+                                toast.error('Failed to send email')
+                              }
+                            } catch (e) {
+                              toast.error(e.message)
+                            } finally {
+                              setOutreachBusy(null)
+                            }
+                          }}
+                          className={BTN_PRIMARY}
+                        >
+                          {outreachBusy === 'send' ? 'Sending email…' : 'Send email now'}
+                        </button>
+                      </div>
+                    </div>
+                  </MotionDiv>
+                </MotionDiv>
+              )}
+            </AnimatePresence>
+          </div>
         )}
       </MotionDiv>
 

@@ -417,5 +417,41 @@ class StackVote(db.Model):
     )
 
 
+class OutreachCandidate(db.Model):
+    __tablename__ = "outreach_candidates"
+
+    id = db.Column(db.Integer, primary_key=True)
+    product_name = db.Column(db.String(255), nullable=False)
+    tagline = db.Column(db.String(500), nullable=True)
+    website_url = db.Column(db.String(500), nullable=True)
+    founder_name = db.Column(db.String(255), nullable=True)
+    email = db.Column(db.String(255), nullable=True)
+    status = db.Column(db.String(50), nullable=False, default="draft_ready", index=True)
+    # Statuses: 'draft_ready', 'sent', 'followed_up', 'replied', 'no_email_found', 'bounced', 'rejected'
+    draft_subject = db.Column(db.Text, nullable=True)
+    draft_body = db.Column(db.Text, nullable=True)
+    email_source = db.Column(db.String(100), nullable=True)  # 'scraper', 'hunter', 'manual'
+    confidence_score = db.Column(db.Integer, nullable=True)  # Hunter.io confidence %
+    tone = db.Column(db.String(20), nullable=False, default="peer")  # 'peer' or 'formal'
+    ph_launch_id = db.Column(db.String(100), nullable=True, unique=True, index=True)
+    created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    last_status_change_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+
+
+class OutreachEmailLog(db.Model):
+    __tablename__ = "outreach_email_logs"
+
+    id = db.Column(db.Integer, primary_key=True)
+    candidate_id = db.Column(db.Integer, db.ForeignKey("outreach_candidates.id", ondelete="CASCADE"), nullable=False)
+    email = db.Column(db.String(255), nullable=False)
+    subject = db.Column(db.String(500), nullable=False)
+    body = db.Column(db.Text, nullable=False)
+    status = db.Column(db.String(50), nullable=False)  # 'success', 'failure'
+    error_message = db.Column(db.Text, nullable=True)
+    sent_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+
+
+
 
 

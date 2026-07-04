@@ -352,6 +352,13 @@ def create_app(config: dict | None = None) -> Flask:
             raise
 
         try:
+            from app.outreach_routes import outreach_bp
+            app.register_blueprint(outreach_bp)
+        except Exception as e:
+            app.logger.error(f"Failed to register outreach_routes: {e}")
+            raise
+
+        try:
             from app import oauth
             app.register_blueprint(oauth.oauth_bp)
             oauth.init_oauth(app)
@@ -766,7 +773,8 @@ def create_app(config: dict | None = None) -> Flask:
                 # it will be available at runtime without the memory spike.
                 print("[WARMUP] ML model loading skipped (memory budget: free-tier 512MB)", flush=True)
 
-    if not app.config.get("TESTING") and _first_warmup:
+    is_cli = sys.argv and any(x in sys.argv[0] or x in sys.argv for x in ['flask', 'db', 'migrate', 'manage.py'])
+    if not app.config.get("TESTING") and _first_warmup and not is_cli:
         app._warmup_started = True
         threading.Thread(target=_warm_up, name="warmup", daemon=True).start()
     elif not app.config.get("TESTING"):
