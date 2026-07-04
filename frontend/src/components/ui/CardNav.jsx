@@ -4,6 +4,7 @@ import { gsap } from 'gsap'
 import {
   ArrowLeft,
   ChevronDown,
+  Heart,
   LayoutDashboard,
   LogOut,
   Moon,
@@ -104,6 +105,14 @@ const CardNav = ({ className = '', ease = 'power3.out' }) => {
         { label: 'For Teachers', ariaLabel: 'Best tools for teachers', href: '/best-ai-tools-for-teachers' },
         { label: 'Free AI Tools', ariaLabel: 'Best free tools', href: '/best-free-ai-tools' },
         { label: 'Coding Tools', ariaLabel: 'Best coding tools', href: '/best-coding-tools-for-students' }
+      ]
+    },
+    {
+      label: 'Support',
+      bgColor: isDark ? 'rgba(60, 20, 20, 0.45)' : 'rgba(255, 240, 240, 0.45)',
+      textColor: 'var(--ink)',
+      links: [
+        { label: 'Support AI Compass ♥', ariaLabel: 'Support AI Compass — keep it free and ad-free', href: '/support' }
       ]
     }
   ]
@@ -367,6 +376,17 @@ const CardNav = ({ className = '', ease = 'power3.out' }) => {
                 <ChevronDown className="h-3.5 w-3.5 text-muted transition-transform duration-200" style={{ transform: isCurrencyMenuOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
               </button>
             </div>
+
+            {/* Support AI Compass — subtle heart link, hidden on smallest screens */}
+            <Link
+              to="/support"
+              className="hide-mobile inline-flex items-center gap-1.5 h-10 rounded-lg border border-line-strong bg-bg-elev px-3 text-xs font-medium text-ink-2 transition-colors hover:border-rose-400/60 hover:bg-rose-50/40 hover:text-rose-500 dark:hover:bg-rose-900/20 dark:hover:text-rose-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              aria-label="Support AI Compass"
+              title="Support AI Compass — keep it free and ad-free"
+            >
+              <Heart className="h-3.5 w-3.5" aria-hidden="true" />
+              <span>Support</span>
+            </Link>
 
             {/* Dark Mode Toggle */}
             <button
