@@ -2,6 +2,7 @@ import { motion } from 'framer-motion'
 import { Calendar, Check, Edit3, Eye, FolderPlus, Grid3X3, Heart, Home, Sparkles, Trash2, Wand2, X, AlertCircle, BarChart3, RefreshCw } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { toast } from 'sonner'
 
 import { Button, Card, CompassLoader, CountUp, ToolLogo, ChromaGrid } from '../components/ui'
 
@@ -98,6 +99,15 @@ function DashboardPage() {
   const [recommendations, setRecommendations] = useState([])
   const [favorites, setFavorites] = useState([])
   const [folders, setFolders] = useState([])
+  
+  const [refreshTrigger, setRefreshTrigger] = useState(0)
+  const [isCalibrating, setIsCalibrating] = useState(false)
+  const [editInterests, setEditInterests] = useState([])
+  const [editGoals, setEditGoals] = useState([])
+  const [editSkill, setEditSkill] = useState('intermediate')
+  const [editPricing, setEditPricing] = useState('freemium')
+  const [savingCalib, setSavingCalib] = useState(false)
+  const [calibError, setCalibError] = useState('')
   const [activeFolder, setActiveFolder] = useState('all')
   const [showCreateFolderInput, setShowCreateFolderInput] = useState(false)
   const [newFolderName, setNewFolderName] = useState('')
@@ -145,8 +155,14 @@ function DashboardPage() {
         }
 
         let mergedUser = { ...storedUser }
+        
+        // Pre-initialize edit states from local storage values
+        setEditInterests(Array.isArray(mergedUser.interests) ? mergedUser.interests : [])
+        setEditGoals(Array.isArray(mergedUser.goals) ? mergedUser.goals : [])
+        setEditSkill(mergedUser.skill_level || 'intermediate')
+        setEditPricing(mergedUser.pricing_pref || 'freemium')
 
-        // Fetch full user profile in background to get created_at/member_since
+        // Fetch full user profile in background to get created_at/member_since and preferences
         try {
           const authMeResponse = await fetch('/api/v1/auth/me', { signal: controller.signal })
           if (authMeResponse.ok) {
@@ -156,9 +172,19 @@ function DashboardPage() {
               ...mergedUser,
               created_at: fullUserData.created_at || storedUser.created_at,
               member_since: fullUserData.member_since || storedUser.member_since,
+              interests: fullUserData.interests || storedUser.interests || [],
+              goals: fullUserData.goals || storedUser.goals || [],
+              skill_level: fullUserData.skill_level || storedUser.skill_level || 'intermediate',
+              pricing_pref: fullUserData.pricing_pref || storedUser.pricing_pref || 'freemium',
             }
             // Update localStorage with the merged data
             localStorage.setItem('user', JSON.stringify(mergedUser))
+            
+            // Sync to edit state
+            setEditInterests(mergedUser.interests)
+            setEditGoals(mergedUser.goals)
+            setEditSkill(mergedUser.skill_level)
+            setEditPricing(mergedUser.pricing_pref)
           }
         } catch (authMeError) {
           // If auth/me fails (401 or network error), just use localStorage data
@@ -230,7 +256,7 @@ function DashboardPage() {
     loadDashboard()
 
     return () => controller.abort()
-  }, [navigate])
+  }, [navigate, refreshTrigger])
 
   const handleFetchWorkflowAnalytics = async (signal) => {
     setLoadingAnalytics(true)
@@ -264,6 +290,43 @@ function DashboardPage() {
     handleFetchWorkflowAnalytics(controller.signal)
     return () => controller.abort()
   }, [])
+
+  const handleSavePreferences = async (e) => {
+    e.preventDefault()
+    setSavingCalib(true)
+    setCalibError('')
+    try {
+      const res = await fetch('/api/v1/profile/preferences', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          interests: editInterests,
+          goals: editGoals,
+          skill_level: editSkill,
+          pricing_pref: editPricing,
+        }),
+      })
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}))
+        throw new Error(errData.error || 'Failed to save preferences')
+      }
+
+      const updatedUser = await res.json()
+      const localUser = JSON.parse(localStorage.getItem('user') || '{}')
+      localStorage.setItem('user', JSON.stringify({ ...localUser, ...updatedUser }))
+
+      // Re-fetch recommendations and workflow analytics
+      setRefreshTrigger(prev => prev + 1)
+      setIsCalibrating(false)
+      toast.success('Preferences updated! Calibrating your workspace... ⚡')
+    } catch (err) {
+      setCalibError(err.message || 'Failed to update preferences.')
+      toast.error(err.message || 'Failed to update preferences.')
+    } finally {
+      setSavingCalib(false)
+    }
+  }
 
   const fetchFolders = async () => {
     try {
@@ -552,6 +615,245 @@ function DashboardPage() {
                 </div>
               </div>
             </div>
+          </MotionSection>
+
+          {/* Personalization Calibrator Card */}
+          <MotionSection
+            variants={fadeUp}
+            initial="hidden"
+            animate="show"
+            className="rounded-xl border border-line bg-bg-elev p-5 shadow-sm overflow-hidden"
+          >
+            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-line pb-4">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent-soft text-accent">
+                  <Sparkles className="h-4 w-4" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-bold text-ink">Personalization Calibration</h2>
+                  <p className="text-[11px] text-muted">Fine-tune the AI recommendation engine to your specific needs.</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsCalibrating(!isCalibrating)
+                  if (!isCalibrating) {
+                    setEditInterests(Array.isArray(user?.interests) ? user.interests : [])
+                    setEditGoals(Array.isArray(user?.goals) ? user.goals : [])
+                    setEditSkill(user?.skill_level || 'intermediate')
+                    setEditPricing(user?.pricing_pref || 'freemium')
+                  }
+                }}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-bg-sunk px-3 py-1.5 text-xs font-semibold text-ink-2 transition hover:bg-line"
+              >
+                <Edit3 className="h-3.5 w-3.5" />
+                {isCalibrating ? 'Cancel' : 'Adjust Settings'}
+              </button>
+            </div>
+
+            {!isCalibrating ? (
+              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="rounded-xl bg-bg-sunk/35 p-3 border border-line/50">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted block mb-1">Interests</span>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {Array.isArray(user?.interests) && user.interests.length > 0 ? (
+                      user.interests.map(item => (
+                        <span key={item} className="inline-block rounded bg-accent-soft px-2 py-0.5 text-[10px] font-semibold text-accent-ink border border-accent/15">
+                          {item}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-xs text-muted">No interests selected</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="rounded-xl bg-bg-sunk/35 p-3 border border-line/50">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted block mb-1">Active Goals</span>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {Array.isArray(user?.goals) && user.goals.length > 0 ? (
+                      user.goals.map(item => {
+                        const labelMap = {
+                          'Academic Writing': 'Essay Writing',
+                          'Software Projects': 'App Coding',
+                          'Visual Design': 'Graphic Design',
+                          'Voiceovers & Podcasts': 'Audio Editing',
+                          'Study Planning': 'Task Mgmt',
+                          'Literature Review': 'Lit Review'
+                        }
+                        return (
+                          <span key={item} className="inline-block rounded bg-bg px-2 py-0.5 text-[10px] font-semibold text-ink-2 border border-line">
+                            {labelMap[item] || item}
+                          </span>
+                        )
+                      })
+                    ) : (
+                      <span className="text-xs text-muted">No goals selected</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="rounded-xl bg-bg-sunk/35 p-3 border border-line/50">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted block mb-1">Skill Level</span>
+                  <span className="inline-block rounded bg-bg px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-accent mt-1 border border-accent/10">
+                    {user?.skill_level || 'Intermediate'}
+                  </span>
+                </div>
+
+                <div className="rounded-xl bg-bg-sunk/35 p-3 border border-line/50">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted block mb-1">Budget Pref</span>
+                  <span className="inline-block rounded bg-bg px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-ink mt-1 border border-line">
+                    {user?.pricing_pref === 'free' ? 'Free only' : user?.pricing_pref === 'paid' ? 'Paid / Premium' : 'Freemium'}
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <form onSubmit={handleSavePreferences} className="mt-4 space-y-4 animate-fade-in">
+                {calibError && (
+                  <div className="rounded-lg bg-danger-soft p-2.5 text-xs text-danger border border-danger/10">
+                    {calibError}
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  {/* Interests */}
+                  <div className="space-y-1.5">
+                    <span className="text-xs font-bold uppercase tracking-wider text-muted">What tools are you looking for?</span>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      {[
+                        { id: 'Coding', label: 'Coding' },
+                        { id: 'Writing & Chat', label: 'Writing & Chat' },
+                        { id: 'Research', label: 'Research' },
+                        { id: 'Productivity', label: 'Productivity' },
+                        { id: 'Image Generation', label: 'Image Gen' },
+                        { id: 'Video Generation', label: 'Video Gen' },
+                        { id: 'Audio & Voice', label: 'Audio & Voice' },
+                        { id: 'Education', label: 'Education' }
+                      ].map(cat => {
+                        const selected = editInterests.includes(cat.id)
+                        return (
+                          <button
+                            key={cat.id}
+                            type="button"
+                            onClick={() => {
+                              setEditInterests(prev =>
+                                prev.includes(cat.id) ? prev.filter(x => x !== cat.id) : [...prev, cat.id]
+                              )
+                            }}
+                            className={`flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-left text-xs font-semibold transition-all ${
+                              selected ? 'border-accent bg-accent/5 text-accent' : 'border-line bg-bg-sunk hover:bg-bg-elev text-ink-2'
+                            }`}
+                          >
+                            <span className={`h-1.5 w-1.5 rounded-full ${selected ? 'bg-accent' : 'bg-transparent border border-line-strong'}`} />
+                            {cat.label}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Goals */}
+                  <div className="space-y-1.5">
+                    <span className="text-xs font-bold uppercase tracking-wider text-muted">What are your primary goals?</span>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      {[
+                        { id: 'Academic Writing', label: 'Essay Writing' },
+                        { id: 'Software Projects', label: 'App Coding' },
+                        { id: 'Visual Design', label: 'Graphic Art' },
+                        { id: 'Voiceovers & Podcasts', label: 'Audio Editing' },
+                        { id: 'Study Planning', label: 'Task Mgmt' },
+                        { id: 'Literature Review', label: 'Lit Review' }
+                      ].map(goal => {
+                        const selected = editGoals.includes(goal.id)
+                        return (
+                          <button
+                            key={goal.id}
+                            type="button"
+                            onClick={() => {
+                              setEditGoals(prev =>
+                                prev.includes(goal.id) ? prev.filter(x => x !== goal.id) : [...prev, goal.id]
+                              )
+                            }}
+                            className={`flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-left text-xs font-semibold transition-all ${
+                              selected ? 'border-accent bg-accent/5 text-accent' : 'border-line bg-bg-sunk hover:bg-bg-elev text-ink-2'
+                            }`}
+                          >
+                            <span className={`h-1.5 w-1.5 rounded-full ${selected ? 'bg-accent' : 'bg-transparent border border-line-strong'}`} />
+                            {goal.label}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 border-t border-line pt-3.5">
+                  {/* Skill level */}
+                  <div className="space-y-1.5">
+                    <span className="text-xs font-bold uppercase tracking-wider text-muted block">Skill Level</span>
+                    <div className="grid grid-cols-3 gap-1.5">
+                      {[
+                        { id: 'beginner', label: 'Beginner' },
+                        { id: 'intermediate', label: 'Intermediate' },
+                        { id: 'advanced', label: 'Advanced' }
+                      ].map(lvl => (
+                        <button
+                          key={lvl.id}
+                          type="button"
+                          onClick={() => setEditSkill(lvl.id)}
+                          className={`rounded-xl border py-1.5 text-center text-xs font-semibold transition-all ${
+                            editSkill === lvl.id ? 'border-accent bg-accent/5 text-accent' : 'border-line bg-bg-sunk hover:bg-bg-elev text-ink-2'
+                          }`}
+                        >
+                          {lvl.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Budget Preference */}
+                  <div className="space-y-1.5">
+                    <span className="text-xs font-bold uppercase tracking-wider text-muted block">Budget Preference</span>
+                    <div className="grid grid-cols-3 gap-1.5">
+                      {[
+                        { id: 'free', label: 'Free only' },
+                        { id: 'freemium', label: 'Freemium' },
+                        { id: 'paid', label: 'Premium' }
+                      ].map(prc => (
+                        <button
+                          key={prc.id}
+                          type="button"
+                          onClick={() => setEditPricing(prc.id)}
+                          className={`rounded-xl border py-1.5 text-center text-xs font-semibold transition-all ${
+                            editPricing === prc.id ? 'border-accent bg-accent/5 text-accent' : 'border-line bg-bg-sunk hover:bg-bg-elev text-ink-2'
+                          }`}
+                        >
+                          {prc.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2 border-t border-line pt-3.5">
+                  <button
+                    type="button"
+                    onClick={() => setIsCalibrating(false)}
+                    className="rounded-xl border border-line bg-bg-sunk px-4 py-2 text-xs font-semibold text-ink-2 transition hover:bg-line"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={savingCalib}
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-accent px-4 py-2 text-xs font-semibold text-white transition hover:opacity-90 shadow-sm disabled:opacity-50"
+                  >
+                    {savingCalib ? 'Calibrating...' : 'Save & Apply Calibration'}
+                  </button>
+                </div>
+              </form>
+            )}
           </MotionSection>
 
           <motion.section
