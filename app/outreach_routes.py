@@ -9,7 +9,7 @@ from app.email_utils import send_email
 from app.outreach import (
     run_discovery_pipeline,
     run_automated_followups,
-    generate_draft_via_claude,
+    generate_draft_via_gemini,
     is_valid_email
 )
 
@@ -91,7 +91,7 @@ def add_candidate():
     c.status = "draft_ready" if email else "no_email_found"
     
     # Auto-generate draft proposal
-    subject, body = generate_draft_via_claude(c)
+    subject, body = generate_draft_via_gemini(c)
     c.draft_subject = subject
     c.draft_body = body
     
@@ -125,7 +125,7 @@ def update_candidate(cid):
     
     # Regenerate draft option
     if data.get("regenerate_draft"):
-        subject, body = generate_draft_via_claude(c)
+        subject, body = generate_draft_via_gemini(c)
         c.draft_subject = subject
         c.draft_body = body
         

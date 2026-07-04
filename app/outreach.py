@@ -214,12 +214,23 @@ def find_email_via_hunter(website_url, founder_name):
 
     return None, 0
 
-# ─── 3. CLAUDE EMAIL DRAFT GENERATION ─────────────────────────────────────────
-def generate_draft_via_claude(candidate):
-    """Calls Anthropic Claude Messages API to write personalized sponsored proposal."""
-    api_key = os.environ.get("ANTHROPIC_API_KEY")
+# ─── 3. GEMINI EMAIL DRAFT GENERATION ─────────────────────────────────────────
+def _get_gemini_key():
+    keys = []
+    env_keys_str = os.environ.get("GEMINI_API_KEYS", "")
+    if env_keys_str:
+        import re
+        keys.extend([k.strip() for k in re.split(r'[,\n\r]+', env_keys_str) if k.strip()])
+    single_key = os.environ.get("GEMINI_API_KEY")
+    if single_key and single_key.strip() not in keys:
+        keys.append(single_key.strip())
+    return keys[0] if keys else None
+
+def generate_draft_via_gemini(candidate):
+    """Calls Google Gemini API to write personalized sponsored proposal."""
+    api_key = _get_gemini_key()
     if not api_key:
-        log.warning("ANTHROPIC_API_KEY is not configured. Setting generic draft.")
+        log.warning("GEMINI_API_KEY / GEMINI_API_KEYS is not configured. Setting generic draft.")
         return get_generic_draft(candidate)
 
     system_prompt = """
@@ -269,10 +280,12 @@ Best Regards,<br>
 <b>Medhansh Pratap Singh</b> | Founder, AI Compass<br>
 <span style="font-size: 11px; color: #666;">medhansh.builds@gmail.com • ai-compass.in</span>
 
-Return ONLY the raw JSON block. No wrapping codeblocks (```json or ```).
+Return ONLY the raw JSON block. Do not wrap in ```json or markdown codeblocks, just return the raw JSON object.
 """
 
     prompt = f"""
+{system_prompt}
+
 Write an outreach email for this candidate:
 - Product Name: {candidate.product_name}
 - Tagline: {candidate.tagline}
@@ -282,27 +295,26 @@ Write an outreach email for this candidate:
 """
 
     try:
-        url = "https://api.anthropic.com/v1/messages"
-        headers = {
-            "x-api-key": api_key,
-            "anthropic-version": "2023-06-01",
-            "content-type": "application/json"
-        }
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
         payload = {
-            "model": "claude-3-5-sonnet-20241022",
-            "max_tokens": 1000,
-            "system": system_prompt,
-            "messages": [{"role": "user", "content": prompt}],
-            "temperature": 0.7
+            "contents": [{"parts": [{"text": prompt}]}],
+            "generationConfig": {
+                "temperature": 0.7,
+            }
         }
 
-        r = requests.post(url, json=payload, headers=headers, timeout=20)
+        r = requests.post(url, json=payload, timeout=20)
         if not r.ok:
-            log.error("Anthropic API returned %s: %s", r.status_code, r.text)
+            log.error("Gemini API returned %s: %s", r.status_code, r.text)
             return get_generic_draft(candidate)
 
         resp_data = r.json()
-        text = resp_data.get("content", [{}])[0].get("text", "").strip()
+        candidates_list = resp_data.get("candidates", [])
+        if not candidates_list:
+            log.error("No candidates in Gemini response: %s", resp_data)
+            return get_generic_draft(candidate)
+
+        text = candidates_list[0].get("content", {}).get("parts", [])[0].get("text", "").strip()
 
         if text.startswith("```json"):
             text = text[7:-3].strip()
@@ -313,8 +325,9 @@ Write an outreach email for this candidate:
         result = json.loads(text)
         return result.get("subject"), result.get("body")
     except Exception as e:
-        log.exception("Anthropic draft generation failed: %s", e)
+        log.exception("Gemini draft generation failed: %s", e)
         return get_generic_draft(candidate)
+
 
 def get_generic_draft(candidate):
     """A fallback template if Claude API key is missing or fails."""
@@ -378,7 +391,7 @@ def run_discovery_pipeline():
             c.email_source = "none"
             c.status = "no_email_found"
 
-        subject, body = generate_draft_via_claude(c)
+        subject, body = generate_draft_via_gemini(c)
         c.draft_subject = subject
         c.draft_body = body
 
