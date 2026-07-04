@@ -84,6 +84,7 @@ const GUIDES_LINKS = [
 const ABOUT_LINKS = [
   { label: 'About Us', to: '/about' },
   { label: 'Team', to: '/team' },
+  { label: 'Support AI Compass', to: '/support' },
   { label: 'Contact', to: '/contact' },
   { label: 'Privacy', to: '/privacy' },
   { label: 'Terms', to: '/terms' },

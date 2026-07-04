@@ -50,6 +50,7 @@ const PrivacyPage = lazy(() => import('./pages/PrivacyPage'))
 const TermsPage = lazy(() => import('./pages/TermsPage'))
 const RefundsPage = lazy(() => import('./pages/RefundsPage'))
 const HelpPage = lazy(() => import('./pages/HelpPage'))
+const SupportPage = lazy(() => import('./pages/SupportPage'))
 const BestAIToolsForStudents = lazy(() => import('./pages/BestAIToolsForStudents'))
 const BestAIToolsForTeachers = lazy(() => import('./pages/BestAIToolsForTeachers'))
 const BestFreeAITools = lazy(() => import('./pages/BestFreeAITools'))
@@ -211,6 +212,7 @@ function AnimatedRoutes() {
             <Route path="/terms" element={<TermsPage />} />
             <Route path="/refunds" element={<RefundsPage />} />
             <Route path="/help" element={<HelpPage />} />
+            <Route path="/support" element={<SupportPage />} />
             <Route path="/best-ai-tools-for-students" element={<BestAIToolsForStudents />} />
             <Route path="/best-ai-tools-for-teachers" element={<BestAIToolsForTeachers />} />
             <Route path="/best-free-ai-tools" element={<BestFreeAITools />} />
