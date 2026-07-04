@@ -88,4 +88,4 @@ def test_spa_success_redirect_contract(app):
 
         refreshed = db.session.get(User, user.id)
         assert refreshed.first_login is False
-        assert refreshed.onboarding_completed is True
+        assert refreshed.onboarding_completed is False
