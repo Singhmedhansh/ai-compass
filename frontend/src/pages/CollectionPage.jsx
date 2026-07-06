@@ -205,6 +205,14 @@ function CollectionPage() {
               <p className="mt-3 text-muted text-sm md:text-base leading-relaxed">
                 Discover the 35 fastest-rising, hand-tested AI tools of 2026. Real, consensus-backed rankings updated daily across core student and developer workflows.
               </p>
+              <div className="mt-4">
+                <Link
+                  to="/compare"
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-line bg-bg-elev px-4 py-2 text-sm font-semibold text-ink-2 shadow-sm transition hover:border-line-strong hover:text-ink focus-visible:ring-2 focus-visible:ring-accent"
+                >
+                  Compare Tools →
+                </Link>
+              </div>
             </div>
             <div className="flex-shrink-0 flex items-center gap-2 bg-bg-sunk border border-line rounded-2xl p-4 self-start md:self-auto shadow-sm">
               <TrendingUp className="h-5 w-5 text-accent" />
@@ -461,8 +469,18 @@ function CollectionPage() {
         <p className="mt-2 max-w-3xl text-muted">
           {collection?.description || 'Curated tools to help you discover the right AI stack faster.'}
         </p>
-        <div className="mt-4 inline-flex items-center rounded-full bg-accent-soft px-3 py-1 text-sm font-semibold text-accent-ink">
-          {loading ? 'Loading...' : `${collection?.count || 0} tools`}
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <div className="inline-flex items-center rounded-full bg-accent-soft px-3 py-1 text-sm font-semibold text-accent-ink">
+            {loading ? 'Loading...' : `${collection?.count || 0} tools`}
+          </div>
+          {!loading && collection && (
+            <Link
+              to="/compare"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-line bg-bg-elev px-4 py-2 text-sm font-semibold text-ink-2 shadow-sm transition hover:border-line-strong hover:text-ink focus-visible:ring-2 focus-visible:ring-accent"
+            >
+              Compare Tools →
+            </Link>
+          )}
         </div>
       </section>
 

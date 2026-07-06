@@ -88,33 +88,57 @@ function PricingBlock({ tool }) {
     : []
 
   if (tiers.length === 0) {
+    const isFree = String(tool.pricing || '').toLowerCase() === 'free'
     return (
-      <div>
-        <p className="text-sm capitalize text-ink-2">{tool.pricing || 'Unknown'}</p>
-        <p className="mt-1 text-xs text-muted">Detailed pricing coming soon</p>
+      <div className="rounded-xl border border-line bg-bg-sunk/30 p-3.5">
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-semibold capitalize text-ink">{tool.pricing || 'Freemium'}</span>
+          <span className="rounded-full bg-accent-soft px-2 py-0.5 text-[10px] font-bold text-accent-ink">
+            {isFree ? 'Free' : 'Premium Plans'}
+          </span>
+        </div>
+        <p className="mt-2 text-xs text-muted leading-relaxed">
+          {tool.free_tier_summary || 'Pricing details vary. Visit the official website to view the latest plans.'}
+        </p>
       </div>
     )
   }
 
   return (
-    <dl className="space-y-1.5">
+    <div className="space-y-2.5">
       {tiers.map((tier) => (
-        <div key={tier.name} className="flex items-center justify-between gap-2 text-sm">
-          <dt
-            className={clsx(
-              'truncate',
-              tier.is_popular ? 'font-semibold text-accent-ink' : 'text-ink-2',
-            )}
-          >
-            {tier.name}
-            {tier.is_popular ? (
-              <span className="ml-1 text-[10px] font-semibold uppercase text-accent">Popular</span>
-            ) : null}
-          </dt>
-          <dd className="shrink-0 font-semibold text-ink">{convertPrice(tier.price_display)}</dd>
+        <div 
+          key={tier.name} 
+          className={clsx(
+            "rounded-xl border p-3 transition-all duration-200",
+            tier.is_popular 
+              ? "border-accent bg-accent-soft/10 shadow-sm" 
+              : "border-line bg-bg-sunk/20 hover:bg-bg-sunk/35"
+          )}
+        >
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <h4 className="text-xs font-bold text-ink">{tier.name}</h4>
+                {tier.is_popular && (
+                  <span className="rounded bg-accent px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wider text-bg">
+                    {tier.highlight_label || 'Popular'}
+                  </span>
+                )}
+              </div>
+              <p className="text-[10px] text-muted mt-1 line-clamp-1">
+                {tier.features && tier.features.length > 0 ? tier.features[0] : 'Plan features'}
+              </p>
+            </div>
+            <div className="text-right shrink-0">
+              <span className="text-xs font-bold text-ink">
+                {convertPrice(tier.price_display)}
+              </span>
+            </div>
+          </div>
         </div>
       ))}
-    </dl>
+    </div>
   )
 }
 
@@ -133,10 +157,14 @@ function QuickInfoRow({ label, value }) {
 
 function CompareRow({ title, columns, renderCell }) {
   if (columns.length === 0) return null
+  const count = columns.length
   return (
     <div className="border-t border-line py-8">
       <h3 className="text-lg font-bold text-ink mb-6">{title}</h3>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-3">
+      <div className={clsx(
+        "grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 mx-auto",
+        count === 2 ? "lg:grid-cols-2 max-w-5xl" : "lg:grid-cols-3 max-w-7xl"
+      )}>
         {columns.map((col) => (
           <div key={col.slug} className="min-w-0">
             {col.status === 'ok' && col.tool ? renderCell(col.tool) : <div className="text-sm text-muted">No data</div>}
@@ -612,7 +640,10 @@ export default function ComparePage() {
         variants={staggerParent}
         initial="initial"
         animate="animate"
-        className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-3"
+        className={clsx(
+          "mt-8 grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 mx-auto",
+          count === 2 ? "lg:grid-cols-2 max-w-5xl" : "lg:grid-cols-3 max-w-7xl"
+        )}
       >
         {columns.map((column, index) => (
           <MotionDiv
@@ -636,12 +667,111 @@ export default function ComparePage() {
       {/* MATRIX */}
       {allLoaded && (
         <>
-        <div className="mt-16 mb-20 space-y-2">
+        <div className="mt-16 mb-20 space-y-2 animate-in fade-in duration-500">
+          {/* PRICING */}
           <CompareRow
             title="Pricing"
             columns={columns}
             renderCell={(tool) => <PricingBlock tool={tool} />}
           />
+
+          {/* LIMITATIONS & RISKS */}
+          <CompareRow
+            title="Limitations & Risks"
+            columns={columns}
+            renderCell={(tool) => {
+              const freeLimits = tool.free_tier_summary || 'Standard limitations apply to free plans.'
+              const safety = tool.academic_integrity_rating || 'Safe'
+              const warning = tool.academic_warning
+
+              return (
+                <div className="space-y-3.5">
+                  <div className="rounded-xl border border-line bg-bg-sunk/20 p-3.5">
+                    <h4 className="text-[10px] font-extrabold uppercase tracking-wider text-muted">Free Version Limits</h4>
+                    <p className="mt-1.5 text-xs text-ink-2 leading-relaxed">
+                      {freeLimits}
+                    </p>
+                  </div>
+
+                  <div className="rounded-xl border border-line bg-bg-sunk/20 p-3.5">
+                    <h4 className="text-[10px] font-extrabold uppercase tracking-wider text-muted">Academic Integrity Risk</h4>
+                    <div className="mt-2">
+                      <span className={clsx(
+                        "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wide",
+                        safety === 'Safe' && 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20',
+                        safety === 'Use with Caution' && 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20',
+                        safety === 'High Risk' && 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20'
+                      )}>
+                        <Shield className="h-3 w-3" /> {safety}
+                      </span>
+                    </div>
+                    {warning && (
+                      <p className="mt-2.5 text-xs text-muted leading-relaxed">
+                        {warning}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )
+            }}
+          />
+
+          {/* USE CASES */}
+          <CompareRow
+            title="Use Cases"
+            columns={columns}
+            renderCell={(tool) => {
+              const useCases = Array.isArray(tool.use_cases) 
+                ? tool.use_cases 
+                : (Array.isArray(tool.useCases) ? tool.useCases : [])
+
+              if (useCases.length === 0) {
+                return (
+                  <div className="rounded-xl border border-line bg-bg-sunk/20 p-3.5">
+                    <p className="text-xs font-semibold text-ink flex items-center gap-1.5">
+                      💡 Best For
+                    </p>
+                    <p className="mt-1 text-xs text-ink-2 leading-relaxed">
+                      {tool.bestFor || 'General student tasks'}
+                    </p>
+                  </div>
+                )
+              }
+
+              return (
+                <ul className="space-y-2">
+                  {useCases.map((useCase, index) => (
+                    <li key={index} className="flex items-start gap-2 text-xs text-ink-2">
+                      <span className="mt-0.5 text-accent select-none text-xs leading-none font-bold" aria-hidden="true">✓</span>
+                      <span className="leading-relaxed">{useCase}</span>
+                    </li>
+                  ))}
+                </ul>
+              )
+            }}
+          />
+
+          {/* KEY FEATURES */}
+          <CompareRow
+            title="Key Features"
+            columns={columns}
+            renderCell={(tool) => {
+               const features = Array.isArray(tool.features) ? tool.features : []
+               if (!features.length) return <span className="text-sm text-muted">—</span>
+               return (
+                  <ul className="space-y-2.5">
+                    {features.map((feature, index) => (
+                      <li key={index} className="flex items-start gap-2 text-xs text-ink-2">
+                        <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent" aria-hidden="true" />
+                        <span className="leading-relaxed">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+               )
+            }}
+          />
+
+          {/* PLATFORMS */}
           <CompareRow
             title="Platform & Access"
             columns={columns}
@@ -656,44 +786,8 @@ export default function ComparePage() {
                )
             }}
           />
-          <CompareRow
-            title="Key Features"
-            columns={columns}
-            renderCell={(tool) => {
-               const features = Array.isArray(tool.features) ? tool.features : []
-               if (!features.length) return <span className="text-sm text-muted">—</span>
-               return (
-                  <ul className="space-y-2.5">
-                    {features.map((feature, index) => (
-                      <li key={index} className="flex items-start gap-2 text-sm text-ink-2">
-                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-accent" aria-hidden="true" />
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-               )
-            }}
-          />
-          <CompareRow
-            title="Academic Safety"
-            columns={columns}
-            renderCell={(tool) => {
-              if (!tool.academic_integrity_rating) return <span className="text-sm text-muted">No safety details available.</span>
-              return (
-                <div className="space-y-2">
-                  <span className={clsx(
-                    "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold uppercase tracking-wider",
-                    tool.academic_integrity_rating === 'Safe' && 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20',
-                    tool.academic_integrity_rating === 'Use with Caution' && 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20',
-                    tool.academic_integrity_rating === 'High Risk' && 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20'
-                  )}>
-                    <Shield className="h-4 w-4" /> {tool.academic_integrity_rating}
-                  </span>
-                  <p className="text-xs text-muted leading-relaxed">{tool.academic_warning}</p>
-                </div>
-              )
-            }}
-          />
+
+          {/* COMMUNITY RATINGS */}
           <CompareRow
             title="Community Rating"
             columns={columns}
@@ -701,9 +795,9 @@ export default function ComparePage() {
               const ratingCount = Number(tool.review_count || tool.reviewCount || tool.ratingCount || 0)
               const rating = Number(tool.rating || tool.averageRating || 0)
               return (
-                <div className="flex items-center gap-2 bg-bg-sunk rounded-lg p-3 w-fit">
+                <div className="flex items-center gap-2 bg-bg-sunk/30 border border-line rounded-xl p-3 w-fit">
                   <StarRow rating={rating} />
-                  <span className="text-sm font-medium text-ink">
+                  <span className="text-sm font-semibold text-ink">
                     {rating ? rating.toFixed(1) : '—'}
                     <span className="text-muted font-normal ml-1">
                       {ratingCount > 0 ? `(${ratingCount})` : ''}

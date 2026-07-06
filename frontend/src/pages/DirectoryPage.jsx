@@ -818,22 +818,33 @@ function DirectoryPage() {
       <MotionDiv variants={sectionReveal} initial="initial" animate="animate">
         <GridBackground className="px-4 py-8 sm:px-6 lg:px-8 border-b border-line mb-8">
           <section className="mb-6 flex flex-wrap items-center justify-between gap-3">
-            <h1 className="text-3xl font-bold tracking-tight text-ink sm:text-4xl"><WordReveal>AI Tools Directory</WordReveal></h1>
-            <span className="text-sm font-medium tabular-nums text-muted">
-              {isLoading ? 'Loading...' : `${isRootHub ? hubToolCount : filteredTools.length} tools`}
-            </span>
-            {/* Mobile Filters Button */}
-            <button
-              ref={triggerRef}
-              type="button"
-              aria-haspopup="dialog"
-              aria-expanded={showMobileFilters}
-              aria-controls="mobile-filters-drawer"
-              onClick={() => setShowMobileFilters(true)}
-              className="md:hidden ml-auto rounded-xl border border-line bg-bg-elev px-4 py-2 text-sm font-semibold text-ink-2 shadow-sm"
-            >
-              Filters
-            </button>
+            <div className="flex items-baseline gap-3">
+              <h1 className="text-3xl font-bold tracking-tight text-ink sm:text-4xl"><WordReveal>AI Tools Directory</WordReveal></h1>
+              <span className="text-sm font-medium tabular-nums text-muted">
+                {isLoading ? 'Loading...' : `${isRootHub ? hubToolCount : filteredTools.length} tools`}
+              </span>
+            </div>
+            
+            <div className="flex items-center gap-3 ml-auto md:ml-0">
+              <Link
+                to="/compare"
+                className="inline-flex items-center gap-1.5 rounded-xl border border-line bg-bg-elev px-4 py-2 text-sm font-semibold text-ink-2 shadow-sm transition hover:border-line-strong hover:text-ink focus-visible:ring-2 focus-visible:ring-accent"
+              >
+                Compare Tools →
+              </Link>
+              {/* Mobile Filters Button */}
+              <button
+                ref={triggerRef}
+                type="button"
+                aria-haspopup="dialog"
+                aria-expanded={showMobileFilters}
+                aria-controls="mobile-filters-drawer"
+                onClick={() => setShowMobileFilters(true)}
+                className="md:hidden rounded-xl border border-line bg-bg-elev px-4 py-2 text-sm font-semibold text-ink-2 shadow-sm"
+              >
+                Filters
+              </button>
+            </div>
           </section>
         </GridBackground>
 
