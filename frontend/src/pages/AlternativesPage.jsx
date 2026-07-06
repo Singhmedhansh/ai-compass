@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { motion } from 'framer-motion'
-import { ArrowUpRight } from 'lucide-react'
+import { ArrowUpRight, Shield } from 'lucide-react'
+import clsx from 'clsx'
 
 import { SEO, WordReveal } from '../components/ui'
 import ErrorState from '../components/ErrorState'
@@ -332,6 +333,66 @@ export default function AlternativesPage() {
           </div>
         </MotionDiv>
 
+        {/* QUICK FINDER INTENT GRID FOR CHATGPT */}
+        {tool.slug === 'chatgpt' && (
+          <MotionDiv
+            variants={sectionReveal}
+            initial="initial"
+            whileInView="animate"
+            viewport={{ once: true, margin: '-10% 0px' }}
+            className="mx-auto max-w-5xl px-4 mb-12"
+          >
+            <div className="rounded-3xl border border-line bg-bg-elev p-6 shadow-sm">
+              <h3 className="text-lg font-bold text-ink mb-4">Quick Finder: Which ChatGPT alternative do you need?</h3>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {[
+                  {
+                    problem: "I need to upload long textbooks & PDFs",
+                    solution: "Claude",
+                    advantage: "200K token context window & excellent reasoning",
+                    slug: "claude"
+                  },
+                  {
+                    problem: "I need real-time sources & academic citations",
+                    solution: "Perplexity AI",
+                    advantage: "Interactive research search engine with inline citations",
+                    slug: "perplexity-ai"
+                  },
+                  {
+                    problem: "I want an AI inside my code editor (IDE)",
+                    solution: "Cursor",
+                    advantage: "Full-codebase agentic editor with inline autocomplete",
+                    slug: "cursor"
+                  },
+                  {
+                    problem: "I want unlimited free conversations",
+                    solution: "Gemini",
+                    advantage: "Highly generous free tier rates & Google Workspace integration",
+                    slug: "gemini"
+                  }
+                ].map((item, index) => (
+                  <div key={index} className="flex flex-col justify-between rounded-2xl border border-line bg-bg-sunk/20 p-4 transition hover:border-accent hover:shadow-sm font-sans">
+                    <div>
+                      <span className="text-[10px] font-extrabold uppercase tracking-wide text-muted-2">Struggling with:</span>
+                      <p className="text-xs font-semibold text-ink mt-0.5">&ldquo;{item.problem}&rdquo;</p>
+                      <div className="mt-3 flex items-center gap-1.5">
+                        <span className="text-xs font-bold text-accent-ink">{item.solution}</span>
+                        <span className="text-[10px] text-muted">— {item.advantage}</span>
+                      </div>
+                    </div>
+                    <Link
+                      to={`/compare/chatgpt-vs-${item.slug}`}
+                      className="mt-4 text-xs font-bold text-accent hover:underline flex items-center gap-1"
+                    >
+                      Compare side-by-side &rarr;
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </MotionDiv>
+        )}
+
         <MotionDiv
           variants={staggerParent}
           initial="initial"
@@ -368,11 +429,23 @@ export default function AlternativesPage() {
                       <h3 className="text-xl font-bold tracking-tight text-ink">
                         {alt.name}
                       </h3>
-                      {(alt.pricing_tier || alt.pricing) && (
-                        <span className="shrink-0 rounded-full bg-accent-soft px-3 py-1 text-xs font-semibold text-accent-ink">
-                          {alt.pricing_tier || alt.pricing}
-                        </span>
-                      )}
+                      <div className="flex flex-wrap gap-2 items-center">
+                        {alt.academic_integrity_rating && (
+                          <span className={clsx(
+                            "shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1",
+                            alt.academic_integrity_rating === 'Safe' && 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20',
+                            alt.academic_integrity_rating === 'Use with Caution' && 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20',
+                            alt.academic_integrity_rating === 'High Risk' && 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20'
+                          )}>
+                            <Shield className="h-3 w-3" /> {alt.academic_integrity_rating}
+                          </span>
+                        )}
+                        {(alt.pricing_tier || alt.pricing) && (
+                          <span className="shrink-0 rounded-full bg-accent-soft px-3 py-1 text-xs font-semibold text-accent-ink capitalize">
+                            {alt.pricing_tier || alt.pricing}
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <p className="mb-4 text-base leading-relaxed text-muted font-serif">
                       {alt.tagline || alt.description || ''}
@@ -387,6 +460,20 @@ export default function AlternativesPage() {
                         {alt.why_alternative}
                       </div>
                     )}
+
+                    {(() => {
+                      const uniHack = alt.uniHack || alt.student_note
+                      if (!uniHack) return null
+                      return (
+                        <div className="mb-5 rounded-2xl bg-emerald-500/5 border border-emerald-500/10 p-4 text-[13px] leading-relaxed text-ink-2 relative overflow-hidden pl-7 font-sans">
+                          <div className="absolute left-0 top-0 bottom-0 w-1 bg-emerald-500/30" />
+                          <span className="block font-bold text-xs uppercase tracking-wider text-emerald-600 dark:text-emerald-400 mb-1">
+                            🎓 UniHack (Student Tip):
+                          </span>
+                          {uniHack}
+                        </div>
+                      )
+                    })()}
 
                     {(() => {
                       const altUrl = outboundUrl(alt)
@@ -409,6 +496,12 @@ export default function AlternativesPage() {
                             className="inline-flex items-center gap-1 text-xs font-semibold text-muted hover:text-ink"
                           >
                             Read Review →
+                          </Link>
+                          <Link
+                            to={`/compare/${tool.slug}-vs-${alt.slug}`}
+                            className="inline-flex items-center gap-1 text-xs font-semibold text-accent hover:text-accent-hover transition-colors"
+                          >
+                            Compare with {tool.name} 🆚
                           </Link>
                         </div>
                       )
