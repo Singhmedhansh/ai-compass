@@ -693,18 +693,16 @@ export default function ComparePage() {
 
   const count = slugs.length
 
-  // All columns resolved successfully? Path-mode only renders SEO Helmet when
-  // every tool loaded — we don't want a broken indexable page with canonical
-  // pointing to a comparison that 404s for one of its tools.
-  const allLoaded =
-    isPathMode &&
+  const allToolsLoaded =
     columns.length === slugs.length &&
     columns.every((col) => col.status === 'ok' && col.tool)
+
+  const allLoaded = isPathMode && allToolsLoaded
 
   // Build the "X vs Y" display string from actual tool names (not slugs) so
   // the heading reads correctly even when slugs are abbreviated (e.g.,
   // "chatgpt" → "ChatGPT", "gpt-4" → "GPT-4").
-  const pairTitle = allLoaded
+  const pairTitle = allToolsLoaded
     ? columns.map((col) => col.tool.name).join(' vs ')
     : null
   const pairCanonical = isPathMode
@@ -813,7 +811,7 @@ export default function ComparePage() {
       </MotionDiv>
 
       {/* MATRIX */}
-      {allLoaded && (
+      {allToolsLoaded && (
         <>
         <div className="mt-16 mb-20 space-y-2 animate-in fade-in duration-500">
           {/* PRICING */}
