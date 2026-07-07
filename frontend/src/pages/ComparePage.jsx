@@ -1,9 +1,10 @@
 import clsx from 'clsx'
 import { motion } from 'framer-motion'
 import { AlertTriangle, ArrowLeft, Check, ExternalLink, LayoutGrid, Star, StarHalf, X, Shield, Search, Sparkles } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useRef } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { toast } from 'sonner'
 import { useCurrency } from '../context/CurrencyContext'
 
 import { Button, SkeletonCompareColumn, ToolLogo } from '../components/ui'
@@ -35,6 +36,109 @@ function parseSlugs(raw) {
 function parsePairPath(pair) {
   if (!pair || typeof pair !== 'string') return []
   return parseSlugs(pair.toLowerCase().split('-vs-').join(','))
+}
+
+function ToolSelector({ slugs, onAdd, allTools, loadingTools }) {
+  const [query, setQuery] = useState('')
+  const [focused, setFocused] = useState(false)
+  const containerRef = useRef(null)
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    const handleOutsideClick = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setFocused(false)
+      }
+    }
+    document.addEventListener('mousedown', handleOutsideClick)
+    return () => document.removeEventListener('mousedown', handleOutsideClick)
+  }, [])
+
+  const filtered = useMemo(() => {
+    if (!allTools) return []
+    const normalized = query.trim().toLowerCase()
+    return allTools
+      .filter((tool) => !slugs.includes(tool.slug))
+      .filter((tool) => {
+        if (!normalized) return true
+        return (
+          tool.name.toLowerCase().includes(normalized) ||
+          (tool.tagline && tool.tagline.toLowerCase().includes(normalized)) ||
+          (tool.category && tool.category.toLowerCase().includes(normalized))
+        )
+      })
+      .slice(0, 8)
+  }, [allTools, query, slugs])
+
+  const handleSelect = (slug) => {
+    onAdd(slug)
+    setQuery('')
+    setFocused(false)
+  }
+
+  const isAtMax = slugs.length >= MAX_COMPARE
+
+  return (
+    <div ref={containerRef} className="relative w-full max-w-md mx-auto">
+      <div className="relative">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onFocus={() => setFocused(true)}
+          disabled={isAtMax}
+          placeholder={
+            isAtMax 
+              ? `Maximum of ${MAX_COMPARE} tools selected` 
+              : "Search to add a tool..."
+          }
+          className="h-11 w-full rounded-xl border border-line/50 bg-bg-elev/40 backdrop-blur-md shadow-inner pl-10 pr-10 text-sm text-ink outline-none transition-all placeholder:text-muted hover:border-line-strong hover:bg-bg-elev/60 focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-50 disabled:cursor-not-allowed"
+        />
+        {query && (
+          <button
+            type="button"
+            onClick={() => setQuery('')}
+            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-muted hover:bg-bg-sunk hover:text-ink"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
+      </div>
+
+      {focused && !isAtMax && (
+        <div className="absolute left-0 right-0 top-full z-50 mt-2 max-h-64 overflow-y-auto rounded-xl border border-line bg-bg-elev p-1.5 shadow-lg animate-in fade-in slide-in-from-top-1 duration-150">
+          {loadingTools ? (
+            <div className="px-4 py-3 text-xs text-muted flex items-center gap-2">
+              <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+              Loading tools catalog...
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="px-4 py-3 text-xs text-muted">
+              No matching tools found
+            </div>
+          ) : (
+            filtered.map((tool) => (
+              <button
+                key={tool.slug}
+                type="button"
+                onClick={() => handleSelect(tool.slug)}
+                className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm transition-colors hover:bg-bg-sunk outline-none focus:bg-bg-sunk"
+              >
+                <span className="flex h-6 w-6 items-center justify-center rounded bg-bg-sunk text-sm" role="img" aria-label={tool.name}>
+                  {tool.logo_emoji || '🤖'}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <span className="block font-semibold text-ink truncate">{tool.name}</span>
+                  <span className="block text-[11px] text-muted truncate">{tool.category || 'General'}</span>
+                </div>
+              </button>
+            ))
+          )}
+        </div>
+      )}
+    </div>
+  )
 }
 
 function StarRow({ rating }) {
@@ -338,6 +442,22 @@ export default function ComparePage() {
   const isPathMode = Boolean(pair)
 
   const [lastDirectorySearch, setLastDirectorySearch] = useState('/tools')
+  const [allTools, setAllTools] = useState([])
+  const [loadingTools, setLoadingTools] = useState(false)
+
+  useEffect(() => {
+    setLoadingTools(true)
+    fetch('/api/v1/tools?fields=card')
+      .then((res) => (res.ok ? res.json() : { results: [] }))
+      .then((data) => {
+        setAllTools(data.results || [])
+        setLoadingTools(false)
+      })
+      .catch((err) => {
+        console.error('Failed to fetch tools for dropdown', err)
+        setLoadingTools(false)
+      })
+  }, [])
 
   useEffect(() => {
     try {
@@ -404,13 +524,31 @@ export default function ComparePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slugsKey])
 
+  const updateComparison = (nextSlugs) => {
+    if (nextSlugs.length === 0) {
+      navigate('/compare')
+    } else if (nextSlugs.length === 1) {
+      navigate(`/compare?tools=${nextSlugs[0]}`)
+    } else {
+      if (isPathMode) {
+        navigate(`/compare/${nextSlugs.join('-vs-')}`)
+      } else {
+        setSearchParams({ tools: nextSlugs.join(',') })
+      }
+    }
+  }
+
   const handleRemoveSlug = (slugToRemove) => {
     const remaining = slugs.filter((slug) => slug !== slugToRemove)
-    if (remaining.length === 0) {
-      setSearchParams({})
-    } else {
-      setSearchParams({ tools: remaining.join(',') })
+    updateComparison(remaining)
+  }
+
+  const handleAddTool = (toolSlug) => {
+    if (slugs.length >= MAX_COMPARE) {
+      toast.warning(`Maximum of ${MAX_COMPARE} tools can be compared at once.`)
+      return
     }
+    updateComparison([...slugs, toolSlug])
   }
 
   // Helper to trigger navigation for pre-configured cards
@@ -429,9 +567,9 @@ export default function ComparePage() {
         </Helmet>
         
         {/* Top Hero Card */}
-        <div className="relative overflow-hidden rounded-[28px] border border-line bg-bg-elev p-8 md:p-12 text-center shadow-lg">
+        <div className="relative rounded-[28px] border border-line bg-bg-elev p-8 md:p-12 text-center shadow-lg overflow-visible">
           <div
-            className="absolute inset-0 bg-[radial-gradient(circle_at_top,var(--accent-soft),transparent_60%)]"
+            className="absolute inset-0 bg-[radial-gradient(circle_at_top,var(--accent-soft),transparent_60%)] rounded-[28px]"
             aria-hidden="true"
           />
           <div className="relative z-10 mx-auto max-w-xl">
@@ -447,12 +585,22 @@ export default function ComparePage() {
                 : `Choose two or more tools to match features, community ratings, pricing structures, and academic integrity policies side-by-side.`
               }
             </p>
-            <div className="mt-8 flex flex-wrap justify-center gap-3">
-              <Button variant="primary" onClick={() => navigate('/tools')}>
-                {isSingleTool ? "Browse matching tools" : "Browse all tools"}
+
+            <div className="mt-8 max-w-md mx-auto relative z-20">
+              <ToolSelector
+                slugs={slugs}
+                onAdd={handleAddTool}
+                allTools={allTools}
+                loadingTools={loadingTools}
+              />
+            </div>
+
+            <div className="mt-6 flex flex-wrap justify-center gap-3">
+              <Button variant="secondary" onClick={() => navigate('/tools')}>
+                Browse all tools
               </Button>
               {isSingleTool && (
-                <Button variant="secondary" onClick={() => setSearchParams({})}>
+                <Button variant="secondary" onClick={() => navigate('/compare')}>
                   Clear selection
                 </Button>
               )}
@@ -657,7 +805,7 @@ export default function ComparePage() {
                 status={column.status}
                 tool={column.tool}
                 error={column.error}
-                onRemove={isPathMode ? null : handleRemoveSlug}
+                onRemove={handleRemoveSlug}
               />
             </MotionDiv>
           </MotionDiv>
@@ -810,20 +958,21 @@ export default function ComparePage() {
         </div>
 
         {/* Add another tool action */}
-        <div className="mt-12 flex justify-center pb-8 animate-in fade-in duration-500">
-          <Link
-            to="/tools"
-            className="group flex items-center justify-center gap-4 rounded-2xl border border-line bg-bg-elev px-6 py-4 shadow-sm transition hover:border-accent hover:shadow-md w-full sm:w-auto"
-          >
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-bg-sunk text-muted transition group-hover:bg-accent-soft group-hover:text-accent-ink">
-              <Search className="h-5 w-5" />
-            </div>
-            <div className="text-left min-w-0 pr-2">
-              <p className="text-sm font-bold text-ink transition group-hover:text-accent-ink">Compare with another tool</p>
-              <p className="text-xs text-muted mt-0.5 hidden sm:block">Browse the directory to add more tools to your tray</p>
-            </div>
-          </Link>
-        </div>
+        {slugs.length < MAX_COMPARE ? (
+          <div className="mt-12 max-w-md mx-auto pb-8 animate-in fade-in duration-500 text-center relative z-20">
+            <p className="text-sm font-bold text-ink mb-3">Add another tool to compare</p>
+            <ToolSelector
+              slugs={slugs}
+              onAdd={handleAddTool}
+              allTools={allTools}
+              loadingTools={loadingTools}
+            />
+          </div>
+        ) : (
+          <div className="mt-12 text-center pb-8 text-xs text-muted">
+            Comparison limit reached (maximum of {MAX_COMPARE} tools)
+          </div>
+        )}
         </>
       )}
     </div>
