@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import { motion } from 'framer-motion'
-import { AlertTriangle, ArrowLeft, Check, ExternalLink, LayoutGrid, Star, StarHalf, X, Shield, Search } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, Check, ExternalLink, LayoutGrid, Star, StarHalf, X, Shield, Search, Sparkles } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
