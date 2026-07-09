@@ -19964,7 +19964,7 @@
     "category": "Productivity",
     "subCategory": "AI Scheduling",
     "price": "Freemium",
-    "pricingDetail": "Free: $8/month, Enterprise: $22/month, Team: $0",
+    "pricingDetail": "Lite (Free): $0/mo, Starter: $8/mo, Team: $12/user/mo",
     "bestFor": "Automatically blocking study time and protecting it from other commitments",
     "tags": [
       "calendar",
@@ -20079,7 +20079,7 @@
     "ease_of_use": 4,
     "free_tier_value": 4,
     "student_relevance": 5,
-    "free_tier_summary": "Free: $8/month, Enterprise: $22/month, Team: $0",
+    "free_tier_summary": "Lite (Free): $0/mo, Starter: $8/mo, Team: $12/user/mo",
     "student_note": "Set a Study habit with your target weekly hours and let Reclaim automatically fill in available blocks around your class schedule",
     "last_verified": "2026-06-22"
   },
@@ -20326,7 +20326,7 @@
     "category": "Productivity",
     "subCategory": "All-in-one Workspace",
     "price": "Freemium",
-    "pricingDetail": "Free: $8/month, Pro: $6.75/month",
+    "pricingDetail": "Free Plan: $0/mo, Pro: $6.75/mo, Team: $9/seat/mo",
     "bestFor": "An open-source workspace combining documents, whiteboards, and databases",
     "tags": [
       "open source",
@@ -20455,7 +20455,7 @@
     "ease_of_use": 4,
     "free_tier_value": 4,
     "student_relevance": 5,
-    "free_tier_summary": "Free: $8/month, Pro: $6.75/month",
+    "free_tier_summary": "Free Plan: $0/mo, Pro: $6.75/mo, Team: $9/seat/mo",
     "student_note": "Self-host AFFiNE on university cloud credits for a private all-in-one workspace with no data leaving your control",
     "last_verified": "2026-06-22"
   },
@@ -36943,7 +36943,7 @@
     "category": "Audio & Voice",
     "subCategory": "Transcription",
     "price": "Freemium",
-    "pricingDetail": "Free: $8/month, Pro: $16.67/month, Team: $29.17/month",
+    "pricingDetail": "Free: $0/mo, Pro: $8/mo, Team: $16.67/mo",
     "bestFor": "Live transcription of online lectures with AI-generated takeaways",
     "tags": [
       "transcription",
@@ -37059,7 +37059,7 @@
     "ease_of_use": 3,
     "free_tier_value": 4,
     "student_relevance": 5,
-    "free_tier_summary": "Free: $8/month, Pro: $16.67/month, Team: $29.17/month",
+    "free_tier_summary": "Free: $0/mo, Pro: $8/mo, Team: $16.67/mo",
     "student_note": "Enable Tactiq during online lectures to capture a live transcript you can share with classmates who missed the session",
     "last_verified": "2026-06-22"
   },
