@@ -81,7 +81,7 @@ Students don't need another generic list. They need answers to three practical q
 | 🔎 | **Tool Directory** | Filter & sort 400+ tools by category, pricing, and intent with live search |
 | ✨ | **AI Tool Finder** | A multi‑step wizard that builds a personalized "AI stack" from your goal, budget & skill |
 | 📄 | **Tool Detail Pages** | Deep dives with pricing tiers, strengths, use‑cases, ratings & **similar tools** |
-| 🆚 | **Compare & Alternatives** | Side‑by‑side `X vs Y` pages + "best alternatives to ___" for every tool |
+| 🆚 | **Compare & Alternatives** | Side‑by‑side `X vs Y` pages, dynamic searchable comparison selector (`?tools=...`), and "best alternatives" for every tool |
 | 📚 | **Editorial Guides** | SEO landing pages — *Best AI Tools for Students / Teachers / Coding / Free* |
 | ⭐ | **Ratings & Reviews** | Authenticated users rate tools and write real reviews |
 | ❤️ | **Favorites & Dashboard** | Personal library + personalized greetings |
@@ -166,7 +166,7 @@ flowchart TD
 ```
 
 > [!TIP]
-> Adding a tool to `tools.json` **after** the DB is seeded won't appear until it's imported. Run `python import_catalog_drift.py --apply` (or the `/admin/catalog-import/<slug>` endpoint) to sync the drift, then refresh the cache.
+> Adding a tool to `tools.json` **after** the DB is seeded won't appear until it's imported. Run `python import_catalog_drift.py --apply` (to import single new tools) or `python sync_catalog.py` (to full‑sync all changes from `tools.json` to the DB), then refresh the cache.
 
 ### 2️⃣ Live search request lifecycle
 
@@ -380,7 +380,8 @@ ai-compass/
 │   ├── tools.json             # 📄 curated catalog (seed source)
 │   └── recommendation_model.pkl
 ├── scripts/                   # 🛠️ trainers, migrations, catalog tools
-├── import_catalog_drift.py    #    sync tools.json → DB catalog
+├── import_catalog_drift.py    #    sync tools.json → DB catalog (new slugs only)
+├── sync_catalog.py            #    sync tools.json → DB catalog (full update)
 ├── migrations/                #    Alembic migrations
 ├── wsgi.py / run.py           #    entry points
 ├── render.yaml / Procfile / Dockerfile
