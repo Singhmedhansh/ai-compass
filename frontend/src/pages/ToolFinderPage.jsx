@@ -235,12 +235,12 @@ function getAspectBucket() {
 }
 
 const GOAL_OPTIONS = [
-  { id: 'learning', label: '🎓 Learning', icon: GraduationCap, desc: 'Study, exam prep, and new skills' },
-  { id: 'coding', label: '💻 Coding', icon: Code, desc: 'Build apps, debug, and write scripts' },
-  { id: 'writing', label: '✍️ Writing', icon: PenTool, desc: 'Essays, copy, editing, and grammar' },
-  { id: 'research', label: '📚 Research', icon: BookOpen, desc: 'Papers, citations, and literature search' },
-  { id: 'creating', label: '🎨 Creating', icon: Palette, desc: 'Images, video, audio, and slides' },
-  { id: 'productivity', label: '⚡ Productivity', icon: Zap, desc: 'Tasks, notes, meetings, and automation' },
+  { id: 'learning', label: 'Learning', icon: GraduationCap, desc: 'Study, exam prep, and new skills' },
+  { id: 'coding', label: 'Coding', icon: Code, desc: 'Build apps, debug, and write scripts' },
+  { id: 'writing', label: 'Writing', icon: PenTool, desc: 'Essays, copy, editing, and grammar' },
+  { id: 'research', label: 'Research', icon: BookOpen, desc: 'Papers, citations, and literature search' },
+  { id: 'creating', label: 'Creating', icon: Palette, desc: 'Images, video, audio, and slides' },
+  { id: 'productivity', label: 'Productivity', icon: Zap, desc: 'Tasks, notes, meetings, and automation' },
 ]
 
 const SUB_CATEGORIES = {
@@ -1729,6 +1729,7 @@ function ToolFinderPage() {
       const response = await fetch(`${API}/api/v1/stack`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           user_id: user.id,
           // dashboard renders these as strings; flatten arrays for backward compat

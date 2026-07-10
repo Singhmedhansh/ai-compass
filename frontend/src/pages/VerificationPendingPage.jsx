@@ -115,14 +115,24 @@ export default function VerificationPendingPage() {
           </p>
         </div>
 
-        <Button
-          variant="primary"
-          onClick={handleResend}
-          disabled={resending || !email}
-          className="w-full font-semibold"
-        >
-          {resending ? 'Resending Link...' : 'Resend Verification Link'}
-        </Button>
+        <div className="flex flex-col gap-2">
+          <Button
+            variant="primary"
+            onClick={handleResend}
+            disabled={resending || !email}
+            className="w-full font-semibold"
+          >
+            {resending ? 'Resending Link...' : 'Resend Verification Link'}
+          </Button>
+
+          <Button
+            variant="secondary"
+            onClick={() => navigate('/dashboard')}
+            className="w-full font-semibold"
+          >
+            Continue to Dashboard
+          </Button>
+        </div>
 
         {error && (
           <p className="rounded-lg border border-danger bg-danger-soft px-3 py-2 text-sm text-danger text-center">

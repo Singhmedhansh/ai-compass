@@ -95,7 +95,7 @@ function DashboardPage() {
   const navigate = useNavigate()
   const location = useLocation()
 
-  const user = JSON.parse(localStorage.getItem('user') || 'null')
+  const [user, setUser] = useState(() => JSON.parse(localStorage.getItem('user') || 'null'))
   const [recommendations, setRecommendations] = useState([])
   const [favorites, setFavorites] = useState([])
   const [folders, setFolders] = useState([])
@@ -114,6 +114,7 @@ function DashboardPage() {
   const [editingFolderName, setEditingFolderName] = useState(null)
   const [renameValue, setRenameValue] = useState('')
   const [folderActionError, setFolderActionError] = useState('')
+  const [resendingEmail, setResendingEmail] = useState(false)
 
   useEffect(() => {
     const params = new URLSearchParams(location.search)
@@ -138,6 +139,19 @@ function DashboardPage() {
   const [analyticsData, setAnalyticsData] = useState(null)
   const [loadingAnalytics, setLoadingAnalytics] = useState(true)
   const [analyticsError, setAnalyticsError] = useState(null)
+
+  useEffect(() => {
+    const handleUserChange = () => {
+      setUser(JSON.parse(localStorage.getItem('user') || 'null'))
+      setRefreshTrigger(prev => prev + 1)
+    }
+    window.addEventListener('userLoggedIn', handleUserChange)
+    window.addEventListener('onboardingCompleted', handleUserChange)
+    return () => {
+      window.removeEventListener('userLoggedIn', handleUserChange)
+      window.removeEventListener('onboardingCompleted', handleUserChange)
+    }
+  }, [])
 
   useEffect(() => {
     const controller = new AbortController()
@@ -179,6 +193,7 @@ function DashboardPage() {
             }
             // Update localStorage with the merged data
             localStorage.setItem('user', JSON.stringify(mergedUser))
+            setUser(mergedUser)
             
             // Sync to edit state
             setEditInterests(mergedUser.interests)
@@ -533,6 +548,42 @@ function DashboardPage() {
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      {user && user.is_verified === false && (
+        <div className="mb-6 rounded-2xl border border-amber-500/20 bg-amber-500/10 p-4 text-amber-800 dark:text-amber-300 animate-fade-in flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5 sm:mt-0" />
+            <div className="text-xs sm:text-sm">
+              <span className="font-semibold text-amber-900 dark:text-amber-200">Verify your email address:</span> We sent a verification link to <span className="font-semibold">{user.email}</span>. Please verify your email to unlock all features (like saving stacks, custom calibrations, and voting).
+            </div>
+          </div>
+          <button
+            disabled={resendingEmail}
+            onClick={async () => {
+              setResendingEmail(true)
+              try {
+                const res = await fetch('/api/auth/resend-verification', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ email: user.email })
+                })
+                if (res.ok) {
+                  toast.success('Verification link resent! Check your inbox.')
+                } else {
+                  const data = await res.json()
+                  toast.error(data.error || 'Failed to resend. Try again.')
+                }
+              } catch {
+                toast.error('Failed to resend verification link.')
+              } finally {
+                setResendingEmail(false)
+              }
+            }}
+            className="shrink-0 text-xs font-bold uppercase tracking-wider bg-bg border border-line px-3 py-1.5 rounded-lg text-ink hover:bg-bg-sunk transition disabled:opacity-50"
+          >
+            {resendingEmail ? 'Resending...' : 'Resend Email'}
+          </button>
+        </div>
+      )}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[16rem_minmax(0,1fr)]">
         <aside className="py-2 text-ink lg:sticky lg:top-24 lg:h-fit">
           <p className="px-3 text-xs font-semibold uppercase tracking-wide text-muted">Dashboard</p>

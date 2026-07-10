@@ -111,12 +111,7 @@ function LoginPage() {
         duration: 3000,
       })
 
-      // If the account isn't verified yet, send them to the verification
-      // pending page immediately (don't try to go to dashboard).
-      if (payload.is_verified === false) {
-        setTimeout(() => navigate('/verify-email-pending', { replace: true }), 400)
-        return
-      }
+
 
       // Honor return URL from <Link state={{ from: '...' }}> on the page that
       // sent the user here. Falls back to /dashboard if the user navigated

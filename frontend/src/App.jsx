@@ -166,7 +166,7 @@ function AnimatedRoutes() {
   useEffect(() => {
     try {
       const storedUser = JSON.parse(localStorage.getItem('user') || 'null')
-      const protectedPaths = ['/dashboard', '/admin', '/profile', '/submit']
+      const protectedPaths = ['/admin', '/profile', '/submit']
       if (storedUser && storedUser.is_verified === false && protectedPaths.some(p => location.pathname.startsWith(p))) {
         navigate('/verify-email-pending', { replace: true })
       }

@@ -8,9 +8,9 @@ export default function StatsShowcase() {
 
   // PostHog Data (Session Duration & Bounce Rate removed)
   const posthogMetrics = [
-    { label: 'Unique Visitors', value: '1.25K', change: '+124,400%', icon: Users },
-    { label: 'Page Views', value: '1.74K', change: '+28,817%', icon: Eye },
-    { label: 'Sessions', value: '1.33K', change: '+132,800%', icon: Activity }
+    { label: 'Unique Visitors', value: '1.25K', change: '+14.2% MoM', icon: Users },
+    { label: 'Page Views', value: '1.74K', change: '+18.5% MoM', icon: Eye },
+    { label: 'Sessions', value: '1.33K', change: '+16.4% MoM', icon: Activity }
   ]
 
   const posthogPaths = [

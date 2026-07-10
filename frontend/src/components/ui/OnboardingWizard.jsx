@@ -253,13 +253,13 @@ export default function OnboardingWizard() {
                 className="flex flex-col items-center text-center pt-4 pb-2 gap-5"
               >
                 {/* Compass icon */}
-                <div className="flex items-center justify-center w-20 h-20 rounded-3xl bg-accent/10 border border-accent/20">
+                <div className="flex items-center justify-center w-20 h-20 rounded-3xl bg-accent-soft border border-accent/20">
                   <Compass className="h-10 w-10 text-accent" />
                 </div>
 
                 <div>
                   <h2 className="text-2xl font-bold tracking-tight text-ink">
-                    {userName ? `Hey ${userName}! 👋` : 'Welcome aboard! 👋'}
+                    {userName ? `Welcome, ${userName}!` : 'Welcome to AI Compass!'}
                   </h2>
                   <p className="text-sm text-muted mt-2 max-w-sm mx-auto leading-relaxed">
                     AI Compass has <span className="font-semibold text-ink">400+ hand-tested AI tools</span>. 
@@ -286,7 +286,7 @@ export default function OnboardingWizard() {
                   onClick={handleNext}
                   className="mt-2 inline-flex items-center gap-2 rounded-full bg-accent px-6 py-2.5 text-sm font-semibold text-white hover:opacity-90 shadow-lg shadow-accent/20 transition-all"
                 >
-                  Let&apos;s go <ArrowRight className="h-4 w-4" />
+                  Get Started <ArrowRight className="h-4 w-4" />
                 </button>
 
                 <button
@@ -325,7 +325,7 @@ export default function OnboardingWizard() {
                         onClick={() => toggleInterest(cat.id)}
                         className={`relative flex flex-col items-center justify-center p-3 rounded-2xl border text-center transition-all ${
                           sel
-                            ? 'border-accent bg-accent/10 text-accent-ink font-semibold'
+                            ? 'border-accent bg-accent-soft text-accent-ink font-semibold'
                             : 'border-line bg-bg-sunk hover:border-line-strong hover:bg-bg-elev text-ink'
                         }`}
                       >
@@ -368,7 +368,7 @@ export default function OnboardingWizard() {
                         onClick={() => toggleGoal(goal.id)}
                         className={`flex w-full items-center justify-between p-3.5 rounded-2xl border text-left transition-all ${
                           sel
-                            ? 'border-accent bg-accent/10 text-accent-ink font-semibold'
+                            ? 'border-accent bg-accent-soft text-accent-ink font-semibold'
                             : 'border-line bg-bg-sunk hover:border-line-strong hover:bg-bg-elev text-ink'
                         }`}
                       >
@@ -414,7 +414,7 @@ export default function OnboardingWizard() {
                           onClick={() => setSelectedSkill(level.id)}
                           className={`p-3 rounded-2xl border text-center transition-all ${
                             sel
-                              ? 'border-accent bg-accent/10 text-accent-ink'
+                              ? 'border-accent bg-accent-soft text-accent-ink'
                               : 'border-line bg-bg-sunk hover:bg-bg-elev text-ink'
                           }`}
                         >
@@ -439,7 +439,7 @@ export default function OnboardingWizard() {
                           onClick={() => setSelectedPricing(pref.id)}
                           className={`flex w-full items-center justify-between p-3 rounded-2xl border text-left transition-all ${
                             sel
-                              ? 'border-accent bg-accent/10 text-accent-ink'
+                              ? 'border-accent bg-accent-soft text-accent-ink'
                               : 'border-line bg-bg-sunk hover:bg-bg-elev text-ink'
                           }`}
                         >
