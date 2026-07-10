@@ -20,6 +20,8 @@ services:
           property: connectionString
       - key: PORT
         value: "10000"
+      - key: PYTHONUNBUFFERED
+        value: "1"
 
 databases:
   - name: ai-compass-db

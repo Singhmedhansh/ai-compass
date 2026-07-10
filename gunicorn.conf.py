@@ -58,9 +58,12 @@ def post_fork(server, worker):
     silently fail. Calling engine.dispose() in post_fork gives each worker a
     fresh, private pool — no shared file descriptors.
     """
-    try:
-        from app import db
-        db.engine.dispose()
-        print(f"[gunicorn] worker {worker.pid}: DB engine disposed after fork", flush=True)
-    except Exception as exc:
-        print(f"[gunicorn] worker {worker.pid}: post_fork engine.dispose() skipped: {exc}", flush=True)
+    if preload_app:
+        try:
+            from app import db
+            db.engine.dispose()
+            print(f"[gunicorn] worker {worker.pid}: DB engine disposed after fork", flush=True)
+        except Exception as exc:
+            print(f"[gunicorn] worker {worker.pid}: post_fork engine.dispose() skipped: {exc}", flush=True)
+    else:
+        print(f"[gunicorn] worker {worker.pid}: post_fork db engine dispose skipped (preload_app is False)", flush=True)
