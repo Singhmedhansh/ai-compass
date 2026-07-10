@@ -8,39 +8,39 @@ export default function StatsShowcase() {
 
   // PostHog Data (Session Duration & Bounce Rate removed)
   const posthogMetrics = [
-    { label: 'Unique Visitors', value: '1.25K', change: '+14.2% MoM', icon: Users },
-    { label: 'Page Views', value: '1.74K', change: '+18.5% MoM', icon: Eye },
-    { label: 'Sessions', value: '1.33K', change: '+16.4% MoM', icon: Activity }
+    { label: 'Unique Visitors', value: '1.64K', change: '+164.1% MoM', icon: Users },
+    { label: 'Page Views', value: '2.18K', change: '+36.2% MoM', icon: Eye },
+    { label: 'Sessions', value: '1.74K', change: '+174.1% MoM', icon: Activity }
   ]
 
   const posthogPaths = [
-    { path: '/', visitors: 465, views: 560, pct: 100 },
-    { path: '/alternatives/chatgpt', visitors: 205, views: 205, pct: 44 },
-    { path: '/tools', visitors: 191, views: 244, pct: 41 },
-    { path: '/ai-tool-finder', visitors: 107, views: 127, pct: 23 },
-    { path: '/dashboard', visitors: 37, views: 51, pct: 8 }
+    { path: '/', visitors: 552, views: 655, pct: 100 },
+    { path: '/alternatives/chatgpt', visitors: 328, views: 328, pct: 59 },
+    { path: '/tools', visitors: 196, views: 249, pct: 36 },
+    { path: '/ai-tool-finder', visitors: 135, views: 159, pct: 24 },
+    { path: '/dashboard', visitors: 53, views: 67, pct: 10 }
   ]
 
   const posthogChartPoints = [
-    { x: 50, y: 150, label: 'May', value: '412 visitors' },
-    { x: 250, y: 50, label: 'June', value: '920 visitors' },
-    { x: 450, y: 180, label: 'July', value: '68 visitors (ongoing)' }
+    { x: 50, y: 160, label: 'May', value: '330 visitors' },
+    { x: 250, y: 40, label: 'June', value: '930 visitors' },
+    { x: 450, y: 130, label: 'July', value: '~400 visitors (ongoing)' }
   ]
 
   // Google Search Console Data
   const gscMetrics = [
-    { label: 'Total Clicks', value: '494', change: 'Growth', icon: MousePointerClick },
-    { label: 'Total Impressions', value: '25.6K', change: 'High', icon: Eye },
-    { label: 'Average CTR', value: '1.9%', change: 'Healthy', icon: Users },
-    { label: 'Average Position', value: '13.2', change: 'Top 15', icon: BarChart3 }
+    { label: 'Total Clicks', value: '740', change: 'Growth', icon: MousePointerClick },
+    { label: 'Total Impressions', value: '31.9K', change: 'High', icon: Eye },
+    { label: 'Average CTR', value: '2.3%', change: 'Healthy', icon: Users },
+    { label: 'Average Position', value: '13.1', change: 'Top 15', icon: BarChart3 }
   ]
 
   const gscQueries = [
-    { query: 'compass chatgpt alternative', clicks: 72, impressions: 405, pct: 100 },
-    { query: 'compass ai chatgpt', clicks: 30, impressions: 1122, pct: 42 },
-    { query: 'compass chatgpt alternative free', clicks: 27, impressions: 163, pct: 37 },
-    { query: 'compass alternatives', clicks: 18, impressions: 290, pct: 25 },
-    { query: 'ai compass directory', clicks: 12, impressions: 94, pct: 16 }
+    { query: 'compass chatgpt alternative', clicks: 108, impressions: 538, pct: 100 },
+    { query: 'compass ai chatgpt', clicks: 53, impressions: 1451, pct: 49 },
+    { query: 'compass chatgpt alternative free', clicks: 37, impressions: 200, pct: 34 },
+    { query: 'compass alternatives', clicks: 22, impressions: 310, pct: 20 },
+    { query: 'ai compass directory', clicks: 15, impressions: 110, pct: 14 }
   ]
 
   const gscChartPoints = [
