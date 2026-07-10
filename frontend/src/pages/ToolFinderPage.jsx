@@ -676,9 +676,9 @@ function QuestionRow({ index, question, answer, isActive, onActivate, onSelect, 
                   </>
                 )}
 
-                <div className="flex items-center justify-between gap-3 mt-2">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-2">
                   <span className="text-xs text-muted-2">Select a category above or press Continue to skip</span>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 shrink-0 justify-end">
                     <Button variant="secondary" size="sm" onClick={onPrev}>← Back</Button>
                     <Button variant="primary" size="sm" onClick={onNext}>Continue →</Button>
                   </div>
@@ -706,11 +706,11 @@ function QuestionRow({ index, question, answer, isActive, onActivate, onSelect, 
                   style={{ fontSize: 16 }}
                   autoFocus
                 />
-                <div className="flex items-center justify-between gap-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <span className="text-xs text-muted-2 transition-colors hover:text-muted">
                     Press Continue to skip this step
                   </span>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 shrink-0 justify-end">
                     <Button variant="secondary" size="sm" onClick={onPrev}>← Back</Button>
                     <Button variant="primary" size="sm" onClick={onNext}>Continue →</Button>
                   </div>
@@ -786,13 +786,13 @@ function QuestionRow({ index, question, answer, isActive, onActivate, onSelect, 
                 )}
 
                 {isMulti ? (
-                  <div className="flex items-center justify-between gap-3 pt-1">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
                     <span className="text-xs text-muted-2">
                       {selectedCount > 0
                         ? `${selectedCount} selected — pick more or continue`
                         : 'Pick all that apply'}
                     </span>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 shrink-0 justify-end">
                       <Button variant="secondary" size="sm" onClick={onPrev}>← Back</Button>
                       <Button
                         variant="primary"
@@ -805,11 +805,13 @@ function QuestionRow({ index, question, answer, isActive, onActivate, onSelect, 
                     </div>
                   </div>
                 ) : (
-                  <div className="pt-0.5 flex items-center justify-between">
+                  <div className="pt-0.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <p className="text-xs text-muted-2">
                       Pick one — we&apos;ll move to the next question automatically.
                     </p>
-                    <Button variant="secondary" size="sm" onClick={onPrev}>← Back</Button>
+                    <div className="flex shrink-0 justify-end">
+                      <Button variant="secondary" size="sm" onClick={onPrev}>← Back</Button>
+                    </div>
                   </div>
                 )}
               </div>
