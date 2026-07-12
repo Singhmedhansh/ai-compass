@@ -108,7 +108,7 @@ function Navbar() {
   }, [])
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 80)
+    const handleScroll = () => setScrolled(window.scrollY > 20)
     handleScroll() // initialize on mount in case page loads scrolled
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
@@ -278,15 +278,15 @@ function Navbar() {
       ref={headerRef}
       className={`sticky z-50 transition-all duration-500 ease-out ${
         scrolled
-          ? 'top-0 lg:top-4 lg:px-6 bg-white/80 dark:bg-[#0E1311]/80 lg:bg-transparent lg:dark:bg-transparent backdrop-blur-lg lg:backdrop-blur-none border-b border-line lg:border-none shadow-sm lg:shadow-none'
+          ? 'top-0 md:top-4 md:px-6 bg-white/80 dark:bg-[#0E1311]/80 md:bg-transparent md:dark:bg-transparent backdrop-blur-md md:backdrop-blur-none border-b border-line md:border-none shadow-sm md:shadow-none'
           : 'top-0 px-0 bg-transparent border-b border-transparent'
       }`}
     >
       <div
         className={`mx-auto flex w-full flex-wrap items-center gap-3 transition-all duration-500 ease-out ${
           scrolled
-            ? 'max-w-7xl lg:max-w-5xl lg:rounded-full lg:border lg:border-line lg:bg-white/70 lg:dark:bg-[#0E1311]/70 px-4 sm:px-6 lg:px-6 py-2 lg:shadow-lg lg:backdrop-blur-xl'
-            : 'max-w-7xl bg-bg/95 sm:bg-transparent border-b border-transparent px-4 sm:px-6 lg:px-8 py-3'
+            ? 'max-w-7xl md:max-w-5xl md:rounded-full md:border md:border-line md:bg-white/70 md:dark:bg-[#0E1311]/70 px-4 sm:px-6 md:px-6 py-2 md:shadow-lg md:backdrop-blur-xl'
+            : 'max-w-7xl bg-bg/95 sm:bg-transparent border-b border-transparent px-4 sm:px-6 md:px-8 py-3'
         }`}
       >
         {location.pathname !== '/' && (
