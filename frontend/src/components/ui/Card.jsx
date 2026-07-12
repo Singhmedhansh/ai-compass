@@ -143,7 +143,11 @@ function Card({ tool = {}, layoutType = 'standard', glass = false, folders = nul
     }
   }
 
-  const displayReason = tool.relevance_reason || tool.reason || `Highly rated ${category.toLowerCase()} tool recommended for students.`
+  // relevance_reason is only set by the personalised recommender (dashboard/syllabus).
+  // For regular catalog cards, fall through to the tool's own tagline so the
+  // callout is always specific to the tool, not a generic category blurb.
+  // If nothing is available the callout is hidden entirely.
+  const displayReason = tool.relevance_reason || tool.reason || tool.tagline || null
   const baseMinHeight = isLarge ? 450 : 260
 
   const isInAnyFolder = folders ? folders.some(f => Array.isArray(f.tools) && f.tools.map(t => String(t).toLowerCase()).includes(String(slug).toLowerCase())) : false
@@ -256,10 +260,12 @@ function Card({ tool = {}, layoutType = 'standard', glass = false, folders = nul
             {description}
           </p>
  
-          <div className="mt-2.5 flex items-start gap-1.5 rounded-lg bg-accent-soft/40 px-2.5 py-1.5 text-xs text-ink-2 border border-accent/10 backdrop-blur-sm">
-            <Sparkles className="h-3.5 w-3.5 text-accent shrink-0 mt-0.5" />
-            <span>{displayReason}</span>
-          </div>
+          {displayReason && (
+            <div className="mt-2.5 flex items-start gap-1.5 rounded-lg bg-accent-soft/40 px-2.5 py-1.5 text-xs text-ink-2 border border-accent/10 backdrop-blur-sm">
+              <Sparkles className="h-3.5 w-3.5 text-accent shrink-0 mt-0.5" />
+              <span>{displayReason}</span>
+            </div>
+          )}
         </div>
       </div>
  
