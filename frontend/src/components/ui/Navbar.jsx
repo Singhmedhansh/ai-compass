@@ -276,15 +276,17 @@ function Navbar() {
   return (
     <header
       ref={headerRef}
-      className={`sticky top-0 z-50 transition-all duration-300 ${
+      className={`sticky z-50 transition-all duration-500 ease-out ${
         scrolled
-          ? 'bg-bg/40 backdrop-blur-lg shadow-sm border-b border-line/50'
-          : 'bg-transparent border-b border-transparent'
+          ? 'top-0 lg:top-4 lg:px-6 bg-bg/80 lg:bg-transparent backdrop-blur-lg lg:backdrop-blur-none border-b border-line/50 lg:border-none shadow-sm lg:shadow-none'
+          : 'top-0 px-0 bg-transparent border-b border-transparent'
       }`}
     >
       <div
-        className={`mx-auto flex w-full max-w-7xl flex-wrap items-center gap-3 px-4 transition-all duration-200 sm:px-6 lg:px-8 ${
-          scrolled ? 'py-2' : 'py-3'
+        className={`mx-auto flex w-full flex-wrap items-center gap-3 transition-all duration-500 ease-out ${
+          scrolled
+            ? 'max-w-7xl lg:max-w-5xl lg:rounded-full lg:border lg:border-line/50 lg:bg-bg/60 px-4 sm:px-6 lg:px-6 py-2 lg:shadow-lg lg:backdrop-blur-xl'
+            : 'max-w-7xl bg-bg/95 sm:bg-transparent border-b border-transparent px-4 sm:px-6 lg:px-8 py-3'
         }`}
       >
         {location.pathname !== '/' && (
