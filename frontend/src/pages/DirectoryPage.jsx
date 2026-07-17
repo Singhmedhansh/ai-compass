@@ -988,6 +988,7 @@ function DirectoryPage() {
             onClear={() => handleSearchChange('')}
             placeholder="Search or describe what you need..."
             style={{ fontSize: 16 }}
+            isLoading={isLoading}
           />
         </div>
         <button
@@ -1340,15 +1341,15 @@ function DirectoryPage() {
                   </div>
 
                   <div className="mt-8 border-t border-line/60 pt-6 text-left">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-muted mb-3">Search tips:</h4>
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-muted mb-3">Actionable Suggestions:</h4>
                     <ul className="grid gap-2 text-xs text-ink-2 sm:grid-cols-2">
                       <li className="flex items-center gap-2">
                         <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-                        Check your query for typos
+                        Try searching for "writing tools"
                       </li>
                       <li className="flex items-center gap-2">
                         <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-                        Use general keywords (e.g. "writing")
+                        Try searching for "image generation"
                       </li>
                       <li className="flex items-center gap-2">
                         <span className="h-1.5 w-1.5 rounded-full bg-accent" />
@@ -1356,7 +1357,7 @@ function DirectoryPage() {
                       </li>
                       <li className="flex items-center gap-2">
                         <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-                        Search by category tabs above
+                        Toggle semantic search (brain icon)
                       </li>
                     </ul>
                   </div>

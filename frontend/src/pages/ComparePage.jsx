@@ -7,7 +7,7 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { useCurrency } from '../context/CurrencyContext'
 
-import { Button, SkeletonCompareColumn, ToolLogo } from '../components/ui'
+import { Button, SkeletonCompareColumn, ToolLogo, ConversionCTA } from '../components/ui'
 import { sectionReveal, staggerChild, staggerParent } from '../lib/motion'
 import { MAX_COMPARE } from '../hooks/useCompare'
 import { outboundUrl, OUTBOUND_REL } from '../utils/outbound'
@@ -971,6 +971,7 @@ export default function ComparePage() {
             Comparison limit reached (maximum of {MAX_COMPARE} tools)
           </div>
         )}
+        <ConversionCTA />
         </>
       )}
     </div>

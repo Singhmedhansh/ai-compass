@@ -17,7 +17,7 @@ import {
   ChevronRight,
   GraduationCap
 } from "lucide-react";
-
+import { ConversionCTA } from "../components/ui";
 import { WordReveal } from "../components/ui";
 import { sectionReveal, staggerParent, staggerChild } from "../lib/motion";
 
@@ -344,6 +344,7 @@ export default function BestAIToolsForTeachers() {
             ))}
           </div>
         </div>
+        <ConversionCTA />
       </div>
     </>
   );

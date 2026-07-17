@@ -4,7 +4,7 @@ import { ArrowUpRight, Sparkles, Shield, Cpu, RefreshCw, Layers, Check, Laptop, 
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 
-import { MagneticWrapper, WordReveal } from "../components/ui";
+import { MagneticWrapper, WordReveal, ConversionCTA } from "../components/ui";
 import { useCatalogStats } from "../hooks/useCatalogStats";
 import { sectionReveal, staggerParent, staggerChild } from "../lib/motion";
 import { toolHoverHandlers, alternativesHoverHandlers } from "../lib/prefetch";
@@ -700,26 +700,7 @@ export default function BestFreeAITools() {
           </div>
         </MotionDiv>
 
-        {/* Footer CTA */}
-        <MotionDiv
-          variants={sectionReveal}
-          initial="initial"
-          whileInView="animate"
-          viewport={{ once: true, margin: '-10% 0px' }}
-          className="mx-auto max-w-[860px] px-6 mt-16 mb-20 text-center font-sans"
-        >
-          <p className="text-[14px] text-muted-2 mb-2 font-serif">Read also</p>
-          <div className="flex flex-wrap justify-center gap-6">
-            <MagneticWrapper strength={0.2}>
-              <Link to="/best-ai-tools-for-students" className="text-[14px] font-semibold text-accent no-underline hover:underline">
-                Best AI tools for students →
-              </Link>
-            </MagneticWrapper>
-            <Link to="/tools" className="text-[14px] font-semibold text-accent no-underline hover:underline">
-              Browse all {displayCount} tools →
-            </Link>
-          </div>
-        </MotionDiv>
+        <ConversionCTA />
       </div>
     </>
   );

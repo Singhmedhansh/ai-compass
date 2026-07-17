@@ -663,7 +663,9 @@ function QuestionRow({ index, question, answer, isActive, onActivate, onSelect, 
                 )}
 
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-2">
-                  <span className="text-xs text-muted-2">Select a category above or type a specific task</span>
+                  <span className="text-xs text-muted-2">
+                    {answer ? "Great choice!" : "Completing this helps us match you to better tools."}
+                  </span>
                   <div className="flex gap-2 shrink-0 justify-end">
                     <Button variant="secondary" size="sm" onClick={onPrev}>← Back</Button>
                     <Button variant="primary" size="sm" onClick={onNext}>{answer ? 'Continue →' : 'Skip this step →'}</Button>
@@ -692,13 +694,13 @@ function QuestionRow({ index, question, answer, isActive, onActivate, onSelect, 
                   style={{ fontSize: 16 }}
                   autoFocus
                 />
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-4">
                   <span className="text-xs text-muted-2 transition-colors hover:text-muted">
-                    Press Continue to skip this step
+                    {answer ? "Press Enter to continue" : "Completing this helps us match you to better tools."}
                   </span>
                   <div className="flex gap-2 shrink-0 justify-end">
                     <Button variant="secondary" size="sm" onClick={onPrev}>← Back</Button>
-                    <Button variant="primary" size="sm" onClick={onNext}>Continue →</Button>
+                    <Button variant="primary" size="sm" onClick={onNext}>{answer ? 'Continue →' : 'Skip this step →'}</Button>
                   </div>
                 </div>
               </div>

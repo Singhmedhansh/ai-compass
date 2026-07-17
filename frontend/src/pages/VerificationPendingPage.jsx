@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
+import { AlertCircle } from 'lucide-react'
 import AuthLayout from '../components/auth/AuthLayout'
 import Button from '../components/ui/Button'
 
@@ -11,6 +12,15 @@ export default function VerificationPendingPage() {
 
   const [resending, setResending] = useState(false)
   const [error, setError] = useState('')
+  const [cooldown, setCooldown] = useState(0)
+
+  useEffect(() => {
+    let timer
+    if (cooldown > 0) {
+      timer = setTimeout(() => setCooldown(cooldown - 1), 1000)
+    }
+    return () => clearTimeout(timer)
+  }, [cooldown])
 
   useEffect(() => {
     let active = true
@@ -76,6 +86,7 @@ export default function VerificationPendingPage() {
       }
 
       toast.success(data.message || 'Verification link has been resent! Check your inbox.')
+      setCooldown(60) // Start 60 second cooldown
     } catch (err) {
       setError(err.message || 'Failed to send email.')
       toast.error(err.message || 'Failed to send email.')
@@ -114,15 +125,23 @@ export default function VerificationPendingPage() {
             {email || 'No active session email'}
           </p>
         </div>
+        
+        <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-4 flex items-start gap-3">
+          <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5 shrink-0" />
+          <div className="text-sm text-amber-800 dark:text-amber-200">
+            <p className="font-semibold mb-1">Didn't receive it?</p>
+            <p>Emails can sometimes take a minute. Please double-check your <span className="font-bold">spam or junk folder</span> before requesting a new link.</p>
+          </div>
+        </div>
 
         <div className="flex flex-col gap-2">
           <Button
             variant="primary"
             onClick={handleResend}
-            disabled={resending || !email}
+            disabled={resending || !email || cooldown > 0}
             className="w-full font-semibold"
           >
-            {resending ? 'Resending Link...' : 'Resend Verification Link'}
+            {resending ? 'Resending Link...' : cooldown > 0 ? `Resend Verification Link (${cooldown}s)` : 'Resend Verification Link'}
           </Button>
 
           <Button
@@ -141,9 +160,6 @@ export default function VerificationPendingPage() {
         )}
 
         <div className="flex flex-col items-center justify-center gap-3 text-sm text-muted">
-          <p className="text-center">
-            Already verified? Make sure to check your spam/junk folder.
-          </p>
           <button
             onClick={handleLogout}
             className="font-semibold text-accent hover:underline focus:outline-none"

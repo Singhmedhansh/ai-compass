@@ -4,7 +4,7 @@ import { ArrowUpRight, Sparkles, Code2, Terminal, Cpu, Database, Check, X, Shiel
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 
-import { MagneticWrapper, WordReveal } from "../components/ui";
+import { MagneticWrapper, WordReveal, ConversionCTA } from "../components/ui";
 import { useCatalogStats } from "../hooks/useCatalogStats";
 import { sectionReveal, staggerParent, staggerChild } from "../lib/motion";
 import { toolHoverHandlers, alternativesHoverHandlers } from "../lib/prefetch";
@@ -488,6 +488,7 @@ export default function BestCodingTools() {
             ))}
           </div>
         </div>
+        <ConversionCTA />
       </div>
     </>
   );

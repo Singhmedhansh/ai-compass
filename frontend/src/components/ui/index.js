@@ -29,3 +29,4 @@ export { default as ToolLogo } from './ToolLogo'
 export { default as WordReveal } from './WordReveal'
 
 export { default as SEO } from './SEO'
+export { default as ConversionCTA } from './ConversionCTA'

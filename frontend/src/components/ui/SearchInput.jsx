@@ -44,6 +44,7 @@ function SearchInput({
   onKeyDown,
   placeholder = 'Search AI tools...',
   style,
+  isLoading = false,
 }) {
   const navigate = useNavigate()
   const location = useLocation()
@@ -141,7 +142,11 @@ function SearchInput({
 
   return (
     <div className="relative w-full" ref={dropdownRef}>
-      <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+      {isLoading ? (
+        <div className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+      ) : (
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+      )}
 
       <input
         type="text"

@@ -5,7 +5,7 @@ import { motion } from 'framer-motion'
 import { ArrowUpRight, Shield } from 'lucide-react'
 import clsx from 'clsx'
 
-import { SEO, WordReveal } from '../components/ui'
+import { SEO, WordReveal, ConversionCTA } from '../components/ui'
 import ErrorState from '../components/ErrorState'
 import { useCatalogStats } from '../hooks/useCatalogStats'
 import { sectionReveal, staggerParent, staggerChild } from '../lib/motion'
@@ -551,37 +551,7 @@ export default function AlternativesPage() {
           </div>
         </MotionDiv>
 
-        <MotionDiv
-          variants={sectionReveal}
-          initial="initial"
-          whileInView="animate"
-          viewport={{ once: true, margin: '-10% 0px' }}
-          className="mx-auto max-w-3xl px-4 pb-20"
-        >
-          <div className="rounded-3xl border border-line bg-bg-elev p-8 text-center sm:p-10">
-            <h2 className="text-2xl font-semibold text-ink sm:text-3xl">
-              Looking for something different?
-            </h2>
-            <p className="mt-3 text-muted">
-              Use our 30-second wizard to find the right AI tool for your specific needs, or browse the full catalog of {catalogCount} hand-curated tools.
-            </p>
-            <div className="mt-6 flex flex-wrap justify-center gap-3">
-              <Link
-                to="/ai-tool-finder"
-                className="inline-flex items-center gap-2 rounded-full bg-ink px-5 py-2.5 text-sm font-medium text-bg hover:bg-ink-2"
-              >
-                Use the wizard
-                <ArrowUpRight className="h-4 w-4" />
-              </Link>
-              <Link
-                to="/tools"
-                className="inline-flex items-center gap-2 rounded-full border border-line bg-bg px-5 py-2.5 text-sm font-medium text-ink-2 hover:border-line-strong hover:text-ink"
-              >
-                Browse all tools
-              </Link>
-            </div>
-          </div>
-        </MotionDiv>
+        <ConversionCTA />
       </div>
     </>
   )
