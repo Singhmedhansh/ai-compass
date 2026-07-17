@@ -693,7 +693,7 @@ def _meta_for_request_path(path: str):
     # (HomePage.jsx <Helmet>) so crawlers and users never see a mismatch.
     if normalized == '':
         count = _rounded_tools_text()
-        title = f'AI Compass — {count} Free AI Tools for Students (No Signup)'
+        title = f'The Official AI Compass — {count} Free AI Tools for Students (No Signup)'
         desc = (
             f'The student AI toolkit. {count} tools tested & ranked — writing, coding, '
             'research, design. Free tiers & student plans. No login. Updated 2026.'

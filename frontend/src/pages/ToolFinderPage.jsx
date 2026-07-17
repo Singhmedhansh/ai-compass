@@ -603,84 +603,70 @@ function QuestionRow({ index, question, answer, isActive, onActivate, onSelect, 
                       })}
                     </div>
 
-                    {/* Progressive disclosure */}
-                    {(nicheSubs.length > 0 || true) ? (
-                      <div className="mt-0.5">
-                        <button
-                          type="button"
-                          onClick={() => setShowOther(!showOther)}
-                          className="text-xs font-semibold text-accent hover:underline flex items-center gap-1"
-                        >
-                          {showOther ? 'Hide other options' : 'Other options...'}
-                        </button>
-                      </div>
-                    ) : null}
-
-                    {showOther && (
-                      <div className="mt-2 space-y-3 pt-3 border-t border-dashed border-line animate-in fade-in duration-200">
-                        {nicheSubs.length > 0 && (
-                          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-2">
-                            {nicheSubs.map((sub) => {
-                              const SubIcon = sub.icon
-                              const isSelected = answer === sub.label
-                              return (
-                                <button
-                                  key={sub.id}
-                                  type="button"
-                                  onClick={() => {
-                                    onTextChange(sub.label)
-                                    window.setTimeout(() => onNext(), 150)
-                                  }}
-                                  className={`flex items-center gap-3 rounded-xl border p-3.5 text-left transition-all focus:outline-none focus:ring-2 focus:ring-accent ${
-                                    isSelected
-                                      ? 'border-accent bg-accent-soft/30 ring-1 ring-accent'
-                                      : 'border-line bg-bg hover:border-accent/40'
-                                  }`}
-                                >
-                                  <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors ${
-                                    isSelected ? 'bg-accent text-bg' : 'bg-bg-sunk text-muted'
-                                  }`}>
-                                    <SubIcon className="h-4 w-4" aria-hidden="true" />
-                                  </div>
-                                  <div className="min-w-0">
-                                    <span className="block text-sm font-semibold text-ink">{sub.label}</span>
-                                    <span className="block text-xs text-muted-2 leading-snug">{sub.desc}</span>
-                                  </div>
-                                </button>
-                              )
-                            })}
-                          </div>
-                        )}
-
-                        <div className="flex flex-col gap-2">
-                          <label htmlFor="custom-use-case" className="text-xs font-medium text-muted">
-                            Describe your own specifics:
-                          </label>
-                          <input
-                            id="custom-use-case"
-                            type="text"
-                            ref={textInputRef}
-                            className="w-full rounded-lg border border-line bg-bg-elev px-3 py-2 text-ink placeholder:text-muted-2 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
-                            placeholder="e.g. build a specific API client, translate research documents..."
-                            value={(!allSubs.some(s => s.label === answer) && answer) || ''}
-                            onChange={(e) => onTextChange(e?.target?.value ?? '')}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') { e.preventDefault(); onNext() }
-                            }}
-                            maxLength={120}
-                            style={{ fontSize: 16 }}
-                          />
+                    {/* Progressive disclosure removed - always show other options and custom input */}
+                    <div className="mt-2 space-y-3 pt-3 border-t border-dashed border-line animate-in fade-in duration-200">
+                      {nicheSubs.length > 0 && (
+                        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-2">
+                          {nicheSubs.map((sub) => {
+                            const SubIcon = sub.icon
+                            const isSelected = answer === sub.label
+                            return (
+                              <button
+                                key={sub.id}
+                                type="button"
+                                onClick={() => {
+                                  onTextChange(sub.label)
+                                  window.setTimeout(() => onNext(), 150)
+                                }}
+                                className={`flex items-center gap-3 rounded-xl border p-3.5 text-left transition-all focus:outline-none focus:ring-2 focus:ring-accent ${
+                                  isSelected
+                                    ? 'border-accent bg-accent-soft/30 ring-1 ring-accent'
+                                    : 'border-line bg-bg hover:border-accent/40'
+                                }`}
+                              >
+                                <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors ${
+                                  isSelected ? 'bg-accent text-bg' : 'bg-bg-sunk text-muted'
+                                }`}>
+                                  <SubIcon className="h-4 w-4" aria-hidden="true" />
+                                </div>
+                                <div className="min-w-0">
+                                  <span className="block text-sm font-semibold text-ink">{sub.label}</span>
+                                  <span className="block text-xs text-muted-2 leading-snug">{sub.desc}</span>
+                                </div>
+                              </button>
+                            )
+                          })}
                         </div>
+                      )}
+
+                      <div className="flex flex-col gap-2">
+                        <label htmlFor="custom-use-case" className="text-xs font-medium text-muted">
+                          Or describe your specific task:
+                        </label>
+                        <input
+                          id="custom-use-case"
+                          type="text"
+                          ref={textInputRef}
+                          className="w-full rounded-lg border border-line bg-bg-elev px-3 py-2 text-ink placeholder:text-muted-2 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+                          placeholder="e.g. build a specific API client, translate research documents..."
+                          value={(!allSubs.some(s => s.label === answer) && answer) || ''}
+                          onChange={(e) => onTextChange(e?.target?.value ?? '')}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') { e.preventDefault(); onNext(e) }
+                          }}
+                          maxLength={120}
+                          style={{ fontSize: 16 }}
+                        />
                       </div>
-                    )}
+                    </div>
                   </>
                 )}
 
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-2">
-                  <span className="text-xs text-muted-2">Select a category above or press Continue to skip</span>
+                  <span className="text-xs text-muted-2">Select a category above or type a specific task</span>
                   <div className="flex gap-2 shrink-0 justify-end">
                     <Button variant="secondary" size="sm" onClick={onPrev}>← Back</Button>
-                    <Button variant="primary" size="sm" onClick={onNext}>Continue →</Button>
+                    <Button variant="primary" size="sm" onClick={onNext}>{answer ? 'Continue →' : 'Skip this step →'}</Button>
                   </div>
                 </div>
               </div>
@@ -797,8 +783,14 @@ function QuestionRow({ index, question, answer, isActive, onActivate, onSelect, 
                       <Button
                         variant="primary"
                         size="sm"
-                        onClick={onNext}
-                        disabled={selectedCount === 0}
+                        onClick={(e) => {
+                          if (selectedCount === 0) {
+                            toast.error('Please select an option first.')
+                            // Add a subtle shake to the container if we had a ref, or just rely on toast
+                            return
+                          }
+                          onNext(e)
+                        }}
                       >
                         Continue
                       </Button>
@@ -1896,7 +1888,15 @@ function ToolFinderPage() {
         </div>
 
         {!hasStarted ? (
-          <TemplateGallery onSelect={handlePredefinedStack} />
+          <>
+            <TemplateGallery onSelect={handlePredefinedStack} />
+            <div className="mt-8 flex justify-center pb-4 animate-fade-in">
+              <Link to="/tools" className="inline-flex items-center gap-2 text-sm font-semibold text-muted hover:text-accent transition-colors border border-line bg-bg-elev hover:bg-bg-sunk px-5 py-2.5 rounded-full shadow-sm">
+                <Search className="h-4 w-4" />
+                Skip wizard and browse all tools directly
+              </Link>
+            </div>
+          </>
         ) : (
           <>
             <style>{`

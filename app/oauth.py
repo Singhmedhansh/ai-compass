@@ -309,7 +309,9 @@ def google_callback():
             token = oauth.google.authorize_access_token()
         except Exception as e:
             if "mismatching_state" in str(e).lower():
-                return redirect(url_for("oauth.login_google"))
+                current_app.logger.warning(f"Google OAuth state mismatch: {e}")
+                frontend_url = _frontend_base_url()
+                return redirect(f"{frontend_url}/login?error=google_state_mismatch")
             raise
 
         userinfo = token.get("userinfo") or oauth.google.userinfo()

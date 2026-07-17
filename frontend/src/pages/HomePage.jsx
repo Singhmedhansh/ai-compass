@@ -4,6 +4,7 @@ import { useCatalogStats } from '../hooks/useCatalogStats'
 import CurationDiscipline from '../components/home/CurationDiscipline'
 import FinalCTA from '../components/home/FinalCTA'
 import Hero from '../components/home/Hero'
+import OriginalBrandBanner from '../components/OriginalBrandBanner'
 import NewsletterCapture from '../components/home/NewsletterCapture'
 import SubmitInvite from '../components/home/SubmitInvite'
 import StatsShowcase from '../components/home/StatsShowcase'
@@ -24,6 +25,7 @@ export default function HomePage() {
             per-route by _inject_meta) to avoid a duplicate <link> tag. */}
       </Helmet>
 
+      <OriginalBrandBanner />
       <Hero />
       <WizardDemo />
       <StudentHubShowcase />

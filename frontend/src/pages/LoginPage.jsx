@@ -57,6 +57,8 @@ function LoginPage() {
         friendlyMsg = 'A database error occurred during verification.'
       } else if (errorMsg === 'google_not_configured') {
         friendlyMsg = 'Google login is not configured on the server.'
+      } else if (errorMsg === 'google_state_mismatch') {
+        friendlyMsg = 'Google authentication state mismatch. Please ensure you do not have strict cookie blockers enabled and try again.'
       } else if (errorMsg === 'google_failed') {
         friendlyMsg = 'Google authentication failed. Please try again.'
       } else if (errorMsg === 'github_not_configured') {

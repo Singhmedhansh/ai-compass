@@ -1,4 +1,7 @@
 import { useCatalogStats } from '../../hooks/useCatalogStats'
+import { useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { ChevronDown } from 'lucide-react'
 
 // Visible FAQ for the homepage. Exported FAQS is also consumed by HomePage
 // to emit matching FAQPage JSON-LD — keep the two in sync (Google requires the
@@ -33,6 +36,7 @@ export const FAQS = [
 
 export default function FAQ() {
   const { roundedToolsText } = useCatalogStats() // {/* Dynamic — do not hardcode */}
+  const [openIndex, setOpenIndex] = useState(null)
 
   const dynamicFaqs = FAQS.map(faq => ({
     ...faq,
@@ -40,6 +44,10 @@ export default function FAQ() {
       .replace('400+', roundedToolsText) // {/* Dynamic — do not hardcode */}
       .replace('400', roundedToolsText) // {/* Dynamic — do not hardcode */}
   }))
+
+  const toggleFAQ = (index) => {
+    setOpenIndex(openIndex === index ? null : index)
+  }
 
   return (
     <section id="faq" className="py-12 md:py-20">
@@ -53,16 +61,41 @@ export default function FAQ() {
           Frequently asked questions
         </h2>
 
-        <dl className="border-t border-line">
-          {dynamicFaqs.map(({ q, a }) => (
-            <div key={q} className="border-b border-line py-5">
-              <dt className="text-base font-semibold text-ink md:text-lg">{q}</dt>
-              <dd className="mt-2 max-w-[68ch] text-[15px] leading-relaxed text-muted md:text-base">
-                {a}
-              </dd>
-            </div>
-          ))}
-        </dl>
+        <div className="border-t border-line">
+          {dynamicFaqs.map(({ q, a }, index) => {
+            const isOpen = openIndex === index
+            return (
+              <div key={q} className="border-b border-line">
+                <button
+                  type="button"
+                  onClick={() => toggleFAQ(index)}
+                  className="flex w-full items-center justify-between py-5 text-left transition hover:text-accent focus:outline-none"
+                >
+                  <span className="text-base font-semibold text-ink md:text-lg">{q}</span>
+                  <ChevronDown
+                    className="h-5 w-5 shrink-0 text-muted transition-transform duration-200"
+                    style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
+                  />
+                </button>
+                <AnimatePresence initial={false}>
+                  {isOpen && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.22, ease: [0.04, 0.62, 0.23, 0.98] }}
+                      className="overflow-hidden"
+                    >
+                      <p className="pb-5 max-w-[68ch] text-[15px] leading-relaxed text-muted md:text-base">
+                        {a}
+                      </p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            )
+          })}
+        </div>
       </div>
     </section>
   )
