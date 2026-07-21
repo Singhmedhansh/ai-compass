@@ -306,10 +306,10 @@ const QUESTIONS = [
     id: 'goal',
     label: 'Use case',
     activeHeading: "What are you trying to do today?",
-    activeHelper: 'Pick all that apply — you can refine these anytime.',
+    activeHelper: 'Pick one — we match tools that fit.',
     options: GOAL_OPTIONS,
     type: 'chips',
-    multiSelect: true,
+    multiSelect: false,
   },
   {
     id: 'use_case',
@@ -546,8 +546,8 @@ function QuestionRow({ index, question, answer, isActive, onActivate, onSelect, 
   )
 
   // Sub-categories progressive disclosure logic
-  const goals = selectedGoals || []
-  const allSubs = Array.isArray(goals) ? goals.flatMap(g => SUB_CATEGORIES[g] || []) : []
+  const goals = asList(selectedGoals)
+  const allSubs = goals.flatMap(g => SUB_CATEGORIES[g] || [])
   const primarySubs = allSubs.filter(sub => sub.primary)
   const nicheSubs = allSubs.filter(sub => !sub.primary)
 
@@ -1374,7 +1374,10 @@ function ToolFinderPage() {
   const [activeQuestion, setActiveQuestion] = useState(null)
   const [viewMode, setViewMode] = useState('wizard')
   const [selectedStackId, setSelectedStackId] = useState('custom')
-  const [answers, setAnswers] = useState({ goal: [], use_case: '', budget: '', platform: [], level: '' })
+  const [answers, setAnswers] = useState(() => {
+    const isFromAlts = typeof document !== 'undefined' && document.referrer.includes('/alternatives')
+    return { goal: [], use_case: isFromAlts ? 'Find alternatives' : '', budget: '', platform: [], level: '' }
+  })
   const [results, setResults] = useState([])
   const [loadingResults, setLoadingResults] = useState(false)
   const [savingStack, setSavingStack] = useState(false)
@@ -1871,10 +1874,8 @@ function ToolFinderPage() {
         <div className="mb-6 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-ink sm:text-4xl"><WordReveal>AI Stack Architect</WordReveal></h1>
-            <p className="mt-2 text-sm text-muted sm:text-base">
-              {hasStarted 
-                ? `Answer ${TOTAL_QUESTIONS} quick questions — pick an option and we'll move you to the next automatically.`
-                : "Choose a template stack to instantly discover tools, or build your own custom stack."}
+            <p className="mt-2 text-sm sm:text-base font-medium text-accent">
+              Answer {TOTAL_QUESTIONS} short questions → get your personalized AI tool match.
             </p>
           </div>
           {hasStarted && (

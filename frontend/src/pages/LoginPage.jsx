@@ -151,6 +151,9 @@ function LoginPage() {
       ) : null}
 
       <div className="mt-6">
+        <div className="mb-4 text-center">
+          <p className="text-sm font-medium text-ink">Join 2,000+ users finding their AI tools</p>
+        </div>
         <SocialAuthButtons verb="Continue" />
       </div>
 
@@ -214,6 +217,13 @@ function LoginPage() {
         <Button variant="primary" type="submit" disabled={submitting} className="w-full font-semibold">
           {submitting ? 'Signing in...' : 'Sign In'}
         </Button>
+        
+        <Link 
+          to="/tools" 
+          className="mt-3 flex w-full justify-center rounded-lg border border-line bg-bg-sunk py-2.5 text-sm font-semibold text-ink hover:bg-line transition-colors"
+        >
+          Continue as Guest
+        </Link>
 
         {error ? (
           <p className="rounded-lg border border-danger bg-danger-soft px-3 py-2 text-sm text-danger">
@@ -226,10 +236,6 @@ function LoginPage() {
         Don&apos;t have an account?{' '}
         <Link to="/register" className="font-semibold text-accent hover:underline">
           Register
-        </Link>
-        {' · '}
-        <Link to="/tools" className="font-semibold text-accent hover:underline">
-          Continue as Guest
         </Link>
       </p>
     </AuthLayout>

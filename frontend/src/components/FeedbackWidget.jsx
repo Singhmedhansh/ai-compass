@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { MessageSquare, X, Send, CheckCircle2 } from 'lucide-react'
+import { MessageSquare, X, Send, Frown, Meh, Smile } from 'lucide-react'
 import { AnimatePresence, motion } from 'framer-motion'
+import { toast } from 'sonner'
 
 // ESLint in this repo doesn't recognise JSX namespaced tags (<MotionDiv>)
 // as usage, so we alias to constants. Same pattern as BestJasperAlternatives.
@@ -30,9 +31,9 @@ export default function FeedbackWidget() {
   const [email, setEmail] = useState(() => {
     try { return localStorage.getItem('ai-compass-feedback-draft-email') || '' } catch { return '' }
   })
+  const [rating, setRating] = useState(null)
   const [honeypot, setHoneypot] = useState('')
   const [submitting, setSubmitting] = useState(false)
-  const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState(null)
   const [recentlySubmitted, setRecentlySubmitted] = useState(false)
 
@@ -75,8 +76,8 @@ export default function FeedbackWidget() {
     if (submitting) return
     setError(null)
 
-    if (message.trim().length < 5) {
-      setError('Message is too short — give us a few words.')
+    if (!rating && message.trim().length < 5) {
+      setError('Please select a rating or leave a short message.')
       return
     }
 
@@ -87,6 +88,7 @@ export default function FeedbackWidget() {
 
     setSubmitting(true)
     try {
+      const payloadMessage = rating ? `[Rating: ${rating}] ${message.trim()}` : message.trim()
       const resp = await fetch('/api/v1/feedback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -94,7 +96,7 @@ export default function FeedbackWidget() {
         // server-side from the session cookie.
         credentials: 'include',
         body: JSON.stringify({
-          message: message.trim(),
+          message: payloadMessage,
           email: email.trim() || null,
           page_url: typeof window !== 'undefined' ? window.location.href : null,
           website: honeypot, // honeypot — must be empty for real users
@@ -104,12 +106,14 @@ export default function FeedbackWidget() {
         const data = await resp.json().catch(() => ({}))
         throw new Error(data.error || `Server error (${resp.status})`)
       }
-      setSubmitted(true)
+      toast.success('Feedback sent. Thank you!')
+      setOpen(false)
       try { localStorage.setItem(STORAGE_KEY, String(Date.now())) } catch { /* ignore */ }
       setRecentlySubmitted(true)
       // Reset form for next time
       setMessage('')
       setEmail('')
+      setRating(null)
       try {
         localStorage.removeItem('ai-compass-feedback-draft-msg')
         localStorage.removeItem('ai-compass-feedback-draft-email')
@@ -183,88 +187,74 @@ export default function FeedbackWidget() {
                 <button
                   type="button"
                   onClick={() => setOpen(false)}
-                  className="rounded-full p-1 text-muted hover:bg-bg-sunk hover:text-ink"
+                  className="rounded-full p-3 -mr-2 -mt-2 text-muted hover:bg-bg-sunk hover:text-ink"
                   aria-label="Close feedback form"
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-5 w-5" />
                 </button>
               </div>
 
-              {submitted ? (
-                <div className="flex flex-col items-center gap-2 py-6 text-center">
-                  <CheckCircle2 className="h-10 w-10 text-accent" />
-                  <p className="text-sm font-medium text-ink">Got it — thank you.</p>
-                  <p className="text-xs text-muted mb-4">
-                    {email ? 'I\'ll reply if a response makes sense.' : 'No reply expected — appreciated all the same.'}
+              <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-3">
+                <div className="flex justify-center gap-4 py-2">
+                  <button type="button" onClick={() => setRating('bad')} className={`p-2 rounded-full transition-colors ${rating === 'bad' ? 'bg-danger-soft text-danger' : 'bg-bg-sunk text-muted hover:bg-bg-elev hover:text-ink'}`}><Frown className="h-6 w-6" /></button>
+                  <button type="button" onClick={() => setRating('neutral')} className={`p-2 rounded-full transition-colors ${rating === 'neutral' ? 'bg-accent-soft text-accent-ink' : 'bg-bg-sunk text-muted hover:bg-bg-elev hover:text-ink'}`}><Meh className="h-6 w-6" /></button>
+                  <button type="button" onClick={() => setRating('good')} className={`p-2 rounded-full transition-colors ${rating === 'good' ? 'bg-accent text-bg' : 'bg-bg-sunk text-muted hover:bg-bg-elev hover:text-ink'}`}><Smile className="h-6 w-6" /></button>
+                </div>
+
+                <label className="sr-only" htmlFor="feedback-message">Your message</label>
+                <textarea
+                  id="feedback-message"
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  placeholder="Optional details..."
+                  rows={3}
+                  maxLength={5000}
+                  className="w-full resize-none rounded-lg border border-line bg-bg-sunk px-3 py-2 text-sm text-ink placeholder:text-muted-2 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+                />
+
+                <label className="sr-only" htmlFor="feedback-email">Email (optional)</label>
+                <input
+                  id="feedback-email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Email (optional, if you want a reply)"
+                  maxLength={255}
+                  autoComplete="email"
+                  className="w-full rounded-lg border border-line bg-bg-sunk px-3 py-2 text-sm text-ink placeholder:text-muted-2 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+                />
+
+                {/* Honeypot — must remain empty. Hidden from sighted users
+                    and screen readers; bots see it as an input and fill it. */}
+                <div aria-hidden="true" style={{ position: 'absolute', left: '-9999px', width: '1px', height: '1px', overflow: 'hidden' }}>
+                  <label htmlFor="feedback-website">Website</label>
+                  <input
+                    id="feedback-website"
+                    type="text"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    value={honeypot}
+                    onChange={(e) => setHoneypot(e.target.value)}
+                  />
+                </div>
+
+                {error && (
+                  <p className="text-xs text-red-500" role="alert">{error}</p>
+                )}
+
+                <div className="flex items-center justify-between gap-3 pt-1">
+                  <p className="text-[11px] text-muted-2">
+                    {message.length}/5000
                   </p>
                   <button
-                    onClick={() => {
-                      setOpen(false)
-                      setTimeout(() => setSubmitted(false), 400)
-                    }}
-                    className="mt-2 rounded-full bg-bg-sunk px-6 py-2 text-sm font-medium text-ink transition-colors hover:bg-line"
+                    type="submit"
+                    disabled={submitting || (!rating && message.trim().length < 5)}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-white transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    Close
+                    {submitting ? 'Sending...' : (<>Send <Send className="h-4 w-4" /></>)}
                   </button>
                 </div>
-              ) : (
-                <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-3">
-                  <label className="sr-only" htmlFor="feedback-message">Your message</label>
-                  <textarea
-                    id="feedback-message"
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    placeholder="What's on your mind?"
-                    rows={4}
-                    maxLength={5000}
-                    required
-                    className="w-full resize-none rounded-lg border border-line bg-bg-sunk px-3 py-2 text-sm text-ink placeholder:text-muted-2 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-                  />
-
-                  <label className="sr-only" htmlFor="feedback-email">Email (optional)</label>
-                  <input
-                    id="feedback-email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Email (optional, if you want a reply)"
-                    maxLength={255}
-                    autoComplete="email"
-                    className="w-full rounded-lg border border-line bg-bg-sunk px-3 py-2 text-sm text-ink placeholder:text-muted-2 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-                  />
-
-                  {/* Honeypot — must remain empty. Hidden from sighted users
-                      and screen readers; bots see it as an input and fill it. */}
-                  <div aria-hidden="true" style={{ position: 'absolute', left: '-9999px', width: '1px', height: '1px', overflow: 'hidden' }}>
-                    <label htmlFor="feedback-website">Website</label>
-                    <input
-                      id="feedback-website"
-                      type="text"
-                      tabIndex={-1}
-                      autoComplete="off"
-                      value={honeypot}
-                      onChange={(e) => setHoneypot(e.target.value)}
-                    />
-                  </div>
-
-                  {error && (
-                    <p className="text-xs text-red-500" role="alert">{error}</p>
-                  )}
-
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="text-[11px] text-muted-2">
-                      {message.length}/5000
-                    </p>
-                    <button
-                      type="submit"
-                      disabled={submitting || message.trim().length < 5}
-                      className="inline-flex items-center gap-1.5 rounded-full bg-accent px-4 py-2 text-sm font-medium text-white transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      {submitting ? 'Sending...' : (<>Send <Send className="h-3.5 w-3.5" /></>)}
-                    </button>
-                  </div>
-                </form>
-              )}
+              </form>
             </MotionDiv>
           </>
         )}
