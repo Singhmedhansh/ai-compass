@@ -29,11 +29,11 @@ export default function CookieConsent() {
   useEffect(() => {
     const consent = localStorage.getItem('ai_compass_cookie_consent')
     if (consent !== 'granted' && consent !== 'declined') {
-      // Wait 3.5s so users see page content before the banner interrupts.
-      // This dramatically reduces it being the first/only interaction.
+      // Delaying for 15s to ensure it doesn't intercept the user's first meaningful click,
+      // as 3.5s was happening exactly when they went to click the main CTA.
       const timer = setTimeout(() => {
         setVisible(true)
-      }, 3500)
+      }, 15000)
       return () => clearTimeout(timer)
     }
   }, [])

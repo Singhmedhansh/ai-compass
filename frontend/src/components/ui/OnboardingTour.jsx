@@ -74,7 +74,11 @@ export default function OnboardingTour() {
   const handleComplete = () => {
     setActive(false)
     setShowFloatingButton(false)
-    localStorage.setItem('ai-compass-tour-completed', 'true')
+    try {
+      localStorage.setItem('ai-compass-tour-completed', 'true')
+    } catch (e) {
+      // Ignore incognito/strict-privacy errors
+    }
   }
 
   if (!active) {

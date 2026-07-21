@@ -1344,7 +1344,10 @@ function LivePreview({ answers, results, loading, error, canSeeResults, onSeeRes
           ))}
         </div>
       ) : persona ? (
-        <p className="text-sm text-muted">No matches yet — try widening your answers.</p>
+        <div className="flex flex-col gap-2">
+          <p className="text-sm text-muted">No matches yet — try widening your answers.</p>
+          <p className="text-xs text-muted-2">Need help? Visit our <Link to="/help" className="text-accent hover:underline">FAQ & Support</Link> or submit feedback for tailored assistance.</p>
+        </div>
       ) : null}
 
       {hasResults ? (
@@ -1402,14 +1405,7 @@ function ToolFinderPage() {
     }
   }, [])
 
-  useEffect(() => {
-    if (viewMode === 'results') {
-      const timer = setTimeout(() => {
-        triggerSurveyPopup()
-      }, 30000)
-      return () => clearTimeout(timer)
-    }
-  }, [viewMode, triggerSurveyPopup])
+  // Survey popup timer removed; now only triggers on outbound click
 
   // Helper to go to previous question
   const handlePrevQuestion = (currentId) => {
@@ -1541,16 +1537,7 @@ function ToolFinderPage() {
     }
   }, [answers])
 
-  useEffect(() => {
-    if (!loadingResults && results.length === 0 && canSeeResults && !error) {
-      const event = new CustomEvent('ai-compass-proactive-help', {
-        detail: {
-          message: 'No tools match your exact stack criteria? Visit our FAQ & Support or submit feedback for tailored assistance.'
-        }
-      })
-      window.dispatchEvent(event)
-    }
-  }, [loadingResults, results.length, canSeeResults, error])
+  // Proactive help event removed; passive microcopy used instead
 
   const handleStartWizard = () => {
     if (wizardStartedRef.current) return
@@ -1782,7 +1769,7 @@ function ToolFinderPage() {
                 </Button>
 
                 <Button 
-                  variant="secondary" 
+                  variant="primary" 
                   size="sm" 
                   onClick={() => {
                     setViewMode('wizard')
@@ -1790,7 +1777,7 @@ function ToolFinderPage() {
                   }}
                 >
                   <SlidersHorizontal className="mr-1.5 h-3.5 w-3.5" />
-                  Refine answers
+                  Edit my answers
                 </Button>
 
                 <Button variant="secondary" size="sm" onClick={handleClearChoice}>
