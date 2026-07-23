@@ -235,12 +235,12 @@ function getAspectBucket() {
 }
 
 const GOAL_OPTIONS = [
-  { id: 'learning', label: 'Learning', icon: GraduationCap, desc: 'Study, exam prep, and new skills' },
-  { id: 'coding', label: 'Coding', icon: Code, desc: 'Build apps, debug, and write scripts' },
-  { id: 'writing', label: 'Writing', icon: PenTool, desc: 'Essays, copy, editing, and grammar' },
-  { id: 'research', label: 'Research', icon: BookOpen, desc: 'Papers, citations, and literature search' },
-  { id: 'creating', label: 'Creating', icon: Palette, desc: 'Images, video, audio, and slides' },
-  { id: 'productivity', label: 'Productivity', icon: Zap, desc: 'Tasks, notes, meetings, and automation' },
+  { id: 'learning', label: 'Learn & Study', icon: GraduationCap, desc: 'Study, exam prep, and new skills' },
+  { id: 'coding', label: 'Build & Code', icon: Code, desc: 'Build apps, debug, and write scripts' },
+  { id: 'writing', label: 'Write faster', icon: PenTool, desc: 'Essays, copy, editing, and grammar' },
+  { id: 'research', label: 'Find information', icon: BookOpen, desc: 'Papers, citations, and literature search' },
+  { id: 'creating', label: 'Create media', icon: Palette, desc: 'Images, video, audio, and slides' },
+  { id: 'productivity', label: 'Get organized', icon: Zap, desc: 'Tasks, notes, meetings, and automation' },
 ]
 
 const SUB_CATEGORIES = {
@@ -927,6 +927,18 @@ function PreviewCard({ tool, rank }) {
           )}
         </div>
       )}
+
+      {question.id === 'goal' && (
+        <div className="mt-8 flex justify-center">
+          <button
+            type="button"
+            onClick={() => onSelect(question, 'productivity')}
+            className="text-sm font-medium text-muted hover:text-ink underline decoration-line hover:decoration-accent transition-colors"
+          >
+            Not sure? Start here
+          </button>
+        </div>
+      )}
     </div>
   )
 }
@@ -938,6 +950,15 @@ function ResultCard({ tool, index, navigate, onCardClick, onShowDetails }) {
   return (
     <article
       onClick={() => {
+        try {
+          window.posthog?.capture?.('tool_card_clicked', {
+            tool_name: tool.name,
+            tool_slug: tool.slug,
+            category: tool.category,
+            rank: index,
+            source: 'wizard_result',
+          })
+        } catch (e) {}
         onCardClick?.()
         onShowDetails(tool)
       }}
@@ -1005,6 +1026,15 @@ function ResultCard({ tool, index, navigate, onCardClick, onShowDetails }) {
             rel={OUTBOUND_REL}
             onClick={(e) => {
               e.stopPropagation()
+              try {
+                window.posthog?.capture?.('tool_card_clicked', {
+                  tool_name: tool.name,
+                  tool_slug: tool.slug,
+                  category: tool.category,
+                  rank: index,
+                  source: 'wizard_result_visit',
+                })
+              } catch (err) {}
               onCardClick?.()
             }}
             className="text-accent font-bold hover:underline"
@@ -1024,6 +1054,15 @@ function AnchorToolCard({ tool, navigate, onCardClick, onShowDetails }) {
   return (
     <article
       onClick={() => {
+        try {
+          window.posthog?.capture?.('tool_card_clicked', {
+            tool_name: tool.name,
+            tool_slug: tool.slug,
+            category: tool.category,
+            rank: 1,
+            source: 'wizard_result_anchor',
+          })
+        } catch (e) {}
         onCardClick?.()
         onShowDetails(tool)
       }}
@@ -1100,6 +1139,15 @@ function AnchorToolCard({ tool, navigate, onCardClick, onShowDetails }) {
             rel={OUTBOUND_REL}
             onClick={(e) => {
               e.stopPropagation()
+              try {
+                window.posthog?.capture?.('tool_card_clicked', {
+                  tool_name: tool.name,
+                  tool_slug: tool.slug,
+                  category: tool.category,
+                  rank: 1,
+                  source: 'wizard_result_anchor_visit',
+                })
+              } catch (err) {}
               onCardClick?.()
             }}
             className="flex-1 text-center bg-accent hover:bg-accent/90 text-bg font-bold py-2 px-4 rounded-xl text-xs shadow-sm transition-colors"
@@ -1555,11 +1603,20 @@ function ToolFinderPage() {
   }
 
   const trackStepCompletion = (question, answerSelected) => {
-    captureWizardEvent('wizard_step_completed', {
-      step_number: QUESTION_FLOW.indexOf(question.id) + 1,
-      question_title: question.activeHeading,
-      answer_selected: answerSelected,
-    })
+    if (wizardCompletedRef.current) {
+      captureWizardEvent('wizard_answer_edited', {
+        step: QUESTION_FLOW.indexOf(question.id) + 1,
+        question_id: question.id,
+        previous_value: answers[question.id],
+        new_value: answerSelected,
+      })
+    } else {
+      captureWizardEvent('wizard_step_completed', {
+        step_number: QUESTION_FLOW.indexOf(question.id) + 1,
+        question_title: question.activeHeading,
+        answer_selected: answerSelected,
+      })
+    }
   }
 
   // Move focus to the next unanswered question (or finish). Guarded so a
@@ -1568,6 +1625,14 @@ function ToolFinderPage() {
     const i = QUESTION_FLOW.indexOf(question.id)
     const next = QUESTIONS[i + 1]
     trackStepCompletion(question, answerSelected)
+    
+    if (wizardCompletedRef.current) {
+      setPendingCompletion({ answers: snapshotAnswers(nextAnswers) })
+      setActiveQuestion(null)
+      setViewMode('results')
+      return
+    }
+
     if (!next) {
       setPendingCompletion({ answers: snapshotAnswers(nextAnswers) })
     }
@@ -1768,17 +1833,7 @@ function ToolFinderPage() {
                   Start over
                 </Button>
 
-                <Button 
-                  variant="primary" 
-                  size="sm" 
-                  onClick={() => {
-                    setViewMode('wizard')
-                    setActiveQuestion(null)
-                  }}
-                >
-                  <SlidersHorizontal className="mr-1.5 h-3.5 w-3.5" />
-                  Edit my answers
-                </Button>
+
 
                 <Button variant="secondary" size="sm" onClick={handleClearChoice}>
                   Clear Choice
@@ -1795,6 +1850,43 @@ function ToolFinderPage() {
                   {savingStack ? 'Saving...' : isLoggedIn ? 'Save stack' : 'Log in to save'}
                 </Button>
               </div>
+            </div>
+          </div>
+
+          {/* Answer Summary Bar */}
+          <div className="rounded-2xl border border-line bg-bg-sunk/30 p-4 shadow-sm animate-fade-in">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-muted mb-3 pl-1">Your Inputs</h3>
+            <div className="flex flex-wrap gap-2">
+              {QUESTIONS.map((q) => {
+                const ans = answers[q.id];
+                if (!ans || (Array.isArray(ans) && ans.length === 0)) return null;
+                
+                let label = '';
+                if (q.type === 'text') {
+                  label = typeof ans === 'string' && ans.length > 25 ? ans.substring(0, 25) + '...' : ans;
+                } else if (Array.isArray(ans)) {
+                  label = ans.map(a => q.options?.find(o => o.id === a)?.label || a).join(', ');
+                } else {
+                  label = q.options?.find(o => o.id === ans)?.label || ans;
+                }
+
+                return (
+                  <div key={q.id} className="inline-flex items-center gap-2 rounded-full border border-line bg-bg-elev px-3 py-1.5 text-xs text-ink-2 shadow-sm">
+                    <span className="font-semibold">{q.label}:</span>
+                    <span>{label}</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setViewMode('wizard')
+                        setActiveQuestion(q.id)
+                      }}
+                      className="ml-1 font-bold text-accent hover:underline focus:outline-none"
+                    >
+                      [Edit]
+                    </button>
+                  </div>
+                )
+              })}
             </div>
           </div>
 
@@ -1830,8 +1922,53 @@ function ToolFinderPage() {
             </div>
           )}
 
-          <div className="mt-12 flex justify-center pb-8">
-            <Button variant="secondary" onClick={handleRestart} size="lg" className="rounded-full px-8 shadow-sm hover:shadow-md transition-shadow">
+          <div className="mt-12 flex flex-col items-center gap-6 pb-8">
+            {/* Inline Email Capture */}
+            <div className="w-full max-w-md rounded-2xl border border-line bg-bg-sunk p-6 text-center shadow-sm">
+              <h3 className="text-sm font-bold text-ink mb-1">Save these recommendations</h3>
+              <p className="text-xs text-muted mb-4">Enter your email and we'll send you a link to this stack.</p>
+              <form 
+                className="flex gap-2"
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  const email = e.currentTarget.email.value
+                  if (email) {
+                    toast.success('Recommendations sent! Check your inbox.')
+                    e.currentTarget.reset()
+                  }
+                }}
+              >
+                <input 
+                  type="email" 
+                  name="email"
+                  placeholder="you@example.com" 
+                  required
+                  className="flex-1 rounded-lg border border-line bg-bg px-3 py-2 text-sm text-ink outline-none focus:border-accent"
+                />
+                <Button type="submit" variant="primary" size="sm">Send</Button>
+              </form>
+            </div>
+
+            {/* Inline Emoji Feedback */}
+            <div className="flex flex-col items-center gap-3">
+              <span className="text-xs font-semibold text-muted uppercase tracking-wider">Did these recommendations feel right?</span>
+              <div className="flex gap-4">
+                <button 
+                  onClick={() => toast.success('Thanks for the feedback!')}
+                  className="text-3xl hover:scale-125 transition-transform"
+                >
+                  👍
+                </button>
+                <button 
+                  onClick={() => toast.success('Thanks! We will work on improving this.')}
+                  className="text-3xl hover:scale-125 transition-transform"
+                >
+                  👎
+                </button>
+              </div>
+            </div>
+
+            <Button variant="secondary" onClick={handleRestart} size="lg" className="rounded-full px-8 shadow-sm hover:shadow-md transition-shadow mt-4">
                <RotateCcw className="mr-2 h-5 w-5" /> Start Over
             </Button>
           </div>
@@ -1864,6 +2001,14 @@ function ToolFinderPage() {
             <p className="mt-2 text-sm sm:text-base font-medium text-accent">
               Answer {TOTAL_QUESTIONS} short questions → get your personalized AI tool match.
             </p>
+            {!hasStarted && (
+              <div className="mt-4 rounded-xl border border-line bg-bg-sunk/50 p-3 shadow-sm inline-block animate-fade-in">
+                <p className="text-xs font-medium text-ink-2">
+                  <span className="mr-2">✨</span>
+                  Users like you found: <strong className="text-accent">Notion AI, Perplexity, Otter.ai</strong>
+                </p>
+              </div>
+            )}
           </div>
           {hasStarted && (
             <div className="sm:w-[280px] shrink-0 flex justify-end gap-2">

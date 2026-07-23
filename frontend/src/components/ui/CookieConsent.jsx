@@ -29,11 +29,10 @@ export default function CookieConsent() {
   useEffect(() => {
     const consent = localStorage.getItem('ai_compass_cookie_consent')
     if (consent !== 'granted' && consent !== 'declined') {
-      // Delaying for 15s to ensure it doesn't intercept the user's first meaningful click,
-      // as 3.5s was happening exactly when they went to click the main CTA.
+      // Delaying for 4s so it doesn't intercept the user's first meaningful click
       const timer = setTimeout(() => {
         setVisible(true)
-      }, 15000)
+      }, 4000)
       return () => clearTimeout(timer)
     }
   }, [])

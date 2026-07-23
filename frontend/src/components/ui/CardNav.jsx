@@ -432,8 +432,8 @@ const CardNav = ({ className = '', ease = 'power3.out' }) => {
             ) : (
               <button
                 type="button"
-                className="card-nav-cta-button"
-                onClick={() => navigate('/login')}
+                className="card-nav-cta-button relative z-10 px-4 py-2"
+                onClick={() => navigate('/ai-tool-finder')}
               >
                 Get Started
               </button>

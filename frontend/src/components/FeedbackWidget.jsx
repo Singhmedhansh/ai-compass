@@ -187,7 +187,7 @@ export default function FeedbackWidget() {
                 <button
                   type="button"
                   onClick={() => setOpen(false)}
-                  className="rounded-full p-3 -mr-2 -mt-2 text-muted hover:bg-bg-sunk hover:text-ink"
+                  className="rounded-full p-4 -mr-3 -mt-3 text-muted hover:bg-bg-sunk hover:text-ink"
                   aria-label="Close feedback form"
                 >
                   <X className="h-5 w-5" />

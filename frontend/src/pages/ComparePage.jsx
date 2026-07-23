@@ -388,9 +388,9 @@ function ToolColumn({ slug, status, tool, error, onRemove }) {
           href={url}
           target="_blank"
           rel={OUTBOUND_REL}
-          className="group flex w-full items-center justify-between rounded-xl bg-accent p-4 text-sm font-bold text-bg shadow-sm outline-none transition hover:opacity-90 hover:shadow-md focus-visible:ring-2 focus-visible:ring-accent"
+          className="group flex w-full items-center justify-center gap-2 rounded-xl bg-accent p-4 text-sm font-bold text-bg shadow-sm outline-none transition hover:opacity-90 hover:shadow-md focus-visible:ring-2 focus-visible:ring-accent"
         >
-          <span>Try {name}{isFreeOrFreemium ? ' free' : ''}</span>
+          <span>Visit {name} Website</span>
           <span aria-hidden="true" className="transition-transform group-hover:translate-x-1">→</span>
         </a>
       </div>
@@ -821,6 +821,29 @@ export default function ComparePage() {
             renderCell={(tool) => <PricingBlock tool={tool} />}
           />
 
+          {/* VERDICTS */}
+          <CompareRow
+            title="The Verdict"
+            columns={columns}
+            renderCell={(tool) => {
+              let verdict = "Solid all-rounder for most tasks."
+              if (tool.pricing?.toLowerCase().includes('free')) {
+                verdict = "Best option if you're on a tight budget."
+              } else if (tool.student_friendly || tool.studentPerk) {
+                verdict = "Highly recommended for students."
+              } else if (tool.academic_integrity_rating === 'High Risk') {
+                verdict = "Powerful but requires careful use."
+              } else if (Array.isArray(tool.features) && tool.features.length > 5) {
+                verdict = "Best for power users needing advanced features."
+              }
+              return (
+                <div className="rounded-xl border border-accent/20 bg-accent-soft/30 p-4 text-center shadow-sm">
+                  <p className="text-sm font-bold text-accent-ink">{verdict}</p>
+                </div>
+              )
+            }}
+          />
+
           {/* LIMITATIONS & RISKS */}
           <CompareRow
             title="Limitations & Risks"
@@ -953,6 +976,15 @@ export default function ComparePage() {
               )
             }}
           />
+        </div>
+
+        {/* AI Tool Finder Mini CTA */}
+        <div className="mt-8 mb-12 rounded-2xl border border-line bg-bg-sunk p-6 text-center shadow-sm max-w-2xl mx-auto">
+          <h3 className="text-lg font-bold text-ink mb-2">Still not sure which one is right for you?</h3>
+          <p className="text-sm text-ink-2 mb-4">Let our AI Stack Architect recommend the perfect tool based on your specific major and workflow.</p>
+          <Button variant="primary" onClick={() => navigate('/ai-tool-finder')}>
+            Take the Quiz
+          </Button>
         </div>
 
         {/* Add another tool action */}

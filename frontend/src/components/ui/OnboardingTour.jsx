@@ -61,6 +61,9 @@ export default function OnboardingTour() {
     if (currentStep < steps.length - 1) {
       setCurrentStep(prev => prev + 1)
     } else {
+      if (typeof window !== 'undefined' && window.posthog) {
+        window.posthog.capture('onboarding_tour_completed')
+      }
       handleComplete()
     }
   }
@@ -290,7 +293,7 @@ export default function OnboardingTour() {
               <button
                 type="button"
                 onClick={handleNext}
-                className="inline-flex items-center gap-1 rounded-full bg-accent px-4 py-1.5 text-xs font-semibold text-white hover:opacity-90 shadow-sm transition-all"
+                className="inline-flex items-center gap-1 rounded-full bg-accent px-6 py-2.5 -my-1 text-xs font-semibold text-white hover:opacity-90 shadow-sm transition-all"
               >
                 {currentStep === steps.length - 1 ? 'Finish' : 'Next'} <ChevronRight className="h-3.5 w-3.5" />
               </button>

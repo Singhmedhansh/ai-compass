@@ -1157,6 +1157,30 @@ function DirectoryPage() {
             />
           )}
 
+          {isSemantic && queryFromParams && !isLoading && !error && (
+            <div className="mb-4 rounded-xl border border-indigo-500/30 bg-indigo-500/10 px-5 py-4 text-sm flex flex-col gap-2 shadow-sm">
+              <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-semibold">
+                <Sparkles className="h-4 w-4" />
+                AI Search Active
+              </div>
+              <p className="text-ink-2">
+                <strong>Searching for:</strong> {queryFromParams}
+              </p>
+              <p className="text-xs text-muted font-medium">
+                {filteredTools.length > 3 
+                  ? "Showing tools highly matching your search." 
+                  : `We found ${filteredTools.length} tools but they may not be a perfect match. Try the AI Tool Finder for a personalised recommendation.`}
+              </p>
+              {filteredTools.length <= 3 && (
+                <div className="mt-2">
+                  <Button variant="primary" size="sm" onClick={() => navigate('/ai-tool-finder')}>
+                    Try AI Tool Finder →
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+
           {!isLoading && !error && searchMeta?.fuzzy_matched && searchMeta?.suggested_query && (
             <div className="mb-4 rounded-lg border border-accent/20 bg-accent-soft px-4 py-2.5 text-sm text-ink">
               Showing results for <strong className="font-medium">{searchMeta.suggested_query}</strong>.
