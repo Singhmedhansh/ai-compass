@@ -22,9 +22,9 @@ export default function StatsShowcase() {
   ]
 
   const posthogChartPoints = [
-    { x: 50, y: 160, label: 'May', value: '330 visitors' },
-    { x: 250, y: 40, label: 'June', value: '930 visitors' },
-    { x: 450, y: 130, label: 'July', value: '~1,296 visitors (ongoing)' }
+    { x: 50, y: 140, label: 'May', value: '330 visitors' },
+    { x: 250, y: 75, label: 'June', value: '930 visitors' },
+    { x: 450, y: 30, label: 'July', value: '~1,296 visitors (ongoing)' }
   ]
 
   // Google Search Console Data
@@ -171,7 +171,7 @@ export default function StatsShowcase() {
                     <>
                       {/* PostHog Line Path */}
                       <path
-                        d="M 50 150 L 250 50 L 450 180"
+                        d="M 50 140 L 250 75 L 450 30"
                         fill="none"
                         stroke="var(--accent)"
                         strokeWidth="3"
@@ -180,7 +180,7 @@ export default function StatsShowcase() {
                       />
                       {/* Gradient Fill under line */}
                       <path
-                        d="M 50 200 L 50 150 L 250 50 L 450 180 L 450 200 Z"
+                        d="M 50 200 L 50 140 L 250 75 L 450 30 L 450 200 Z"
                         fill="url(#posthog-grad)"
                         opacity="0.1"
                       />
