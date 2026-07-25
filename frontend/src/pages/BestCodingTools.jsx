@@ -427,7 +427,7 @@ export default function BestCodingTools() {
                       <span className="text-4xl font-extrabold text-accent/15 select-none font-mono">
                         {String(tool.rank).padStart(2, '0')}
                       </span>
-                      <div className="h-12 w-12 rounded-xl bg-white border border-line flex items-center justify-center overflow-hidden shrink-0">
+                      <div className="h-12 w-12 rounded-xl bg-bg-elev border border-line flex items-center justify-center overflow-hidden shrink-0">
                         <BrandIcon tool={tool} isHero={false} />
                       </div>
                     </div>

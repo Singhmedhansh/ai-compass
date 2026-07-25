@@ -908,7 +908,7 @@ function AdminPage() {
                   <iframe 
                     srcDoc={nlPreviewHtml} 
                     title="Email Preview"
-                    className="h-[800px] w-full max-w-[600px] rounded-lg bg-white shadow-sm"
+                    className="h-[800px] w-full max-w-[600px] rounded-lg bg-bg-elev shadow-sm"
                   />
                 </div>
               </Card>

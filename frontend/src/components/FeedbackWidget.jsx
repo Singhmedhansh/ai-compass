@@ -195,10 +195,10 @@ export default function FeedbackWidget() {
               </div>
 
               <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-3">
-                <div className="flex justify-center gap-4 py-2">
-                  <button type="button" onClick={() => setRating('bad')} className={`p-2 rounded-full transition-colors ${rating === 'bad' ? 'bg-danger-soft text-danger' : 'bg-bg-sunk text-muted hover:bg-bg-elev hover:text-ink'}`}><Frown className="h-6 w-6" /></button>
-                  <button type="button" onClick={() => setRating('neutral')} className={`p-2 rounded-full transition-colors ${rating === 'neutral' ? 'bg-accent-soft text-accent-ink' : 'bg-bg-sunk text-muted hover:bg-bg-elev hover:text-ink'}`}><Meh className="h-6 w-6" /></button>
-                  <button type="button" onClick={() => setRating('good')} className={`p-2 rounded-full transition-colors ${rating === 'good' ? 'bg-accent text-bg' : 'bg-bg-sunk text-muted hover:bg-bg-elev hover:text-ink'}`}><Smile className="h-6 w-6" /></button>
+                <div className="relative z-10 flex justify-center gap-4 py-2">
+                  <button type="button" onClick={() => setRating('bad')} className={`relative z-20 p-2 rounded-full transition-colors ${rating === 'bad' ? 'bg-danger-soft text-danger' : 'bg-bg-sunk text-muted hover:bg-bg-elev hover:text-ink'}`}><Frown className="h-6 w-6 pointer-events-none" /></button>
+                  <button type="button" onClick={() => setRating('neutral')} className={`relative z-20 p-2 rounded-full transition-colors ${rating === 'neutral' ? 'bg-accent-soft text-accent-ink' : 'bg-bg-sunk text-muted hover:bg-bg-elev hover:text-ink'}`}><Meh className="h-6 w-6 pointer-events-none" /></button>
+                  <button type="button" onClick={() => setRating('good')} className={`relative z-20 p-2 rounded-full transition-colors ${rating === 'good' ? 'bg-accent text-bg' : 'bg-bg-sunk text-muted hover:bg-bg-elev hover:text-ink'}`}><Smile className="h-6 w-6 pointer-events-none" /></button>
                 </div>
 
                 <label className="sr-only" htmlFor="feedback-message">Your message</label>

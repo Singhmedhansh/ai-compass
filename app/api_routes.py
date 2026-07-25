@@ -2896,7 +2896,7 @@ def get_workflow_analytics():
             "recommendations": fallback_recs
         }
 
-    # 3. Key Rotation & Gemini Call
+    # 3. Key Rotation & LLM Call
     keys = []
     env_keys_str = os.environ.get("GEMINI_API_KEYS", "")
     if env_keys_str:
@@ -2904,10 +2904,6 @@ def get_workflow_analytics():
     single_key = os.environ.get("GEMINI_API_KEY")
     if single_key and single_key not in keys:
         keys.append(single_key)
-
-    if not keys:
-        # No keys -> run local fallback immediately
-        return jsonify(run_local_fallback()), 200
 
     prompt = f"""
     You are an expert AI productivity auditor. Analyze this user's current AI tool choices and generate a workflow audit JSON.
@@ -3010,8 +3006,39 @@ def get_workflow_analytics():
             print(f"[Workflow Analytics] Gemini attempt with Key {i+1} failed: {str(e)}")
             continue
 
+    groq_key = os.environ.get("GROQ_API_KEY")
+    if groq_key:
+        try:
+            url = "https://api.groq.com/openai/v1/chat/completions"
+            headers = {
+                "Authorization": f"Bearer {groq_key}",
+                "Content-Type": "application/json"
+            }
+            payload = {
+                "model": "llama3-8b-8192",
+                "messages": [{"role": "user", "content": prompt}],
+                "response_format": {"type": "json_object"}
+            }
+            response = requests.post(url, headers=headers, json=payload, timeout=12)
+            if response.status_code == 200:
+                res_data = response.json()
+                content_text = res_data["choices"][0]["message"]["content"].strip()
+                if content_text.startswith("```json"):
+                    content_text = content_text[7:]
+                elif content_text.startswith("```"):
+                    content_text = content_text[3:]
+                if content_text.endswith("```"):
+                    content_text = content_text[:-3]
+                parsed = json.loads(content_text.strip())
+                if parsed.get("persona") and parsed.get("distribution") and parsed.get("recommendations"):
+                    return jsonify(parsed), 200
+            else:
+                print(f"[Workflow Analytics] Groq failed with status {response.status_code}")
+        except Exception as e:
+            print(f"[Workflow Analytics] Groq attempt failed: {str(e)}")
+
     # Fallback to local analyzer if all keys fail
-    print("[Workflow Analytics] All Gemini attempts failed. Using local fallback engine.")
+    print("[Workflow Analytics] All LLM attempts failed. Using local fallback engine.")
     return jsonify(run_local_fallback()), 200
 
 

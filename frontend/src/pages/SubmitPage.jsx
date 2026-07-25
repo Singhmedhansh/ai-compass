@@ -843,7 +843,7 @@ export default function SubmitPage() {
                           <p className="text-[10px] text-muted-2 leading-relaxed max-w-xs font-normal">Scan the mock QR code using GPay, PhonePe, Paytm, or BHIM UPI.</p>
                         </div>
                         {/* Mock QR code container */}
-                        <div className="h-20 w-20 border border-line bg-white rounded-lg p-1.5 flex flex-col items-center justify-center shrink-0 shadow-sm relative group">
+                        <div className="h-20 w-20 border border-line bg-bg-elev rounded-lg p-1.5 flex flex-col items-center justify-center shrink-0 shadow-sm relative group">
                           <div className="w-full h-full bg-slate-100 flex items-center justify-center text-slate-400">
                             <QrCode className="h-12 w-12" />
                           </div>

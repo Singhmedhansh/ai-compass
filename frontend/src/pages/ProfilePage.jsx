@@ -488,7 +488,7 @@ function ProfilePage() {
 
     try {
       const recentParam = recentlyViewedSlugs.join(',')
-      const response = await fetch(`/api/v1/profile/workflow-analytics?recent=${encodeURIComponent(recentParam)}`)
+      const response = await fetch(`/api/v1/profile/workflow-analytics?recent=${encodeURIComponent(recentParam)}&_t=${Date.now()}`)
 
       if (!response.ok) {
         const payload = await response.json().catch(() => ({}))

@@ -279,7 +279,7 @@ function DashboardPage() {
     try {
       const recentSlugsList = readRecentlyViewedSlugs()
       const recentParam = recentSlugsList.join(',')
-      const response = await fetch(`/api/v1/profile/workflow-analytics?recent=${encodeURIComponent(recentParam)}`, { signal })
+      const response = await fetch(`/api/v1/profile/workflow-analytics?recent=${encodeURIComponent(recentParam)}&_t=${Date.now()}`, { signal })
       
       if (!response.ok) {
         const payload = await response.json().catch(() => ({}))
@@ -334,7 +334,7 @@ function DashboardPage() {
       // Re-fetch recommendations and workflow analytics
       setRefreshTrigger(prev => prev + 1)
       setIsCalibrating(false)
-      toast.success('Preferences updated! Calibrating your workspace... ⚡')
+      toast.success('Preferences updated! Calibrating your workspace...')
     } catch (err) {
       setCalibError(err.message || 'Failed to update preferences.')
       toast.error(err.message || 'Failed to update preferences.')

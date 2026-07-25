@@ -520,7 +520,7 @@ export default function BestFreeAITools() {
                       {String(tool.rank).padStart(2, '0')}
                     </span>
                     <div
-                      className={`flex shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-line bg-white ${isHero ? 'h-16 w-16 md:h-20 md:w-20' : 'h-14 w-14 md:h-16 md:w-16'}`}
+                      className={`flex shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-line bg-bg-elev ${isHero ? 'h-16 w-16 md:h-20 md:w-20' : 'h-14 w-14 md:h-16 md:w-16'}`}
                       aria-hidden="true"
                     >
                       <BrandIcon tool={tool} isHero={isHero} />

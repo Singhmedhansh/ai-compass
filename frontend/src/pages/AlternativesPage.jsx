@@ -56,7 +56,7 @@ function BrandIcon({ tool, size = 'md' }) {
   if (failed) {
     return (
       <div
-        className={`flex shrink-0 items-center justify-center rounded-xl border border-line bg-white font-bold ${sizeClasses}`}
+        className={`flex shrink-0 items-center justify-center rounded-xl border border-line bg-bg-elev font-bold ${sizeClasses}`}
         style={{ color: tool?.color || '#666666' }}
         aria-hidden="true"
       >
@@ -73,7 +73,7 @@ function BrandIcon({ tool, size = 'md' }) {
       decoding="async"
       width="64"
       height="64"
-      className={`shrink-0 rounded-xl border border-line bg-white object-contain p-1.5 ${sizeClasses}`}
+      className={`shrink-0 rounded-xl border border-line bg-bg-elev object-contain p-1.5 ${sizeClasses}`}
       onError={() => setFailed(true)}
     />
   )

@@ -173,7 +173,7 @@ def create_app(config: dict | None = None) -> Flask:
     # Separate from ADMIN_EMAILS so support/feedback can go to a different
     # inbox than admin alerts. Override with FEEDBACK_EMAIL env var.
     app.config["FEEDBACK_EMAIL"] = os.environ.get(
-        "FEEDBACK_EMAIL", "medhansh.builds@gmail.com"
+        "FEEDBACK_EMAIL", "admin@ai-compass.in"
     ).strip()
     app.config["GOOGLE_CLIENT_ID"] = os.getenv("GOOGLE_CLIENT_ID", "")
     app.config["GOOGLE_CLIENT_SECRET"] = os.getenv("GOOGLE_CLIENT_SECRET", "")

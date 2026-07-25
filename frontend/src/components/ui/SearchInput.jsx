@@ -31,7 +31,7 @@ function SearchBrandIcon({ item }) {
       src={`https://icons.duckduckgo.com/ip3/${domain}.ico`}
       alt=""
       loading="lazy"
-      className="h-5 w-5 shrink-0 rounded-md border border-line bg-white object-contain p-0.5"
+      className="h-5 w-5 shrink-0 rounded-md border border-line bg-bg-elev object-contain p-0.5"
       onError={() => setFailed(true)}
     />
   )

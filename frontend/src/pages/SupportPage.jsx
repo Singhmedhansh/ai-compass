@@ -49,7 +49,7 @@ function QRLightbox({ onClose }) {
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.92 }}
           transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-          className="relative flex flex-col items-center gap-4 rounded-2xl bg-white p-6 shadow-2xl"
+          className="relative flex flex-col items-center gap-4 rounded-2xl bg-bg-elev p-6 shadow-2xl"
           onClick={(e) => e.stopPropagation()}
           style={{ maxWidth: '90vmin', width: '420px' }}
         >
@@ -222,7 +222,7 @@ export default function SupportPage() {
                   type="button"
                   onClick={() => setQrEnlarged(true)}
                   aria-label="Enlarge QR code to scan"
-                  className="group/qr relative inline-flex rounded-xl border border-line bg-white p-3 shadow-sm transition hover:border-accent/40 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                  className="group/qr relative inline-flex rounded-xl border border-line bg-bg-elev p-3 shadow-sm transition hover:border-accent/40 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                   title="Click to enlarge and scan"
                 >
                   {/* QR thumbnail — header cropped via overflow:hidden + translateY */}
