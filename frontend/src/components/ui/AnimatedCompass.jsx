@@ -36,9 +36,12 @@ export default function AnimatedCompass({ size = 340, className = '' }) {
 
     let lastIndex = -1
     let rafId = 0
-    let pendingX = 0
-    let pendingY = 0
+    let pendingX = null
+    let pendingY = null
     let rectCache = null
+    let lastMouseMove = 0
+    let autoAngle = 0
+    let lastTime = performance.now()
 
     const getRect = () => {
       if (!rectCache) {
@@ -48,34 +51,49 @@ export default function AnimatedCompass({ size = 340, className = '' }) {
       return rectCache
     }
 
-    const updateNeedle = () => {
-      rafId = 0
+    const updateLoop = (time) => {
+      rafId = window.requestAnimationFrame(updateLoop)
+
       const wrap = wrapRef.current
       const needle = needleRef.current
       if (!wrap || !needle) return
 
       const rect = getRect()
       if (!rect) return
-      const cx = rect.left + rect.width / 2
-      const cy = rect.top + rect.height / 2
-      const dx = pendingX - cx
-      const dy = pendingY - cy
 
-      // Cursor angle from compass center (0° = north, clockwise).
-      const cursorAngle = (Math.atan2(dx, -dy) * 180) / Math.PI
+      const dt = time - lastTime
+      lastTime = time
+      const now = Date.now()
 
-      // Snap to the nearest category — needle only ever rests on a label.
-      const idx = nearestCategoryFor(cursorAngle)
-      const targetAngle = CATEGORIES[idx].angle
+      let targetAngle = 0
+      let idx = 0
 
-      // Shortest-arc delta from current modular angle to target.
+      // If mouse moved in the last 4 seconds, follow mouse
+      if (now - lastMouseMove < 4000 && pendingX !== null) {
+        const cx = rect.left + rect.width / 2
+        const cy = rect.top + rect.height / 2
+        const dx = pendingX - cx
+        const dy = pendingY - cy
+        const cursorAngle = (Math.atan2(dx, -dy) * 180) / Math.PI
+        idx = nearestCategoryFor(cursorAngle)
+        targetAngle = CATEGORIES[idx].angle
+        autoAngle = targetAngle // Sync so it resumes smoothly
+      } else {
+        // Auto rotate smoothly: ~15 degrees per second
+        autoAngle += (dt * 0.015)
+        idx = nearestCategoryFor(autoAngle)
+        targetAngle = CATEGORIES[idx].angle
+      }
+
       const currentMod = ((rotationRef.current % 360) + 360) % 360
       let delta = targetAngle - currentMod
       if (delta > 180) delta -= 360
       if (delta <= -180) delta += 360
 
-      rotationRef.current += delta
-      needle.style.transform = `rotate(${rotationRef.current}deg)`
+      if (Math.abs(delta) > 0.01) {
+        rotationRef.current += delta
+        needle.style.transform = `rotate(${rotationRef.current}deg)`
+      }
 
       if (idx !== lastIndex) {
         lastIndex = idx
@@ -86,22 +104,22 @@ export default function AnimatedCompass({ size = 340, className = '' }) {
     const handleMove = (e) => {
       pendingX = e.clientX
       pendingY = e.clientY
-      if (!rafId) rafId = window.requestAnimationFrame(updateNeedle)
+      lastMouseMove = Date.now()
     }
 
     const handleScroll = () => {
       rectCache = null
-      if (!rafId) rafId = window.requestAnimationFrame(updateNeedle)
     }
 
     const handleResize = () => {
       rectCache = null
-      if (!rafId) rafId = window.requestAnimationFrame(updateNeedle)
     }
 
     window.addEventListener('mousemove', handleMove, { passive: true })
     window.addEventListener('scroll', handleScroll, { passive: true })
     window.addEventListener('resize', handleResize, { passive: true })
+
+    rafId = window.requestAnimationFrame(updateLoop)
 
     return () => {
       window.removeEventListener('mousemove', handleMove)
@@ -189,11 +207,12 @@ export default function AnimatedCompass({ size = 340, className = '' }) {
         className="pointer-events-none absolute left-1/2 top-1/2"
         style={{ transform: 'translate(-50%, -50%)' }}
       >
-        <circle cx="100" cy="100" r="86" fill="none" stroke="var(--accent)" strokeOpacity="0.55" strokeWidth="1.5" />
-        <circle cx="100" cy="100" r="64" fill="none" stroke="var(--accent)" strokeOpacity="0.25" strokeWidth="1" />
-        <circle cx="100" cy="100" r="42" fill="none" stroke="var(--accent)" strokeOpacity="0.15" strokeWidth="1" strokeDasharray="2 4" />
-
-        {ticks}
+        <g style={{ transformOrigin: '100px 100px', animation: 'compass-needle-spin 80s linear infinite reverse' }}>
+          <circle cx="100" cy="100" r="86" fill="none" stroke="var(--accent)" strokeOpacity="0.55" strokeWidth="1.5" />
+          <circle cx="100" cy="100" r="64" fill="none" stroke="var(--accent)" strokeOpacity="0.25" strokeWidth="1" />
+          <circle cx="100" cy="100" r="42" fill="none" stroke="var(--accent)" strokeOpacity="0.15" strokeWidth="1" strokeDasharray="2 4" />
+          {ticks}
+        </g>
 
         <g
           ref={needleRef}
