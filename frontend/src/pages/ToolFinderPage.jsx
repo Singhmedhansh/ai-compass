@@ -710,43 +710,56 @@ function QuestionRow({ index, question, answer, isActive, onActivate, onSelect, 
 
                 {question.id === 'goal' ? (
                   // Goal — visual icon cards in a 2×3 grid
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 mt-1">
-                    {question.options.map((opt) => {
-                      const GoalIcon = opt.icon
-                      const selected = Array.isArray(answer) && answer.includes(opt.id)
-                      return (
-                        <button
-                          key={opt.id}
-                          type="button"
-                          onClick={() => onSelect(opt.id)}
-                          className={`group relative flex flex-col gap-2.5 rounded-xl border p-4 text-left transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
-                            selected
-                              ? 'border-accent bg-accent-soft/20 shadow-sm ring-1 ring-accent'
-                              : 'border-line bg-bg hover:border-accent/40 hover:shadow-sm'
-                          }`}
-                        >
-                          {selected && (
-                            <span className="absolute top-3 right-3 flex h-4 w-4 items-center justify-center rounded-full bg-accent">
-                              <Check className="h-2.5 w-2.5 text-bg" />
-                            </span>
-                          )}
-                          <div className={`flex h-9 w-9 items-center justify-center rounded-lg transition-colors ${
-                            selected
-                              ? 'bg-accent text-bg'
-                              : 'bg-bg-sunk text-muted group-hover:bg-accent-soft group-hover:text-accent-ink'
-                          }`}>
-                            <GoalIcon className="h-4 w-4" />
-                          </div>
-                          <div>
-                            <span className={`block text-sm font-semibold ${
-                              selected ? 'text-accent-ink' : 'text-ink'
-                            }`}>{opt.label}</span>
-                            <span className="mt-0.5 block text-[11px] leading-snug text-muted">{opt.desc}</span>
-                          </div>
-                        </button>
-                      )
-                    })}
-                  </div>
+                  <>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 mt-1">
+                      {question.options.map((opt) => {
+                        const GoalIcon = opt.icon
+                        const selected = isMulti
+                          ? Array.isArray(answer) && answer.includes(opt.id)
+                          : answer === opt.id
+                        return (
+                          <button
+                            key={opt.id}
+                            type="button"
+                            onClick={() => onSelect(opt.id)}
+                            className={`group relative flex flex-col gap-2.5 rounded-xl border p-4 text-left transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+                              selected
+                                ? 'border-accent bg-accent-soft/20 shadow-sm ring-1 ring-accent'
+                                : 'border-line bg-bg hover:border-accent/40 hover:shadow-sm'
+                            }`}
+                          >
+                            {selected && (
+                              <span className="absolute top-3 right-3 flex h-4 w-4 items-center justify-center rounded-full bg-accent">
+                                <Check className="h-2.5 w-2.5 text-bg" />
+                              </span>
+                            )}
+                            <div className={`flex h-9 w-9 items-center justify-center rounded-lg transition-colors ${
+                              selected
+                                ? 'bg-accent text-bg'
+                                : 'bg-bg-sunk text-muted group-hover:bg-accent-soft group-hover:text-accent-ink'
+                            }`}>
+                              <GoalIcon className="h-4 w-4" />
+                            </div>
+                            <div>
+                              <span className={`block text-sm font-semibold ${
+                                selected ? 'text-accent-ink' : 'text-ink'
+                              }`}>{opt.label}</span>
+                              <span className="mt-0.5 block text-[11px] leading-snug text-muted">{opt.desc}</span>
+                            </div>
+                          </button>
+                        )
+                      })}
+                    </div>
+                    <div className="mt-8 flex justify-center">
+                      <button
+                        type="button"
+                        onClick={() => onSelect('productivity')}
+                        className="text-sm font-medium text-muted hover:text-ink underline decoration-line hover:decoration-accent transition-colors"
+                      >
+                        Not sure? Start here
+                      </button>
+                    </div>
+                  </>
                 ) : (
                   // Budget, Platform, Level — horizontal pill chips
                   <div className="flex max-w-full gap-2 overflow-x-auto pb-1.5 scrollbar-none sm:flex-wrap sm:overflow-visible">
@@ -928,17 +941,6 @@ function PreviewCard({ tool, rank }) {
         </div>
       )}
 
-      {question.id === 'goal' && (
-        <div className="mt-8 flex justify-center">
-          <button
-            type="button"
-            onClick={() => onSelect(question, 'productivity')}
-            className="text-sm font-medium text-muted hover:text-ink underline decoration-line hover:decoration-accent transition-colors"
-          >
-            Not sure? Start here
-          </button>
-        </div>
-      )}
     </div>
   )
 }
@@ -1499,14 +1501,15 @@ function ToolFinderPage() {
 
   // Safely clear use_case if it's no longer mapped to the selected goals
   useEffect(() => {
-    if (!answers.goal || answers.goal.length === 0) {
+    const goalsList = asList(answers.goal)
+    if (goalsList.length === 0) {
       if (answers.use_case) {
         setAnswers(prev => ({ ...prev, use_case: '' }))
       }
       return
     }
 
-    const validSubLabels = answers.goal.flatMap(g => SUB_CATEGORIES[g] || []).map(sub => sub.label)
+    const validSubLabels = goalsList.flatMap(g => SUB_CATEGORIES[g] || []).map(sub => sub.label)
     const allSubCategoryLabels = Object.values(SUB_CATEGORIES).flatMap(subs => subs).map(sub => sub.label)
 
     if (answers.use_case && allSubCategoryLabels.includes(answers.use_case) && !validSubLabels.includes(answers.use_case)) {
