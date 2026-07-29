@@ -825,7 +825,14 @@ function DirectoryPage() {
               </span>
             </div>
             
-            <div className="flex items-center gap-3 ml-auto md:ml-0">
+            <div className="flex flex-wrap items-center gap-3 ml-auto md:ml-0">
+              <Link
+                to="/ai-tool-finder"
+                className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent-soft/40 px-4 py-2 text-xs font-bold text-accent-ink shadow-sm transition hover:bg-accent hover:text-accent-ink hover:scale-105"
+              >
+                <Sparkles className="h-3.5 w-3.5" />
+                <span>Or try the wizard for personalised picks →</span>
+              </Link>
               <Link
                 to="/compare"
                 className="inline-flex items-center gap-1.5 rounded-xl border border-line bg-bg-elev px-4 py-2 text-sm font-semibold text-ink-2 shadow-sm transition hover:border-line-strong hover:text-ink focus-visible:ring-2 focus-visible:ring-accent"
@@ -986,9 +993,10 @@ function DirectoryPage() {
             value={searchQuery}
             onChange={handleSearchChange}
             onClear={() => handleSearchChange('')}
-            placeholder="Search or describe what you need..."
+            placeholder="e.g. AI writing tool for students, PDF summarizer..."
             style={{ fontSize: 16 }}
             isLoading={isLoading}
+            autoFocus
           />
         </div>
         <button
@@ -1011,26 +1019,49 @@ function DirectoryPage() {
         </button>
       </div>
 
-      {/* Task pills for quick-search */}
-      <div className="mb-6 flex flex-wrap gap-2 items-center">
-        <span className="text-xs font-semibold uppercase tracking-wider text-muted mr-1">Quick Tasks:</span>
-        {[
-          { label: "Write Essays", query: "essay writing" },
-          { label: "Summarize PDFs", query: "summarize pdf documents" },
-          { label: "Code & Debug", query: "coding helper debug" },
-          { label: "Exam Prep", query: "exam test preparation study" },
-          { label: "Design Graphics", query: "design logos presentation slides" },
-          { label: "Transcribe Lecture", query: "transcribe lecture audio to text" }
-        ].map((task) => (
-          <button
-            key={task.label}
-            type="button"
-            onClick={() => handleSearchChange(task.query)}
-            className="rounded-xl border border-line bg-bg-elev px-3 py-1.5 text-xs font-medium text-ink-2 hover:border-accent hover:text-accent transition shadow-sm"
-          >
-            {task.label}
-          </button>
-        ))}
+      {/* Category filter chips & Quick task pills */}
+      <div className="mb-6 flex flex-col gap-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs font-bold uppercase tracking-wider text-muted mr-1">Categories:</span>
+          {CATEGORY_OPTIONS.map((catName) => {
+            const isSelected = category === catName || (catName === 'All' && !category)
+            return (
+              <button
+                key={catName}
+                type="button"
+                onClick={() => handleCategoryChange(catName)}
+                className={`rounded-full px-3 py-1 text-xs font-semibold transition-all ${
+                  isSelected
+                    ? 'bg-accent text-accent-ink shadow-sm'
+                    : 'border border-line bg-bg-elev text-ink-2 hover:border-accent hover:text-accent'
+                }`}
+              >
+                {catName}
+              </button>
+            )
+          })}
+        </div>
+
+        <div className="flex flex-wrap gap-2 items-center">
+          <span className="text-xs font-semibold uppercase tracking-wider text-muted mr-1">Quick Tasks:</span>
+          {[
+            { label: "Write Essays", query: "essay writing" },
+            { label: "Summarize PDFs", query: "summarize pdf documents" },
+            { label: "Code & Debug", query: "coding helper debug" },
+            { label: "Exam Prep", query: "exam test preparation study" },
+            { label: "Design Graphics", query: "design logos presentation slides" },
+            { label: "Transcribe Lecture", query: "transcribe lecture audio to text" }
+          ].map((task) => (
+            <button
+              key={task.label}
+              type="button"
+              onClick={() => handleSearchChange(task.query)}
+              className="rounded-xl border border-line bg-bg-elev px-2.5 py-1 text-[11px] font-medium text-ink-2 hover:border-accent hover:text-accent transition shadow-sm"
+            >
+              {task.label}
+            </button>
+          ))}
+        </div>
       </div>
 
 
