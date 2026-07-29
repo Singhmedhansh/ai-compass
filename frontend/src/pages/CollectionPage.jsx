@@ -8,7 +8,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 
-import { Button, Card, SkeletonCard, ToolLogo } from '../components/ui'
+import { Button, Card, SkeletonCard, ToolLogo, WizardFunnelCTA } from '../components/ui'
 import ErrorState from '../components/ErrorState'
 import { inferErrorVariant } from '../utils/errorState'
 
@@ -520,6 +520,10 @@ function CollectionPage() {
           </div>
         </section>
       ) : null}
+
+      {!loading && !error && (
+        <WizardFunnelCTA variant="banner" />
+      )}
     </div>
   )
 }

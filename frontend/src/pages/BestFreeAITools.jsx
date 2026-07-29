@@ -4,7 +4,7 @@ import { ArrowUpRight, Sparkles, Shield, Cpu, RefreshCw, Layers, Check, Laptop, 
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 
-import { MagneticWrapper, WordReveal, ConversionCTA } from "../components/ui";
+import { MagneticWrapper, WordReveal, ConversionCTA, WizardFunnelCTA } from "../components/ui";
 import { useCatalogStats } from "../hooks/useCatalogStats";
 import { sectionReveal, staggerParent, staggerChild } from "../lib/motion";
 import { toolHoverHandlers, alternativesHoverHandlers } from "../lib/prefetch";
@@ -699,6 +699,10 @@ export default function BestFreeAITools() {
             ))}
           </div>
         </MotionDiv>
+
+        <div className="mx-auto max-w-[860px] px-6">
+          <WizardFunnelCTA variant="banner" />
+        </div>
 
         <ConversionCTA />
       </div>

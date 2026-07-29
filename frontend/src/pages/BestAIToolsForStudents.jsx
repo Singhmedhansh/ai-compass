@@ -13,7 +13,7 @@ import chatgptIcon from "../assets/brand/chatgpt.svg";
 import claudeIcon from "../assets/brand/claude.svg";
 import githubCopilotIcon from "../assets/brand/github-copilot.svg";
 
-import { MagneticWrapper, WordReveal, ConversionCTA } from "../components/ui";
+import { MagneticWrapper, WordReveal, ConversionCTA, WizardFunnelCTA } from "../components/ui";
 import { useCatalogStats } from "../hooks/useCatalogStats";
 import { sectionReveal, staggerParent, staggerChild } from "../lib/motion";
 import { toolHoverHandlers, alternativesHoverHandlers } from "../lib/prefetch";
@@ -630,6 +630,10 @@ export default function BestAIToolsForStudents() {
             ))}
           </div>
         </MotionDiv>
+
+        <div className="mx-auto max-w-[860px] px-6">
+          <WizardFunnelCTA variant="banner" />
+        </div>
 
         <ConversionCTA />
       </div>

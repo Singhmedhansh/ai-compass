@@ -1,4 +1,4 @@
-import { Check, RotateCcw, Save, Code, GraduationCap, PenTool, Mic, Briefcase, Layout, BarChart, Zap, BookOpen, Terminal, Globe, Wand2, Star, SlidersHorizontal, Bug, Search, MessageSquare, Bookmark, Palette, Film, Calendar, FileText, Megaphone, Plug, Bot, FlaskConical, X } from 'lucide-react'
+import { Check, RotateCcw, Save, Code, GraduationCap, PenTool, Mic, Briefcase, Layout, BarChart, Zap, BookOpen, Terminal, Globe, Wand2, Star, SlidersHorizontal, Bug, Search, MessageSquare, Bookmark, Palette, Film, Calendar, FileText, Megaphone, Plug, Bot, FlaskConical, X, Loader2, ArrowUpRight } from 'lucide-react'
 import { useEffect, useRef, useState, useMemo, useCallback } from 'react'
 import { toast } from 'sonner'
 import { useNavigate, Link } from 'react-router-dom'
@@ -109,7 +109,7 @@ const PREDEFINED_STACKS = [
   }
 ]
 
-function TemplateGallery({ onSelect }) {
+function TemplateGallery({ onSelect, loadingStackId }) {
   const [activeFilter, setActiveFilter] = useState('All')
   const categories = ['All', 'Student', 'Creator', 'Developer', 'Professional']
 
@@ -150,6 +150,7 @@ function TemplateGallery({ onSelect }) {
           {filteredStacks.map((stack) => {
             const Icon = stack.icon
             const isCustom = stack.id === 'custom'
+            const isLoading = loadingStackId === stack.id
             
             return (
               <motion.button
@@ -157,25 +158,29 @@ function TemplateGallery({ onSelect }) {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.9 }}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                whileHover={{ scale: isLoading ? 1 : 1.02 }}
+                whileTap={{ scale: isLoading ? 1 : 0.98 }}
                 key={stack.id}
+                disabled={Boolean(loadingStackId)}
                 onClick={() => onSelect(stack.id)}
                 className={`group relative flex h-full flex-col items-start gap-3 rounded-2xl p-5 text-left transition-all outline-none focus-visible:ring-2 focus-visible:ring-accent ${
                   isCustom 
                     ? 'border-2 border-dashed border-accent bg-accent-soft/20 shadow-sm hover:border-accent hover:bg-accent-soft/40 hover:shadow-accent/20' 
                     : 'border border-line bg-bg-elev shadow-sm hover:border-accent/50 hover:shadow-md'
-                }`}
+                } ${isLoading ? 'opacity-80 cursor-wait' : ''}`}
               >
                 <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-colors ${
                   isCustom ? 'bg-accent text-bg shadow-sm' : 'bg-bg-sunk text-ink group-hover:bg-accent-soft group-hover:text-accent-ink'
                 }`}>
-                  <Icon className="h-5 w-5" />
+                  {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Icon className="h-5 w-5" />}
                 </div>
                 <div>
-                  <h3 className={`text-base font-semibold ${isCustom ? 'text-accent-ink' : 'text-ink'}`}>
-                    {stack.label}
-                  </h3>
+                  <div className="flex items-center justify-between gap-2">
+                    <h3 className={`text-base font-semibold ${isCustom ? 'text-accent-ink' : 'text-ink'}`}>
+                      {stack.label}
+                    </h3>
+                    {isCustom && <span className="rounded bg-accent/20 px-1.5 py-0.5 text-[10px] font-bold text-accent-ink uppercase">Recommended</span>}
+                  </div>
                   <p className="mt-1 text-xs text-muted leading-relaxed line-clamp-2">
                     {stack.description}
                   </p>
@@ -306,7 +311,7 @@ const QUESTIONS = [
     id: 'goal',
     label: 'Use case',
     activeHeading: "What are you trying to do today?",
-    activeHelper: 'Pick one — we match tools that fit.',
+    activeHelper: 'Pick one — we match tools that fit your primary focus.',
     options: GOAL_OPTIONS,
     type: 'chips',
     multiSelect: false,
@@ -315,7 +320,8 @@ const QUESTIONS = [
     id: 'use_case',
     label: 'Specifics',
     activeHeading: 'What specifically do you want to do?',
-    activeHelper: 'Optional — describe your goal, or press Continue to skip this step.',
+    activeHelper: 'Select a task below (Most users pick Content writing) or describe your goal.',
+    defaultOption: 'Content writing & essays',
     type: 'text',
   },
   {
@@ -324,23 +330,6 @@ const QUESTIONS = [
     activeHeading: "What's your budget?",
     activeHelper: 'Free is fine — we rank by fit, not price.',
     options: BUDGET_OPTIONS,
-    type: 'chips',
-  },
-  {
-    id: 'platform',
-    label: 'Platform',
-    activeHeading: 'Where do you work?',
-    activeHelper: 'Pick your primary platform — we match tools that fit.',
-    options: PLATFORM_OPTIONS,
-    type: 'chips',
-    multiSelect: false,
-  },
-  {
-    id: 'level',
-    label: 'Level',
-    activeHeading: 'How comfortable are you with tech?',
-    activeHelper: 'No wrong answer — this just calibrates the rec list.',
-    options: LEVEL_OPTIONS,
     type: 'chips',
   },
 ]
@@ -984,11 +973,16 @@ function ResultCard({ tool, index, navigate, onCardClick, onShowDetails }) {
         </div>
       </div>
 
-      <p className="mt-3 text-xs italic leading-relaxed text-muted line-clamp-2 border-l border-line-strong pl-2">
-        "{tool.reason || tool._reason}"
-      </p>
+      <div className="mt-3 rounded-xl border border-accent/20 bg-accent-soft/30 p-3 text-xs">
+        <span className="font-bold text-accent-ink block uppercase tracking-wider text-[10px] mb-0.5">
+          ✨ Recommended because:
+        </span>
+        <p className="text-ink-2 font-medium leading-relaxed">
+          {tool.reason || tool._reason || `Matches your selected workflow and budget preferences.`}
+        </p>
+      </div>
       
-      <p className="mt-2 text-xs leading-relaxed text-ink-2 line-clamp-3">
+      <p className="mt-2 text-xs leading-relaxed text-ink-2 line-clamp-2">
         {tool.description}
       </p>
 
@@ -1010,16 +1004,16 @@ function ResultCard({ tool, index, navigate, onCardClick, onShowDetails }) {
           </span>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={(e) => {
               e.stopPropagation()
               onShowDetails(tool)
             }}
-            className="hover:text-accent font-semibold transition"
+            className="hover:text-accent text-[11px] font-semibold transition px-2 py-1"
           >
-            Why this fits →
+            Details →
           </button>
           
           <a
@@ -1039,9 +1033,10 @@ function ResultCard({ tool, index, navigate, onCardClick, onShowDetails }) {
               } catch (err) {}
               onCardClick?.()
             }}
-            className="text-accent font-bold hover:underline"
+            className="inline-flex items-center gap-1.5 rounded-full bg-accent px-3.5 py-1.5 text-xs font-bold text-accent-ink transition-all hover:scale-105 shadow-sm"
           >
-            Visit
+            <span>Visit Tool</span>
+            <ArrowUpRight className="h-3.5 w-3.5" />
           </a>
         </div>
       </div>
@@ -1098,9 +1093,14 @@ function AnchorToolCard({ tool, navigate, onCardClick, onShowDetails }) {
             </div>
           </div>
 
-          <p className="mt-4 text-sm italic font-medium leading-relaxed text-ink pl-3 border-l-2 border-accent">
-            "{tool.reason || tool._reason}"
-          </p>
+          <div className="mt-4 rounded-xl border border-accent/30 bg-accent-soft/40 p-3 text-xs">
+            <span className="font-bold text-accent-ink block uppercase tracking-wider text-[10px] mb-0.5">
+              ✨ Recommended because:
+            </span>
+            <p className="text-ink font-semibold leading-relaxed">
+              {tool.reason || tool._reason || `Top match for your selected goal and workflow.`}
+            </p>
+          </div>
 
           <p className="mt-3 text-sm leading-relaxed text-ink-2">
             {tool.description}
@@ -1433,6 +1433,7 @@ function ToolFinderPage() {
   })
   const [results, setResults] = useState([])
   const [loadingResults, setLoadingResults] = useState(false)
+  const [loadingStackId, setLoadingStackId] = useState(null)
   const [savingStack, setSavingStack] = useState(false)
   const [error, setError] = useState('')
   const [aspectBucket, setAspectBucket] = useState(getAspectBucket)
@@ -1721,24 +1722,37 @@ function ToolFinderPage() {
   }
 
   const handlePredefinedStack = (stackId) => {
+    if (loadingStackId) return
+    setLoadingStackId(stackId)
     setSelectedStackId(stackId)
+
     if (stackId === 'custom') {
-      handleRestart()
+      wizardStartedRef.current = true
+      wizardCompletedRef.current = false
+      setAnswers({ goal: [], use_case: '', budget: '', platform: [], level: '' })
+      setResults([])
+      setError('')
+      setPendingCompletion(null)
+      setPendingStackSwitch(false)
       setHasStarted(true)
       setActiveQuestion('goal')
+      setViewMode('wizard')
+      captureWizardEvent('wizard_started')
+      setTimeout(() => setLoadingStackId(null), 150)
       return
     }
+
     const stack = PREDEFINED_STACKS.find((s) => s.id === stackId)
     if (stack && stack.answers) {
       wizardStartedRef.current = true
+      wizardCompletedRef.current = false
       setHasStarted(true)
       setAnswers(stack.answers)
       setActiveQuestion(null)
-      // Switch to results view once the fetch completes (handled by the
-      // useEffect below that watches loadingResults + results).
-      // We flag our intent here so the watcher knows to flip the view.
       setPendingStackSwitch(true)
+      captureWizardEvent('wizard_template_selected', { template: stackId })
     }
+    setTimeout(() => setLoadingStackId(null), 300)
   }
 
   useEffect(() => {
@@ -1810,8 +1824,9 @@ function ToolFinderPage() {
   if (viewMode === 'results') {
     const resultsMaxW = aspectBucket === 'ultrawide' ? 'max-w-7xl' : aspectBucket === 'portrait' ? 'max-w-4xl' : 'max-w-6xl'
     const persona = buildPersona(answers)
-    const anchorTool = results[0]
-    const supportingTools = results.slice(1)
+    const top3Results = results.slice(0, 3)
+    const anchorTool = top3Results[0]
+    const supportingTools = top3Results.slice(1)
 
     return (
       <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
@@ -2005,11 +2020,27 @@ function ToolFinderPage() {
               Answer {TOTAL_QUESTIONS} short questions → get your personalized AI tool match.
             </p>
             {!hasStarted && (
-              <div className="mt-4 rounded-xl border border-line bg-bg-sunk/50 p-3 shadow-sm inline-block animate-fade-in">
-                <p className="text-xs font-medium text-ink-2">
-                  <span className="mr-2">✨</span>
-                  Users like you found: <strong className="text-accent">Notion AI, Perplexity, Otter.ai</strong>
-                </p>
+              <div className="mt-4 flex flex-wrap items-center gap-3">
+                <Button 
+                  variant="primary" 
+                  size="md" 
+                  disabled={Boolean(loadingStackId)}
+                  onClick={() => handlePredefinedStack('custom')}
+                  className="shadow-md hover:scale-105 transition-all font-bold px-6 py-2.5"
+                >
+                  {loadingStackId === 'custom' ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Wand2 className="mr-2 h-4 w-4" />
+                  )}
+                  Get Started →
+                </Button>
+                <div className="rounded-xl border border-line bg-bg-sunk/50 p-2.5 shadow-sm inline-block animate-fade-in">
+                  <p className="text-xs font-medium text-ink-2">
+                    <span className="mr-2">✨</span>
+                    Users like you found: <strong className="text-accent">Notion AI, Perplexity, Otter.ai</strong>
+                  </p>
+                </div>
               </div>
             )}
           </div>
@@ -2027,7 +2058,7 @@ function ToolFinderPage() {
 
         {!hasStarted ? (
           <>
-            <TemplateGallery onSelect={handlePredefinedStack} />
+            <TemplateGallery onSelect={handlePredefinedStack} loadingStackId={loadingStackId} />
             <div className="mt-8 flex justify-center pb-4 animate-fade-in">
               <Link to="/tools" className="inline-flex items-center gap-2 text-sm font-semibold text-muted hover:text-accent transition-colors border border-line bg-bg-elev hover:bg-bg-sunk px-5 py-2.5 rounded-full shadow-sm">
                 <Search className="h-4 w-4" />

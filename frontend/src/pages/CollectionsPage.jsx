@@ -4,7 +4,7 @@ import { ArrowRight, Zap, GraduationCap, Terminal, PenTool, Microscope, Flame, A
 import { Helmet } from 'react-helmet-async'
 import { Link } from 'react-router-dom'
 
-import { WordReveal } from '../components/ui'
+import { WordReveal, WizardFunnelCTA } from '../components/ui'
 import ErrorState from '../components/ErrorState'
 import { sectionReveal, staggerChild } from '../lib/motion'
 import { inferErrorVariant } from '../utils/errorState'
@@ -170,6 +170,8 @@ function CollectionsPage() {
           </MotionLink>
         ))}
       </MotionDiv>
+
+      <WizardFunnelCTA variant="banner" />
     </div>
   )
 }

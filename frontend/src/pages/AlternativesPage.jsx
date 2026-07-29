@@ -5,7 +5,7 @@ import { motion } from 'framer-motion'
 import { ArrowUpRight, Shield } from 'lucide-react'
 import clsx from 'clsx'
 
-import { SEO, WordReveal, ConversionCTA } from '../components/ui'
+import { SEO, WordReveal, ConversionCTA, WizardFunnelCTA } from '../components/ui'
 import ErrorState from '../components/ErrorState'
 import { useCatalogStats } from '../hooks/useCatalogStats'
 import { sectionReveal, staggerParent, staggerChild } from '../lib/motion'
@@ -393,6 +393,11 @@ export default function AlternativesPage() {
           </MotionDiv>
         )}
 
+        {/* Mid-page Wizard CTA */}
+        <div className="mx-auto max-w-3xl px-4">
+          <WizardFunnelCTA variant="inline" />
+        </div>
+
         <MotionDiv
           variants={staggerParent}
           initial="initial"
@@ -550,6 +555,10 @@ export default function AlternativesPage() {
             </details>
           </div>
         </MotionDiv>
+
+        <div className="mx-auto max-w-3xl px-4">
+          <WizardFunnelCTA variant="banner" />
+        </div>
 
         <ConversionCTA />
       </div>
