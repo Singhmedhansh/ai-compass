@@ -133,7 +133,7 @@ export default function SubmitPage() {
         .then(res => res.json())
         .then(data => {
           setPaypalHostedConfig(data)
-          const clientId = data.client_id || 'BAA5cs6jiQb9N5nwDlMUap1IDvm-Yq3x7labkEcj8TAY1VYvC1aZD7X7nmiKPOEtLh-fHjJoR__eL6VgTY'
+          const clientId = data.client_id || 'sb'
           
           if (window.paypal) {
             setPaypalLoaded(true)
@@ -174,9 +174,9 @@ export default function SubmitPage() {
             }
 
             const handleLoadError = () => {
-              if (!isFallback) {
-                console.warn('Failed to load PayPal SDK with client-id. Trying fallback client-id=test...')
-                loadPaypalScript('test', true)
+              if (!isFallback && cid !== 'sb') {
+                console.warn('Failed to load PayPal SDK with client-id. Trying fallback client-id=sb...')
+                loadPaypalScript('sb', true)
               } else {
                 console.error('Failed to load PayPal SDK entirely.')
                 setPaypalError(true)
