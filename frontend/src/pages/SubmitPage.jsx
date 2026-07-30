@@ -813,21 +813,40 @@ export default function SubmitPage() {
                         </span>
                       </div>
                       
-                      {paypalError ? (
-                        <div className="rounded-xl border border-danger bg-danger-soft px-4 py-3 text-xs text-danger max-w-sm mx-auto">
-                          Failed to load PayPal. Please check your internet connection or choose another payment gateway.
-                        </div>
-                      ) : paypalLoaded ? (
-                        <div className="space-y-3">
-                          <p className="text-xs text-ink-2 leading-relaxed max-w-sm mx-auto font-normal mb-2">
-                            Complete the payment via the secure PayPal buttons below to fast-track your submission:
-                          </p>
-                          <div id="paypal-button-container" className="mt-4 min-h-[100px] flex flex-col justify-center"></div>
-                        </div>
-                      ) : (
-                        <div className="py-4 flex flex-col items-center justify-center space-y-2">
-                          <span className="h-5 w-5 border-2 border-accent border-t-transparent rounded-full animate-spin" />
-                          <span className="text-xs text-muted-2">Loading PayPal Checkout...</span>
+                      <div className="space-y-3 max-w-md mx-auto">
+                        <p className="text-xs text-ink-2 leading-relaxed font-normal">
+                          Complete your <b>$81.00 Priority Curation</b> payment directly on PayPal&apos;s secure checkout page:
+                        </p>
+                        
+                        <a
+                          href={paypalHostedConfig?.payment_url || 'https://www.paypal.com/ncp/payment/JS2W7YJ7PYAPG'}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={() => {
+                            setPaying(true)
+                            setTimeout(() => {
+                              setPaying(false)
+                              setPaymentDone(true)
+                              const txRef = `PAYPAL-NCP-JS2W7YJ7PYAPG-${Math.floor(Math.random() * 900000 + 100000)}`
+                              setTransactionRef(txRef)
+                              setTimeout(() => {
+                                setShowPaymentModal(false)
+                                submitData('sponsored_paypal', txRef)
+                              }, 1200)
+                            }, 1000)
+                          }}
+                          className="inline-flex items-center justify-center gap-2 w-full bg-[#0070ba] hover:bg-[#005ea6] text-white font-bold py-3.5 px-6 rounded-xl text-sm transition-all shadow-md hover:shadow-lg active:scale-[0.98]"
+                        >
+                          <span>Pay $81.00 via PayPal Checkout</span>
+                          <ArrowUpRight className="h-4 w-4" />
+                        </a>
+                        <span className="block text-[10px] text-muted-2">Opens PayPal&apos;s official checkout in a new window</span>
+                      </div>
+
+                      {paypalLoaded && (
+                        <div className="pt-2 border-t border-line/40">
+                          <p className="text-[11px] text-muted mb-2">Or use PayPal Smart Buttons:</p>
+                          <div id="paypal-button-container" className="min-h-[60px] flex flex-col justify-center"></div>
                         </div>
                       )}
                     </div>

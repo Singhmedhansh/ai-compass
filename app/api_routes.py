@@ -1547,7 +1547,8 @@ def get_paypal_hosted_config():
     return jsonify({
         "client_id": os.environ.get("PAYPAL_CLIENT_ID", ""),
         "hosted_button_id": os.environ.get("PAYPAL_HOSTED_BUTTON_ID", ""),
-        "mode": os.environ.get("PAYPAL_MODE", "sandbox")
+        "payment_url": os.environ.get("PAYPAL_PAYMENT_URL", "https://www.paypal.com/ncp/payment/JS2W7YJ7PYAPG"),
+        "mode": os.environ.get("PAYPAL_MODE", "live")
     })
 
 
