@@ -54897,5 +54897,107 @@
     "free_tier_summary": "Free standard downloads; high-resolution pro subscription available",
     "student_note": "Excellent tool for students. Best for removing watermarks, background distractors, and photobombers.",
     "last_verified": "2026-06-25"
+  },
+  {
+    "id": 663,
+    "name": "Roblox GUI Maker",
+    "icon": "https://robloxguimaker.dev/favicon.ico",
+    "maker": "Roblox GUI Maker",
+    "tagline": "AI-powered tool for generating Roblox ScreenGui UI layouts and starter Lua code",
+    "category": "Coding",
+    "subCategory": "Game UI & Studio Development",
+    "price": "Free",
+    "pricingDetail": "100% Free to use",
+    "bestFor": "Quickly prototyping Roblox game UI layouts and generating starter Lua scripts",
+    "tags": [
+      "roblox",
+      "gui",
+      "lua",
+      "game-dev",
+      "ui-design",
+      "coding",
+      "screen-gui",
+      "free",
+      "student-friendly",
+      "prototyping",
+      "ai-generator"
+    ],
+    "trending": false,
+    "featured": false,
+    "rating": 4.5,
+    "weeklyUsers": "1K+",
+    "link": "https://robloxguimaker.dev/",
+    "apiAvailable": false,
+    "openSource": false,
+    "studentPerk": true,
+    "uniHack": "Use clear natural language prompts to describe ScreenGui elements, then paste the generated starter Lua script into Roblox Studio",
+    "features": [
+      "Natural language prompt to ScreenGui UI layout generation",
+      "Starter Lua script generator for Roblox Studio",
+      "Interactive UI component preview",
+      "Prototyping workflow for game menus and HUDs"
+    ],
+    "platforms": [
+      "Web"
+    ],
+    "languages": "English",
+    "launchYear": 2025,
+    "description": "Roblox GUI Maker is an AI-assisted tool designed for Roblox developers and student creators to generate Roblox Studio ScreenGui layouts and starter Lua code from natural language prompts. It simplifies creating game menus, HUDs, inventory screens, and dialogue systems by providing immediate visual previews and customizable starter scripts.",
+    "use_cases": [
+      "Prototyping Roblox game HUDs and menus",
+      "Generating starter Lua scripts for ScreenGui elements",
+      "Designing game inventory, shop, and dialogue interfaces",
+      "Accelerating UI prototyping for student game developers"
+    ],
+    "difficulty": "beginner",
+    "student_friendly": true,
+    "review_count": 0,
+    "company": "Roblox GUI Maker",
+    "logo_emoji": "🎮",
+    "pricing_tier": "free",
+    "popularity_score": 0.72,
+    "weekly_users_estimate": "1K+",
+    "pricing": "Free",
+    "student_perk": true,
+    "strengths": [
+      "Tailored specifically for Roblox Studio ScreenGui workflows",
+      "Generates functional starter Lua code",
+      "Fast natural language prompt to UI rendering",
+      "Free to use with a student-friendly workflow"
+    ],
+    "slug": "roblox-gui-maker",
+    "pricing_tiers": {
+      "last_verified_at": "2026-07-30",
+      "source_url": "https://robloxguimaker.dev/",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free Plan",
+          "price_amount": 0,
+          "price_display": "Free",
+          "features": [
+            "Natural language UI prompt generation",
+            "Starter Lua script export",
+            "ScreenGui layout preview"
+          ],
+          "cta_label": "Try Roblox GUI Maker",
+          "cta_url": "https://robloxguimaker.dev/",
+          "is_popular": true
+        }
+      ]
+    },
+    "curation_score": 8.1,
+    "academic_integrity_rating": "SAFE",
+    "academic_warning": null,
+    "reviewCount": 0,
+    "reviews": [],
+    "last_verified_at": "2026-07-30",
+    "ease_of_use": 5,
+    "free_tier_value": 5,
+    "student_relevance": 5,
+    "free_tier_summary": "Completely free AI tool for generating Roblox ScreenGui layouts and Lua UI code",
+    "student_note": "Ideal for student game developers creating Roblox experiences. Generates ready-to-refine ScreenGui layouts and starter Lua scripts directly from text prompts.",
+    "last_verified": "2026-07-30",
+    "is_ai_native": true
   }
 ]

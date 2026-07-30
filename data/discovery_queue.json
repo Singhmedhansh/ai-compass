@@ -958,5 +958,49 @@
       "launchYear": 2026,
       "description": "RAGFlow is a leading open-source Retrieval-Augmented Generation (RAG) engine that fuses cutting-edge RAG with Agent capabilities to create a superior context layer for LLMs"
     }
+  },
+  {
+    "status": "approved",
+    "tool": {
+      "id": 663,
+      "name": "Roblox GUI Maker",
+      "maker": "Roblox GUI Maker",
+      "tagline": "AI-powered tool for generating Roblox ScreenGui UI layouts and starter Lua code",
+      "category": "coding",
+      "subcategory": "Game UI & Studio Development",
+      "price": "Free",
+      "pricingDetail": "100% Free to use",
+      "bestFor": "Quickly prototyping Roblox game UI layouts and generating starter Lua scripts",
+      "tags": [
+        "roblox",
+        "gui",
+        "lua",
+        "game-dev",
+        "ui-design",
+        "coding",
+        "screen-gui",
+        "free",
+        "student-friendly",
+        "prototyping"
+      ],
+      "trending": false,
+      "rating": "4.5",
+      "weeklyUsers": "1K+",
+      "link": "https://robloxguimaker.dev/",
+      "apiAvailable": false,
+      "openSource": false,
+      "studentPerk": true,
+      "uniHack": "Use clear natural language prompts to describe ScreenGui elements, then paste the generated starter Lua script into Roblox Studio",
+      "features": [
+        "Natural language prompt to ScreenGui UI layout generation",
+        "Starter Lua script generator for Roblox Studio"
+      ],
+      "platforms": [
+        "Web"
+      ],
+      "languages": "English",
+      "launchYear": 2025,
+      "description": "Roblox GUI Maker is an AI-assisted tool designed for Roblox developers and student creators to generate Roblox Studio ScreenGui layouts and starter Lua code from natural language prompts."
+    }
   }
 ]
