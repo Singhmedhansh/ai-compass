@@ -219,7 +219,7 @@ export default function SubmitPage() {
                 return actions.order.create({
                   purchase_units: [{
                     amount: {
-                      value: '81.00'
+                      value: '49.99'
                     }
                   }]
                 })
@@ -421,7 +421,8 @@ export default function SubmitPage() {
               <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-soft text-accent px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-wider shadow-sm">
                 <Sparkles className="h-2.5 w-2.5" /> Founder / Co-Founder
               </span>
-              <span className="text-sm font-black text-ink">$81</span>
+              <span className="text-xs font-semibold text-muted text-line-through mr-1.5">$81</span>
+              <span className="text-sm font-black text-ink">$49.99</span>
             </div>
             <h3 className="mt-3 text-base font-bold text-ink group-hover:text-accent transition-colors">
               Fast-Track Sponsored Curation
@@ -628,7 +629,7 @@ export default function SubmitPage() {
 
                 <div className="flex justify-between items-baseline pt-1">
                   <span className="font-bold text-ink">Total Due</span>
-                  <span className="text-xl font-bold text-ink">$81.00</span>
+                  <span className="text-xl font-bold text-ink">$49.99</span>
                 </div>
 
                 <ul className="space-y-2 text-ink-2 leading-relaxed pt-2 font-normal">
@@ -676,7 +677,7 @@ export default function SubmitPage() {
                 {/* Checkout Summary Banner */}
                 <div className="bg-bg-sunk/40 rounded-xl p-3 border border-line/45 flex justify-between items-center text-xs">
                   <span className="font-normal text-ink-2">Priority Curation for <strong className="text-ink font-semibold">{formData.name || 'Your Tool'}</strong></span>
-                  <span className="font-bold text-ink">$81.00</span>
+                  <span className="font-bold text-ink">$49.99</span>
                 </div>
 
                 {/* Gateway Tab Selector */}
@@ -815,7 +816,7 @@ export default function SubmitPage() {
                       
                       <div className="space-y-3 max-w-md mx-auto">
                         <p className="text-xs text-ink-2 leading-relaxed font-normal">
-                          Complete your <b>$81.00 Priority Curation</b> payment directly on PayPal&apos;s secure checkout page:
+                          Complete your <b>$49.99 Priority Curation</b> payment directly on PayPal&apos;s secure checkout page:
                         </p>
                         
                         <a
@@ -837,7 +838,7 @@ export default function SubmitPage() {
                           }}
                           className="inline-flex items-center justify-center gap-2 w-full bg-[#0070ba] hover:bg-[#005ea6] text-white font-bold py-3.5 px-6 rounded-xl text-sm transition-all shadow-md hover:shadow-lg active:scale-[0.98]"
                         >
-                          <span>Pay $81.00 via PayPal Checkout</span>
+                          <span>Pay $49.99 via PayPal Checkout</span>
                           <ArrowUpRight className="h-4 w-4" />
                         </a>
                         <span className="block text-[10px] text-muted-2">Opens PayPal&apos;s official checkout in a new window</span>
@@ -916,7 +917,7 @@ export default function SubmitPage() {
                           <>
                             <ShieldCheck className="h-4 w-4" />
                             <span>
-                              {paymentMethod === 'stripe' ? 'Pay $81.00' : ''}
+                              {paymentMethod === 'stripe' ? 'Pay $49.99' : ''}
                               {paymentMethod === 'razorpay' ? 'Authorize UPI / QR Payment' : ''}
                             </span>
                           </>

@@ -249,7 +249,7 @@ Hey Airtop Team,
 Huge congrats on launching "Mark" on Product Hunt today! (Already tracking in the Top 10!). Love the concept of vibe coding applied to marketing automations.
 I run AI Compass (https://ai-compass.in), a curated directory where students, developers, and young creators find AI tools for productivity, coding, and business.
 Mark is a fantastic resource for business and marketing students learning outbound, GTM strategies, and SEO automation.
-To help with your launch momentum, we can feature Mark on our platform. You can submit to our free review queue, or use our Priority Curation tier ($81) to get:
+To help with your launch momentum, we can feature Mark on our platform. You can submit to our free review queue, or use our Priority Curation tier ($49.99) to get:
 - Guaranteed review & listing within 24 hours (perfect for capturing post-launch traffic).
 - A permanent, high-authority backlink to airtop.ai.
 - A feature in our weekly student AI digest.

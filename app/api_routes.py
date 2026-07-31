@@ -1651,7 +1651,7 @@ def submit_tool():
                     to=submitter_email,
                     subject=f"AI Compass - Payment Confirmation & Invoice ({invoice_num})",
                     html=invoice_html,
-                    text=f"Thank you for your purchase! Fast-Track Sponsored Curation payment of $81.00 USD has been received. Invoice Number: {invoice_num}, Transaction Ref: {clean_ref}."
+                    text=f"Thank you for your purchase! Fast-Track Sponsored Curation payment of $49.99 USD has been received. Invoice Number: {invoice_num}, Transaction Ref: {clean_ref}."
                 )
             except Exception:
                 current_app.logger.exception("Failed to send user invoice email — submission still recorded")
