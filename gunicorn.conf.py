@@ -12,21 +12,17 @@ except (TypeError, ValueError):
 bind = f"0.0.0.0:{_port}"
 
 # Workers — 1 worker is the ONLY safe choice on Render's 512 MB free-tier.
-# Two workers × ~250 MB each = 500+ MB → OOM kill before the first request
-# is ever served. A single gthread worker with 4 threads still handles
-# concurrent requests; the added parallelism just lives in OS threads
-# instead of OS processes, costing zero extra RSS.
+# Two workers x ~250 MB each = 500+ MB = OOM kill before the first request
+# is ever served.
 workers = 1
 
-# Worker class — gthread allows concurrent thread execution (essential to prevent startup freezes)
-worker_class = "gthread"
-threads = 4
+# Worker class — use sync (default) which is the most robust.
+# gthread can cause issues if a thread crashes, killing the whole port binding.
+worker_class = "sync"
 
-# Timeouts
-# graceful_timeout: how long gunicorn waits for in-flight requests to
-# finish before hard-killing a worker during a rolling restart.
-timeout = 120
-graceful_timeout = 30
+# Timeouts — keep low so Render's 30-second port scan is never exceeded.
+timeout = 60
+graceful_timeout = 20
 keepalive = 5
 
 # Logging — forward to stdout so Render captures it in the dashboard.
