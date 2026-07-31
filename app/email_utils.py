@@ -50,6 +50,18 @@ def email_enabled() -> bool:
     return bool(os.environ.get("RESEND_API_KEY") or os.environ.get("SMTP_HOST"))
 
 
+def html_to_plain_text(html: str) -> str:
+    """Converts HTML email body into clean, natural plain text to prevent Gmail Promotions tab classification."""
+    if not html:
+        return ""
+    text = re.sub(r'<br\s*/?>', '\n', html, flags=re.IGNORECASE)
+    text = re.sub(r'</p>', '\n\n', text, flags=re.IGNORECASE)
+    text = re.sub(r'</li>', '\n', text, flags=re.IGNORECASE)
+    text = re.sub(r'<[^>]+>', '', text)
+    lines = [line.strip() for line in text.splitlines()]
+    return '\n'.join(line for line in lines if line)
+
+
 def _send_via_resend(to: str, subject: str, html: str, text: str | None) -> tuple[bool, str | None]:
     """HTTPS send via Resend (port 443 — works where SMTP is blocked)."""
     try:
@@ -68,6 +80,8 @@ def _send_via_resend(to: str, subject: str, html: str, text: str | None) -> tupl
             default_sender = f"AI Compass <no-reply@{canonical}>"
 
         sender = os.environ.get("RESEND_FROM", default_sender).strip()
+        plain_text = text or html_to_plain_text(html)
+
         r = requests.post(
             "https://api.resend.com/emails",
             headers={
@@ -79,7 +93,7 @@ def _send_via_resend(to: str, subject: str, html: str, text: str | None) -> tupl
                 "to": [to],
                 "subject": subject,
                 "html": html,
-                "text": text or "Open in an HTML-capable email client.",
+                "text": plain_text,
             },
             timeout=15,
         )
@@ -114,7 +128,7 @@ def send_email_with_details(to: str, subject: str, html: str, text: str | None =
     msg["Subject"] = subject
     msg["From"] = sender
     msg["To"] = to
-    msg.set_content(text or "Open in an HTML-capable email client.")
+    msg.set_content(text or html_to_plain_text(html))
     msg.add_alternative(html, subtype="html")
 
     try:

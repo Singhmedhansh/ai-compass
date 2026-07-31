@@ -290,13 +290,15 @@ INSTRUCTIONS:
 - Tailor the email specifically to the target product name, tagline/description, website, and founder name.
 - Use the inferred tone specified in the prompt.
 - Always output valid JSON with exactly two fields: "subject" and "body".
-- The "body" must be formatted as simple HTML (using <p>, <br>, <b>, <ul>, <li>, and <a> tags).
-- Make sure the body ends with a link to https://ai-compass.in/submit.
-- Always sign the email exactly like this:
-<br><br>
-Best Regards,<br>
-<b>Medhansh Pratap Singh</b> | Founder, AI Compass<br>
-<span style="font-size: 11px; color: #666;">medhansh.builds@gmail.com • ai-compass.in</span>
+- Do NOT use emojis in the subject line (e.g. no 🚀, no 🔥) to ensure the email lands in the Primary inbox.
+- The "body" must be formatted as clean HTML with a modern, readable font stack (using <p>, <br>, <b>, <ul>, <li>, and <a> tags).
+- Make sure the body ends with a clear link to https://ai-compass.in/submit.
+- Always sign the email with this exact HTML signature:
+<div style="margin-top: 24px; padding-top: 14px; border-top: 1px solid #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <div style="font-weight: 600; color: #0f172a; font-size: 14px;">Medhansh Pratap Singh</div>
+  <div style="color: #64748b; font-size: 12px; margin-top: 2px;">Founder, <a href="https://ai-compass.in" style="color: #059669; text-decoration: none; font-weight: 500;">AI Compass</a></div>
+  <div style="color: #94a3b8; font-size: 11px; margin-top: 4px;">medhansh.singh@ai-compass.in • <a href="https://ai-compass.in" style="color: #64748b; text-decoration: underline;">ai-compass.in</a></div>
+</div>
 
 Return ONLY the raw JSON block. Do not wrap in ```json or markdown codeblocks, just return the raw JSON object.
 """
@@ -348,17 +350,22 @@ Write an outreach email for this candidate:
 
 
 def get_generic_draft(candidate):
-    """A fallback template if Claude API key is missing or fails."""
-    subject = f"Featured on AI Compass for your launch today? 🚀"
-    body = f"""<p>Hey {candidate.founder_name or 'Team'},</p>
+    """A fallback template if Gemini API fails or is unconfigured."""
+    subject = f"Featured placement on AI Compass — {candidate.product_name} launch"
+    body = f"""<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; color: #334155; line-height: 1.6;">
+<p>Hey {candidate.founder_name or 'Team'},</p>
 <p>Congrats on the launch of <b>{candidate.product_name}</b>! We love what you are building.</p>
-<p>I run AI Compass (<a href="https://ai-compass.in">ai-compass.in</a>), a curated directory where students and developers discover AI tools. We think {candidate.product_name} would be a fantastic resource for our audience.</p>
-<p>To help with your momentum, we can feature you on our platform. You can submit to our queue here: <a href="https://ai-compass.in/submit">ai-compass.in/submit</a>.</p>
-<p>Congrats again!</p>
-<br><br>
-Best Regards,<br>
-<b>Medhansh Pratap Singh</b> | Founder, AI Compass<br>
-<span style="font-size: 11px; color: #666;">medhansh.builds@gmail.com • ai-compass.in</span>"""
+<p>I run <a href="https://ai-compass.in" style="color: #059669; font-weight: 500;">AI Compass</a>, a curated directory where students and developers discover AI tools. We think {candidate.product_name} would be a fantastic resource for our audience.</p>
+<div style="border-left: 3px solid #10b981; padding-left: 14px; margin: 16px 0; background-color: #f8fafc; padding: 12px 14px; border-radius: 0 8px 8px 0;">
+  <p style="margin: 0; font-size: 13px; color: #475569;">To help with your launch momentum, we can feature you on our platform. You can submit your tool to our fast-track queue here: <a href="https://ai-compass.in/submit" style="color: #059669; font-weight: 600;">ai-compass.in/submit</a>.</p>
+</div>
+<p>Congrats again on the launch!</p>
+<div style="margin-top: 24px; padding-top: 14px; border-top: 1px solid #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <div style="font-weight: 600; color: #0f172a; font-size: 14px;">Medhansh Pratap Singh</div>
+  <div style="color: #64748b; font-size: 12px; margin-top: 2px;">Founder, <a href="https://ai-compass.in" style="color: #059669; text-decoration: none; font-weight: 500;">AI Compass</a></div>
+  <div style="color: #94a3b8; font-size: 11px; margin-top: 4px;">medhansh.singh@ai-compass.in • <a href="https://ai-compass.in" style="color: #64748b; text-decoration: underline;">ai-compass.in</a></div>
+</div>
+</div>"""
     return subject, body
 
 def infer_tone(tagline, description):
