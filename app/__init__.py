@@ -663,122 +663,98 @@ def create_app(config: dict | None = None) -> Flask:
             "sync": "pending",
             "error": None
         }
+
         def _warm_up():
-             with app.app_context():
-                 # Phase 1 — DB schema bootstrap. Used to run inline in
-                 # create_app() but a cold Postgres connection could take 30+s
-                # to wake, which pushed total startup past Render's
-                # port-scan timeout. Running here lets gunicorn bind the
-                # port immediately and serve /health (which has its own
-                # try/except around SELECT 1) while we work.
-                try:
-                    from flask_migrate import upgrade as db_upgrade
-                    db_upgrade()
-                    print("[WARMUP] flask db upgrade done", flush=True)
-                    app.warmup_status["migrate"] = "success"
-                except Exception as e:
-                    print(f"[WARMUP] migrate skipped: {e}", flush=True)
-                    app.warmup_status["migrate"] = f"skipped: {e}"
+            try:
+                with app.app_context():
+                    try:
+                        from flask_migrate import upgrade as db_upgrade
+                        db_upgrade()
+                        print("[WARMUP] flask db upgrade done", flush=True)
+                        app.warmup_status["migrate"] = "success"
+                    except Exception as e:
+                        print(f"[WARMUP] migrate skipped: {e}", flush=True)
+                        app.warmup_status["migrate"] = f"skipped: {e}"
 
-                try:
-                    from app.models import ReviewVote  # noqa: F401
-                    db.create_all()
-                    print("[WARMUP] db.create_all() done", flush=True)
-                    app.warmup_status["db_create"] = "success"
-                except Exception as e:
-                    print(f"[WARMUP] db.create_all() error: {e}", flush=True)
-                    app.warmup_status["db_create"] = f"error: {e}"
+                    try:
+                        from app.models import ReviewVote  # noqa: F401
+                        db.create_all()
+                        print("[WARMUP] db.create_all() done", flush=True)
+                        app.warmup_status["db_create"] = "success"
+                    except Exception as e:
+                        print(f"[WARMUP] db.create_all() error: {e}", flush=True)
+                        app.warmup_status["db_create"] = f"error: {e}"
 
-                # Raw SQL Fallback: Guarantee that user profile columns exist
-                is_postgres = db.engine.name in ("postgresql", "postgres")
-                if_not_exists = "IF NOT EXISTS " if is_postgres else ""
+                    # Raw SQL Fallback: Guarantee that user profile columns exist
+                    is_postgres = db.engine.name in ("postgresql", "postgres")
+                    if_not_exists = "IF NOT EXISTS " if is_postgres else ""
 
-                try:
-                    from sqlalchemy import text
-                    db.session.execute(text(f"ALTER TABLE users ADD COLUMN {if_not_exists}is_verified BOOLEAN NOT NULL DEFAULT FALSE;"))
-                    db.session.commit()
-                    print("[WARMUP] is_verified column check completed.", flush=True)
-                    app.warmup_status["users_alter"] = "success"
-                except Exception as alter_err:
-                    db.session.rollback()
-                    print(f"[WARMUP] Alter table users check completed: {alter_err}", flush=True)
-                    app.warmup_status["users_alter"] = f"check_complete: {alter_err}"
-
-                for col_name, col_type in [
-                    ("is_profile_public", "BOOLEAN NOT NULL DEFAULT FALSE"),
-                    ("public_username", "VARCHAR(255)"),
-                    ("bio", "TEXT"),
-                    ("github_username", "VARCHAR(255)"),
-                    ("linkedin_username", "VARCHAR(255)"),
-                    ("twitter_username", "VARCHAR(255)")
-                ]:
                     try:
                         from sqlalchemy import text
-                        db.session.execute(text(f"ALTER TABLE users ADD COLUMN {if_not_exists}{col_name} {col_type};"))
+                        db.session.execute(text(f"ALTER TABLE users ADD COLUMN {if_not_exists}is_verified BOOLEAN NOT NULL DEFAULT FALSE;"))
                         db.session.commit()
-                    except Exception as err:
+                        print("[WARMUP] is_verified column check completed.", flush=True)
+                        app.warmup_status["users_alter"] = "success"
+                    except Exception as alter_err:
                         db.session.rollback()
+                        print(f"[WARMUP] Alter table users check completed: {alter_err}", flush=True)
+                        app.warmup_status["users_alter"] = f"check_complete: {alter_err}"
 
-                # One-time import of tools.json into the durable DB
-                # catalog. Idempotent — no-ops once seeded. If this
-                # fails, the cache will fall back to tools.json.
-                try:
-                    from app.catalog_store import seed_from_json_if_empty, sync_catalog_from_json, sync_ratings_and_verifications_from_json
-                    seeded = seed_from_json_if_empty()
-                    synced_count = sync_catalog_from_json()
-                    print(f"[WARMUP] catalog seed: {seeded} inserted, synced: {synced_count} tools", flush=True)
-                    app.warmup_status["seed"] = f"success ({seeded} inserted, {synced_count} synced)"
-                    synced = sync_ratings_and_verifications_from_json()
-                    print(f"[WARMUP] catalog ratings/verifications sync: {synced} rows updated", flush=True)
-                    app.warmup_status["sync"] = f"success ({synced} synced)"
-                except Exception as e:
-                    print(f"[WARMUP] catalog seed/sync skipped: {e}", flush=True)
-                    app.warmup_status["error"] = str(e)
-
-                # SECRET_KEY rotation when no env var is set. Only runs
-                # in the rare config where SECRET_KEY isn't provided by
-                # Render — otherwise the env value set up top wins and
-                # this whole block is a no-op. If the DB query fails
-                # here, the env fallback set during config still works,
-                # so requests don't break.
-                if not os.environ.get("SECRET_KEY"):
-                    try:
-                        import secrets as _secrets
-
-                        from app.models import AppSetting
-                        row = AppSetting.query.filter_by(key="secret_key").first()
-                        if row is None:
-                            row = AppSetting(key="secret_key", value=_secrets.token_hex(32))
-                            db.session.add(row)
+                    for col_name, col_type in [
+                        ("is_profile_public", "BOOLEAN NOT NULL DEFAULT FALSE"),
+                        ("public_username", "VARCHAR(255)"),
+                        ("bio", "TEXT"),
+                        ("github_username", "VARCHAR(255)"),
+                        ("linkedin_username", "VARCHAR(255)"),
+                        ("twitter_username", "VARCHAR(255)")
+                    ]:
+                        try:
+                            from sqlalchemy import text
+                            db.session.execute(text(f"ALTER TABLE users ADD COLUMN {if_not_exists}{col_name} {col_type};"))
                             db.session.commit()
-                            print("[WARMUP] generated & persisted a new SECRET_KEY", flush=True)
-                        app.config["SECRET_KEY"] = row.value
-                        app.secret_key = row.value
+                        except Exception as err:
+                            db.session.rollback()
+
+                    try:
+                        from app.catalog_store import seed_from_json_if_empty, sync_catalog_from_json, sync_ratings_and_verifications_from_json
+                        seeded = seed_from_json_if_empty()
+                        synced_count = sync_catalog_from_json()
+                        print(f"[WARMUP] catalog seed: {seeded} inserted, synced: {synced_count} tools", flush=True)
+                        app.warmup_status["seed"] = f"success ({seeded} inserted, {synced_count} synced)"
+                        synced = sync_ratings_and_verifications_from_json()
+                        print(f"[WARMUP] catalog ratings/verifications sync: {synced} rows updated", flush=True)
+                        app.warmup_status["sync"] = f"success ({synced} synced)"
                     except Exception as e:
-                        db.session.rollback()
-                        print(f"[WARMUP] DB SECRET_KEY unavailable, using fallback: {e}", flush=True)
+                        print(f"[WARMUP] catalog seed/sync skipped: {e}", flush=True)
+                        app.warmup_status["error"] = str(e)
 
-                print(f"[WARMUP] cwd: {os.getcwd()}", flush=True)
+                    if not os.environ.get("SECRET_KEY"):
+                        try:
+                            import secrets as _secrets
 
-                # Phase 2 — cache priming. Reads from DB so has to wait
-                # for the DB to be reachable.
-                try:
-                    print("[WARMUP] Loading tools...", flush=True)
-                    prime_tools_cache(DEFAULT_TOOLS_PATH)
-                    print(f"[WARMUP] Loaded {len(get_cached_tools())} tools", flush=True)
-                except Exception as exc:  # noqa: BLE001
-                    print(f"[WARMUP] Tools prime skipped: {exc}", flush=True)
+                            from app.models import AppSetting
+                            row = AppSetting.query.filter_by(key="secret_key").first()
+                            if row is None:
+                                row = AppSetting(key="secret_key", value=_secrets.token_hex(32))
+                                db.session.add(row)
+                                db.session.commit()
+                                print("[WARMUP] generated & persisted a new SECRET_KEY", flush=True)
+                            app.config["SECRET_KEY"] = row.value
+                            app.secret_key = row.value
+                        except Exception as e:
+                            db.session.rollback()
+                            print(f"[WARMUP] DB SECRET_KEY unavailable, using fallback: {e}", flush=True)
 
+                    print(f"[WARMUP] cwd: {os.getcwd()}", flush=True)
 
-                # ML model preloading intentionally disabled on free-tier.
-                # Unpickling the 443-tool TF-IDF + cosine similarity matrix
-                # expands from 2.8 MB on disk to 150-250 MB in RAM, pushing
-                # a 512 MB instance over its limit before the first request.
-                # get_similar_tools() and semantic_search() both have graceful
-                # fallbacks (category/keyword search) when model is None.
-                # Train the model locally and commit the pkl to the repo;
-                # it will be available at runtime without the memory spike.
-                print("[WARMUP] ML model loading skipped (memory budget: free-tier 512MB)", flush=True)
+                    try:
+                        print("[WARMUP] Loading tools...", flush=True)
+                        prime_tools_cache(DEFAULT_TOOLS_PATH)
+                        print(f"[WARMUP] Loaded {len(get_cached_tools())} tools", flush=True)
+                    except Exception as exc:  # noqa: BLE001
+                        print(f"[WARMUP] Tools prime skipped: {exc}", flush=True)
+
+                    print("[WARMUP] ML model loading skipped (memory budget: free-tier 512MB)", flush=True)
             finally:
                 db.session.remove()
 
