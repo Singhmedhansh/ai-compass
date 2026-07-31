@@ -134,26 +134,44 @@ def scrape_website_for_email(url):
     """Scrapes homepage looking for mailto links or regex match emails."""
     try:
         headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
-        resp = requests.get(url, headers=headers, timeout=10, allow_redirects=True)
-        if not resp.ok:
+        
+        def extract_emails_from_html(html):
+            if not html:
+                return None
+            soup = BeautifulSoup(html, "html.parser")
+            for a in soup.find_all("a", href=True):
+                href = a["href"].strip()
+                if href.lower().startswith("mailto:"):
+                    email = href[7:].split("?")[0].strip()
+                    if is_valid_email(email):
+                        return email
+            text = soup.get_text()
+            matches = re.findall(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}", text)
+            for m in matches:
+                if is_valid_email(m):
+                    return m
             return None
 
-        soup = BeautifulSoup(resp.text, "html.parser")
-        
-        # 1. Look for mailto: links
-        for a in soup.find_all("a", href=True):
-            href = a["href"].strip()
-            if href.lower().startswith("mailto:"):
-                email = href[7:].split("?")[0].strip()
-                if is_valid_email(email):
-                    return email
+        # 1. Check homepage first
+        resp = requests.get(url, headers=headers, timeout=10, allow_redirects=True)
+        if resp.ok:
+            email = extract_emails_from_html(resp.text)
+            if email:
+                return email
 
-        # 2. Look for regex email matches in body text
-        text = soup.get_text()
-        matches = re.findall(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}", text)
-        for m in matches:
-            if is_valid_email(m):
-                return m
+        # 2. Check /contact, /about, /privacy, /terms subpages
+        domain_base = get_domain_from_url(url)
+        if domain_base:
+            base_url = f"https://{domain_base}"
+            for path in ["/contact", "/about", "/terms", "/privacy"]:
+                try:
+                    sub_resp = requests.get(base_url + path, headers=headers, timeout=5, allow_redirects=True)
+                    if sub_resp.ok:
+                        email = extract_emails_from_html(sub_resp.text)
+                        if email:
+                            return email
+                except Exception:
+                    pass
 
         return None
     except Exception as e:
