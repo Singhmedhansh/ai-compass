@@ -5,7 +5,7 @@ from flask_login import login_required, current_user
 
 from app import db, csrf
 from app.models import OutreachCandidate, OutreachEmailLog
-from app.email_utils import send_email
+from app.email_utils import send_email, send_email_with_details
 from app.outreach import (
     run_discovery_pipeline,
     run_automated_followups,
@@ -155,7 +155,7 @@ def send_candidate_email(cid):
     err_msg = None
     try:
         # Send html email with fallback text description
-        success = send_email(to=c.email, subject=c.draft_subject, html=c.draft_body)
+        success, err_msg = send_email_with_details(to=c.email, subject=c.draft_subject, html=c.draft_body)
     except Exception as exc:
         err_msg = str(exc)
         
@@ -176,7 +176,7 @@ def send_candidate_email(cid):
         return jsonify({"success": True})
     else:
         db.session.commit()
-        return jsonify({"success": False, "error": err_msg or "Failed to send email via Resend"}), 500
+        return jsonify({"success": False, "error": f"Failed to send via Resend: {err_msg or 'Check Resend configuration'}"}), 500
 
 @outreach_bp.route("/api/v1/admin/outreach/candidates/bulk-send", methods=["POST"])
 @csrf.exempt
@@ -200,7 +200,7 @@ def bulk_send_candidates():
         success = False
         err_msg = None
         try:
-            success = send_email(to=c.email, subject=c.draft_subject, html=c.draft_body)
+            success, err_msg = send_email_with_details(to=c.email, subject=c.draft_subject, html=c.draft_body)
         except Exception as exc:
             err_msg = str(exc)
             

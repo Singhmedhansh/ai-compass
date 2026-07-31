@@ -50,15 +50,16 @@ def email_enabled() -> bool:
     return bool(os.environ.get("RESEND_API_KEY") or os.environ.get("SMTP_HOST"))
 
 
-def _send_via_resend(to: str, subject: str, html: str, text: str | None) -> bool:
+def _send_via_resend(to: str, subject: str, html: str, text: str | None) -> tuple[bool, str | None]:
     """HTTPS send via Resend (port 443 — works where SMTP is blocked)."""
     try:
         import requests
 
         api_key = os.environ.get("RESEND_API_KEY")
         if not api_key:
-            log.warning("RESEND_API_KEY is empty/missing")
-            return False
+            err = "RESEND_API_KEY is empty/missing"
+            log.warning(err)
+            return False, err
 
         canonical = os.environ.get("CANONICAL_HOST", "ai-compass.in").strip().lower()
         if not canonical or canonical in {"localhost", "127.0.0.1"}:
@@ -83,27 +84,26 @@ def _send_via_resend(to: str, subject: str, html: str, text: str | None) -> bool
             timeout=15,
         )
         if r.ok:
-            return True
-        log.warning("Resend rejected email to %s (HTTP %s): %s", to, r.status_code, r.text[:300])
-        return False
+            return True, None
+        err = f"Resend HTTP {r.status_code}: {r.text[:300]}"
+        log.warning("Resend rejected email to %s: %s", to, err)
+        return False, err
     except Exception as exc:  # noqa: BLE001 — email must never crash a request
-        log.warning("Resend send failed to %s: %s", to, exc)
-        return False
+        err = str(exc)
+        log.warning("Resend send failed to %s: %s", to, err)
+        return False, err
 
 
-def send_email(to: str, subject: str, html: str, text: str | None = None) -> bool:
-    """Send one email. Returns True on success, False if disabled/failed.
-    Never raises — callers can fire-and-forget safely.
-
-    Prefers Resend HTTPS (works on SMTP-blocked hosts like Render free
-    tier); falls back to SMTP; no-op if neither is configured."""
+def send_email_with_details(to: str, subject: str, html: str, text: str | None = None) -> tuple[bool, str | None]:
+    """Send one email and return (success: bool, error_message: str | None)."""
     if os.environ.get("RESEND_API_KEY"):
         return _send_via_resend(to, subject, html, text)
 
     host = os.environ.get("SMTP_HOST")
     if not host:
-        log.info("Email not configured (no RESEND_API_KEY / SMTP_HOST) — skipping to %s (%s)", to, subject)
-        return False
+        err = "Email not configured (no RESEND_API_KEY / SMTP_HOST)"
+        log.info("%s — skipping to %s (%s)", err, to, subject)
+        return False, err
 
     port = int(os.environ.get("SMTP_PORT", "587"))
     user = os.environ.get("SMTP_USER")
@@ -124,7 +124,13 @@ def send_email(to: str, subject: str, html: str, text: str | None = None) -> boo
             if user and password:
                 server.login(user, password)
             server.send_message(msg)
-        return True
+        return True, None
     except Exception as exc:  # noqa: BLE001 — email must never crash a request
-        log.warning("Email send failed to %s: %s", to, exc)
-        return False
+        err = str(exc)
+        log.warning("SMTP send failed to %s: %s", to, err)
+        return False, err
+
+
+def send_email(to: str, subject: str, html: str, text: str | None = None) -> bool:
+    success, _ = send_email_with_details(to, subject, html, text)
+    return success

@@ -1991,7 +1991,7 @@ function AdminPage() {
                                 setEditingCandidate(null)
                                 loadOutreachData()
                               } else {
-                                toast.error('Failed to send email')
+                                toast.error(sendRes.error || 'Failed to send email')
                               }
                             } catch (e) {
                               toast.error(e.message)
