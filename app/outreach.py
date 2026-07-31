@@ -145,57 +145,59 @@ def fetch_producthunt_launches():
         return []
 
 def fetch_shownews_launches():
-    """Hits Hacker News Show HN API to discover newly launched software & AI tools."""
+    """Hits Hacker News Show HN API concurrently to discover newly launched software & AI tools."""
     try:
+        from concurrent.futures import ThreadPoolExecutor
+
         url = "https://hacker-news.firebaseio.com/v0/showstories.json"
-        r = requests.get(url, timeout=10)
+        r = requests.get(url, timeout=5)
         if not r.ok:
             return []
 
-        story_ids = r.json()[:30]
-        candidates = []
+        story_ids = r.json()[:25]
 
-        for sid in story_ids:
+        def _fetch_single_story(sid):
             try:
-                item_r = requests.get(f"https://hacker-news.firebaseio.com/v0/item/{sid}.json", timeout=4)
+                item_r = requests.get(f"https://hacker-news.firebaseio.com/v0/item/{sid}.json", timeout=3)
                 if not item_r.ok:
-                    continue
+                    return None
                 data = item_r.json()
                 title = data.get("title", "")
                 link = data.get("url", "")
                 author = data.get("by", "")
 
                 if not title or not link or not link.startswith("http"):
-                    continue
+                    return None
 
-                # Strip "Show HN: " prefix
                 clean_name = title
                 if clean_name.lower().startswith("show hn:"):
                     clean_name = clean_name[8:].strip()
 
-                # Basic filter for tool/app/software launches
                 parts = clean_name.split("–") if "–" in clean_name else clean_name.split("-")
                 prod_name = parts[0].strip()
                 tagline = parts[1].strip() if len(parts) > 1 else clean_name
 
-                candidates.append({
+                return {
                     "ph_launch_id": f"hn_{sid}",
                     "product_name": prod_name[:80],
                     "tagline": tagline[:160],
                     "website_url": link,
                     "founder_name": author
-                })
+                }
             except Exception:
-                continue
+                return None
 
-        return candidates
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            results = list(executor.map(_fetch_single_story, story_ids))
+
+        return [item for item in results if item is not None]
     except Exception as e:
         log.warning("Hacker News Show HN fetch failed: %s", e)
         return []
 
 # ─── 2. EMAIL DISCOVERY (SCRAPE + HUNTER.IO) ──────────────────────────────────
 def scrape_website_for_email(url):
-    """Scrapes homepage looking for mailto links or regex match emails."""
+    """Scrapes homepage and contact subpages looking for mailto links or regex match emails."""
     try:
         headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
         
@@ -216,20 +218,20 @@ def scrape_website_for_email(url):
                     return m
             return None
 
-        # 1. Check homepage first
-        resp = requests.get(url, headers=headers, timeout=10, allow_redirects=True)
+        # 1. Check homepage first (tight 3s timeout)
+        resp = requests.get(url, headers=headers, timeout=3, allow_redirects=True)
         if resp.ok:
             email = extract_emails_from_html(resp.text)
             if email:
                 return email
 
-        # 2. Check /contact, /about, /privacy, /terms subpages
+        # 2. Check /contact, /about subpages (tight 2s timeout)
         domain_base = get_domain_from_url(url)
         if domain_base:
             base_url = f"https://{domain_base}"
-            for path in ["/contact", "/about", "/terms", "/privacy"]:
+            for path in ["/contact", "/about"]:
                 try:
-                    sub_resp = requests.get(base_url + path, headers=headers, timeout=5, allow_redirects=True)
+                    sub_resp = requests.get(base_url + path, headers=headers, timeout=2, allow_redirects=True)
                     if sub_resp.ok:
                         email = extract_emails_from_html(sub_resp.text)
                         if email:
