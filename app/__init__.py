@@ -779,6 +779,8 @@ def create_app(config: dict | None = None) -> Flask:
                 # Train the model locally and commit the pkl to the repo;
                 # it will be available at runtime without the memory spike.
                 print("[WARMUP] ML model loading skipped (memory budget: free-tier 512MB)", flush=True)
+            finally:
+                db.session.remove()
 
     is_cli = sys.argv and any(x in sys.argv[0] or x in sys.argv for x in ['flask', 'db', 'migrate', 'manage.py'])
     if not app.config.get("TESTING") and _first_warmup and not is_cli:

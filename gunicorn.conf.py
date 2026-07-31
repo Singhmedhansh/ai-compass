@@ -11,18 +11,16 @@ except (TypeError, ValueError):
 
 bind = f"0.0.0.0:{_port}"
 
-# Workers — 1 worker is the ONLY safe choice on Render's 512 MB free-tier.
-# Two workers x ~250 MB each = 500+ MB = OOM kill before the first request
-# is ever served.
+# Workers — 1 worker with 2 threads is optimal for Render's 512 MB free tier.
+# gthread allows concurrent thread execution so Render health checks (/healthz)
+# respond instantly even while background warmup or DB operations run.
 workers = 1
+worker_class = "gthread"
+threads = 2
 
-# Worker class — use sync (default) which is the most robust.
-# gthread can cause issues if a thread crashes, killing the whole port binding.
-worker_class = "sync"
-
-# Timeouts — keep low so Render's 30-second port scan is never exceeded.
-timeout = 60
-graceful_timeout = 20
+# Timeouts
+timeout = 120
+graceful_timeout = 30
 keepalive = 5
 
 # Logging — forward to stdout so Render captures it in the dashboard.
