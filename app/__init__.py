@@ -701,7 +701,7 @@ def create_app(config: dict | None = None) -> Flask:
                     print(f"[WARMUP] Alter table users check/addition completed: {alter_err}", flush=True)
                     app.warmup_status["users_alter"] = f"check_complete: {alter_err}"
 
-                # Raw SQL Fallback: Guarantee that public profile columns exist
+                # Raw SQL Fallback: Guarantee that public profile columns exist using IF NOT EXISTS
                 for col_name, col_type in [
                     ("is_profile_public", "BOOLEAN NOT NULL DEFAULT FALSE"),
                     ("public_username", "VARCHAR(255)"),
@@ -712,12 +712,11 @@ def create_app(config: dict | None = None) -> Flask:
                 ]:
                     try:
                         from sqlalchemy import text
-                        db.session.execute(text(f"ALTER TABLE users ADD COLUMN {col_name} {col_type};"))
+                        db.session.execute(text(f"ALTER TABLE users ADD COLUMN IF NOT EXISTS {col_name} {col_type};"))
                         db.session.commit()
-                        print(f"[WARMUP] Successfully added {col_name} to users table.", flush=True)
                     except Exception as err:
                         db.session.rollback()
-                        print(f"[WARMUP] Column {col_name} already exists or failed to add: {err}", flush=True)
+                        print(f"[WARMUP] Column {col_name} check: {err}", flush=True)
 
                 # One-time import of tools.json into the durable DB
                 # catalog. Idempotent — no-ops once seeded. If this
