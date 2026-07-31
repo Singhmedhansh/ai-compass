@@ -55,7 +55,7 @@ def _send_via_resend(to: str, subject: str, html: str, text: str | None) -> tupl
     try:
         import requests
 
-        api_key = os.environ.get("RESEND_API_KEY")
+        api_key = os.environ.get("RESEND_API_KEY", "").strip()
         if not api_key:
             err = "RESEND_API_KEY is empty/missing"
             log.warning(err)
@@ -67,7 +67,7 @@ def _send_via_resend(to: str, subject: str, html: str, text: str | None) -> tupl
         else:
             default_sender = f"AI Compass <no-reply@{canonical}>"
 
-        sender = os.environ.get("RESEND_FROM", default_sender)
+        sender = os.environ.get("RESEND_FROM", default_sender).strip()
         r = requests.post(
             "https://api.resend.com/emails",
             headers={
