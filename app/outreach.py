@@ -31,8 +31,13 @@ def get_domain_from_url(url):
 def is_valid_email(email):
     if not email or "@" not in email:
         return False
-    local_part = email.split("@")[0].lower()
+    parts = email.split("@")
+    local_part, domain_part = parts[0].lower(), parts[1].lower()
     if any(placeholder in local_part for placeholder in COMMON_PLACEHOLDERS):
+        return False
+    if domain_part in {"github.com", "example.com", "domain.com", "test.com", "email.com", "sample.com", "sentry.io"}:
+        return False
+    if local_part in {"copyright", "abuse", "dmca", "security", "privacy", "postmaster"}:
         return False
     return True
 
