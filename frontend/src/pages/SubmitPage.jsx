@@ -820,7 +820,7 @@ export default function SubmitPage() {
                         </p>
                         
                         <a
-                          href={paypalHostedConfig?.payment_url || 'https://www.paypal.com/ncp/payment/JS2W7YJ7PYAPG'}
+                          href={paypalHostedConfig?.payment_url || 'https://www.paypal.com/ncp/payment/XMWMPTJH5ZHPY'}
                           target="_blank"
                           rel="noopener noreferrer"
                           onClick={() => {
@@ -828,7 +828,7 @@ export default function SubmitPage() {
                             setTimeout(() => {
                               setPaying(false)
                               setPaymentDone(true)
-                              const txRef = `PAYPAL-NCP-JS2W7YJ7PYAPG-${Math.floor(Math.random() * 900000 + 100000)}`
+                              const txRef = `PAYPAL-NCP-XMWMPTJH5ZHPY-${Math.floor(Math.random() * 900000 + 100000)}`
                               setTransactionRef(txRef)
                               setTimeout(() => {
                                 setShowPaymentModal(false)
