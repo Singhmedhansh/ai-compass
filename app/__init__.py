@@ -39,6 +39,12 @@ try:
     except Exception:
         integrations = []
 
+    def _sentry_before_send(event, hint):
+        str_event = str(event)
+        if any(noise in str_event for noise in ("extension://", "BraveWallet", "EIP-1193", "MetaMask", "ethereum", "solana")):
+            return None
+        return event
+
     sentry_sdk.init(
         dsn=os.getenv("SENTRY_DSN"),
         integrations=integrations,
@@ -46,6 +52,7 @@ try:
         environment=os.getenv("APP_ENV", "development"),
         send_default_pii=os.getenv("SENTRY_SEND_PII", "false").lower() in ("1", "true", "yes"),
         release=os.getenv("SENTRY_RELEASE"),
+        before_send=_sentry_before_send,
     )
 except ImportError:
     sentry_sdk = None

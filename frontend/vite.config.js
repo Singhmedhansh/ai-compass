@@ -19,10 +19,9 @@ export default defineConfig(({ mode }) => {
       sourcemap: true,
       outDir: '../static/dist',
       emptyOutDir: true,
-      // target=es2022 drops more legacy syntax transforms Vite ships by
-      // default. Saves polyfill code, and every browser we
-      // care about supports ES2022 natively.
-      target: 'es2022',
+      // Lowered target to es2018 to ensure older browsers (Chrome 90+, Android 90+,
+      // Safari 13+) can execute the JavaScript bundle cleanly without white-screening.
+      target: ['es2018', 'chrome90', 'safari13', 'edge90', 'firefox88'],
       rollupOptions: {
         output: {
           // Split heavyweight vendor libs into their own long-cached

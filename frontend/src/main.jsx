@@ -44,13 +44,28 @@ window.addEventListener('vite:preloadError', (event) => {
 })
 
 window.addEventListener('unhandledrejection', (event) => {
-  const msg = String(event?.reason?.message || event?.reason || '')
+  const reason = event?.reason
+  const msg = String(reason?.message || reason?.stack || reason || '')
+  
+  // Filter out browser extension noise (BraveWallet, Chrome/Safari extensions, Web3 providers)
+  if (/extension:\/\/|BraveWallet|ethereum|solana|EIP-1193|web3|MetaMask|Coinbase/i.test(msg)) {
+    event.preventDefault()
+    return
+  }
+
   if (
     /dynamically imported module|ChunkLoadError|Importing a module script failed|Failed to fetch dynamically/i.test(
       msg,
     )
   ) {
     recoverFromStaleChunk()
+  }
+})
+
+window.addEventListener('error', (event) => {
+  const stack = String(event?.filename || event?.error?.stack || '')
+  if (/extension:\/\/|BraveWallet|ethereum|solana|EIP-1193|web3|MetaMask|Coinbase/i.test(stack)) {
+    event.preventDefault()
   }
 })
 
