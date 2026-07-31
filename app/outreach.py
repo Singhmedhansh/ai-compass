@@ -42,23 +42,38 @@ def _name_similarity(a, b):
     return SequenceMatcher(None, str(a).lower().strip(), str(b).lower().strip()).ratio()
 
 def is_duplicate_candidate(product_name, website_url):
-    # Check against outreach candidates
-    domain = get_domain_from_url(website_url)
-    existing = OutreachCandidate.query.filter(
-        (OutreachCandidate.product_name.ilike(product_name)) |
-        (OutreachCandidate.website_url.ilike(f"%{domain}%"))
-    ).first()
-    if existing:
+    if not product_name:
         return True
 
-    # Check against catalog tools
+    domain = get_domain_from_url(website_url)
+    # Ignore generic hosting/repo domains for deduplication
+    if domain and domain.lower() in {"github.com", "gitlab.com", "x.com", "twitter.com", "news.ycombinator.com"}:
+        domain = ""
+
+    # 1. Check against existing outreach candidates
+    if domain:
+        existing = OutreachCandidate.query.filter(
+            (OutreachCandidate.product_name.ilike(product_name)) |
+            (OutreachCandidate.website_url.ilike(f"%{domain}%"))
+        ).first()
+        if existing:
+            return True
+    else:
+        existing = OutreachCandidate.query.filter(
+            OutreachCandidate.product_name.ilike(product_name)
+        ).first()
+        if existing:
+            return True
+
+    # 2. Check against catalog tools (only match if exact domain or high name similarity)
     tools = CatalogTool.query.all()
     for t in tools:
-        if _name_similarity(t.name, product_name) > 0.85:
+        if _name_similarity(t.name, product_name) > 0.88:
             return True
-        t_domain = get_domain_from_url(t.affiliate_url or t.slug)
-        if domain and t_domain and domain == t_domain:
-            return True
+        if domain and t.affiliate_url:
+            t_domain = get_domain_from_url(t.affiliate_url)
+            if t_domain and domain == t_domain:
+                return True
     return False
 
 # ─── 1. DISCOVERY VIA PRODUCT HUNT & HACKER NEWS ─────────────────────────────

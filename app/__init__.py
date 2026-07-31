@@ -689,10 +689,13 @@ def create_app(config: dict | None = None) -> Flask:
                     print(f"[WARMUP] db.create_all() error: {e}", flush=True)
                     app.warmup_status["db_create"] = f"error: {e}"
 
-                # Raw SQL Fallback: Guarantee that the is_verified column exists in the users table using IF NOT EXISTS
+                # Raw SQL Fallback: Guarantee that user profile columns exist
+                is_postgres = db.engine.name in ("postgresql", "postgres")
+                if_not_exists = "IF NOT EXISTS " if is_postgres else ""
+
                 try:
                     from sqlalchemy import text
-                    db.session.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_verified BOOLEAN NOT NULL DEFAULT FALSE;"))
+                    db.session.execute(text(f"ALTER TABLE users ADD COLUMN {if_not_exists}is_verified BOOLEAN NOT NULL DEFAULT FALSE;"))
                     db.session.commit()
                     print("[WARMUP] is_verified column check completed.", flush=True)
                     app.warmup_status["users_alter"] = "success"
@@ -701,7 +704,6 @@ def create_app(config: dict | None = None) -> Flask:
                     print(f"[WARMUP] Alter table users check completed: {alter_err}", flush=True)
                     app.warmup_status["users_alter"] = f"check_complete: {alter_err}"
 
-                # Raw SQL Fallback: Guarantee that public profile columns exist using IF NOT EXISTS
                 for col_name, col_type in [
                     ("is_profile_public", "BOOLEAN NOT NULL DEFAULT FALSE"),
                     ("public_username", "VARCHAR(255)"),
@@ -712,11 +714,10 @@ def create_app(config: dict | None = None) -> Flask:
                 ]:
                     try:
                         from sqlalchemy import text
-                        db.session.execute(text(f"ALTER TABLE users ADD COLUMN IF NOT EXISTS {col_name} {col_type};"))
+                        db.session.execute(text(f"ALTER TABLE users ADD COLUMN {if_not_exists}{col_name} {col_type};"))
                         db.session.commit()
                     except Exception as err:
                         db.session.rollback()
-                        print(f"[WARMUP] Column {col_name} check: {err}", flush=True)
 
                 # One-time import of tools.json into the durable DB
                 # catalog. Idempotent — no-ops once seeded. If this
