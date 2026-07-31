@@ -61,9 +61,9 @@ def is_duplicate_candidate(product_name, website_url):
             return True
     return False
 
-# ─── 1. DISCOVERY VIA PRODUCT HUNT ──────────────────────────────────────────
+# ─── 1. DISCOVERY VIA PRODUCT HUNT & HACKER NEWS ─────────────────────────────
 def fetch_producthunt_launches():
-    """Hits PH API v2 GraphQL endpoint to get today's launches."""
+    """Hits PH API v2 GraphQL endpoint to get all launches from today's feed."""
     token = os.environ.get("PRODUCTHUNT_API_TOKEN")
     if not token:
         log.warning("PRODUCTHUNT_API_TOKEN is missing. Skipping PH fetch.")
@@ -75,10 +75,10 @@ def fetch_producthunt_launches():
         "Content-Type": "application/json"
     }
 
-    # Fetch featured posts for today
+    # Fetch all posts (not just featured: true) to capture 15-30 launches daily
     query = """
     query {
-      posts(first: 30, featured: true) {
+      posts(first: 40) {
         edges {
           node {
             id
@@ -119,7 +119,7 @@ def fetch_producthunt_launches():
             candidates.append({
                 "ph_launch_id": str(ph_id),
                 "product_name": name,
-                "tagline": tagline,
+                "tagline": tagline or f"{name} AI Tool",
                 "website_url": website,
                 "founder_name": founder
             })
@@ -127,6 +127,55 @@ def fetch_producthunt_launches():
         return candidates
     except Exception as e:
         log.exception("Product Hunt fetch failed: %s", e)
+        return []
+
+def fetch_shownews_launches():
+    """Hits Hacker News Show HN API to discover newly launched software & AI tools."""
+    try:
+        url = "https://hacker-news.firebaseio.com/v0/showstories.json"
+        r = requests.get(url, timeout=10)
+        if not r.ok:
+            return []
+
+        story_ids = r.json()[:30]
+        candidates = []
+
+        for sid in story_ids:
+            try:
+                item_r = requests.get(f"https://hacker-news.firebaseio.com/v0/item/{sid}.json", timeout=4)
+                if not item_r.ok:
+                    continue
+                data = item_r.json()
+                title = data.get("title", "")
+                link = data.get("url", "")
+                author = data.get("by", "")
+
+                if not title or not link or not link.startswith("http"):
+                    continue
+
+                # Strip "Show HN: " prefix
+                clean_name = title
+                if clean_name.lower().startswith("show hn:"):
+                    clean_name = clean_name[8:].strip()
+
+                # Basic filter for tool/app/software launches
+                parts = clean_name.split("–") if "–" in clean_name else clean_name.split("-")
+                prod_name = parts[0].strip()
+                tagline = parts[1].strip() if len(parts) > 1 else clean_name
+
+                candidates.append({
+                    "ph_launch_id": f"hn_{sid}",
+                    "product_name": prod_name[:80],
+                    "tagline": tagline[:160],
+                    "website_url": link,
+                    "founder_name": author
+                })
+            except Exception:
+                continue
+
+        return candidates
+    except Exception as e:
+        log.warning("Hacker News Show HN fetch failed: %s", e)
         return []
 
 # ─── 2. EMAIL DISCOVERY (SCRAPE + HUNTER.IO) ──────────────────────────────────
@@ -383,8 +432,10 @@ def infer_tone(tagline, description):
 
 # ─── 4. RUN PIPELINE JOBS ──────────────────────────────────────────────────
 def run_discovery_pipeline():
-    """Fetches today's launches, resolves emails, and drafts proposal content."""
-    launches = fetch_producthunt_launches()
+    """Fetches today's launches from PH & Hacker News, resolves emails, and drafts proposal content."""
+    ph_launches = fetch_producthunt_launches()
+    hn_launches = fetch_shownews_launches()
+    launches = ph_launches + hn_launches
     new_candidates_count = 0
 
     for l in launches:
