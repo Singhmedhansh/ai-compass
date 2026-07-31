@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import logging
 import os
+import re
 import smtplib
 import ssl
 from email.message import EmailMessage
