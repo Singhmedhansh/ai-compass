@@ -184,30 +184,26 @@ def fetch_producthunt_launches():
         return []
 
 def fetch_shownews_launches():
-    """Hits Hacker News Show HN API concurrently to discover newly launched software & AI tools."""
+    """Hits Algolia & Hacker News APIs to discover dozens of newly launched deployed software & AI tools."""
+    candidates = []
+    seen_ids = set()
+
+    # 1. Fetch from Algolia HN Search API (Returns 100 recent Show HN posts instantly in 1 request)
     try:
-        from concurrent.futures import ThreadPoolExecutor
+        algolia_url = "https://hn.algolia.com/api/v1/search_by_date?tags=show_hn&hitsPerPage=100"
+        alg_r = requests.get(algolia_url, timeout=5)
+        if alg_r.ok:
+            hits = alg_r.json().get("hits", [])
+            for h in hits:
+                sid = h.get("objectID")
+                title = h.get("title", "")
+                link = h.get("url", "")
+                author = h.get("author", "")
 
-        url = "https://hacker-news.firebaseio.com/v0/showstories.json"
-        r = requests.get(url, timeout=5)
-        if not r.ok:
-            return []
+                if not sid or sid in seen_ids or not title or not link or not is_deployed_app_url(link):
+                    continue
 
-        story_ids = r.json()[:25]
-
-        def _fetch_single_story(sid):
-            try:
-                item_r = requests.get(f"https://hacker-news.firebaseio.com/v0/item/{sid}.json", timeout=3)
-                if not item_r.ok:
-                    return None
-                data = item_r.json()
-                title = data.get("title", "")
-                link = data.get("url", "")
-                author = data.get("by", "")
-
-                if not title or not link or not is_deployed_app_url(link):
-                    return None
-
+                seen_ids.add(sid)
                 clean_name = title
                 if clean_name.lower().startswith("show hn:"):
                     clean_name = clean_name[8:].strip()
@@ -216,23 +212,66 @@ def fetch_shownews_launches():
                 prod_name = parts[0].strip()
                 tagline = parts[1].strip() if len(parts) > 1 else clean_name
 
-                return {
+                candidates.append({
                     "ph_launch_id": f"hn_{sid}",
                     "product_name": prod_name[:80],
                     "tagline": tagline[:160],
                     "website_url": link,
                     "founder_name": author
-                }
-            except Exception:
-                return None
-
-        with ThreadPoolExecutor(max_workers=10) as executor:
-            results = list(executor.map(_fetch_single_story, story_ids))
-
-        return [item for item in results if item is not None]
+                })
     except Exception as e:
-        log.warning("Hacker News Show HN fetch failed: %s", e)
-        return []
+        log.warning("Algolia Show HN fetch error: %s", e)
+
+    # 2. Backup: Fetch from Firebase Show Stories API
+    try:
+        from concurrent.futures import ThreadPoolExecutor
+
+        fb_url = "https://hacker-news.firebaseio.com/v0/showstories.json"
+        r = requests.get(fb_url, timeout=5)
+        if r.ok:
+            story_ids = [sid for sid in r.json()[:50] if str(sid) not in seen_ids]
+
+            def _fetch_single_story(sid):
+                try:
+                    item_r = requests.get(f"https://hacker-news.firebaseio.com/v0/item/{sid}.json", timeout=3)
+                    if not item_r.ok:
+                        return None
+                    data = item_r.json()
+                    title = data.get("title", "")
+                    link = data.get("url", "")
+                    author = data.get("by", "")
+
+                    if not title or not link or not is_deployed_app_url(link):
+                        return None
+
+                    clean_name = title
+                    if clean_name.lower().startswith("show hn:"):
+                        clean_name = clean_name[8:].strip()
+
+                    parts = clean_name.split("–") if "–" in clean_name else clean_name.split("-")
+                    prod_name = parts[0].strip()
+                    tagline = parts[1].strip() if len(parts) > 1 else clean_name
+
+                    return {
+                        "ph_launch_id": f"hn_{sid}",
+                        "product_name": prod_name[:80],
+                        "tagline": tagline[:160],
+                        "website_url": link,
+                        "founder_name": author
+                    }
+                except Exception:
+                    return None
+
+            with ThreadPoolExecutor(max_workers=10) as executor:
+                results = list(executor.map(_fetch_single_story, story_ids))
+
+            for item in results:
+                if item is not None and item["ph_launch_id"].replace("hn_", "") not in seen_ids:
+                    candidates.append(item)
+    except Exception as e:
+        log.warning("Firebase Show HN fetch error: %s", e)
+
+    return candidates
 
 # ─── 2. EMAIL DISCOVERY (SCRAPE + HUNTER.IO) ──────────────────────────────────
 def scrape_website_for_email(url):
