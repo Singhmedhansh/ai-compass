@@ -46,9 +46,14 @@ def _name_similarity(a, b):
     from difflib import SequenceMatcher
     return SequenceMatcher(None, str(a).lower().strip(), str(b).lower().strip()).ratio()
 
-def is_duplicate_candidate(product_name, website_url):
+def is_duplicate_candidate(product_name, website_url, ph_launch_id=None):
     if not product_name:
         return True
+
+    if ph_launch_id:
+        existing_launch = OutreachCandidate.query.filter_by(ph_launch_id=str(ph_launch_id)).first()
+        if existing_launch:
+            return True
 
     domain = get_domain_from_url(website_url)
     # Ignore generic hosting/repo domains for deduplication
@@ -461,7 +466,7 @@ def run_discovery_pipeline():
     new_candidates_count = 0
 
     for l in launches:
-        if is_duplicate_candidate(l["product_name"], l["website_url"]):
+        if is_duplicate_candidate(l["product_name"], l["website_url"], l.get("ph_launch_id")):
             continue
 
         c = OutreachCandidate()
