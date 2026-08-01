@@ -1,5 +1,127 @@
 [
   {
+    "id": 474,
+    "name": "Brainstorm",
+    "slug": "brainstorm",
+    "tagline": "Local-first, encrypted knowledge management OS with 20+ built-in tools",
+    "description": "Brainstorm is a knowledge management operating system that is local-first and encrypted. Everything you do stays on your machine and it's free. You can use 20 already shipped apps or build your own and add them to the marketplace later.",
+    "category": "Writing & Chat",
+    "subCategory": "Knowledge Management",
+    "price": "Free",
+    "pricing": "Free",
+    "pricing_tier": "free",
+    "pricingDetail": "Free product with optional paid hosted infrastructure",
+    "link": "https://getbrainstorm.online",
+    "affiliate_url": "https://getbrainstorm.online",
+    "icon": "/static/icons/brainstorm.svg",
+    "logo_emoji": "⚡",
+    "tags": [
+      "knowledge management",
+      "note-taking",
+      "local-first",
+      "encrypted",
+      "open-source",
+      "productivity",
+      "privacy",
+      "free"
+    ],
+    "studentPerk": true,
+    "student_perk": true,
+    "student_friendly": true,
+    "openSource": true,
+    "open_source": true,
+    "platforms": [
+      "Web",
+      "Desktop"
+    ],
+    "rating": 5.0,
+    "reviewCount": 1,
+    "reviews": 1,
+    "review_count": 1,
+    "featured": true,
+    "trending": true,
+    "hidden": false,
+    "ease_of_use": 5,
+    "free_tier_value": 5,
+    "student_relevance": 5,
+    "academic_integrity_rating": "Safe",
+    "use_cases": [
+      "Organizing study notes and research locally",
+      "Encrypted local knowledge management",
+      "Building custom offline productivity apps"
+    ],
+    "features": [
+      "Local-first & end-to-end encrypted",
+      "20+ built-in apps included",
+      "Custom app builder & marketplace"
+    ],
+    "pricing_tiers": {
+      "last_verified_at": "2026-08-01",
+      "source_url": "https://getbrainstorm.online",
+      "currency": "USD",
+      "tiers": [
+        {
+          "name": "Free",
+          "price_amount": 0,
+          "price_display": "$0 forever",
+          "features": [
+            "All bundled apps & unlimited local storage",
+            "Sync over your own network (no server needed)",
+            "Self-hosted relay and peer-to-peer sharing",
+            "Local AI + bring-your-own provider keys",
+            "Import and export everything — no lock-in"
+          ],
+          "cta_label": "Get Free",
+          "cta_url": "https://getbrainstorm.online",
+          "is_popular": true,
+          "highlight_label": "100% Free & Local"
+        },
+        {
+          "name": "Plus",
+          "price_amount": 4.99,
+          "price_display": "$4.99/mo",
+          "features": [
+            "Hosted end-to-end encrypted relay (up to 5 devices)",
+            "20 GB cloud attachments",
+            "Encrypted key backup and recovery",
+            "90-day sync history"
+          ],
+          "cta_label": "Coming Soon",
+          "cta_url": "https://getbrainstorm.online",
+          "is_popular": false
+        },
+        {
+          "name": "Pro",
+          "price_amount": 14.99,
+          "price_display": "$14.99/mo",
+          "features": [
+            "Priority relay routing (up to 15 devices)",
+            "200 GB cloud attachments",
+            "$5/mo of bundled AI credits",
+            "365-day sync history & priority support"
+          ],
+          "cta_label": "Coming Soon",
+          "cta_url": "https://getbrainstorm.online",
+          "is_popular": false
+        },
+        {
+          "name": "Team",
+          "price_amount": 19.0,
+          "price_display": "$19/seat/mo",
+          "features": [
+            "Shared org spaces with role-based access",
+            "Pooled cloud storage across team",
+            "$10/seat monthly AI credits",
+            "Admin tools and audit log"
+          ],
+          "cta_label": "Coming Soon",
+          "cta_url": "https://getbrainstorm.online",
+          "is_popular": false
+        }
+      ]
+    }
+  },
+  {
     "id": 1,
     "name": "ChatGPT",
     "icon": "/static/icons/chatgpt.svg",
