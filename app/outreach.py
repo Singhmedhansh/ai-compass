@@ -28,6 +28,35 @@ def get_domain_from_url(url):
     except Exception:
         return ""
 
+REJECTED_HOSTS = {
+    "github.com",
+    "gitlab.com",
+    "codeberg.org",
+    "bitbucket.org",
+    "sourceforge.net",
+    "raw.githubusercontent.com",
+    "gist.github.com",
+    "news.ycombinator.com",
+    "ycombinator.com",
+    "reddit.com",
+    "twitter.com",
+    "x.com",
+    "medium.com",
+    "youtube.com",
+    "vimeo.com"
+}
+
+def is_deployed_app_url(url: str) -> bool:
+    """Returns True ONLY if the URL points to a deployed web application domain, NOT a code repo or social link."""
+    if not url or not url.startswith(("http://", "https://")):
+        return False
+    domain = get_domain_from_url(url).lower()
+    if not domain:
+        return False
+    if domain in REJECTED_HOSTS or any(domain.endswith("." + host) for host in REJECTED_HOSTS):
+        return False
+    return True
+
 def is_valid_email(email):
     if not email or "@" not in email:
         return False
@@ -138,7 +167,7 @@ def fetch_producthunt_launches():
             makers = node.get("makers", [])
             founder = makers[0].get("name") if makers else None
 
-            if not name or not website:
+            if not name or not website or not is_deployed_app_url(website):
                 continue
 
             candidates.append({
@@ -176,7 +205,7 @@ def fetch_shownews_launches():
                 link = data.get("url", "")
                 author = data.get("by", "")
 
-                if not title or not link or not link.startswith("http"):
+                if not title or not link or not is_deployed_app_url(link):
                     return None
 
                 clean_name = title
@@ -466,6 +495,8 @@ def run_discovery_pipeline():
     new_candidates_count = 0
 
     for l in launches:
+        if not is_deployed_app_url(l["website_url"]):
+            continue
         if is_duplicate_candidate(l["product_name"], l["website_url"], l.get("ph_launch_id")):
             continue
 
