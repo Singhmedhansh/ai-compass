@@ -12,58 +12,78 @@ import ScrollProgress from './components/ui/ScrollProgress'
 // HomePage stays eager — it's the most common first paint
 import HomePage from './pages/HomePage'
 
+// Belt-and-braces around the stale-chunk recovery in main.jsx: React.lazy
+// reads `.default` off whatever the import resolves to, so if a swallowed
+// vite:preloadError ever lets a dynamic import resolve to `undefined`, that
+// read throws an opaque TypeError during render. lazyRoute turns a nullish /
+// default-less module into a real ChunkLoadError — a rejected promise that the
+// ErrorBoundary and the main.jsx unhandledrejection filter both understand —
+// so a swallowed preload can never hand `undefined` to React.lazy.
+function lazyRoute(factory) {
+  return lazy(() =>
+    factory().then((module) => {
+      if (!module || !module.default) {
+        const err = new Error('Failed to fetch dynamically imported module')
+        err.name = 'ChunkLoadError'
+        throw err
+      }
+      return module
+    }),
+  )
+}
+
 // Everything else loads on demand, dropping the initial bundle
-const DirectoryPage = lazy(() => import('./pages/DirectoryPage'))
-const ToolDetailPage = lazy(() => import('./pages/ToolDetailPage'))
-const AlternativesPage = lazy(() => import('./pages/AlternativesPage'))
+const DirectoryPage = lazyRoute(() => import('./pages/DirectoryPage'))
+const ToolDetailPage = lazyRoute(() => import('./pages/ToolDetailPage'))
+const AlternativesPage = lazyRoute(() => import('./pages/AlternativesPage'))
 
-const CompareTray = lazy(() => import('./components/ui/CompareTray'))
-const FeedbackWidget = lazy(() => import('./components/FeedbackWidget'))
-const ProactiveHelpPrompt = lazy(() => import('./components/ui/ProactiveHelpPrompt'))
-const OnboardingTour = lazy(() => import('./components/ui/OnboardingTour'))
-const OnboardingWizard = lazy(() => import('./components/ui/OnboardingWizard'))
-const OfflineBanner = lazy(() => import('./components/OfflineBanner'))
-const CookieConsent = lazy(() => import('./components/ui/CookieConsent'))
-const ToolFinderPage = lazy(() => import('./pages/ToolFinderPage'))
-const CollectionsPage = lazy(() => import('./pages/CollectionsPage'))
-const CollectionPage = lazy(() => import('./pages/CollectionPage'))
-const ComparePage = lazy(() => import('./pages/ComparePage'))
-const DashboardPage = lazy(() => import('./pages/DashboardPage'))
-const ProfilePage = lazy(() => import('./pages/ProfilePage'))
-const PublicProfilePage = lazy(() => import('./pages/PublicProfilePage'))
-const ShareStackPage = lazy(() => import('./pages/ShareStackPage'))
-const StackLibraryPage = lazy(() => import('./pages/StackLibraryPage'))
-const LoginPage = lazy(() => import('./pages/LoginPage'))
-const RegisterPage = lazy(() => import('./pages/RegisterPage'))
-const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'))
-const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'))
-const VerificationPendingPage = lazy(() => import('./pages/VerificationPendingPage'))
-const VerificationSuccessPage = lazy(() => import('./pages/VerificationSuccessPage'))
-const ClerkTestPage = lazy(() => import('./pages/ClerkTestPage'))
-const AdminPage = lazy(() => import('./pages/AdminPage'))
-const AuthCallbackPage = lazy(() => import('./pages/AuthCallbackPage'))
-const SubmitPage = lazy(() => import('./pages/SubmitPage'))
-const AboutPage = lazy(() => import('./pages/AboutPage'))
-const TeamPage = lazy(() => import('./pages/TeamPage'))
-const ContactPage = lazy(() => import('./pages/ContactPage'))
-const PrivacyPage = lazy(() => import('./pages/PrivacyPage'))
-const TermsPage = lazy(() => import('./pages/TermsPage'))
-const RefundsPage = lazy(() => import('./pages/RefundsPage'))
-const HelpPage = lazy(() => import('./pages/HelpPage'))
-const SupportPage = lazy(() => import('./pages/SupportPage'))
-const BestAIToolsForStudents = lazy(() => import('./pages/BestAIToolsForStudents'))
-const BestAIToolsForTeachers = lazy(() => import('./pages/BestAIToolsForTeachers'))
-const BestFreeAITools = lazy(() => import('./pages/BestFreeAITools'))
-const BestCodingTools = lazy(() => import('./pages/BestCodingTools'))
-const HowToGithubStudentPack = lazy(() => import('./pages/HowToGithubStudentPack'))
-const HowToNotionStudent = lazy(() => import('./pages/HowToNotionStudent'))
-const HowToJetBrainsStudent = lazy(() => import('./pages/HowToJetBrainsStudent'))
-const SyllabusParserPage = lazy(() => import('./pages/SyllabusParserPage'))
-const SharedToolkitPage = lazy(() => import('./pages/SharedToolkitPage'))
-const StudentDiscountsPage = lazy(() => import('./pages/StudentDiscountsPage'))
-const ModelComparisonPage = lazy(() => import('./pages/ModelComparisonPage'))
+const CompareTray = lazyRoute(() => import('./components/ui/CompareTray'))
+const FeedbackWidget = lazyRoute(() => import('./components/FeedbackWidget'))
+const ProactiveHelpPrompt = lazyRoute(() => import('./components/ui/ProactiveHelpPrompt'))
+const OnboardingTour = lazyRoute(() => import('./components/ui/OnboardingTour'))
+const OnboardingWizard = lazyRoute(() => import('./components/ui/OnboardingWizard'))
+const OfflineBanner = lazyRoute(() => import('./components/OfflineBanner'))
+const CookieConsent = lazyRoute(() => import('./components/ui/CookieConsent'))
+const ToolFinderPage = lazyRoute(() => import('./pages/ToolFinderPage'))
+const CollectionsPage = lazyRoute(() => import('./pages/CollectionsPage'))
+const CollectionPage = lazyRoute(() => import('./pages/CollectionPage'))
+const ComparePage = lazyRoute(() => import('./pages/ComparePage'))
+const DashboardPage = lazyRoute(() => import('./pages/DashboardPage'))
+const ProfilePage = lazyRoute(() => import('./pages/ProfilePage'))
+const PublicProfilePage = lazyRoute(() => import('./pages/PublicProfilePage'))
+const ShareStackPage = lazyRoute(() => import('./pages/ShareStackPage'))
+const StackLibraryPage = lazyRoute(() => import('./pages/StackLibraryPage'))
+const LoginPage = lazyRoute(() => import('./pages/LoginPage'))
+const RegisterPage = lazyRoute(() => import('./pages/RegisterPage'))
+const ForgotPasswordPage = lazyRoute(() => import('./pages/ForgotPasswordPage'))
+const ResetPasswordPage = lazyRoute(() => import('./pages/ResetPasswordPage'))
+const VerificationPendingPage = lazyRoute(() => import('./pages/VerificationPendingPage'))
+const VerificationSuccessPage = lazyRoute(() => import('./pages/VerificationSuccessPage'))
+const ClerkTestPage = lazyRoute(() => import('./pages/ClerkTestPage'))
+const AdminPage = lazyRoute(() => import('./pages/AdminPage'))
+const AuthCallbackPage = lazyRoute(() => import('./pages/AuthCallbackPage'))
+const SubmitPage = lazyRoute(() => import('./pages/SubmitPage'))
+const AboutPage = lazyRoute(() => import('./pages/AboutPage'))
+const TeamPage = lazyRoute(() => import('./pages/TeamPage'))
+const ContactPage = lazyRoute(() => import('./pages/ContactPage'))
+const PrivacyPage = lazyRoute(() => import('./pages/PrivacyPage'))
+const TermsPage = lazyRoute(() => import('./pages/TermsPage'))
+const RefundsPage = lazyRoute(() => import('./pages/RefundsPage'))
+const HelpPage = lazyRoute(() => import('./pages/HelpPage'))
+const SupportPage = lazyRoute(() => import('./pages/SupportPage'))
+const BestAIToolsForStudents = lazyRoute(() => import('./pages/BestAIToolsForStudents'))
+const BestAIToolsForTeachers = lazyRoute(() => import('./pages/BestAIToolsForTeachers'))
+const BestFreeAITools = lazyRoute(() => import('./pages/BestFreeAITools'))
+const BestCodingTools = lazyRoute(() => import('./pages/BestCodingTools'))
+const HowToGithubStudentPack = lazyRoute(() => import('./pages/HowToGithubStudentPack'))
+const HowToNotionStudent = lazyRoute(() => import('./pages/HowToNotionStudent'))
+const HowToJetBrainsStudent = lazyRoute(() => import('./pages/HowToJetBrainsStudent'))
+const SyllabusParserPage = lazyRoute(() => import('./pages/SyllabusParserPage'))
+const SharedToolkitPage = lazyRoute(() => import('./pages/SharedToolkitPage'))
+const StudentDiscountsPage = lazyRoute(() => import('./pages/StudentDiscountsPage'))
+const ModelComparisonPage = lazyRoute(() => import('./pages/ModelComparisonPage'))
 
-const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
+const NotFoundPage = lazyRoute(() => import('./pages/NotFoundPage'))
 
 function ScrollToTop() {
   const { pathname, hash } = useLocation()

@@ -27,20 +27,32 @@ const CHUNK_RELOAD_KEY = 'ac-reloaded-after-chunk-error'
 // later deploy (timestamp older than the window) will recover normally.
 const CHUNK_RELOAD_COOLDOWN_MS = 30_000
 
+// Returns true only when it actually kicks off a reload. Callers use this to
+// decide whether to swallow the underlying error: if we're NOT reloading (the
+// cooldown is active), the failure must be allowed to surface normally.
 function recoverFromStaleChunk() {
   try {
     const last = Number(sessionStorage.getItem(CHUNK_RELOAD_KEY) || 0)
-    if (Date.now() - last < CHUNK_RELOAD_COOLDOWN_MS) return
+    if (Date.now() - last < CHUNK_RELOAD_COOLDOWN_MS) return false
     sessionStorage.setItem(CHUNK_RELOAD_KEY, String(Date.now()))
   } catch {
     /* sessionStorage blocked — still attempt a single reload */
   }
   window.location.reload()
+  return true
 }
 
 window.addEventListener('vite:preloadError', (event) => {
-  event.preventDefault()
-  recoverFromStaleChunk()
+  // Only preventDefault when we're actually going to reload. Vite's
+  // __vitePreload rethrows the load failure only when !event.defaultPrevented,
+  // so swallowing it unconditionally makes the dynamic import RESOLVE with
+  // `undefined` — React.lazy then reads `.default` off undefined and throws an
+  // opaque TypeError during render (header over a blank body). If we're in the
+  // reload cooldown, let Vite rethrow so the failure lands as a real rejected
+  // promise the ErrorBoundary and the unhandledrejection filter can handle.
+  if (recoverFromStaleChunk()) {
+    event.preventDefault()
+  }
 })
 
 window.addEventListener('unhandledrejection', (event) => {
