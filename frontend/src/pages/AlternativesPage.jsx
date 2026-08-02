@@ -92,6 +92,18 @@ export default function AlternativesPage() {
 
   useEffect(() => {
     const controller = new AbortController()
+    // Deadline the request so a hung backend (e.g. a Render cold start) can't
+    // leave `loading` true forever — that renders the skeleton indefinitely,
+    // a header over an empty body. On timeout we surface a recoverable server
+    // error and the retryable ErrorState below takes over. Mirrors the 15s
+    // guard in DirectoryPage's fetch effect. `timedOut` lets us tell a deadline
+    // abort (show the error) apart from an unmount/slug-change abort (ignore,
+    // so a stale request can't clobber the fresh one).
+    let timedOut = false
+    const timeoutId = setTimeout(() => {
+      timedOut = true
+      controller.abort()
+    }, 15000)
 
     async function loadAlternatives() {
       try {
@@ -108,12 +120,15 @@ export default function AlternativesPage() {
         const json = await response.json()
         setData(json)
       } catch (err) {
-        if (err.name !== 'AbortError') {
+        if (err.name !== 'AbortError' || timedOut) {
           setError(inferErrorVariant(err))
           setData(null)
         }
       } finally {
-        if (!controller.signal.aborted) {
+        clearTimeout(timeoutId)
+        // Leave `loading` untouched on an unmount/slug-change abort so a stale
+        // request can't flip the fresh load's spinner off early.
+        if (timedOut || !controller.signal.aborted) {
           setLoading(false)
         }
       }
@@ -122,7 +137,10 @@ export default function AlternativesPage() {
     loadAlternatives()
     window.scrollTo(0, 0)
 
-    return () => controller.abort()
+    return () => {
+      clearTimeout(timeoutId)
+      controller.abort()
+    }
   }, [slug, retryNonce])
 
   if (loading) {
