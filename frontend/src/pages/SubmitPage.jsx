@@ -350,8 +350,8 @@ export default function SubmitPage() {
       
       {/* Monetization / Path Selector Banner */}
       <div className="mb-8 rounded-3xl border border-line bg-gradient-to-br from-bg-elev via-bg-elev to-bg-sunk/30 p-6 shadow-sm">
-        <span className="text-[10px] font-black text-accent uppercase tracking-widest block mb-1">Fast-Track Sponsored Curation</span>
-        <h1 className="text-2xl font-black text-ink tracking-tight sm:text-3xl">Submit Your AI Tool for Curation</h1>
+        <span className="text-[10px] font-bold text-accent uppercase tracking-widest block mb-1">Fast-Track Sponsored Curation</span>
+        <h1 className="text-2xl font-bold text-ink tracking-tight sm:text-3xl">Submit Your AI Tool for Curation</h1>
         <p className="mt-2 text-sm text-ink-2 max-w-2xl font-normal leading-relaxed">
           Get your tool indexed and featured in front of students, creators, and developers with guaranteed 24-hour priority review.
         </p>
@@ -365,7 +365,7 @@ export default function SubmitPage() {
               </span>
               <div className="flex items-baseline gap-1.5">
                 <span className="text-xs font-semibold text-muted text-line-through">$81</span>
-                <span className="text-base font-black text-ink">$49.99</span>
+                <span className="text-base font-bold text-ink">$49.99</span>
                 <span className="text-[10px] font-medium text-ink-2">one-time</span>
               </div>
             </div>
@@ -509,7 +509,7 @@ export default function SubmitPage() {
                 <div className="flex items-center gap-3">
                   <CheckCircle2 className="h-7 w-7 text-accent shrink-0" />
                   <div>
-                    <h3 className="text-base font-black text-ink">Payment Approved & Submission Received</h3>
+                    <h3 className="text-base font-semibold text-ink">Payment Approved & Submission Received</h3>
                     <p className="text-xs text-accent-ink font-semibold mt-0.5">
                       Transaction Reference: <span className="font-mono">{transactionRef || 'TXN-PAYPAL-VERIFIED'}</span> • Amount: $49.99 USD
                     </p>
@@ -590,7 +590,7 @@ export default function SubmitPage() {
           <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-soft text-accent px-3 py-1 text-[10px] font-bold uppercase tracking-widest mb-3">
             <Sparkles className="h-3 w-3" /> Proven Growth Platform
           </span>
-          <h2 className="text-2xl font-black text-ink tracking-tight sm:text-3xl">
+          <h2 className="text-2xl font-bold text-ink tracking-tight sm:text-3xl">
             Why Sponsor Your Tool on AI Compass?
           </h2>
           <p className="mt-2 text-xs sm:text-sm text-ink-2 leading-relaxed font-normal">
@@ -604,7 +604,7 @@ export default function SubmitPage() {
             <div className="mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-xl bg-accent-soft text-accent">
               <Users className="h-5 w-5" />
             </div>
-            <div className="text-2xl sm:text-3xl font-black text-ink">2,000+</div>
+            <div className="text-2xl sm:text-3xl font-bold text-ink">2,000+</div>
             <div className="text-[11px] font-medium text-ink-2 mt-1">Monthly Active Visitors</div>
           </div>
 
@@ -612,7 +612,7 @@ export default function SubmitPage() {
             <div className="mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-xl bg-accent-soft text-accent">
               <Sparkles className="h-5 w-5" />
             </div>
-            <div className="text-2xl sm:text-3xl font-black text-ink">4,000+</div>
+            <div className="text-2xl sm:text-3xl font-bold text-ink">4,000+</div>
             <div className="text-[11px] font-medium text-ink-2 mt-1">Students Powered</div>
           </div>
 
@@ -620,7 +620,7 @@ export default function SubmitPage() {
             <div className="mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-xl bg-accent-soft text-accent">
               <BarChart3 className="h-5 w-5" />
             </div>
-            <div className="text-2xl sm:text-3xl font-black text-ink">100K+</div>
+            <div className="text-2xl sm:text-3xl font-bold text-ink">100K+</div>
             <div className="text-[11px] font-medium text-ink-2 mt-1">Google Search Impressions</div>
           </div>
 
@@ -628,7 +628,7 @@ export default function SubmitPage() {
             <div className="mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-xl bg-accent-soft text-accent">
               <Search className="h-5 w-5" />
             </div>
-            <div className="text-2xl sm:text-3xl font-black text-ink">Top 15</div>
+            <div className="text-2xl sm:text-3xl font-bold text-ink">Top 15</div>
             <div className="text-[11px] font-medium text-ink-2 mt-1">Google Search Rankings</div>
           </div>
         </div>
@@ -824,7 +824,7 @@ export default function SubmitPage() {
                   {paymentMethod === 'paypal' && (
                     <div className="bg-bg-sunk/30 border border-line/60 rounded-2xl p-5 text-center space-y-4 animate-fade-in">
                       <div className="flex justify-center">
-                        <span className="inline-flex items-center gap-1.5 bg-[#003087] text-white px-5 py-2.5 rounded-full font-black italic text-sm tracking-tight shadow-md select-none">
+                        <span className="inline-flex items-center gap-1.5 bg-[#003087] text-white px-5 py-2.5 rounded-full font-bold italic text-sm tracking-tight shadow-md select-none">
                           Pay<span className="text-[#0070ba]">Pal</span>
                         </span>
                       </div>
