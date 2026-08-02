@@ -2134,8 +2134,13 @@ def admin_start_audit_links():
         if link_audit_state["is_running"]:
             return jsonify({"message": "Audit is already running"}), 400
 
-    app_context = current_app._get_current_object().app_context()
-    threading.Thread(target=bg_link_audit_task, args=(app_context,), daemon=True).start()
+    try:
+        app_obj = current_app._get_current_object()
+        app_context = app_obj.app_context()
+    except Exception:
+        app_context = None
+    if app_context:
+        threading.Thread(target=bg_link_audit_task, args=(app_context,), daemon=True).start()
     return jsonify({"success": True, "message": "Audit started"}), 200
 
 

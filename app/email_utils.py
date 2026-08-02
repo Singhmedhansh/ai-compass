@@ -32,7 +32,12 @@ _UNSUB_SALT = "ai-compass-unsubscribe-v1"
 
 
 def _serializer() -> URLSafeTimedSerializer:
-    secret = current_app.config.get("SECRET_KEY") or os.environ.get("SECRET_KEY", "dev")
+    try:
+        secret = current_app.config.get("SECRET_KEY")
+    except Exception:
+        secret = None
+    if not secret:
+        secret = os.environ.get("SECRET_KEY", "ai-compass-fixed-key-2024")
     return URLSafeTimedSerializer(secret, salt=_UNSUB_SALT)
 
 

@@ -19,7 +19,13 @@ auth_bp = Blueprint("auth", __name__)
 
 
 def get_verify_serializer():
-    return URLSafeTimedSerializer(current_app.config["SECRET_KEY"], salt="email-verification-salt")
+    try:
+        secret = current_app.config.get("SECRET_KEY")
+    except Exception:
+        secret = None
+    if not secret:
+        secret = os.environ.get("SECRET_KEY", "ai-compass-fixed-key-2024")
+    return URLSafeTimedSerializer(secret, salt="email-verification-salt")
 
 def get_verification_email_html(name, verification_link):
     return f"""<!DOCTYPE html>

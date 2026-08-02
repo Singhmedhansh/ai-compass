@@ -32,8 +32,11 @@ def init_redis():
         _redis_client = None
         _redis_active = False
 
-# Initialize on module load
-init_redis()
+# Initialize on module load safely
+try:
+    init_redis()
+except Exception as e:
+    logger.warning("Top-level init_redis failed: %s", e)
 
 _RATE_LIMIT_STORE = defaultdict(deque)
 
