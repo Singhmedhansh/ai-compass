@@ -158,72 +158,108 @@ def is_duplicate_candidate(product_name, website_url, ph_launch_id=None):
     return False
 
 # ─── 1. DISCOVERY VIA PRODUCT HUNT & HACKER NEWS ─────────────────────────────
-def fetch_producthunt_launches():
-    """Hits PH API v2 GraphQL endpoint to get all launches from today's feed."""
-    token = os.environ.get("PRODUCTHUNT_API_TOKEN")
-    if not token:
-        log.warning("PRODUCTHUNT_API_TOKEN is missing. Skipping PH fetch.")
-        return []
-
-    url = "https://api.producthunt.com/v2/api/graphql"
+def scrape_producthunt_public_feed():
+    """Scrapes Product Hunt homepage HTML to extract top daily featured products without requiring API tokens."""
+    url = "https://www.producthunt.com/"
     headers = {
-        "Authorization": f"Bearer {token}",
-        "Content-Type": "application/json"
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9"
     }
+    candidates = []
+    seen_slugs = set()
 
-    # Fetch all posts (not just featured: true) to capture 15-30 launches daily
-    query = """
-    query {
-      posts(first: 40) {
-        edges {
-          node {
-            id
-            name
-            tagline
-            website
-            makers {
-              name
+    try:
+        r = requests.get(url, headers=headers, timeout=6)
+        if r.ok:
+            matches = re.findall(r'"name":"([^"]+)","slug":"([^"]+)","tagline":"([^"]+)"', r.text)
+            for name, slug, tagline in matches:
+                if slug in seen_slugs or len(name) < 2 or len(tagline) < 5:
+                    continue
+                seen_slugs.add(slug)
+
+                name_clean = name.encode().decode('unicode-escape') if '\\u' in name else name
+                tagline_clean = tagline.encode().decode('unicode-escape') if '\\u' in tagline else tagline
+
+                website_url = f"https://{slug.replace('-free', '').replace('-app', '')}.com"
+                
+                candidates.append({
+                    "ph_launch_id": f"ph_web_{slug}",
+                    "product_name": name_clean[:80],
+                    "tagline": tagline_clean[:160],
+                    "website_url": website_url,
+                    "founder_name": ""
+                })
+    except Exception as e:
+        log.warning("Product Hunt public HTML scraper error: %s", e)
+
+    return candidates
+
+def fetch_producthunt_launches():
+    """Fetches PH launches via GraphQL API token AND public HTML feed scraper."""
+    candidates = []
+    seen_ids = set()
+
+    # 1. API GraphQL fetch if token exists
+    token = os.environ.get("PRODUCTHUNT_API_TOKEN")
+    if token:
+        url = "https://api.producthunt.com/v2/api/graphql"
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json"
+        }
+        query = """
+        query {
+          posts(first: 50) {
+            edges {
+              node {
+                id
+                name
+                tagline
+                website
+                makers {
+                  name
+                }
+              }
             }
           }
         }
-      }
-    }
-    """
+        """
+        try:
+            r = requests.post(url, json={"query": query}, headers=headers, timeout=10)
+            if r.ok:
+                data = r.json()
+                edges = data.get("data", {}).get("posts", {}).get("edges", [])
+                for edge in edges:
+                    node = edge.get("node", {})
+                    ph_id = node.get("id")
+                    name = node.get("name")
+                    tagline = node.get("tagline")
+                    website = node.get("website")
+                    makers = node.get("makers", [])
+                    founder = makers[0].get("name") if makers else None
 
-    try:
-        r = requests.post(url, json={"query": query}, headers=headers, timeout=15)
-        if not r.ok:
-            log.error("Product Hunt API returned %s: %s", r.status_code, r.text)
-            return []
+                    if not name or not website or not is_deployed_app_url(website):
+                        continue
 
-        data = r.json()
-        edges = data.get("data", {}).get("posts", {}).get("edges", [])
-        candidates = []
+                    seen_ids.add(str(ph_id))
+                    candidates.append({
+                        "ph_launch_id": str(ph_id),
+                        "product_name": name,
+                        "tagline": tagline or f"{name} AI Tool",
+                        "website_url": website,
+                        "founder_name": founder
+                    })
+        except Exception as e:
+            log.warning("Product Hunt GraphQL fetch failed: %s", e)
 
-        for edge in edges:
-            node = edge.get("node", {})
-            ph_id = node.get("id")
-            name = node.get("name")
-            tagline = node.get("tagline")
-            website = node.get("website")
-            makers = node.get("makers", [])
-            founder = makers[0].get("name") if makers else None
+    # 2. Public HTML scraper fallback/supplement (captures Zinley, Capptivo, YourSitee, Lumichats, Zen Whisper, Finamie, etc.)
+    web_candidates = scrape_producthunt_public_feed()
+    for wc in web_candidates:
+        if wc["ph_launch_id"] not in seen_ids:
+            candidates.append(wc)
 
-            if not name or not website or not is_deployed_app_url(website):
-                continue
-
-            candidates.append({
-                "ph_launch_id": str(ph_id),
-                "product_name": name,
-                "tagline": tagline or f"{name} AI Tool",
-                "website_url": website,
-                "founder_name": founder
-            })
-
-        return candidates
-    except Exception as e:
-        log.exception("Product Hunt fetch failed: %s", e)
-        return []
+    return candidates
 
 def fetch_shownews_launches():
     """Hits Algolia & Hacker News APIs to discover dozens of newly launched deployed software & AI tools."""
