@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { CreditCard, Sparkles, CheckCircle2, ShieldCheck, ArrowRight, User, Wallet, QrCode, ArrowUpRight, Lock } from 'lucide-react'
+import { CreditCard, Sparkles, CheckCircle2, ShieldCheck, ArrowRight, User, Wallet, QrCode, ArrowUpRight, Lock, TrendingUp, Users, Search, BarChart3 } from 'lucide-react'
 
 import Button from '../components/ui/Button'
 
@@ -583,6 +583,89 @@ export default function SubmitPage() {
           </section>
         </div>
       </div>
+
+      {/* Why Sponsor Your Tool Section */}
+      <section className="mt-12 rounded-3xl border border-line bg-gradient-to-b from-bg-elev to-bg p-6 sm:p-10 shadow-md">
+        <div className="text-center max-w-2xl mx-auto">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-soft text-accent px-3 py-1 text-[10px] font-bold uppercase tracking-widest mb-3">
+            <Sparkles className="h-3 w-3" /> Proven Growth Platform
+          </span>
+          <h2 className="text-2xl font-black text-ink tracking-tight sm:text-3xl">
+            Why Sponsor Your Tool on AI Compass?
+          </h2>
+          <p className="mt-2 text-xs sm:text-sm text-ink-2 leading-relaxed font-normal">
+            Put your product directly in front of thousands of tech-savvy students, developers, and creators actively searching for AI solutions.
+          </p>
+        </div>
+
+        {/* Stats Grid */}
+        <div className="mt-8 grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="rounded-2xl border border-line bg-bg/80 p-5 text-center transition hover:border-accent/40 hover:shadow-sm">
+            <div className="mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-xl bg-accent-soft text-accent">
+              <Users className="h-5 w-5" />
+            </div>
+            <div className="text-2xl sm:text-3xl font-black text-ink">2,000+</div>
+            <div className="text-[11px] font-medium text-ink-2 mt-1">Monthly Active Visitors</div>
+          </div>
+
+          <div className="rounded-2xl border border-line bg-bg/80 p-5 text-center transition hover:border-accent/40 hover:shadow-sm">
+            <div className="mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-xl bg-accent-soft text-accent">
+              <Sparkles className="h-5 w-5" />
+            </div>
+            <div className="text-2xl sm:text-3xl font-black text-ink">4,000+</div>
+            <div className="text-[11px] font-medium text-ink-2 mt-1">Students Powered</div>
+          </div>
+
+          <div className="rounded-2xl border border-line bg-bg/80 p-5 text-center transition hover:border-accent/40 hover:shadow-sm">
+            <div className="mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-xl bg-accent-soft text-accent">
+              <BarChart3 className="h-5 w-5" />
+            </div>
+            <div className="text-2xl sm:text-3xl font-black text-ink">100K+</div>
+            <div className="text-[11px] font-medium text-ink-2 mt-1">Google Search Impressions</div>
+          </div>
+
+          <div className="rounded-2xl border border-line bg-bg/80 p-5 text-center transition hover:border-accent/40 hover:shadow-sm">
+            <div className="mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-xl bg-accent-soft text-accent">
+              <Search className="h-5 w-5" />
+            </div>
+            <div className="text-2xl sm:text-3xl font-black text-ink">Top 15</div>
+            <div className="text-[11px] font-medium text-ink-2 mt-1">Google Search Rankings</div>
+          </div>
+        </div>
+
+        {/* Benefits Breakdown */}
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t border-line/60">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 font-bold text-sm text-ink">
+              <TrendingUp className="h-4 w-4 text-accent" />
+              <span>Targeted High-Intent Traffic</span>
+            </div>
+            <p className="text-xs text-ink-2 leading-relaxed font-normal">
+              Connect with over 400+ registered users and thousands of monthly visitors specifically browsing for AI tools to study, code, and automate workflows.
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 font-bold text-sm text-ink">
+              <ArrowUpRight className="h-4 w-4 text-accent" />
+              <span>High-Authority Dofollow SEO Backlink</span>
+            </div>
+            <p className="text-xs text-ink-2 leading-relaxed font-normal">
+              Boost your site's domain authority with a permanent, indexable link from our structured directory, helping your tool rank higher on search engines.
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 font-bold text-sm text-ink">
+              <ShieldCheck className="h-4 w-4 text-accent" />
+              <span>24-Hour Review & Newsletter Spotlight</span>
+            </div>
+            <p className="text-xs text-ink-2 leading-relaxed font-normal">
+              Skip the backlog. Guaranteed editorial review within 24 hours, featured badge placement, and inclusion in our weekly student AI newsletter.
+            </p>
+          </div>
+        </div>
+      </section>
 
       {/* Simulated Checkout Payment Modal */}
       {showPaymentModal && (
