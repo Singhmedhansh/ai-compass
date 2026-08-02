@@ -755,10 +755,18 @@ def create_app(config: dict | None = None) -> Flask:
                         print(f"[WARMUP] Tools prime skipped: {exc}", flush=True)
 
                     print("[WARMUP] ML model loading skipped (memory budget: free-tier 512MB)", flush=True)
-            finally:
-                db.session.remove()
+                    
+                    # Inside the with block, explicitly try to remove session
+                    try:
+                        db.session.remove()
+                    except Exception as exc:
+                        print(f"[WARMUP] Failed to remove session: {exc}", flush=True)
+
+            except Exception as e:
+                print(f"[WARMUP] Unhandled exception in warmup thread: {e}", flush=True)
 
     is_cli = sys.argv and any(x in sys.argv[0] or x in sys.argv for x in ['flask', 'db', 'migrate', 'manage.py'])
+
     if not app.config.get("TESTING") and _first_warmup and not is_cli:
         app._warmup_started = True
         threading.Thread(target=_warm_up, name="warmup", daemon=True).start()
