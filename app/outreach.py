@@ -57,6 +57,42 @@ def is_deployed_app_url(url: str) -> bool:
         return False
     return True
 
+STUDENT_RELEVANT_KEYWORDS = {
+    "ai", "write", "writing", "code", "coding", "dev", "developer", "study", "research",
+    "pdf", "notes", "prompt", "summarize", "flashcard", "essay", "grammar", "design",
+    "video", "audio", "quiz", "math", "calculator", "resume", "portfolio", "productivity",
+    "agent", "llm", "chat", "copilot", "terminal", "vscode", "extension", "notion",
+    "presentation", "slides", "tutor", "homework", "transcribe", "seo", "analytics",
+    "marketing", "workflow", "doc", "data", "bot", "tool", "app", "model", "edit"
+}
+
+COMMERCIAL_PRICING_SIGNALS = [
+    "pricing", "plans", "pro", "enterprise", "subscribe", "upgrade", "billing",
+    "tier", "$", "eur", "lemonsqueezy", "stripe", "paddle", "free trial", "per month",
+    "/mo", "monthly", "annually", "checkout", "premium"
+]
+
+def is_student_relevant(product_name, tagline="", website_url=""):
+    """Checks if the SaaS product is relevant to students, developers, researchers, or creators."""
+    text = f"{product_name} {tagline} {website_url}".lower()
+    return any(kw in text for kw in STUDENT_RELEVANT_KEYWORDS)
+
+def is_commercial_saas(website_url):
+    """Scrapes homepage HTML to verify the SaaS product has a commercial pricing model (has budget for sponsorship)."""
+    if not is_deployed_app_url(website_url):
+        return False
+    try:
+        headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AICompassBot/1.0"}
+        resp = requests.get(website_url, headers=headers, timeout=2.5, allow_redirects=True)
+        if not resp.ok or not resp.text:
+            return True
+        
+        text_lower = resp.text.lower()
+        has_pricing_signal = any(sig in text_lower for sig in COMMERCIAL_PRICING_SIGNALS)
+        return has_pricing_signal
+    except Exception:
+        return True
+
 def is_valid_email(email):
     if not email or "@" not in email:
         return False
@@ -497,45 +533,26 @@ def generate_draft_via_gemini(candidate):
         return get_generic_draft(candidate)
 
     system_prompt = """
-You are Medhansh Pratap Singh, Founder of AI Compass (https://ai-compass.in) - a curated directory for students, developers, and young creators.
-Your task is to write a highly targeted, warm outreach email to an AI startup proposing a sponsored/featured listing.
+You are Medhansh Pratap Singh, Founder of AI Compass (https://ai-compass.in) - a curated directory for tech-savvy students, developers, and creators.
+Your task is to write a highly targeted, compelling outreach email to a commercial AI SaaS product proposing Fast-Track Sponsored Curation.
 
-You write in one of two tones:
-1. 'peer' (default): casual, direct, congratulatory, referencing their launch, structured value prop bullets, and soft CTA.
-2. 'formal': polite, structured, context-heavy, explicit about pricing ($75/month) and metrics, asking for a chat/reply.
+Key AI Compass Metrics to include in the email pitch:
+- 2,000+ Monthly Active Visitors
+- 4,000+ Students & Developers Powered
+- 100K+ Google Search Impressions
+- Top 15 Google Search Rankings for student AI queries
 
-Here are a few-shot examples of your actual sent emails:
+Pricing & Perks:
+- Fast-Track Sponsored Curation: $49.99 one-time
+- Guaranteed 24-Hour Review & Listing
+- Permanent High-Authority Dofollow SEO Backlink
+- Spotlight Inclusion in Weekly Student AI Digest
 
-[EXAMPLE 1: Peer Tone - launch pitch]
-Subject: Featured on AI Compass for your launch today? 🚀
-Hey Airtop Team,
-Huge congrats on launching "Mark" on Product Hunt today! (Already tracking in the Top 10!). Love the concept of vibe coding applied to marketing automations.
-I run AI Compass (https://ai-compass.in), a curated directory where students, developers, and young creators find AI tools for productivity, coding, and business.
-Mark is a fantastic resource for business and marketing students learning outbound, GTM strategies, and SEO automation.
-To help with your launch momentum, we can feature Mark on our platform. You can submit to our free review queue, or use our Priority Curation tier ($49.99) to get:
-- Guaranteed review & listing within 24 hours (perfect for capturing post-launch traffic).
-- A permanent, high-authority backlink to airtop.ai.
-- A feature in our weekly student AI digest.
-If you'd like to get featured, you can submit the launch details here: https://ai-compass.in/submit
-Congrats again on the launch and good luck hitting the top spots today!
-
-[EXAMPLE 2: Formal Tone - placement offer]
-Subject: Featured placement on AI Compass — student lecture notes audience
-Hi Jijo,
-I run AI Compass (ai-compass.in) — a curated directory of AI tools for students, covering writing, research, coding, and study. We list 447 tools and are ranking on Google for searches like "best ai tools for students" and "chatgpt alternatives for students" with around 800 monthly visitors growing fast month over month.
-I came across Voicenotes while building out our study and note-taking category and immediately thought it was one of the strongest fits we've seen — you've already built out a dedicated lecture note-taker use case, which is exactly the kind of thing our audience searches for.
-We're offering a small number of sponsored featured placements. For Voicenotes this would mean:
-- A "Featured" badge and prominent placement on relevant pages (study tools, note-taking, and research pages)
-- Direct link from pages ranking for student academic queries
-- Placement alongside tools your users are already comparing you against
-We'd start at $75/month — easy to test, no long commitment, and I'm happy to share full traffic and GSC data before you decide.
-Would love to hear your thoughts — or if a quick chat works better, I'm flexible.
-
-INSTRUCTIONS:
+CRITICAL RULES:
+- Do NOT use emojis anywhere in the subject line or email body. Keep it clean and professional.
 - Tailor the email specifically to the target product name, tagline/description, website, and founder name.
-- Use the inferred tone specified in the prompt.
+- Highlight how their SaaS tool specifically benefits students, developers, or creators.
 - Always output valid JSON with exactly two fields: "subject" and "body".
-- Do NOT use emojis in the subject line (e.g. no 🚀, no 🔥) to ensure the email lands in the Primary inbox.
 - The "body" must be formatted as clean HTML with a modern, readable font stack (using <p>, <br>, <b>, <ul>, <li>, and <a> tags).
 - Make sure the body ends with a clear link to https://ai-compass.in/submit.
 - Always sign the email with this exact HTML signature:
@@ -636,6 +653,10 @@ def run_discovery_pipeline():
 
     for l in launches:
         if not is_deployed_app_url(l["website_url"]):
+            continue
+        if not is_student_relevant(l["product_name"], l["tagline"], l["website_url"]):
+            continue
+        if not is_commercial_saas(l["website_url"]):
             continue
         if is_duplicate_candidate(l["product_name"], l["website_url"], l.get("ph_launch_id")):
             continue
