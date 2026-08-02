@@ -334,12 +334,41 @@ def fetch_producthunt_launches():
     log.info("Total PH candidates after combined fetch: %s", len(candidates))
     return candidates
 
+MIN_HN_POINTS = 5  # Skip HN posts with fewer points — low signal = hobby project
+HN_SKIP_TITLE_PATTERNS = [
+    "ask hn", "who is hiring", "who wants to be hired", "freelancer", "seeking",
+    "my first", "i built", "i made", "open source", "cli tool", "command line",
+    "library for", "wrapper for", "rust crate", "npm package", "python package",
+    "django", "flask plugin", "chrome extension", "firefox extension"
+]
+HN_SKIP_DOMAINS = {
+    "github.com", "gitlab.com", "pypi.org", "npmjs.com", "crates.io",
+    "packagist.org", "rubygems.org", "hub.docker.com", "registry.npmjs.org"
+}
+
+def _is_quality_hn_post(title, link, points=0):
+    """Returns True only if the HN Show post looks like a real commercial SaaS product."""
+    if points < MIN_HN_POINTS:
+        return False
+    title_lower = title.lower()
+    if any(pat in title_lower for pat in HN_SKIP_TITLE_PATTERNS):
+        return False
+    from urllib.parse import urlparse
+    try:
+        domain = urlparse(link).netloc.replace("www.", "")
+        if domain in HN_SKIP_DOMAINS:
+            return False
+    except Exception:
+        pass
+    return is_deployed_app_url(link)
+
 def fetch_shownews_launches():
-    """Hits Algolia & Hacker News APIs to discover dozens of newly launched deployed software & AI tools."""
+    """Hits Algolia & HN Firebase APIs to discover newly launched commercial SaaS tools.
+    Strict filters: min 5 points, no hobby/CLI/library posts, no repo domains."""
     candidates = []
     seen_ids = set()
 
-    # 1. Fetch from Algolia HN Search API (Returns 100 recent Show HN posts instantly in 1 request)
+    # 1. Algolia HN Search — fast, returns points
     try:
         algolia_url = "https://hn.algolia.com/api/v1/search_by_date?tags=show_hn&hitsPerPage=100"
         alg_r = requests.get(algolia_url, timeout=5)
@@ -350,16 +379,16 @@ def fetch_shownews_launches():
                 title = h.get("title", "")
                 link = h.get("url", "")
                 author = h.get("author", "")
+                points = h.get("points") or 0
 
-                if not sid or sid in seen_ids or not title or not link or not is_deployed_app_url(link):
+                if not sid or sid in seen_ids or not title or not link:
+                    continue
+                if not _is_quality_hn_post(title, link, points):
                     continue
 
                 seen_ids.add(sid)
-                clean_name = title
-                if clean_name.lower().startswith("show hn:"):
-                    clean_name = clean_name[8:].strip()
-
-                parts = clean_name.split("–") if "–" in clean_name else clean_name.split("-")
+                clean_name = title[8:].strip() if title.lower().startswith("show hn:") else title
+                parts = clean_name.split("–") if "–" in clean_name else clean_name.split(" - ")
                 prod_name = parts[0].strip()
                 tagline = parts[1].strip() if len(parts) > 1 else clean_name
 
@@ -368,19 +397,20 @@ def fetch_shownews_launches():
                     "product_name": prod_name[:80],
                     "tagline": tagline[:160],
                     "website_url": link,
-                    "founder_name": author
+                    "founder_name": author,
+                    "twitter_handle": "",
+                    "votes": points
                 })
     except Exception as e:
         log.warning("Algolia Show HN fetch error: %s", e)
 
-    # 2. Backup: Fetch from Firebase Show Stories API
+    # 2. Firebase HN API — backup, fetches points per story
     try:
         from concurrent.futures import ThreadPoolExecutor
-
         fb_url = "https://hacker-news.firebaseio.com/v0/showstories.json"
         r = requests.get(fb_url, timeout=5)
         if r.ok:
-            story_ids = [sid for sid in r.json()[:50] if str(sid) not in seen_ids]
+            story_ids = [sid for sid in r.json()[:60] if str(sid) not in seen_ids]
 
             def _fetch_single_story(sid):
                 try:
@@ -391,15 +421,15 @@ def fetch_shownews_launches():
                     title = data.get("title", "")
                     link = data.get("url", "")
                     author = data.get("by", "")
+                    points = data.get("score") or 0
 
-                    if not title or not link or not is_deployed_app_url(link):
+                    if not title or not link:
+                        return None
+                    if not _is_quality_hn_post(title, link, points):
                         return None
 
-                    clean_name = title
-                    if clean_name.lower().startswith("show hn:"):
-                        clean_name = clean_name[8:].strip()
-
-                    parts = clean_name.split("–") if "–" in clean_name else clean_name.split("-")
+                    clean_name = title[8:].strip() if title.lower().startswith("show hn:") else title
+                    parts = clean_name.split("–") if "–" in clean_name else clean_name.split(" - ")
                     prod_name = parts[0].strip()
                     tagline = parts[1].strip() if len(parts) > 1 else clean_name
 
@@ -408,20 +438,23 @@ def fetch_shownews_launches():
                         "product_name": prod_name[:80],
                         "tagline": tagline[:160],
                         "website_url": link,
-                        "founder_name": author
+                        "founder_name": author,
+                        "twitter_handle": "",
+                        "votes": points
                     }
                 except Exception:
                     return None
 
-            with ThreadPoolExecutor(max_workers=10) as executor:
+            with ThreadPoolExecutor(max_workers=8) as executor:
                 results = list(executor.map(_fetch_single_story, story_ids))
 
             for item in results:
-                if item is not None and item["ph_launch_id"].replace("hn_", "") not in seen_ids:
+                if item and item["ph_launch_id"].replace("hn_", "") not in seen_ids:
                     candidates.append(item)
     except Exception as e:
         log.warning("Firebase Show HN fetch error: %s", e)
 
+    log.info("HN Show feed: %s quality candidates (min %s points, commercial SaaS only)", len(candidates), MIN_HN_POINTS)
     return candidates
 
 # ─── 2. EMAIL DISCOVERY (SCRAPE + GITHUB + RDAP + HUNTER.IO) ─────────────────

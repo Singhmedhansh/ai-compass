@@ -1903,7 +1903,9 @@ function AdminPage() {
                           />
                         </label>
                         <label className="block">
-                          <span className="text-xs font-medium text-muted">Contact Email</span>
+                          <span className="text-xs font-medium text-muted">
+                            {editingCandidate.email_source === 'twitter_handle' ? 'Contact (X Handle)' : 'Contact Email'}
+                          </span>
                           <input
                             type="text"
                             value={editingCandidate.email || ''}
@@ -2037,45 +2039,78 @@ function AdminPage() {
                         >
                           Save changes
                         </button>
-                        <button
-                          disabled={outreachBusy === 'send' || !editingCandidate.email}
-                          onClick={async () => {
-                            if (!window.confirm(`Send email to ${editingCandidate.email} now?`)) return
-                            setOutreachBusy('send')
-                            try {
-                              // First save local changes
-                              await api(`/api/v1/admin/outreach/candidates/${editingCandidate.id}`, {
-                                method: 'PUT',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                  founder_name: editingCandidate.founder_name,
-                                  email: editingCandidate.email,
-                                  tone: editingCandidate.tone,
-                                  draft_subject: editingCandidate.draft_subject,
-                                  draft_body: editingCandidate.draft_body
+
+                        {editingCandidate.email_source === 'twitter_handle' ? (
+                          /* Twitter-only contact: Copy DM + Open on X */
+                          <>
+                            <button
+                              onClick={() => {
+                                // Extract plain-text DM from draft body HTML
+                                const tmp = document.createElement('div')
+                                tmp.innerHTML = editingCandidate.draft_body || ''
+                                const plainText = tmp.innerText || tmp.textContent || ''
+                                navigator.clipboard.writeText(plainText).then(() => {
+                                  toast.success('DM message copied to clipboard!')
+                                }).catch(() => {
+                                  toast.error('Could not copy — please copy manually')
                                 })
-                              })
-                              // Then trigger send
-                              const sendRes = await api(`/api/v1/admin/outreach/candidates/${editingCandidate.id}/send`, {
-                                method: 'POST'
-                              })
-                              if (sendRes.success) {
-                                toast.success('Email sent successfully!')
-                                setEditingCandidate(null)
-                                loadOutreachData()
-                              } else {
-                                toast.error(sendRes.error || 'Failed to send email')
+                              }}
+                              className={BTN_GHOST}
+                            >
+                              Copy DM
+                            </button>
+                            <a
+                              href={`https://x.com/${(editingCandidate.email || '').replace('@', '')}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={BTN_PRIMARY}
+                              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', textDecoration: 'none' }}
+                            >
+                              Open on X
+                            </a>
+                          </>
+                        ) : (
+                          /* Email contact: normal Send button */
+                          <button
+                            disabled={outreachBusy === 'send' || !editingCandidate.email}
+                            onClick={async () => {
+                              if (!window.confirm(`Send email to ${editingCandidate.email} now?`)) return
+                              setOutreachBusy('send')
+                              try {
+                                // First save local changes
+                                await api(`/api/v1/admin/outreach/candidates/${editingCandidate.id}`, {
+                                  method: 'PUT',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({
+                                    founder_name: editingCandidate.founder_name,
+                                    email: editingCandidate.email,
+                                    tone: editingCandidate.tone,
+                                    draft_subject: editingCandidate.draft_subject,
+                                    draft_body: editingCandidate.draft_body
+                                  })
+                                })
+                                // Then trigger send
+                                const sendRes = await api(`/api/v1/admin/outreach/candidates/${editingCandidate.id}/send`, {
+                                  method: 'POST'
+                                })
+                                if (sendRes.success) {
+                                  toast.success('Email sent successfully!')
+                                  setEditingCandidate(null)
+                                  loadOutreachData()
+                                } else {
+                                  toast.error(sendRes.error || 'Failed to send email')
+                                }
+                              } catch (e) {
+                                toast.error(e.message)
+                              } finally {
+                                setOutreachBusy(null)
                               }
-                            } catch (e) {
-                              toast.error(e.message)
-                            } finally {
-                              setOutreachBusy(null)
-                            }
-                          }}
-                          className={BTN_PRIMARY}
-                        >
-                          {outreachBusy === 'send' ? 'Sending email…' : 'Send email now'}
-                        </button>
+                            }}
+                            className={BTN_PRIMARY}
+                          >
+                            {outreachBusy === 'send' ? 'Sending email…' : 'Send email now'}
+                          </button>
+                        )}
                       </div>
                     </div>
                   </MotionDiv>
