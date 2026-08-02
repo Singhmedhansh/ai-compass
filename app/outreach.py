@@ -60,11 +60,17 @@ def is_deployed_app_url(url: str) -> bool:
 def is_valid_email(email):
     if not email or "@" not in email:
         return False
+    email = email.strip()
+    if email.startswith("@"):
+        return False
+    pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+    if not re.match(pattern, email):
+        return False
     parts = email.split("@")
     local_part, domain_part = parts[0].lower(), parts[1].lower()
     if any(placeholder in local_part for placeholder in COMMON_PLACEHOLDERS):
         return False
-    if domain_part in {"github.com", "example.com", "domain.com", "test.com", "email.com", "sample.com", "sentry.io"}:
+    if domain_part in {"github.com", "example.com", "domain.com", "test.com", "email.com", "sample.com", "sentry.io", "wixpress.com"}:
         return False
     if local_part in {"copyright", "abuse", "dmca", "security", "privacy", "postmaster"}:
         return False
