@@ -11,35 +11,53 @@ except (TypeError, ValueError):
 
 bind = f"0.0.0.0:{_port}"
 
-# Workers — 1 worker with 2 threads is optimal for Render's 512 MB free tier.
-# gthread allows concurrent thread execution so Render health checks (/healthz)
-# respond instantly even while background warmup or DB operations run.
+# ---------------------------------------------------------------------------
+# Workers
+# 1 worker + 4 threads — gthread lets the single process handle multiple
+# concurrent requests (health checks, API calls) without needing extra RAM.
+# Render free tier gives 512 MB; 1 gthread worker sits at ~120-150 MB.
+# ---------------------------------------------------------------------------
 workers = 1
 worker_class = "gthread"
-threads = 2
+threads = 4
 
+# ---------------------------------------------------------------------------
 # Timeouts
-timeout = 120
-graceful_timeout = 30
+# ---------------------------------------------------------------------------
+timeout = 120          # Worker silent timeout before kill
+graceful_timeout = 30  # Time for in-flight requests to finish on shutdown
 keepalive = 5
 
-# Logging — forward to stdout so Render captures it in the dashboard.
-accesslog = "-"
-errorlog = "-"
-loglevel = "info"
-
-# Preload the application before forking workers.
-# Set to False so Gunicorn binds to the port immediately at startup (before
-# loading any application code). The single worker then boots, loads the app,
-# and runs the background warmup thread safely inside its own process context.
+# ---------------------------------------------------------------------------
+# Preload — CRITICAL for Render port binding.
+#
+# preload_app = False means gunicorn's MASTER process binds to the port
+# socket BEFORE forking workers. The port is open within milliseconds of
+# startup, so Render's port scanner always succeeds.
+#
+# preload_app = True means the master loads the Flask app, forks a worker,
+# and only THEN the worker binds — which takes several seconds (DB init,
+# migrations, warmup threads). Render's scanner fires during this window
+# and reports 'No open ports detected'.
+# ---------------------------------------------------------------------------
 preload_app = False
 
-# Print a clear marker once gunicorn has bound — useful for debugging
-# port-scan failures in Render logs.
+# ---------------------------------------------------------------------------
+# Logging — forward everything to stdout for Render's dashboard.
+# ---------------------------------------------------------------------------
+accesslog = "-"
+errorlog  = "-"
+loglevel  = "info"
+
+# ---------------------------------------------------------------------------
+# Server hooks — print clear markers for debugging in Render logs.
+# ---------------------------------------------------------------------------
 def on_starting(server):
+    """Called just before the master process binds to the socket."""
     print(f"[gunicorn] starting — will bind on {bind}", flush=True)
 
 def when_ready(server):
+    """Called after the master has bound and is ready to receive connections."""
     print(f"[gunicorn] ready and listening on {bind}", flush=True)
 
 def post_fork(server, worker):
@@ -61,3 +79,7 @@ def post_fork(server, worker):
             print(f"[gunicorn] worker {worker.pid}: post_fork engine.dispose() skipped: {exc}", flush=True)
     else:
         print(f"[gunicorn] worker {worker.pid}: post_fork db engine dispose skipped (preload_app is False)", flush=True)
+
+def worker_abort(worker):
+    """Log worker crashes clearly so they show up in Render logs."""
+    print(f"[gunicorn] worker {worker.pid} aborted — check for OOM or timeout", flush=True)
