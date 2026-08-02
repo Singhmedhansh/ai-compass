@@ -160,6 +160,32 @@ def is_duplicate_candidate(product_name, website_url, ph_launch_id=None):
 # ─── 1. DISCOVERY VIA PRODUCT HUNT & HACKER NEWS ─────────────────────────────
 MIN_PH_VOTES = 10  # Skip products with fewer votes — low traction = no marketing budget
 
+def guess_product_domain(product_name):
+    """Try common TLDs for a product name to find its real website URL when PH hides it."""
+    base = re.sub(r'[^a-z0-9]', '', product_name.lower())
+    # Remove common suffixes from the base name
+    clean_base = base.replace("app", "").replace("ai", "").replace("io", "").replace("hq", "")
+    
+    candidates = []
+    tlds = [".com", ".io", ".ai", ".app", ".co", ".dev", ".net", ".sh", ".so", ".build", ".tech", ".run", ".design"]
+    
+    # Try the clean base first, then the raw base
+    for b in [clean_base, base]:
+        if not b:
+            continue
+        for tld in tlds:
+            candidates.append(f"https://{b}{tld}")
+            
+    for url in candidates:
+        try:
+            resp = requests.head(url, timeout=2, allow_redirects=True, headers={"User-Agent": "Mozilla/5.0"})
+            if resp.status_code < 400:
+                return url
+        except:
+            pass
+    return None
+
+
 def scrape_producthunt_ranked_posts():
     """Scrapes PH homepage HTML once and extracts ALL needed fields (website, votes, twitter)
     from the embedded JSON — zero additional HTTP requests, no rate-limiting risk.
@@ -294,30 +320,11 @@ def scrape_producthunt_ranked_posts():
     if NO_WEBSITE_SLUGS:
         log.info("Attempting smart domain resolution for %s slugs with no website...", len(NO_WEBSITE_SLUGS))
 
-    def _guess_domain(p):
-        """Try common TLDs for a slug to find the real website."""
-        base = p["slug"].replace("-app", "").replace("-ai", "").replace("-io", "").replace("-hq", "")
-        # Also try the product name lowercased
-        name_base = re.sub(r'[^a-z0-9]', '', p["name"].lower())
-        candidates = []
-        for b in [base, name_base]:
-            for tld in [".com", ".io", ".ai", ".app", ".co"]:
-                candidates.append(f"https://{b}{tld}")
-        for url in candidates:
-            try:
-                resp = requests.head(url, timeout=2, allow_redirects=True,
-                                     headers={"User-Agent": "Mozilla/5.0"})
-                if resp.status_code < 400:
-                    return url
-            except:
-                pass
-        return None
-
     # Only try domain guessing for high-vote products (worth the extra time)
     from concurrent.futures import ThreadPoolExecutor
     if NO_WEBSITE_SLUGS:
         with ThreadPoolExecutor(max_workers=6) as ex:
-            futures = {ex.submit(_guess_domain, p): p["slug"] for p in NO_WEBSITE_SLUGS[:20]}
+            futures = {ex.submit(guess_product_domain, p["name"]): p["slug"] for p in NO_WEBSITE_SLUGS[:20]}
             for future in futures:
                 slug = futures[future]
                 try:
@@ -391,7 +398,18 @@ def fetch_producthunt_launches():
                     founder = makers[0].get("name") if makers else ""
                     twitter = f"@{makers[0].get('twitterUsername')}" if makers and makers[0].get("twitterUsername") else ""
 
-                    if votes < MIN_PH_VOTES or not name or not website or not is_deployed_app_url(website):
+                    if votes < MIN_PH_VOTES or not name or not website:
+                        continue
+
+                    if "producthunt.com/r/p/" in website:
+                        real_website = guess_product_domain(name)
+                        if real_website:
+                            website = real_website
+                        else:
+                            log.debug("Skipping %s: could not resolve PH redirect %s", name, website)
+                            continue
+
+                    if not is_deployed_app_url(website):
                         continue
 
                     slug_key = name.lower().replace(" ", "-")
