@@ -509,7 +509,7 @@ export default function SubmitPage() {
                 <div className="flex items-center gap-3">
                   <CheckCircle2 className="h-7 w-7 text-accent shrink-0" />
                   <div>
-                    <h3 className="text-base font-black text-ink">Payment Approved & Submission Received! 🎉</h3>
+                    <h3 className="text-base font-black text-ink">Payment Approved & Submission Received</h3>
                     <p className="text-xs text-accent-ink font-semibold mt-0.5">
                       Transaction Reference: <span className="font-mono">{transactionRef || 'TXN-PAYPAL-VERIFIED'}</span> • Amount: $49.99 USD
                     </p>
@@ -520,7 +520,7 @@ export default function SubmitPage() {
                     <strong>What happens next?</strong> Our editorial team has received your submission details and payment confirmation.
                   </p>
                   <p className="bg-bg-elev/80 p-3 rounded-xl border border-line font-medium text-ink">
-                    📩 <strong>Our team will review your submission and contact you soon via email at your provided founder address.</strong>
+                    <strong>Our team will review your submission and contact you soon via email at your provided founder address.</strong>
                   </p>
                 </div>
               </div>

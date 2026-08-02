@@ -1662,7 +1662,7 @@ def submit_tool():
             admin_subject += f" (Ref: {transaction_ref})"
 
         admin_html = (
-            f"<h2>{'🎉 PAYMENT APPROVED — ' if is_paid else ''}New Tool Submission</h2>"
+            f"<h2>{'[PAYMENT APPROVED] ' if is_paid else ''}New Tool Submission</h2>"
             f"<p>A new tool was submitted via ai-compass.in/submit:</p>"
             f"<ul>"
             f"<li><b>Name:</b> {name}</li>"
@@ -1677,7 +1677,7 @@ def submit_tool():
             f"<p><b>Why it's useful / description:</b><br/>{reason}</p>"
         )
         admin_text = (
-            f"{'🎉 PAYMENT APPROVED — ' if is_paid else ''}New tool submission via ai-compass.in/submit:\n\n"
+            f"{'[PAYMENT APPROVED] ' if is_paid else ''}New tool submission via ai-compass.in/submit:\n\n"
             f"Name: {name}\n"
             f"URL: {url}\n"
             f"Category: {category}\n"
