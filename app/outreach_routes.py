@@ -292,8 +292,21 @@ def trigger_re_enrich():
         return jsonify({"error": "Forbidden"}), 403
         
     try:
-        enriched_count = re_enrich_missing_candidate_emails()
-        return jsonify({"success": True, "enriched_candidates_count": enriched_count})
+        app_obj = current_app._get_current_object()
+        app_ctx = app_obj.app_context()
+
+        def _bg():
+            with app_ctx:
+                try:
+                    count = re_enrich_missing_candidate_emails()
+                    app_obj.logger.info("Background re-enrichment completed! Found %s emails.", count)
+                except Exception as ex:
+                    app_obj.logger.exception("Background re-enrichment failed: %s", ex)
+
+        import threading
+        threading.Thread(target=_bg, name="re-enrichment-bg", daemon=True).start()
+
+        return jsonify({"success": True, "message": "Email discovery running in background"}), 202
     except Exception as e:
         current_app.logger.exception("Failed to run re-enrichment pipeline")
         return jsonify({"error": str(e)}), 500

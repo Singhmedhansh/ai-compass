@@ -1397,9 +1397,12 @@ function AdminPage() {
                   onClick={async () => {
                     setOutreachBusy('re_enrich')
                     try {
-                      const res = await api('/api/v1/admin/outreach/re-enrich', { method: 'POST' })
-                      toast.success(`Re-enrichment complete! Discovered ${res.enriched_candidates_count} missing emails.`)
-                      loadOutreachData()
+                      await api('/api/v1/admin/outreach/re-enrich', { method: 'POST' })
+                      toast.success('Email discovery running in background! Refreshing candidates list...')
+                      // Poll after 3s, 6s, 12s to show newly discovered emails
+                      setTimeout(() => loadOutreachData(), 3000)
+                      setTimeout(() => loadOutreachData(), 6000)
+                      setTimeout(() => loadOutreachData(), 12000)
                     } catch (e) {
                       toast.error(e.message)
                     } finally {

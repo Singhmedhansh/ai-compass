@@ -313,20 +313,20 @@ def scrape_website_for_email(url):
 
             return None
 
-        # 1. Check homepage first (tight 3s timeout)
-        resp = requests.get(url, headers=headers, timeout=3, allow_redirects=True)
+        # 1. Check homepage first (tight 1.5s timeout)
+        resp = requests.get(url, headers=headers, timeout=1.5, allow_redirects=True)
         if resp.ok:
             email = extract_emails_from_html(resp.text)
             if email:
                 return email, "web_scraper"
 
-        # 2. Check key subpages
+        # 2. Check primary subpages (1.5s timeout each)
         domain_base = get_domain_from_url(url)
         if domain_base:
             base_url = f"https://{domain_base}"
-            for path in ["/contact", "/about", "/privacy", "/terms", "/imprint", "/security.txt", "/.well-known/security.txt", "/team", "/faq"]:
+            for path in ["/contact", "/about", "/privacy"]:
                 try:
-                    sub_resp = requests.get(base_url + path, headers=headers, timeout=2, allow_redirects=True)
+                    sub_resp = requests.get(base_url + path, headers=headers, timeout=1.5, allow_redirects=True)
                     if sub_resp.ok:
                         email = extract_emails_from_html(sub_resp.text)
                         if email:
@@ -667,13 +667,37 @@ def run_discovery_pipeline():
     return new_candidates_count
 
 def re_enrich_missing_candidate_emails():
-    """Re-scans all candidates currently marked 'no_email_found' using the multi-strategy pipeline."""
+    """Re-scans all candidates currently marked 'no_email_found' using the multi-strategy pipeline concurrently."""
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+    
     candidates = OutreachCandidate.query.filter_by(status="no_email_found").all()
+    if not candidates:
+        return 0
+
+    log.info("Starting concurrent re-enrichment for %s candidates...", len(candidates))
+
+    def _process_candidate(cand_data):
+        cid, url, founder = cand_data
+        email, source, score = enrich_candidate_email(url, founder)
+        return cid, email, source, score
+
+    cand_tuples = [(c.id, c.website_url, c.founder_name) for c in candidates]
+    results = []
+
+    with ThreadPoolExecutor(max_workers=8) as executor:
+        futures = [executor.submit(_process_candidate, item) for item in cand_tuples]
+        for f in as_completed(futures):
+            try:
+                results.append(f.result())
+            except Exception as e:
+                log.warning("Candidate enrichment task error: %s", e)
+
+    cand_dict = {c.id: c for c in candidates}
     enriched_count = 0
 
-    for c in candidates:
-        email, source, score = enrich_candidate_email(c.website_url, c.founder_name)
-        if email:
+    for cid, email, source, score in results:
+        if email and cid in cand_dict:
+            c = cand_dict[cid]
             c.email = email
             c.email_source = source
             c.confidence_score = score
