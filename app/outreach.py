@@ -128,7 +128,7 @@ def is_duplicate_candidate(product_name, website_url, ph_launch_id=None):
 
     domain = get_domain_from_url(website_url)
     # Ignore generic hosting/repo domains for deduplication
-    if domain and domain.lower() in {"github.com", "gitlab.com", "x.com", "twitter.com", "news.ycombinator.com"}:
+    if domain and domain.lower() in {"github.com", "gitlab.com", "x.com", "twitter.com", "news.ycombinator.com", "producthunt.com", "www.producthunt.com"}:
         domain = ""
 
     # 1. Check against existing outreach candidates
@@ -401,7 +401,7 @@ def fetch_producthunt_launches():
                     if votes < MIN_PH_VOTES or not name or not website:
                         continue
 
-                    if "producthunt.com/r/p/" in website:
+                    if "producthunt.com/r/" in website:
                         real_website = guess_product_domain(name)
                         if real_website:
                             website = real_website
