@@ -2059,6 +2059,21 @@ function AdminPage() {
                             >
                               Copy DM
                             </button>
+                            <button
+                              onClick={() => {
+                                const handle = editingCandidate.email || ''
+                                const productName = editingCandidate.product_name || 'your product'
+                                const tweetText = `Hey ${handle}! Congrats on launching ${productName} 🚀\n\nWe curate top tools for 4,000+ students and I'd love to feature you. My DMs are open, or you can drop me a line!`
+                                navigator.clipboard.writeText(tweetText).then(() => {
+                                  toast.success('Public tweet copied to clipboard!')
+                                }).catch(() => {
+                                  toast.error('Could not copy — please copy manually')
+                                })
+                              }}
+                              className={BTN_GHOST}
+                            >
+                              Copy Public Tweet
+                            </button>
                             <a
                               href={`https://x.com/${(editingCandidate.email || '').replace('@', '')}`}
                               target="_blank"
