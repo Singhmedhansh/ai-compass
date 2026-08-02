@@ -11,7 +11,13 @@ from app.outreach import (
     re_enrich_missing_candidate_emails,
     run_automated_followups,
     generate_draft_via_gemini,
-    is_valid_email
+    is_valid_email,
+    fetch_producthunt_launches,
+    fetch_shownews_launches,
+    is_duplicate_candidate,
+    is_deployed_app_url,
+    is_student_relevant,
+    is_commercial_saas
 )
 
 outreach_bp = Blueprint("outreach", __name__)
