@@ -8,6 +8,7 @@ from app.models import OutreachCandidate, OutreachEmailLog
 from app.email_utils import send_email, send_email_with_details
 from app.outreach import (
     run_discovery_pipeline,
+    re_enrich_missing_candidate_emails,
     run_automated_followups,
     generate_draft_via_gemini,
     is_valid_email
@@ -281,6 +282,20 @@ def trigger_discovery():
         return jsonify({"success": True, "new_candidates_count": new_count})
     except Exception as e:
         current_app.logger.exception("Failed to run manual discovery pipeline")
+        return jsonify({"error": str(e)}), 500
+
+@outreach_bp.route("/api/v1/admin/outreach/re-enrich", methods=["POST"])
+@csrf.exempt
+@login_required
+def trigger_re_enrich():
+    if not _is_admin():
+        return jsonify({"error": "Forbidden"}), 403
+        
+    try:
+        enriched_count = re_enrich_missing_candidate_emails()
+        return jsonify({"success": True, "enriched_candidates_count": enriched_count})
+    except Exception as e:
+        current_app.logger.exception("Failed to run re-enrichment pipeline")
         return jsonify({"error": str(e)}), 500
 
 # ─── AUTOMATED CRON ENDPOINT ──────────────────────────────────────────────────

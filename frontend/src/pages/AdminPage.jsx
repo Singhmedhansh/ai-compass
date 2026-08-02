@@ -1393,6 +1393,24 @@ function AdminPage() {
                   {outreachBusy === 'discovery' ? 'Discovering launches…' : 'Run PH Discovery'}
                 </button>
                 <button
+                  disabled={outreachBusy === 're_enrich'}
+                  onClick={async () => {
+                    setOutreachBusy('re_enrich')
+                    try {
+                      const res = await api('/api/v1/admin/outreach/re-enrich', { method: 'POST' })
+                      toast.success(`Re-enrichment complete! Discovered ${res.enriched_candidates_count} missing emails.`)
+                      loadOutreachData()
+                    } catch (e) {
+                      toast.error(e.message)
+                    } finally {
+                      setOutreachBusy(null)
+                    }
+                  }}
+                  className={BTN_GHOST}
+                >
+                  {outreachBusy === 're_enrich' ? 'Enriching missing emails…' : 'Re-Enrich Missing Emails'}
+                </button>
+                <button
                   onClick={() => setShowManualAdd(!showManualAdd)}
                   className={`flex items-center gap-1.5 ${BTN_PRIMARY}`}
                 >
@@ -1658,10 +1676,40 @@ function AdminPage() {
                               <td className="px-3 py-2 text-ink-2 font-mono text-xs">{c.founder_name || '—'}</td>
                               <td className="px-3 py-2 text-xs">
                                 <div>{c.email || <span className="text-danger italic">No Email Found</span>}</div>
-                                {c.email && (
+                                {c.email ? (
                                   <div className="text-[10px] text-muted">
                                     via {c.email_source}{' '}
                                     {c.confidence_score ? `(${c.confidence_score}% score)` : ''}
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center gap-1 mt-1">
+                                    <a
+                                      href={`https://www.google.com/search?q=${encodeURIComponent('"' + c.product_name + '" founder email')}`}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="text-[9px] bg-bg-sunk hover:bg-line text-ink-2 px-1.5 py-0.5 rounded border border-line/45"
+                                      title="Search Google for founder email"
+                                    >
+                                      Google
+                                    </a>
+                                    <a
+                                      href={`https://x.com/search?q=${encodeURIComponent(c.product_name)}`}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="text-[9px] bg-bg-sunk hover:bg-line text-ink-2 px-1.5 py-0.5 rounded border border-line/45"
+                                      title="Search X / Twitter"
+                                    >
+                                      X
+                                    </a>
+                                    <a
+                                      href={`https://github.com/search?q=${encodeURIComponent(c.founder_name || c.product_name)}`}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="text-[9px] bg-bg-sunk hover:bg-line text-ink-2 px-1.5 py-0.5 rounded border border-line/45"
+                                      title="Search GitHub"
+                                    >
+                                      GitHub
+                                    </a>
                                   </div>
                                 )}
                               </td>
@@ -1694,6 +1742,28 @@ function AdminPage() {
                                   >
                                     Review
                                   </button>
+                                  {!c.email && (
+                                    <button
+                                      onClick={() => {
+                                        const inputEmail = window.prompt(`Enter email for ${c.product_name}:`, '')
+                                        if (inputEmail && inputEmail.includes('@')) {
+                                          api(`/api/v1/admin/outreach/candidates/${c.id}`, {
+                                            method: 'PUT',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({ email: inputEmail.trim(), regenerate_draft: true })
+                                          })
+                                          .then(() => {
+                                            toast.success('Email saved & draft generated!')
+                                            loadOutreachData()
+                                          })
+                                          .catch(e => toast.error(e.message))
+                                        }
+                                      }}
+                                      className="rounded-md border border-accent/40 bg-accent/10 text-accent-ink px-2 py-1 text-xs font-bold transition hover:bg-accent/20"
+                                    >
+                                      + Add Email
+                                    </button>
+                                  )}
                                   {c.status !== 'replied' && (c.status === 'sent' || c.status === 'followed_up') && (
                                     <button
                                       onClick={async () => {

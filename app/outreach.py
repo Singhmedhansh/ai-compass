@@ -273,7 +273,7 @@ def fetch_shownews_launches():
 
     return candidates
 
-# ─── 2. EMAIL DISCOVERY (SCRAPE + HUNTER.IO) ──────────────────────────────────
+# ─── 2. EMAIL DISCOVERY (SCRAPE + GITHUB + RDAP + HUNTER.IO) ─────────────────
 def scrape_website_for_email(url):
     """Scrapes homepage and contact subpages looking for mailto links or regex match emails."""
     try:
@@ -289,11 +289,28 @@ def scrape_website_for_email(url):
                     email = href[7:].split("?")[0].strip()
                     if is_valid_email(email):
                         return email
+            
+            # Check meta tags
+            for meta in soup.find_all("meta"):
+                content = meta.get("content", "")
+                if "@" in content:
+                    for part in content.split():
+                        if is_valid_email(part):
+                            return part
+
             text = soup.get_text()
             matches = re.findall(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}", text)
             for m in matches:
                 if is_valid_email(m):
                     return m
+
+            # Obfuscated emails check (e.g. contact [at] domain.com)
+            obf_matches = re.findall(r"([a-zA-Z0-9._%+-]+)\s*\[?\s*(?:at|AT|@)\s*\]?\s*([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})", text)
+            for prefix, domain in obf_matches:
+                cand = f"{prefix}@{domain}"
+                if is_valid_email(cand):
+                    return cand
+
             return None
 
         # 1. Check homepage first (tight 3s timeout)
@@ -301,26 +318,82 @@ def scrape_website_for_email(url):
         if resp.ok:
             email = extract_emails_from_html(resp.text)
             if email:
-                return email
+                return email, "web_scraper"
 
-        # 2. Check /contact, /about subpages (tight 2s timeout)
+        # 2. Check key subpages
         domain_base = get_domain_from_url(url)
         if domain_base:
             base_url = f"https://{domain_base}"
-            for path in ["/contact", "/about"]:
+            for path in ["/contact", "/about", "/privacy", "/terms", "/imprint", "/security.txt", "/.well-known/security.txt", "/team", "/faq"]:
                 try:
                     sub_resp = requests.get(base_url + path, headers=headers, timeout=2, allow_redirects=True)
                     if sub_resp.ok:
                         email = extract_emails_from_html(sub_resp.text)
                         if email:
-                            return email
+                            return email, f"scraper_{path.replace('/', '')}"
                 except Exception:
                     pass
 
-        return None
+        return None, ""
     except Exception as e:
         log.debug("Scraping email failed for %s: %s", url, e)
-        return None
+        return None, ""
+
+def find_email_via_github(website_url, founder_name=""):
+    """Extracts public author email from GitHub profile or commit history."""
+    headers = {"User-Agent": "AICompassBot/1.0", "Accept": "application/vnd.github.v3+json"}
+    
+    gh_match = re.search(r"github\.com/([a-zA-Z0-9\-_]+)(?:/([a-zA-Z0-9\-_]+))?", website_url or "")
+    owner = gh_match.group(1) if gh_match else None
+    repo = gh_match.group(2) if gh_match else None
+
+    if not owner and founder_name and re.match(r"^[a-zA-Z0-9\-_]+$", founder_name.strip()):
+        owner = founder_name.strip()
+
+    if owner:
+        # Check user profile
+        try:
+            r = requests.get(f"https://api.github.com/users/{owner}", headers=headers, timeout=3)
+            if r.ok:
+                data = r.json()
+                email = data.get("email")
+                if email and is_valid_email(email):
+                    return email, "github_profile"
+        except Exception:
+            pass
+            
+        # Check recent commits
+        if repo:
+            try:
+                r = requests.get(f"https://api.github.com/repos/{owner}/{repo}/commits?per_page=5", headers=headers, timeout=4)
+                if r.ok:
+                    commits = r.json()
+                    for c in commits:
+                        commit_data = c.get("commit", {})
+                        author = commit_data.get("author", {})
+                        email = author.get("email")
+                        if email and is_valid_email(email) and not email.endswith("users.noreply.github.com"):
+                            return email, "github_commit"
+            except Exception:
+                pass
+
+    return None, ""
+
+def find_email_via_rdap(website_url):
+    """Checks RDAP domain registration database for admin contact email."""
+    domain = get_domain_from_url(website_url)
+    if not domain or "." not in domain or domain.endswith((".app", ".dev", ".io")):
+        return None, ""
+    try:
+        r = requests.get(f"https://rdap.org/domain/{domain}", timeout=3)
+        if r.ok:
+            matches = re.findall(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}", r.text)
+            for m in matches:
+                if is_valid_email(m) and not any(x in m for x in ["whois", "privacy", "registrar", "abuse", "proxy"]):
+                    return m, "domain_rdap"
+    except Exception:
+        pass
+    return None, ""
 
 def find_email_via_hunter(website_url, founder_name):
     """Uses Hunter.io Email Finder or Domain Search API."""
@@ -332,7 +405,6 @@ def find_email_via_hunter(website_url, founder_name):
     if not domain:
         return None, 0
 
-    # If we have a founder name, use Email Finder (most targeted)
     if founder_name:
         parts = founder_name.strip().split(" ")
         first_name = parts[0]
@@ -356,7 +428,6 @@ def find_email_via_hunter(website_url, founder_name):
         except Exception as e:
             log.warning("Hunter Email Finder failed: %s", e)
 
-    # Fallback to Domain Search
     url = "https://api.hunter.io/v2/domain-search"
     params = {
         "domain": domain,
@@ -375,6 +446,30 @@ def find_email_via_hunter(website_url, founder_name):
         log.warning("Hunter Domain Search failed: %s", e)
 
     return None, 0
+
+def enrich_candidate_email(website_url, founder_name=""):
+    """Comprehensive discovery pipeline combining Scraper, GitHub, RDAP, and Hunter.io."""
+    # 1. Scrape homepage and subpages
+    email, source = scrape_website_for_email(website_url)
+    if email:
+        return email, source or "web_scraper", 90
+
+    # 2. GitHub lookup
+    email, source = find_email_via_github(website_url, founder_name)
+    if email:
+        return email, source or "github_api", 95
+
+    # 3. Domain RDAP lookup
+    email, source = find_email_via_rdap(website_url)
+    if email:
+        return email, source or "domain_rdap", 80
+
+    # 4. Hunter.io lookup
+    email, score = find_email_via_hunter(website_url, founder_name)
+    if email:
+        return email, "hunter_io", score
+
+    return None, "none", 0
 
 # ─── 3. GEMINI EMAIL DRAFT GENERATION ─────────────────────────────────────────
 def _get_gemini_key():
@@ -547,13 +642,7 @@ def run_discovery_pipeline():
         c.founder_name = l["founder_name"]
         c.tone = infer_tone(l["tagline"], "")
 
-        email = scrape_website_for_email(l["website_url"])
-        source = "scraper"
-        score = 100
-
-        if not email:
-            email, score = find_email_via_hunter(l["website_url"], l["founder_name"])
-            source = "hunter"
+        email, source, score = enrich_candidate_email(l["website_url"], l["founder_name"])
 
         if email:
             c.email = email
@@ -576,6 +665,31 @@ def run_discovery_pipeline():
         log.info("Outreach discovery pipeline created %s new candidates.", new_candidates_count)
 
     return new_candidates_count
+
+def re_enrich_missing_candidate_emails():
+    """Re-scans all candidates currently marked 'no_email_found' using the multi-strategy pipeline."""
+    candidates = OutreachCandidate.query.filter_by(status="no_email_found").all()
+    enriched_count = 0
+
+    for c in candidates:
+        email, source, score = enrich_candidate_email(c.website_url, c.founder_name)
+        if email:
+            c.email = email
+            c.email_source = source
+            c.confidence_score = score
+            c.status = "draft_ready"
+            
+            subject, body = generate_draft_via_gemini(c)
+            c.draft_subject = subject
+            c.draft_body = body
+            c.updated_at = datetime.now(timezone.utc)
+            enriched_count += 1
+
+    if enriched_count > 0:
+        db.session.commit()
+        log.info("Re-enrichment pipeline updated %s candidates with new emails.", enriched_count)
+
+    return enriched_count
 
 # ─── 5. AUTOMATED FOLLOW-UPS ────────────────────────────────────────────────
 def run_automated_followups():
