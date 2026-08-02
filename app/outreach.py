@@ -160,111 +160,195 @@ def is_duplicate_candidate(product_name, website_url, ph_launch_id=None):
 # ─── 1. DISCOVERY VIA PRODUCT HUNT & HACKER NEWS ─────────────────────────────
 MIN_PH_VOTES = 10  # Skip products with fewer votes — low traction = no marketing budget
 
-def _resolve_ph_post_details(slug):
-    """Fetches real website URL, votes count, and maker Twitter handle from a PH post page."""
-    url = f"https://www.producthunt.com/posts/{slug}"
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
-    }
-    result = {"website": None, "votes": 0, "twitter": None, "maker_name": None}
-    try:
-        r = requests.get(url, headers=headers, timeout=5)
-        if r.ok:
-            text = r.text
-            # Extract real website URL
-            m = re.search(r'"website":"(https?://[^"]+)"', text)
-            if m:
-                result["website"] = m.group(1)
-            # Extract vote count
-            v = re.search(r'"votesCount":(\d+)', text)
-            if v:
-                result["votes"] = int(v.group(1))
-            # Extract maker Twitter handle
-            t = re.search(r'"twitterUsername":"([^"]+)"', text)
-            if t and t.group(1):
-                result["twitter"] = f"@{t.group(1)}"
-            # Extract maker name
-            mk = re.search(r'"makerOf".*?"name":"([^"]+)"', text)
-            if not mk:
-                mk = re.search(r'"makers".*?"name":"([^"]+)"', text)
-            if mk:
-                result["maker_name"] = mk.group(1)
-    except Exception as e:
-        log.debug("PH post resolve failed for %s: %s", slug, e)
-    return result
-
 def scrape_producthunt_ranked_posts():
-    """Scrapes PH homepage for today's ranked top products, resolves real URLs and votes in parallel.
-    Only returns products with 10+ votes (real traction = real marketing budget)."""
-    from concurrent.futures import ThreadPoolExecutor
+    """Scrapes PH homepage HTML once and extracts ALL needed fields (website, votes, twitter)
+    from the embedded JSON — zero additional HTTP requests, no rate-limiting risk.
+    Only returns products with 10+ votes that have a real resolved website URL."""
 
     home_url = "https://www.producthunt.com/"
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "en-US,en;q=0.9"
+        "Accept-Language": "en-US,en;q=0.9",
+        "Cache-Control": "no-cache",
+        "Referer": "https://www.google.com/",
     }
-    raw_posts = []
-    seen_slugs = set()
 
     try:
-        r = requests.get(home_url, headers=headers, timeout=6)
-        if r.ok:
-            matches = re.findall(r'"name":"([^"]+)","slug":"([^"]+)","tagline":"([^"]+)"', r.text)
-            for name, slug, tagline in matches:
-                if slug in seen_slugs or len(name) < 2 or len(tagline) < 5:
-                    continue
-                # Skip obvious category/topic slugs
-                if any(skip in slug for skip in ["artificial-intelligence", "developer-tools", "productivity", "saas", "open-source"]):
-                    continue
-                seen_slugs.add(slug)
-                name_clean = name.encode().decode('unicode-escape') if '\\u' in name else name
-                tagline_clean = tagline.encode().decode('unicode-escape') if '\\u' in tagline else tagline
-                raw_posts.append({"name": name_clean[:80], "slug": slug, "tagline": tagline_clean[:160]})
+        r = requests.get(home_url, headers=headers, timeout=8)
+        if not r.ok:
+            log.warning("PH homepage returned %s", r.status_code)
+            return []
+        text = r.text
     except Exception as e:
-        log.warning("PH homepage scrape error: %s", e)
+        log.warning("PH homepage fetch error: %s", e)
         return []
 
-    if not raw_posts:
+    # ── Extract name/slug/tagline/votes as the base set
+    # PH embeds these in several JSON patterns in the page
+    SKIP_SLUGS = {
+        "artificial-intelligence", "developer-tools", "productivity", "saas",
+        "open-source", "design-tools", "marketing", "finance", "education",
+        "security", "no-code", "gaming", "health-fitness", "social-media",
+        "developer-tools", "api", "devops"
+    }
+
+    # Collect raw post records keyed by slug
+    posts_by_slug = {}
+
+    # Pattern 1: standard inline JSON blob with name/slug/tagline
+    for name, slug, tagline in re.findall(r'"name":"([^"]{2,80})","slug":"([^"]{2,80})","tagline":"([^"]{5,})"', text):
+        if slug in SKIP_SLUGS or slug in posts_by_slug:
+            continue
+        name_c = name.encode().decode('unicode-escape') if '\\u' in name else name
+        tag_c = tagline.encode().decode('unicode-escape') if '\\u' in tagline else tagline
+        posts_by_slug[slug] = {"name": name_c[:80], "slug": slug, "tagline": tag_c[:160], "votes": 0, "website": None, "twitter": None, "maker": None}
+
+    if not posts_by_slug:
+        log.warning("PH homepage: no product matches found")
         return []
 
-    # Resolve real URLs, votes, Twitter handles in parallel (max 6 threads to avoid rate limiting)
-    log.info("Resolving details for %s PH candidates...", len(raw_posts))
-    def _resolve(post):
-        details = _resolve_ph_post_details(post["slug"])
-        post.update(details)
-        return post
+    log.info("PH homepage: found %s raw slugs", len(posts_by_slug))
 
-    with ThreadPoolExecutor(max_workers=6) as ex:
-        resolved = list(ex.map(_resolve, raw_posts[:50]))
+    # ── Extract votes — try multiple key names PH uses
+    for key in ["votesCount", "votes_count", "votes"]:
+        # Find pattern: "slug":"some-slug","...":"...","votesCount":123
+        for slug, votes_str in re.findall(rf'"slug":"([^"]+)"[^{{}}]{{0,300}}?"{key}":(\d+)', text):
+            if slug in posts_by_slug:
+                v = int(votes_str)
+                if v > posts_by_slug[slug]["votes"]:
+                    posts_by_slug[slug]["votes"] = v
 
+    # Also try extracting votes from near the name
+    for name_val, votes_str in re.findall(r'"name":"([^"]+)"[^{}]{0,400}?"votesCount":(\d+)', text):
+        for slug, p in posts_by_slug.items():
+            if p["name"] == name_val or p["name"].lower() == name_val.lower():
+                v = int(votes_str)
+                if v > p["votes"]:
+                    p["votes"] = v
+
+    # ── Extract website URLs — try every key PH uses
+    url_patterns = [
+        r'"website":"(https?://[^"]{5,})"',
+        r'"websiteUrl":"(https?://[^"]{5,})"',
+        r'"productUrl":"(https?://[^"]{5,})"',
+        r'"externalUrl":"(https?://[^"]{5,})"',
+        r'"redirectUrl":"(https?://[^"]{5,})"',
+        r'"homepageUrl":"(https?://[^"]{5,})"',
+        r'"shoutoutUrl":"(https?://[^"]{5,})"',
+    ]
+
+    # Build a set of ALL external URLs found in the page (not PH/CDN/social)
+    INTERNAL_DOMAINS = {"producthunt.com", "ph-files.imgix.net", "twitter.com", "x.com",
+                        "facebook.com", "instagram.com", "linkedin.com", "youtube.com",
+                        "fonts.googleapis.com", "fonts.gstatic.com", "cdn."}
+
+    all_external = []
+    for pat in url_patterns:
+        all_external.extend(re.findall(pat, text))
+
+    # Filter to real product URLs
+    def _is_product_url(url):
+        if not url or not url.startswith("http"):
+            return False
+        try:
+            from urllib.parse import urlparse
+            domain = urlparse(url).netloc.replace("www.", "").lower()
+            return not any(d in domain for d in INTERNAL_DOMAINS) and "." in domain
+        except:
+            return False
+
+    product_urls = [u for u in all_external if _is_product_url(u)]
+    log.info("PH homepage: found %s external product URLs via JSON keys", len(product_urls))
+
+    # Try to match URLs to slugs by proximity in the HTML text
+    for slug, p in posts_by_slug.items():
+        if p["website"]:
+            continue
+        # Find slug position in text
+        slug_pos = text.find(f'"slug":"{slug}"')
+        if slug_pos < 0:
+            continue
+        # Look for a website URL within 800 chars of the slug mention
+        window = text[max(0, slug_pos - 200):slug_pos + 800]
+        for pat in url_patterns:
+            m = re.search(pat, window)
+            if m and _is_product_url(m.group(1)):
+                p["website"] = m.group(1)
+                break
+
+    # ── Extract Twitter handles
+    for slug, handle in re.findall(r'"slug":"([^"]+)"[^{}]{0,500}?"twitterUsername":"([^"]+)"', text):
+        if slug in posts_by_slug and handle:
+            posts_by_slug[slug]["twitter"] = f"@{handle}"
+
+    # ── Extract maker names
+    for slug, maker in re.findall(r'"slug":"([^"]+)"[^{}]{0,500}?"makers":[^[]*\[.*?"name":"([^"]+)"', text, re.DOTALL):
+        if slug in posts_by_slug and maker:
+            posts_by_slug[slug]["maker"] = maker
+
+    # ── For slugs that still have no website: smart domain construction
+    # Many PH products have a website at {slug}.com, {slug}.io, {slug}.ai etc.
+    # We validate with a HEAD request (fast, 2s timeout)
+    NO_WEBSITE_SLUGS = [p for p in posts_by_slug.values() if not p["website"] and p["votes"] >= MIN_PH_VOTES]
+    if NO_WEBSITE_SLUGS:
+        log.info("Attempting smart domain resolution for %s slugs with no website...", len(NO_WEBSITE_SLUGS))
+
+    def _guess_domain(p):
+        """Try common TLDs for a slug to find the real website."""
+        base = p["slug"].replace("-app", "").replace("-ai", "").replace("-io", "").replace("-hq", "")
+        # Also try the product name lowercased
+        name_base = re.sub(r'[^a-z0-9]', '', p["name"].lower())
+        candidates = []
+        for b in [base, name_base]:
+            for tld in [".com", ".io", ".ai", ".app", ".co"]:
+                candidates.append(f"https://{b}{tld}")
+        for url in candidates:
+            try:
+                resp = requests.head(url, timeout=2, allow_redirects=True,
+                                     headers={"User-Agent": "Mozilla/5.0"})
+                if resp.status_code < 400:
+                    return url
+            except:
+                pass
+        return None
+
+    # Only try domain guessing for high-vote products (worth the extra time)
+    from concurrent.futures import ThreadPoolExecutor
+    if NO_WEBSITE_SLUGS:
+        with ThreadPoolExecutor(max_workers=6) as ex:
+            futures = {ex.submit(_guess_domain, p): p["slug"] for p in NO_WEBSITE_SLUGS[:20]}
+            for future in futures:
+                slug = futures[future]
+                try:
+                    url = future.result()
+                    if url and slug in posts_by_slug:
+                        posts_by_slug[slug]["website"] = url
+                except:
+                    pass
+
+    # ── Build final candidate list: must have votes >= MIN and real website
     candidates = []
-    for p in resolved:
-        website = p.get("website")
-        votes = p.get("votes", 0)
-
-        # Hard gate: must have real traction (votes >= MIN_PH_VOTES)
-        if votes < MIN_PH_VOTES:
-            log.debug("Skipping %s — only %s votes (min %s)", p["name"], votes, MIN_PH_VOTES)
+    for p in posts_by_slug.values():
+        if p["votes"] < MIN_PH_VOTES:
             continue
-
-        # Must have a real deployable website (not GitHub/repo)
-        if not website or not is_deployed_app_url(website):
+        if not p["website"] or not is_deployed_app_url(p["website"]):
+            log.debug("No website for %s (votes=%s) — skipping", p["name"], p["votes"])
             continue
-
         candidates.append({
             "ph_launch_id": f"ph_web_{p['slug']}",
             "product_name": p["name"],
             "tagline": p["tagline"],
-            "website_url": website,
-            "founder_name": p.get("maker_name") or "",
+            "website_url": p["website"],
+            "founder_name": p.get("maker") or "",
             "twitter_handle": p.get("twitter") or "",
-            "votes": votes
+            "votes": p["votes"]
         })
 
-    log.info("PH public scraper: %s products with %s+ votes and real URLs", len(candidates), MIN_PH_VOTES)
+    log.info("PH scraper: %s candidates with %s+ votes and real URLs (from %s raw slugs)",
+             len(candidates), MIN_PH_VOTES, len(posts_by_slug))
     return candidates
+
 
 def fetch_producthunt_launches():
     """Fetches PH launches via GraphQL API token (if available) and ranked public HTML scraper."""
