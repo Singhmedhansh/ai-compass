@@ -25,7 +25,7 @@ const INITIAL_FORM = {
 }
 
 export default function SubmitPage() {
-  const [submissionType, setSubmissionType] = useState('suggest') // 'suggest' | 'sponsor'
+  const [submissionType] = useState('sponsor') // Exclusively 'sponsor' ($49.99)
   const [formData, setFormData] = useState(INITIAL_FORM)
   const [submitted, setSubmitted] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -55,11 +55,6 @@ export default function SubmitPage() {
       }
     }
 
-    const savedType = sessionStorage.getItem('submit_submission_type')
-    if (savedType) {
-      setSubmissionType(savedType)
-    }
-
     const savedMethod = sessionStorage.getItem('submit_payment_method')
     if (savedMethod) {
       setPaymentMethod(savedMethod)
@@ -71,11 +66,9 @@ export default function SubmitPage() {
     if (hasPaypalParams) {
       const txRef = query.get('tx') || query.get('paymentId') || `TXN-PAYPAL-${Math.floor(Math.random() * 9000000 + 1000000)}`
       
-      // We retrieve form data immediately to submit it
       if (savedForm) {
         try {
           const parsedForm = JSON.parse(savedForm)
-          
           setSubmitting(true)
           
           fetch('/api/v1/submit-tool', {
@@ -94,6 +87,7 @@ export default function SubmitPage() {
           })
           .then(() => {
             setSubmitted(true)
+            setTransactionRef(txRef)
             sessionStorage.removeItem('submit_form_data')
             sessionStorage.removeItem('submit_submission_type')
             sessionStorage.removeItem('submit_payment_method')
@@ -119,16 +113,11 @@ export default function SubmitPage() {
   }, [formData])
 
   useEffect(() => {
-    sessionStorage.setItem('submit_submission_type', submissionType)
-  }, [submissionType])
-
-  useEffect(() => {
     sessionStorage.setItem('submit_payment_method', paymentMethod)
   }, [paymentMethod])
 
   useEffect(() => {
     if (showPaymentModal && paymentMethod === 'paypal') {
-      // Fetch hosted config first to determine script parameters
       fetch('/api/v1/config/paypal-hosted')
         .then(res => res.json())
         .then(data => {
@@ -152,7 +141,6 @@ export default function SubmitPage() {
             const script = document.createElement('script')
             script.id = 'paypal-sdk-script'
             
-            // Build script src based on whether we have a hosted button ID
             if (data.hosted_button_id) {
               script.src = `https://www.paypal.com/sdk/js?client-id=${cid}&components=hosted-buttons&disable-funding=venmo&currency=USD`
             } else {
@@ -201,7 +189,6 @@ export default function SubmitPage() {
       if (container) {
         container.innerHTML = ''
         
-        // If hosted button config is available, render HostedButtons
         if (paypalHostedConfig && paypalHostedConfig.hosted_button_id) {
           try {
             window.paypal.HostedButtons({
@@ -212,7 +199,6 @@ export default function SubmitPage() {
             setError('Could not load PayPal checkout buttons.')
           }
         } else {
-          // Fallback to standard checkout buttons
           try {
             window.paypal.Buttons({
               createOrder: (data, actions) => {
@@ -283,12 +269,7 @@ export default function SubmitPage() {
   function handleFormSubmit(event) {
     event.preventDefault()
     setError('')
-
-    if (submissionType === 'sponsor') {
-      setShowPaymentModal(true)
-    } else {
-      submitData('free')
-    }
+    setShowPaymentModal(true)
   }
 
   async function handlePayment(event) {
@@ -296,7 +277,7 @@ export default function SubmitPage() {
     setError('')
 
     if (paymentMethod === 'paypal') {
-      return // PayPal must only be paid through the official JS SDK Buttons, not simulation
+      return
     }
 
     if (paymentMethod === 'stripe') {
@@ -312,7 +293,6 @@ export default function SubmitPage() {
     }
 
     setPaying(true)
-    // Simulate payment processing / redirection
     setTimeout(async () => {
       setPaying(false)
       setPaymentDone(true)
@@ -370,119 +350,31 @@ export default function SubmitPage() {
       
       {/* Monetization / Path Selector Banner */}
       <div className="mb-8 rounded-3xl border border-line bg-gradient-to-br from-bg-elev via-bg-elev to-bg-sunk/30 p-6 shadow-sm">
-        <span className="text-[10px] font-black text-accent uppercase tracking-widest block mb-1">Inclusion Curation</span>
-        <h1 className="text-2xl font-black text-ink tracking-tight sm:text-3xl">Submit an AI Tool</h1>
+        <span className="text-[10px] font-black text-accent uppercase tracking-widest block mb-1">Fast-Track Sponsored Curation</span>
+        <h1 className="text-2xl font-black text-ink tracking-tight sm:text-3xl">Submit Your AI Tool for Curation</h1>
         <p className="mt-2 text-sm text-ink-2 max-w-2xl font-normal leading-relaxed">
-          We curate hand-tested, student-friendly AI utilities. Select your submission tier below to get started.
+          Get your tool indexed and featured in front of students, creators, and developers with guaranteed 24-hour priority review.
         </p>
 
-        {/* Curation Tiers Choice */}
-        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-          
-          {/* Suggest a Tool Card (Free) */}
-          <div
-            onClick={() => {
-              setSubmissionType('suggest')
-              setError('')
-            }}
-            className={`group rounded-2xl border p-5 cursor-pointer transition duration-300 ${
-              submissionType === 'suggest'
-                ? 'border-accent bg-accent-soft/20 shadow-md ring-2 ring-accent/15'
-                : 'border-line bg-bg-elev hover:border-line-strong hover:shadow-sm'
-            }`}
-          >
-            <div className="flex items-center justify-between gap-2">
-              <span className="inline-flex items-center gap-1 rounded-full bg-bg-sunk px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-muted-2">
-                <User className="h-2.5 w-2.5" /> Friendly User
-              </span>
-              <span className="text-sm font-black text-muted-2">$0</span>
-            </div>
-            <h3 className="mt-3 text-base font-bold text-ink group-hover:text-accent transition-colors">
-              Suggest a Tool
-            </h3>
-            <p className="mt-1 text-xs text-ink-2 leading-relaxed font-normal">
-              For students and creators recommending a favorite utility. Standard community review queue (takes up to 2-3 weeks).
-            </p>
-          </div>
-
-          {/* Sponsored Curation Card (Paid) */}
-          <div
-            onClick={() => {
-              setSubmissionType('sponsor')
-              setError('')
-            }}
-            className={`group rounded-2xl border p-5 cursor-pointer transition duration-300 ${
-              submissionType === 'sponsor'
-                ? 'border-accent bg-accent-soft/20 shadow-md ring-2 ring-accent/15'
-                : 'border-line bg-bg-elev hover:border-line-strong hover:shadow-sm'
-            }`}
-          >
+        {/* Sponsored Curation Card (Single Paid Path) */}
+        <div className="mt-6">
+          <div className="rounded-2xl border border-accent bg-accent-soft/20 p-5 shadow-md ring-2 ring-accent/15">
             <div className="flex items-center justify-between gap-2">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-soft text-accent px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-wider shadow-sm">
-                <Sparkles className="h-2.5 w-2.5" /> Founder / Co-Founder
+                <Sparkles className="h-2.5 w-2.5" /> Founder / Builder Fast-Track
               </span>
-              <span className="text-xs font-semibold text-muted text-line-through mr-1.5">$81</span>
-              <span className="text-sm font-black text-ink">$49.99</span>
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-xs font-semibold text-muted text-line-through">$81</span>
+                <span className="text-base font-black text-ink">$49.99</span>
+                <span className="text-[10px] font-medium text-ink-2">one-time</span>
+              </div>
             </div>
-            <h3 className="mt-3 text-base font-bold text-ink group-hover:text-accent transition-colors">
-              Fast-Track Sponsored Curation
+            <h3 className="mt-3 text-base font-bold text-ink">
+              Fast-Track Sponsored Curation ($49.99)
             </h3>
             <p className="mt-1 text-xs text-ink-2 leading-relaxed font-normal">
-              Guaranteed priority review and permanent inclusion within 24 hours. Ideal for builders seeking visibility.
+              Guaranteed priority review, permanent high-authority dofollow backlink, featured badge, and inclusion in our weekly student AI digest within 24 hours.
             </p>
-          </div>
-
-        </div>
-
-        {/* Feature Comparison Table */}
-        <div className="mt-8 rounded-2xl border border-line bg-bg p-4 sm:p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xs font-bold text-ink uppercase tracking-wider">Tier Comparison Matrix</h3>
-            <span className="text-[10px] text-accent font-semibold bg-accent-soft px-2 py-0.5 rounded-full">Clear Value Guarantee</span>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead>
-                <tr className="border-b border-line text-ink font-bold">
-                  <th className="py-2.5 px-3 w-2/5">Feature / Benefit</th>
-                  <th className="py-2.5 px-3 text-center w-3/10 text-ink-2">Free Suggestion</th>
-                  <th className="py-2.5 px-3 text-center w-3/10 text-accent">⚡ Fast-Track Sponsored</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-line/45 text-ink-2">
-                <tr>
-                  <td className="py-3 px-3 font-semibold text-ink">Review & Indexing Speed</td>
-                  <td className="py-3 px-3 text-center text-muted-2">2 - 3 Weeks Queue</td>
-                  <td className="py-3 px-3 text-center font-bold text-accent">⚡ &lt; 24 Hours Guaranteed</td>
-                </tr>
-                <tr>
-                  <td className="py-3 px-3 font-semibold text-ink">Directory Ranking & Position</td>
-                  <td className="py-3 px-3 text-center text-muted-2">Standard Queue</td>
-                  <td className="py-3 px-3 text-center font-bold text-ink">🌟 Pinned Top 3 Position</td>
-                </tr>
-                <tr>
-                  <td className="py-3 px-3 font-semibold text-ink">Gold "FEATURED" Badge</td>
-                  <td className="py-3 px-3 text-center text-danger">✕ No</td>
-                  <td className="py-3 px-3 text-center font-bold text-accent">✓ Included</td>
-                </tr>
-                <tr>
-                  <td className="py-3 px-3 font-semibold text-ink">SEO Backlink Status</td>
-                  <td className="py-3 px-3 text-center text-muted-2">Standard (`nofollow`)</td>
-                  <td className="py-3 px-3 text-center font-bold text-ink">🚀 High-Authority `dofollow`</td>
-                </tr>
-                <tr>
-                  <td className="py-3 px-3 font-semibold text-ink">Weekly Student AI Digest Feature</td>
-                  <td className="py-3 px-3 text-center text-danger">✕ Excluded</td>
-                  <td className="py-3 px-3 text-center font-bold text-accent">📩 Guaranteed Newsletter Spotlight</td>
-                </tr>
-                <tr>
-                  <td className="py-3 px-3 font-semibold text-ink">Placement Guarantee</td>
-                  <td className="py-3 px-3 text-center text-muted-2">Subject to Audit</td>
-                  <td className="py-3 px-3 text-center font-bold text-ink">🛡️ 100% Guaranteed Listing</td>
-                </tr>
-              </tbody>
-            </table>
           </div>
         </div>
       </div>
@@ -493,49 +385,47 @@ export default function SubmitPage() {
         <div className="lg:col-span-2">
           <section className="rounded-2xl border border-line bg-bg-elev p-6 shadow-sm">
             <h2 className="text-lg font-bold text-ink">
-              {submissionType === 'suggest' ? 'Tool Suggestion Form' : 'Sponsored Curation Form'}
+              Sponsored Curation Form
             </h2>
             
             <form className="mt-6 space-y-4" onSubmit={handleFormSubmit}>
               
-              {submissionType === 'sponsor' && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label htmlFor="submitter_email" className="mb-1 block text-xs font-semibold text-ink-2">
-                      Founder Contact Email
-                    </label>
-                    <input
-                      id="submitter_email"
-                      name="submitter_email"
-                      type="email"
-                      required
-                      value={formData.submitter_email}
-                      onChange={handleChange}
-                      className="w-full rounded-lg border border-line bg-bg px-3 py-2 text-xs text-ink outline-none transition focus:border-accent focus:ring-1 focus:ring-accent"
-                      placeholder="founder@company.com"
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="student_perks" className="mb-1 block text-xs font-semibold text-ink-2">
-                      Student Perk/Discount details (Optional)
-                    </label>
-                    <input
-                      id="student_perks"
-                      name="student_perks"
-                      type="text"
-                      value={formData.student_perks}
-                      onChange={handleChange}
-                      className="w-full rounded-lg border border-line bg-bg px-3 py-2 text-xs text-ink outline-none transition focus:border-accent focus:ring-1 focus:ring-accent"
-                      placeholder="e.g. 50% discount via .edu email"
-                    />
-                  </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="submitter_email" className="mb-1 block text-xs font-semibold text-ink-2">
+                    Founder Contact Email <span className="text-accent">*</span>
+                  </label>
+                  <input
+                    id="submitter_email"
+                    name="submitter_email"
+                    type="email"
+                    required
+                    value={formData.submitter_email}
+                    onChange={handleChange}
+                    className="w-full rounded-lg border border-line bg-bg px-3 py-2 text-xs text-ink outline-none transition focus:border-accent focus:ring-1 focus:ring-accent"
+                    placeholder="founder@company.com"
+                  />
                 </div>
-              )}
+                <div>
+                  <label htmlFor="student_perks" className="mb-1 block text-xs font-semibold text-ink-2">
+                    Student Perk/Discount details (Optional)
+                  </label>
+                  <input
+                    id="student_perks"
+                    name="student_perks"
+                    type="text"
+                    value={formData.student_perks}
+                    onChange={handleChange}
+                    className="w-full rounded-lg border border-line bg-bg px-3 py-2 text-xs text-ink outline-none transition focus:border-accent focus:ring-1 focus:ring-accent"
+                    placeholder="e.g. 50% discount via .edu email"
+                  />
+                </div>
+              </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="name" className="mb-1 block text-xs font-semibold text-ink-2">
-                    Tool name
+                    Tool name <span className="text-accent">*</span>
                   </label>
                   <input
                     id="name"
@@ -551,7 +441,7 @@ export default function SubmitPage() {
 
                 <div>
                   <label htmlFor="url" className="mb-1 block text-xs font-semibold text-ink-2">
-                    Tool URL
+                    Tool URL <span className="text-accent">*</span>
                   </label>
                   <input
                     id="url"
@@ -587,7 +477,7 @@ export default function SubmitPage() {
 
               <div>
                 <label htmlFor="reason" className="mb-1 block text-xs font-semibold text-ink-2">
-                  {submissionType === 'suggest' ? 'Why it\'s useful for students' : 'Product description & Curation context'}
+                  Product description & Curation context <span className="text-accent">*</span>
                 </label>
                 <textarea
                   id="reason"
@@ -597,11 +487,7 @@ export default function SubmitPage() {
                   value={formData.reason}
                   onChange={handleChange}
                   className="w-full rounded-lg border border-line bg-bg px-3 py-2 text-xs text-ink placeholder:text-muted-2 outline-none transition focus:border-accent focus:ring-1 focus:ring-accent"
-                  placeholder={
-                    submissionType === 'suggest'
-                      ? "Describe what makes this tool helpful for students, creators, or developers..."
-                      : "Describe your tool's main features and why it belongs in our curated library..."
-                  }
+                  placeholder="Describe your tool's main features and why it belongs in our curated library..."
                 />
               </div>
 
@@ -612,25 +498,29 @@ export default function SubmitPage() {
                   disabled={submitting} 
                   className="w-full font-bold flex items-center justify-center gap-2 rounded-xl"
                 >
-                  {submitting 
-                    ? 'Processing...' 
-                    : submissionType === 'sponsor' 
-                      ? 'Proceed to Secure Checkout' 
-                      : 'Submit Free Suggestion'}
+                  {submitting ? 'Processing...' : 'Proceed to Secure Checkout ($49.99)'}
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               </div>
             </form>
 
             {submitted && (
-              <div className="mt-4 rounded-xl border border-accent bg-accent-soft/30 p-4 text-xs text-accent-ink flex items-start gap-3">
-                <CheckCircle2 className="h-5 w-5 shrink-0 text-accent" />
-                <div>
-                  <p className="font-bold">Submission Confirmed!</p>
-                  <p className="mt-1 leading-relaxed font-normal">
-                    {pricingModelOfLastSubmission() === 'free'
-                      ? "Thanks! We've received your suggestion and will audit it shortly to see if it qualifies for inclusion."
-                      : "Thank you! Your sponsor priority fee has been securely verified. Our editors will review and index your tool within 24 hours."}
+              <div className="mt-6 rounded-2xl border border-accent bg-accent-soft/30 p-6 shadow-md text-ink animate-fade-in">
+                <div className="flex items-center gap-3">
+                  <CheckCircle2 className="h-7 w-7 text-accent shrink-0" />
+                  <div>
+                    <h3 className="text-base font-black text-ink">Payment Approved & Submission Received! 🎉</h3>
+                    <p className="text-xs text-accent-ink font-semibold mt-0.5">
+                      Transaction Reference: <span className="font-mono">{transactionRef || 'TXN-PAYPAL-VERIFIED'}</span> • Amount: $49.99 USD
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-4 pt-3 border-t border-accent/20 text-xs text-ink-2 space-y-2 leading-relaxed">
+                  <p>
+                    <strong>What happens next?</strong> Our editorial team has received your submission details and payment confirmation.
+                  </p>
+                  <p className="bg-bg-elev/80 p-3 rounded-xl border border-line font-medium text-ink">
+                    📩 <strong>Our team will review your submission and contact you soon via email at your provided founder address.</strong>
                   </p>
                 </div>
               </div>
@@ -647,59 +537,49 @@ export default function SubmitPage() {
         {/* Right Column: Pricing details sidebar */}
         <div className="lg:col-span-1">
           <section className="rounded-2xl border border-line bg-bg-elev p-5 shadow-sm space-y-4">
-            <h3 className="text-xs font-bold text-ink uppercase tracking-wider">Inclusion Overview</h3>
+            <h3 className="text-xs font-bold text-ink uppercase tracking-wider">Sponsored Perks Included</h3>
             
-            {submissionType === 'suggest' ? (
-              <div className="space-y-3 text-xs text-ink-2 leading-relaxed">
-                <div className="flex items-center gap-2 font-medium text-ink">
-                  <span className="h-1.5 w-1.5 rounded-full bg-muted" />
-                  <span>Free Submissions Queue</span>
+            <div className="space-y-4 text-xs">
+              <div className="rounded-xl bg-accent-soft/30 p-3 border border-accent/15 flex items-center gap-2">
+                <ShieldCheck className="h-4 w-4 text-accent" />
+                <span className="font-semibold text-accent-ink">Priority Fast-Track Audit</span>
+              </div>
+
+              <div className="space-y-2 border-b border-line pb-3">
+                <div className="flex justify-between">
+                  <span className="text-ink-2">Priority submission fee</span>
+                  <span className="font-semibold text-ink">$75.00</span>
                 </div>
-                <p className="font-normal text-ink-2">Anyone can suggest a tool they love. Free suggestions undergo standard queue checking where they are checked for student safety and utility.</p>
-                <div className="rounded-xl bg-bg-sunk/50 p-3 border border-line/45">
-                  <span className="text-[10px] font-bold text-muted uppercase tracking-wider block">Est. Audit time</span>
-                  <span className="font-semibold text-ink">2 - 3 weeks</span>
+                <div className="flex justify-between">
+                  <span className="text-ink-2">Launch Discount</span>
+                  <span className="font-semibold text-accent">-$25.01</span>
                 </div>
               </div>
-            ) : (
-              <div className="space-y-4 text-xs">
-                <div className="rounded-xl bg-accent-soft/30 p-3 border border-accent/15 flex items-center gap-2">
-                  <ShieldCheck className="h-4 w-4 text-accent" />
-                  <span className="font-semibold text-accent-ink">Priority Fast-Track Audit</span>
-                </div>
 
-                <div className="space-y-2 border-b border-line pb-3">
-                  <div className="flex justify-between">
-                    <span className="text-ink-2">Priority submission fee</span>
-                    <span className="font-semibold text-ink">$75.00</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-ink-2">Taxes & Processing (8%)</span>
-                    <span className="font-semibold text-ink">$6.00</span>
-                  </div>
-                </div>
-
-                <div className="flex justify-between items-baseline pt-1">
-                  <span className="font-bold text-ink">Total Due</span>
-                  <span className="text-xl font-bold text-ink">$49.99</span>
-                </div>
-
-                <ul className="space-y-2 text-ink-2 leading-relaxed pt-2 font-normal">
-                  <li className="flex items-start gap-2">
-                    <span className="text-accent font-bold">✓</span>
-                    <span>Guaranteed review within 24 hours.</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-accent font-bold">✓</span>
-                    <span>Permanent inclusion in catalog.</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-accent font-bold">✓</span>
-                    <span>Featured badge in search results.</span>
-                  </li>
-                </ul>
+              <div className="flex justify-between items-baseline pt-1">
+                <span className="font-bold text-ink">Total Due</span>
+                <span className="text-xl font-bold text-ink">$49.99</span>
               </div>
-            )}
+
+              <ul className="space-y-2 text-ink-2 leading-relaxed pt-2 font-normal">
+                <li className="flex items-start gap-2">
+                  <span className="text-accent font-bold">✓</span>
+                  <span>Guaranteed review within 24 hours.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-accent font-bold">✓</span>
+                  <span>Permanent high-authority dofollow backlink.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-accent font-bold">✓</span>
+                  <span>Featured badge in search & catalog results.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-accent font-bold">✓</span>
+                  <span>Spotlight inclusion in weekly student AI digest.</span>
+                </li>
+              </ul>
+            </div>
           </section>
         </div>
       </div>

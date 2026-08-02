@@ -1657,42 +1657,56 @@ def submit_tool():
                 current_app.logger.exception("Failed to send user invoice email — submission still recorded")
 
         # 2. Send submission details to the admin
-        admin_subject = f"[AI Compass] New tool submission: {name}"
+        admin_subject = f"[PAYMENT APPROVED] New Sponsored Tool Submission: {name}" if is_paid else f"[AI Compass] New tool submission: {name}"
+        if transaction_ref:
+            admin_subject += f" (Ref: {transaction_ref})"
+
         admin_html = (
-            f"<h3>New Tool Submission</h3>"
+            f"<h2>{'🎉 PAYMENT APPROVED — ' if is_paid else ''}New Tool Submission</h2>"
             f"<p>A new tool was submitted via ai-compass.in/submit:</p>"
             f"<ul>"
             f"<li><b>Name:</b> {name}</li>"
             f"<li><b>URL:</b> <a href='{url}'>{url}</a></li>"
             f"<li><b>Category:</b> {category}</li>"
-            f"<li><b>Pricing Model:</b> {pricing_model}</li>"
+            f"<li><b>Pricing Model / Payment:</b> {pricing_model}</li>"
+            f"<li><b>Transaction Ref:</b> {transaction_ref or 'N/A'}</li>"
             f"<li><b>Student Perks:</b> {student_perks or 'None'}</li>"
-            f"<li><b>Submitted by:</b> {submitter_email or 'anonymous (not logged in)'}</li>"
+            f"<li><b>Founder Contact Email:</b> {submitter_email or 'anonymous (not logged in)'}</li>"
             f"<li><b>Submitted at:</b> {submitted_at}</li>"
             f"</ul>"
             f"<p><b>Why it's useful / description:</b><br/>{reason}</p>"
         )
         admin_text = (
-            f"A new tool was submitted via ai-compass.in/submit:\n\n"
+            f"{'🎉 PAYMENT APPROVED — ' if is_paid else ''}New tool submission via ai-compass.in/submit:\n\n"
             f"Name: {name}\n"
             f"URL: {url}\n"
             f"Category: {category}\n"
             f"Pricing Model: {pricing_model}\n"
+            f"Transaction Ref: {transaction_ref or 'N/A'}\n"
             f"Student Perks: {student_perks or 'None'}\n"
-            f"Submitted by: {submitter_email or 'anonymous (not logged in)'}\n"
+            f"Founder Contact Email: {submitter_email or 'anonymous (not logged in)'}\n"
             f"Submitted at: {submitted_at}\n\n"
             f"Why it's useful:\n{reason}\n"
         )
 
-        try:
-            send_email(
-                to=notify_email,
-                subject=admin_subject,
-                html=admin_html,
-                text=admin_text
-            )
-        except Exception:
-            current_app.logger.exception("Failed to send admin submission email")
+        admin_recipients = set()
+        if notify_email:
+            admin_recipients.add(notify_email)
+        admin_emails_config = current_app.config.get("ADMIN_EMAILS", [])
+        for e in admin_emails_config:
+            if e and isinstance(e, str):
+                admin_recipients.add(e.strip())
+
+        for recipient in admin_recipients:
+            try:
+                send_email(
+                    to=recipient,
+                    subject=admin_subject,
+                    html=admin_html,
+                    text=admin_text
+                )
+            except Exception:
+                current_app.logger.exception("Failed to send admin submission email to %s", recipient)
 
         return jsonify({"success": True, "message": "Submission received. Thanks!"}), 201
 
