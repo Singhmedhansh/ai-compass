@@ -897,16 +897,27 @@ def find_twitter_handle_for_product(product_name, website_url):
     return None
 
 def run_discovery_pipeline():
-    """Fetches today's ranked PH launches + HN posts, verifies contacts, and drafts sponsorship proposals.
-    HARD REQUIREMENT: Products with NO verified contact (email OR Twitter) are NOT saved to the queue.
+    """Fetches today's ranked PH launches + HN posts, runs quality gates, and saves candidates.
+    Contact enrichment is best-effort — products without email are saved as 'no_email_found'
+    and shown in admin queue with a '+ Add Email' button.
     """
     ph_launches = fetch_producthunt_launches()
     hn_launches = fetch_shownews_launches()
     launches = ph_launches + hn_launches
     new_candidates_count = 0
-    skipped_no_contact = 0
+    skipped_not_deployed = 0
     skipped_not_relevant = 0
     skipped_not_commercial = 0
+    skipped_duplicate = 0
+
+    # Extra HN-specific title quality filter — skip tutorial/game/blog posts
+    HN_JUNK_TITLE_PATTERNS = [
+        "i built", "i made", "i wrote", "i created", "how to", "how i",
+        "terminal game", "browser game", "html5 game", "50 years", "hacking history",
+        "self-host", "self host", "code review agent", "what should", "what if",
+        "acid 3", "acid3", "gui for ai", "wage against", "distilling", "remade in html",
+        "censorship", "deepseek", "gpt-oss"
+    ]
 
     for l in launches:
         website_url = l.get("website_url", "")
@@ -914,9 +925,17 @@ def run_discovery_pipeline():
         tagline = l.get("tagline", "")
         founder_name = l.get("founder_name", "")
         twitter_from_ph = l.get("twitter_handle", "")
+        ph_id = l.get("ph_launch_id", "")
+
+        # Extra HN quality filter: reject blog posts / tutorial posts / game posts
+        if ph_id and ph_id.startswith("hn_"):
+            combined_lower = f"{product_name} {tagline}".lower()
+            if any(pat in combined_lower for pat in HN_JUNK_TITLE_PATTERNS):
+                continue
 
         # ── Gate 1: Must be a real deployed app (not GitHub, not repo)
         if not is_deployed_app_url(website_url):
+            skipped_not_deployed += 1
             continue
 
         # ── Gate 2: Must be relevant to students/developers
@@ -930,27 +949,21 @@ def run_discovery_pipeline():
             continue
 
         # ── Gate 4: Deduplication
-        if is_duplicate_candidate(product_name, website_url, l.get("ph_launch_id")):
+        if is_duplicate_candidate(product_name, website_url, ph_id):
+            skipped_duplicate += 1
             continue
 
-        # ── Gate 5: MUST have a verified contact (email OR Twitter/X handle)
-        # Try email first via full enrichment pipeline
+        # ── Contact enrichment (best-effort, not a hard gate)
         email, source, score = enrich_candidate_email(website_url, founder_name)
-        contact_twitter = twitter_from_ph  # Already resolved from PH page
+        contact_twitter = twitter_from_ph
 
-        # If no Twitter from PH, try scraping the product homepage
-        if not contact_twitter and not email:
+        # If no Twitter from PH, try scraping the product homepage for social links
+        if not contact_twitter:
             contact_twitter = find_twitter_handle_for_product(product_name, website_url)
 
-        # Hard skip: no contact at all → reject from queue entirely
-        if not email and not contact_twitter:
-            skipped_no_contact += 1
-            log.debug("Skipping %s — no email or Twitter contact found", product_name)
-            continue
-
-        # ── All gates passed: build and save candidate
+        # ── Build and save candidate
         c = OutreachCandidate()
-        c.ph_launch_id = l["ph_launch_id"]
+        c.ph_launch_id = ph_id
         c.product_name = product_name
         c.tagline = tagline
         c.website_url = website_url
@@ -962,12 +975,17 @@ def run_discovery_pipeline():
             c.email_source = source
             c.confidence_score = score
             c.status = "draft_ready"
-        else:
-            # Twitter-only contact: still create draft (email will be filled manually)
-            c.email = contact_twitter  # Store Twitter handle in email field so admin can see it
+        elif contact_twitter:
+            # Twitter-only: store handle so admin can DM or public-tweet
+            c.email = contact_twitter
             c.email_source = "twitter_handle"
             c.confidence_score = 70
             c.status = "draft_ready"
+        else:
+            # No contact found — save anyway so admin can manually add
+            c.email_source = "none"
+            c.confidence_score = 0
+            c.status = "no_email_found"
 
         subject, body = generate_draft_via_gemini(c)
         c.draft_subject = subject
@@ -980,8 +998,8 @@ def run_discovery_pipeline():
         db.session.commit()
 
     log.info(
-        "Discovery pipeline complete: %s new candidates saved | %s skipped (no contact) | %s skipped (not relevant) | %s skipped (no commercial signals)",
-        new_candidates_count, skipped_no_contact, skipped_not_relevant, skipped_not_commercial
+        "Discovery pipeline complete: %s saved | %s not deployed | %s not relevant | %s not commercial | %s duplicates",
+        new_candidates_count, skipped_not_deployed, skipped_not_relevant, skipped_not_commercial, skipped_duplicate
     )
     return new_candidates_count
 
