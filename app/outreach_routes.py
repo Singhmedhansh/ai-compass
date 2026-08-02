@@ -342,3 +342,52 @@ def run_cron():
     except Exception as e:
         current_app.logger.exception("Automated outreach cron job failed")
         return jsonify({"error": str(e)}), 500
+@outreach_bp.route("/api/v1/admin/outreach/diagnostics", methods=["GET"])
+@login_required
+def run_discovery_diagnostics():
+    if not _is_admin():
+        return jsonify({"error": "Forbidden"}), 403
+        
+    try:
+        log_lines = []
+        log_lines.append(f"PH Token configured: {bool(os.environ.get('PRODUCTHUNT_API_TOKEN'))}")
+        
+        ph_launches = fetch_producthunt_launches()
+        log_lines.append(f"Total PH launches fetched: {len(ph_launches)}")
+        
+        hn_launches = fetch_shownews_launches()
+        log_lines.append(f"Total HN launches fetched: {len(hn_launches)}")
+        
+        candidates = ph_launches + hn_launches
+        log_lines.append(f"Total combined candidates: {len(candidates)}")
+        
+        results = []
+        for c in candidates:
+            name = c.get("product_name", "")
+            url = c.get("website_url", "")
+            ph_id = c.get("ph_launch_id", "")
+            
+            reasons = []
+            if is_duplicate_candidate(name, url, ph_id):
+                reasons.append("DUPLICATE")
+            if not is_deployed_app_url(url):
+                reasons.append("NOT_DEPLOYED")
+            if not is_student_relevant(name, c.get("tagline", ""), url):
+                reasons.append("NOT_RELEVANT")
+            if not is_commercial_saas(url):
+                reasons.append("NOT_COMMERCIAL")
+                
+            results.append({
+                "name": name,
+                "url": url,
+                "id": ph_id,
+                "reasons": reasons if reasons else ["PASSED_ALL_GATES"]
+            })
+            
+        return jsonify({
+            "log": log_lines,
+            "results": results
+        })
+    except Exception as e:
+        import traceback
+        return jsonify({"error": str(e), "traceback": traceback.format_exc()})
