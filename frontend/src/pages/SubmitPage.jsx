@@ -433,6 +433,58 @@ export default function SubmitPage() {
           </div>
 
         </div>
+
+        {/* Feature Comparison Table */}
+        <div className="mt-8 rounded-2xl border border-line bg-bg p-4 sm:p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-xs font-bold text-ink uppercase tracking-wider">Tier Comparison Matrix</h3>
+            <span className="text-[10px] text-accent font-semibold bg-accent-soft px-2 py-0.5 rounded-full">Clear Value Guarantee</span>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead>
+                <tr className="border-b border-line text-ink font-bold">
+                  <th className="py-2.5 px-3 w-2/5">Feature / Benefit</th>
+                  <th className="py-2.5 px-3 text-center w-3/10 text-ink-2">Free Suggestion</th>
+                  <th className="py-2.5 px-3 text-center w-3/10 text-accent">⚡ Fast-Track Sponsored</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-line/45 text-ink-2">
+                <tr>
+                  <td className="py-3 px-3 font-semibold text-ink">Review & Indexing Speed</td>
+                  <td className="py-3 px-3 text-center text-muted-2">2 - 3 Weeks Queue</td>
+                  <td className="py-3 px-3 text-center font-bold text-accent">⚡ &lt; 24 Hours Guaranteed</td>
+                </tr>
+                <tr>
+                  <td className="py-3 px-3 font-semibold text-ink">Directory Ranking & Position</td>
+                  <td className="py-3 px-3 text-center text-muted-2">Standard Queue</td>
+                  <td className="py-3 px-3 text-center font-bold text-ink">🌟 Pinned Top 3 Position</td>
+                </tr>
+                <tr>
+                  <td className="py-3 px-3 font-semibold text-ink">Gold "FEATURED" Badge</td>
+                  <td className="py-3 px-3 text-center text-danger">✕ No</td>
+                  <td className="py-3 px-3 text-center font-bold text-accent">✓ Included</td>
+                </tr>
+                <tr>
+                  <td className="py-3 px-3 font-semibold text-ink">SEO Backlink Status</td>
+                  <td className="py-3 px-3 text-center text-muted-2">Standard (`nofollow`)</td>
+                  <td className="py-3 px-3 text-center font-bold text-ink">🚀 High-Authority `dofollow`</td>
+                </tr>
+                <tr>
+                  <td className="py-3 px-3 font-semibold text-ink">Weekly Student AI Digest Feature</td>
+                  <td className="py-3 px-3 text-center text-danger">✕ Excluded</td>
+                  <td className="py-3 px-3 text-center font-bold text-accent">📩 Guaranteed Newsletter Spotlight</td>
+                </tr>
+                <tr>
+                  <td className="py-3 px-3 font-semibold text-ink">Placement Guarantee</td>
+                  <td className="py-3 px-3 text-center text-muted-2">Subject to Audit</td>
+                  <td className="py-3 px-3 text-center font-bold text-ink">🛡️ 100% Guaranteed Listing</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
