@@ -613,15 +613,21 @@ Write an outreach email for this candidate:
 
 def get_generic_draft(candidate):
     """A fallback template if Gemini API fails or is unconfigured."""
-    subject = f"Featured placement on AI Compass — {candidate.product_name} launch"
+    subject = f"Featured placement on AI Compass — {candidate.product_name}"
     body = f"""<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; color: #334155; line-height: 1.6;">
 <p>Hey {candidate.founder_name or 'Team'},</p>
-<p>Congrats on the launch of <b>{candidate.product_name}</b>! We love what you are building.</p>
-<p>I run <a href="https://ai-compass.in" style="color: #059669; font-weight: 500;">AI Compass</a>, a curated directory where students and developers discover AI tools. We think {candidate.product_name} would be a fantastic resource for our audience.</p>
-<div style="border-left: 3px solid #10b981; padding-left: 14px; margin: 16px 0; background-color: #f8fafc; padding: 12px 14px; border-radius: 0 8px 8px 0;">
-  <p style="margin: 0; font-size: 13px; color: #475569;">To help with your launch momentum, we can feature you on our platform. You can submit your tool to our fast-track queue here: <a href="https://ai-compass.in/submit" style="color: #059669; font-weight: 600;">ai-compass.in/submit</a>.</p>
+<p>I came across <b>{candidate.product_name}</b> and love what you are building. It looks like a fantastic resource for tech-savvy students and developers.</p>
+<p>I run <a href="https://ai-compass.in" style="color: #059669; font-weight: 600;">AI Compass</a>, a curated directory with <b>2,000+ monthly active visitors</b>, <b>4,000+ students powered</b>, and <b>100K+ Google search impressions</b>.</p>
+<div style="border-left: 3px solid #10b981; padding-left: 14px; margin: 16px 0; background-color: #f8fafc; padding: 14px; border-radius: 0 8px 8px 0;">
+  <p style="margin: 0; font-size: 13px; color: #334155;"><b>Fast-Track Sponsored Curation ($49.99 one-time):</b></p>
+  <ul style="margin: 8px 0 0 0; padding-left: 18px; font-size: 13px; color: #475569;">
+    <li>Guaranteed 24-hour priority editorial review and frontpage listing</li>
+    <li>Permanent high-authority dofollow SEO backlink to {candidate.website_url or candidate.product_name}</li>
+    <li>Spotlight inclusion in our weekly student AI digest</li>
+  </ul>
+  <p style="margin: 10px 0 0 0; font-size: 13px; color: #059669; font-weight: 600;">Submit your product here: <a href="https://ai-compass.in/submit" style="color: #059669; text-decoration: underline;">ai-compass.in/submit</a></p>
 </div>
-<p>Congrats again on the launch!</p>
+<p>Let me know if you have any questions!</p>
 <div style="margin-top: 24px; padding-top: 14px; border-top: 1px solid #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
   <div style="font-weight: 600; color: #0f172a; font-size: 14px;">Medhansh Pratap Singh</div>
   <div style="color: #64748b; font-size: 12px; margin-top: 2px;">Founder, <a href="https://ai-compass.in" style="color: #059669; text-decoration: none; font-weight: 500;">AI Compass</a></div>
