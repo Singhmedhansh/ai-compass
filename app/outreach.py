@@ -158,52 +158,123 @@ def is_duplicate_candidate(product_name, website_url, ph_launch_id=None):
     return False
 
 # ─── 1. DISCOVERY VIA PRODUCT HUNT & HACKER NEWS ─────────────────────────────
-def scrape_producthunt_public_feed():
-    """Scrapes Product Hunt homepage HTML to extract top daily featured products without requiring API tokens."""
-    url = "https://www.producthunt.com/"
+MIN_PH_VOTES = 10  # Skip products with fewer votes — low traction = no marketing budget
+
+def _resolve_ph_post_details(slug):
+    """Fetches real website URL, votes count, and maker Twitter handle from a PH post page."""
+    url = f"https://www.producthunt.com/posts/{slug}"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+    }
+    result = {"website": None, "votes": 0, "twitter": None, "maker_name": None}
+    try:
+        r = requests.get(url, headers=headers, timeout=5)
+        if r.ok:
+            text = r.text
+            # Extract real website URL
+            m = re.search(r'"website":"(https?://[^"]+)"', text)
+            if m:
+                result["website"] = m.group(1)
+            # Extract vote count
+            v = re.search(r'"votesCount":(\d+)', text)
+            if v:
+                result["votes"] = int(v.group(1))
+            # Extract maker Twitter handle
+            t = re.search(r'"twitterUsername":"([^"]+)"', text)
+            if t and t.group(1):
+                result["twitter"] = f"@{t.group(1)}"
+            # Extract maker name
+            mk = re.search(r'"makerOf".*?"name":"([^"]+)"', text)
+            if not mk:
+                mk = re.search(r'"makers".*?"name":"([^"]+)"', text)
+            if mk:
+                result["maker_name"] = mk.group(1)
+    except Exception as e:
+        log.debug("PH post resolve failed for %s: %s", slug, e)
+    return result
+
+def scrape_producthunt_ranked_posts():
+    """Scrapes PH homepage for today's ranked top products, resolves real URLs and votes in parallel.
+    Only returns products with 10+ votes (real traction = real marketing budget)."""
+    from concurrent.futures import ThreadPoolExecutor
+
+    home_url = "https://www.producthunt.com/"
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
         "Accept-Language": "en-US,en;q=0.9"
     }
-    candidates = []
+    raw_posts = []
     seen_slugs = set()
 
     try:
-        r = requests.get(url, headers=headers, timeout=6)
+        r = requests.get(home_url, headers=headers, timeout=6)
         if r.ok:
             matches = re.findall(r'"name":"([^"]+)","slug":"([^"]+)","tagline":"([^"]+)"', r.text)
             for name, slug, tagline in matches:
                 if slug in seen_slugs or len(name) < 2 or len(tagline) < 5:
                     continue
+                # Skip obvious category/topic slugs
+                if any(skip in slug for skip in ["artificial-intelligence", "developer-tools", "productivity", "saas", "open-source"]):
+                    continue
                 seen_slugs.add(slug)
-
                 name_clean = name.encode().decode('unicode-escape') if '\\u' in name else name
                 tagline_clean = tagline.encode().decode('unicode-escape') if '\\u' in tagline else tagline
-
-                website_url = f"https://{slug.replace('-free', '').replace('-app', '')}.com"
-                
-                candidates.append({
-                    "ph_launch_id": f"ph_web_{slug}",
-                    "product_name": name_clean[:80],
-                    "tagline": tagline_clean[:160],
-                    "website_url": website_url,
-                    "founder_name": ""
-                })
+                raw_posts.append({"name": name_clean[:80], "slug": slug, "tagline": tagline_clean[:160]})
     except Exception as e:
-        log.warning("Product Hunt public HTML scraper error: %s", e)
+        log.warning("PH homepage scrape error: %s", e)
+        return []
 
+    if not raw_posts:
+        return []
+
+    # Resolve real URLs, votes, Twitter handles in parallel (max 6 threads to avoid rate limiting)
+    log.info("Resolving details for %s PH candidates...", len(raw_posts))
+    def _resolve(post):
+        details = _resolve_ph_post_details(post["slug"])
+        post.update(details)
+        return post
+
+    with ThreadPoolExecutor(max_workers=6) as ex:
+        resolved = list(ex.map(_resolve, raw_posts[:50]))
+
+    candidates = []
+    for p in resolved:
+        website = p.get("website")
+        votes = p.get("votes", 0)
+
+        # Hard gate: must have real traction (votes >= MIN_PH_VOTES)
+        if votes < MIN_PH_VOTES:
+            log.debug("Skipping %s — only %s votes (min %s)", p["name"], votes, MIN_PH_VOTES)
+            continue
+
+        # Must have a real deployable website (not GitHub/repo)
+        if not website or not is_deployed_app_url(website):
+            continue
+
+        candidates.append({
+            "ph_launch_id": f"ph_web_{p['slug']}",
+            "product_name": p["name"],
+            "tagline": p["tagline"],
+            "website_url": website,
+            "founder_name": p.get("maker_name") or "",
+            "twitter_handle": p.get("twitter") or "",
+            "votes": votes
+        })
+
+    log.info("PH public scraper: %s products with %s+ votes and real URLs", len(candidates), MIN_PH_VOTES)
     return candidates
 
 def fetch_producthunt_launches():
-    """Fetches PH launches via GraphQL API token AND public HTML feed scraper."""
+    """Fetches PH launches via GraphQL API token (if available) and ranked public HTML scraper."""
     candidates = []
-    seen_ids = set()
+    seen_slugs = set()
 
-    # 1. API GraphQL fetch if token exists
+    # 1. API GraphQL fetch if token is configured
     token = os.environ.get("PRODUCTHUNT_API_TOKEN")
     if token:
-        url = "https://api.producthunt.com/v2/api/graphql"
+        api_url = "https://api.producthunt.com/v2/api/graphql"
         headers = {
             "Authorization": f"Bearer {token}",
             "Content-Type": "application/json"
@@ -213,52 +284,54 @@ def fetch_producthunt_launches():
           posts(first: 50) {
             edges {
               node {
-                id
-                name
-                tagline
-                website
-                makers {
-                  name
-                }
+                id name tagline website
+                votesCount
+                makers { name twitterUsername }
               }
             }
           }
         }
         """
         try:
-            r = requests.post(url, json={"query": query}, headers=headers, timeout=10)
+            r = requests.post(api_url, json={"query": query}, headers=headers, timeout=10)
             if r.ok:
-                data = r.json()
-                edges = data.get("data", {}).get("posts", {}).get("edges", [])
+                edges = r.json().get("data", {}).get("posts", {}).get("edges", [])
                 for edge in edges:
                     node = edge.get("node", {})
-                    ph_id = node.get("id")
+                    ph_id = str(node.get("id", ""))
                     name = node.get("name")
-                    tagline = node.get("tagline")
+                    tagline = node.get("tagline", "")
                     website = node.get("website")
+                    votes = node.get("votesCount", 0)
                     makers = node.get("makers", [])
-                    founder = makers[0].get("name") if makers else None
+                    founder = makers[0].get("name") if makers else ""
+                    twitter = f"@{makers[0].get('twitterUsername')}" if makers and makers[0].get("twitterUsername") else ""
 
-                    if not name or not website or not is_deployed_app_url(website):
+                    if votes < MIN_PH_VOTES or not name or not website or not is_deployed_app_url(website):
                         continue
 
-                    seen_ids.add(str(ph_id))
+                    slug_key = name.lower().replace(" ", "-")
+                    seen_slugs.add(slug_key)
                     candidates.append({
-                        "ph_launch_id": str(ph_id),
+                        "ph_launch_id": ph_id,
                         "product_name": name,
                         "tagline": tagline or f"{name} AI Tool",
                         "website_url": website,
-                        "founder_name": founder
+                        "founder_name": founder,
+                        "twitter_handle": twitter,
+                        "votes": votes
                     })
         except Exception as e:
-            log.warning("Product Hunt GraphQL fetch failed: %s", e)
+            log.warning("PH GraphQL fetch failed: %s", e)
 
-    # 2. Public HTML scraper fallback/supplement (captures Zinley, Capptivo, YourSitee, Lumichats, Zen Whisper, Finamie, etc.)
-    web_candidates = scrape_producthunt_public_feed()
-    for wc in web_candidates:
-        if wc["ph_launch_id"] not in seen_ids:
+    # 2. Public ranked HTML scraper — captures Zinley, Capptivo, YourSitee, Zen Whisper, Finamie, etc.
+    for wc in scrape_producthunt_ranked_posts():
+        slug_key = wc["product_name"].lower().replace(" ", "-")
+        if slug_key not in seen_slugs:
+            seen_slugs.add(slug_key)
             candidates.append(wc)
 
+    log.info("Total PH candidates after combined fetch: %s", len(candidates))
     return candidates
 
 def fetch_shownews_launches():
@@ -686,32 +759,86 @@ def infer_tone(tagline, description):
 
 
 # ─── 4. RUN PIPELINE JOBS ──────────────────────────────────────────────────
+def find_twitter_handle_for_product(product_name, website_url):
+    """Searches for an X/Twitter handle by scraping the product's homepage for social links."""
+    try:
+        headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+        resp = requests.get(website_url, headers=headers, timeout=2.5, allow_redirects=True)
+        if resp.ok:
+            soup = BeautifulSoup(resp.text, "html.parser")
+            for a in soup.find_all("a", href=True):
+                href = a["href"]
+                # Match twitter.com/handle or x.com/handle patterns
+                m = re.search(r'(?:twitter\.com|x\.com)/([A-Za-z0-9_]{1,50})(?:[/?]|$)', href)
+                if m:
+                    handle = m.group(1)
+                    # Skip generic pages like /home, /share, /intent
+                    if handle.lower() not in {"home", "share", "intent", "search", "hashtag", "i"}:
+                        return f"@{handle}"
+    except Exception:
+        pass
+    return None
+
 def run_discovery_pipeline():
-    """Fetches today's launches from PH & Hacker News, resolves emails, and drafts proposal content."""
+    """Fetches today's ranked PH launches + HN posts, verifies contacts, and drafts sponsorship proposals.
+    HARD REQUIREMENT: Products with NO verified contact (email OR Twitter) are NOT saved to the queue.
+    """
     ph_launches = fetch_producthunt_launches()
     hn_launches = fetch_shownews_launches()
     launches = ph_launches + hn_launches
     new_candidates_count = 0
+    skipped_no_contact = 0
+    skipped_not_relevant = 0
+    skipped_not_commercial = 0
 
     for l in launches:
-        if not is_deployed_app_url(l["website_url"]):
-            continue
-        if not is_student_relevant(l["product_name"], l["tagline"], l["website_url"]):
-            continue
-        if not is_commercial_saas(l["website_url"]):
-            continue
-        if is_duplicate_candidate(l["product_name"], l["website_url"], l.get("ph_launch_id")):
+        website_url = l.get("website_url", "")
+        product_name = l.get("product_name", "")
+        tagline = l.get("tagline", "")
+        founder_name = l.get("founder_name", "")
+        twitter_from_ph = l.get("twitter_handle", "")
+
+        # ── Gate 1: Must be a real deployed app (not GitHub, not repo)
+        if not is_deployed_app_url(website_url):
             continue
 
+        # ── Gate 2: Must be relevant to students/developers
+        if not is_student_relevant(product_name, tagline, website_url):
+            skipped_not_relevant += 1
+            continue
+
+        # ── Gate 3: Must have commercial signals (pricing, paid plan, etc.)
+        if not is_commercial_saas(website_url):
+            skipped_not_commercial += 1
+            continue
+
+        # ── Gate 4: Deduplication
+        if is_duplicate_candidate(product_name, website_url, l.get("ph_launch_id")):
+            continue
+
+        # ── Gate 5: MUST have a verified contact (email OR Twitter/X handle)
+        # Try email first via full enrichment pipeline
+        email, source, score = enrich_candidate_email(website_url, founder_name)
+        contact_twitter = twitter_from_ph  # Already resolved from PH page
+
+        # If no Twitter from PH, try scraping the product homepage
+        if not contact_twitter and not email:
+            contact_twitter = find_twitter_handle_for_product(product_name, website_url)
+
+        # Hard skip: no contact at all → reject from queue entirely
+        if not email and not contact_twitter:
+            skipped_no_contact += 1
+            log.debug("Skipping %s — no email or Twitter contact found", product_name)
+            continue
+
+        # ── All gates passed: build and save candidate
         c = OutreachCandidate()
         c.ph_launch_id = l["ph_launch_id"]
-        c.product_name = l["product_name"]
-        c.tagline = l["tagline"]
-        c.website_url = l["website_url"]
-        c.founder_name = l["founder_name"]
-        c.tone = infer_tone(l["tagline"], "")
-
-        email, source, score = enrich_candidate_email(l["website_url"], l["founder_name"])
+        c.product_name = product_name
+        c.tagline = tagline
+        c.website_url = website_url
+        c.founder_name = founder_name
+        c.tone = infer_tone(tagline, "")
 
         if email:
             c.email = email
@@ -719,8 +846,11 @@ def run_discovery_pipeline():
             c.confidence_score = score
             c.status = "draft_ready"
         else:
-            c.email_source = "none"
-            c.status = "no_email_found"
+            # Twitter-only contact: still create draft (email will be filled manually)
+            c.email = contact_twitter  # Store Twitter handle in email field so admin can see it
+            c.email_source = "twitter_handle"
+            c.confidence_score = 70
+            c.status = "draft_ready"
 
         subject, body = generate_draft_via_gemini(c)
         c.draft_subject = subject
@@ -731,8 +861,11 @@ def run_discovery_pipeline():
 
     if new_candidates_count > 0:
         db.session.commit()
-        log.info("Outreach discovery pipeline created %s new candidates.", new_candidates_count)
 
+    log.info(
+        "Discovery pipeline complete: %s new candidates saved | %s skipped (no contact) | %s skipped (not relevant) | %s skipped (no commercial signals)",
+        new_candidates_count, skipped_no_contact, skipped_not_relevant, skipped_not_commercial
+    )
     return new_candidates_count
 
 def re_enrich_missing_candidate_emails():
