@@ -1009,11 +1009,13 @@ def run_discovery_pipeline():
         c.draft_subject = subject
         c.draft_body = body
 
-        db.session.add(c)
-        new_candidates_count += 1
-
-    if new_candidates_count > 0:
-        db.session.commit()
+        try:
+            db.session.add(c)
+            db.session.commit()
+            new_candidates_count += 1
+        except Exception as e:
+            db.session.rollback()
+            log.warning("Skipping save for %s (id: %s) due to database error: %s", product_name, ph_id, e)
 
     log.info(
         "Discovery pipeline complete: %s saved | %s not deployed | %s not relevant | %s not commercial | %s duplicates",
