@@ -1,5 +1,6 @@
 import os
 import time
+import threading
 from datetime import datetime, timezone
 from flask import Blueprint, jsonify, request, current_app
 from flask_login import login_required, current_user
@@ -24,6 +25,18 @@ from app.outreach import (
 )
 
 outreach_bp = Blueprint("outreach", __name__)
+
+# Discovery and re-enrich are both CPU/network-heavy on a free-tier,
+# single-shared-vCPU instance. Letting two of these run concurrently (e.g.
+# an admin clicking both buttons in quick succession, or the daily cron
+# firing mid-manual-run) is what starved the process enough to stop
+# answering even /healthz. This lock makes that structurally impossible —
+# a second trigger while one is already running is rejected outright rather
+# than silently stacking more concurrent load.
+_outreach_job_lock = threading.Lock()
+
+def _outreach_job_running():
+    return _outreach_job_lock.locked()
 
 def _is_admin() -> bool:
     if not getattr(current_user, "is_authenticated", False):
@@ -299,6 +312,9 @@ def trigger_discovery():
     if not _is_admin():
         return jsonify({"error": "Forbidden"}), 403
 
+    if not _outreach_job_lock.acquire(blocking=False):
+        return jsonify({"error": "Another discovery/re-enrich job is already running — wait for it to finish before starting another."}), 409
+
     try:
         # run_discovery_pipeline() calls enrich_candidate_email() sequentially
         # for every qualifying candidate it finds, and each of those can chain
@@ -312,18 +328,21 @@ def trigger_discovery():
         app_ctx = app_obj.app_context()
 
         def _bg():
-            with app_ctx:
-                try:
-                    new_count = run_discovery_pipeline()
-                    app_obj.logger.info("Background discovery completed: %s new candidates.", new_count)
-                except Exception as ex:
-                    app_obj.logger.exception("Background discovery failed: %s", ex)
+            try:
+                with app_ctx:
+                    try:
+                        new_count = run_discovery_pipeline()
+                        app_obj.logger.info("Background discovery completed: %s new candidates.", new_count)
+                    except Exception as ex:
+                        app_obj.logger.exception("Background discovery failed: %s", ex)
+            finally:
+                _outreach_job_lock.release()
 
-        import threading
         threading.Thread(target=_bg, name="discovery-bg", daemon=True).start()
 
         return jsonify({"success": True, "message": "Discovery running in background"}), 202
     except Exception as e:
+        _outreach_job_lock.release()
         current_app.logger.exception("Failed to start discovery pipeline")
         return jsonify({"error": str(e)}), 500
 
@@ -333,27 +352,33 @@ def trigger_discovery():
 def trigger_re_enrich():
     if not _is_admin():
         return jsonify({"error": "Forbidden"}), 403
-        
+
+    if not _outreach_job_lock.acquire(blocking=False):
+        return jsonify({"error": "Another discovery/re-enrich job is already running — wait for it to finish before starting another."}), 409
+
     try:
         app_obj = current_app._get_current_object()
         app_ctx = app_obj.app_context()
 
         def _bg():
-            with app_ctx:
-                try:
-                    result = re_enrich_missing_candidate_emails()
-                    app_obj.logger.info(
-                        "Background re-verification completed: %s emails fixed, %s names fixed, %s drafts regenerated.",
-                        result.get("emails_fixed", 0), result.get("names_fixed", 0), result.get("drafts_regenerated", 0)
-                    )
-                except Exception as ex:
-                    app_obj.logger.exception("Background re-enrichment failed: %s", ex)
+            try:
+                with app_ctx:
+                    try:
+                        result = re_enrich_missing_candidate_emails()
+                        app_obj.logger.info(
+                            "Background re-verification completed: %s emails fixed, %s names fixed, %s drafts regenerated.",
+                            result.get("emails_fixed", 0), result.get("names_fixed", 0), result.get("drafts_regenerated", 0)
+                        )
+                    except Exception as ex:
+                        app_obj.logger.exception("Background re-enrichment failed: %s", ex)
+            finally:
+                _outreach_job_lock.release()
 
-        import threading
         threading.Thread(target=_bg, name="re-enrichment-bg", daemon=True).start()
 
         return jsonify({"success": True, "message": "Re-verifying emails and founder names in the background"}), 202
     except Exception as e:
+        _outreach_job_lock.release()
         current_app.logger.exception("Failed to run re-enrichment pipeline")
         return jsonify({"error": str(e)}), 500
 
@@ -374,12 +399,15 @@ def run_cron():
         
     if auth_header != secret and token_arg != secret:
         return jsonify({"error": "Unauthorized"}), 401
-        
+
+    if not _outreach_job_lock.acquire(blocking=False):
+        return jsonify({"error": "Another discovery/re-enrich job is already running — skipping this cron tick."}), 409
+
     try:
         # Run daily job
         new_candidates = run_discovery_pipeline()
         sent_followups = run_automated_followups()
-        
+
         return jsonify({
             "status": "success",
             "new_candidates_discovered": new_candidates,
@@ -388,6 +416,8 @@ def run_cron():
     except Exception as e:
         current_app.logger.exception("Automated outreach cron job failed")
         return jsonify({"error": str(e)}), 500
+    finally:
+        _outreach_job_lock.release()
 @outreach_bp.route("/api/v1/admin/outreach/diagnostics", methods=["GET"])
 @login_required
 def run_discovery_diagnostics():
