@@ -560,53 +560,91 @@ def fetch_shownews_launches():
     return candidates
 
 # ─── 2. EMAIL DISCOVERY (SCRAPE + GITHUB + RDAP + HUNTER.IO) ─────────────────
-def scrape_website_for_email(url):
-    """Scrapes homepage and contact subpages looking for mailto links or regex match emails."""
+
+# Shared-inbox prefixes — an email here almost never reaches the person who
+# can personally approve a $49.99 spend. Ranked below a founder-matching or
+# neutral personal address; only used if nothing better turns up.
+ROLE_INBOX_PREFIXES = {
+    "info", "hello", "hi", "contact", "support", "sales", "admin", "help",
+    "team", "noreply", "no-reply", "press", "media", "jobs", "careers",
+    "hr", "billing", "office", "general", "enquiries", "inquiries",
+    "marketing", "partnerships", "legal", "privacy",
+}
+
+def _score_email_candidate(email, founder_name=""):
+    """Ranks a discovered email by how likely it is to reach an actual
+    decision-maker instead of a shared inbox — a founder-matching or
+    personal address gets far better reply rates than info@/support@.
+    """
+    local = email.split("@", 1)[0].lower()
+    score = 50
+    if founder_name:
+        name_parts = [p for p in re.split(r"[\s._-]+", founder_name.lower()) if len(p) > 1]
+        if any(part in local for part in name_parts):
+            score += 40
+    if local in ROLE_INBOX_PREFIXES or any(local.startswith(p) for p in ROLE_INBOX_PREFIXES):
+        score -= 25
+    return score
+
+def scrape_website_for_email(url, founder_name=""):
+    """Scrapes homepage and contact subpages, collecting every plausible email
+    across all pages checked and returning the best-ranked one — a
+    founder-matching or personal address beats a generic info@/support@
+    inbox, since a cold pitch needs to reach whoever can actually say yes.
+    """
     try:
         headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
-        
+        found = []  # list of (email, source, score)
+
         def extract_emails_from_html(html):
             if not html:
-                return None
+                return []
             soup = BeautifulSoup(html, "html.parser")
+            emails = set()
+
             for a in soup.find_all("a", href=True):
                 href = a["href"].strip()
                 if href.lower().startswith("mailto:"):
                     email = href[7:].split("?")[0].strip()
                     if is_valid_email(email):
-                        return email
-            
-            # Check meta tags
+                        emails.add(email)
+
             for meta in soup.find_all("meta"):
                 content = meta.get("content", "")
                 if "@" in content:
                     for part in content.split():
                         if is_valid_email(part):
-                            return part
+                            emails.add(part)
 
             text = soup.get_text()
-            matches = re.findall(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}", text)
-            for m in matches:
+            for m in re.findall(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}", text):
                 if is_valid_email(m):
-                    return m
+                    emails.add(m)
 
-            # Obfuscated emails check (e.g. contact [at] domain.com)
-            obf_matches = re.findall(r"([a-zA-Z0-9._%+-]+)\s*\[?\s*(?:at|AT|@)\s*\]?\s*([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})", text)
-            for prefix, domain in obf_matches:
+            # Obfuscated emails (e.g. contact [at] domain.com)
+            for prefix, domain in re.findall(r"([a-zA-Z0-9._%+-]+)\s*\[?\s*(?:at|AT|@)\s*\]?\s*([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})", text):
                 cand = f"{prefix}@{domain}"
                 if is_valid_email(cand):
-                    return cand
+                    emails.add(cand)
 
-            return None
+            return list(emails)
 
-        # 1. Check homepage first
+        def add_candidates(html, source):
+            for email in extract_emails_from_html(html):
+                found.append((email, source, _score_email_candidate(email, founder_name)))
+
+        # 1. Homepage
         home_html = None
         resp = requests.get(url, headers=headers, timeout=4, allow_redirects=True)
         if resp.ok:
             home_html = resp.text
-            email = extract_emails_from_html(home_html)
-            if email:
-                return email, "web_scraper"
+            add_candidates(home_html, "web_scraper")
+
+        # A founder-name match on the homepage is about as good as this
+        # pipeline gets — no need to keep crawling for something better.
+        if any(score >= 90 for _, _, score in found):
+            best = max(found, key=lambda t: t[2])
+            return best[0], best[1]
 
         # 2. Follow real contact/about/team/support links found in the homepage's own
         # nav/footer — catches sites that don't use the guessed path (e.g. /reach-us,
@@ -632,29 +670,29 @@ def scrape_website_for_email(url):
                                 try:
                                     sub_resp = requests.get(full, headers=headers, timeout=3, allow_redirects=True)
                                     if sub_resp.ok:
-                                        email = extract_emails_from_html(sub_resp.text)
-                                        if email:
-                                            return email, "scraper_linked_page"
+                                        add_candidates(sub_resp.text, "scraper_linked_page")
                                 except Exception:
                                     pass
             except Exception:
                 pass
 
-        # 3. Check common fixed subpages not already covered above
-        if base_url:
+        # 3. Check common fixed subpages — only worth the extra requests if we
+        # haven't already found at least a neutral (non-role) address.
+        if base_url and (not found or max(s for _, _, s in found) < 50):
             for path in ["/contact", "/about", "/privacy", "/team", "/support", "/help", "/legal", "/imprint"]:
                 if path in followed_paths:
                     continue
                 try:
                     sub_resp = requests.get(base_url + path, headers=headers, timeout=3, allow_redirects=True)
                     if sub_resp.ok:
-                        email = extract_emails_from_html(sub_resp.text)
-                        if email:
-                            return email, f"scraper_{path.replace('/', '')}"
+                        add_candidates(sub_resp.text, f"scraper_{path.replace('/', '')}")
                 except Exception:
                     pass
 
-        return None, ""
+        if not found:
+            return None, ""
+        best = max(found, key=lambda t: t[2])
+        return best[0], best[1]
     except Exception as e:
         log.debug("Scraping email failed for %s: %s", url, e)
         return None, ""
@@ -802,7 +840,7 @@ def find_email_via_pattern_guess(website_url):
 def enrich_candidate_email(website_url, founder_name=""):
     """Comprehensive discovery pipeline combining Scraper, GitHub, RDAP, Hunter.io, and pattern guessing."""
     # 1. Scrape homepage and subpages
-    email, source = scrape_website_for_email(website_url)
+    email, source = scrape_website_for_email(website_url, founder_name)
     if email:
         return email, source or "web_scraper", 90
 
@@ -849,28 +887,40 @@ def generate_draft_via_gemini(candidate):
 
     system_prompt = """
 You are Medhansh Pratap Singh, Founder of AI Compass (https://ai-compass.in) - a curated directory for tech-savvy students, developers, and creators.
-Your task is to write a highly targeted, compelling outreach email to a commercial AI SaaS product proposing Fast-Track Sponsored Curation.
+Write a short, high-converting cold outreach email pitching Fast-Track Sponsored Curation to the founder of a SaaS product. The reader gets dozens of
+cold emails a week and decides whether to keep reading within the first line. Your only job is to get them to click the link and pay $49.99 — write
+like a founder personally reaching out to another founder, not like a marketing blast.
 
-Key AI Compass Metrics to include in the email pitch:
-- 2,000+ Monthly Active Visitors
-- 4,000+ Students & Developers Powered
-- 100K+ Google Search Impressions
-- Top 15 Google Search Rankings for student AI queries
+CONVERSION STRUCTURE (follow this order, this is what makes it work):
+1. Opening line (1 sentence): reference ONE concrete, specific detail about their product — its exact tagline, a feature, or the specific problem it
+   solves for students/developers. Prove in the first sentence that this isn't a template. Never open with "I came across X" or "I hope this finds
+   you well" — those are the two biggest tells of a mass-blasted email and cause instant deletion.
+2. Bridge (1 sentence): connect that specific detail to why AI Compass's audience (students/developers actively searching for tools like theirs) is
+   exactly who they want finding them.
+3. Proof, stated as outcomes not just numbers: "2,000+ monthly active visitors and 100K+ Google search impressions from students actively looking for
+   tools like [product]" reads stronger than a bare stat dump — anchor the numbers to THEIR situation.
+4. The offer as a tight, scannable bullet list (keep exactly these three, do not add more):
+   - Guaranteed 24-hour priority review and frontpage listing
+   - Permanent high-authority dofollow SEO backlink to their site
+   - Spotlight in the weekly Student AI Digest
+5. One line of genuine urgency/personal stake — something true, not fabricated scarcity: e.g. that submissions are reviewed personally within 24
+   hours, or that early listings in a category compound in SEO value over time. Never invent fake countdown timers or "only 2 spots left" claims.
+6. A single, unambiguous call to action: one sentence + the link https://ai-compass.in/submit. Do not add a second competing CTA.
+7. Sign-off, then a P.S. line that restates the strongest single hook (the 24-hour guarantee or the backlink) in one short sentence — P.S. lines get
+   read even by skimmers and are proven to lift reply rates.
 
-Pricing & Perks:
-- Fast-Track Sponsored Curation: $49.99 one-time
-- Guaranteed 24-Hour Review & Listing
-- Permanent High-Authority Dofollow SEO Backlink
-- Spotlight Inclusion in Weekly Student AI Digest
-
-CRITICAL RULES:
-- Do NOT use emojis anywhere in the subject line or email body. Keep it clean and professional.
-- Tailor the email specifically to the target product name, tagline/description, website, and founder name.
-- Highlight how their SaaS tool specifically benefits students, developers, or creators.
-- Always output valid JSON with exactly two fields: "subject" and "body".
-- The "body" must be formatted as clean HTML with a modern, readable font stack (using <p>, <br>, <b>, <ul>, <li>, and <a> tags).
-- Make sure the body ends with a clear link to https://ai-compass.in/submit.
-- Always sign the email with this exact HTML signature:
+HARD CONSTRAINTS:
+- Body text (excluding the bullet list and signature) must be under 130 words total. Cold emails that take longer than 20 seconds to read get archived
+  unread. Cut every sentence that doesn't directly serve steps 1-7 above.
+- No emojis anywhere. No exclamation points except at most one, and only if it reads natural, not salesy.
+- No spam-trigger phrasing: avoid "FREE", "ACT NOW", "$$$", ALL CAPS words, or more than one "!!!"-style emphasis.
+- Never fabricate claims not in the metrics/perks below (no fake testimonials, no fake urgency, no invented statistics).
+- Output valid JSON with exactly two fields: "subject" and "body".
+- Subject line: under 50 characters, reads like a real 1:1 email a person would send (e.g. mentioning the product by name), never generic corporate
+  phrasing like "Exciting Partnership Opportunity" or "Featured Placement Offer".
+- The "body" must be clean HTML using <p>, <br>, <b>, <ul>, <li>, and <a> tags only — no <style> blocks, no tables, no images.
+- The body's final CTA sentence must link to https://ai-compass.in/submit.
+- Always end with exactly this HTML signature block (verbatim, after the P.S. line):
 <div style="margin-top: 24px; padding-top: 14px; border-top: 1px solid #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
   <div style="font-weight: 600; color: #0f172a; font-size: 14px;">Medhansh Pratap Singh</div>
   <div style="color: #64748b; font-size: 12px; margin-top: 2px;">Founder, <a href="https://ai-compass.in" style="color: #059669; text-decoration: none; font-weight: 500;">AI Compass</a></div>
@@ -889,65 +939,79 @@ Write an outreach email for this candidate:
 - Website: {candidate.website_url}
 - Founder/Maker: {candidate.founder_name or 'Team'}
 - Tone to use: {candidate.tone}
+
+If a founder name is given, greet them by first name only (e.g. "Hey Jane," not "Hey Jane Doe,"). If not, use "Hey there,".
 """
 
-    try:
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
-        payload = {
-            "contents": [{"parts": [{"text": prompt}]}],
-            "generationConfig": {
-                "temperature": 0.7,
-            }
+    payload = {
+        "contents": [{"parts": [{"text": prompt}]}],
+        "generationConfig": {
+            "temperature": 0.7,
         }
+    }
 
-        r = requests.post(url, json=payload, timeout=20)
-        if not r.ok:
-            log.error("Gemini API returned %s: %s", r.status_code, r.text)
-            return get_generic_draft(candidate)
+    # gemini-2.0-flash first (same model + fallback order already proven
+    # working elsewhere in this codebase, e.g. the Model Advisor endpoint),
+    # falling back to 1.5-flash if the newer model errors or is unavailable
+    # for this key.
+    for model in ("gemini-2.0-flash", "gemini-1.5-flash"):
+        try:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
+            r = requests.post(url, json=payload, timeout=20)
+            if not r.ok:
+                log.warning("Gemini (%s) returned %s: %s", model, r.status_code, r.text)
+                continue
 
-        resp_data = r.json()
-        candidates_list = resp_data.get("candidates", [])
-        if not candidates_list:
-            log.error("No candidates in Gemini response: %s", resp_data)
-            return get_generic_draft(candidate)
+            resp_data = r.json()
+            candidates_list = resp_data.get("candidates", [])
+            if not candidates_list:
+                log.warning("No candidates in Gemini (%s) response: %s", model, resp_data)
+                continue
 
-        text = candidates_list[0].get("content", {}).get("parts", [])[0].get("text", "").strip()
+            text = candidates_list[0].get("content", {}).get("parts", [])[0].get("text", "").strip()
 
-        if text.startswith("```json"):
-            text = text[7:-3].strip()
-        elif text.startswith("```"):
-            text = text[3:-3].strip()
+            if text.startswith("```json"):
+                text = text[7:-3].strip()
+            elif text.startswith("```"):
+                text = text[3:-3].strip()
 
-        import json
-        result = json.loads(text)
-        return result.get("subject"), result.get("body")
-    except Exception as e:
-        log.exception("Gemini draft generation failed: %s", e)
-        return get_generic_draft(candidate)
+            import json
+            result = json.loads(text)
+            subject, body = result.get("subject"), result.get("body")
+            if subject and body:
+                return subject, body
+        except Exception as e:
+            log.warning("Gemini (%s) draft generation failed: %s", model, e)
+
+    return get_generic_draft(candidate)
 
 
 def get_generic_draft(candidate):
-    """A fallback template if Gemini API fails or is unconfigured."""
-    subject = f"Featured placement on AI Compass — {candidate.product_name}"
+    """Fallback template used when Gemini fails or is unconfigured. Mirrors the
+    same conversion structure as the Gemini prompt: specific opening, tight
+    offer bullets, one real urgency line, single CTA, P.S. reinforcement.
+    """
+    name = candidate.product_name
+    first_name = candidate.founder_name.split(" ")[0] if candidate.founder_name else "there"
+    hook = f"the way {name} handles \"{candidate.tagline}\"" if candidate.tagline else f"what you're building with {name}"
+    subject = f"Quick one about {name}"[:50]
     body = f"""<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; color: #334155; line-height: 1.6;">
-<p>Hey {candidate.founder_name or 'Team'},</p>
-<p>I came across <b>{candidate.product_name}</b> and love what you are building. It looks like a fantastic resource for tech-savvy students and developers.</p>
-<p>I run <a href="https://ai-compass.in" style="color: #059669; font-weight: 600;">AI Compass</a>, a curated directory with <b>2,000+ monthly active visitors</b>, <b>4,000+ students powered</b>, and <b>100K+ Google search impressions</b>.</p>
-<div style="border-left: 3px solid #10b981; padding-left: 14px; margin: 16px 0; background-color: #f8fafc; padding: 14px; border-radius: 0 8px 8px 0;">
-  <p style="margin: 0; font-size: 13px; color: #334155;"><b>Fast-Track Sponsored Curation ($49.99 one-time):</b></p>
-  <ul style="margin: 8px 0 0 0; padding-left: 18px; font-size: 13px; color: #475569;">
-    <li>Guaranteed 24-hour priority editorial review and frontpage listing</li>
-    <li>Permanent high-authority dofollow SEO backlink to {candidate.website_url or candidate.product_name}</li>
-    <li>Spotlight inclusion in our weekly student AI digest</li>
-  </ul>
-  <p style="margin: 10px 0 0 0; font-size: 13px; color: #059669; font-weight: 600;">Submit your product here: <a href="https://ai-compass.in/submit" style="color: #059669; text-decoration: underline;">ai-compass.in/submit</a></p>
-</div>
-<p>Let me know if you have any questions!</p>
+<p>Hey {first_name},</p>
+<p>I run <a href="https://ai-compass.in" style="color: #059669; font-weight: 600;">AI Compass</a> and just saw {hook} — students and developers searching for exactly this kind of tool are who we send traffic to every day.</p>
+<p>AI Compass gets <b>2,000+ monthly active visitors</b> and <b>100K+ Google search impressions</b> from students actively looking for tools like {name}. Here's what Fast-Track Sponsored Curation gets you:</p>
+<ul style="margin: 8px 0 16px 0; padding-left: 18px; font-size: 13px; color: #475569;">
+  <li>Guaranteed 24-hour priority review and frontpage listing</li>
+  <li>Permanent high-authority dofollow SEO backlink to {candidate.website_url or name}</li>
+  <li>Spotlight in the weekly Student AI Digest</li>
+</ul>
+<p>I personally review every fast-track submission within 24 hours of payment — no queue, no waiting.</p>
+<p><a href="https://ai-compass.in/submit" style="color: #059669; font-weight: 600; text-decoration: underline;">Submit {name} here</a> to get started ($49.99 one-time).</p>
 <div style="margin-top: 24px; padding-top: 14px; border-top: 1px solid #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
   <div style="font-weight: 600; color: #0f172a; font-size: 14px;">Medhansh Pratap Singh</div>
   <div style="color: #64748b; font-size: 12px; margin-top: 2px;">Founder, <a href="https://ai-compass.in" style="color: #059669; text-decoration: none; font-weight: 500;">AI Compass</a></div>
   <div style="color: #94a3b8; font-size: 11px; margin-top: 4px;">medhansh.singh@ai-compass.in • <a href="https://ai-compass.in" style="color: #64748b; text-decoration: underline;">ai-compass.in</a></div>
 </div>
+<p style="margin-top: 14px; font-size: 12px; color: #64748b;">P.S. The 24-hour review is a real guarantee, not a marketing line — most listings go live same-day.</p>
 </div>"""
     return subject, body
 
