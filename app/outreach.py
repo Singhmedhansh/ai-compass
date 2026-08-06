@@ -599,20 +599,54 @@ def scrape_website_for_email(url):
 
             return None
 
-        # 1. Check homepage first (tight 1.5s timeout)
-        resp = requests.get(url, headers=headers, timeout=1.5, allow_redirects=True)
+        # 1. Check homepage first
+        home_html = None
+        resp = requests.get(url, headers=headers, timeout=4, allow_redirects=True)
         if resp.ok:
-            email = extract_emails_from_html(resp.text)
+            home_html = resp.text
+            email = extract_emails_from_html(home_html)
             if email:
                 return email, "web_scraper"
 
-        # 2. Check primary subpages (1.5s timeout each)
+        # 2. Follow real contact/about/team/support links found in the homepage's own
+        # nav/footer — catches sites that don't use the guessed path (e.g. /reach-us,
+        # /connect, or a path under a locale prefix like /en/contact).
         domain_base = get_domain_from_url(url)
-        if domain_base:
-            base_url = f"https://{domain_base}"
-            for path in ["/contact", "/about", "/privacy"]:
+        base_url = f"https://{domain_base}" if domain_base else None
+        followed_paths = set()
+        LINK_TEXT_HINTS = ("contact", "about", "team", "support", "help", "reach", "connect", "founder")
+        if home_html and base_url:
+            try:
+                soup = BeautifulSoup(home_html, "html.parser")
+                for a in soup.find_all("a", href=True):
+                    href = a["href"].strip()
+                    label = a.get_text(" ", strip=True).lower()
+                    haystack = f"{href.lower()} {label}"
+                    if any(hint in haystack for hint in LINK_TEXT_HINTS):
+                        from urllib.parse import urljoin
+                        full = urljoin(base_url + "/", href)
+                        if get_domain_from_url(full) == domain_base:
+                            path = urlparse(full).path or "/"
+                            if path not in followed_paths and len(followed_paths) < 5:
+                                followed_paths.add(path)
+                                try:
+                                    sub_resp = requests.get(full, headers=headers, timeout=3, allow_redirects=True)
+                                    if sub_resp.ok:
+                                        email = extract_emails_from_html(sub_resp.text)
+                                        if email:
+                                            return email, "scraper_linked_page"
+                                except Exception:
+                                    pass
+            except Exception:
+                pass
+
+        # 3. Check common fixed subpages not already covered above
+        if base_url:
+            for path in ["/contact", "/about", "/privacy", "/team", "/support", "/help", "/legal", "/imprint"]:
+                if path in followed_paths:
+                    continue
                 try:
-                    sub_resp = requests.get(base_url + path, headers=headers, timeout=1.5, allow_redirects=True)
+                    sub_resp = requests.get(base_url + path, headers=headers, timeout=3, allow_redirects=True)
                     if sub_resp.ok:
                         email = extract_emails_from_html(sub_resp.text)
                         if email:
@@ -666,12 +700,17 @@ def find_email_via_github(website_url, founder_name=""):
     return None, ""
 
 def find_email_via_rdap(website_url):
-    """Checks RDAP domain registration database for admin contact email."""
+    """Checks RDAP domain registration database for admin contact email.
+
+    .io/.dev/.app registrars are frequently privacy-shielded, but not always —
+    the generic placeholder/proxy filter in is_valid_email() already strips out
+    the noise, so it's worth trying rather than skipping the whole TLD.
+    """
     domain = get_domain_from_url(website_url)
-    if not domain or "." not in domain or domain.endswith((".app", ".dev", ".io")):
+    if not domain or "." not in domain:
         return None, ""
     try:
-        r = requests.get(f"https://rdap.org/domain/{domain}", timeout=3)
+        r = requests.get(f"https://rdap.org/domain/{domain}", timeout=4)
         if r.ok:
             matches = re.findall(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}", r.text)
             for m in matches:
@@ -733,8 +772,35 @@ def find_email_via_hunter(website_url, founder_name):
 
     return None, 0
 
+COMMON_INBOX_PREFIXES = ["hello", "contact", "hi", "support", "team", "founders", "info"]
+
+def find_email_via_pattern_guess(website_url):
+    """Last-resort fallback: guesses common generic inboxes (hello@, contact@, ...)
+    but only returns one if the domain actually has an MX record — otherwise a
+    guess against a domain with no mail server is certain to bounce.
+    Deliberately low confidence (35) since it's unverified deliverability, not an
+    unverified mailbox — it lands in the admin Review queue rather than
+    auto-qualifying for send.
+    """
+    domain = get_domain_from_url(website_url)
+    if not domain:
+        return None, ""
+    try:
+        import dns.resolver
+        answers = dns.resolver.resolve(domain, "MX", lifetime=4)
+        if not answers:
+            return None, ""
+    except Exception:
+        return None, ""
+
+    # MX exists — return the highest-signal generic prefix; admin verifies via Review.
+    candidate = f"{COMMON_INBOX_PREFIXES[0]}@{domain}"
+    if is_valid_email(candidate):
+        return candidate, "pattern_guess"
+    return None, ""
+
 def enrich_candidate_email(website_url, founder_name=""):
-    """Comprehensive discovery pipeline combining Scraper, GitHub, RDAP, and Hunter.io."""
+    """Comprehensive discovery pipeline combining Scraper, GitHub, RDAP, Hunter.io, and pattern guessing."""
     # 1. Scrape homepage and subpages
     email, source = scrape_website_for_email(website_url)
     if email:
@@ -754,6 +820,11 @@ def enrich_candidate_email(website_url, founder_name=""):
     email, score = find_email_via_hunter(website_url, founder_name)
     if email:
         return email, "hunter_io", score
+
+    # 5. Pattern guess (MX-validated) — last resort, low confidence, review-gated
+    email, source = find_email_via_pattern_guess(website_url)
+    if email:
+        return email, source or "pattern_guess", 35
 
     return None, "none", 0
 
