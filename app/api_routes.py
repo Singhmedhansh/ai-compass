@@ -1566,10 +1566,35 @@ def submit_tool():
         url = str(payload.get("url") or "").strip()
         category = str(payload.get("category") or "").strip()
         reason = str(payload.get("reason") or "").strip()
-        pricing_model = str(payload.get("pricing_model") or "free").strip()
+        pricing_model_raw = str(payload.get("pricing_model") or "free").strip()
         transaction_ref = str(payload.get("transaction_ref") or "").strip()
-        if transaction_ref and pricing_model.startswith("sponsored"):
-            combined = f"{pricing_model}:{transaction_ref}"
+
+        # Payment verification — a claimed "sponsored" submission is never
+        # trusted on the client's say-so. Only a PayPal order ID that we can
+        # independently confirm as COMPLETED for the right amount counts as
+        # paid; everything else (fake ref, no ref, or a payment method with
+        # no real server-side gateway wired up yet) is recorded as
+        # 'unverified_review' so it can never silently unlock PAYMENT
+        # APPROVED / fast-track / an invoice email on its own.
+        is_sponsored_claim = pricing_model_raw.startswith("sponsored")
+        payment_verified = False
+        payment_note = None
+        if is_sponsored_claim:
+            if "paypal" in pricing_model_raw and transaction_ref:
+                from app.payments import verify_paypal_order
+                payment_verified, payment_note = verify_paypal_order(transaction_ref)
+            else:
+                payment_note = "no_verifiable_gateway"
+            if not payment_verified:
+                current_app.logger.warning(
+                    "Unverified sponsored submission claim for '%s': pricing_model=%s ref=%s reason=%s",
+                    name, pricing_model_raw, transaction_ref, payment_note
+                )
+        payment_status = "verified" if payment_verified else ("unverified_review" if is_sponsored_claim else "unpaid")
+
+        pricing_model = pricing_model_raw
+        if transaction_ref and is_sponsored_claim:
+            combined = f"{pricing_model_raw}:{transaction_ref}"
             pricing_model = combined[:50]
 
         student_perks = str(payload.get("student_perks") or "").strip()
@@ -1604,6 +1629,9 @@ def submit_tool():
                 student_perks=student_perks,
                 submitter_email=submitter_email,
                 status="pending",
+                payment_status=payment_status,
+                payment_note=payment_note,
+                is_priority=payment_verified,
             ))
             db.session.commit()
         except Exception:
@@ -1618,8 +1646,9 @@ def submit_tool():
         from flask import render_template
         import random
 
-        # 1. If it's a paid (sponsored) submission, send invoice to the user
-        is_paid = "sponsored" in pricing_model
+        # 1. Only send an invoice / "payment approved" language for a
+        # server-verified payment — never for an unverified claim.
+        is_paid = payment_verified
         if is_paid and submitter_email:
             try:
                 # Extract clean payment method name
@@ -1656,13 +1685,21 @@ def submit_tool():
             except Exception:
                 current_app.logger.exception("Failed to send user invoice email — submission still recorded")
 
-        # 2. Send submission details to the admin
-        admin_subject = f"[PAYMENT APPROVED] New Sponsored Tool Submission: {name}" if is_paid else f"[AI Compass] New tool submission: {name}"
+        # 2. Send submission details to the admin. The subject line makes the
+        # trust level obvious at a glance — an unverified sponsored claim
+        # must never look like a confirmed payment in the inbox.
+        if is_paid:
+            subject_tag = "[PAYMENT APPROVED]"
+        elif is_sponsored_claim:
+            subject_tag = "[UNVERIFIED PAYMENT CLAIM — DO NOT FAST-TRACK]"
+        else:
+            subject_tag = "[AI Compass]"
+        admin_subject = f"{subject_tag} New Tool Submission: {name}" if is_paid or is_sponsored_claim else f"{subject_tag} New tool submission: {name}"
         if transaction_ref:
             admin_subject += f" (Ref: {transaction_ref})"
 
         admin_html = (
-            f"<h2>{'[PAYMENT APPROVED] ' if is_paid else ''}New Tool Submission</h2>"
+            f"<h2>{subject_tag} New Tool Submission</h2>"
             f"<p>A new tool was submitted via ai-compass.in/submit:</p>"
             f"<ul>"
             f"<li><b>Name:</b> {name}</li>"
@@ -1670,6 +1707,7 @@ def submit_tool():
             f"<li><b>Category:</b> {category}</li>"
             f"<li><b>Pricing Model / Payment:</b> {pricing_model}</li>"
             f"<li><b>Transaction Ref:</b> {transaction_ref or 'N/A'}</li>"
+            f"<li><b>Payment Status:</b> {payment_status}{f' ({payment_note})' if payment_note else ''}</li>"
             f"<li><b>Student Perks:</b> {student_perks or 'None'}</li>"
             f"<li><b>Founder Contact Email:</b> {submitter_email or 'anonymous (not logged in)'}</li>"
             f"<li><b>Submitted at:</b> {submitted_at}</li>"
@@ -1677,12 +1715,13 @@ def submit_tool():
             f"<p><b>Why it's useful / description:</b><br/>{reason}</p>"
         )
         admin_text = (
-            f"{'[PAYMENT APPROVED] ' if is_paid else ''}New tool submission via ai-compass.in/submit:\n\n"
+            f"{subject_tag} New tool submission via ai-compass.in/submit:\n\n"
             f"Name: {name}\n"
             f"URL: {url}\n"
             f"Category: {category}\n"
             f"Pricing Model: {pricing_model}\n"
             f"Transaction Ref: {transaction_ref or 'N/A'}\n"
+            f"Payment Status: {payment_status}{f' ({payment_note})' if payment_note else ''}\n"
             f"Student Perks: {student_perks or 'None'}\n"
             f"Founder Contact Email: {submitter_email or 'anonymous (not logged in)'}\n"
             f"Submitted at: {submitted_at}\n\n"
@@ -4485,7 +4524,10 @@ def admin_list_submissions():
     q = Submission.query
     if status != "all":
         q = q.filter_by(status=status)
-    subs = q.order_by(Submission.submitted_at.desc()).limit(200).all()
+    # Verified-paid submissions (fast-track) surface first so the 24-hour
+    # priority review promise is something the queue actually enforces,
+    # not just an email subject line.
+    subs = q.order_by(Submission.is_priority.desc(), Submission.submitted_at.desc()).limit(200).all()
     return jsonify([
         {
             "id": s.id, "name": s.name, "website": s.website,
@@ -4493,6 +4535,7 @@ def admin_list_submissions():
             "pricing_model": s.pricing_model, "tags": s.tags,
             "submitter_email": s.submitter_email, "status": s.status,
             "submitted_at": s.submitted_at.isoformat() if s.submitted_at else None,
+            "payment_status": s.payment_status, "is_priority": s.is_priority,
         }
         for s in subs
     ])

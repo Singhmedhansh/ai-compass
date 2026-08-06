@@ -1,4 +1,5 @@
 import os
+import time
 from datetime import datetime, timezone
 from flask import Blueprint, jsonify, request, current_app
 from flask_login import login_required, current_user
@@ -17,7 +18,9 @@ from app.outreach import (
     is_duplicate_candidate,
     is_deployed_app_url,
     is_student_relevant,
-    is_commercial_saas
+    is_commercial_saas,
+    sends_remaining_today,
+    DAILY_SEND_CAP
 )
 
 outreach_bp = Blueprint("outreach", __name__)
@@ -157,7 +160,9 @@ def send_candidate_email(cid):
         return jsonify({"error": "Email is missing for candidate"}), 400
     if not c.draft_subject or not c.draft_body:
         return jsonify({"error": "Draft subject and body are required to send"}), 400
-        
+    if sends_remaining_today() <= 0:
+        return jsonify({"error": f"Daily send cap ({DAILY_SEND_CAP}) reached. Try again after midnight UTC, or raise OUTREACH_DAILY_SEND_CAP."}), 429
+
     success = False
     err_msg = None
     try:
@@ -194,23 +199,28 @@ def bulk_send_candidates():
         
     data = request.json or {}
     cids = data.get("ids", [])
-    
+
     candidates = OutreachCandidate.query.filter(OutreachCandidate.id.in_(cids)).all()
     sent = 0
     failed = 0
-    
+    remaining = sends_remaining_today()
+    capped = 0
+
     for c in candidates:
         if not c.email or not c.draft_subject or not c.draft_body or c.status == "sent":
             failed += 1
             continue
-            
+        if remaining <= 0:
+            capped += 1
+            continue
+
         success = False
         err_msg = None
         try:
             success, err_msg = send_email_with_details(to=c.email, subject=c.draft_subject, html=c.draft_body)
         except Exception as exc:
             err_msg = str(exc)
-            
+
         log_entry = OutreachEmailLog(
             candidate_id=c.id,
             email=c.email,
@@ -220,16 +230,22 @@ def bulk_send_candidates():
             error_message=err_msg
         )
         db.session.add(log_entry)
-        
+
         if success:
             c.status = "sent"
             c.last_status_change_at = datetime.now(timezone.utc)
             sent += 1
+            remaining -= 1
+            time.sleep(1.5)  # spread sends out rather than bursting Resend
         else:
             failed += 1
-            
+
     db.session.commit()
-    return jsonify({"success": True, "sent": sent, "failed": failed})
+    resp = {"success": True, "sent": sent, "failed": failed}
+    if capped:
+        resp["capped"] = capped
+        resp["message"] = f"Daily send cap ({DAILY_SEND_CAP}) reached — {capped} candidate(s) deferred to tomorrow."
+    return jsonify(resp)
 
 @outreach_bp.route("/api/v1/admin/outreach/candidates/bulk-reject", methods=["POST"])
 @csrf.exempt

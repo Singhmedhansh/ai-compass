@@ -1144,6 +1144,21 @@ def re_enrich_missing_candidate_emails():
     return enriched_count
 
 # ─── 5. AUTOMATED FOLLOW-UPS ────────────────────────────────────────────────
+
+# Cold-outreach deliverability guard: caps total successful sends (initial +
+# follow-up, combined) per UTC day. A fresh sending domain that jumps from 0
+# to hundreds of cold emails overnight gets flagged as spam fast — 30/day is
+# a conservative ramp-up rate. Override with OUTREACH_DAILY_SEND_CAP.
+DAILY_SEND_CAP = int(os.environ.get("OUTREACH_DAILY_SEND_CAP", "30"))
+
+def sends_remaining_today():
+    start_of_day = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+    sent_today = OutreachEmailLog.query.filter(
+        OutreachEmailLog.status == "success",
+        OutreachEmailLog.sent_at >= start_of_day
+    ).count()
+    return max(0, DAILY_SEND_CAP - sent_today)
+
 def run_automated_followups():
     """Sends simple thread-replies to candidates emailed 5+ days ago without reply."""
     five_days_ago = datetime.now(timezone.utc) - timedelta(days=5)
@@ -1152,8 +1167,12 @@ def run_automated_followups():
         OutreachCandidate.last_status_change_at <= five_days_ago
     ).all()
 
+    remaining = sends_remaining_today()
     sent_count = 0
     for c in candidates:
+        if remaining <= 0:
+            log.info("Daily send cap (%s) reached — deferring remaining follow-ups to tomorrow.", DAILY_SEND_CAP)
+            break
         if not c.email or not c.draft_subject:
             continue
 
@@ -1187,6 +1206,7 @@ Medhansh"""
             c.status = "followed_up"
             c.last_status_change_at = datetime.now(timezone.utc)
             sent_count += 1
+            remaining -= 1
 
     if sent_count > 0:
         db.session.commit()

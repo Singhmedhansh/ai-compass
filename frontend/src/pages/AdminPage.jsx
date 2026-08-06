@@ -635,10 +635,14 @@ function AdminPage() {
             <h2 className="mb-4 text-xl font-semibold text-ink">Pending Submissions ({submissions.length})</h2>
             <div className="space-y-3">
               {submissions.map((s) => (
-                <div key={s.id} className="rounded-xl border border-line p-4">
+                <div key={s.id} className={`rounded-xl border p-4 ${s.is_priority ? 'border-amber-400/60 bg-amber-500/5' : 'border-line'}`}>
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="font-medium text-ink">{s.name} <span className="text-xs text-muted">· {s.category} · {s.pricing_model}</span></p>
+                      <p className="font-medium text-ink">
+                        {s.is_priority && <span className="mr-2 rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-600 dark:text-amber-400">⚡ Priority · Paid</span>}
+                        {s.payment_status === 'unverified_review' && <span className="mr-2 rounded-full bg-rose-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-rose-600 dark:text-rose-400">Unverified payment claim</span>}
+                        {s.name} <span className="text-xs text-muted">· {s.category} · {s.pricing_model}</span>
+                      </p>
                       <a href={s.website} target="_blank" rel="noreferrer" className="text-xs text-accent-ink">{s.website}</a>
                       <p className="mt-1 text-sm text-muted">{s.description}</p>
                     </div>

@@ -164,6 +164,11 @@ class Submission(db.Model):
     submitter_email = db.Column(db.String(255), nullable=True)
     status = db.Column(db.String(20), nullable=False, default="pending")
     submitted_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+    # 'unpaid' | 'verified' (server confirmed real payment) | 'unverified_review' (claimed
+    # payment, could not be confirmed server-side — never auto-treated as paid) | 'rejected'
+    payment_status = db.Column(db.String(20), nullable=False, default="unpaid")
+    payment_note = db.Column(db.String(255), nullable=True)
+    is_priority = db.Column(db.Boolean, nullable=False, default=False)
 
 
 class NewsletterSubscriber(db.Model):

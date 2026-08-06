@@ -1,0 +1,60 @@
+name: Outreach discovery & follow-ups
+
+# Schedule: every day at 09:00 UTC (14:30 IST). Runs lead discovery (Product
+# Hunt / Hacker News scan) and the 5-day automated follow-up sweep. Both are
+# capped server-side at OUTREACH_DAILY_SEND_CAP sends/day, so running this
+# daily is safe from a deliverability standpoint.
+on:
+  schedule:
+    - cron: '0 9 * * *'
+  workflow_dispatch:
+
+# Only one run at a time — avoids double-discovery or double-follow-up if a
+# manual trigger overlaps the scheduled one.
+concurrency:
+  group: outreach-cron
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: POST to /api/v1/admin/outreach/cron
+        # Auth is the X-Outreach-Secret header — must match OUTREACH_SECRET
+        # on Render. The endpoint runs run_discovery_pipeline() +
+        # run_automated_followups() and returns counts.
+        env:
+          OUTREACH_SECRET: ${{ secrets.OUTREACH_SECRET }}
+        run: |
+          set -euo pipefail
+          if [ -z "${OUTREACH_SECRET:-}" ]; then
+            echo "::error::OUTREACH_SECRET secret is not set. Add it under Settings > Secrets > Actions, matching the value in Render env."
+            exit 1
+          fi
+
+          URL="https://ai-compass.in/api/v1/admin/outreach/cron"
+          echo "POST $URL"
+          RESP=$(curl -sS -w "\nHTTP_CODE:%{http_code}\n" \
+            -X POST \
+            -H "X-Outreach-Secret: ${OUTREACH_SECRET}" \
+            -H "Content-Type: application/json" \
+            --max-time 300 \
+            "$URL")
+          echo "$RESP"
+
+          CODE=$(echo "$RESP" | tail -1 | sed 's/HTTP_CODE://')
+          if [ "$CODE" != "200" ]; then
+            echo "::error::Outreach cron endpoint returned HTTP $CODE"
+            exit 1
+          fi
+
+          BODY=$(echo "$RESP" | sed '$d')
+          echo "## Outreach cron run complete" >> "$GITHUB_STEP_SUMMARY"
+          echo '```json' >> "$GITHUB_STEP_SUMMARY"
+          echo "$BODY" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
