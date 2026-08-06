@@ -161,7 +161,7 @@ def send_candidate_email(cid):
     if not c.draft_subject or not c.draft_body:
         return jsonify({"error": "Draft subject and body are required to send"}), 400
     if sends_remaining_today() <= 0:
-        return jsonify({"error": f"Daily send cap ({DAILY_SEND_CAP}) reached. Try again after midnight UTC, or raise OUTREACH_DAILY_SEND_CAP."}), 429
+        return jsonify({"error": f"Daily send cap ({DAILY_SEND_CAP}) reached. Try again after 9 AM IST, or raise OUTREACH_DAILY_SEND_CAP."}), 429
 
     success = False
     err_msg = None

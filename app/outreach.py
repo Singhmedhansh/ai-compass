@@ -1453,16 +1453,29 @@ def re_enrich_missing_candidate_emails():
 # ─── 5. AUTOMATED FOLLOW-UPS ────────────────────────────────────────────────
 
 # Cold-outreach deliverability guard: caps total successful sends (initial +
-# follow-up, combined) per UTC day. A fresh sending domain that jumps from 0
-# to hundreds of cold emails overnight gets flagged as spam fast — 30/day is
-# a conservative ramp-up rate. Override with OUTREACH_DAILY_SEND_CAP.
+# follow-up, combined) per rolling day. A fresh sending domain that jumps
+# from 0 to hundreds of cold emails overnight gets flagged as spam fast —
+# 30/day is a conservative ramp-up rate. Override with OUTREACH_DAILY_SEND_CAP.
 DAILY_SEND_CAP = int(os.environ.get("OUTREACH_DAILY_SEND_CAP", "30"))
 
+# The send window resets at 9:00 AM IST (03:30 UTC) rather than midnight UTC
+# — aligned with when the team actually starts work, not an arbitrary UTC
+# boundary nobody here is awake for.
+SEND_WINDOW_RESET_UTC_HOUR = 3
+SEND_WINDOW_RESET_UTC_MINUTE = 30
+
+def _current_send_window_start():
+    now = datetime.now(timezone.utc)
+    reset_today = now.replace(hour=SEND_WINDOW_RESET_UTC_HOUR, minute=SEND_WINDOW_RESET_UTC_MINUTE, second=0, microsecond=0)
+    if now < reset_today:
+        return reset_today - timedelta(days=1)
+    return reset_today
+
 def sends_remaining_today():
-    start_of_day = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+    window_start = _current_send_window_start()
     sent_today = OutreachEmailLog.query.filter(
         OutreachEmailLog.status == "success",
-        OutreachEmailLog.sent_at >= start_of_day
+        OutreachEmailLog.sent_at >= window_start
     ).count()
     return max(0, DAILY_SEND_CAP - sent_today)
 
