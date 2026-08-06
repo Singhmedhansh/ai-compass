@@ -41,6 +41,8 @@ export default function SubmitPage() {
   const [transactionRef, setTransactionRef] = useState('')
   const [paypalLoaded, setPaypalLoaded] = useState(false)
   const [paypalError, setPaypalError] = useState(false)
+  const [paypalLinkClicked, setPaypalLinkClicked] = useState(false)
+  const [manualTxId, setManualTxId] = useState('')
 
   const [paypalHostedConfig, setPaypalHostedConfig] = useState(null)
 
@@ -64,7 +66,7 @@ export default function SubmitPage() {
     const query = new URLSearchParams(window.location.search)
     const hasPaypalParams = query.has('tx') || query.has('paymentId') || query.has('token') || query.has('PayerID')
     if (hasPaypalParams) {
-      const txRef = query.get('tx') || query.get('paymentId') || `TXN-PAYPAL-${Math.floor(Math.random() * 9000000 + 1000000)}`
+      const txRef = query.get('tx') || query.get('paymentId') || query.get('token') || query.get('PayerID') || 'PAYPAL-REDIRECT-VERIFIED'
       
       if (savedForm) {
         try {
@@ -839,17 +841,7 @@ export default function SubmitPage() {
                           target="_blank"
                           rel="noopener noreferrer"
                           onClick={() => {
-                            setPaying(true)
-                            setTimeout(() => {
-                              setPaying(false)
-                              setPaymentDone(true)
-                              const txRef = `PAYPAL-NCP-XMWMPTJH5ZHPY-${Math.floor(Math.random() * 900000 + 100000)}`
-                              setTransactionRef(txRef)
-                              setTimeout(() => {
-                                setShowPaymentModal(false)
-                                submitData('sponsored_paypal', txRef)
-                              }, 1200)
-                            }, 1000)
+                            setPaypalLinkClicked(true)
                           }}
                           className="inline-flex items-center justify-center gap-2 w-full bg-[#0070ba] hover:bg-[#005ea6] text-white font-bold py-3.5 px-6 rounded-xl text-sm transition-all shadow-md hover:shadow-lg active:scale-[0.98]"
                         >
@@ -857,6 +849,40 @@ export default function SubmitPage() {
                           <ArrowUpRight className="h-4 w-4" />
                         </a>
                         <span className="block text-[10px] text-muted-2">Opens PayPal&apos;s official checkout in a new window</span>
+
+                        {paypalLinkClicked && (
+                          <div className="mt-4 p-4 rounded-xl border border-line bg-bg-elev text-left space-y-3 animate-fade-in">
+                            <p className="text-xs font-semibold text-ink">
+                              Opened PayPal checkout in a new window.
+                            </p>
+                            <p className="text-[11px] text-ink-2">
+                              Once you complete payment on PayPal, paste your <b>Transaction ID / Receipt Number</b> below to submit for review:
+                            </p>
+                            <div className="flex gap-2">
+                              <input
+                                type="text"
+                                value={manualTxId}
+                                onChange={(e) => setManualTxId(e.target.value)}
+                                placeholder="e.g. 5XY123456789 or PAYID-..."
+                                className="flex-1 rounded-lg border border-line bg-bg px-3 py-2 text-xs text-ink outline-none focus:border-accent"
+                              />
+                              <button
+                                type="button"
+                                disabled={!manualTxId.trim() || submitting}
+                                onClick={() => {
+                                  if (!manualTxId.trim()) return
+                                  const txRef = manualTxId.trim()
+                                  setTransactionRef(txRef)
+                                  setShowPaymentModal(false)
+                                  submitData('sponsored_paypal', txRef)
+                                }}
+                                className="px-4 py-2 bg-accent text-white font-bold text-xs rounded-lg hover:bg-accent/90 disabled:opacity-50 transition shrink-0"
+                              >
+                                Confirm & Submit
+                              </button>
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                       {paypalLoaded && (
