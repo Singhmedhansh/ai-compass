@@ -298,12 +298,33 @@ def get_outreach_logs():
 def trigger_discovery():
     if not _is_admin():
         return jsonify({"error": "Forbidden"}), 403
-        
+
     try:
-        new_count = run_discovery_pipeline()
-        return jsonify({"success": True, "new_candidates_count": new_count})
+        # run_discovery_pipeline() calls enrich_candidate_email() sequentially
+        # for every qualifying candidate it finds, and each of those can chain
+        # through several network-bound strategies — worst case tens of
+        # seconds per candidate. Running that synchronously in the request
+        # thread held a gthread worker (and this free-tier instance's single
+        # shared vCPU) hostage for minutes on a busy discovery run, degrading
+        # every other request — including /healthz — for as long as it ran.
+        # Backgrounded now, same pattern as /re-enrich.
+        app_obj = current_app._get_current_object()
+        app_ctx = app_obj.app_context()
+
+        def _bg():
+            with app_ctx:
+                try:
+                    new_count = run_discovery_pipeline()
+                    app_obj.logger.info("Background discovery completed: %s new candidates.", new_count)
+                except Exception as ex:
+                    app_obj.logger.exception("Background discovery failed: %s", ex)
+
+        import threading
+        threading.Thread(target=_bg, name="discovery-bg", daemon=True).start()
+
+        return jsonify({"success": True, "message": "Discovery running in background"}), 202
     except Exception as e:
-        current_app.logger.exception("Failed to run manual discovery pipeline")
+        current_app.logger.exception("Failed to start discovery pipeline")
         return jsonify({"error": str(e)}), 500
 
 @outreach_bp.route("/api/v1/admin/outreach/re-enrich", methods=["POST"])

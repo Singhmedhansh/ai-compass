@@ -1383,9 +1383,13 @@ function AdminPage() {
                   onClick={async () => {
                     setOutreachBusy('discovery')
                     try {
-                      const res = await api('/api/v1/admin/outreach/trigger-discovery', { method: 'POST' })
-                      toast.success(`Discovery complete! Discovered ${res.new_candidates_count} new candidates.`)
-                      loadOutreachData()
+                      await api('/api/v1/admin/outreach/trigger-discovery', { method: 'POST' })
+                      toast.success('Discovery running in background! Refreshing candidates list...')
+                      // Discovery enriches each new candidate's email sequentially and can
+                      // take a while — poll a few times to pick up results as they land.
+                      setTimeout(() => loadOutreachData(), 5000)
+                      setTimeout(() => loadOutreachData(), 15000)
+                      setTimeout(() => loadOutreachData(), 30000)
                     } catch (e) {
                       toast.error(e.message)
                     } finally {

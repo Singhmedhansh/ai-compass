@@ -324,7 +324,10 @@ def scrape_producthunt_ranked_posts():
     # Only try domain guessing for high-vote products (worth the extra time)
     from concurrent.futures import ThreadPoolExecutor
     if NO_WEBSITE_SLUGS:
-        with ThreadPoolExecutor(max_workers=6) as ex:
+        # Free-tier instance has a single shared vCPU — high concurrency here
+        # doesn't speed things up so much as starve the process's ability to
+        # answer any other request (including /healthz) for the duration.
+        with ThreadPoolExecutor(max_workers=3) as ex:
             futures = {ex.submit(guess_product_domain, p["name"]): p["slug"] for p in NO_WEBSITE_SLUGS[:20]}
             for future in futures:
                 slug = futures[future]
@@ -548,7 +551,7 @@ def fetch_shownews_launches():
                 except Exception:
                     return None
 
-            with ThreadPoolExecutor(max_workers=8) as executor:
+            with ThreadPoolExecutor(max_workers=3) as executor:
                 results = list(executor.map(_fetch_single_story, story_ids))
 
             for item in results:
@@ -1389,7 +1392,12 @@ def re_enrich_missing_candidate_emails():
         return cid, new_email, new_source, new_score, new_name
 
     results = []
-    with ThreadPoolExecutor(max_workers=8) as executor:
+    # Capped low deliberately: each candidate can chain through several
+    # network calls (scrape, GitHub, HN profile, RDAP, Hunter, pattern
+    # guess), and this free-tier instance has a single shared vCPU — running
+    # 8 of these concurrently was enough to starve the process's ability to
+    # answer any other request (including /healthz) for minutes at a time.
+    with ThreadPoolExecutor(max_workers=3) as executor:
         futures = [executor.submit(_process, item) for item in work_items]
         for f in as_completed(futures):
             try:
