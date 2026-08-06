@@ -320,15 +320,18 @@ def trigger_re_enrich():
         def _bg():
             with app_ctx:
                 try:
-                    count = re_enrich_missing_candidate_emails()
-                    app_obj.logger.info("Background re-enrichment completed! Found %s emails.", count)
+                    result = re_enrich_missing_candidate_emails()
+                    app_obj.logger.info(
+                        "Background re-verification completed: %s emails fixed, %s names fixed, %s drafts regenerated.",
+                        result.get("emails_fixed", 0), result.get("names_fixed", 0), result.get("drafts_regenerated", 0)
+                    )
                 except Exception as ex:
                     app_obj.logger.exception("Background re-enrichment failed: %s", ex)
 
         import threading
         threading.Thread(target=_bg, name="re-enrichment-bg", daemon=True).start()
 
-        return jsonify({"success": True, "message": "Email discovery running in background"}), 202
+        return jsonify({"success": True, "message": "Re-verifying emails and founder names in the background"}), 202
     except Exception as e:
         current_app.logger.exception("Failed to run re-enrichment pipeline")
         return jsonify({"error": str(e)}), 500

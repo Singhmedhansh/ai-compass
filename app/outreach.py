@@ -571,6 +571,48 @@ ROLE_INBOX_PREFIXES = {
     "marketing", "partnerships", "legal", "privacy",
 }
 
+# Obfuscated-email pattern (e.g. "contact [at] domain.com"). Whitespace
+# around the at-token is mandatory, not optional — an *optional* gap lets the
+# regex tear a plain word like "WeatherAPI.com" into a false match ("We" +
+# "at" + "herAPI.com"), since "at" is a substring of "weather" with zero
+# space around it. The prefix stopword list blocks the other common false
+# positive: an ordinary sentence like "look at acme.com".
+OBFUSCATED_EMAIL_RE = re.compile(
+    r"\b([a-zA-Z0-9._%+-]{3,})\s+\[?(?:at)\]?\s+([a-zA-Z0-9-]+\.[a-zA-Z]{2,})\b",
+    re.IGNORECASE
+)
+OBFUSCATION_PREFIX_STOPWORDS = {
+    "at", "look", "see", "email", "reach", "mail", "find", "visit", "go",
+    "check", "contact", "write", "ping", "hit", "send", "was", "were",
+    "that", "what", "chat",
+}
+
+def _domain_has_mail_capability(domain):
+    """Confirms a domain can plausibly receive mail (MX, falling back to A)
+    before handing an email out for outreach. Scraping arbitrary third-party
+    HTML is adversarial input — a parsing glitch can produce something that's
+    syntactically a valid email but points at a domain that doesn't exist,
+    which just becomes a bounce against our own sending reputation.
+    """
+    if not domain or "." not in domain:
+        return False
+    try:
+        import dns.resolver
+        try:
+            dns.resolver.resolve(domain, "MX", lifetime=4)
+            return True
+        except (dns.resolver.NoAnswer, dns.resolver.NXDOMAIN):
+            pass
+        except Exception:
+            pass
+        try:
+            dns.resolver.resolve(domain, "A", lifetime=4)
+            return True
+        except Exception:
+            return False
+    except Exception:
+        return False
+
 def _score_email_candidate(email, founder_name=""):
     """Ranks a discovered email by how likely it is to reach an actual
     decision-maker instead of a shared inbox — a founder-matching or
@@ -585,6 +627,41 @@ def _score_email_candidate(email, founder_name=""):
     if local in ROLE_INBOX_PREFIXES or any(local.startswith(p) for p in ROLE_INBOX_PREFIXES):
         score -= 25
     return score
+
+def _looks_like_real_name(name):
+    """True only for an actual 'First Last' style name. A bare single-token
+    handle (a GitHub/Hacker News/Product Hunt username like 'geekamongus') is
+    not something to greet a stranger by in a cold email — it reads as
+    obviously bot-scraped and undercuts the whole "personal outreach" premise
+    the pitch is built on.
+    """
+    if not name:
+        return False
+    parts = [p for p in name.strip().split() if p]
+    if len(parts) < 2:
+        return False
+    return all(p[:1].isalpha() and p[:1].isupper() for p in parts)
+
+def _try_resolve_real_name(handle):
+    """A bare handle isn't a name to greet someone by. If it happens to also
+    be a real GitHub username, GitHub's public profile 'name' field is often
+    the person's actual display name — a cheap upgrade over the raw handle.
+    """
+    if not handle or not re.match(r"^[a-zA-Z0-9-]+$", handle.strip()):
+        return None
+    try:
+        r = requests.get(
+            f"https://api.github.com/users/{handle.strip()}",
+            headers={"User-Agent": "AICompassBot/1.0", "Accept": "application/vnd.github.v3+json"},
+            timeout=3,
+        )
+        if r.ok:
+            name = (r.json().get("name") or "").strip()
+            if name and _looks_like_real_name(name):
+                return name
+    except Exception:
+        pass
+    return None
 
 def scrape_website_for_email(url, founder_name=""):
     """Scrapes homepage and contact subpages, collecting every plausible email
@@ -616,13 +693,25 @@ def scrape_website_for_email(url, founder_name=""):
                         if is_valid_email(part):
                             emails.add(part)
 
-            text = soup.get_text()
+            # separator=" " keeps adjacent block-level tags (e.g. </p><p>) from
+            # fusing into one run-on token — without it, "...disappear.</p><p>For
+            # real..." becomes "disappear.For", which the obfuscation regex below
+            # can mistake for a domain.
+            text = soup.get_text(separator=" ", strip=True)
             for m in re.findall(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}", text):
                 if is_valid_email(m):
                     emails.add(m)
 
-            # Obfuscated emails (e.g. contact [at] domain.com)
-            for prefix, domain in re.findall(r"([a-zA-Z0-9._%+-]+)\s*\[?\s*(?:at|AT|@)\s*\]?\s*([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})", text):
+            # Obfuscated emails (e.g. "contact [at] domain.com"). Whitespace
+            # around the at-token is REQUIRED (not optional) — with optional
+            # whitespace, a plain word like "WeatherAPI.com" gets torn apart
+            # into a fake match ("We" + "at" + "herAPI.com") because "at" is a
+            # substring of "weather" with zero space around it. A stopword
+            # filter on the prefix also blocks the common "look at acme.com"
+            # sentence-construction false positive.
+            for prefix, domain in OBFUSCATED_EMAIL_RE.findall(text):
+                if prefix.lower() in OBFUSCATION_PREFIX_STOPWORDS:
+                    continue
                 cand = f"{prefix}@{domain}"
                 if is_valid_email(cand):
                     emails.add(cand)
@@ -641,10 +730,13 @@ def scrape_website_for_email(url, founder_name=""):
             add_candidates(home_html, "web_scraper")
 
         # A founder-name match on the homepage is about as good as this
-        # pipeline gets — no need to keep crawling for something better.
+        # pipeline gets — no need to keep crawling for something better. (Final
+        # selection below still runs a deliverability check before this is
+        # actually handed out; this is purely a "stop crawling" shortcut.)
         if any(score >= 90 for _, _, score in found):
-            best = max(found, key=lambda t: t[2])
-            return best[0], best[1]
+            skip_further_crawl = True
+        else:
+            skip_further_crawl = False
 
         # 2. Follow real contact/about/team/support links found in the homepage's own
         # nav/footer — catches sites that don't use the guessed path (e.g. /reach-us,
@@ -653,7 +745,7 @@ def scrape_website_for_email(url, founder_name=""):
         base_url = f"https://{domain_base}" if domain_base else None
         followed_paths = set()
         LINK_TEXT_HINTS = ("contact", "about", "team", "support", "help", "reach", "connect", "founder")
-        if home_html and base_url:
+        if home_html and base_url and not skip_further_crawl:
             try:
                 soup = BeautifulSoup(home_html, "html.parser")
                 for a in soup.find_all("a", href=True):
@@ -689,13 +781,18 @@ def scrape_website_for_email(url, founder_name=""):
                 except Exception:
                     pass
 
-        if not found:
-            return None, ""
-        best = max(found, key=lambda t: t[2])
-        return best[0], best[1]
+        # Pick the best-ranked candidate that's actually at a real, mail
+        # -capable domain — a scraping/regex glitch can produce a
+        # syntactically valid but nonexistent domain, so don't hand out a
+        # guaranteed-bounce address just because it ranked highest on paper.
+        for email, source, score in sorted(found, key=lambda t: t[2], reverse=True):
+            if _domain_has_mail_capability(email.split("@", 1)[-1]):
+                return email, source, score
+
+        return None, "", 0
     except Exception as e:
         log.debug("Scraping email failed for %s: %s", url, e)
-        return None, ""
+        return None, "", 0
 
 def find_email_via_github(website_url, founder_name=""):
     """Extracts public author email from GitHub profile or commit history."""
@@ -735,6 +832,37 @@ def find_email_via_github(website_url, founder_name=""):
             except Exception:
                 pass
 
+    return None, ""
+
+def find_email_via_hn_profile(handle):
+    """Hacker News profile 'about' text is self-reported by the account owner
+    — many indie hackers list a contact email or mailto link right there.
+    Only meaningful when the founder identifier is actually a bare HN/PH
+    -style username, which is exactly the shape a real-name check rejects.
+    """
+    if not handle or not re.match(r"^[a-zA-Z0-9_-]+$", handle.strip()):
+        return None, ""
+    try:
+        r = requests.get(f"https://hacker-news.firebaseio.com/v0/user/{handle.strip()}.json", timeout=4)
+        if not r.ok:
+            return None, ""
+        data = r.json()
+        if not data:
+            return None, ""
+        about = data.get("about", "") or ""
+        soup = BeautifulSoup(about, "html.parser")
+        for a in soup.find_all("a", href=True):
+            href = a["href"].strip()
+            if href.lower().startswith("mailto:"):
+                email = href[7:].split("?")[0].strip()
+                if is_valid_email(email):
+                    return email, "hn_profile"
+        text = soup.get_text(separator=" ", strip=True)
+        for m in re.findall(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}", text):
+            if is_valid_email(m):
+                return m, "hn_profile"
+    except Exception:
+        pass
     return None, ""
 
 def find_email_via_rdap(website_url):
@@ -838,28 +966,46 @@ def find_email_via_pattern_guess(website_url):
     return None, ""
 
 def enrich_candidate_email(website_url, founder_name=""):
-    """Comprehensive discovery pipeline combining Scraper, GitHub, RDAP, Hunter.io, and pattern guessing."""
-    # 1. Scrape homepage and subpages
-    email, source = scrape_website_for_email(website_url, founder_name)
-    if email:
-        return email, source or "web_scraper", 90
+    """Comprehensive discovery pipeline combining Scraper, GitHub, HN profile,
+    RDAP, Hunter.io, and pattern guessing. Every hit is re-checked for real
+    mail-deliverability before being handed out — a wrong regex match on any
+    of these sources is a bounce against our own sending reputation, not
+    just a wasted lead.
+    """
+    # 1. Scrape homepage and subpages — confidence reflects whether the
+    # winning address actually looks personal, not just which strategy
+    # found it. A role inbox (support@, legal@, ...) is still real and
+    # deliverable, but it rarely reaches whoever can approve a $49.99 spend.
+    email, source, rank = scrape_website_for_email(website_url, founder_name)
+    if email and _domain_has_mail_capability(email.split("@", 1)[-1]):
+        confidence = 95 if rank >= 90 else (55 if rank <= 25 else 80)
+        return email, source or "web_scraper", confidence
 
-    # 2. GitHub lookup
+    # 2. GitHub lookup — profile/commit email fields are structured API data,
+    # about as reliable a source as exists here.
     email, source = find_email_via_github(website_url, founder_name)
-    if email:
+    if email and _domain_has_mail_capability(email.split("@", 1)[-1]):
         return email, source or "github_api", 95
 
-    # 3. Domain RDAP lookup
+    # 3. Hacker News profile "about" text — self-reported by the account
+    # owner. Only fires when founder_name is a bare handle (HN/PH username
+    # shape); a real "First Last" name has nowhere to look this up.
+    if founder_name and not _looks_like_real_name(founder_name):
+        email, source = find_email_via_hn_profile(founder_name)
+        if email and _domain_has_mail_capability(email.split("@", 1)[-1]):
+            return email, source or "hn_profile", 85
+
+    # 4. Domain RDAP lookup
     email, source = find_email_via_rdap(website_url)
-    if email:
+    if email and _domain_has_mail_capability(email.split("@", 1)[-1]):
         return email, source or "domain_rdap", 80
 
-    # 4. Hunter.io lookup
+    # 5. Hunter.io lookup
     email, score = find_email_via_hunter(website_url, founder_name)
-    if email:
+    if email and _domain_has_mail_capability(email.split("@", 1)[-1]):
         return email, "hunter_io", score
 
-    # 5. Pattern guess (MX-validated) — last resort, low confidence, review-gated
+    # 6. Pattern guess (MX-validated) — last resort, low confidence, review-gated
     email, source = find_email_via_pattern_guess(website_url)
     if email:
         return email, source or "pattern_guess", 35
@@ -930,6 +1076,12 @@ HARD CONSTRAINTS:
 Return ONLY the raw JSON block. Do not wrap in ```json or markdown codeblocks, just return the raw JSON object.
 """
 
+    # A raw HN/PH/GitHub username (e.g. "geekamongus") is not a name to greet
+    # a stranger by — it reads as obviously bot-scraped. Only pass through an
+    # actual "First Last" style name; otherwise let the model use a neutral
+    # greeting instead of parroting a handle back at someone.
+    display_name = candidate.founder_name if _looks_like_real_name(candidate.founder_name) else ""
+
     prompt = f"""
 {system_prompt}
 
@@ -937,10 +1089,10 @@ Write an outreach email for this candidate:
 - Product Name: {candidate.product_name}
 - Tagline: {candidate.tagline}
 - Website: {candidate.website_url}
-- Founder/Maker: {candidate.founder_name or 'Team'}
+- Founder/Maker: {display_name or 'not known — use a neutral greeting'}
 - Tone to use: {candidate.tone}
 
-If a founder name is given, greet them by first name only (e.g. "Hey Jane," not "Hey Jane Doe,"). If not, use "Hey there,".
+If a founder name is given, greet them by first name only (e.g. "Hey Jane," not "Hey Jane Doe,"). If not known, use "Hey there,".
 """
 
     payload = {
@@ -992,7 +1144,7 @@ def get_generic_draft(candidate):
     offer bullets, one real urgency line, single CTA, P.S. reinforcement.
     """
     name = candidate.product_name
-    first_name = candidate.founder_name.split(" ")[0] if candidate.founder_name else "there"
+    first_name = candidate.founder_name.split(" ")[0] if _looks_like_real_name(candidate.founder_name) else "there"
     hook = f"the way {name} handles \"{candidate.tagline}\"" if candidate.tagline else f"what you're building with {name}"
     subject = f"Quick one about {name}"[:50]
     body = f"""<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; color: #334155; line-height: 1.6;">
@@ -1158,54 +1310,128 @@ def run_discovery_pipeline():
     )
     return new_candidates_count
 
+def _email_is_broken(candidate):
+    """True if a candidate's stored email is syntactically invalid or points
+    at a domain that can't receive mail — i.e. it's actively wrong, not just
+    low-confidence. A regex glitch or stale scrape can leave one of these
+    sitting in draft_ready indefinitely if nothing ever re-checks it.
+    """
+    if not candidate.email:
+        return False
+    if not is_valid_email(candidate.email):
+        return True
+    domain = candidate.email.split("@", 1)[-1] if "@" in candidate.email else ""
+    return not _domain_has_mail_capability(domain)
+
 def re_enrich_missing_candidate_emails():
-    """Re-scans all candidates currently marked 'no_email_found' using the multi-strategy pipeline concurrently."""
+    """Re-verifies candidates that are missing an email OR whose stored email
+    or founder name looks weak — not just rows marked 'no_email_found'.
+    'draft_ready' rows are in scope too: an old scrape can have stored a
+    broken address (regex glitch, dead domain), a low-confidence guess, or a
+    raw HN/PH username as the "founder name". Each is re-run through the
+    multi-strategy pipeline / name-resolution concurrently, and the draft is
+    regenerated whenever the email or name actually changes. Rows already
+    sent/followed_up/replied/bounced/rejected are left untouched.
+    """
     from concurrent.futures import ThreadPoolExecutor, as_completed
-    
-    candidates = OutreachCandidate.query.filter_by(status="no_email_found").all()
+
+    candidates = OutreachCandidate.query.filter(
+        OutreachCandidate.status.in_(["no_email_found", "draft_ready"])
+    ).all()
     if not candidates:
-        return 0
+        return {"emails_fixed": 0, "names_fixed": 0, "drafts_regenerated": 0}
 
-    log.info("Starting concurrent re-enrichment for %s candidates...", len(candidates))
+    def _needs_email_recheck(c):
+        if not c.email or _email_is_broken(c):
+            return True
+        return (c.confidence_score or 0) < 50
 
-    def _process_candidate(cand_data):
-        cid, url, founder = cand_data
-        email, source, score = enrich_candidate_email(url, founder)
-        return cid, email, source, score
+    def _needs_name_fix(c):
+        return bool(c.founder_name) and not _looks_like_real_name(c.founder_name)
 
-    cand_tuples = [(c.id, c.website_url, c.founder_name) for c in candidates]
+    work_items = [
+        (c.id, c.website_url, c.founder_name, _needs_email_recheck(c), _needs_name_fix(c))
+        for c in candidates
+    ]
+    work_items = [w for w in work_items if w[3] or w[4]]
+    if not work_items:
+        return {"emails_fixed": 0, "names_fixed": 0, "drafts_regenerated": 0}
+
+    log.info("Re-verifying %s candidates (email and/or founder name)...", len(work_items))
+
+    def _process(item):
+        cid, url, founder, needs_email, needs_name = item
+        new_email = new_source = new_name = None
+        new_score = None
+        if needs_email:
+            email, source, score = enrich_candidate_email(url, founder)
+            if email:
+                new_email, new_source, new_score = email, source, score
+        if needs_name:
+            new_name = _try_resolve_real_name(founder)
+        return cid, new_email, new_source, new_score, new_name
+
     results = []
-
     with ThreadPoolExecutor(max_workers=8) as executor:
-        futures = [executor.submit(_process_candidate, item) for item in cand_tuples]
+        futures = [executor.submit(_process, item) for item in work_items]
         for f in as_completed(futures):
             try:
                 results.append(f.result())
             except Exception as e:
-                log.warning("Candidate enrichment task error: %s", e)
+                log.warning("Candidate re-verification task error: %s", e)
 
     cand_dict = {c.id: c for c in candidates}
-    enriched_count = 0
+    emails_fixed = 0
+    names_fixed = 0
+    drafts_regenerated = 0
+    any_changed = False
 
-    for cid, email, source, score in results:
-        if email and cid in cand_dict:
-            c = cand_dict[cid]
-            c.email = email
-            c.email_source = source
-            c.confidence_score = score
-            c.status = "draft_ready"
-            
+    for cid, new_email, new_source, new_score, new_name in results:
+        c = cand_dict.get(cid)
+        if not c:
+            continue
+        changed = False
+
+        if new_email:
+            c.email = new_email
+            c.email_source = new_source
+            c.confidence_score = new_score
+            if c.status == "no_email_found":
+                c.status = "draft_ready"
+            changed = True
+            emails_fixed += 1
+        elif _email_is_broken(c):
+            # Confirmed broken and nothing better turned up this pass — don't
+            # leave a guaranteed-bounce address sitting in draft_ready.
+            c.email = None
+            c.email_source = "none"
+            c.confidence_score = 0
+            c.status = "no_email_found"
+            changed = True
+
+        if new_name:
+            c.founder_name = new_name
+            changed = True
+            names_fixed += 1
+
+        if changed and c.email:
             subject, body = generate_draft_via_gemini(c)
             c.draft_subject = subject
             c.draft_body = body
+            drafts_regenerated += 1
+
+        if changed:
             c.updated_at = datetime.now(timezone.utc)
-            enriched_count += 1
+            any_changed = True
 
-    if enriched_count > 0:
+    if any_changed:
         db.session.commit()
-        log.info("Re-enrichment pipeline updated %s candidates with new emails.", enriched_count)
+        log.info(
+            "Re-verification complete: %s emails fixed, %s names fixed, %s drafts regenerated.",
+            emails_fixed, names_fixed, drafts_regenerated
+        )
 
-    return enriched_count
+    return {"emails_fixed": emails_fixed, "names_fixed": names_fixed, "drafts_regenerated": drafts_regenerated}
 
 # ─── 5. AUTOMATED FOLLOW-UPS ────────────────────────────────────────────────
 
@@ -1241,7 +1467,7 @@ def run_automated_followups():
             continue
 
         followup_subject = f"Re: {c.draft_subject}"
-        followup_body = f"""<p>Hi {c.founder_name.split(' ')[0] if c.founder_name else 'there'},</p>
+        followup_body = f"""<p>Hi {c.founder_name.split(' ')[0] if _looks_like_real_name(c.founder_name) else 'there'},</p>
 <p>Just wanted to quickly follow up on my previous message. Are you interested in featuring {c.product_name} on AI Compass to capture traffic from students and developers?</p>
 <p>Let me know if you have any questions!</p>
 <br>
