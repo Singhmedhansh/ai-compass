@@ -1,6 +1,7 @@
 import os
 import re
 import logging
+import threading
 from datetime import datetime, timezone, timedelta
 from urllib.parse import urlparse
 import requests
@@ -561,6 +562,11 @@ def fetch_shownews_launches():
 
 # ─── 2. EMAIL DISCOVERY (SCRAPE + GITHUB + RDAP + HUNTER.IO) ─────────────────
 
+# Hard wall-clock ceiling for a single DNS deliverability check — see
+# _domain_has_mail_capability() for why this is enforced via thread.join()
+# rather than trusting dns.resolver's own lifetime parameter.
+DNS_CHECK_HARD_TIMEOUT = 4
+
 # Shared-inbox prefixes — an email here almost never reaches the person who
 # can personally approve a $49.99 spend. Ranked below a founder-matching or
 # neutral personal address; only used if nothing better turns up.
@@ -587,31 +593,49 @@ OBFUSCATION_PREFIX_STOPWORDS = {
     "that", "what", "chat",
 }
 
+def _dns_lookup_worker(domain, result):
+    try:
+        import dns.resolver
+        try:
+            dns.resolver.resolve(domain, "MX", lifetime=3)
+            result["ok"] = True
+            return
+        except (dns.resolver.NoAnswer, dns.resolver.NXDOMAIN):
+            pass
+        except Exception:
+            pass
+        try:
+            dns.resolver.resolve(domain, "A", lifetime=3)
+            result["ok"] = True
+        except Exception:
+            pass
+    except Exception:
+        pass
+
 def _domain_has_mail_capability(domain):
     """Confirms a domain can plausibly receive mail (MX, falling back to A)
     before handing an email out for outreach. Scraping arbitrary third-party
     HTML is adversarial input — a parsing glitch can produce something that's
     syntactically a valid email but points at a domain that doesn't exist,
     which just becomes a bounce against our own sending reputation.
+
+    Runs in a daemon thread with a hard join timeout rather than trusting
+    dns.resolver's own `lifetime` parameter to bound wall-clock time. In a
+    sandboxed network environment where outbound DNS gets silently dropped
+    (no ICMP unreachable, just nothing), dnspython's retries-across-lifetime
+    accounting can run long enough to tie up a gthread worker thread — and
+    with only 4 threads total on this service, a handful of stuck lookups is
+    enough to make the whole process stop answering requests, including
+    /healthz. This guarantees the caller is never blocked longer than
+    DNS_CHECK_HARD_TIMEOUT regardless of what the resolver does internally.
     """
     if not domain or "." not in domain:
         return False
-    try:
-        import dns.resolver
-        try:
-            dns.resolver.resolve(domain, "MX", lifetime=4)
-            return True
-        except (dns.resolver.NoAnswer, dns.resolver.NXDOMAIN):
-            pass
-        except Exception:
-            pass
-        try:
-            dns.resolver.resolve(domain, "A", lifetime=4)
-            return True
-        except Exception:
-            return False
-    except Exception:
-        return False
+    result = {"ok": False}
+    t = threading.Thread(target=_dns_lookup_worker, args=(domain, result), daemon=True)
+    t.start()
+    t.join(timeout=DNS_CHECK_HARD_TIMEOUT)
+    return result["ok"]
 
 def _score_email_candidate(email, founder_name=""):
     """Ranks a discovered email by how likely it is to reach an actual
@@ -949,14 +973,7 @@ def find_email_via_pattern_guess(website_url):
     auto-qualifying for send.
     """
     domain = get_domain_from_url(website_url)
-    if not domain:
-        return None, ""
-    try:
-        import dns.resolver
-        answers = dns.resolver.resolve(domain, "MX", lifetime=4)
-        if not answers:
-            return None, ""
-    except Exception:
+    if not domain or not _domain_has_mail_capability(domain):
         return None, ""
 
     # MX exists — return the highest-signal generic prefix; admin verifies via Review.
