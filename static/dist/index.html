@@ -126,30 +126,11 @@
          fetching immediately while React is still loading. -->
     <link rel="dns-prefetch" href="https://ai-compass.in" />
 
-    <!-- Font stylesheet — non-blocking pattern.
-         media="print" makes the browser fetch this without blocking
-         the render path (it's "only for printing", so render is
-         unblocked). The onload handler then flips it back to media=all
-         which applies it to the screen. The <noscript> fallback covers
-         the (vanishingly small) no-JS audience. Lighthouse measured
-         the OLD blocking variant as costing ~950ms on mobile 4G. -->
-    <link
-      rel="preload"
-      as="style"
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
-    />
+    <!-- Font stylesheet -->
     <link
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
-      media="print"
-      onload="this.media='all'"
     />
-    <noscript>
-      <link
-        rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
-      />
-    </noscript>
 
         <!-- PostHog (production only — proxied through /ingest so browser
           blockers are less likely to interfere. Load asynchronously so
