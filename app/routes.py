@@ -10,7 +10,7 @@ import requests
 from flask import Blueprint, Response, current_app, jsonify, redirect, request, send_from_directory
 from sqlalchemy import text
 
-from app import db
+from app import csrf, db
 from app.tool_cache import TOOL_CACHE, get_cached_tools, get_visible_tools
 
 main_bp = Blueprint('main', __name__)
@@ -163,6 +163,7 @@ def _proxy_posthog_request(path: str) -> Response:
 
 @main_bp.route('/ingest', defaults={'path': ''}, methods=['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'])
 @main_bp.route('/ingest/<path:path>', methods=['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'])
+@csrf.exempt
 def ingest_proxy(path: str):
     return _proxy_posthog_request(path)
 
