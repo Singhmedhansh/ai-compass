@@ -122,9 +122,13 @@ function TemplateGallery({ onSelect, loadingStackId }) {
     <div className="w-full flex flex-col items-center animate-in fade-in duration-500">
       <div className="mb-8 flex flex-wrap justify-center gap-2">
         {categories.map((cat) => {
-          const count = cat === 'All' 
-            ? PREDEFINED_STACKS.length 
-            : PREDEFINED_STACKS.filter(s => s.category === cat).length;
+          // Count with the same predicate the grid filters by, so the pill
+          // number matches what actually renders. The always-appended Custom
+          // card shows in every category, so it must be counted in every
+          // category (otherwise e.g. "Student (2)" renders three cards).
+          const count = PREDEFINED_STACKS.filter(
+            s => cat === 'All' || s.category === cat || s.id === 'custom'
+          ).length;
           
           return (
             <button
@@ -544,7 +548,7 @@ function QuestionRow({ index, question, answer, isActive, onActivate, onSelect, 
   const [showOther, setShowOther] = useState(Boolean(isNicheOrCustom))
 
   return (
-    <div className={wrapperClasses}>
+    <div className={wrapperClasses} id={isActive ? 'wf-active-question' : undefined}>
       {isActive ? (
         <>
           {header}
@@ -742,8 +746,17 @@ function QuestionRow({ index, question, answer, isActive, onActivate, onSelect, 
                     <div className="mt-8 flex justify-center">
                       <button
                         type="button"
-                        onClick={() => onSelect('productivity')}
-                        className="text-sm font-medium text-muted hover:text-ink underline decoration-line hover:decoration-accent transition-colors"
+                        disabled={Boolean(answer)}
+                        onClick={() => {
+                          // Silently picking a goal read as a no-op — surface
+                          // what it chose so the click has visible feedback.
+                          // Disabled once a goal is set so a second tap can't
+                          // re-fire the toast (the step event is also guarded
+                          // upstream in handleQuestionSelect).
+                          toast.success('Picked "Get organized" to get you started')
+                          onSelect('productivity')
+                        }}
+                        className="text-sm font-medium text-muted hover:text-ink underline decoration-line hover:decoration-accent transition-colors disabled:opacity-50 disabled:cursor-default"
                       >
                         Not sure? Start here
                       </button>
@@ -1443,6 +1456,11 @@ function ToolFinderPage() {
   const wizardStartedRef = useRef(false)
   const wizardCompletedRef = useRef(false)
   const useCaseInputRef = useRef(null)
+  // Holds the pending single-select auto-advance timer so a rapid second
+  // click can't schedule (and fire wizard_step_completed for) the same step
+  // twice. Also lets us scroll the wizard into view from the header CTA.
+  const advanceTimerRef = useRef(null)
+  const wizardSectionRef = useRef(null)
 
   const surveyTriggerRef = useRef(false)
 
@@ -1656,9 +1674,16 @@ function ToolFinderPage() {
       return
     }
     // Single-select: record, let the highlight register, then auto-advance.
+    // Ignore re-entry while a previous advance is still pending so a rapid
+    // double-click can't record the step — and fire wizard_step_completed —
+    // twice (which also quietly inflated the step-1 funnel data).
+    if (advanceTimerRef.current) return
     const nextAnswers = { ...answers, [question.id]: value }
     writeAnswer(question.id, value)
-    window.setTimeout(() => goToQuestionAfter(question, value, nextAnswers), 150)
+    advanceTimerRef.current = window.setTimeout(() => {
+      advanceTimerRef.current = null
+      goToQuestionAfter(question, value, nextAnswers)
+    }, 150)
   }
 
   const handleQuestionContinue = (question) => {
@@ -1780,6 +1805,38 @@ function ToolFinderPage() {
       toast.error('No tools matched this stack — try adjusting the answers.')
     }
   }, [pendingStackSwitch, loadingResults, results.length])
+
+  // The header "Get Started" CTA fires this when clicked while already on
+  // /ai-tool-finder (where a navigate() would be a dead no-op). Start the
+  // wizard if it hasn't begun, make sure we're in the wizard view, then
+  // scroll the active question into view so the click visibly does something.
+  useEffect(() => {
+    const handleHeaderStart = () => {
+      if (!hasStarted) {
+        handlePredefinedStack('custom')
+      } else if (viewMode !== 'wizard') {
+        setViewMode('wizard')
+      }
+      // Wait a tick for the wizard / active question to mount before scrolling.
+      window.setTimeout(() => {
+        const active = typeof document !== 'undefined'
+          ? document.getElementById('wf-active-question')
+          : null
+        const target = active || wizardSectionRef.current
+        target?.scrollIntoView?.({ behavior: 'smooth', block: 'start' })
+      }, 60)
+    }
+    window.addEventListener('ai-compass:start-wizard', handleHeaderStart)
+    return () => window.removeEventListener('ai-compass:start-wizard', handleHeaderStart)
+  }, [hasStarted, viewMode])
+
+  // Clear any pending auto-advance timer on unmount.
+  useEffect(() => () => {
+    if (advanceTimerRef.current) {
+      window.clearTimeout(advanceTimerRef.current)
+      advanceTimerRef.current = null
+    }
+  }, [])
 
   const handleSaveStack = async () => {
     if (!user) {
@@ -2012,7 +2069,7 @@ function ToolFinderPage() {
         title="AI Stack Architect | AI Compass"
         description="Design your custom AI stack. Answer a few questions to get hand-picked, verified tools matching your exact major, budget, and platforms."
       />
-      <section className="rounded-3xl border border-line bg-bg-elev p-6 shadow-sm sm:p-8">
+      <section ref={wizardSectionRef} className="rounded-3xl border border-line bg-bg-elev p-6 shadow-sm sm:p-8">
         <div className="mb-6 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-ink sm:text-4xl"><WordReveal>AI Stack Architect</WordReveal></h1>
