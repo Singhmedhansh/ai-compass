@@ -433,7 +433,17 @@ const CardNav = ({ className = '', ease = 'power3.out' }) => {
               <button
                 type="button"
                 className="card-nav-cta-button relative z-10 px-4 py-2"
-                onClick={() => navigate('/ai-tool-finder')}
+                onClick={() => {
+                  // When we're already on the tool finder, navigate() is a
+                  // no-op — nothing re-renders or scrolls, which reads as a
+                  // dead click. Ask the page to start/resume the wizard and
+                  // scroll to the active question instead.
+                  if (location.pathname === '/ai-tool-finder') {
+                    window.dispatchEvent(new CustomEvent('ai-compass:start-wizard'))
+                    return
+                  }
+                  navigate('/ai-tool-finder')
+                }}
               >
                 Get Started
               </button>
