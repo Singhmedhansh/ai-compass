@@ -715,6 +715,25 @@ def create_app(config: dict | None = None) -> Flask:
                         except Exception as err:
                             db.session.rollback()
 
+                    # Same fallback for outreach_candidates: flask_migrate.upgrade()
+                    # above has never actually progressed past the very first
+                    # migration on this DB (alembic_version isn't stamped, so it
+                    # keeps retrying "-> 79c4860332f8" and fails on tables that
+                    # already exist) — db.create_all() only creates missing
+                    # tables, it can't add columns to ones that already exist,
+                    # so new columns on existing tables need this same raw-SQL
+                    # guarantee the users table columns above already rely on.
+                    for col_name, col_type in [
+                        ("verification_result", "VARCHAR(20)"),
+                        ("verified_at", "TIMESTAMP"),
+                    ]:
+                        try:
+                            from sqlalchemy import text
+                            db.session.execute(text(f"ALTER TABLE outreach_candidates ADD COLUMN {if_not_exists}{col_name} {col_type};"))
+                            db.session.commit()
+                        except Exception:
+                            db.session.rollback()
+
                     try:
                         from app.catalog_store import seed_from_json_if_empty, sync_catalog_from_json, sync_ratings_and_verifications_from_json
                         seeded = seed_from_json_if_empty()
