@@ -24,6 +24,31 @@ jobs:
     timeout-minutes: 10
 
     steps:
+      - name: DIAGNOSTIC - test outbound port 25 connectivity
+        # Temporary, manual-trigger-only check for whether this runner can
+        # open outbound TCP connections on port 25 (SMTP) — needed before
+        # building a real mailbox verifier here, since many cloud platforms
+        # (including Render, which is why sending goes through Resend's
+        # HTTPS API instead of SMTP) block outbound 25 by default. Safe to
+        # delete once answered either way.
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          python3 - <<'PYEOF'
+          import socket
+
+          targets = [
+              ("aspmx.l.google.com", 25),
+              ("mx1.hotmail.com", 25),
+          ]
+          for host, port in targets:
+              try:
+                  with socket.create_connection((host, port), timeout=8) as s:
+                      banner = s.recv(256).decode(errors="replace").strip()
+                      print(f"CONNECTED to {host}:{port} — banner: {banner!r}")
+              except Exception as e:
+                  print(f"BLOCKED/FAILED to {host}:{port} — {type(e).__name__}: {e}")
+          PYEOF
+
       - name: POST to /api/v1/admin/outreach/cron
         # Auth is the X-Outreach-Secret header — must match OUTREACH_SECRET
         # on Render. The endpoint runs run_discovery_pipeline() +
