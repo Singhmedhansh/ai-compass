@@ -12,6 +12,7 @@ from app.outreach import (
     run_discovery_pipeline,
     re_enrich_missing_candidate_emails,
     run_automated_followups,
+    regenerate_all_drafts,
     generate_draft_via_gemini,
     is_valid_email,
     fetch_producthunt_launches,
@@ -401,6 +402,39 @@ def trigger_re_enrich():
     except Exception as e:
         _outreach_job_lock.release()
         current_app.logger.exception("Failed to run re-enrichment pipeline")
+        return jsonify({"error": str(e)}), 500
+
+@outreach_bp.route("/api/v1/admin/outreach/regenerate-all-drafts", methods=["POST"])
+@csrf.exempt
+@login_required
+def trigger_regenerate_all_drafts():
+    if not _is_admin():
+        return jsonify({"error": "Forbidden"}), 403
+
+    if not _outreach_job_lock.acquire(blocking=False):
+        return jsonify({"error": "Another discovery/re-enrich job is already running — wait for it to finish before starting another."}), 409
+
+    try:
+        app_obj = current_app._get_current_object()
+        app_ctx = app_obj.app_context()
+
+        def _bg():
+            try:
+                with app_ctx:
+                    try:
+                        count = regenerate_all_drafts()
+                        app_obj.logger.info("Background draft regeneration completed: %s drafts regenerated.", count)
+                    except Exception as ex:
+                        app_obj.logger.exception("Background draft regeneration failed: %s", ex)
+            finally:
+                _outreach_job_lock.release()
+
+        threading.Thread(target=_bg, name="regenerate-drafts-bg", daemon=True).start()
+
+        return jsonify({"success": True, "message": "Regenerating all drafts in the background"}), 202
+    except Exception as e:
+        _outreach_job_lock.release()
+        current_app.logger.exception("Failed to start draft regeneration")
         return jsonify({"error": str(e)}), 500
 
 # ─── AUTOMATED CRON ENDPOINT ──────────────────────────────────────────────────

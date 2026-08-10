@@ -1422,6 +1422,27 @@ function AdminPage() {
                   {outreachBusy === 're_enrich' ? 'Enriching missing emails…' : 'Re-Enrich Missing Emails'}
                 </button>
                 <button
+                  disabled={outreachBusy === 'regenerate_all'}
+                  onClick={async () => {
+                    if (!window.confirm('Regenerate the draft for every draft_ready candidate? This overwrites any manual edits to subject/body.')) return
+                    setOutreachBusy('regenerate_all')
+                    try {
+                      await api('/api/v1/admin/outreach/regenerate-all-drafts', { method: 'POST' })
+                      toast.success('Regenerating all drafts in background! Refreshing candidates list...')
+                      setTimeout(() => loadOutreachData(), 5000)
+                      setTimeout(() => loadOutreachData(), 15000)
+                      setTimeout(() => loadOutreachData(), 30000)
+                    } catch (e) {
+                      toast.error(e.message)
+                    } finally {
+                      setOutreachBusy(null)
+                    }
+                  }}
+                  className={BTN_GHOST}
+                >
+                  {outreachBusy === 'regenerate_all' ? 'Regenerating drafts…' : 'Regenerate All Drafts'}
+                </button>
+                <button
                   onClick={() => setShowManualAdd(!showManualAdd)}
                   className={`flex items-center gap-1.5 ${BTN_PRIMARY}`}
                 >

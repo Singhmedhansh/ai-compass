@@ -1670,3 +1670,49 @@ Medhansh"""
         log.info("Sent %s automated follow-up emails.", sent_count)
 
     return sent_count
+
+# ─── 6. BULK DRAFT REGENERATION ─────────────────────────────────────────────
+
+def regenerate_all_drafts():
+    """Regenerates draft_subject/draft_body for every draft_ready candidate
+    with an email. Drafts are only generated once and stored — a later
+    template change (new stats, new copy) doesn't retroactively touch
+    already-generated drafts, so this is the one-shot fix to bring every
+    existing candidate's draft up to date with the current template.
+    """
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
+    candidates = OutreachCandidate.query.filter(
+        OutreachCandidate.status == "draft_ready",
+        OutreachCandidate.email.isnot(None),
+    ).all()
+    if not candidates:
+        return 0
+
+    cand_dict = {c.id: c for c in candidates}
+
+    def _generate(cid):
+        return cid, generate_draft_via_gemini(cand_dict[cid])
+
+    regenerated = 0
+    # Same concurrency cap as re_enrich_missing_candidate_emails — this
+    # free-tier instance has a single shared vCPU, so more workers here
+    # would just starve the process's ability to answer other requests.
+    with ThreadPoolExecutor(max_workers=3) as executor:
+        futures = [executor.submit(_generate, cid) for cid in cand_dict]
+        for f in as_completed(futures):
+            try:
+                cid, (subject, body) = f.result()
+                c = cand_dict[cid]
+                c.draft_subject = subject
+                c.draft_body = body
+                c.updated_at = datetime.now(timezone.utc)
+                regenerated += 1
+            except Exception as e:
+                log.warning("Draft regeneration failed: %s", e)
+
+    if regenerated:
+        db.session.commit()
+        log.info("Regenerated %s draft(s).", regenerated)
+
+    return regenerated
