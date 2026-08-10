@@ -68,8 +68,16 @@ STUDENT_RELEVANT_KEYWORDS = {
 }
 
 COMMERCIAL_PRICING_SIGNALS = [
-    "pricing", "plans", "pro", "enterprise", "subscribe", "upgrade", "billing",
-    "tier", "$", "eur", "lemonsqueezy", "stripe", "paddle", "free trial", "per month",
+    # "pro" and a bare "$" used to be in here — both matched constantly on
+    # ordinary content ("process", "project", "program" all contain "pro";
+    # any page mentioning a hardware/component price like "$250 FPGA" has a
+    # "$"), misclassifying personal blog posts as commercial SaaS products
+    # with budget for sponsorship. Same problem with "eur" as a bare
+    # substring — it matches inside "neural", which is about as common a
+    # word as it gets on an AI-related page. Removed/replaced with
+    # unambiguous signals only.
+    "pricing", "plans", "enterprise", "subscribe", "upgrade", "billing",
+    "tier", "€", "lemonsqueezy", "stripe", "paddle", "free trial", "per month",
     "/mo", "monthly", "annually", "checkout", "premium"
 ]
 
