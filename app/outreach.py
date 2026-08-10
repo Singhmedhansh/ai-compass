@@ -237,22 +237,37 @@ def scrape_producthunt_ranked_posts():
 
     log.info("PH homepage: found %s raw slugs", len(posts_by_slug))
 
-    # ── Extract votes — try multiple key names PH uses
-    for key in ["votesCount", "votes_count", "votes"]:
-        # Find pattern: "slug":"some-slug","...":"...","votesCount":123
-        for slug, votes_str in re.findall(rf'"slug":"([^"]+)"[^{{}}]{{0,300}}?"{key}":(\d+)', text):
-            if slug in posts_by_slug:
-                v = int(votes_str)
-                if v > posts_by_slug[slug]["votes"]:
-                    posts_by_slug[slug]["votes"] = v
-
-    # Also try extracting votes from near the name
-    for name_val, votes_str in re.findall(r'"name":"([^"]+)"[^{}]{0,400}?"votesCount":(\d+)', text):
-        for slug, p in posts_by_slug.items():
-            if p["name"] == name_val or p["name"].lower() == name_val.lower():
-                v = int(votes_str)
-                if v > p["votes"]:
-                    p["votes"] = v
+    # ── Extract a traction score for each post.
+    #
+    # PH used to embed a plain "votesCount" number right next to each post's
+    # slug, close enough that a brace-blind proximity regex (`[^{}]{0,N}`)
+    # could bridge the gap. They've since (a) stopped emitting votesCount
+    # for ranked-feed posts at all — replaced by a `hideVotesCount` flag
+    # plus internal `latestScore`/`launchDayScore` fields — and (b) started
+    # nesting several sub-objects (product/topics/friendVoters/...) between
+    # the slug and those score fields. A regex that refuses to cross `{`/`}`
+    # can no longer reach past those sub-objects, so every proximity match
+    # failed and every post fell back to votes=0, silently emptying PH
+    # discovery entirely.
+    #
+    # Fix: split the page into one chunk per `{"__typename":"Post",...}`
+    # record first, then search within each chunk (crossing braces is fine
+    # there, since we're already bounded to a single post's own JSON).
+    # latestScore is the closest available substitute for a vote count.
+    for chunk in text.split('"__typename":"Post"')[1:]:
+        slug_m = re.search(r'"slug":"([^"]+)"', chunk[:400])
+        if not slug_m or slug_m.group(1) not in posts_by_slug:
+            continue
+        slug = slug_m.group(1)
+        score_m = (
+            re.search(r'"latestScore":(\d+)', chunk[:2000])
+            or re.search(r'"launchDayScore":(\d+)', chunk[:2000])
+            or re.search(r'"votesCount":(\d+)', chunk[:2000])
+        )
+        if score_m:
+            score = int(score_m.group(1))
+            if score > posts_by_slug[slug]["votes"]:
+                posts_by_slug[slug]["votes"] = score
 
     # ── Extract website URLs — try every key PH uses
     url_patterns = [
