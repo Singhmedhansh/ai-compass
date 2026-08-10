@@ -1458,6 +1458,15 @@ def re_enrich_missing_candidate_emails():
             # Never actually run through NeverBounce — a heuristic 80/95
             # score isn't real confirmation, regardless of how high it is.
             return True
+        if c.email_source == "pattern_guess":
+            # Last-resort generic guess (hello@domain) — even once NeverBounce
+            # comes back "unknown" (50, the VERIFICATION_RESULT_CONFIDENCE
+            # ceiling for that verdict), that's an inconclusive SMTP check,
+            # not a real mailbox. `< 50` below never re-triggers at exactly
+            # 50, which permanently stranded every pattern_guess row at 50%
+            # no matter how many times Re-Enrich ran. Always give rediscovery
+            # another shot at a real (scrape/github/rdap/hunter) address.
+            return True
         return (c.confidence_score or 0) < 50
 
     def _needs_name_fix(c):
