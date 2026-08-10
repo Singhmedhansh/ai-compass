@@ -606,7 +606,7 @@ export default function SubmitPage() {
             <div className="mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-xl bg-accent-soft text-accent">
               <Users className="h-5 w-5" />
             </div>
-            <div className="text-2xl sm:text-3xl font-bold text-ink">2,000+</div>
+            <div className="text-2xl sm:text-3xl font-bold text-ink">4,000+</div>
             <div className="text-[11px] font-medium text-ink-2 mt-1">Monthly Active Visitors</div>
           </div>
 
@@ -622,7 +622,7 @@ export default function SubmitPage() {
             <div className="mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-xl bg-accent-soft text-accent">
               <BarChart3 className="h-5 w-5" />
             </div>
-            <div className="text-2xl sm:text-3xl font-bold text-ink">100K+</div>
+            <div className="text-2xl sm:text-3xl font-bold text-ink">110K+</div>
             <div className="text-[11px] font-medium text-ink-2 mt-1">Google Search Impressions</div>
           </div>
 
@@ -630,7 +630,7 @@ export default function SubmitPage() {
             <div className="mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-xl bg-accent-soft text-accent">
               <Search className="h-5 w-5" />
             </div>
-            <div className="text-2xl sm:text-3xl font-bold text-ink">Top 15</div>
+            <div className="text-2xl sm:text-3xl font-bold text-ink">Top 12</div>
             <div className="text-[11px] font-medium text-ink-2 mt-1">Google Search Rankings</div>
           </div>
         </div>

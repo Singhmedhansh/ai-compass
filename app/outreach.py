@@ -1151,7 +1151,7 @@ CONVERSION STRUCTURE (follow this order, this is what makes it work):
    you well" — those are the two biggest tells of a mass-blasted email and cause instant deletion.
 2. Bridge (1 sentence): connect that specific detail to why AI Compass's audience (students/developers actively searching for tools like theirs) is
    exactly who they want finding them.
-3. Proof, stated as outcomes not just numbers: "2,000+ monthly active visitors and 100K+ Google search impressions from students actively looking for
+3. Proof, stated as outcomes not just numbers: "4,000+ monthly active visitors and 110K+ Google search impressions from students actively looking for
    tools like [product]" reads stronger than a bare stat dump — anchor the numbers to THEIR situation.
 4. The offer as a tight, scannable bullet list (keep exactly these three, do not add more):
    - Guaranteed 24-hour priority review and frontpage listing
@@ -1258,7 +1258,7 @@ def get_generic_draft(candidate):
     body = f"""<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; color: #334155; line-height: 1.6;">
 <p>Hey {first_name},</p>
 <p>I run <a href="https://ai-compass.in" style="color: #059669; font-weight: 600;">AI Compass</a> and just saw {hook} — students and developers searching for exactly this kind of tool are who we send traffic to every day.</p>
-<p>AI Compass gets <b>2,000+ monthly active visitors</b> and <b>100K+ Google search impressions</b> from students actively looking for tools like {name}. Here's what Fast-Track Sponsored Curation gets you:</p>
+<p>AI Compass gets <b>4,000+ monthly active visitors</b> and <b>110K+ Google search impressions</b> from students actively looking for tools like {name}. Here's what Fast-Track Sponsored Curation gets you:</p>
 <ul style="margin: 8px 0 16px 0; padding-left: 18px; font-size: 13px; color: #475569;">
   <li>Guaranteed 24-hour priority review and frontpage listing</li>
   <li>Permanent high-authority dofollow SEO backlink to {candidate.website_url or name}</li>

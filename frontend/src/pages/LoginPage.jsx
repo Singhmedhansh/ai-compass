@@ -153,7 +153,7 @@ function LoginPage() {
 
       <div className="mt-6">
         <div className="mb-4 text-center">
-          <p className="text-sm font-medium text-ink">Join 2,000+ users finding their AI tools</p>
+          <p className="text-sm font-medium text-ink">Join 4,000+ users finding their AI tools</p>
         </div>
         <SocialAuthButtons verb="Continue" />
       </div>
