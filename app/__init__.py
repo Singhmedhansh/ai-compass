@@ -734,6 +734,24 @@ def create_app(config: dict | None = None) -> Flask:
                         except Exception:
                             db.session.rollback()
 
+                    # Same fallback for submissions: the payment-verification
+                    # migration (a4e91c2b7d3f) never applied here either, for
+                    # the same reason as above — without these columns, every
+                    # Submission insert in api_routes.py raises UndefinedColumn
+                    # and gets silently swallowed (rollback + log only), so
+                    # paid submissions were never actually being persisted.
+                    for col_name, col_type in [
+                        ("payment_status", "VARCHAR(20) NOT NULL DEFAULT 'unpaid'"),
+                        ("payment_note", "VARCHAR(255)"),
+                        ("is_priority", "BOOLEAN NOT NULL DEFAULT FALSE"),
+                    ]:
+                        try:
+                            from sqlalchemy import text
+                            db.session.execute(text(f"ALTER TABLE submissions ADD COLUMN {if_not_exists}{col_name} {col_type};"))
+                            db.session.commit()
+                        except Exception:
+                            db.session.rollback()
+
                     try:
                         from app.catalog_store import seed_from_json_if_empty, sync_catalog_from_json, sync_ratings_and_verifications_from_json
                         seeded = seed_from_json_if_empty()
