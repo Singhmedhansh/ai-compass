@@ -985,52 +985,140 @@ def find_email_via_pattern_guess(website_url):
         return candidate, "pattern_guess"
     return None, ""
 
+# Shared confidence mapping for any mailbox-verification source in this
+# pipeline — currently NeverBounce (verify_email_via_neverbounce, requires a
+# paid/credited NEVERBOUNCE_APIKEY) and the free self-hosted SMTP RCPT-TO
+# prober (scripts/verify_outreach_emails_smtp.py, runs from GitHub Actions
+# since Render's free/hobby tier blocks outbound SMTP at the network level —
+# see email_utils.py's module docstring for the same constraint on sending —
+# and reports back via the /verification-queue and /verification-results
+# routes in outreach_routes.py). Both produce the same result vocabulary.
+VERIFICATION_RESULT_CONFIDENCE = {
+    "valid": 95,
+    "catchall": 60,   # domain accepts everything — can't confirm the mailbox itself
+    "unknown": 50,    # verifier couldn't reach/get a clean answer from the mail server — inconclusive, not a hit
+    "invalid": 0,
+    "disposable": 0,
+}
+
+def verify_email_via_neverbounce(email):
+    """Ground-truth mailbox check via NeverBounce's single-check endpoint.
+    Returns (result, confidence) — (None, None) if NEVERBOUNCE_APIKEY isn't
+    configured or the call fails, so callers can tell "not verified" apart
+    from "verified bad" and degrade gracefully rather than downgrading
+    everything just because the key is missing.
+    """
+    api_key = os.environ.get("NEVERBOUNCE_APIKEY")
+    if not api_key or not email:
+        return None, None
+    try:
+        r = requests.get(
+            "https://api.neverbounce.com/v4.2/single/check",
+            params={"key": api_key, "email": email, "timeout": 15},
+            timeout=20,
+        )
+        if not r.ok:
+            log.warning("NeverBounce verify HTTP %s for %s", r.status_code, email)
+            return None, None
+        result = r.json().get("result")
+        return result, VERIFICATION_RESULT_CONFIDENCE.get(result)
+    except Exception as e:
+        log.warning("NeverBounce verify error for %s: %s", email, e)
+        return None, None
+
+def _scrape_strategy(website_url, founder_name):
+    email, source, rank = scrape_website_for_email(website_url, founder_name)
+    confidence = 95 if rank >= 90 else (55 if rank <= 25 else 80)
+    return email, source or "web_scraper", confidence
+
+def _github_strategy(website_url, founder_name):
+    email, source = find_email_via_github(website_url, founder_name)
+    return email, source or "github_api", 95
+
+def _hn_profile_strategy(website_url, founder_name):
+    # Only fires when founder_name is a bare handle (HN/PH username shape);
+    # a real "First Last" name has nowhere to look this up.
+    if founder_name and not _looks_like_real_name(founder_name):
+        email, source = find_email_via_hn_profile(founder_name)
+        return email, source or "hn_profile", 85
+    return None, "", 0
+
+def _rdap_strategy(website_url, founder_name):
+    email, source = find_email_via_rdap(website_url)
+    return email, source or "domain_rdap", 80
+
+def _hunter_strategy(website_url, founder_name):
+    email, score = find_email_via_hunter(website_url, founder_name)
+    return email, "hunter_io", score
+
+def _pattern_guess_strategy(website_url, founder_name):
+    email, source = find_email_via_pattern_guess(website_url)
+    return email, source or "pattern_guess", 35
+
 def enrich_candidate_email(website_url, founder_name=""):
     """Comprehensive discovery pipeline combining Scraper, GitHub, HN profile,
     RDAP, Hunter.io, and pattern guessing. Every hit is re-checked for real
     mail-deliverability before being handed out — a wrong regex match on any
     of these sources is a bounce against our own sending reputation, not
     just a wasted lead.
+
+    Returns (email, source, confidence, verification_result). When
+    NEVERBOUNCE_APIKEY is configured, this chains through strategies until
+    one is confirmed 'valid' by NeverBounce (ground truth) — a
+    heuristically-plausible address that was never actually verified isn't
+    good enough to auto-qualify for send — only falling back to the best
+    inconclusive (catchall/unknown) hit if nothing comes back clean.
+    verification_result is None whenever the returned confidence is a
+    heuristic guess rather than an actual NeverBounce verdict (no key
+    configured, budget exhausted, or the verify call itself failed).
+    Without a key configured, this falls back to the prior behavior of
+    returning the first MX-capable hit with its heuristic confidence score.
     """
-    # 1. Scrape homepage and subpages — confidence reflects whether the
-    # winning address actually looks personal, not just which strategy
-    # found it. A role inbox (support@, legal@, ...) is still real and
-    # deliverable, but it rarely reaches whoever can approve a $49.99 spend.
-    email, source, rank = scrape_website_for_email(website_url, founder_name)
-    if email and _domain_has_mail_capability(email.split("@", 1)[-1]):
-        confidence = 95 if rank >= 90 else (55 if rank <= 25 else 80)
-        return email, source or "web_scraper", confidence
+    verification_enabled = bool(os.environ.get("NEVERBOUNCE_APIKEY"))
+    strategies = [
+        _scrape_strategy, _github_strategy, _hn_profile_strategy,
+        _rdap_strategy, _hunter_strategy, _pattern_guess_strategy,
+    ]
 
-    # 2. GitHub lookup — profile/commit email fields are structured API data,
-    # about as reliable a source as exists here.
-    email, source = find_email_via_github(website_url, founder_name)
-    if email and _domain_has_mail_capability(email.split("@", 1)[-1]):
-        return email, source or "github_api", 95
+    best_fallback = (None, "none", 0, None)
+    verifications_used = 0
 
-    # 3. Hacker News profile "about" text — self-reported by the account
-    # owner. Only fires when founder_name is a bare handle (HN/PH username
-    # shape); a real "First Last" name has nowhere to look this up.
-    if founder_name and not _looks_like_real_name(founder_name):
-        email, source = find_email_via_hn_profile(founder_name)
-        if email and _domain_has_mail_capability(email.split("@", 1)[-1]):
-            return email, source or "hn_profile", 85
+    for strategy in strategies:
+        email, source, heuristic_confidence = strategy(website_url, founder_name)
+        if not email or not _domain_has_mail_capability(email.split("@", 1)[-1]):
+            continue
 
-    # 4. Domain RDAP lookup
-    email, source = find_email_via_rdap(website_url)
-    if email and _domain_has_mail_capability(email.split("@", 1)[-1]):
-        return email, source or "domain_rdap", 80
+        if not verification_enabled:
+            return email, source, heuristic_confidence, None
 
-    # 5. Hunter.io lookup
-    email, score = find_email_via_hunter(website_url, founder_name)
-    if email and _domain_has_mail_capability(email.split("@", 1)[-1]):
-        return email, "hunter_io", score
+        if verifications_used >= NEVERBOUNCE_MAX_PER_RUN:
+            # Verification budget exhausted this run — keep the best
+            # MX-capable hit as an unverified fallback rather than
+            # discarding it outright.
+            capped = min(heuristic_confidence, 50)
+            if capped > best_fallback[2]:
+                best_fallback = (email, source, capped, None)
+            continue
 
-    # 6. Pattern guess (MX-validated) — last resort, low confidence, review-gated
-    email, source = find_email_via_pattern_guess(website_url)
-    if email:
-        return email, source or "pattern_guess", 35
+        verdict, verified_confidence = verify_email_via_neverbounce(email)
+        verifications_used += 1
 
-    return None, "none", 0
+        if verdict == "valid":
+            return email, source, verified_confidence, verdict
+        elif verdict in ("catchall", "unknown"):
+            if verified_confidence > best_fallback[2]:
+                best_fallback = (email, source, verified_confidence, verdict)
+        elif verdict in ("invalid", "disposable"):
+            pass  # confirmed bad — discard entirely, try next strategy
+        else:
+            # Verifier call itself failed (network/API error) — don't let an
+            # unverified heuristic score of 90+ pass through as if it had
+            # been confirmed; cap it same as an inconclusive result.
+            candidate_confidence = min(heuristic_confidence, 50)
+            if candidate_confidence > best_fallback[2]:
+                best_fallback = (email, source, candidate_confidence, None)
+
+    return best_fallback
 
 # ─── 3. GEMINI EMAIL DRAFT GENERATION ─────────────────────────────────────────
 def _get_gemini_key():
@@ -1279,7 +1367,7 @@ def run_discovery_pipeline():
             continue
 
         # ── Contact enrichment (best-effort, not a hard gate)
-        email, source, score = enrich_candidate_email(website_url, founder_name)
+        email, source, score, verification_result = enrich_candidate_email(website_url, founder_name)
         contact_twitter = twitter_from_ph
 
         # If no Twitter from PH, try scraping the product homepage for social links
@@ -1299,6 +1387,8 @@ def run_discovery_pipeline():
             c.email = email
             c.email_source = source
             c.confidence_score = score
+            c.verification_result = verification_result
+            c.verified_at = datetime.now(timezone.utc) if verification_result else None
             c.status = "draft_ready"
         elif contact_twitter:
             # Twitter-only: store handle so admin can DM or public-tweet
@@ -1364,32 +1454,57 @@ def re_enrich_missing_candidate_emails():
     def _needs_email_recheck(c):
         if not c.email or _email_is_broken(c):
             return True
+        if c.verification_result is None:
+            # Never actually run through NeverBounce — a heuristic 80/95
+            # score isn't real confirmation, regardless of how high it is.
+            return True
         return (c.confidence_score or 0) < 50
 
     def _needs_name_fix(c):
         return bool(c.founder_name) and not _looks_like_real_name(c.founder_name)
 
     work_items = [
-        (c.id, c.website_url, c.founder_name, _needs_email_recheck(c), _needs_name_fix(c))
+        (c.id, c.website_url, c.founder_name, c.email, c.email_source,
+         _needs_email_recheck(c), _needs_name_fix(c))
         for c in candidates
     ]
-    work_items = [w for w in work_items if w[3] or w[4]]
+    work_items = [w for w in work_items if w[5] or w[6]]
     if not work_items:
         return {"emails_fixed": 0, "names_fixed": 0, "drafts_regenerated": 0}
 
     log.info("Re-verifying %s candidates (email and/or founder name)...", len(work_items))
 
     def _process(item):
-        cid, url, founder, needs_email, needs_name = item
-        new_email = new_source = new_name = None
+        cid, url, founder, existing_email, existing_source, needs_email, needs_name = item
+        new_email = new_source = new_name = new_verification = None
         new_score = None
+
         if needs_email:
-            email, source, score = enrich_candidate_email(url, founder)
-            if email:
-                new_email, new_source, new_score = email, source, score
+            # If there's already a plausible email on file, verify that one
+            # directly first — cheap (one call) and avoids burning a full
+            # multi-strategy rediscovery (several network + verification
+            # calls) on every candidate whose only issue is "never actually
+            # verified", which would otherwise re-run on every /re-enrich
+            # click forever since nothing would change verification_result.
+            if existing_email and is_valid_email(existing_email) and \
+                    _domain_has_mail_capability(existing_email.split("@", 1)[-1]):
+                verdict, confidence = verify_email_via_neverbounce(existing_email)
+                if verdict == "valid":
+                    new_email, new_source, new_score, new_verification = existing_email, existing_source, confidence, verdict
+                elif verdict in ("catchall", "unknown"):
+                    # Inconclusive on the address already on file — keep it
+                    # as a fallback, but still try rediscovery below for a
+                    # chance at a cleanly 'valid' address.
+                    new_email, new_source, new_score, new_verification = existing_email, existing_source, confidence, verdict
+
+            if new_verification != "valid":
+                email, source, score, verification_result = enrich_candidate_email(url, founder)
+                if email and score > (new_score or 0):
+                    new_email, new_source, new_score, new_verification = email, source, score, verification_result
+
         if needs_name:
             new_name = _try_resolve_real_name(founder)
-        return cid, new_email, new_source, new_score, new_name
+        return cid, new_email, new_source, new_score, new_verification, new_name
 
     results = []
     # Capped low deliberately: each candidate can chain through several
@@ -1411,7 +1526,7 @@ def re_enrich_missing_candidate_emails():
     drafts_regenerated = 0
     any_changed = False
 
-    for cid, new_email, new_source, new_score, new_name in results:
+    for cid, new_email, new_source, new_score, new_verification, new_name in results:
         c = cand_dict.get(cid)
         if not c:
             continue
@@ -1421,6 +1536,8 @@ def re_enrich_missing_candidate_emails():
             c.email = new_email
             c.email_source = new_source
             c.confidence_score = new_score
+            c.verification_result = new_verification
+            c.verified_at = datetime.now(timezone.utc) if new_verification else None
             if c.status == "no_email_found":
                 c.status = "draft_ready"
             changed = True
@@ -1431,6 +1548,8 @@ def re_enrich_missing_candidate_emails():
             c.email = None
             c.email_source = "none"
             c.confidence_score = 0
+            c.verification_result = None
+            c.verified_at = None
             c.status = "no_email_found"
             changed = True
 
@@ -1465,6 +1584,16 @@ def re_enrich_missing_candidate_emails():
 # from 0 to hundreds of cold emails overnight gets flagged as spam fast —
 # 30/day is a conservative ramp-up rate. Override with OUTREACH_DAILY_SEND_CAP.
 DAILY_SEND_CAP = int(os.environ.get("OUTREACH_DAILY_SEND_CAP", "30"))
+
+# Hard ceiling on NeverBounce verification calls per enrichment/re-enrich run
+# — a misconfiguration or a large backlog shouldn't be able to silently burn
+# through the whole NeverBounce credit balance unattended in one run.
+NEVERBOUNCE_MAX_PER_RUN = int(os.environ.get("NEVERBOUNCE_MAX_VERIFICATIONS_PER_RUN", "300"))
+
+# Minimum confidence_score required to send — enforced at the route layer as
+# a hard gate (not just a UI hint), since a bounce against an unverified
+# guess costs sender reputation, not just a wasted lead.
+CONFIDENCE_SEND_THRESHOLD = int(os.environ.get("OUTREACH_CONFIDENCE_SEND_THRESHOLD", "90"))
 
 # The send window resets at 9:00 AM IST (03:30 UTC) rather than midnight UTC
 # — aligned with when the team actually starts work, not an arbitrary UTC

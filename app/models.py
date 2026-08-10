@@ -442,6 +442,8 @@ class OutreachCandidate(db.Model):
     created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     last_status_change_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+    verification_result = db.Column(db.String(20), nullable=True)  # 'valid', 'invalid', 'disposable', 'catchall', 'unknown', or None if never checked
+    verified_at = db.Column(db.DateTime, nullable=True)
 
 
 class OutreachEmailLog(db.Model):

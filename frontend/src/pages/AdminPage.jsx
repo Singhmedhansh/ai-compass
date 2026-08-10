@@ -1602,7 +1602,7 @@ function AdminPage() {
                               headers: { 'Content-Type': 'application/json' },
                               body: JSON.stringify({ ids: selectedCandidateIds })
                             })
-                            toast.success(`Bulk send complete: ${res.sent} sent, ${res.failed} failed.`)
+                            toast.success(`Bulk send complete: ${res.sent} sent, ${res.failed} failed${res.skipped_low_confidence ? `, ${res.skipped_low_confidence} skipped (low confidence)` : ''}.`)
                             setSelectedCandidateIds([])
                             loadOutreachData()
                           } catch (e) {
@@ -1935,7 +1935,7 @@ function AdminPage() {
                         <div className="rounded-xl border border-line bg-bg-sunk p-3 text-xs text-muted space-y-1">
                           <div><b>Email Source:</b> {editingCandidate.email_source}</div>
                           {editingCandidate.confidence_score && (
-                            <div><b>Hunter.io Score:</b> {editingCandidate.confidence_score}%</div>
+                            <div><b>Confidence Score:</b> {editingCandidate.confidence_score}%</div>
                           )}
                           <div><b>Status:</b> {editingCandidate.status}</div>
                         </div>

@@ -21,7 +21,9 @@ from app.outreach import (
     is_student_relevant,
     is_commercial_saas,
     sends_remaining_today,
-    DAILY_SEND_CAP
+    DAILY_SEND_CAP,
+    CONFIDENCE_SEND_THRESHOLD,
+    VERIFICATION_RESULT_CONFIDENCE
 )
 
 outreach_bp = Blueprint("outreach", __name__)
@@ -137,10 +139,17 @@ def update_candidate(cid):
     if "product_name" in data: c.product_name = data["product_name"]
     if "website_url" in data: c.website_url = data["website_url"]
     if "founder_name" in data: c.founder_name = data["founder_name"]
-    if "email" in data: 
+    if "email" in data:
         c.email = data["email"]
         if c.status == "no_email_found" and c.email:
             c.status = "draft_ready"
+    if "confidence_score" in data:
+        # Manual override for an admin who verified the address through some
+        # other channel — the >=90 send gate trusts this field directly, so
+        # this is the one way to clear it without going through NeverBounce.
+        c.confidence_score = data["confidence_score"]
+        c.verification_result = "manual_override"
+        c.verified_at = datetime.now(timezone.utc)
     if "tone" in data: c.tone = data["tone"]
     if "tagline" in data: c.tagline = data["tagline"]
     if "draft_subject" in data: c.draft_subject = data["draft_subject"]
@@ -173,6 +182,8 @@ def send_candidate_email(cid):
         return jsonify({"error": "Email is missing for candidate"}), 400
     if not c.draft_subject or not c.draft_body:
         return jsonify({"error": "Draft subject and body are required to send"}), 400
+    if (c.confidence_score or 0) < CONFIDENCE_SEND_THRESHOLD:
+        return jsonify({"error": f"Email confidence ({c.confidence_score or 0}%) is below the {CONFIDENCE_SEND_THRESHOLD}% send threshold. Re-verify this address (Re-Enrich) or manually confirm it first."}), 400
     if sends_remaining_today() <= 0:
         return jsonify({"error": f"Daily send cap ({DAILY_SEND_CAP}) reached. Try again after 9 AM IST, or raise OUTREACH_DAILY_SEND_CAP."}), 429
 
@@ -218,10 +229,14 @@ def bulk_send_candidates():
     failed = 0
     remaining = sends_remaining_today()
     capped = 0
+    skipped_low_confidence = 0
 
     for c in candidates:
         if not c.email or not c.draft_subject or not c.draft_body or c.status == "sent":
             failed += 1
+            continue
+        if (c.confidence_score or 0) < CONFIDENCE_SEND_THRESHOLD:
+            skipped_low_confidence += 1
             continue
         if remaining <= 0:
             capped += 1
@@ -255,9 +270,15 @@ def bulk_send_candidates():
 
     db.session.commit()
     resp = {"success": True, "sent": sent, "failed": failed}
+    messages = []
     if capped:
         resp["capped"] = capped
-        resp["message"] = f"Daily send cap ({DAILY_SEND_CAP}) reached — {capped} candidate(s) deferred to tomorrow."
+        messages.append(f"Daily send cap ({DAILY_SEND_CAP}) reached — {capped} candidate(s) deferred to tomorrow.")
+    if skipped_low_confidence:
+        resp["skipped_low_confidence"] = skipped_low_confidence
+        messages.append(f"{skipped_low_confidence} candidate(s) skipped — below the {CONFIDENCE_SEND_THRESHOLD}% confidence send threshold.")
+    if messages:
+        resp["message"] = " ".join(messages)
     return jsonify(resp)
 
 @outreach_bp.route("/api/v1/admin/outreach/candidates/bulk-reject", methods=["POST"])
@@ -384,21 +405,28 @@ def trigger_re_enrich():
 
 # ─── AUTOMATED CRON ENDPOINT ──────────────────────────────────────────────────
 
+def _verify_outreach_secret():
+    """Shared auth for callers that can't do session-based admin login —
+    the GitHub Actions cron workflow and the SMTP verification prober
+    (scripts/verify_outreach_emails_smtp.py), both external to Render.
+    Returns a Flask error response to return immediately, or None if OK.
+    """
+    secret = os.environ.get("OUTREACH_SECRET")
+    if not secret:
+        return jsonify({"error": "OUTREACH_SECRET env var is not set on the server"}), 500
+    auth_header = request.headers.get("X-Outreach-Secret")
+    token_arg = request.args.get("token")
+    if auth_header != secret and token_arg != secret:
+        return jsonify({"error": "Unauthorized"}), 401
+    return None
+
 @outreach_bp.route("/api/v1/admin/outreach/cron", methods=["POST"])
 @csrf.exempt
 def run_cron():
     """Endpoint for Render Cron or query token check."""
-    secret = os.environ.get("OUTREACH_SECRET")
-    
-    # Check authorization header
-    auth_header = request.headers.get("X-Outreach-Secret")
-    token_arg = request.args.get("token")
-    
-    if not secret:
-        return jsonify({"error": "OUTREACH_SECRET env var is not set on the server"}), 500
-        
-    if auth_header != secret and token_arg != secret:
-        return jsonify({"error": "Unauthorized"}), 401
+    auth_error = _verify_outreach_secret()
+    if auth_error:
+        return auth_error
 
     if not _outreach_job_lock.acquire(blocking=False):
         return jsonify({"error": "Another discovery/re-enrich job is already running — skipping this cron tick."}), 409
@@ -418,6 +446,64 @@ def run_cron():
         return jsonify({"error": str(e)}), 500
     finally:
         _outreach_job_lock.release()
+
+# ─── SMTP VERIFICATION HANDOFF (GitHub Actions) ───────────────────────────────
+# Render's free/hobby tier blocks outbound SMTP at the network level (see
+# email_utils.py's module docstring), so the actual RCPT-TO mailbox check
+# can't run here — it runs from the GitHub Actions runner instead
+# (scripts/verify_outreach_emails_smtp.py, triggered by outreach-cron.yml),
+# which pulls a batch of candidates to check and reports verdicts back.
+
+@outreach_bp.route("/api/v1/admin/outreach/verification-queue", methods=["GET"])
+@csrf.exempt
+def get_verification_queue():
+    auth_error = _verify_outreach_secret()
+    if auth_error:
+        return auth_error
+
+    limit = min(int(request.args.get("limit", 60)), 200)
+    candidates = OutreachCandidate.query.filter(
+        OutreachCandidate.status.in_(["draft_ready", "no_email_found"]),
+        OutreachCandidate.email.isnot(None),
+        OutreachCandidate.verification_result.is_(None),
+    ).limit(limit).all()
+    return jsonify({"candidates": [{"id": c.id, "email": c.email} for c in candidates]})
+
+@outreach_bp.route("/api/v1/admin/outreach/verification-results", methods=["POST"])
+@csrf.exempt
+def submit_verification_results():
+    auth_error = _verify_outreach_secret()
+    if auth_error:
+        return auth_error
+
+    data = request.json or {}
+    results = data.get("results", [])
+    updated = 0
+    for r in results:
+        verdict = r.get("verification_result")
+        if verdict not in VERIFICATION_RESULT_CONFIDENCE:
+            continue
+        c = OutreachCandidate.query.get(r.get("id"))
+        if not c:
+            continue
+
+        c.verification_result = verdict
+        c.confidence_score = VERIFICATION_RESULT_CONFIDENCE[verdict]
+        c.verified_at = datetime.now(timezone.utc)
+        if verdict in ("invalid", "disposable"):
+            # Confirmed bad — clear it so the next discovery/re-enrich pass
+            # tries to find a different address rather than leaving a
+            # guaranteed-bounce email sitting around.
+            c.email = None
+            c.email_source = "none"
+            c.status = "no_email_found"
+        elif c.status == "no_email_found":
+            c.status = "draft_ready"
+        updated += 1
+
+    db.session.commit()
+    return jsonify({"success": True, "updated": updated})
+
 @outreach_bp.route("/api/v1/admin/outreach/diagnostics", methods=["GET"])
 @login_required
 def run_discovery_diagnostics():

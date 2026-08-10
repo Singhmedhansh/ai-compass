@@ -21,34 +21,9 @@ permissions:
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
 
     steps:
-      - name: DIAGNOSTIC - test outbound port 25 connectivity
-        # Temporary, manual-trigger-only check for whether this runner can
-        # open outbound TCP connections on port 25 (SMTP) — needed before
-        # building a real mailbox verifier here, since many cloud platforms
-        # (including Render, which is why sending goes through Resend's
-        # HTTPS API instead of SMTP) block outbound 25 by default. Safe to
-        # delete once answered either way.
-        if: github.event_name == 'workflow_dispatch'
-        run: |
-          python3 - <<'PYEOF'
-          import socket
-
-          targets = [
-              ("aspmx.l.google.com", 25),
-              ("mx1.hotmail.com", 25),
-          ]
-          for host, port in targets:
-              try:
-                  with socket.create_connection((host, port), timeout=8) as s:
-                      banner = s.recv(256).decode(errors="replace").strip()
-                      print(f"CONNECTED to {host}:{port} — banner: {banner!r}")
-              except Exception as e:
-                  print(f"BLOCKED/FAILED to {host}:{port} — {type(e).__name__}: {e}")
-          PYEOF
-
       - name: POST to /api/v1/admin/outreach/cron
         # Auth is the X-Outreach-Secret header — must match OUTREACH_SECRET
         # on Render. The endpoint runs run_discovery_pipeline() +
@@ -83,3 +58,24 @@ jobs:
           echo '```json' >> "$GITHUB_STEP_SUMMARY"
           echo "$BODY" >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+      # Real mailbox verification (RCPT-TO, no email sent) for any candidate
+      # discovery just found or that's never been checked. Runs from here,
+      # not Render, because Render's free/hobby tier blocks outbound SMTP
+      # (see app/email_utils.py's docstring) — GitHub-hosted runners don't
+      # (confirmed via a live connectivity test on 2026-08-10).
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install verifier dependencies
+        run: pip install --quiet requests dnspython
+
+      - name: Verify candidate emails via SMTP
+        env:
+          OUTREACH_SECRET: ${{ secrets.OUTREACH_SECRET }}
+        run: python3 scripts/verify_outreach_emails_smtp.py
