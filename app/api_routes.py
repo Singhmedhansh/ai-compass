@@ -1560,6 +1560,14 @@ def submit_tool():
     # a notification email is sent to SUBMIT_NOTIFY_EMAIL when configured.
     # Email is best-effort — a delivery failure does not fail the request.
     try:
+        # Per-IP rate limit — without this, spamming this endpoint with junk
+        # transaction_ref values each triggers a real outbound PayPal OAuth +
+        # order-lookup call plus an admin notification email; cheap for a
+        # human submitting a tool, not cheap at scale.
+        ip = _feedback_client_ip()
+        if is_rate_limited(f"submit_tool:{ip}", limit=5, window_seconds=3600):
+            return jsonify({"error": "Too many submissions. Please try again later."}), 429
+
         payload = request.get_json(silent=True) or {}
 
         name = str(payload.get("name") or "").strip()
@@ -1747,7 +1755,12 @@ def submit_tool():
             except Exception:
                 current_app.logger.exception("Failed to send admin submission email to %s", recipient)
 
-        return jsonify({"success": True, "message": "Submission received. Thanks!"}), 201
+        return jsonify({
+            "success": True,
+            "message": "Submission received. Thanks!",
+            "payment_status": payment_status,
+            "payment_verified": payment_verified,
+        }), 201
 
     except Exception:
         current_app.logger.exception("Tool submission error")

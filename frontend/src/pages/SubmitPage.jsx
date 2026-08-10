@@ -33,11 +33,10 @@ export default function SubmitPage() {
 
   // Payment states
   const [showPaymentModal, setShowPaymentModal] = useState(false)
-  const [paymentMethod, setPaymentMethod] = useState('paypal') // 'stripe' | 'paypal' | 'razorpay'
-  const [cardData, setCardData] = useState({ number: '', expiry: '', cvc: '', name: '' })
-  const [upiId, setUpiId] = useState('')
+  const [paymentMethod, setPaymentMethod] = useState('paypal') // Stripe/Razorpay are shown as "Maintenance" (disabled) — PayPal is the only live gateway
   const [paying, setPaying] = useState(false)
   const [paymentDone, setPaymentDone] = useState(false)
+  const [paymentVerified, setPaymentVerified] = useState(false)
   const [transactionRef, setTransactionRef] = useState('')
   const [paypalLoaded, setPaypalLoaded] = useState(false)
   const [paypalError, setPaypalError] = useState(false)
@@ -87,8 +86,9 @@ export default function SubmitPage() {
             if (!res.ok) throw new Error('API submission failed')
             return res.json()
           })
-          .then(() => {
+          .then((payload) => {
             setSubmitted(true)
+            setPaymentVerified(!!payload.payment_verified)
             setTransactionRef(txRef)
             sessionStorage.removeItem('submit_form_data')
             sessionStorage.removeItem('submit_submission_type')
@@ -251,66 +251,24 @@ export default function SubmitPage() {
     }))
   }
 
-  function handleCardChange(event) {
-    const { name, value } = event.target
-    let formattedValue = value
-    if (name === 'number') {
-      formattedValue = value.replace(/\D/g, '').replace(/(.{4})/g, '$1 ').trim().slice(0, 19)
-    } else if (name === 'expiry') {
-      formattedValue = value.replace(/\D/g, '').replace(/(.{2})/, '$1/').trim().slice(0, 5)
-    } else if (name === 'cvc') {
-      formattedValue = value.replace(/\D/g).slice(0, 3)
-    }
-
-    setCardData((current) => ({
-      ...current,
-      [name]: formattedValue,
-    }))
-  }
-
   function handleFormSubmit(event) {
     event.preventDefault()
     setError('')
     setShowPaymentModal(true)
   }
 
-  async function handlePayment(event) {
+  // PayPal is the only live gateway (Stripe/Razorpay tabs are disabled,
+  // "Maintenance") — real payment/submission happens via the PayPal SDK
+  // callbacks and the manual transaction-ID paste flow below, not this
+  // handler. It only exists to swallow an accidental Enter-key form submit.
+  function handlePayment(event) {
     event.preventDefault()
-    setError('')
-
-    if (paymentMethod === 'paypal') {
-      return
-    }
-
-    if (paymentMethod === 'stripe') {
-      if (!cardData.number || !cardData.expiry || !cardData.cvc || !cardData.name) {
-        setError('Please fill in all credit card details.')
-        return
-      }
-    } else if (paymentMethod === 'razorpay') {
-      if (!upiId && !upiId.includes('@')) {
-        setError('Please enter a valid UPI ID (e.g., name@upi) or choose QR Code payment.')
-        return
-      }
-    }
-
-    setPaying(true)
-    setTimeout(async () => {
-      setPaying(false)
-      setPaymentDone(true)
-      const mockRef = `TXN-${paymentMethod.toUpperCase()}-${Math.floor(Math.random() * 9000000 + 1000000)}`
-      setTransactionRef(mockRef)
-
-      setTimeout(() => {
-        setShowPaymentModal(false)
-        submitData(`sponsored_${paymentMethod}`, mockRef)
-      }, 1500)
-    }, 1800)
   }
 
   async function submitData(pricingModel, transactionRef = '') {
     setSubmitting(true)
     setSubmitted(false)
+    setPaymentVerified(false)
 
     try {
       const response = await fetch('/api/v1/submit-tool', {
@@ -336,6 +294,7 @@ export default function SubmitPage() {
       }
 
       setSubmitted(true)
+      setPaymentVerified(!!payload.payment_verified)
       setFormData(INITIAL_FORM)
       setCardData({ number: '', expiry: '', cvc: '', name: '' })
       setUpiId('')
@@ -511,19 +470,34 @@ export default function SubmitPage() {
                 <div className="flex items-center gap-3">
                   <CheckCircle2 className="h-7 w-7 text-accent shrink-0" />
                   <div>
-                    <h3 className="text-base font-semibold text-ink">Payment Approved & Submission Received</h3>
+                    <h3 className="text-base font-semibold text-ink">
+                      {paymentVerified ? 'Payment Approved & Submission Received' : 'Submission Received — Payment Pending Verification'}
+                    </h3>
                     <p className="text-xs text-accent-ink font-semibold mt-0.5">
-                      Transaction Reference: <span className="font-mono">{transactionRef || 'TXN-PAYPAL-VERIFIED'}</span> • Amount: $49.99 USD
+                      Transaction Reference: <span className="font-mono">{transactionRef || 'N/A'}</span> • Amount: $49.99 USD
                     </p>
                   </div>
                 </div>
                 <div className="mt-4 pt-3 border-t border-accent/20 text-xs text-ink-2 space-y-2 leading-relaxed">
-                  <p>
-                    <strong>What happens next?</strong> Our editorial team has received your submission details and payment confirmation.
-                  </p>
-                  <p className="bg-bg-elev/80 p-3 rounded-xl border border-line font-medium text-ink">
-                    <strong>Our team will review your submission and contact you soon via email at your provided founder address.</strong>
-                  </p>
+                  {paymentVerified ? (
+                    <>
+                      <p>
+                        <strong>What happens next?</strong> Our editorial team has received your submission details and payment confirmation.
+                      </p>
+                      <p className="bg-bg-elev/80 p-3 rounded-xl border border-line font-medium text-ink">
+                        <strong>Our team will review your submission and contact you soon via email at your provided founder address.</strong>
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <p>
+                        <strong>What happens next?</strong> We received your submission, but couldn't automatically confirm the payment yet.
+                      </p>
+                      <p className="bg-bg-elev/80 p-3 rounded-xl border border-line font-medium text-ink">
+                        <strong>Our team will manually verify your payment and follow up via email within 24 hours.</strong> If you completed payment and don't hear back, reply to your confirmation email with your transaction reference.
+                      </p>
+                    </>
+                  )}
                 </div>
               </div>
             )}
@@ -749,78 +723,6 @@ export default function SubmitPage() {
 
                 {/* Gateway Specific Form Renders */}
                 <form onSubmit={handlePayment} className="space-y-4">
-                  
-                  {/* STRIPE CARD FORM */}
-                  {paymentMethod === 'stripe' && (
-                    <div className="space-y-3 animate-fade-in">
-                      <div>
-                        <label htmlFor="card_name" className="mb-1 block text-[10px] font-bold text-muted uppercase tracking-wider">
-                          Cardholder Name
-                        </label>
-                        <input
-                          id="card_name"
-                          name="name"
-                          type="text"
-                          required
-                          value={cardData.name}
-                          onChange={handleCardChange}
-                          className="w-full rounded-lg border border-line bg-bg px-3 py-2 text-xs text-ink outline-none focus:border-accent focus:ring-1 focus:ring-accent"
-                          placeholder="Jane Doe"
-                        />
-                      </div>
-
-                      <div>
-                        <label htmlFor="card_number" className="mb-1 block text-[10px] font-bold text-muted uppercase tracking-wider">
-                          Card Number
-                        </label>
-                        <input
-                          id="card_number"
-                          name="number"
-                          type="text"
-                          required
-                          value={cardData.number}
-                          onChange={handleCardChange}
-                          className="w-full rounded-lg border border-line bg-bg px-3 py-2 text-xs text-ink outline-none focus:border-accent focus:ring-1 focus:ring-accent"
-                          placeholder="4000 1234 5678 9010"
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label htmlFor="card_expiry" className="mb-1 block text-[10px] font-bold text-muted uppercase tracking-wider">
-                            Expiration Date
-                          </label>
-                          <input
-                            id="card_expiry"
-                            name="expiry"
-                            type="text"
-                            required
-                            value={cardData.expiry}
-                            onChange={handleCardChange}
-                            className="w-full rounded-lg border border-line bg-bg px-3 py-2 text-xs text-ink outline-none focus:border-accent focus:ring-1 focus:ring-accent"
-                            placeholder="MM/YY"
-                          />
-                        </div>
-
-                        <div>
-                          <label htmlFor="card_cvc" className="mb-1 block text-[10px] font-bold text-muted uppercase tracking-wider">
-                            CVC
-                          </label>
-                          <input
-                            id="card_cvc"
-                            name="cvc"
-                            type="password"
-                            required
-                            value={cardData.cvc}
-                            onChange={handleCardChange}
-                            className="w-full rounded-lg border border-line bg-bg px-3 py-2 text-xs text-ink outline-none focus:border-accent focus:ring-1 focus:ring-accent"
-                            placeholder="123"
-                          />
-                        </div>
-                      </div>
-                      <span className="block text-[9px] text-muted-2 text-right">🔒 Securely processed by Stripe Elements</span>
-                    </div>
-                  )}
 
                   {/* PAYPAL CHECKOUT BLOCK */}
                   {paymentMethod === 'paypal' && (
@@ -894,76 +796,9 @@ export default function SubmitPage() {
                     </div>
                   )}
 
-                  {/* RAZORPAY UPI BLOCK */}
-                  {paymentMethod === 'razorpay' && (
-                    <div className="space-y-4 animate-fade-in">
-                      <div className="bg-bg-sunk/30 border border-line/60 rounded-2xl p-4 flex flex-col md:flex-row items-center gap-4 justify-between">
-                        <div className="space-y-1 text-center md:text-left">
-                          <span className="text-[8px] font-bold uppercase tracking-wider text-[#0b69ff] bg-[#0b69ff]/10 px-2 py-0.5 rounded-full">Option 1: Quick QR Code</span>
-                          <h4 className="text-xs font-semibold text-ink">Scan & Pay via UPI App</h4>
-                          <p className="text-[10px] text-muted-2 leading-relaxed max-w-xs font-normal">Scan the mock QR code using GPay, PhonePe, Paytm, or BHIM UPI.</p>
-                        </div>
-                        {/* Mock QR code container */}
-                        <div className="h-20 w-20 border border-line bg-bg-elev rounded-lg p-1.5 flex flex-col items-center justify-center shrink-0 shadow-sm relative group">
-                          <div className="w-full h-full bg-slate-100 flex items-center justify-center text-slate-400">
-                            <QrCode className="h-12 w-12" />
-                          </div>
-                          <span className="absolute inset-0 bg-black/60 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-200">
-                            <ArrowUpRight className="h-5 w-5 text-white" />
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="space-y-1">
-                        <label htmlFor="upi_id" className="mb-1 block text-[10px] font-bold text-muted uppercase tracking-wider">
-                          Option 2: Enter UPI ID
-                        </label>
-                        <input
-                          id="upi_id"
-                          type="text"
-                          value={upiId}
-                          onChange={(e) => setUpiId(e.target.value)}
-                          className="w-full rounded-lg border border-line bg-bg px-3 py-2 text-xs text-ink outline-none focus:border-accent focus:ring-1 focus:ring-accent"
-                          placeholder="e.g. founder@upi"
-                        />
-                      </div>
-                      <span className="block text-[9px] text-muted-2 text-right">🔒 Securely processed by Razorpay Checkout</span>
-                    </div>
-                  )}
-
                   {error && (
                     <div className="rounded-xl border border-danger bg-danger-soft px-3 py-2 text-[11px] text-danger">
                       {error}
-                    </div>
-                  )}
-
-                  {/* Submission Button */}
-                  {(paymentMethod !== 'paypal') && (
-                    <div className="pt-3">
-                      <Button
-                        variant="primary"
-                        type="submit"
-                        disabled={paying}
-                        className="w-full font-bold flex items-center justify-center gap-2 rounded-xl"
-                      >
-                        {paying ? (
-                          <div className="flex items-center gap-2">
-                            <span className="h-3 w-3 border-2 border-bg border-t-transparent rounded-full animate-spin" />
-                            <span>
-                              {paymentMethod === 'stripe' && 'Authorizing via Stripe...'}
-                              {paymentMethod === 'razorpay' && 'Connecting to Razorpay UPI...'}
-                            </span>
-                          </div>
-                        ) : (
-                          <>
-                            <ShieldCheck className="h-4 w-4" />
-                            <span>
-                              {paymentMethod === 'stripe' ? 'Pay $49.99' : ''}
-                              {paymentMethod === 'razorpay' ? 'Authorize UPI / QR Payment' : ''}
-                            </span>
-                          </>
-                        )}
-                      </Button>
                     </div>
                   )}
 
