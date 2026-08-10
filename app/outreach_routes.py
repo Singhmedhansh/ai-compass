@@ -13,6 +13,7 @@ from app.outreach import (
     re_enrich_missing_candidate_emails,
     run_automated_followups,
     regenerate_all_drafts,
+    trigger_github_verification_workflow,
     generate_draft_via_gemini,
     is_valid_email,
     fetch_producthunt_launches,
@@ -24,7 +25,8 @@ from app.outreach import (
     sends_remaining_today,
     DAILY_SEND_CAP,
     CONFIDENCE_SEND_THRESHOLD,
-    VERIFICATION_RESULT_CONFIDENCE
+    VERIFICATION_RESULT_CONFIDENCE,
+    _status_for_email_confidence
 )
 
 outreach_bp = Blueprint("outreach", __name__)
@@ -398,7 +400,19 @@ def trigger_re_enrich():
 
         threading.Thread(target=_bg, name="re-enrichment-bg", daemon=True).start()
 
-        return jsonify({"success": True, "message": "Re-verifying emails and founder names in the background"}), 202
+        # Also kick off the real SMTP verifier on GitHub Actions right now
+        # instead of waiting for the next daily cron tick — this is a quick
+        # single API call, not backgrounded, so its outcome can go straight
+        # into the response.
+        gh_triggered, gh_message = trigger_github_verification_workflow()
+
+        message = "Re-verifying emails and founder names in the background."
+        if gh_triggered:
+            message += " Real SMTP verification also triggered — scores update in ~1-2 minutes."
+        else:
+            message += f" Real verification NOT triggered ({gh_message}) — falling back to the daily automatic cron."
+
+        return jsonify({"success": True, "message": message, "github_verification_triggered": gh_triggered}), 202
     except Exception as e:
         _outreach_job_lock.release()
         current_app.logger.exception("Failed to run re-enrichment pipeline")
@@ -524,15 +538,11 @@ def submit_verification_results():
         c.verification_result = verdict
         c.confidence_score = VERIFICATION_RESULT_CONFIDENCE[verdict]
         c.verified_at = datetime.now(timezone.utc)
-        if verdict in ("invalid", "disposable"):
-            # Confirmed bad — clear it so the next discovery/re-enrich pass
-            # tries to find a different address rather than leaving a
-            # guaranteed-bounce email sitting around.
-            c.email = None
-            c.email_source = "none"
-            c.status = "no_email_found"
-        elif c.status == "no_email_found":
-            c.status = "draft_ready"
+        # Confirmed invalid/disposable (0%) is below AUTO_REJECT_BELOW_CONFIDENCE
+        # same as any other sub-50 result — rejected outright rather than
+        # left sitting around; the address is kept (not cleared) so the
+        # rejection is auditable instead of silently losing what was found.
+        c.status = _status_for_email_confidence(c.confidence_score)
         updated += 1
 
     db.session.commit()

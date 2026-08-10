@@ -8,6 +8,15 @@ on:
   schedule:
     - cron: '0 9 * * *'
   workflow_dispatch:
+    inputs:
+      mode:
+        description: 'full = discovery+followups+verify (default). verify_only = just the SMTP verifier, for the admin panel "Re-Enrich" button to trigger on demand without also running discovery/follow-ups.'
+        required: false
+        default: 'full'
+        type: choice
+        options:
+          - full
+          - verify_only
 
 # Only one run at a time — avoids double-discovery or double-follow-up if a
 # manual trigger overlaps the scheduled one.
@@ -25,6 +34,12 @@ jobs:
 
     steps:
       - name: POST to /api/v1/admin/outreach/cron
+        # Skipped when manually dispatched with mode=verify_only (the admin
+        # panel's "Re-Enrich" button uses this) — that click means "verify
+        # existing candidates now," not "also run discovery and send more
+        # follow-up emails." github.event.inputs is unset for the schedule
+        # trigger, so this still runs for the daily automatic run.
+        if: github.event.inputs.mode != 'verify_only'
         # Auth is the X-Outreach-Secret header — must match OUTREACH_SECRET
         # on Render. The endpoint runs run_discovery_pipeline() +
         # run_automated_followups() and returns counts.

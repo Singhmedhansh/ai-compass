@@ -1405,12 +1405,19 @@ function AdminPage() {
                   onClick={async () => {
                     setOutreachBusy('re_enrich')
                     try {
-                      await api('/api/v1/admin/outreach/re-enrich', { method: 'POST' })
-                      toast.success('Email discovery running in background! Refreshing candidates list...')
-                      // Poll after 3s, 6s, 12s to show newly discovered emails
+                      const res = await api('/api/v1/admin/outreach/re-enrich', { method: 'POST' })
+                      toast.success(res.message || 'Email discovery running in background! Refreshing candidates list...')
+                      // Local re-discovery lands in seconds; the real SMTP
+                      // verifier runs on GitHub Actions and takes ~1-2 min,
+                      // so keep polling out further to actually catch it.
                       setTimeout(() => loadOutreachData(), 3000)
                       setTimeout(() => loadOutreachData(), 6000)
                       setTimeout(() => loadOutreachData(), 12000)
+                      if (res.github_verification_triggered) {
+                        setTimeout(() => loadOutreachData(), 60000)
+                        setTimeout(() => loadOutreachData(), 90000)
+                        setTimeout(() => loadOutreachData(), 120000)
+                      }
                     } catch (e) {
                       toast.error(e.message)
                     } finally {
@@ -1563,7 +1570,6 @@ function AdminPage() {
                     ['no_email_found', 'No Email', candidates.filter(c => c.status === 'no_email_found').length],
                     ['sent', 'Sent', candidates.filter(c => c.status === 'sent').length],
                     ['followed_up', 'Followed Up', candidates.filter(c => c.status === 'followed_up').length],
-                    ['replied', 'Replied', candidates.filter(c => c.status === 'replied').length],
                     ['bounced', 'Bounced', candidates.filter(c => c.status === 'bounced').length],
                     ['rejected', 'Rejected', candidates.filter(c => c.status === 'rejected').length]
                   ].map(([status, label, count]) => (
@@ -1794,26 +1800,6 @@ function AdminPage() {
                                       className="rounded-md border border-accent/40 bg-accent/10 text-accent-ink px-2 py-1 text-xs font-bold transition hover:bg-accent/20"
                                     >
                                       + Add Email
-                                    </button>
-                                  )}
-                                  {c.status !== 'replied' && (c.status === 'sent' || c.status === 'followed_up') && (
-                                    <button
-                                      onClick={async () => {
-                                        try {
-                                          await api(`/api/v1/admin/outreach/candidates/${c.id}`, {
-                                            method: 'PUT',
-                                            headers: { 'Content-Type': 'application/json' },
-                                            body: JSON.stringify({ status: 'replied' })
-                                          })
-                                          toast.success('Marked as Replied!')
-                                          loadOutreachData()
-                                        } catch (e) {
-                                          toast.error(e.message)
-                                        }
-                                      }}
-                                      className="rounded-md border border-emerald-500/40 bg-emerald-500/10 text-emerald-600 px-2 py-1 text-xs font-bold transition hover:bg-emerald-500/20"
-                                    >
-                                      Replied
                                     </button>
                                   )}
                                 </div>

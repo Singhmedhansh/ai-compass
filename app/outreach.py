@@ -1389,7 +1389,7 @@ def run_discovery_pipeline():
             c.confidence_score = score
             c.verification_result = verification_result
             c.verified_at = datetime.now(timezone.utc) if verification_result else None
-            c.status = "draft_ready"
+            c.status = _status_for_email_confidence(score)
         elif contact_twitter:
             # Twitter-only: store handle so admin can DM or public-tweet
             c.email = contact_twitter
@@ -1538,8 +1538,7 @@ def re_enrich_missing_candidate_emails():
             c.confidence_score = new_score
             c.verification_result = new_verification
             c.verified_at = datetime.now(timezone.utc) if new_verification else None
-            if c.status == "no_email_found":
-                c.status = "draft_ready"
+            c.status = _status_for_email_confidence(new_score)
             changed = True
             emails_fixed += 1
         elif _email_is_broken(c):
@@ -1558,7 +1557,7 @@ def re_enrich_missing_candidate_emails():
             changed = True
             names_fixed += 1
 
-        if changed and c.email:
+        if changed and c.email and c.status != "rejected":
             subject, body = generate_draft_via_gemini(c)
             c.draft_subject = subject
             c.draft_body = body
@@ -1592,8 +1591,23 @@ NEVERBOUNCE_MAX_PER_RUN = int(os.environ.get("NEVERBOUNCE_MAX_VERIFICATIONS_PER_
 
 # Minimum confidence_score required to send — enforced at the route layer as
 # a hard gate (not just a UI hint), since a bounce against an unverified
-# guess costs sender reputation, not just a wasted lead.
-CONFIDENCE_SEND_THRESHOLD = int(os.environ.get("OUTREACH_CONFIDENCE_SEND_THRESHOLD", "90"))
+# guess costs sender reputation, not just a wasted lead. 80 rather than a
+# stricter 90+ because the free SMTP prober's 'catchall'/'unknown' verdicts
+# (60/50) are legitimately inconclusive, not wrong — some real mail
+# providers (Microsoft 365 in particular) never give a clean answer at the
+# SMTP stage — so anything scoring in the low-verified tiers still needs a
+# real ceiling above them, not a bar so high nothing clears it.
+CONFIDENCE_SEND_THRESHOLD = int(os.environ.get("OUTREACH_CONFIDENCE_SEND_THRESHOLD", "80"))
+
+# Below this, an email is treated as not worth an admin's review time or
+# the reputation risk of sending — auto-rejected rather than left sitting
+# in draft_ready. Only applies when there IS an email to judge; a candidate
+# with no email at all stays 'no_email_found' (still worth manual follow-up
+# via "+ Add Email"), it isn't the same failure mode as a bad guess.
+AUTO_REJECT_BELOW_CONFIDENCE = int(os.environ.get("OUTREACH_AUTO_REJECT_BELOW_CONFIDENCE", "50"))
+
+def _status_for_email_confidence(confidence):
+    return "rejected" if confidence < AUTO_REJECT_BELOW_CONFIDENCE else "draft_ready"
 
 # The send window resets at 9:00 AM IST (03:30 UTC) rather than midnight UTC
 # — aligned with when the team actually starts work, not an arbitrary UTC
@@ -1716,3 +1730,39 @@ def regenerate_all_drafts():
         log.info("Regenerated %s draft(s).", regenerated)
 
     return regenerated
+
+# ─── 7. REMOTE VERIFICATION TRIGGER (GitHub Actions) ────────────────────────
+
+GITHUB_REPO = "Singhmedhansh/ai-compass"
+
+def trigger_github_verification_workflow():
+    """Dispatches outreach-cron.yml on GitHub Actions in verify_only mode so
+    the real SMTP mailbox verifier (scripts/verify_outreach_emails_smtp.py)
+    runs on demand instead of waiting for the next daily cron tick. This has
+    to happen remotely — Render's free/hobby tier blocks outbound SMTP (see
+    email_utils.py's module docstring), which is exactly why that verifier
+    lives on a GitHub-hosted runner in the first place.
+
+    Returns (success, message). Requires GITHUB_ACTIONS_PAT: a token scoped
+    to Actions:write on this one repo — never used to touch code or secrets,
+    only to start a workflow run.
+    """
+    token = os.environ.get("GITHUB_ACTIONS_PAT")
+    if not token:
+        return False, "GITHUB_ACTIONS_PAT is not configured on the server"
+    try:
+        r = requests.post(
+            f"https://api.github.com/repos/{GITHUB_REPO}/actions/workflows/outreach-cron.yml/dispatches",
+            headers={
+                "Authorization": f"Bearer {token}",
+                "Accept": "application/vnd.github+json",
+                "X-GitHub-Api-Version": "2022-11-28",
+            },
+            json={"ref": "main", "inputs": {"mode": "verify_only"}},
+            timeout=15,
+        )
+        if r.status_code == 204:
+            return True, "Verification workflow triggered"
+        return False, f"GitHub API returned {r.status_code}: {r.text[:200]}"
+    except Exception as e:
+        return False, str(e)
