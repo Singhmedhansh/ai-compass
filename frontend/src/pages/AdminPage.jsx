@@ -1949,6 +1949,33 @@ function AdminPage() {
 
                         <div className="space-y-2 pt-2">
                           <button
+                            disabled={outreachBusy === 'confirm-email'}
+                            onClick={async () => {
+                              setOutreachBusy('confirm-email')
+                              try {
+                                await api(`/api/v1/admin/outreach/candidates/${editingCandidate.id}`, {
+                                  method: 'PUT',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({
+                                    email: editingCandidate.email,
+                                    confidence_score: 100
+                                  })
+                                })
+                                toast.success('Email marked as manually verified')
+                                const fresh = await api('/api/v1/admin/outreach/candidates')
+                                const updated = fresh.find(x => x.id === editingCandidate.id)
+                                if (updated) setEditingCandidate(updated)
+                              } catch (e) {
+                                toast.error(e.message)
+                              } finally {
+                                setOutreachBusy(null)
+                              }
+                            }}
+                            className={`${BTN_GHOST} w-full`}
+                          >
+                            {outreachBusy === 'confirm-email' ? 'Confirming…' : 'Mark Email Manually Verified'}
+                          </button>
+                          <button
                             disabled={outreachBusy === 'regenerate'}
                             onClick={async () => {
                               setOutreachBusy('regenerate')
