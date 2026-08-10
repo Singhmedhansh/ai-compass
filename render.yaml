@@ -3,7 +3,7 @@ services:
     name: ai-compass
     runtime: python
     buildCommand: "./build.sh"
-    startCommand: "gunicorn wsgi:app --config gunicorn.conf.py --bind 0.0.0.0:10000"
+    startCommand: "gunicorn wsgi:app --config gunicorn.conf.py"
     healthCheckPath: /healthz
     envVars:
       - key: APP_ENV

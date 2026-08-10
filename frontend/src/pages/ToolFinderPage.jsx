@@ -1411,7 +1411,7 @@ function LivePreview({ answers, results, loading, error, canSeeResults, onSeeRes
             onClick={onSeeResults}
             disabled={!canSeeResults}
             className="w-full"
-            title={canSeeResults ? undefined : 'Pick a goal and your level first'}
+            title={canSeeResults ? undefined : 'Pick a goal first'}
           >
             See full results →
           </Button>
@@ -1478,9 +1478,13 @@ function ToolFinderPage() {
     wizardCompletedRef.current = false
   }
 
+  // Only gates on `goal` — QUESTIONS was trimmed down to goal/use_case/budget
+  // a while back, but this used to also require `answers.level`, a step that
+  // no longer exists in the flow. Since nothing sets it anymore, that made
+  // "See full results" permanently disabled for every custom-wizard user —
+  // the wizard's completion button was a dead end.
   const canSeeResults = (
-    (Array.isArray(answers.goal) ? answers.goal.length > 0 : Boolean(answers.goal))
-    && Boolean(answers.level)
+    Array.isArray(answers.goal) ? answers.goal.length > 0 : Boolean(answers.goal)
   )
 
 
@@ -1629,7 +1633,15 @@ function ToolFinderPage() {
     const i = QUESTION_FLOW.indexOf(question.id)
     const next = QUESTIONS[i + 1]
     trackStepCompletion(question, answerSelected)
-    
+
+    // Pre-fill Step 2 with a sensible default instead of a blank/intimidating
+    // text box — still fully editable, and skipped if the user already has
+    // an answer here (e.g. navigating back and forth).
+    if (next?.id === 'use_case' && next.defaultOption && !nextAnswers.use_case) {
+      nextAnswers = { ...nextAnswers, use_case: next.defaultOption }
+      setAnswers((previous) => (previous.use_case ? previous : { ...previous, use_case: next.defaultOption }))
+    }
+
     if (wizardCompletedRef.current) {
       setPendingCompletion({ answers: snapshotAnswers(nextAnswers) })
       setActiveQuestion(null)
@@ -1641,6 +1653,40 @@ function ToolFinderPage() {
       setPendingCompletion({ answers: snapshotAnswers(nextAnswers) })
     }
     setActiveQuestion((prev) => (prev === question.id ? (next ? next.id : null) : prev))
+  }
+
+  // Shared by both step-transition handlers below. handleQuestionSelect's
+  // work used to run unguarded inside a bare setTimeout — a throw there
+  // doesn't reach React's ErrorBoundary (timer callbacks are outside the
+  // render call stack), so it failed *silently*: the click registered, the
+  // chip highlighted, and then nothing happened. That reads exactly like
+  // the reported "wizard crashes, retry also fails" pattern — not a white
+  // screen, just a dead click the user repeats before giving up.
+  const reportWizardStepError = (error, location, question) => {
+    try {
+      const ph = typeof window !== 'undefined' ? window.posthog : null
+      if (ph) {
+        if (typeof ph.captureException === 'function') {
+          ph.captureException(error, { location, question_id: question?.id })
+        }
+        if (typeof ph.capture === 'function') {
+          ph.capture('frontend_error_boundary', {
+            message: String(error?.message || error),
+            stack: String(error?.stack || ''),
+            location,
+            question_id: question?.id,
+          })
+        }
+      }
+    } catch (e) {
+      /* noop */
+    }
+    console.error(`Wizard step transition failed (${location}):`, {
+      error,
+      message: error?.message,
+      stack: error?.stack,
+    })
+    toast.error('Could not continue. Please try again.')
   }
 
   const handleQuestionSelect = (question, value) => {
@@ -1658,7 +1704,13 @@ function ToolFinderPage() {
     // Single-select: record, let the highlight register, then auto-advance.
     const nextAnswers = { ...answers, [question.id]: value }
     writeAnswer(question.id, value)
-    window.setTimeout(() => goToQuestionAfter(question, value, nextAnswers), 150)
+    window.setTimeout(() => {
+      try {
+        goToQuestionAfter(question, value, nextAnswers)
+      } catch (error) {
+        reportWizardStepError(error, 'ToolFinderPage.handleQuestionSelect', question)
+      }
+    }, 150)
   }
 
   const handleQuestionContinue = (question) => {
@@ -1669,33 +1721,7 @@ function ToolFinderPage() {
 
       goToQuestionAfter(question, selectedAnswer ?? (question.type === 'text' ? '' : selectedAnswer), answers)
     } catch (error) {
-      try {
-        const ph = typeof window !== 'undefined' ? window.posthog : null
-        if (ph) {
-          if (typeof ph.captureException === 'function') {
-            ph.captureException(error, {
-              location: 'ToolFinderPage.handleQuestionContinue',
-              question_id: question?.id
-            })
-          }
-          if (typeof ph.capture === 'function') {
-            ph.capture('frontend_error_boundary', {
-              message: String(error?.message || error),
-              stack: String(error?.stack || ''),
-              location: 'ToolFinderPage.handleQuestionContinue',
-              question_id: question?.id
-            })
-          }
-        }
-      } catch (e) {
-        /* noop */
-      }
-      console.error('Wizard Step 2 transition failed:', {
-        error,
-        message: error?.message,
-        stack: error?.stack,
-      })
-      toast.error('Could not continue. Please try again.')
+      reportWizardStepError(error, 'ToolFinderPage.handleQuestionContinue', question)
     }
   }
 
@@ -2101,7 +2127,7 @@ function ToolFinderPage() {
                 <p className="mt-0.5 text-sm text-muted">
                   {canSeeResults
                     ? 'Your matches are ready — open the full list whenever you want.'
-                    : 'Pick a goal and your level above to unlock your full results.'}
+                    : 'Pick a goal above to unlock your full results.'}
                 </p>
                 <Button
                   variant="primary"
