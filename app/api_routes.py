@@ -1592,6 +1592,37 @@ def get_paypal_hosted_config():
     })
 
 
+@api_bp.get("/admin/diagnostics/paypal")
+@login_required
+def paypal_diagnostics():
+    """Confirms PAYPAL_CLIENT_ID/SECRET are a valid matching pair, without a
+    real order or a Render Shell (not available on the free plan). Runs the
+    exact OAuth call verify_paypal_order() depends on and reports pass/fail
+    only — the secret itself is never read back, only whether PayPal's API
+    accepted it.
+    """
+    if not _is_admin():
+        return jsonify({"error": "Forbidden"}), 403
+
+    from app.payments import _paypal_access_token, _paypal_base_url
+
+    client_id = os.environ.get("PAYPAL_CLIENT_ID", "")
+    token = _paypal_access_token()
+    return jsonify({
+        "client_id_set": bool(client_id),
+        "client_id_preview": f"{client_id[:6]}…" if client_id else None,
+        "client_secret_set": bool(os.environ.get("PAYPAL_CLIENT_SECRET")),
+        "mode": os.environ.get("PAYPAL_MODE", "live"),
+        "api_base": _paypal_base_url(),
+        "oauth_token_acquired": bool(token),
+        "verdict": (
+            "OK — Client ID and Secret are a valid pair, PayPal's API accepted them."
+            if token else
+            "FAILED — see server logs for the exact reason (bad pairing, wrong mode, or PayPal API unreachable)."
+        ),
+    })
+
+
 @api_bp.post("/submit-tool")
 @csrf.exempt
 def submit_tool():
