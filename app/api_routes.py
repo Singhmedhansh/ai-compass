@@ -182,8 +182,12 @@ def _local_fuzzy_search(raw_query: str, limit: int = 10, threshold: float = 0.72
         if best_score >= threshold:
             ranked.append((best_score, tool))
 
+    # Query relevance stays the primary key — paid placement is only a
+    # tie-break between comparably-matching tools. Letting sponsorship
+    # outrank the match score would surface an unrelated paid tool above the
+    # thing someone actually searched for.
     ranked.sort(
-        key=lambda item: (item[0], _summary_score(item[1]), 1 if item[1].get("featured") else 0),
+        key=lambda item: (item[0],) + _placement_rank(item[1]),
         reverse=True,
     )
 
@@ -332,10 +336,10 @@ def tools_by_tags():
         if _tool_matches_search_terms(tool, terms):
             matched_tools.append(tool)
 
-    matched_tools.sort(
-        key=lambda tool: (_summary_score(tool), 1 if tool.get("featured") else 0),
-        reverse=True,
-    )
+    # Every tool here already matched the query, so promoting sponsored ones
+    # within that matched set is the placement being sold — and the client
+    # labels them "Sponsored", so it's disclosed rather than hidden.
+    matched_tools.sort(key=_placement_rank, reverse=True)
 
     payload = {
         "results": [_card_projection(tool) for tool in matched_tools],
@@ -1049,14 +1053,54 @@ _CARD_FIELDS = (
     "createdAt", "created_at", "publishedAt", "published_at",
     "logo", "emoji", "icon", "logo_url", "logoUrl", "logo_emoji",
     "url", "website", "link", "accent_color", "tagline",
-    "featured", "student_friendly", "trending",
+    "featured", "student_friendly", "trending", "sponsored", "sponsored_until",
     "curation_score", "popularity_score", "openSource", "open_source", "platforms",
 )
 
 
 
+def _sponsored_active(tool: dict) -> bool:
+    """True when a tool's paid placement is currently in effect.
+
+    'sponsored_until' is absent/None for one-time purchases (placement does
+    not lapse) and an ISO date for monthly subscriptions. A lapsed
+    subscription only demotes placement — the listing itself always stays,
+    because the indexed /tools/<slug> and /alternatives/<slug> pages are what
+    generate the search traffic that makes placement worth buying at all.
+    """
+    if not tool.get("sponsored"):
+        return False
+    until = tool.get("sponsored_until")
+    if not until:
+        return True
+    try:
+        expiry = datetime.fromisoformat(str(until).replace("Z", "+00:00"))
+    except (TypeError, ValueError):
+        # An unparseable date must not silently grant free placement forever.
+        return False
+    if expiry.tzinfo is None:
+        expiry = expiry.replace(tzinfo=timezone.utc)
+    return expiry > datetime.now(timezone.utc)
+
+
+def _placement_rank(tool: dict) -> tuple:
+    """Sort key ordering paid placement above everything else.
+
+    Sponsored first, then the editorial curation score, then the hand-picked
+    'featured' flag as the tie-break it already was. Used with reverse=True.
+    """
+    return (
+        1 if _sponsored_active(tool) else 0,
+        _summary_score(tool),
+        1 if tool.get("featured") else 0,
+    )
+
+
 def _card_projection(tool: dict) -> dict:
     out = {k: tool[k] for k in _CARD_FIELDS if k in tool}
+    # Send the *effective* flag so the client never has to reason about
+    # subscription expiry dates.
+    out["sponsored"] = _sponsored_active(tool)
     desc = tool.get("description")
     if isinstance(desc, str) and len(desc) > 240:
         desc = desc[:237].rstrip() + "…"
@@ -1078,11 +1122,7 @@ def _summary_score(tool: dict) -> float:
 
 
 def _rank_summary_tools(tools: list[dict], limit: int = 6) -> list[dict]:
-    ordered = sorted(
-        tools,
-        key=lambda tool: (_summary_score(tool), 1 if tool.get("featured") else 0),
-        reverse=True,
-    )
+    ordered = sorted(tools, key=_placement_rank, reverse=True)
     return [_card_projection(tool) for tool in ordered[:limit]]
 
 
@@ -2369,7 +2409,7 @@ _EDITABLE_SCALARS = (
     "last_verified_at",
 )
 _EDITABLE_LISTS = ("features", "tags", "use_cases")
-_EDITABLE_BOOLS = ("studentPerk", "student_perk", "hidden", "featured")
+_EDITABLE_BOOLS = ("studentPerk", "student_perk", "hidden", "featured", "sponsored")
 
 
 def _apply_payload(record: dict, payload: dict) -> dict:
@@ -4572,6 +4612,11 @@ def admin_approve_submission(sub_id):
            for t in (get_cached_tools() or [])):
         return jsonify({"error": f"Slug '{slug}' already in catalog"}), 409
 
+    # A verified payment is what buys placement — never the client's claim.
+    # is_priority is only set by submit_tool() after verify_paypal_order()
+    # independently confirmed a COMPLETED order for the right amount.
+    is_sponsored = bool(s.is_priority and s.payment_status == "verified")
+
     record = _normalize_tool_record({
         "slug": slug,
         "name": s.name,
@@ -4579,8 +4624,15 @@ def admin_approve_submission(sub_id):
         "category": s.category,
         "description": s.description,
         "tagline": s.description,
-        "pricing": s.pricing_model,
+        # Submission.pricing_model is OUR billing tier ('free',
+        # 'sponsored_paypal:<txn>'), while a catalog record's "pricing" is the
+        # TOOL's own pricing shown to visitors and used by the pricing filter
+        # (Free / Freemium / Paid). Copying one into the other published
+        # "sponsored_paypal:8AB12345" as a paid tool's price label and broke
+        # the filter for it. Left unset here so an admin fills it in during
+        # review, rather than guessing wrong on the tool's behalf.
         "tags": [t.strip() for t in (s.tags or "").split(",") if t.strip()],
+        "sponsored": is_sponsored,
     })
     if not upsert_tool(record):
         return jsonify({"error": "Could not add to catalog"}), 500

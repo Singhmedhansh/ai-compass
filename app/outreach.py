@@ -1215,7 +1215,7 @@ CONVERSION STRUCTURE (follow this order, this is what makes it work):
    tools like [product]" reads stronger than a bare stat dump — anchor the numbers to THEIR situation.
 4. The offer as a tight, scannable bullet list (keep exactly these three, do not add more):
    - Guaranteed 24-hour priority review and frontpage listing
-   - Permanent high-authority dofollow SEO backlink to their site
+   - Sponsored placement above every free listing in their category, permanently
    - Spotlight in the weekly Student AI Digest
 5. One line of genuine urgency/personal stake — something true, not fabricated scarcity: e.g. that submissions are reviewed personally within 24
    hours, or that early listings in a category compound in SEO value over time. Never invent fake countdown timers or "only 2 spots left" claims.
@@ -1324,7 +1324,7 @@ def get_generic_draft(candidate):
 <p>AI Compass gets <b>4,000+ monthly active visitors</b> and <b>110K+ Google search impressions</b> from students actively looking for tools like {name}. Here's what Fast-Track Sponsored Curation gets you:</p>
 <ul style="margin: 8px 0 16px 0; padding-left: 18px; font-size: 13px; color: #475569;">
   <li>Guaranteed 24-hour priority review and frontpage listing</li>
-  <li>Permanent high-authority dofollow SEO backlink to {candidate.website_url or name}</li>
+  <li>Sponsored placement above every free listing in your category, permanently</li>
   <li>Spotlight in the weekly Student AI Digest</li>
 </ul>
 <p>I personally review every fast-track submission within 24 hours of payment — no queue, no waiting.</p>

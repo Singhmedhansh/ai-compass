@@ -125,6 +125,9 @@ function mapTool(rawTool) {
     accent_color: rawTool.accent_color,
     tagline: rawTool.tagline,
     featured: rawTool.featured === true,
+    // Server sends the *effective* flag — it has already resolved any
+    // subscription expiry, so there's no date logic to repeat here.
+    sponsored: rawTool.sponsored === true,
     student_friendly: rawTool.student_friendly === true || rawTool.student_perk === true || rawTool.studentPerk === true,
     pricingDetail: rawTool.pricingDetail || rawTool.pricing_detail || '',
     openSource: rawTool.openSource === true || rawTool.open_source === true,
@@ -150,14 +153,18 @@ const CANONICAL_TO_FILTER_LABEL = {
   'Courses & Tutorials': 'Courses',
 }
 
-// Per Phase 2: curation_score DESC; featured floats ahead within a score
-// tie; fall back to popularity_score when curation_score is null.
+// Sponsored (paid placement) first, then curation_score DESC, then featured
+// as the tie-break it already was; falls back to popularity_score when
+// curation_score is null. Sponsored cards render a visible "Sponsored" label
+// so promoted placement is disclosed rather than passed off as editorial.
 function rankTools(list, n = 6) {
   const scoreOf = (t) =>
     t.curation_score ?? t.popularity_score ?? Number.NEGATIVE_INFINITY
 
   return [...list]
     .sort((a, b) => {
+      const sponsored = (b.sponsored ? 1 : 0) - (a.sponsored ? 1 : 0)
+      if (sponsored !== 0) return sponsored
       const diff = scoreOf(b) - scoreOf(a)
       if (diff !== 0) return diff
       return (b.featured ? 1 : 0) - (a.featured ? 1 : 0)

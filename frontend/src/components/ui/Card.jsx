@@ -271,6 +271,14 @@ function Card({ tool = {}, layoutType = 'standard', glass = false, folders = nul
  
       <div className={clsx("flex items-center justify-between gap-3 mt-auto w-full", isLarge ? "flex-wrap justify-center pt-4 border-t border-line" : "")}>
         <div className="flex items-center gap-1.5 flex-wrap">
+          {tool.sponsored && (
+            <span
+              className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider border bg-accent-soft text-accent-ink border-accent/30"
+              title="Paid placement — this listing's maker sponsors its spot in this category"
+            >
+              Sponsored
+            </span>
+          )}
           <Badge label={category} variant={category} />
           {tool.academic_integrity_rating && (
             <span

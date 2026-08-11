@@ -376,7 +376,7 @@ export default function SubmitPage() {
             </div>
             <h3 className="mt-3 text-base font-bold text-ink">Fast-Track Sponsored Curation</h3>
             <p className="mt-1 text-xs text-ink-2 leading-relaxed font-normal">
-              Everything in the free listing, plus guaranteed 24-hour review, permanent dofollow backlink, featured badge, and a spot in the weekly student AI digest.
+              Everything in the free listing, plus guaranteed 24-hour review, sponsored placement above free listings in your category, a featured badge, and a spot in the weekly student AI digest.
             </p>
           </button>
         </div>
@@ -538,7 +538,7 @@ export default function SubmitPage() {
                       </p>
                       <div className="bg-bg-elev/80 p-3 rounded-xl border border-line">
                         <p className="font-medium text-ink">
-                          Need it live sooner? Fast-Track gets you a guaranteed 24-hour review, a permanent dofollow backlink, and a featured badge for $49.99 one-time.
+                          Need it live sooner? Fast-Track gets you a guaranteed 24-hour review, sponsored placement above free listings, and a featured badge for $49.99 one-time.
                         </p>
                         <button
                           type="button"
@@ -618,7 +618,7 @@ export default function SubmitPage() {
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-accent font-bold">✓</span>
-                  <span>Permanent high-authority dofollow backlink.</span>
+                  <span>Sponsored placement above free listings in your category, permanently.</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-accent font-bold">✓</span>
