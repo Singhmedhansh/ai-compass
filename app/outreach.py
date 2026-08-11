@@ -1884,3 +1884,306 @@ def trigger_github_verification_workflow():
         return False, f"GitHub API returned {r.status_code}: {r.text[:200]}"
     except Exception as e:
         return False, str(e)
+
+# ─── 8. CATALOG TRAFFIC-REPORT CAMPAIGN ─────────────────────────────────────
+#
+# Sections 1-3 above pitch founders of brand-new PH/HN launches — strangers
+# with no relationship to AI Compass, asked to pay immediately. This section
+# targets the opposite audience: tools ALREADY listed in the catalog that are
+# ALREADY receiving outbound clicks from us.
+#
+# That turns the email from a pitch into a report. "AI Compass sent you 143
+# clicks last month" is specific, true, verifiable on their end, and comes
+# from someone who demonstrably gave value before asking for anything. It
+# also changes the offer — these tools are already listed, so the ask is an
+# upgrade to featured placement, not "get listed".
+#
+# Everything downstream is deliberately shared with the cold pipeline: these
+# are ordinary OutreachCandidate rows, so they inherit the mailbox
+# verification send gate, the daily send cap, unsubscribe suppression,
+# follow-ups and the admin review UI without duplicating any of it.
+
+# Minimum trailing-window clicks before a listed tool is worth contacting.
+# Below this the opener is too weak to justify the send — reporting 2 clicks
+# lands worse than not emailing, and still spends sender reputation.
+CATALOG_CAMPAIGN_MIN_CLICKS = int(os.environ.get("OUTREACH_CATALOG_MIN_CLICKS", "5"))
+
+# Per-run ceiling. Each candidate chains several network-bound enrichment
+# strategies, so an unbounded run would hold a worker for a very long time on
+# a free-tier instance.
+CATALOG_CAMPAIGN_MAX_PER_RUN = int(os.environ.get("OUTREACH_CATALOG_MAX_PER_RUN", "25"))
+
+# ph_launch_id is unique+indexed, so prefixing catalog-sourced rows with this
+# reuses that constraint for dedup rather than adding a column (and a Render
+# migration) purely to tell the two sources apart.
+CATALOG_CANDIDATE_ID_PREFIX = "catalog:"
+
+
+def get_catalog_click_counts(days=30, min_clicks=1):
+    """{slug: clicks} for tools with outbound clicks in the trailing window."""
+    from sqlalchemy import func
+
+    from app.models import OutboundClick
+
+    since = datetime.now(timezone.utc) - timedelta(days=days)
+    n = func.count(OutboundClick.id)
+    rows = (
+        db.session.query(OutboundClick.slug, n.label("n"))
+        .filter(OutboundClick.created_at >= since)
+        .group_by(OutboundClick.slug)
+        .having(n >= min_clicks)
+        .order_by(n.desc())
+        .all()
+    )
+    return {slug: count for slug, count in rows}
+
+
+def _existing_candidate_for(product_name, website_url):
+    """An OutreachCandidate already covering this product/domain, or None.
+
+    Only looks at the outreach pipeline — unlike is_duplicate_candidate(),
+    it does not treat presence in the catalog as a disqualifier.
+    """
+    domain = get_domain_from_url(website_url)
+    if domain and domain.lower() in REJECTED_HOSTS:
+        domain = ""
+    q = OutreachCandidate.query
+    if domain:
+        return q.filter(
+            (OutreachCandidate.product_name.ilike(product_name)) |
+            (OutreachCandidate.website_url.ilike(f"%{domain}%"))
+        ).first()
+    return q.filter(OutreachCandidate.product_name.ilike(product_name)).first()
+
+
+def _catalog_tool_info(slug):
+    """(name, tagline, website_url) for a visible catalog tool, or None."""
+    import json
+
+    ct = CatalogTool.query.filter_by(slug=slug).first()
+    if ct is None or ct.hidden:
+        return None
+    try:
+        data = json.loads(ct.data) if ct.data else {}
+    except Exception:
+        data = {}
+
+    website = str(data.get("link") or "").strip()
+    if not website.startswith(("http://", "https://")):
+        return None
+    return (
+        ct.name or str(data.get("name") or slug),
+        str(data.get("tagline") or "").strip(),
+        website,
+    )
+
+
+def generate_traffic_report_draft(candidate, clicks, days=30):
+    """Warm-pitch draft: leads with the tool's real click count, then offers
+    the upgrade. Deliberately separate from generate_draft_via_gemini() —
+    that prompt sells "get listed" to someone who isn't, which is both the
+    wrong offer and an obviously wrong one for a maker who is already in the
+    directory and reading their own traffic numbers.
+    """
+    api_key = _get_gemini_key()
+    if not api_key:
+        return get_generic_traffic_report_draft(candidate, clicks, days)
+
+    display_name = candidate.founder_name if _looks_like_real_name(candidate.founder_name) else ""
+
+    prompt = f"""
+You are Medhansh Pratap Singh, Founder of AI Compass (https://ai-compass.in) - a curated directory of AI tools for students, developers and
+creators. You are writing to the maker of a product that is ALREADY LISTED on AI Compass and is ALREADY receiving real referral traffic from it.
+
+This is not a cold pitch. It is a short traffic report with an offer attached. The reader's first reaction should be "oh, this is a real number
+about my product", not "this is a sales email". Write like one founder sending another a useful stat they did not know.
+
+FACTS YOU MUST USE (all true, do not alter or embellish):
+- Product: {candidate.product_name}
+- Their listing sent them {clicks} click-throughs to their site in the last {days} days.
+- They are already listed for free. Nothing is being taken away and there is nothing wrong with their listing.
+
+STRUCTURE (follow this order):
+1. Opening line: state the number plainly - that {candidate.product_name}'s AI Compass listing sent {clicks} clicks to their site in the last
+   {days} days. No preamble, no "I hope this finds you well", no "I came across". The number IS the hook.
+2. One sentence of context: those are students and developers who searched for a tool like theirs and chose to click through.
+3. The offer, in one short sentence plus at most three bullets: a Fast-Track upgrade ($49.99 one-time) adding featured placement at the top of
+   their category, a featured badge on the listing, and a spot in the weekly Student AI Digest.
+4. One honest line on why that matters: higher placement means more of the people already browsing that category see them first. Do NOT invent a
+   multiplier, a percentage lift, a conversion rate, or any statistic not given above.
+5. A single call to action: the link https://ai-compass.in/submit - and explicitly offer replying as the zero-commitment alternative, e.g. "or
+   just reply if you want the numbers for a specific month first".
+6. Sign-off, then a P.S. restating the click number in one short sentence.
+
+HARD CONSTRAINTS:
+- Under 120 words of body text excluding bullets and signature. Must be readable in fifteen seconds.
+- Never imply their listing is at risk, will be removed, or is underperforming. The free listing is permanent either way - say so if it fits.
+- Never fabricate statistics. The ONLY numbers you may state are {clicks} and {days}.
+- No emojis. At most one exclamation mark. No ALL CAPS, no "FREE", no fake urgency or scarcity.
+- Output valid JSON with exactly two fields: "subject" and "body".
+- Subject line: under 50 characters, references the real number or the product by name, reads like a 1:1 email. Good shape:
+  "{candidate.product_name}: {clicks} clicks from AI Compass". Never generic corporate phrasing.
+- "body" must be clean HTML using only <p>, <br>, <b>, <ul>, <li>, <a> tags. No style blocks, no tables, no images.
+- The CTA sentence must link to https://ai-compass.in/submit.
+- End with exactly this signature block, verbatim, after the P.S.:
+<div style="margin-top: 24px; padding-top: 14px; border-top: 1px solid #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <div style="font-weight: 600; color: #0f172a; font-size: 14px;">Medhansh Pratap Singh</div>
+  <div style="color: #64748b; font-size: 12px; margin-top: 2px;">Founder, <a href="https://ai-compass.in" style="color: #059669; text-decoration: none; font-weight: 500;">AI Compass</a></div>
+  <div style="color: #94a3b8; font-size: 11px; margin-top: 4px;">medhansh.singh@ai-compass.in • <a href="https://ai-compass.in" style="color: #64748b; text-decoration: underline;">ai-compass.in</a></div>
+</div>
+
+Greet them by first name only if a name is given, otherwise "Hey there,".
+- Founder/Maker: {display_name or 'not known - use a neutral greeting'}
+
+Return ONLY the raw JSON object, with no markdown code fences around it.
+"""
+
+    payload = {"contents": [{"parts": [{"text": prompt}]}], "generationConfig": {"temperature": 0.6}}
+
+    for model in ("gemini-2.0-flash", "gemini-1.5-flash"):
+        try:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
+            r = requests.post(url, json=payload, timeout=20)
+            if not r.ok:
+                log.warning("Gemini (%s) traffic-report draft returned %s", model, r.status_code)
+                continue
+
+            candidates_list = r.json().get("candidates", [])
+            if not candidates_list:
+                continue
+
+            text = candidates_list[0].get("content", {}).get("parts", [])[0].get("text", "").strip()
+            if text.startswith("```json"):
+                text = text[7:-3].strip()
+            elif text.startswith("```"):
+                text = text[3:-3].strip()
+
+            import json
+            result = json.loads(text)
+            subject, body = result.get("subject"), result.get("body")
+            if subject and body:
+                return subject, _append_unsubscribe_footer(body, candidate.email)
+        except Exception as e:
+            log.warning("Gemini (%s) traffic-report draft failed: %s", model, e)
+
+    return get_generic_traffic_report_draft(candidate, clicks, days)
+
+
+def get_generic_traffic_report_draft(candidate, clicks, days=30):
+    """Template fallback for when Gemini is unavailable. Same shape as the
+    prompted version: number first, offer second, reply invited.
+    """
+    name = candidate.product_name
+    first_name = candidate.founder_name.split(" ")[0] if _looks_like_real_name(candidate.founder_name) else "there"
+    subject = f"{name}: {clicks} clicks from AI Compass"[:50]
+    body = f"""<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; color: #334155; line-height: 1.6;">
+<p>Hey {first_name},</p>
+<p>Your <a href="https://ai-compass.in" style="color: #059669; font-weight: 600;">AI Compass</a> listing sent <b>{clicks} click-throughs</b> to {name} in the last {days} days — students and developers who searched for a tool like yours and chose to click through.</p>
+<p>That listing stays free permanently. If you want more of the people already browsing your category to see {name} first, the Fast-Track upgrade ($49.99 one-time) adds:</p>
+<ul style="margin: 8px 0 16px 0; padding-left: 18px; font-size: 13px; color: #475569;">
+  <li>Featured placement at the top of your category</li>
+  <li>A featured badge on your listing</li>
+  <li>A spot in the weekly Student AI Digest</li>
+</ul>
+<p><a href="https://ai-compass.in/submit" style="color: #059669; font-weight: 600; text-decoration: underline;">Upgrade {name} here</a> — or just reply if you would like the numbers for a specific month first.</p>
+<div style="margin-top: 24px; padding-top: 14px; border-top: 1px solid #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <div style="font-weight: 600; color: #0f172a; font-size: 14px;">Medhansh Pratap Singh</div>
+  <div style="color: #64748b; font-size: 12px; margin-top: 2px;">Founder, <a href="https://ai-compass.in" style="color: #059669; text-decoration: none; font-weight: 500;">AI Compass</a></div>
+  <div style="color: #94a3b8; font-size: 11px; margin-top: 4px;">medhansh.singh@ai-compass.in • <a href="https://ai-compass.in" style="color: #64748b; text-decoration: underline;">ai-compass.in</a></div>
+</div>
+<p style="margin-top: 14px; font-size: 12px; color: #64748b;">P.S. Those {clicks} clicks came from the free listing alone — nothing changes if you would rather leave it as is.</p>
+</div>"""
+    return subject, _append_unsubscribe_footer(body, candidate.email)
+
+
+def run_catalog_traffic_campaign(min_clicks=None, days=30, limit=None):
+    """Creates outreach candidates from already-listed catalog tools that are
+    sending real referral traffic, drafting a traffic report for each.
+
+    Only prepares candidates — it never sends. They land in the same review
+    queue as cold ones and clear the same mailbox-verification send gate.
+    """
+    min_clicks = CATALOG_CAMPAIGN_MIN_CLICKS if min_clicks is None else min_clicks
+    limit = CATALOG_CAMPAIGN_MAX_PER_RUN if limit is None else limit
+
+    click_counts = get_catalog_click_counts(days=days, min_clicks=min_clicks)
+    if not click_counts:
+        log.info("Catalog traffic campaign: no tools with >=%s clicks in %s days.", min_clicks, days)
+        return {"created": 0, "skipped_existing": 0, "skipped_no_url": 0, "eligible": 0}
+
+    created = skipped_existing = skipped_no_url = 0
+
+    for slug, clicks in click_counts.items():
+        if created >= limit:
+            log.info("Catalog traffic campaign: hit per-run limit of %s.", limit)
+            break
+
+        catalog_id = f"{CATALOG_CANDIDATE_ID_PREFIX}{slug}"
+        if OutreachCandidate.query.filter_by(ph_launch_id=catalog_id).first() is not None:
+            skipped_existing += 1
+            continue
+
+        info = _catalog_tool_info(slug)
+        if info is None:
+            skipped_no_url += 1
+            continue
+        product_name, tagline, website_url = info
+
+        # A tool can already be in the pipeline from cold discovery under a
+        # different id. Emailing it twice with two contradictory pitches is
+        # exactly what gets a sending domain marked as spam.
+        #
+        # Deliberately NOT is_duplicate_candidate() — that helper also treats
+        # "matches a catalog tool" as duplicate, which is correct for cold
+        # discovery (already listed = nothing to pitch) and exactly backwards
+        # here, where being in the catalog is the entry requirement. Using it
+        # would match every candidate against itself and create zero rows,
+        # silently.
+        if _existing_candidate_for(product_name, website_url) is not None:
+            skipped_existing += 1
+            continue
+
+        email, source, score, verification_result = enrich_candidate_email(website_url, "")
+
+        c = OutreachCandidate()
+        c.ph_launch_id = catalog_id
+        c.product_name = product_name
+        c.tagline = tagline
+        c.website_url = website_url
+        c.founder_name = ""
+        c.tone = infer_tone(tagline, "")
+
+        if email:
+            c.email = email
+            c.email_source = source
+            c.confidence_score = score
+            c.verification_result = verification_result
+            c.verified_at = datetime.now(timezone.utc) if verification_result else None
+            c.status = _status_for_email_confidence(score)
+        else:
+            c.email_source = "none"
+            c.confidence_score = 0
+            c.status = "no_email_found"
+
+        subject, body = generate_traffic_report_draft(c, clicks, days)
+        c.draft_subject = subject
+        c.draft_body = body
+
+        try:
+            db.session.add(c)
+            db.session.commit()
+            created += 1
+        except Exception as e:
+            db.session.rollback()
+            log.warning("Catalog traffic campaign: skipping %s (%s): %s", product_name, slug, e)
+
+    log.info(
+        "Catalog traffic campaign complete: %s created | %s already in pipeline | %s no usable URL | %s eligible",
+        created, skipped_existing, skipped_no_url, len(click_counts)
+    )
+    return {
+        "created": created,
+        "skipped_existing": skipped_existing,
+        "skipped_no_url": skipped_no_url,
+        "eligible": len(click_counts),
+    }

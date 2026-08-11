@@ -25,9 +25,20 @@ const INITIAL_FORM = {
 }
 
 export default function SubmitPage() {
-  const [submissionType] = useState('sponsor') // Exclusively 'sponsor' ($49.99)
+  // 'free' = basic listing, reviewed when we get to it. 'sponsor' = $49.99
+  // fast-track. The free tier is the top of the funnel: it costs nothing to
+  // serve, it's what gets a founder to hand over their email at all, and
+  // those contacts are who the upgrade offer is later sold to. A paid-only
+  // submit page has no top of funnel — nobody pays a directory they have no
+  // relationship with yet.
+  const [submissionType, setSubmissionType] = useState('sponsor')
   const [formData, setFormData] = useState(INITIAL_FORM)
   const [submitted, setSubmitted] = useState(false)
+  // Which tier the completed submission actually used. Read by the success
+  // panel instead of submissionType, so switching the selector afterwards
+  // (e.g. a free submitter looking at the upgrade) can't rewrite the
+  // confirmation they were just shown.
+  const [submittedTier, setSubmittedTier] = useState('sponsor')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
 
@@ -254,6 +265,10 @@ export default function SubmitPage() {
   function handleFormSubmit(event) {
     event.preventDefault()
     setError('')
+    if (submissionType === 'free') {
+      submitData('free')
+      return
+    }
     setShowPaymentModal(true)
   }
 
@@ -294,10 +309,9 @@ export default function SubmitPage() {
       }
 
       setSubmitted(true)
+      setSubmittedTier(pricingModel === 'free' ? 'free' : 'sponsor')
       setPaymentVerified(!!payload.payment_verified)
       setFormData(INITIAL_FORM)
-      setCardData({ number: '', expiry: '', cvc: '', name: '' })
-      setUpiId('')
       setPaymentDone(false)
     } catch (requestError) {
       setError(requestError.message || 'Unable to submit right now. Please try again.')
@@ -311,32 +325,60 @@ export default function SubmitPage() {
       
       {/* Monetization / Path Selector Banner */}
       <div className="mb-8 rounded-3xl border border-line bg-gradient-to-br from-bg-elev via-bg-elev to-bg-sunk/30 p-6 shadow-sm">
-        <span className="text-[10px] font-bold text-accent uppercase tracking-widest block mb-1">Fast-Track Sponsored Curation</span>
-        <h1 className="text-2xl font-bold text-ink tracking-tight sm:text-3xl">Submit Your AI Tool for Curation</h1>
+        <span className="text-[10px] font-bold text-accent uppercase tracking-widest block mb-1">Get Listed</span>
+        <h1 className="text-2xl font-bold text-ink tracking-tight sm:text-3xl">Submit Your AI Tool</h1>
         <p className="mt-2 text-sm text-ink-2 max-w-2xl font-normal leading-relaxed">
-          Get your tool indexed and featured in front of students, creators, and developers with guaranteed 24-hour priority review.
+          Get your tool in front of students, creators, and developers. Free listings are welcome — pick Fast-Track if you want a guaranteed 24-hour review and featured placement.
         </p>
 
-        {/* Sponsored Curation Card (Single Paid Path) */}
-        <div className="mt-6">
-          <div className="rounded-2xl border border-accent bg-accent-soft/20 p-5 shadow-md ring-2 ring-accent/15">
+        {/* Tier selector — free is a real, selectable path, not a decoy. */}
+        <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <button
+            type="button"
+            onClick={() => setSubmissionType('free')}
+            aria-pressed={submissionType === 'free'}
+            className={`text-left rounded-2xl border p-5 transition ${
+              submissionType === 'free'
+                ? 'border-accent bg-accent-soft/20 shadow-md ring-2 ring-accent/15'
+                : 'border-line bg-bg-elev hover:border-line-strong hover:bg-bg-sunk'
+            }`}
+          >
+            <div className="flex items-center justify-between gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-bg-sunk text-ink-2 px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-wider border border-line">
+                Standard
+              </span>
+              <span className="text-base font-bold text-ink">Free</span>
+            </div>
+            <h3 className="mt-3 text-base font-bold text-ink">Free Listing</h3>
+            <p className="mt-1 text-xs text-ink-2 leading-relaxed font-normal">
+              Full directory listing with your description and link. Reviewed in the order it arrives — usually within a couple of weeks.
+            </p>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setSubmissionType('sponsor')}
+            aria-pressed={submissionType === 'sponsor'}
+            className={`text-left rounded-2xl border p-5 transition ${
+              submissionType === 'sponsor'
+                ? 'border-accent bg-accent-soft/20 shadow-md ring-2 ring-accent/15'
+                : 'border-line bg-bg-elev hover:border-line-strong hover:bg-bg-sunk'
+            }`}
+          >
             <div className="flex items-center justify-between gap-2">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-soft text-accent px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-wider shadow-sm">
-                <Sparkles className="h-2.5 w-2.5" /> Founder / Builder Fast-Track
+                <Sparkles className="h-2.5 w-2.5" /> Fast-Track
               </span>
               <div className="flex items-baseline gap-1.5">
-                <span className="text-xs font-semibold text-muted text-line-through">$81</span>
                 <span className="text-base font-bold text-ink">$49.99</span>
                 <span className="text-[10px] font-medium text-ink-2">one-time</span>
               </div>
             </div>
-            <h3 className="mt-3 text-base font-bold text-ink">
-              Fast-Track Sponsored Curation ($49.99)
-            </h3>
+            <h3 className="mt-3 text-base font-bold text-ink">Fast-Track Sponsored Curation</h3>
             <p className="mt-1 text-xs text-ink-2 leading-relaxed font-normal">
-              Guaranteed priority review, permanent high-authority dofollow backlink, featured badge, and inclusion in our weekly student AI digest within 24 hours.
+              Everything in the free listing, plus guaranteed 24-hour review, permanent dofollow backlink, featured badge, and a spot in the weekly student AI digest.
             </p>
-          </div>
+          </button>
         </div>
       </div>
 
@@ -346,7 +388,7 @@ export default function SubmitPage() {
         <div className="lg:col-span-2">
           <section className="rounded-2xl border border-line bg-bg-elev p-6 shadow-sm">
             <h2 className="text-lg font-bold text-ink">
-              Sponsored Curation Form
+              {submissionType === 'free' ? 'Tool Details' : 'Sponsored Curation Form'}
             </h2>
             
             <form className="mt-6 space-y-4" onSubmit={handleFormSubmit}>
@@ -459,7 +501,11 @@ export default function SubmitPage() {
                   disabled={submitting} 
                   className="w-full font-bold flex items-center justify-center gap-2 rounded-xl"
                 >
-                  {submitting ? 'Processing...' : 'Proceed to Secure Checkout ($49.99)'}
+                  {submitting
+                    ? 'Processing...'
+                    : submissionType === 'free'
+                    ? 'Submit Free Listing'
+                    : 'Proceed to Secure Checkout ($49.99)'}
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               </div>
@@ -471,15 +517,43 @@ export default function SubmitPage() {
                   <CheckCircle2 className="h-7 w-7 text-accent shrink-0" />
                   <div>
                     <h3 className="text-base font-semibold text-ink">
-                      {paymentVerified ? 'Payment Approved & Submission Received' : 'Submission Received — Payment Pending Verification'}
+                      {submittedTier === 'free'
+                        ? 'Submission Received'
+                        : paymentVerified
+                        ? 'Payment Approved & Submission Received'
+                        : 'Submission Received — Payment Pending Verification'}
                     </h3>
-                    <p className="text-xs text-accent-ink font-semibold mt-0.5">
-                      Transaction Reference: <span className="font-mono">{transactionRef || 'N/A'}</span> • Amount: $49.99 USD
-                    </p>
+                    {submittedTier !== 'free' && (
+                      <p className="text-xs text-accent-ink font-semibold mt-0.5">
+                        Transaction Reference: <span className="font-mono">{transactionRef || 'N/A'}</span> • Amount: $49.99 USD
+                      </p>
+                    )}
                   </div>
                 </div>
                 <div className="mt-4 pt-3 border-t border-accent/20 text-xs text-ink-2 space-y-2 leading-relaxed">
-                  {paymentVerified ? (
+                  {submittedTier === 'free' ? (
+                    <>
+                      <p>
+                        <strong>What happens next?</strong> Your tool is in the review queue. We review free submissions in the order they arrive — usually within a couple of weeks — and you&apos;ll get an email at your submitted address when it goes live.
+                      </p>
+                      <div className="bg-bg-elev/80 p-3 rounded-xl border border-line">
+                        <p className="font-medium text-ink">
+                          Need it live sooner? Fast-Track gets you a guaranteed 24-hour review, a permanent dofollow backlink, and a featured badge for $49.99 one-time.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSubmitted(false)
+                            setSubmissionType('sponsor')
+                            window.scrollTo({ top: 0, behavior: 'smooth' })
+                          }}
+                          className="mt-2 inline-flex items-center gap-1.5 text-accent font-bold hover:underline"
+                        >
+                          Upgrade to Fast-Track <ArrowRight className="h-3 w-3" />
+                        </button>
+                      </div>
+                    </>
+                  ) : paymentVerified ? (
                     <>
                       <p>
                         <strong>What happens next?</strong> Our editorial team has received your submission details and payment confirmation.
@@ -829,12 +903,4 @@ export default function SubmitPage() {
 
     </div>
   )
-
-  // Helper function to handle thank-you banner pricing model label matching
-  function pricingModelOfLastSubmission() {
-    if (submitted) {
-      return submissionType === 'suggest' ? 'free' : 'sponsored'
-    }
-    return 'free'
-  }
 }

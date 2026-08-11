@@ -1429,6 +1429,49 @@ function AdminPage() {
                   {outreachBusy === 're_enrich' ? 'Enriching missing emails…' : 'Re-Enrich Missing Emails'}
                 </button>
                 <button
+                  disabled={outreachBusy === 'catalog_campaign'}
+                  title="Build traffic-report drafts for already-listed tools that are sending real referral clicks"
+                  onClick={async () => {
+                    setOutreachBusy('catalog_campaign')
+                    try {
+                      // Preview first — the click threshold decides how many
+                      // listed tools qualify, and generating drafts for the
+                      // wrong set wastes Gemini calls and admin review time.
+                      const p = await api('/api/v1/admin/outreach/catalog-campaign/preview')
+                      if (!p.would_create) {
+                        toast.error(
+                          `No new tools qualify. ${p.eligible} tool(s) have ${p.min_clicks}+ clicks in ${p.days} days, ` +
+                          `${p.already_created} already have drafts.`
+                        )
+                        return
+                      }
+                      const top = (p.top || []).slice(0, 5).map(t => `  • ${t.slug} — ${t.clicks} clicks`).join('\n')
+                      if (!window.confirm(
+                        `Build traffic-report drafts for ${p.would_create} listed tool(s)?\n\n` +
+                        `${p.eligible} tool(s) have ${p.min_clicks}+ clicks in the last ${p.days} days.\n` +
+                        `${p.already_created} already have drafts. Capped at ${p.per_run_limit} per run.\n\n` +
+                        `Top by clicks:\n${top}\n\n` +
+                        `This only creates drafts for review — nothing is sent.`
+                      )) return
+
+                      const res = await api('/api/v1/admin/outreach/catalog-campaign', { method: 'POST' })
+                      toast.success(res.message || 'Building traffic-report drafts in the background…')
+                      // Email enrichment is network-bound per candidate, so
+                      // results trickle in over tens of seconds.
+                      setTimeout(() => loadOutreachData(), 5000)
+                      setTimeout(() => loadOutreachData(), 20000)
+                      setTimeout(() => loadOutreachData(), 45000)
+                    } catch (e) {
+                      toast.error(e.message)
+                    } finally {
+                      setOutreachBusy(null)
+                    }
+                  }}
+                  className={BTN_GHOST}
+                >
+                  {outreachBusy === 'catalog_campaign' ? 'Building traffic reports…' : 'Traffic-Report Campaign'}
+                </button>
+                <button
                   disabled={outreachBusy === 'regenerate_all'}
                   onClick={async () => {
                     if (!window.confirm('Regenerate the draft for every draft_ready candidate? This overwrites any manual edits to subject/body.')) return

@@ -29,6 +29,11 @@ from app.outreach import (
     _status_for_email_confidence,
     OUTREACH_REPLY_TO,
     _outreach_send_headers,
+    run_catalog_traffic_campaign,
+    get_catalog_click_counts,
+    CATALOG_CAMPAIGN_MIN_CLICKS,
+    CATALOG_CAMPAIGN_MAX_PER_RUN,
+    CATALOG_CANDIDATE_ID_PREFIX,
 )
 
 outreach_bp = Blueprint("outreach", __name__)
@@ -436,6 +441,93 @@ def trigger_re_enrich():
         _outreach_job_lock.release()
         current_app.logger.exception("Failed to run re-enrichment pipeline")
         return jsonify({"error": str(e)}), 500
+
+@outreach_bp.route("/api/v1/admin/outreach/catalog-campaign", methods=["POST"])
+@csrf.exempt
+@login_required
+def trigger_catalog_campaign():
+    """Builds traffic-report candidates from already-listed tools that are
+    sending real referral clicks. Prepares only — never sends.
+    """
+    if not _is_admin():
+        return jsonify({"error": "Forbidden"}), 403
+
+    if not _outreach_job_lock.acquire(blocking=False):
+        return jsonify({"error": "Another discovery/re-enrich job is already running — wait for it to finish before starting another."}), 409
+
+    data = request.json or {}
+    try:
+        min_clicks = int(data["min_clicks"]) if data.get("min_clicks") is not None else None
+        days = int(data.get("days") or 30)
+    except (TypeError, ValueError):
+        _outreach_job_lock.release()
+        return jsonify({"error": "min_clicks and days must be whole numbers."}), 400
+
+    try:
+        # Same backgrounding rationale as /trigger-discovery: each candidate
+        # chains several network-bound enrichment strategies, which would
+        # otherwise hold a gthread worker (and this free-tier instance's
+        # single shared vCPU) for minutes and degrade /healthz along with it.
+        app_obj = current_app._get_current_object()
+        app_ctx = app_obj.app_context()
+
+        def _bg():
+            try:
+                with app_ctx:
+                    try:
+                        result = run_catalog_traffic_campaign(min_clicks=min_clicks, days=days)
+                        app_obj.logger.info("Catalog traffic campaign completed: %s", result)
+                    except Exception as ex:
+                        app_obj.logger.exception("Catalog traffic campaign failed: %s", ex)
+            finally:
+                _outreach_job_lock.release()
+
+        threading.Thread(target=_bg, name="catalog-campaign-bg", daemon=True).start()
+
+        return jsonify({
+            "success": True,
+            "message": "Building traffic-report drafts in the background. Candidates appear in the list as they're enriched.",
+        }), 202
+    except Exception as e:
+        _outreach_job_lock.release()
+        current_app.logger.exception("Failed to start catalog traffic campaign")
+        return jsonify({"error": str(e)}), 500
+
+
+@outreach_bp.route("/api/v1/admin/outreach/catalog-campaign/preview", methods=["GET"])
+@login_required
+def preview_catalog_campaign():
+    """How many listed tools would qualify, so the admin can sanity-check the
+    click threshold before generating anything.
+    """
+    if not _is_admin():
+        return jsonify({"error": "Forbidden"}), 403
+
+    try:
+        min_clicks = int(request.args.get("min_clicks") or CATALOG_CAMPAIGN_MIN_CLICKS)
+        days = int(request.args.get("days") or 30)
+    except (TypeError, ValueError):
+        return jsonify({"error": "min_clicks and days must be whole numbers."}), 400
+
+    counts = get_catalog_click_counts(days=days, min_clicks=min_clicks)
+    already = {
+        c.ph_launch_id[len(CATALOG_CANDIDATE_ID_PREFIX):]
+        for c in OutreachCandidate.query.filter(
+            OutreachCandidate.ph_launch_id.like(f"{CATALOG_CANDIDATE_ID_PREFIX}%")
+        ).all()
+        if c.ph_launch_id
+    }
+    pending = {s: n for s, n in counts.items() if s not in already}
+    return jsonify({
+        "min_clicks": min_clicks,
+        "days": days,
+        "eligible": len(counts),
+        "already_created": len(counts) - len(pending),
+        "would_create": min(len(pending), CATALOG_CAMPAIGN_MAX_PER_RUN),
+        "per_run_limit": CATALOG_CAMPAIGN_MAX_PER_RUN,
+        "top": [{"slug": s, "clicks": n} for s, n in list(pending.items())[:10]],
+    })
+
 
 @outreach_bp.route("/api/v1/admin/outreach/regenerate-all-drafts", methods=["POST"])
 @csrf.exempt
