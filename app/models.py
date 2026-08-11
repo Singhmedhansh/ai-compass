@@ -432,7 +432,8 @@ class OutreachCandidate(db.Model):
     founder_name = db.Column(db.String(255), nullable=True)
     email = db.Column(db.String(255), nullable=True)
     status = db.Column(db.String(50), nullable=False, default="draft_ready", index=True)
-    # Statuses: 'draft_ready', 'sent', 'followed_up', 'replied', 'no_email_found', 'bounced', 'rejected'
+    # Statuses: 'draft_ready', 'sent', 'followed_up', 'followed_up_2', 'replied',
+    # 'no_email_found', 'bounced', 'rejected', 'unsubscribed'
     draft_subject = db.Column(db.Text, nullable=True)
     draft_body = db.Column(db.Text, nullable=True)
     email_source = db.Column(db.String(100), nullable=True)  # 'scraper', 'hunter', 'manual'

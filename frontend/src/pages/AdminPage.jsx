@@ -1570,8 +1570,10 @@ function AdminPage() {
                     ['no_email_found', 'No Email', candidates.filter(c => c.status === 'no_email_found').length],
                     ['sent', 'Sent', candidates.filter(c => c.status === 'sent').length],
                     ['followed_up', 'Followed Up', candidates.filter(c => c.status === 'followed_up').length],
+                    ['followed_up_2', 'Followed Up 2x', candidates.filter(c => c.status === 'followed_up_2').length],
                     ['bounced', 'Bounced', candidates.filter(c => c.status === 'bounced').length],
-                    ['rejected', 'Rejected', candidates.filter(c => c.status === 'rejected').length]
+                    ['rejected', 'Rejected', candidates.filter(c => c.status === 'rejected').length],
+                    ['unsubscribed', 'Unsubscribed', candidates.filter(c => c.status === 'unsubscribed').length]
                   ].map(([status, label, count]) => (
                     <button
                       key={status}
@@ -1758,12 +1760,14 @@ function AdminPage() {
                                       ? 'bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400'
                                       : c.status === 'sent'
                                       ? 'bg-sky-500/10 border border-sky-500/20 text-sky-600 dark:text-sky-400'
-                                      : c.status === 'followed_up'
+                                      : c.status === 'followed_up' || c.status === 'followed_up_2'
                                       ? 'bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400'
                                       : c.status === 'replied'
                                       ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400'
                                       : c.status === 'no_email_found'
                                       ? 'bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400'
+                                      : c.status === 'unsubscribed'
+                                      ? 'bg-orange-500/10 border border-orange-500/20 text-orange-600 dark:text-orange-400'
                                       : 'bg-gray-500/10 border border-gray-500/20 text-gray-500'
                                   }`}
                                 >

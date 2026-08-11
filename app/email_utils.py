@@ -68,7 +68,10 @@ def html_to_plain_text(html: str) -> str:
     return '\n'.join(line for line in lines if line)
 
 
-def _send_via_resend(to: str, subject: str, html: str, text: str | None) -> tuple[bool, str | None]:
+def _send_via_resend(
+    to: str, subject: str, html: str, text: str | None,
+    reply_to: str | None, headers: dict[str, str] | None,
+) -> tuple[bool, str | None]:
     """HTTPS send via Resend (port 443 — works where SMTP is blocked)."""
     try:
         import requests
@@ -88,19 +91,25 @@ def _send_via_resend(to: str, subject: str, html: str, text: str | None) -> tupl
         sender = os.environ.get("RESEND_FROM", default_sender).strip()
         plain_text = text or html_to_plain_text(html)
 
+        payload = {
+            "from": sender,
+            "to": [to],
+            "subject": subject,
+            "html": html,
+            "text": plain_text,
+        }
+        if reply_to:
+            payload["reply_to"] = [reply_to]
+        if headers:
+            payload["headers"] = headers
+
         r = requests.post(
             "https://api.resend.com/emails",
             headers={
                 "Authorization": f"Bearer {api_key}",
                 "Content-Type": "application/json",
             },
-            json={
-                "from": sender,
-                "to": [to],
-                "subject": subject,
-                "html": html,
-                "text": plain_text,
-            },
+            json=payload,
             timeout=15,
         )
         if r.ok:
@@ -114,10 +123,20 @@ def _send_via_resend(to: str, subject: str, html: str, text: str | None) -> tupl
         return False, err
 
 
-def send_email_with_details(to: str, subject: str, html: str, text: str | None = None) -> tuple[bool, str | None]:
-    """Send one email and return (success: bool, error_message: str | None)."""
+def send_email_with_details(
+    to: str, subject: str, html: str, text: str | None = None,
+    reply_to: str | None = None, headers: dict[str, str] | None = None,
+) -> tuple[bool, str | None]:
+    """Send one email and return (success: bool, error_message: str | None).
+
+    `reply_to` matters most for outreach-style mail that's written as a 1:1
+    note but sent through a `no-reply@` transport address by default — without
+    it, a recipient hitting Reply sends into a mailbox nobody reads, which
+    looks identical to "no one responded." `headers` carries things like
+    List-Unsubscribe that aren't part of the message body.
+    """
     if os.environ.get("RESEND_API_KEY"):
-        return _send_via_resend(to, subject, html, text)
+        return _send_via_resend(to, subject, html, text, reply_to, headers)
 
     host = os.environ.get("SMTP_HOST")
     if not host:
@@ -134,6 +153,10 @@ def send_email_with_details(to: str, subject: str, html: str, text: str | None =
     msg["Subject"] = subject
     msg["From"] = sender
     msg["To"] = to
+    if reply_to:
+        msg["Reply-To"] = reply_to
+    for k, v in (headers or {}).items():
+        msg[k] = v
     msg.set_content(text or html_to_plain_text(html))
     msg.add_alternative(html, subtype="html")
 
@@ -151,6 +174,9 @@ def send_email_with_details(to: str, subject: str, html: str, text: str | None =
         return False, err
 
 
-def send_email(to: str, subject: str, html: str, text: str | None = None) -> bool:
-    success, _ = send_email_with_details(to, subject, html, text)
+def send_email(
+    to: str, subject: str, html: str, text: str | None = None,
+    reply_to: str | None = None, headers: dict[str, str] | None = None,
+) -> bool:
+    success, _ = send_email_with_details(to, subject, html, text, reply_to, headers)
     return success

@@ -26,7 +26,9 @@ from app.outreach import (
     DAILY_SEND_CAP,
     CONFIDENCE_SEND_THRESHOLD,
     VERIFICATION_RESULT_CONFIDENCE,
-    _status_for_email_confidence
+    _status_for_email_confidence,
+    OUTREACH_REPLY_TO,
+    _outreach_send_headers,
 )
 
 outreach_bp = Blueprint("outreach", __name__)
@@ -187,6 +189,14 @@ def send_candidate_email(cid):
         return jsonify({"error": "Draft subject and body are required to send"}), 400
     if (c.confidence_score or 0) < CONFIDENCE_SEND_THRESHOLD:
         return jsonify({"error": f"Email confidence ({c.confidence_score or 0}%) is below the {CONFIDENCE_SEND_THRESHOLD}% send threshold. Re-verify this address (Re-Enrich) or manually confirm it first."}), 400
+    if not c.verification_result:
+        # A high confidence_score alone isn't enough — enrich_candidate_email()
+        # returns verification_result=None whenever that score is a heuristic
+        # guess (source-quality) rather than an actual mailbox check, which
+        # happens for every candidate whenever NEVERBOUNCE_APIKEY isn't set.
+        # Sending on a heuristic score with no real verification behind it is
+        # exactly what drives up bounce rate and tanks sender reputation.
+        return jsonify({"error": "This address hasn't been mailbox-verified yet (only a heuristic confidence score). Re-Enrich to run the free SMTP verifier, or manually confirm it first."}), 400
     if sends_remaining_today() <= 0:
         return jsonify({"error": f"Daily send cap ({DAILY_SEND_CAP}) reached. Try again after 9 AM IST, or raise OUTREACH_DAILY_SEND_CAP."}), 429
 
@@ -194,10 +204,13 @@ def send_candidate_email(cid):
     err_msg = None
     try:
         # Send html email with fallback text description
-        success, err_msg = send_email_with_details(to=c.email, subject=c.draft_subject, html=c.draft_body)
+        success, err_msg = send_email_with_details(
+            to=c.email, subject=c.draft_subject, html=c.draft_body,
+            reply_to=OUTREACH_REPLY_TO, headers=_outreach_send_headers(c.email),
+        )
     except Exception as exc:
         err_msg = str(exc)
-        
+
     log_entry = OutreachEmailLog(
         candidate_id=c.id,
         email=c.email,
@@ -207,7 +220,7 @@ def send_candidate_email(cid):
         error_message=err_msg
     )
     db.session.add(log_entry)
-    
+
     if success:
         c.status = "sent"
         c.last_status_change_at = datetime.now(timezone.utc)
@@ -238,7 +251,10 @@ def bulk_send_candidates():
         if not c.email or not c.draft_subject or not c.draft_body or c.status == "sent":
             failed += 1
             continue
-        if (c.confidence_score or 0) < CONFIDENCE_SEND_THRESHOLD:
+        if (c.confidence_score or 0) < CONFIDENCE_SEND_THRESHOLD or not c.verification_result:
+            # See send_candidate_email for why verification_result is required
+            # alongside the score — a heuristic-only confidence (no real
+            # mailbox check) is exactly what's been driving bounce rate up.
             skipped_low_confidence += 1
             continue
         if remaining <= 0:
@@ -248,7 +264,10 @@ def bulk_send_candidates():
         success = False
         err_msg = None
         try:
-            success, err_msg = send_email_with_details(to=c.email, subject=c.draft_subject, html=c.draft_body)
+            success, err_msg = send_email_with_details(
+                to=c.email, subject=c.draft_subject, html=c.draft_body,
+                reply_to=OUTREACH_REPLY_TO, headers=_outreach_send_headers(c.email),
+            )
         except Exception as exc:
             err_msg = str(exc)
 

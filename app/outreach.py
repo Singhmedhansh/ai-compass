@@ -9,9 +9,46 @@ from bs4 import BeautifulSoup
 
 from app import db
 from app.models import OutreachCandidate, OutreachEmailLog, CatalogTool
-from app.email_utils import send_email
+from app.email_utils import send_email, make_unsubscribe_token
 
 log = logging.getLogger(__name__)
+
+# The AI-generated and generic drafts are signed "Medhansh Pratap Singh" and
+# read as a personal 1:1 note, but the actual transport `From` defaults to
+# no-reply@ (see email_utils.py) — without an explicit Reply-To, a recipient
+# who hits Reply sends into a mailbox nobody reads. That's indistinguishable
+# from "no one responded." Override with OUTREACH_REPLY_TO if the monitored
+# inbox is ever something other than the signature address.
+OUTREACH_REPLY_TO = os.environ.get("OUTREACH_REPLY_TO", "medhansh.singh@ai-compass.in")
+
+
+def _outreach_send_headers(email: str) -> dict[str, str]:
+    """List-Unsubscribe headers for a cold outreach send.
+
+    Gmail/Yahoo's 2024 bulk-sender rules expect this on commercial mail, and
+    it's also a straightforward trust signal — a cold email that offers a
+    real one-click opt-out reads less like spam, which helps it clear spam
+    filters and get read (and therefore replied to) in the first place.
+    """
+    token = make_unsubscribe_token(email)
+    url = f"https://ai-compass.in/unsubscribe?token={token}"
+    return {
+        "List-Unsubscribe": f"<{url}>, <mailto:{OUTREACH_REPLY_TO}?subject=unsubscribe>",
+        "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+    }
+
+
+def _append_unsubscribe_footer(html_body: str, email: str | None) -> str:
+    if not email:
+        return html_body
+    token = make_unsubscribe_token(email)
+    url = f"https://ai-compass.in/unsubscribe?token={token}"
+    footer = (
+        '<p style="margin-top:16px;font-size:11px;color:#94a3b8;">'
+        f'Don\'t want emails like this? <a href="{url}" style="color:#94a3b8;">Unsubscribe</a>.'
+        '</p>'
+    )
+    return f"{html_body}\n{footer}"
 
 # Fallback email blacklist filter
 COMMON_PLACEHOLDERS = {
@@ -1182,7 +1219,10 @@ CONVERSION STRUCTURE (follow this order, this is what makes it work):
    - Spotlight in the weekly Student AI Digest
 5. One line of genuine urgency/personal stake — something true, not fabricated scarcity: e.g. that submissions are reviewed personally within 24
    hours, or that early listings in a category compound in SEO value over time. Never invent fake countdown timers or "only 2 spots left" claims.
-6. A single, unambiguous call to action: one sentence + the link https://ai-compass.in/submit. Do not add a second competing CTA.
+6. A single, unambiguous call to action: one sentence + the link https://ai-compass.in/submit — but make it low-friction by also naming the
+   alternative of just replying (e.g. "grab the spot here [link] — or just reply if you've got questions first"). Most recipients who are interested
+   but not ready to pay on the spot will never click a payment link cold; giving them "reply" as a zero-commitment option is what turns interest into
+   an actual email back, which a link click alone can't do. Still only one link — replying is a fallback, not a second competing CTA.
 7. Sign-off, then a P.S. line that restates the strongest single hook (the 24-hour guarantee or the backlink) in one short sentence — P.S. lines get
    read even by skimmers and are proven to lift reply rates.
 
@@ -1262,7 +1302,7 @@ If a founder name is given, greet them by first name only (e.g. "Hey Jane," not 
             result = json.loads(text)
             subject, body = result.get("subject"), result.get("body")
             if subject and body:
-                return subject, body
+                return subject, _append_unsubscribe_footer(body, candidate.email)
         except Exception as e:
             log.warning("Gemini (%s) draft generation failed: %s", model, e)
 
@@ -1288,7 +1328,7 @@ def get_generic_draft(candidate):
   <li>Spotlight in the weekly Student AI Digest</li>
 </ul>
 <p>I personally review every fast-track submission within 24 hours of payment — no queue, no waiting.</p>
-<p><a href="https://ai-compass.in/submit" style="color: #059669; font-weight: 600; text-decoration: underline;">Submit {name} here</a> to get started ($49.99 one-time).</p>
+<p><a href="https://ai-compass.in/submit" style="color: #059669; font-weight: 600; text-decoration: underline;">Submit {name} here</a> to get started ($49.99 one-time) — or just reply if you've got questions first.</p>
 <div style="margin-top: 24px; padding-top: 14px; border-top: 1px solid #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
   <div style="font-weight: 600; color: #0f172a; font-size: 14px;">Medhansh Pratap Singh</div>
   <div style="color: #64748b; font-size: 12px; margin-top: 2px;">Founder, <a href="https://ai-compass.in" style="color: #059669; text-decoration: none; font-weight: 500;">AI Compass</a></div>
@@ -1296,7 +1336,7 @@ def get_generic_draft(candidate):
 </div>
 <p style="margin-top: 14px; font-size: 12px; color: #64748b;">P.S. The 24-hour review is a real guarantee, not a marketing line — most listings go live same-day.</p>
 </div>"""
-    return subject, body
+    return subject, _append_unsubscribe_footer(body, candidate.email)
 
 def infer_tone(tagline, description):
     """Infers tone based on keywords in company info. Defaults to 'peer'."""
@@ -1662,52 +1702,98 @@ def sends_remaining_today():
     ).count()
     return max(0, DAILY_SEND_CAP - sent_today)
 
+def _followup_content(c: OutreachCandidate, stage: int) -> tuple[str, str, str]:
+    """Returns (subject, html, text) for follow-up `stage` (1 or 2).
+
+    Most cold-outreach replies come from the 2nd/3rd touch, not the first
+    email — a single follow-up leaves a lot of that on the table. Stage 2
+    is a short, low-pressure bump that explicitly asks for *any* reply
+    (yes/no/not now), since an easy-to-answer question converts to a reply
+    far better than silently re-pitching the same offer again.
+    """
+    first_name = c.founder_name.split(" ")[0] if _looks_like_real_name(c.founder_name) else "there"
+    if stage == 1:
+        subject = f"Re: {c.draft_subject}"
+        html = f"""<p>Hi {first_name},</p>
+<p>Just wanted to quickly follow up on my previous message. Are you interested in featuring {c.product_name} on AI Compass to capture traffic from students and developers?</p>
+<p>Let me know if you have any questions — or just reply "not interested" and I'll leave it there.</p>
+<br>
+Best,<br>
+Medhansh"""
+        text = (
+            f"Hi,\n\nJust wanted to quickly follow up on my previous message. "
+            f"Are you interested in featuring {c.product_name} on AI Compass?\n\nBest, Medhansh"
+        )
+    else:
+        subject = f"Re: {c.draft_subject}"
+        html = f"""<p>Hi {first_name},</p>
+<p>Last bump on this, promise. Still interested in getting {c.product_name} in front of AI Compass's student/dev audience? A quick "yes," "no," or "not now" is all I need to know whether to close this out.</p>
+<br>
+Best,<br>
+Medhansh"""
+        text = (
+            f"Hi,\n\nLast bump — still interested in getting {c.product_name} featured on AI Compass? "
+            f"A quick yes/no/not-now reply is all I need.\n\nBest, Medhansh"
+        )
+    return subject, html, text
+
+
+def _send_followup(c: OutreachCandidate, stage: int, next_status: str) -> bool:
+    subject, html, text = _followup_content(c, stage)
+    html = _append_unsubscribe_footer(html, c.email)
+
+    success = False
+    err_msg = None
+    try:
+        success = send_email(
+            to=c.email, subject=subject, html=html, text=text,
+            reply_to=OUTREACH_REPLY_TO, headers=_outreach_send_headers(c.email),
+        )
+    except Exception as exc:
+        err_msg = str(exc)
+
+    db.session.add(OutreachEmailLog(
+        candidate_id=c.id, email=c.email, subject=subject, body=html,
+        status="success" if success else "failure", error_message=err_msg,
+    ))
+
+    if success:
+        c.status = next_status
+        c.last_status_change_at = datetime.now(timezone.utc)
+    return success
+
+
 def run_automated_followups():
-    """Sends simple thread-replies to candidates emailed 5+ days ago without reply."""
+    """Sends up to two automated bump emails to candidates who haven't replied:
+    stage 1 at 5 days after the initial send, stage 2 at 5 days after that
+    (10 days total). Candidates stop advancing the moment their status moves
+    away from 'sent'/'followed_up' for any other reason (replied, bounced,
+    rejected, unsubscribed), so nothing here ever emails someone who opted out.
+    """
     five_days_ago = datetime.now(timezone.utc) - timedelta(days=5)
-    candidates = OutreachCandidate.query.filter(
+
+    stage1_candidates = OutreachCandidate.query.filter(
         OutreachCandidate.status == "sent",
+        OutreachCandidate.last_status_change_at <= five_days_ago
+    ).all()
+    stage2_candidates = OutreachCandidate.query.filter(
+        OutreachCandidate.status == "followed_up",
         OutreachCandidate.last_status_change_at <= five_days_ago
     ).all()
 
     remaining = sends_remaining_today()
     sent_count = 0
-    for c in candidates:
+    for c, stage, next_status in (
+        [(c, 1, "followed_up") for c in stage1_candidates]
+        + [(c, 2, "followed_up_2") for c in stage2_candidates]
+    ):
         if remaining <= 0:
             log.info("Daily send cap (%s) reached — deferring remaining follow-ups to tomorrow.", DAILY_SEND_CAP)
             break
         if not c.email or not c.draft_subject:
             continue
 
-        followup_subject = f"Re: {c.draft_subject}"
-        followup_body = f"""<p>Hi {c.founder_name.split(' ')[0] if _looks_like_real_name(c.founder_name) else 'there'},</p>
-<p>Just wanted to quickly follow up on my previous message. Are you interested in featuring {c.product_name} on AI Compass to capture traffic from students and developers?</p>
-<p>Let me know if you have any questions!</p>
-<br>
-Best,<br>
-Medhansh"""
-
-        success = False
-        err_msg = None
-        try:
-            text_alt = f"Hi,\n\nJust wanted to quickly follow up on my previous message. Are you interested in featuring {c.product_name} on AI Compass?\n\nBest, Medhansh"
-            success = send_email(to=c.email, subject=followup_subject, html=followup_body, text=text_alt)
-        except Exception as exc:
-            err_msg = str(exc)
-
-        log_entry = OutreachEmailLog(
-            candidate_id=c.id,
-            email=c.email,
-            subject=followup_subject,
-            body=followup_body,
-            status="success" if success else "failure",
-            error_message=err_msg
-        )
-        db.session.add(log_entry)
-
-        if success:
-            c.status = "followed_up"
-            c.last_status_change_at = datetime.now(timezone.utc)
+        if _send_followup(c, stage, next_status):
             sent_count += 1
             remaining -= 1
 

@@ -1138,21 +1138,26 @@ def og_image(slug):
 def unsubscribe():
     """One-click email opt-out (tokenised, no login needed).
 
-    Handles BOTH sources of digest emails:
+    Handles all sources of outbound email that carry an unsubscribe token:
     * Registered users — flip User.notifications_enabled to False (kept,
       so the account profile can re-enable from the settings UI).
     * Newsletter subscribers — DELETE the NewsletterSubscriber row (no
       account = no UI to re-enable from, so a clean delete is honest
       about what we're doing).
+    * Outreach candidates (cold sponsorship pitches) — flip status to
+      'unsubscribed'. This must be a real terminal status, not just a
+      log entry: run_automated_followups() only re-emails candidates
+      still in 'sent'/'followed_up', so a candidate outside those two
+      statuses is automatically excluded from every future send —
+      discovery, re-enrich, and follow-ups alike.
 
-    A single email may exist in both tables; the route handles both in
-    one pass so a user who's BOTH a registered account AND a newsletter
-    subscriber gets fully unsubscribed from one click.
+    A single email may exist in more than one of these; the route handles
+    all of them in one pass so a click fully opts someone out everywhere.
     """
     from flask import request
 
     from app.email_utils import read_unsubscribe_token
-    from app.models import NewsletterSubscriber, User
+    from app.models import NewsletterSubscriber, OutreachCandidate, User
 
     def _page(msg: str) -> Response:
         html = (
@@ -1186,6 +1191,13 @@ def unsubscribe():
     if subscriber is not None:
         db.session.delete(subscriber)
         changed = True
+
+    candidates = OutreachCandidate.query.filter_by(email=email).all()
+    for candidate in candidates:
+        if candidate.status != "unsubscribed":
+            candidate.status = "unsubscribed"
+            candidate.last_status_change_at = datetime.now(timezone.utc)
+            changed = True
 
     if changed:
         db.session.commit()
