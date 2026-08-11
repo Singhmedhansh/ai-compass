@@ -148,6 +148,16 @@ def create_app(config: dict | None = None) -> Flask:
     )
     app.config["JSON_AS_ASCII"] = False
 
+    # Without this, app.logger (and every module logger under it, e.g.
+    # app.outreach's `log = logging.getLogger(__name__)`) has no explicit
+    # level set anywhere, so it falls back to the Python default root level
+    # of WARNING — silently dropping every log.info() call. That's most of
+    # this codebase's diagnostic output (background-job progress, discovery
+    # pipeline counts, etc.), which made background jobs look silent in
+    # Render's logs even when they ran and completed successfully.
+    from app.logging import setup_logging
+    setup_logging(app)
+
     # Apply test config first
     if config:
         app.config.update(config)
