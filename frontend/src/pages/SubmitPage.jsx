@@ -698,10 +698,10 @@ export default function SubmitPage() {
           <div className="space-y-2">
             <div className="flex items-center gap-2 font-bold text-sm text-ink">
               <ArrowUpRight className="h-4 w-4 text-accent" />
-              <span>High-Authority Dofollow SEO Backlink</span>
+              <span>Permanent High-Authority Backlink</span>
             </div>
             <p className="text-xs text-ink-2 leading-relaxed font-normal">
-              Boost your site's domain authority with a permanent, indexable link from our structured directory, helping your tool rank higher on search engines.
+              A permanent, indexable listing on ai-compass.in — real referral traffic from students and developers actively searching for tools like yours, not just a link sitting in a directory nobody reads.
             </p>
           </div>
 
