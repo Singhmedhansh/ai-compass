@@ -1438,8 +1438,12 @@ function ToolFinderPage() {
   const [error, setError] = useState('')
   const [aspectBucket, setAspectBucket] = useState(getAspectBucket)
   const [pendingCompletion, setPendingCompletion] = useState(null)
-  const [pendingStackSwitch, setPendingStackSwitch] = useState(false)
   const [selectedToolForDetails, setSelectedToolForDetails] = useState(null)
+  // Marks that a predefined-stack fetch is in flight. Set in
+  // `handlePredefinedStack` and cleared only when that specific
+  // `/api/v1/finder` response lands, so the results-view switch never runs
+  // against stale `loadingResults`/`results` from the same batched update.
+  const pendingStackSwitchRef = useRef(false)
   const wizardStartedRef = useRef(false)
   const wizardCompletedRef = useRef(false)
   const useCaseInputRef = useRef(null)
@@ -1575,10 +1579,25 @@ function ToolFinderPage() {
         const tools = Array.isArray(responsePayload?.tools) ? responsePayload.tools.map(normalizeTool) : []
         if (!controller.signal.aborted) {
           setResults(tools)
+          if (pendingStackSwitchRef.current) {
+            pendingStackSwitchRef.current = false
+            if (tools.length > 0) {
+              setViewMode('results')
+            } else {
+              // The endpoint fallback almost always returns tools, so an empty
+              // list means the load failed, not that the answers were wrong.
+              setError('Could not load your stack. Please retry.')
+              toast.error('Could not load your stack — please retry.')
+            }
+          }
         }
       } catch (err) {
         if (err.name !== 'AbortError') {
           setError(err.message || 'Unable to generate preview right now.')
+          if (pendingStackSwitchRef.current) {
+            pendingStackSwitchRef.current = false
+            toast.error('Could not load your stack — please retry.')
+          }
         }
       } finally {
         if (!controller.signal.aborted) {
@@ -1733,7 +1752,7 @@ function ToolFinderPage() {
     setResults([])
     setError('')
     setPendingCompletion(null)
-    setPendingStackSwitch(false)
+    pendingStackSwitchRef.current = false
     setHasStarted(false)
     setActiveQuestion(null)
     setViewMode('wizard')
@@ -1759,7 +1778,7 @@ function ToolFinderPage() {
       setResults([])
       setError('')
       setPendingCompletion(null)
-      setPendingStackSwitch(false)
+      pendingStackSwitchRef.current = false
       setHasStarted(true)
       setActiveQuestion('goal')
       setViewMode('wizard')
@@ -1773,9 +1792,13 @@ function ToolFinderPage() {
       wizardStartedRef.current = true
       wizardCompletedRef.current = false
       setHasStarted(true)
+      setError('')
       setAnswers(stack.answers)
       setActiveQuestion(null)
-      setPendingStackSwitch(true)
+      // Mark the fetch as in flight. The debounced effect resolves this when
+      // the stack's own `/api/v1/finder` response lands — do not infer success
+      // from `loadingResults`/`results` in this same batched update.
+      pendingStackSwitchRef.current = true
       captureWizardEvent('wizard_template_selected', { template: stackId })
     }
     setTimeout(() => setLoadingStackId(null), 300)
@@ -1793,19 +1816,6 @@ function ToolFinderPage() {
     })
     setPendingCompletion(null)
   }, [loadingResults, pendingCompletion, results.length])
-
-  // When a predefined stack template is selected, wait for the fetch to finish
-  // and then switch to the results view. If no results come back, stay in the
-  // wizard so the user can tweak their answers instead of seeing a blank screen.
-  useEffect(() => {
-    if (!pendingStackSwitch || loadingResults) return
-    setPendingStackSwitch(false)
-    if (results.length > 0) {
-      setViewMode('results')
-    } else {
-      toast.error('No tools matched this stack — try adjusting the answers.')
-    }
-  }, [pendingStackSwitch, loadingResults, results.length])
 
   const handleSaveStack = async () => {
     if (!user) {
