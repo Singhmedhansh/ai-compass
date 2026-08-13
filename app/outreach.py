@@ -913,19 +913,48 @@ def _domain_has_mail_capability(domain):
     t.join(timeout=DNS_CHECK_HARD_TIMEOUT)
     return result["ok"]
 
-def _score_email_candidate(email, founder_name=""):
+def _score_email_candidate(email, founder_name="", method="text", source=""):
     """Ranks a discovered email by how likely it is to reach an actual
-    decision-maker instead of a shared inbox — a founder-matching or
-    personal address gets far better reply rates than info@/support@.
+    decision-maker instead of a shared inbox — or, worse, an email that was
+    never a real contact address at all.
+
+    `method` matters as much as the address itself: a deliberately-clickable
+    mailto: link or a structured meta tag is a strong signal, but a bare
+    email-shaped string found anywhere in a page's visible text is the
+    weakest one this pipeline produces — a homepage is a marketing page full
+    of screenshots, demo data, and example personas (a fictional "Alexandra
+    Martinez, alex@jrney.ai" shown in a sample resume preview is exactly
+    this shape), so a plain regex match there is not evidence of a real
+    contact address. The same regex match on a dedicated contact/about/
+    privacy/legal subpage is far more trustworthy — those pages exist
+    specifically to state real contact info as prose, which is why the
+    penalty below only applies to matches found on the homepage itself.
     """
     local = email.split("@", 1)[0].lower()
     score = 50
+
     if founder_name:
         name_parts = [p for p in re.split(r"[\s._-]+", founder_name.lower()) if len(p) > 1]
         if any(part in local for part in name_parts):
             score += 40
-    if local in ROLE_INBOX_PREFIXES or any(local.startswith(p) for p in ROLE_INBOX_PREFIXES):
-        score -= 25
+
+    if method == "mailto":
+        score += 15
+    elif method == "meta":
+        score += 10
+    elif method == "obfuscated":
+        score -= 5
+    elif method == "text" and source == "web_scraper":
+        score -= 30
+
+    is_role_inbox = local in ROLE_INBOX_PREFIXES or any(local.startswith(p) for p in ROLE_INBOX_PREFIXES)
+    if is_role_inbox:
+        # A role inbox found specifically on a contact/privacy/legal page is
+        # the expected, legitimate case — that IS what those addresses are
+        # for. Only penalize it as heavily when found somewhere less
+        # deliberate (e.g. incidentally in homepage body text).
+        score -= 10 if source not in ("web_scraper", "") else 25
+
     return score
 
 def _looks_like_real_name(name):
@@ -974,24 +1003,36 @@ def scrape_website_for_email(url, founder_name=""):
         found = []  # list of (email, source, score)
 
         def extract_emails_from_html(html):
+            """Returns (email, method) pairs — method distinguishes a
+            deliberately-clickable mailto: link or structured meta tag from a
+            bare email-shaped string anywhere in the page's visible text
+            (which includes demo/example content, not just real contact
+            info), so the caller can weight them very differently.
+            """
             if not html:
                 return []
             soup = BeautifulSoup(html, "html.parser")
-            emails = set()
+            seen = set()
+            results = []
+
+            def _add(email, method):
+                if email not in seen:
+                    seen.add(email)
+                    results.append((email, method))
 
             for a in soup.find_all("a", href=True):
                 href = a["href"].strip()
                 if href.lower().startswith("mailto:"):
                     email = href[7:].split("?")[0].strip()
                     if is_valid_email(email):
-                        emails.add(email)
+                        _add(email, "mailto")
 
             for meta in soup.find_all("meta"):
                 content = meta.get("content", "")
                 if "@" in content:
                     for part in content.split():
                         if is_valid_email(part):
-                            emails.add(part)
+                            _add(part, "meta")
 
             # separator=" " keeps adjacent block-level tags (e.g. </p><p>) from
             # fusing into one run-on token — without it, "...disappear.</p><p>For
@@ -1000,7 +1041,7 @@ def scrape_website_for_email(url, founder_name=""):
             text = soup.get_text(separator=" ", strip=True)
             for m in re.findall(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}", text):
                 if is_valid_email(m):
-                    emails.add(m)
+                    _add(m, "text")
 
             # Obfuscated emails (e.g. "contact [at] domain.com"). Whitespace
             # around the at-token is REQUIRED (not optional) — with optional
@@ -1014,13 +1055,13 @@ def scrape_website_for_email(url, founder_name=""):
                     continue
                 cand = f"{prefix}@{domain}"
                 if is_valid_email(cand):
-                    emails.add(cand)
+                    _add(cand, "obfuscated")
 
-            return list(emails)
+            return results
 
         def add_candidates(html, source):
-            for email in extract_emails_from_html(html):
-                found.append((email, source, _score_email_candidate(email, founder_name)))
+            for email, method in extract_emails_from_html(html):
+                found.append((email, source, _score_email_candidate(email, founder_name, method, source)))
 
         # 1. Homepage
         home_html = None
