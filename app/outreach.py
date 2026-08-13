@@ -50,6 +50,36 @@ def _append_unsubscribe_footer(html_body: str, email: str | None) -> str:
     )
     return f"{html_body}\n{footer}"
 
+# Shared shell for every outreach email (initial pitch, traffic-report,
+# and both follow-up stages) so a recipient sees one consistent visual
+# identity across every touch instead of a polished first email followed
+# by a bare-looking bump. Content producers (Gemini prompts + generic
+# fallbacks) only need to write semantic paragraphs/bullets/links — the
+# wrapper and signature are applied here in one place, so the visual
+# quality bar doesn't depend on an LLM reproducing styling correctly
+# every single call.
+_OUTREACH_FONT_STACK = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+
+def _outreach_signature_html() -> str:
+    return (
+        f'<div style="margin-top:22px;padding-top:16px;border-top:1px solid #e2e8f0;font-family:{_OUTREACH_FONT_STACK};">'
+        '<div style="font-weight:700;color:#0f172a;font-size:14px;">Medhansh Pratap Singh</div>'
+        '<div style="color:#64748b;font-size:12.5px;margin-top:3px;">Founder, '
+        '<a href="https://ai-compass.in" style="color:#059669;text-decoration:none;font-weight:600;">🧭 AI Compass</a></div>'
+        '<div style="color:#94a3b8;font-size:11px;margin-top:4px;">medhansh.singh@ai-compass.in &middot; '
+        '<a href="https://ai-compass.in" style="color:#94a3b8;text-decoration:underline;">ai-compass.in</a></div>'
+        '</div>'
+    )
+
+def _outreach_wrap(inner_html: str) -> str:
+    return (
+        f'<div style="max-width:560px;margin:0 auto;font-family:{_OUTREACH_FONT_STACK};'
+        'font-size:14px;color:#334155;line-height:1.65;">'
+        f'{inner_html}'
+        f'{_outreach_signature_html()}'
+        '</div>'
+    )
+
 # Fallback email blacklist filter
 COMMON_PLACEHOLDERS = {
     "sentry", "wix", "google", "facebook", "twitter", "example",
@@ -1232,17 +1262,18 @@ HARD CONSTRAINTS:
 - No emojis anywhere. No exclamation points except at most one, and only if it reads natural, not salesy.
 - No spam-trigger phrasing: avoid "FREE", "ACT NOW", "$$$", ALL CAPS words, or more than one "!!!"-style emphasis.
 - Never fabricate claims not in the metrics/perks below (no fake testimonials, no fake urgency, no invented statistics).
-- Output valid JSON with exactly two fields: "subject" and "body".
+- Output valid JSON with exactly two fields: "subject" and "body". Do NOT include a signature — that is appended separately.
 - Subject line: under 50 characters, reads like a real 1:1 email a person would send (e.g. mentioning the product by name), never generic corporate
   phrasing like "Exciting Partnership Opportunity" or "Featured Placement Offer".
-- The "body" must be clean HTML using <p>, <br>, <b>, <ul>, <li>, and <a> tags only — no <style> blocks, no tables, no images.
-- The body's final CTA sentence must link to https://ai-compass.in/submit.
-- Always end with exactly this HTML signature block (verbatim, after the P.S. line):
-<div style="margin-top: 24px; padding-top: 14px; border-top: 1px solid #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-  <div style="font-weight: 600; color: #0f172a; font-size: 14px;">Medhansh Pratap Singh</div>
-  <div style="color: #64748b; font-size: 12px; margin-top: 2px;">Founder, <a href="https://ai-compass.in" style="color: #059669; text-decoration: none; font-weight: 500;">AI Compass</a></div>
-  <div style="color: #94a3b8; font-size: 11px; margin-top: 4px;">medhansh.singh@ai-compass.in • <a href="https://ai-compass.in" style="color: #64748b; text-decoration: underline;">ai-compass.in</a></div>
-</div>
+- The "body" must be clean HTML using ONLY <p>, <b>, <ul>, <li>, and <a> tags — no <br>, no <style> blocks, no tables, no images, no signature block.
+- Every <p> must carry style="margin:0 0 14px 0;" and the <ul> must carry style="margin:0 0 16px 0;padding-left:20px;color:#475569;" — this keeps
+  spacing consistent across every email client instead of relying on each client's own default paragraph spacing. Example paragraph:
+  <p style="margin:0 0 14px 0;">Hey Jane, ...</p>
+- The CTA paragraph must look like this pattern (adjust the wording, keep the styling): <p style="margin:0 0 4px 0;font-size:14.5px;"><a
+  href="https://ai-compass.in/submit" style="color:#059669;font-weight:700;text-decoration:none;border-bottom:1.5px solid #059669;">[short CTA verb
+  phrase, e.g. "Get [Product] listed →"]</a> <span style="color:#64748b;font-size:13.5px;">$49.99 one-time — or just reply if you've got questions
+  first.</span></p>
+- The P.S. paragraph must use style="margin:16px 0 0 0;font-size:12px;color:#64748b;".
 
 Return ONLY the raw JSON block. Do not wrap in ```json or markdown codeblocks, just return the raw JSON object.
 """
@@ -1302,7 +1333,7 @@ If a founder name is given, greet them by first name only (e.g. "Hey Jane," not 
             result = json.loads(text)
             subject, body = result.get("subject"), result.get("body")
             if subject and body:
-                return subject, _append_unsubscribe_footer(body, candidate.email)
+                return subject, _append_unsubscribe_footer(_outreach_wrap(body), candidate.email)
         except Exception as e:
             log.warning("Gemini (%s) draft generation failed: %s", model, e)
 
@@ -1318,25 +1349,18 @@ def get_generic_draft(candidate):
     first_name = candidate.founder_name.split(" ")[0] if _looks_like_real_name(candidate.founder_name) else "there"
     hook = f"the way {name} handles \"{candidate.tagline}\"" if candidate.tagline else f"what you're building with {name}"
     subject = f"Quick one about {name}"[:50]
-    body = f"""<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; color: #334155; line-height: 1.6;">
-<p>Hey {first_name},</p>
-<p>I run <a href="https://ai-compass.in" style="color: #059669; font-weight: 600;">AI Compass</a> and just saw {hook} — students and developers searching for exactly this kind of tool are who we send traffic to every day.</p>
-<p>AI Compass gets <b>4,000+ monthly active visitors</b> and <b>110K+ Google search impressions</b> from students actively looking for tools like {name}. Here's what Fast-Track Sponsored Curation gets you:</p>
-<ul style="margin: 8px 0 16px 0; padding-left: 18px; font-size: 13px; color: #475569;">
-  <li>Guaranteed 24-hour priority review and frontpage listing</li>
-  <li>Sponsored placement above every free listing in your category, permanently</li>
+    inner = f"""<p style="margin:0 0 14px 0;">Hey {first_name},</p>
+<p style="margin:0 0 14px 0;">I run <a href="https://ai-compass.in" style="color:#059669;font-weight:600;">AI Compass</a> and just saw {hook} — students and developers searching for exactly this kind of tool are who we send traffic to every day.</p>
+<p style="margin:0 0 14px 0;">AI Compass gets <b>4,000+ monthly active visitors</b> and <b>110K+ Google search impressions</b> from students actively looking for tools like {name}. Here's what Fast-Track Sponsored Curation gets you:</p>
+<ul style="margin:0 0 16px 0;padding-left:20px;color:#475569;font-size:13.5px;">
+  <li style="margin-bottom:5px;">Guaranteed 24-hour priority review and frontpage listing</li>
+  <li style="margin-bottom:5px;">Sponsored placement above every free listing in your category, permanently</li>
   <li>Spotlight in the weekly Student AI Digest</li>
 </ul>
-<p>I personally review every fast-track submission within 24 hours of payment — no queue, no waiting.</p>
-<p><a href="https://ai-compass.in/submit" style="color: #059669; font-weight: 600; text-decoration: underline;">Submit {name} here</a> to get started ($49.99 one-time) — or just reply if you've got questions first.</p>
-<div style="margin-top: 24px; padding-top: 14px; border-top: 1px solid #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-  <div style="font-weight: 600; color: #0f172a; font-size: 14px;">Medhansh Pratap Singh</div>
-  <div style="color: #64748b; font-size: 12px; margin-top: 2px;">Founder, <a href="https://ai-compass.in" style="color: #059669; text-decoration: none; font-weight: 500;">AI Compass</a></div>
-  <div style="color: #94a3b8; font-size: 11px; margin-top: 4px;">medhansh.singh@ai-compass.in • <a href="https://ai-compass.in" style="color: #64748b; text-decoration: underline;">ai-compass.in</a></div>
-</div>
-<p style="margin-top: 14px; font-size: 12px; color: #64748b;">P.S. The 24-hour review is a real guarantee, not a marketing line — most listings go live same-day.</p>
-</div>"""
-    return subject, _append_unsubscribe_footer(body, candidate.email)
+<p style="margin:0 0 20px 0;">I personally review every fast-track submission within 24 hours of payment — no queue, no waiting.</p>
+<p style="margin:0 0 4px 0;font-size:14.5px;"><a href="https://ai-compass.in/submit" style="color:#059669;font-weight:700;text-decoration:none;border-bottom:1.5px solid #059669;">Get {name} listed &rarr;</a> <span style="color:#64748b;font-size:13.5px;">$49.99 one-time — or just reply if you've got questions first.</span></p>
+<p style="margin:16px 0 0 0;font-size:12px;color:#64748b;">P.S. The 24-hour review is a real guarantee, not a marketing line — most listings go live same-day.</p>"""
+    return subject, _append_unsubscribe_footer(_outreach_wrap(inner), candidate.email)
 
 def infer_tone(tagline, description):
     """Infers tone based on keywords in company info. Defaults to 'peer'."""
@@ -1714,28 +1738,25 @@ def _followup_content(c: OutreachCandidate, stage: int) -> tuple[str, str, str]:
     first_name = c.founder_name.split(" ")[0] if _looks_like_real_name(c.founder_name) else "there"
     if stage == 1:
         subject = f"Re: {c.draft_subject}"
-        html = f"""<p>Hi {first_name},</p>
-<p>Just wanted to quickly follow up on my previous message. Are you interested in featuring {c.product_name} on AI Compass to capture traffic from students and developers?</p>
-<p>Let me know if you have any questions — or just reply "not interested" and I'll leave it there.</p>
-<br>
-Best,<br>
-Medhansh"""
+        inner = f"""<p style="margin:0 0 14px 0;">Hi {first_name},</p>
+<p style="margin:0 0 14px 0;">Just wanted to quickly follow up on my previous message. Are you interested in featuring <b>{c.product_name}</b> on AI Compass to capture traffic from students and developers?</p>
+<p style="margin:0 0 4px 0;">Let me know if you have any questions — or just reply "not interested" and I'll leave it there.</p>"""
         text = (
-            f"Hi,\n\nJust wanted to quickly follow up on my previous message. "
-            f"Are you interested in featuring {c.product_name} on AI Compass?\n\nBest, Medhansh"
+            f"Hi {first_name},\n\nJust wanted to quickly follow up on my previous message. "
+            f"Are you interested in featuring {c.product_name} on AI Compass?\n\n"
+            f"Let me know if you have any questions — or just reply \"not interested\" and I'll leave it there.\n\n"
+            f"Medhansh Pratap Singh\nFounder, AI Compass — ai-compass.in"
         )
     else:
         subject = f"Re: {c.draft_subject}"
-        html = f"""<p>Hi {first_name},</p>
-<p>Last bump on this, promise. Still interested in getting {c.product_name} in front of AI Compass's student/dev audience? A quick "yes," "no," or "not now" is all I need to know whether to close this out.</p>
-<br>
-Best,<br>
-Medhansh"""
+        inner = f"""<p style="margin:0 0 14px 0;">Hi {first_name},</p>
+<p style="margin:0 0 4px 0;">Last bump on this, promise. Still interested in getting <b>{c.product_name}</b> in front of AI Compass's student/dev audience? A quick "yes," "no," or "not now" is all I need to know whether to close this out.</p>"""
         text = (
-            f"Hi,\n\nLast bump — still interested in getting {c.product_name} featured on AI Compass? "
-            f"A quick yes/no/not-now reply is all I need.\n\nBest, Medhansh"
+            f"Hi {first_name},\n\nLast bump — still interested in getting {c.product_name} featured on AI Compass? "
+            f"A quick yes/no/not-now reply is all I need.\n\n"
+            f"Medhansh Pratap Singh\nFounder, AI Compass — ai-compass.in"
         )
-    return subject, html, text
+    return subject, _outreach_wrap(inner), text
 
 
 def _send_followup(c: OutreachCandidate, stage: int, next_status: str) -> bool:
@@ -2020,17 +2041,16 @@ HARD CONSTRAINTS:
 - Never imply their listing is at risk, will be removed, or is underperforming. The free listing is permanent either way - say so if it fits.
 - Never fabricate statistics. The ONLY numbers you may state are {clicks} and {days}.
 - No emojis. At most one exclamation mark. No ALL CAPS, no "FREE", no fake urgency or scarcity.
-- Output valid JSON with exactly two fields: "subject" and "body".
+- Output valid JSON with exactly two fields: "subject" and "body". Do NOT include a signature — that is appended separately.
 - Subject line: under 50 characters, references the real number or the product by name, reads like a 1:1 email. Good shape:
   "{candidate.product_name}: {clicks} clicks from AI Compass". Never generic corporate phrasing.
-- "body" must be clean HTML using only <p>, <br>, <b>, <ul>, <li>, <a> tags. No style blocks, no tables, no images.
-- The CTA sentence must link to https://ai-compass.in/submit.
-- End with exactly this signature block, verbatim, after the P.S.:
-<div style="margin-top: 24px; padding-top: 14px; border-top: 1px solid #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-  <div style="font-weight: 600; color: #0f172a; font-size: 14px;">Medhansh Pratap Singh</div>
-  <div style="color: #64748b; font-size: 12px; margin-top: 2px;">Founder, <a href="https://ai-compass.in" style="color: #059669; text-decoration: none; font-weight: 500;">AI Compass</a></div>
-  <div style="color: #94a3b8; font-size: 11px; margin-top: 4px;">medhansh.singh@ai-compass.in • <a href="https://ai-compass.in" style="color: #64748b; text-decoration: underline;">ai-compass.in</a></div>
-</div>
+- "body" must be clean HTML using ONLY <p>, <b>, <ul>, <li>, <a> tags — no <br>, no style blocks, no tables, no images, no signature block.
+- Every <p> must carry style="margin:0 0 14px 0;" and the <ul> must carry style="margin:0 0 16px 0;padding-left:20px;color:#475569;" — this keeps
+  spacing consistent across every email client instead of relying on each client's own default paragraph spacing.
+- The CTA paragraph must look like this pattern (adjust the wording, keep the styling): <p style="margin:0 0 4px 0;font-size:14.5px;"><a
+  href="https://ai-compass.in/submit" style="color:#059669;font-weight:700;text-decoration:none;border-bottom:1.5px solid #059669;">[short CTA verb
+  phrase]</a> <span style="color:#64748b;font-size:13.5px;">or just reply if you'd like the numbers for a specific month first.</span></p>
+- The P.S. paragraph must use style="margin:16px 0 0 0;font-size:12px;color:#64748b;".
 
 Greet them by first name only if a name is given, otherwise "Hey there,".
 - Founder/Maker: {display_name or 'not known - use a neutral greeting'}
@@ -2062,7 +2082,7 @@ Return ONLY the raw JSON object, with no markdown code fences around it.
             result = json.loads(text)
             subject, body = result.get("subject"), result.get("body")
             if subject and body:
-                return subject, _append_unsubscribe_footer(body, candidate.email)
+                return subject, _append_unsubscribe_footer(_outreach_wrap(body), candidate.email)
         except Exception as e:
             log.warning("Gemini (%s) traffic-report draft failed: %s", model, e)
 
@@ -2076,24 +2096,17 @@ def get_generic_traffic_report_draft(candidate, clicks, days=30):
     name = candidate.product_name
     first_name = candidate.founder_name.split(" ")[0] if _looks_like_real_name(candidate.founder_name) else "there"
     subject = f"{name}: {clicks} clicks from AI Compass"[:50]
-    body = f"""<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; color: #334155; line-height: 1.6;">
-<p>Hey {first_name},</p>
-<p>Your <a href="https://ai-compass.in" style="color: #059669; font-weight: 600;">AI Compass</a> listing sent <b>{clicks} click-throughs</b> to {name} in the last {days} days — students and developers who searched for a tool like yours and chose to click through.</p>
-<p>That listing stays free permanently. If you want more of the people already browsing your category to see {name} first, the Fast-Track upgrade ($49.99 one-time) adds:</p>
-<ul style="margin: 8px 0 16px 0; padding-left: 18px; font-size: 13px; color: #475569;">
-  <li>Featured placement at the top of your category</li>
-  <li>A featured badge on your listing</li>
+    inner = f"""<p style="margin:0 0 14px 0;">Hey {first_name},</p>
+<p style="margin:0 0 14px 0;">Your <a href="https://ai-compass.in" style="color:#059669;font-weight:600;">AI Compass</a> listing sent <b>{clicks} click-throughs</b> to {name} in the last {days} days — students and developers who searched for a tool like yours and chose to click through.</p>
+<p style="margin:0 0 14px 0;">That listing stays free permanently. If you want more of the people already browsing your category to see {name} first, the Fast-Track upgrade ($49.99 one-time) adds:</p>
+<ul style="margin:0 0 16px 0;padding-left:20px;color:#475569;font-size:13.5px;">
+  <li style="margin-bottom:5px;">Featured placement at the top of your category</li>
+  <li style="margin-bottom:5px;">A featured badge on your listing</li>
   <li>A spot in the weekly Student AI Digest</li>
 </ul>
-<p><a href="https://ai-compass.in/submit" style="color: #059669; font-weight: 600; text-decoration: underline;">Upgrade {name} here</a> — or just reply if you would like the numbers for a specific month first.</p>
-<div style="margin-top: 24px; padding-top: 14px; border-top: 1px solid #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-  <div style="font-weight: 600; color: #0f172a; font-size: 14px;">Medhansh Pratap Singh</div>
-  <div style="color: #64748b; font-size: 12px; margin-top: 2px;">Founder, <a href="https://ai-compass.in" style="color: #059669; text-decoration: none; font-weight: 500;">AI Compass</a></div>
-  <div style="color: #94a3b8; font-size: 11px; margin-top: 4px;">medhansh.singh@ai-compass.in • <a href="https://ai-compass.in" style="color: #64748b; text-decoration: underline;">ai-compass.in</a></div>
-</div>
-<p style="margin-top: 14px; font-size: 12px; color: #64748b;">P.S. Those {clicks} clicks came from the free listing alone — nothing changes if you would rather leave it as is.</p>
-</div>"""
-    return subject, _append_unsubscribe_footer(body, candidate.email)
+<p style="margin:0 0 4px 0;font-size:14.5px;"><a href="https://ai-compass.in/submit" style="color:#059669;font-weight:700;text-decoration:none;border-bottom:1.5px solid #059669;">Upgrade {name} &rarr;</a> <span style="color:#64748b;font-size:13.5px;">or just reply if you'd like the numbers for a specific month first.</span></p>
+<p style="margin:16px 0 0 0;font-size:12px;color:#64748b;">P.S. Those {clicks} clicks came from the free listing alone — nothing changes if you'd rather leave it as is.</p>"""
+    return subject, _append_unsubscribe_footer(_outreach_wrap(inner), candidate.email)
 
 
 def run_catalog_traffic_campaign(min_clicks=None, days=30, limit=None):
