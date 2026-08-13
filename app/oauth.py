@@ -284,7 +284,7 @@ def _handle_link_oauth_user(email, provider, picture_url=None):
 @oauth_bp.route("/auth/google")
 def login_google():
     frontend_url = _frontend_base_url()
-    if current_user.is_authenticated:
+    if current_user.is_authenticated and request.args.get('link') == '1':
         session['oauth_link_user_id'] = current_user.id
 
     if not os.getenv("GOOGLE_CLIENT_ID"):
@@ -346,7 +346,7 @@ def google_callback():
 @oauth_bp.route("/auth/github")
 def login_github():
     frontend_url = _frontend_base_url()
-    if current_user.is_authenticated:
+    if current_user.is_authenticated and request.args.get('link') == '1':
         session['oauth_link_user_id'] = current_user.id
 
     if not (current_app.config.get("GITHUB_CLIENT_ID") and current_app.config.get("GITHUB_CLIENT_SECRET")):
@@ -403,7 +403,7 @@ def github_callback():
 @oauth_bp.route("/auth/linkedin")
 def login_linkedin():
     frontend_url = _frontend_base_url()
-    if current_user.is_authenticated:
+    if current_user.is_authenticated and request.args.get('link') == '1':
         session['oauth_link_user_id'] = current_user.id
 
     if not (current_app.config.get("LINKEDIN_CLIENT_ID") and current_app.config.get("LINKEDIN_CLIENT_SECRET")):

@@ -2107,7 +2107,7 @@ function ProfilePage() {
                     </div>
                   ) : (
                     <a
-                      href="/auth/google"
+                      href="/auth/google?link=1"
                       className="flex items-center justify-center p-3 rounded-2xl border border-dashed border-line-strong hover:border-accent hover:bg-accent-soft/10 text-xs font-semibold text-muted hover:text-accent transition animate-fade-in"
                     >
                       Connect Google
@@ -2129,7 +2129,7 @@ function ProfilePage() {
                     </div>
                   ) : (
                     <a
-                      href="/auth/github"
+                      href="/auth/github?link=1"
                       className="flex items-center justify-center p-3 rounded-2xl border border-dashed border-line-strong hover:border-accent hover:bg-accent-soft/10 text-xs font-semibold text-muted hover:text-accent transition animate-fade-in"
                     >
                       Connect GitHub
@@ -2151,7 +2151,7 @@ function ProfilePage() {
                     </div>
                   ) : (
                     <a
-                      href="/auth/linkedin"
+                      href="/auth/linkedin?link=1"
                       className="flex items-center justify-center p-3 rounded-2xl border border-dashed border-line-strong hover:border-accent hover:bg-accent-soft/10 text-xs font-semibold text-muted hover:text-accent transition animate-fade-in"
                     >
                       Connect LinkedIn
