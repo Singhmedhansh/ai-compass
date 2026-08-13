@@ -1580,10 +1580,24 @@ def find_twitter_handle_for_product(product_name, website_url):
     return None
 
 def run_discovery_pipeline():
-    """Fetches today's ranked PH launches + HN posts, runs quality gates, and saves candidates.
-    Contact enrichment is best-effort — products without email are saved as 'no_email_found'
-    and shown in admin queue with a '+ Add Email' button.
+    """Fetches today's ranked PH/HN/BetaList/Uneed launches, runs quality
+    gates, and saves candidates. Contact enrichment is best-effort —
+    products without email are saved as 'no_email_found' and shown in
+    admin queue with a '+ Add Email' button.
+
+    Four sources feed this now instead of two, so running the network-bound
+    work (commercial-signal check, email enrichment, Twitter lookup, draft
+    generation) sequentially for every survivor — like this used to — made
+    a full run take long enough to regularly still be running when the next
+    manual click or cron tick came in, hitting the job lock. That per-
+    candidate work touches only plain strings and a not-yet-added
+    OutreachCandidate instance (never db.session or a query) so it's safe
+    to run in a thread pool; only the dedup check and the final add/commit
+    stay in the main thread, same pattern already used by
+    regenerate_all_drafts().
     """
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
     ph_launches = fetch_producthunt_launches()
     hn_launches = fetch_shownews_launches()
     betalist_launches = fetch_betalist_launches()
@@ -1604,15 +1618,16 @@ def run_discovery_pipeline():
         "censorship", "deepseek", "gpt-oss"
     ]
 
+    # ── Local-only gates + the DB-bound dedup check first, in the main
+    # thread — cheap, and skips wasted network work on anything we'd
+    # reject anyway (duplicates are common once four sources overlap).
+    survivors = []
     for l in launches:
         website_url = l.get("website_url", "")
         product_name = l.get("product_name", "")
         tagline = l.get("tagline", "")
-        founder_name = l.get("founder_name", "")
-        twitter_from_ph = l.get("twitter_handle", "")
         ph_id = l.get("ph_launch_id", "")
 
-        # Extra HN quality filter: reject blog posts / tutorial posts / game posts
         if ph_id and ph_id.startswith("hn_"):
             combined_lower = f"{product_name} {tagline}".lower()
             if any(pat in combined_lower for pat in HN_JUNK_TITLE_PATTERNS):
@@ -1628,25 +1643,30 @@ def run_discovery_pipeline():
             skipped_not_relevant += 1
             continue
 
-        # ── Gate 3: Must have commercial signals (pricing, paid plan, etc.)
-        if not is_commercial_saas(website_url):
-            skipped_not_commercial += 1
-            continue
-
-        # ── Gate 4: Deduplication
+        # ── Gate 3: Deduplication
         if is_duplicate_candidate(product_name, website_url, ph_id):
             skipped_duplicate += 1
             continue
 
+        survivors.append(l)
+
+    def _process(l):
+        website_url = l.get("website_url", "")
+        product_name = l.get("product_name", "")
+        tagline = l.get("tagline", "")
+        founder_name = l.get("founder_name", "")
+        ph_id = l.get("ph_launch_id", "")
+
+        # ── Gate 4: Must have commercial signals (pricing, paid plan, etc.)
+        if not is_commercial_saas(website_url):
+            return None
+
         # ── Contact enrichment (best-effort, not a hard gate)
         email, source, score, verification_result = enrich_candidate_email(website_url, founder_name)
-        contact_twitter = twitter_from_ph
-
-        # If no Twitter from PH, try scraping the product homepage for social links
+        contact_twitter = l.get("twitter_handle", "")
         if not contact_twitter:
             contact_twitter = find_twitter_handle_for_product(product_name, website_url)
 
-        # ── Build and save candidate
         c = OutreachCandidate()
         c.ph_launch_id = ph_id
         c.product_name = product_name
@@ -1677,14 +1697,30 @@ def run_discovery_pipeline():
         subject, body = generate_draft_via_gemini(c)
         c.draft_subject = subject
         c.draft_body = body
+        return c
 
-        try:
-            db.session.add(c)
-            db.session.commit()
-            new_candidates_count += 1
-        except Exception as e:
-            db.session.rollback()
-            log.warning("Skipping save for %s (id: %s) due to database error: %s", product_name, ph_id, e)
+    # Same concurrency cap used elsewhere in this file for this exact
+    # reason (regenerate_all_drafts, PH domain-guessing) — this free-tier
+    # instance has a single shared vCPU, so more workers here would just
+    # starve the process's ability to answer other requests.
+    with ThreadPoolExecutor(max_workers=3) as executor:
+        futures = [executor.submit(_process, l) for l in survivors]
+        for f in as_completed(futures):
+            try:
+                c = f.result()
+            except Exception as e:
+                log.warning("Candidate processing failed: %s", e)
+                continue
+            if c is None:
+                skipped_not_commercial += 1
+                continue
+            try:
+                db.session.add(c)
+                db.session.commit()
+                new_candidates_count += 1
+            except Exception as e:
+                db.session.rollback()
+                log.warning("Skipping save for %s (id: %s) due to database error: %s", c.product_name, c.ph_launch_id, e)
 
     log.info(
         "Discovery pipeline complete: %s saved | %s not deployed | %s not relevant | %s not commercial | %s duplicates",
