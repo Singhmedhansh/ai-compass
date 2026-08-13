@@ -7,7 +7,6 @@ import {
   Heart,
   LayoutDashboard,
   LogOut,
-  Loader2,
   Moon,
   Shield,
   Sparkles,
@@ -44,13 +43,6 @@ const CardNav = ({ className = '', ease = 'power3.out' }) => {
   const [isDark, setIsDark] = useState(getInitialTheme)
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
   const [isCurrencyMenuOpen, setIsCurrencyMenuOpen] = useState(false)
-  // /ai-tool-finder is a lazy-loaded route chunk — without this, the button
-  // gives no feedback while it fetches, so users rage-click it 3-5 times.
-  // Derived off location.pathname (rather than reset via an effect) so it
-  // self-clears the instant the route actually changes, with no extra
-  // render pass.
-  const [finderNavRequested, setFinderNavRequested] = useState(false)
-  const isFinderNavigating = finderNavRequested && location.pathname !== '/ai-tool-finder'
   const [failedAvatarUrl, setFailedAvatarUrl] = useState(null)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [authRefreshKey, setAuthRefreshKey] = useState(0)
@@ -438,19 +430,20 @@ const CardNav = ({ className = '', ease = 'power3.out' }) => {
                 </button>
               </div>
             ) : (
-              <button
-                type="button"
-                className="card-nav-cta-button relative z-10 px-4 py-2 inline-flex items-center gap-1.5 disabled:opacity-70 disabled:cursor-wait"
-                disabled={isFinderNavigating}
-                onClick={() => {
-                  if (isFinderNavigating) return
-                  setFinderNavRequested(true)
-                  navigate('/ai-tool-finder')
-                }}
-              >
-                {isFinderNavigating && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />}
-                Get Started
-              </button>
+              <div className="flex items-center gap-2">
+                <Link
+                  to="/login"
+                  className="relative z-10 inline-flex h-10 items-center rounded-lg border border-line-strong bg-bg-elev px-4 text-sm font-semibold text-ink-2 transition hover:bg-bg-sunk"
+                >
+                  Log in
+                </Link>
+                <Link
+                  to="/register"
+                  className="card-nav-cta-button relative z-10 px-4 py-2 inline-flex items-center gap-1.5"
+                >
+                  Sign up
+                </Link>
+              </div>
             )}
           </div>
         </div>
