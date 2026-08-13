@@ -18,6 +18,8 @@ from app.outreach import (
     is_valid_email,
     fetch_producthunt_launches,
     fetch_shownews_launches,
+    fetch_betalist_launches,
+    fetch_uneed_launches,
     is_duplicate_candidate,
     is_deployed_app_url,
     is_student_relevant,
@@ -720,11 +722,17 @@ def run_discovery_diagnostics():
         
         ph_launches = fetch_producthunt_launches()
         log_lines.append(f"Total PH launches fetched: {len(ph_launches)}")
-        
+
         hn_launches = fetch_shownews_launches()
         log_lines.append(f"Total HN launches fetched: {len(hn_launches)}")
-        
-        candidates = ph_launches + hn_launches
+
+        betalist_launches = fetch_betalist_launches()
+        log_lines.append(f"Total BetaList launches fetched: {len(betalist_launches)}")
+
+        uneed_launches = fetch_uneed_launches()
+        log_lines.append(f"Total Uneed launches fetched: {len(uneed_launches)}")
+
+        candidates = ph_launches + hn_launches + betalist_launches + uneed_launches
         log_lines.append(f"Total combined candidates: {len(candidates)}")
         
         results = []

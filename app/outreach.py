@@ -653,6 +653,189 @@ def fetch_shownews_launches():
     log.info("HN Show feed: %s quality candidates (min %s points, commercial SaaS only)", len(candidates), MIN_HN_POINTS)
     return candidates
 
+# Both sources below were picked after testing several PH-alternatives —
+# Reddit and TheresAnAIForThat return 403 (bot-protected) even with browser
+# headers, and IndieHackers is a pure client-rendered SPA with nothing in
+# the raw HTML. BetaList and Uneed are server-rendered with no bot wall and
+# an open robots.txt, so they use the same requests+regex approach as the
+# PH scraper rather than needing a headless browser.
+
+_SCRAPE_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9",
+}
+
+def fetch_betalist_launches():
+    """Scrapes BetaList's AI Tools category feed (server-rendered HTML,
+    pre-filtered to on-topic products). Each candidate's real website is
+    resolved through BetaList's own /startups/{slug}/visit redirect —
+    the link on the card itself is an internal tracking URL, not the
+    product's actual domain.
+    """
+    try:
+        r = requests.get("https://betalist.com/browse/ai/ai-tools", headers=_SCRAPE_HEADERS, timeout=8)
+        if not r.ok:
+            log.warning("BetaList AI Tools page returned %s", r.status_code)
+            return []
+        text = r.text
+    except Exception as e:
+        log.warning("BetaList fetch error: %s", e)
+        return []
+
+    slug_hits = list(re.finditer(r'href="/startups/([a-z0-9-]+)"', text))
+    seen_slugs = set()
+    raw = []
+    for i, m in enumerate(slug_hits):
+        slug = m.group(1)
+        if slug in seen_slugs:
+            continue
+        seen_slugs.add(slug)
+        window_end = slug_hits[i + 1].start() if i + 1 < len(slug_hits) else m.end() + 1000
+        window = text[m.end():window_end]
+        # BetaList reuses this same card partial across different page
+        # layouts (grid card on the homepage, list row on /browse/*), with
+        # different wrapping tags each time — matching on the "font-medium"
+        # name class plus "whatever the next inline text node is" survives
+        # either <div> or <span> wrapping instead of hard-coding one.
+        name_m = re.search(r'font-medium[^"]*">([^<]{2,80})</(?:div|span)>', window)
+        if not name_m:
+            continue
+        tagline_m = re.search(
+            re.escape(name_m.group(0)) + r'\s*<(?:div|span)[^>]*>([^<]{5,200})</(?:div|span)>',
+            window,
+        )
+        raw.append({
+            "slug": slug,
+            "name": name_m.group(1).strip(),
+            "tagline": tagline_m.group(1).strip() if tagline_m else "",
+        })
+
+    if not raw:
+        log.warning("BetaList AI Tools page: no product cards found")
+        return []
+
+    from concurrent.futures import ThreadPoolExecutor
+
+    def _resolve(slug):
+        try:
+            resp = requests.get(f"https://betalist.com/startups/{slug}/visit", headers=_SCRAPE_HEADERS, timeout=6, allow_redirects=True)
+            if resp.ok and is_deployed_app_url(resp.url):
+                return slug, resp.url
+        except Exception:
+            pass
+        return slug, None
+
+    # Free-tier single-vCPU host — same low concurrency cap used for PH's
+    # domain-guessing, and capped to the first 30 cards per run.
+    with ThreadPoolExecutor(max_workers=3) as ex:
+        resolved = dict(ex.map(_resolve, [p["slug"] for p in raw[:30]]))
+
+    candidates = []
+    for p in raw:
+        website = resolved.get(p["slug"])
+        if not website:
+            continue
+        candidates.append({
+            "ph_launch_id": f"betalist_{p['slug']}",
+            "product_name": p["name"][:80],
+            "tagline": (p["tagline"] or f"{p['name']} on BetaList")[:160],
+            "website_url": website,
+            "founder_name": "",
+            "twitter_handle": "",
+            "votes": 0,
+        })
+
+    log.info("BetaList scraper: %s candidates with resolved websites (from %s raw cards)", len(candidates), len(raw))
+    return candidates
+
+
+def fetch_uneed_launches():
+    """Scrapes Uneed.best's homepage launch board (a PH-style feed
+    specifically for indie SaaS/AI tools, server-rendered unlike its own
+    /tags/{x} filter pages). Each candidate's real website is resolved
+    through Uneed's own /tool/{slug}/visit redirect.
+    """
+    try:
+        r = requests.get("https://uneed.best/", headers=_SCRAPE_HEADERS, timeout=8)
+        if not r.ok:
+            log.warning("Uneed homepage returned %s", r.status_code)
+            return []
+        text = r.text
+    except Exception as e:
+        log.warning("Uneed fetch error: %s", e)
+        return []
+
+    # Uneed's Nuxt renderer doesn't emit attributes in a stable order
+    # (href/aria-label swap position between requests), so match the whole
+    # <a> tag first and pull attributes out of that tag independently
+    # rather than assuming which comes first.
+    tag_hits = list(re.finditer(r'<a\s[^>]*href="/tool/([a-z0-9-]+)"[^>]*>', text))
+    seen_slugs = set()
+    raw = []
+    for i, m in enumerate(tag_hits):
+        slug = m.group(1)
+        if slug in seen_slugs:
+            continue
+        seen_slugs.add(slug)
+        label_m = re.search(r'aria-label="([^"]{2,80})"', m.group(0))
+        name = label_m.group(1) if label_m else slug.replace("-", " ").title()
+        window_end = tag_hits[i + 1].start() if i + 1 < len(tag_hits) else m.end() + 1500
+        window = text[m.end():window_end]
+        votes_m = re.search(r'\((\d+)\)\s*</span>', window)
+        tagline_m = re.search(r'line-clamp-1">([^<]{5,200})</p>', window)
+        raw.append({
+            "slug": slug,
+            "name": name[:80],
+            "tagline": tagline_m.group(1).strip() if tagline_m else "",
+            "votes": int(votes_m.group(1)) if votes_m else 0,
+        })
+
+    if not raw:
+        log.warning("Uneed homepage: no product cards found")
+        return []
+
+    from concurrent.futures import ThreadPoolExecutor
+
+    # Unlike BetaList, Uneed has no /visit redirect — the real site is
+    # embedded directly in the tool's own detail page as an outbound link
+    # tagged with a "?ref=uneed.best" marker (which also distinguishes it
+    # from unrelated outbound links on the page, e.g. the maker's Twitter).
+    def _resolve(slug):
+        try:
+            resp = requests.get(f"https://uneed.best/tool/{slug}", headers=_SCRAPE_HEADERS, timeout=6)
+            if not resp.ok:
+                return slug, None
+            m = re.search(r'href="(https?://(?!(?:www\.)?uneed\.best)[^"]+\?ref=uneed\.best[^"]*)"', resp.text)
+            if m:
+                website = m.group(1).replace("&amp;", "&")
+                if is_deployed_app_url(website):
+                    return slug, website
+        except Exception:
+            pass
+        return slug, None
+
+    with ThreadPoolExecutor(max_workers=3) as ex:
+        resolved = dict(ex.map(_resolve, [p["slug"] for p in raw[:30]]))
+
+    candidates = []
+    for p in raw:
+        website = resolved.get(p["slug"])
+        if not website:
+            continue
+        candidates.append({
+            "ph_launch_id": f"uneed_{p['slug']}",
+            "product_name": p["name"],
+            "tagline": (p["tagline"] or f"{p['name']} on Uneed")[:160],
+            "website_url": website,
+            "founder_name": "",
+            "twitter_handle": "",
+            "votes": p["votes"],
+        })
+
+    log.info("Uneed scraper: %s candidates with resolved websites (from %s raw cards)", len(candidates), len(raw))
+    return candidates
+
 # ─── 2. EMAIL DISCOVERY (SCRAPE + GITHUB + RDAP + HUNTER.IO) ─────────────────
 
 # Hard wall-clock ceiling for a single DNS deliverability check — see
@@ -1403,7 +1586,9 @@ def run_discovery_pipeline():
     """
     ph_launches = fetch_producthunt_launches()
     hn_launches = fetch_shownews_launches()
-    launches = ph_launches + hn_launches
+    betalist_launches = fetch_betalist_launches()
+    uneed_launches = fetch_uneed_launches()
+    launches = ph_launches + hn_launches + betalist_launches + uneed_launches
     new_candidates_count = 0
     skipped_not_deployed = 0
     skipped_not_relevant = 0
