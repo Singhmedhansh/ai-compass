@@ -1,6 +1,6 @@
 {% extends "emails/base.html" %}
 
-{% block title %}Invoice for Sponsored Curation - AI Compass{% endblock %}
+{% block title %}Invoice for {{ tier_name or "Sponsored Curation" }} - AI Compass{% endblock %}
 
 {% block extra_css %}
 .invoice-table {
@@ -45,7 +45,7 @@
 
 {% block content %}
 <h1 class="heading">Payment Receipt / Invoice</h1>
-<p class="paragraph">Thank you for your purchase! Your priority fast-track sponsored curation submission has been received and verified. Our editorial team will test and index your tool within 24 hours.</p>
+<p class="paragraph">Thank you for your purchase! Your {{ tier_name or "Sponsored Curation" }} submission has been received and verified. {{ review_promise or "Our editorial team will review it shortly." }}</p>
 
 <div class="invoice-meta">
   <strong>Invoice Number:</strong> {{ invoice_number }}<br />
@@ -64,16 +64,12 @@
   </thead>
   <tbody>
     <tr>
-      <td>Fast-Track Sponsored Curation (24-Hour Approval &amp; Listing)</td>
-      <td style="text-align: right;">$45.00</td>
-    </tr>
-    <tr>
-      <td>Taxes &amp; Processing Fee</td>
-      <td style="text-align: right;">$4.99</td>
+      <td>{{ line_item_label or "Sponsored Curation" }}</td>
+      <td style="text-align: right;">{{ line_item_amount or "$49.99" }}</td>
     </tr>
     <tr class="total-row">
       <td>Total Paid</td>
-      <td style="text-align: right;">$49.99 USD</td>
+      <td style="text-align: right;">{{ total_amount or "$49.99 USD" }}</td>
     </tr>
   </tbody>
 </table>

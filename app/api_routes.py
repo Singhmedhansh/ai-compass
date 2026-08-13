@@ -1156,6 +1156,33 @@ def _directory_summary_payload(tools: list[dict]) -> dict:
     }
 
 
+@api_bp.get("/tools/sponsored")
+@cache.cached(timeout=60, query_string=True)
+def tools_sponsored():
+    """Homepage 'Featured on AI Compass' strip. Reuses the existing paid-
+    placement mechanism (_sponsored_active/_placement_rank/_card_projection)
+    — no schema change, no new approval-flow logic. Returns an empty list
+    when nobody's currently sponsored; the frontend renders nothing rather
+    than fake placeholder inventory.
+    """
+    try:
+        tools = get_visible_tools(DATA_PATH)
+    except Exception:
+        tools = []
+
+    sponsored_tools = [tool for tool in tools if _sponsored_active(tool)]
+    sponsored_tools.sort(key=_placement_rank, reverse=True)
+
+    try:
+        limit = int(request.args.get("limit", 8))
+    except (TypeError, ValueError):
+        limit = 8
+    limit = max(1, min(limit, 24))
+
+    results = [_card_projection(tool) for tool in sponsored_tools[:limit]]
+    return jsonify({"results": results, "total": len(results)})
+
+
 @api_bp.get("/tools")
 @cache.cached(timeout=60, query_string=True)
 def list_tools():
@@ -1582,13 +1609,42 @@ def get_paypal_config():
     })
 
 
+# Each paid tier's PayPal "hosted button" is a separate pre-made Business
+# "Buy Now" product fixed at that tier's amount — it can't be repointed to a
+# different price from code. Quick's env vars are unset until a hosted
+# button is created for it in the PayPal dashboard; until then this
+# endpoint returns an empty hosted_button_id/payment_url for tier=quick and
+# the frontend falls back to PayPal's dynamic Smart Buttons instead. Once
+# the env vars are set, the hosted-button/manual-link flow "turns on" for
+# Quick automatically — no further code change needed.
+_PAYPAL_HOSTED_ENV = {
+    "sponsor": {
+        "button_id_env": "PAYPAL_HOSTED_BUTTON_ID",
+        "payment_url_env": "PAYPAL_PAYMENT_URL",
+        "payment_url_default": "https://www.paypal.com/ncp/payment/XMWMPTJH5ZHPY",
+    },
+    "quick": {
+        "button_id_env": "PAYPAL_HOSTED_BUTTON_ID_QUICK",
+        "payment_url_env": "PAYPAL_PAYMENT_URL_QUICK",
+        # No default — must never silently fall back to the sponsor tier's
+        # $49.99 payment URL for a $14.99 purchase.
+        "payment_url_default": "",
+    },
+}
+
+
 @api_bp.get("/config/paypal-hosted")
 def get_paypal_hosted_config():
+    tier = (request.args.get("tier") or "sponsor").strip().lower()
+    if tier not in _PAYPAL_HOSTED_ENV:
+        tier = "sponsor"
+    cfg = _PAYPAL_HOSTED_ENV[tier]
     return jsonify({
         "client_id": os.environ.get("PAYPAL_CLIENT_ID", ""),
-        "hosted_button_id": os.environ.get("PAYPAL_HOSTED_BUTTON_ID", ""),
-        "payment_url": os.environ.get("PAYPAL_PAYMENT_URL", "https://www.paypal.com/ncp/payment/XMWMPTJH5ZHPY"),
-        "mode": os.environ.get("PAYPAL_MODE", "live")
+        "hosted_button_id": os.environ.get(cfg["button_id_env"], ""),
+        "payment_url": os.environ.get(cfg["payment_url_env"], cfg["payment_url_default"]),
+        "mode": os.environ.get("PAYPAL_MODE", "live"),
+        "tier": tier,
     })
 
 
@@ -1648,31 +1704,34 @@ def submit_tool():
         pricing_model_raw = str(payload.get("pricing_model") or "free").strip()
         transaction_ref = str(payload.get("transaction_ref") or "").strip()
 
-        # Payment verification — a claimed "sponsored" submission is never
-        # trusted on the client's say-so. Only a PayPal order ID that we can
-        # independently confirm as COMPLETED for the right amount counts as
-        # paid; everything else (fake ref, no ref, or a payment method with
-        # no real server-side gateway wired up yet) is recorded as
-        # 'unverified_review' so it can never silently unlock PAYMENT
-        # APPROVED / fast-track / an invoice email on its own.
-        is_sponsored_claim = pricing_model_raw.startswith("sponsored")
+        # Payment verification — a claimed paid submission (Quick Review or
+        # Fast-Track) is never trusted on the client's say-so. Only a PayPal
+        # order ID that we can independently confirm as COMPLETED for the
+        # right tier's amount counts as paid; everything else (fake ref, no
+        # ref, or a payment method with no real server-side gateway wired up
+        # yet) is recorded as 'unverified_review' so it can never silently
+        # unlock PAYMENT APPROVED / fast-track / an invoice email on its own.
+        from app.pricing_tiers import TIERS, tier_for_pricing_model
+        tier_key = tier_for_pricing_model(pricing_model_raw)
+        is_paid_claim = tier_key in ("quick", "sponsored")
         payment_verified = False
         payment_note = None
-        if is_sponsored_claim:
+        if is_paid_claim:
             if "paypal" in pricing_model_raw and transaction_ref:
                 from app.payments import verify_paypal_order
-                payment_verified, payment_note = verify_paypal_order(transaction_ref)
+                expected_amount = TIERS.get(tier_key, {}).get("price", 49.99)
+                payment_verified, payment_note = verify_paypal_order(transaction_ref, expected_amount=expected_amount)
             else:
                 payment_note = "no_verifiable_gateway"
             if not payment_verified:
                 current_app.logger.warning(
-                    "Unverified sponsored submission claim for '%s': pricing_model=%s ref=%s reason=%s",
+                    "Unverified paid submission claim for '%s': pricing_model=%s ref=%s reason=%s",
                     name, pricing_model_raw, transaction_ref, payment_note
                 )
-        payment_status = "verified" if payment_verified else ("unverified_review" if is_sponsored_claim else "unpaid")
+        payment_status = "verified" if payment_verified else ("unverified_review" if is_paid_claim else "unpaid")
 
         pricing_model = pricing_model_raw
-        if transaction_ref and is_sponsored_claim:
+        if transaction_ref and is_paid_claim:
             combined = f"{pricing_model_raw}:{transaction_ref}"
             pricing_model = combined[:50]
 
@@ -1744,7 +1803,16 @@ def submit_tool():
                 
                 today_str = datetime.now(timezone.utc).strftime("%B %d, %Y")
                 invoice_num = f"INV-{datetime.now(timezone.utc).strftime('%Y%m%d')}-{random.randint(1000, 9999)}"
-                
+
+                tier_names = {"quick": "Quick Review", "sponsored": "Fast-Track Sponsored Curation"}
+                tier_review_promises = {
+                    "quick": "Our editorial team will review it within 48–72 hours.",
+                    "sponsored": "Our editorial team will test and index your tool within 24 hours.",
+                }
+                tier_name = tier_names.get(tier_key, "Sponsored Curation")
+                tier_amount = TIERS.get(tier_key, {}).get("price", 49.99)
+                review_promise = tier_review_promises.get(tier_key, "Our editorial team will review it shortly.")
+
                 invoice_html = render_template(
                     'emails/invoice.html',
                     invoice_number=invoice_num,
@@ -1752,14 +1820,19 @@ def submit_tool():
                     payment_method=pay_method,
                     transaction_ref=clean_ref,
                     customer_email=submitter_email,
-                    tool_name=name
+                    tool_name=name,
+                    tier_name=tier_name,
+                    review_promise=review_promise,
+                    line_item_label=f"{tier_name} Curation",
+                    line_item_amount=f"${tier_amount:.2f}",
+                    total_amount=f"${tier_amount:.2f} USD",
                 )
-                
+
                 send_email(
                     to=submitter_email,
                     subject=f"AI Compass - Payment Confirmation & Invoice ({invoice_num})",
                     html=invoice_html,
-                    text=f"Thank you for your purchase! Fast-Track Sponsored Curation payment of $49.99 USD has been received. Invoice Number: {invoice_num}, Transaction Ref: {clean_ref}."
+                    text=f"Thank you for your purchase! {tier_name} payment of ${tier_amount:.2f} USD has been received. Invoice Number: {invoice_num}, Transaction Ref: {clean_ref}."
                 )
             except Exception:
                 current_app.logger.exception("Failed to send user invoice email — submission still recorded")
@@ -1769,11 +1842,11 @@ def submit_tool():
         # must never look like a confirmed payment in the inbox.
         if is_paid:
             subject_tag = "[PAYMENT APPROVED]"
-        elif is_sponsored_claim:
+        elif is_paid_claim:
             subject_tag = "[UNVERIFIED PAYMENT CLAIM — DO NOT FAST-TRACK]"
         else:
             subject_tag = "[AI Compass]"
-        admin_subject = f"{subject_tag} New Tool Submission: {name}" if is_paid or is_sponsored_claim else f"{subject_tag} New tool submission: {name}"
+        admin_subject = f"{subject_tag} New Tool Submission: {name}" if is_paid or is_paid_claim else f"{subject_tag} New tool submission: {name}"
         if transaction_ref:
             admin_subject += f" (Ref: {transaction_ref})"
 
@@ -4644,9 +4717,15 @@ def admin_approve_submission(sub_id):
         return jsonify({"error": f"Slug '{slug}' already in catalog"}), 409
 
     # A verified payment is what buys placement — never the client's claim.
-    # is_priority is only set by submit_tool() after verify_paypal_order()
-    # independently confirmed a COMPLETED order for the right amount.
-    is_sponsored = bool(s.is_priority and s.payment_status == "verified")
+    # Quick Review is also a verified paid tier (it jumps the review queue
+    # via is_priority, same as Fast-Track), but only Fast-Track buys the
+    # catalog "sponsored" boost — permanent above-free placement + badge.
+    # Checking the tier prefix (not just is_priority) is what keeps that
+    # distinction real instead of accidentally selling Fast-Track's perks
+    # at Quick Review's price.
+    from app.pricing_tiers import tier_for_pricing_model
+    tier_key = tier_for_pricing_model(s.pricing_model or "")
+    is_sponsored = bool(tier_key == "sponsored" and s.payment_status == "verified")
 
     record = _normalize_tool_record({
         "slug": slug,

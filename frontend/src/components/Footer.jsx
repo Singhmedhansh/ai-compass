@@ -70,6 +70,7 @@ const PRODUCT_LINKS = [
   { label: 'Community Stacks', to: '/stacks' },
   { label: 'LLM Cost Calculator', to: '/model-comparison' },
   { label: 'Submit a tool', to: '/submit' },
+  { label: 'Pricing', to: '/pricing' },
   { label: 'FAQ & Support', to: '/help' },
   { label: 'Syllabus Parser', to: '/syllabus-parser' },
   { label: 'Student Discounts', to: '/student-discounts' },

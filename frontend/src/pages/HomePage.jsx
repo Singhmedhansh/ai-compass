@@ -2,6 +2,7 @@ import { Helmet } from 'react-helmet-async'
 import { useCatalogStats } from '../hooks/useCatalogStats'
 
 import CurationDiscipline from '../components/home/CurationDiscipline'
+import FeaturedStrip from '../components/home/FeaturedStrip'
 import FinalCTA from '../components/home/FinalCTA'
 import Hero from '../components/home/Hero'
 import OriginalBrandBanner from '../components/OriginalBrandBanner'
@@ -27,6 +28,7 @@ export default function HomePage() {
 
       <OriginalBrandBanner />
       <Hero />
+      <FeaturedStrip />
       <WizardDemo />
       <StudentHubShowcase />
       <CurationDiscipline />

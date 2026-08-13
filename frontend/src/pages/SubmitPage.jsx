@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { CreditCard, Sparkles, CheckCircle2, ShieldCheck, ArrowRight, User, Wallet, QrCode, ArrowUpRight, Lock, TrendingUp, Users, Search, BarChart3 } from 'lucide-react'
 
 import Button from '../components/ui/Button'
+import { PRICING_TIERS, getTier } from '../config/pricingTiers'
 
 const CATEGORIES = [
   'Writing & Chat',
@@ -24,13 +26,51 @@ const INITIAL_FORM = {
   student_perks: '',
 }
 
+function TierCard({ tier, selected, onSelect }) {
+  const isSponsor = tier.id === 'sponsor'
+  const isFree = tier.id === 'free'
+
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(tier.id)}
+      aria-pressed={selected}
+      className={`text-left rounded-2xl border p-5 transition ${
+        selected
+          ? 'border-accent bg-accent-soft/20 shadow-md ring-2 ring-accent/15'
+          : 'border-line bg-bg-elev hover:border-line-strong hover:bg-bg-sunk'
+      }`}
+    >
+      <div className="flex items-center justify-between gap-2">
+        <span
+          className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-wider ${
+            isFree
+              ? 'bg-bg-sunk text-ink-2 border border-line'
+              : 'bg-accent-soft text-accent shadow-sm'
+          }`}
+        >
+          {isSponsor && <Sparkles className="h-2.5 w-2.5" />}
+          {tier.badgeLabel}
+        </span>
+        <div className="flex items-baseline gap-1.5">
+          <span className="text-base font-bold text-ink">{tier.priceLabel}</span>
+          {tier.price > 0 && <span className="text-[10px] font-medium text-ink-2">one-time</span>}
+        </div>
+      </div>
+      <h3 className="mt-3 text-base font-bold text-ink">{tier.name}</h3>
+      <p className="mt-1 text-xs text-ink-2 leading-relaxed font-normal">{tier.tagline}</p>
+    </button>
+  )
+}
+
 export default function SubmitPage() {
-  // 'free' = basic listing, reviewed when we get to it. 'sponsor' = $49.99
-  // fast-track. The free tier is the top of the funnel: it costs nothing to
-  // serve, it's what gets a founder to hand over their email at all, and
-  // those contacts are who the upgrade offer is later sold to. A paid-only
-  // submit page has no top of funnel — nobody pays a directory they have no
-  // relationship with yet.
+  // 'free' = basic listing, reviewed when we get to it. 'quick' = $14.99
+  // faster review, no placement/badge/newsletter perks. 'sponsor' = $49.99
+  // full Fast-Track package. The free tier is the top of the funnel: it
+  // costs nothing to serve, it's what gets a founder to hand over their
+  // email at all, and those contacts are who the paid upgrades are later
+  // sold to. A paid-only submit page has no top of funnel — nobody pays a
+  // directory they have no relationship with yet.
   const [submissionType, setSubmissionType] = useState('sponsor')
   const [formData, setFormData] = useState(INITIAL_FORM)
   const [submitted, setSubmitted] = useState(false)
@@ -56,6 +96,9 @@ export default function SubmitPage() {
 
   const [paypalHostedConfig, setPaypalHostedConfig] = useState(null)
 
+  const selectedTier = getTier(submissionType)
+  const submittedTierObj = getTier(submittedTier)
+
   // Restore form state from sessionStorage on page load, and check for redirect callback
   useEffect(() => {
     const savedForm = sessionStorage.getItem('submit_form_data')
@@ -65,6 +108,11 @@ export default function SubmitPage() {
       } catch (e) {
         console.error('Failed to parse saved form data', e)
       }
+    }
+
+    const savedType = sessionStorage.getItem('submit_submission_type')
+    if (savedType) {
+      setSubmissionType(savedType)
     }
 
     const savedMethod = sessionStorage.getItem('submit_payment_method')
@@ -77,19 +125,20 @@ export default function SubmitPage() {
     const hasPaypalParams = query.has('tx') || query.has('paymentId') || query.has('token') || query.has('PayerID')
     if (hasPaypalParams) {
       const txRef = query.get('tx') || query.get('paymentId') || query.get('token') || query.get('PayerID') || 'PAYPAL-REDIRECT-VERIFIED'
-      
+
       if (savedForm) {
         try {
           const parsedForm = JSON.parse(savedForm)
+          const tier = getTier(savedType || 'sponsor')
           setSubmitting(true)
-          
+
           fetch('/api/v1/submit-tool', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
             body: JSON.stringify({
               ...parsedForm,
-              pricing_model: 'sponsored_paypal',
+              pricing_model: tier.pricingModel,
               transaction_ref: txRef,
             }),
           })
@@ -99,6 +148,7 @@ export default function SubmitPage() {
           })
           .then((payload) => {
             setSubmitted(true)
+            setSubmittedTier(tier.id)
             setPaymentVerified(!!payload.payment_verified)
             setTransactionRef(txRef)
             sessionStorage.removeItem('submit_form_data')
@@ -126,17 +176,22 @@ export default function SubmitPage() {
   }, [formData])
 
   useEffect(() => {
+    sessionStorage.setItem('submit_submission_type', submissionType)
+  }, [submissionType])
+
+  useEffect(() => {
     sessionStorage.setItem('submit_payment_method', paymentMethod)
   }, [paymentMethod])
 
   useEffect(() => {
     if (showPaymentModal && paymentMethod === 'paypal') {
-      fetch('/api/v1/config/paypal-hosted')
+      const tierParam = submissionType === 'quick' ? 'quick' : 'sponsor'
+      fetch(`/api/v1/config/paypal-hosted?tier=${tierParam}`)
         .then(res => res.json())
         .then(data => {
           setPaypalHostedConfig(data)
           const clientId = data.client_id || 'sb'
-          
+
           if (window.paypal) {
             setPaypalLoaded(true)
             return
@@ -153,7 +208,7 @@ export default function SubmitPage() {
 
             const script = document.createElement('script')
             script.id = 'paypal-sdk-script'
-            
+
             if (data.hosted_button_id) {
               script.src = `https://www.paypal.com/sdk/js?client-id=${cid}&components=hosted-buttons&disable-funding=venmo&currency=USD`
             } else {
@@ -194,14 +249,14 @@ export default function SubmitPage() {
           setPaypalError(true)
         })
     }
-  }, [showPaymentModal, paymentMethod])
+  }, [showPaymentModal, paymentMethod, submissionType])
 
   useEffect(() => {
     if (paypalLoaded && window.paypal && paymentMethod === 'paypal') {
       const container = document.getElementById('paypal-button-container')
       if (container) {
         container.innerHTML = ''
-        
+
         if (paypalHostedConfig && paypalHostedConfig.hosted_button_id) {
           try {
             window.paypal.HostedButtons({
@@ -218,7 +273,7 @@ export default function SubmitPage() {
                 return actions.order.create({
                   purchase_units: [{
                     amount: {
-                      value: '49.99'
+                      value: getTier(submissionType).price.toFixed(2)
                     }
                   }]
                 })
@@ -231,10 +286,10 @@ export default function SubmitPage() {
                   setPaymentDone(true)
                   const txRef = details.id || `TXN-PAYPAL-${Math.floor(Math.random() * 9000000 + 1000000)}`
                   setTransactionRef(txRef)
-                  
+
                   setTimeout(() => {
                     setShowPaymentModal(false)
-                    submitData('sponsored_paypal', txRef)
+                    submitData(submissionType, txRef)
                   }, 1500)
                 } catch (err) {
                   setPaying(false)
@@ -252,7 +307,7 @@ export default function SubmitPage() {
         }
       }
     }
-  }, [paypalLoaded, paymentMethod, paypalHostedConfig])
+  }, [paypalLoaded, paymentMethod, paypalHostedConfig, submissionType])
 
   function handleChange(event) {
     const { name, value } = event.target
@@ -280,7 +335,8 @@ export default function SubmitPage() {
     event.preventDefault()
   }
 
-  async function submitData(pricingModel, transactionRef = '') {
+  async function submitData(tierId, transactionRef = '') {
+    const tier = getTier(tierId)
     setSubmitting(true)
     setSubmitted(false)
     setPaymentVerified(false)
@@ -295,7 +351,7 @@ export default function SubmitPage() {
           url: formData.url,
           category: formData.category,
           reason: formData.reason,
-          pricing_model: pricingModel,
+          pricing_model: tier.pricingModel,
           student_perks: formData.student_perks,
           submitter_email: formData.submitter_email,
           transaction_ref: transactionRef,
@@ -309,7 +365,7 @@ export default function SubmitPage() {
       }
 
       setSubmitted(true)
-      setSubmittedTier(pricingModel === 'free' ? 'free' : 'sponsor')
+      setSubmittedTier(tier.id)
       setPaymentVerified(!!payload.payment_verified)
       setFormData(INITIAL_FORM)
       setPaymentDone(false)
@@ -322,77 +378,44 @@ export default function SubmitPage() {
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
-      
+
       {/* Monetization / Path Selector Banner */}
       <div className="mb-8 rounded-3xl border border-line bg-gradient-to-br from-bg-elev via-bg-elev to-bg-sunk/30 p-6 shadow-sm">
-        <span className="text-[10px] font-bold text-accent uppercase tracking-widest block mb-1">Get Listed</span>
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <span className="text-[10px] font-bold text-accent uppercase tracking-widest block mb-1">Get Listed</span>
+          <Link to="/pricing" className="text-xs font-semibold text-accent hover:underline">
+            Compare all tiers →
+          </Link>
+        </div>
         <h1 className="text-2xl font-bold text-ink tracking-tight sm:text-3xl">Submit Your AI Tool</h1>
         <p className="mt-2 text-sm text-ink-2 max-w-2xl font-normal leading-relaxed">
-          Get your tool in front of students, creators, and developers. Free listings are welcome — pick Fast-Track if you want a guaranteed 24-hour review and featured placement.
+          Get your tool in front of students, creators, and developers. Free listings are welcome — Quick Review skips the queue for $14.99, or pick Fast-Track for a guaranteed 24-hour review and featured placement.
         </p>
 
         {/* Tier selector — free is a real, selectable path, not a decoy. */}
-        <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <button
-            type="button"
-            onClick={() => setSubmissionType('free')}
-            aria-pressed={submissionType === 'free'}
-            className={`text-left rounded-2xl border p-5 transition ${
-              submissionType === 'free'
-                ? 'border-accent bg-accent-soft/20 shadow-md ring-2 ring-accent/15'
-                : 'border-line bg-bg-elev hover:border-line-strong hover:bg-bg-sunk'
-            }`}
-          >
-            <div className="flex items-center justify-between gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-bg-sunk text-ink-2 px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-wider border border-line">
-                Standard
-              </span>
-              <span className="text-base font-bold text-ink">Free</span>
-            </div>
-            <h3 className="mt-3 text-base font-bold text-ink">Free Listing</h3>
-            <p className="mt-1 text-xs text-ink-2 leading-relaxed font-normal">
-              Full directory listing with your description and link. Reviewed in the order it arrives — usually within a couple of weeks.
-            </p>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setSubmissionType('sponsor')}
-            aria-pressed={submissionType === 'sponsor'}
-            className={`text-left rounded-2xl border p-5 transition ${
-              submissionType === 'sponsor'
-                ? 'border-accent bg-accent-soft/20 shadow-md ring-2 ring-accent/15'
-                : 'border-line bg-bg-elev hover:border-line-strong hover:bg-bg-sunk'
-            }`}
-          >
-            <div className="flex items-center justify-between gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-soft text-accent px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-wider shadow-sm">
-                <Sparkles className="h-2.5 w-2.5" /> Fast-Track
-              </span>
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-base font-bold text-ink">$49.99</span>
-                <span className="text-[10px] font-medium text-ink-2">one-time</span>
-              </div>
-            </div>
-            <h3 className="mt-3 text-base font-bold text-ink">Fast-Track Sponsored Curation</h3>
-            <p className="mt-1 text-xs text-ink-2 leading-relaxed font-normal">
-              Everything in the free listing, plus guaranteed 24-hour review, sponsored placement above free listings in your category, a featured badge, and a spot in the weekly student AI digest.
-            </p>
-          </button>
+        <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {PRICING_TIERS.map((tier) => (
+            <TierCard
+              key={tier.id}
+              tier={tier}
+              selected={submissionType === tier.id}
+              onSelect={setSubmissionType}
+            />
+          ))}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
+      <div className={`grid grid-cols-1 gap-8 ${submissionType !== 'free' ? 'lg:grid-cols-3' : ''}`}>
+
         {/* Left/Main Column: Submission Form */}
-        <div className="lg:col-span-2">
+        <div className={submissionType !== 'free' ? 'lg:col-span-2' : ''}>
           <section className="rounded-2xl border border-line bg-bg-elev p-6 shadow-sm">
             <h2 className="text-lg font-bold text-ink">
-              {submissionType === 'free' ? 'Tool Details' : 'Sponsored Curation Form'}
+              {submissionType === 'free' ? 'Tool Details' : `${selectedTier.name} Form`}
             </h2>
-            
+
             <form className="mt-6 space-y-4" onSubmit={handleFormSubmit}>
-              
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="submitter_email" className="mb-1 block text-xs font-semibold text-ink-2">
@@ -495,17 +518,17 @@ export default function SubmitPage() {
               </div>
 
               <div className="pt-2">
-                <Button 
-                  variant="primary" 
-                  type="submit" 
-                  disabled={submitting} 
+                <Button
+                  variant="primary"
+                  type="submit"
+                  disabled={submitting}
                   className="w-full font-bold flex items-center justify-center gap-2 rounded-xl"
                 >
                   {submitting
                     ? 'Processing...'
                     : submissionType === 'free'
                     ? 'Submit Free Listing'
-                    : 'Proceed to Secure Checkout ($49.99)'}
+                    : `Proceed to Secure Checkout (${selectedTier.priceLabel})`}
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               </div>
@@ -525,7 +548,7 @@ export default function SubmitPage() {
                     </h3>
                     {submittedTier !== 'free' && (
                       <p className="text-xs text-accent-ink font-semibold mt-0.5">
-                        Transaction Reference: <span className="font-mono">{transactionRef || 'N/A'}</span> • Amount: $49.99 USD
+                        Transaction Reference: <span className="font-mono">{transactionRef || 'N/A'}</span> • Amount: {submittedTierObj.priceLabel} USD
                       </p>
                     )}
                   </div>
@@ -538,7 +561,7 @@ export default function SubmitPage() {
                       </p>
                       <div className="bg-bg-elev/80 p-3 rounded-xl border border-line">
                         <p className="font-medium text-ink">
-                          Need it live sooner? Fast-Track gets you a guaranteed 24-hour review, sponsored placement above free listings, and a featured badge for $49.99 one-time.
+                          Need it live sooner? Quick Review gets you a 48–72 hour turnaround for $14.99, or Fast-Track gets a guaranteed 24-hour review, sponsored placement above free listings, and a featured badge for $49.99 one-time.
                         </p>
                         <button
                           type="button"
@@ -549,7 +572,7 @@ export default function SubmitPage() {
                           }}
                           className="mt-2 inline-flex items-center gap-1.5 text-accent font-bold hover:underline"
                         >
-                          Upgrade to Fast-Track <ArrowRight className="h-3 w-3" />
+                          Compare paid tiers <ArrowRight className="h-3 w-3" />
                         </button>
                       </div>
                     </>
@@ -559,7 +582,7 @@ export default function SubmitPage() {
                         <strong>What happens next?</strong> Our editorial team has received your submission details and payment confirmation.
                       </p>
                       <p className="bg-bg-elev/80 p-3 rounded-xl border border-line font-medium text-ink">
-                        <strong>Our team will review your submission and contact you soon via email at your provided founder address.</strong>
+                        <strong>{submittedTierObj.reviewEta}</strong> Our team will review your submission and contact you soon via email at your provided founder address.
                       </p>
                     </>
                   ) : (
@@ -584,54 +607,54 @@ export default function SubmitPage() {
           </section>
         </div>
 
-        {/* Right Column: Pricing details sidebar */}
-        <div className="lg:col-span-1">
-          <section className="rounded-2xl border border-line bg-bg-elev p-5 shadow-sm space-y-4">
-            <h3 className="text-xs font-bold text-ink uppercase tracking-wider">Sponsored Perks Included</h3>
-            
-            <div className="space-y-4 text-xs">
-              <div className="rounded-xl bg-accent-soft/30 p-3 border border-accent/15 flex items-center gap-2">
-                <ShieldCheck className="h-4 w-4 text-accent" />
-                <span className="font-semibold text-accent-ink">Priority Fast-Track Audit</span>
-              </div>
+        {/* Right Column: Pricing details sidebar — hidden for the free tier */}
+        {submissionType !== 'free' && (
+          <div className="lg:col-span-1">
+            <section className="rounded-2xl border border-line bg-bg-elev p-5 shadow-sm space-y-4">
+              <h3 className="text-xs font-bold text-ink uppercase tracking-wider">{selectedTier.name} Includes</h3>
 
-              <div className="space-y-2 border-b border-line pb-3">
-                <div className="flex justify-between">
-                  <span className="text-ink-2">Priority submission fee</span>
-                  <span className="font-semibold text-ink">$75.00</span>
+              <div className="space-y-4 text-xs">
+                <div className="rounded-xl bg-accent-soft/30 p-3 border border-accent/15 flex items-center gap-2">
+                  <ShieldCheck className="h-4 w-4 text-accent" />
+                  <span className="font-semibold text-accent-ink">{selectedTier.reviewEta}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-ink-2">Launch Discount</span>
-                  <span className="font-semibold text-accent">-$25.01</span>
-                </div>
-              </div>
 
-              <div className="flex justify-between items-baseline pt-1">
-                <span className="font-bold text-ink">Total Due</span>
-                <span className="text-xl font-bold text-ink">$49.99</span>
-              </div>
+                {submissionType === 'sponsor' ? (
+                  <>
+                    <div className="space-y-2 border-b border-line pb-3">
+                      <div className="flex justify-between">
+                        <span className="text-ink-2">Priority submission fee</span>
+                        <span className="font-semibold text-ink">$75.00</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-ink-2">Launch Discount</span>
+                        <span className="font-semibold text-accent">-$25.01</span>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-baseline pt-1">
+                      <span className="font-bold text-ink">Total Due</span>
+                      <span className="text-xl font-bold text-ink">{selectedTier.priceLabel}</span>
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex justify-between items-baseline pt-1 pb-1 border-b border-line">
+                    <span className="font-bold text-ink">Total Due</span>
+                    <span className="text-xl font-bold text-ink">{selectedTier.priceLabel}</span>
+                  </div>
+                )}
 
-              <ul className="space-y-2 text-ink-2 leading-relaxed pt-2 font-normal">
-                <li className="flex items-start gap-2">
-                  <span className="text-accent font-bold">✓</span>
-                  <span>Guaranteed review within 24 hours.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-accent font-bold">✓</span>
-                  <span>Sponsored placement above free listings in your category, permanently.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-accent font-bold">✓</span>
-                  <span>Featured badge in search & catalog results.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-accent font-bold">✓</span>
-                  <span>Spotlight inclusion in weekly student AI digest.</span>
-                </li>
-              </ul>
-            </div>
-          </section>
-        </div>
+                <ul className="space-y-2 text-ink-2 leading-relaxed pt-2 font-normal">
+                  {selectedTier.perks.map((perk) => (
+                    <li key={perk} className="flex items-start gap-2">
+                      <span className="text-accent font-bold">✓</span>
+                      <span>{perk}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </section>
+          </div>
+        )}
       </div>
 
       {/* Why Sponsor Your Tool Section */}
@@ -721,14 +744,14 @@ export default function SubmitPage() {
       {showPaymentModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 backdrop-blur-sm p-4 animate-fade-in">
           <div className="w-full max-w-lg bg-bg-elev border border-line rounded-3xl p-6 shadow-2xl space-y-6">
-            
+
             <div className="flex items-center justify-between border-b border-line pb-4">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="h-5 w-5 text-accent" />
-                <h3 className="text-base font-semibold text-ink">Secure Sponsored Checkout</h3>
+                <h3 className="text-base font-semibold text-ink">Secure {selectedTier.name} Checkout</h3>
               </div>
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={() => setShowPaymentModal(false)}
                 className="text-xs font-medium text-muted hover:text-ink hover:bg-bg-sunk px-2.5 py-1 rounded-lg border border-line/45 transition"
               >
@@ -738,11 +761,11 @@ export default function SubmitPage() {
 
             {!paymentDone ? (
               <div className="space-y-5">
-                
+
                 {/* Checkout Summary Banner */}
                 <div className="bg-bg-sunk/40 rounded-xl p-3 border border-line/45 flex justify-between items-center text-xs">
-                  <span className="font-normal text-ink-2">Priority Curation for <strong className="text-ink font-semibold">{formData.name || 'Your Tool'}</strong></span>
-                  <span className="font-bold text-ink">$49.99</span>
+                  <span className="font-normal text-ink-2">{selectedTier.name} for <strong className="text-ink font-semibold">{formData.name || 'Your Tool'}</strong></span>
+                  <span className="font-bold text-ink">{selectedTier.priceLabel}</span>
                 </div>
 
                 {/* Gateway Tab Selector */}
@@ -751,7 +774,7 @@ export default function SubmitPage() {
                     Select Secure Payment Gateway
                   </label>
                   <div className="grid grid-cols-3 gap-3">
-                    
+
                     {/* Stripe Tab (Maintenance) */}
                      <button
                        type="button"
@@ -806,64 +829,77 @@ export default function SubmitPage() {
                           Pay<span className="text-[#0070ba]">Pal</span>
                         </span>
                       </div>
-                      
-                      <div className="space-y-3 max-w-md mx-auto">
-                        <p className="text-xs text-ink-2 leading-relaxed font-normal">
-                          Complete your <b>$49.99 Priority Curation</b> payment directly on PayPal&apos;s secure checkout page:
-                        </p>
-                        
-                        <a
-                          href={paypalHostedConfig?.payment_url || 'https://www.paypal.com/ncp/payment/XMWMPTJH5ZHPY'}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={() => {
-                            setPaypalLinkClicked(true)
-                          }}
-                          className="inline-flex items-center justify-center gap-2 w-full bg-[#0070ba] hover:bg-[#005ea6] text-white font-bold py-3.5 px-6 rounded-xl text-sm transition-all shadow-md hover:shadow-lg active:scale-[0.98]"
-                        >
-                          <span>Pay $49.99 via PayPal Checkout</span>
-                          <ArrowUpRight className="h-4 w-4" />
-                        </a>
-                        <span className="block text-[10px] text-muted-2">Opens PayPal&apos;s official checkout in a new window</span>
 
-                        {paypalLinkClicked && (
-                          <div className="mt-4 p-4 rounded-xl border border-line bg-bg-elev text-left space-y-3 animate-fade-in">
-                            <p className="text-xs font-semibold text-ink">
-                              Opened PayPal checkout in a new window.
-                            </p>
-                            <p className="text-[11px] text-ink-2">
-                              Once you complete payment on PayPal, paste your <b>Transaction ID / Receipt Number</b> below to submit for review:
-                            </p>
-                            <div className="flex gap-2">
-                              <input
-                                type="text"
-                                value={manualTxId}
-                                onChange={(e) => setManualTxId(e.target.value)}
-                                placeholder="e.g. 5XY123456789 or PAYID-..."
-                                className="flex-1 rounded-lg border border-line bg-bg px-3 py-2 text-xs text-ink outline-none focus:border-accent"
-                              />
-                              <button
-                                type="button"
-                                disabled={!manualTxId.trim() || submitting}
-                                onClick={() => {
-                                  if (!manualTxId.trim()) return
-                                  const txRef = manualTxId.trim()
-                                  setTransactionRef(txRef)
-                                  setShowPaymentModal(false)
-                                  submitData('sponsored_paypal', txRef)
-                                }}
-                                className="px-4 py-2 bg-accent text-white font-bold text-xs rounded-lg hover:bg-accent/90 disabled:opacity-50 transition shrink-0"
-                              >
-                                Confirm & Submit
-                              </button>
+                      {/* The manual "pay via link, paste tx id" path only exists for
+                          tiers with a real pre-made PayPal hosted-button product
+                          behind them. Quick Review has none yet (its env vars are
+                          unset), so it goes straight to the dynamic Smart Buttons
+                          flow below — fully automated, no manual paste step. */}
+                      {paypalHostedConfig?.hosted_button_id ? (
+                        <div className="space-y-3 max-w-md mx-auto">
+                          <p className="text-xs text-ink-2 leading-relaxed font-normal">
+                            Complete your <b>{selectedTier.priceLabel} {selectedTier.name}</b> payment directly on PayPal&apos;s secure checkout page:
+                          </p>
+
+                          <a
+                            href={paypalHostedConfig.payment_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={() => {
+                              setPaypalLinkClicked(true)
+                            }}
+                            className="inline-flex items-center justify-center gap-2 w-full bg-[#0070ba] hover:bg-[#005ea6] text-white font-bold py-3.5 px-6 rounded-xl text-sm transition-all shadow-md hover:shadow-lg active:scale-[0.98]"
+                          >
+                            <span>Pay {selectedTier.priceLabel} via PayPal Checkout</span>
+                            <ArrowUpRight className="h-4 w-4" />
+                          </a>
+                          <span className="block text-[10px] text-muted-2">Opens PayPal&apos;s official checkout in a new window</span>
+
+                          {paypalLinkClicked && (
+                            <div className="mt-4 p-4 rounded-xl border border-line bg-bg-elev text-left space-y-3 animate-fade-in">
+                              <p className="text-xs font-semibold text-ink">
+                                Opened PayPal checkout in a new window.
+                              </p>
+                              <p className="text-[11px] text-ink-2">
+                                Once you complete payment on PayPal, paste your <b>Transaction ID / Receipt Number</b> below to submit for review:
+                              </p>
+                              <div className="flex gap-2">
+                                <input
+                                  type="text"
+                                  value={manualTxId}
+                                  onChange={(e) => setManualTxId(e.target.value)}
+                                  placeholder="e.g. 5XY123456789 or PAYID-..."
+                                  className="flex-1 rounded-lg border border-line bg-bg px-3 py-2 text-xs text-ink outline-none focus:border-accent"
+                                />
+                                <button
+                                  type="button"
+                                  disabled={!manualTxId.trim() || submitting}
+                                  onClick={() => {
+                                    if (!manualTxId.trim()) return
+                                    const txRef = manualTxId.trim()
+                                    setTransactionRef(txRef)
+                                    setShowPaymentModal(false)
+                                    submitData(submissionType, txRef)
+                                  }}
+                                  className="px-4 py-2 bg-accent text-white font-bold text-xs rounded-lg hover:bg-accent/90 disabled:opacity-50 transition shrink-0"
+                                >
+                                  Confirm & Submit
+                                </button>
+                              </div>
                             </div>
-                          </div>
-                        )}
-                      </div>
+                          )}
+                        </div>
+                      ) : (
+                        <p className="text-xs text-ink-2 leading-relaxed font-normal max-w-md mx-auto">
+                          Pay {selectedTier.priceLabel} securely below via PayPal.
+                        </p>
+                      )}
 
                       {paypalLoaded && (
-                        <div className="pt-2 border-t border-line/40">
-                          <p className="text-[11px] text-muted mb-2">Or use PayPal Smart Buttons:</p>
+                        <div className={paypalHostedConfig?.hosted_button_id ? 'pt-2 border-t border-line/40' : ''}>
+                          {paypalHostedConfig?.hosted_button_id && (
+                            <p className="text-[11px] text-muted mb-2">Or use PayPal Smart Buttons:</p>
+                          )}
                           <div id="paypal-button-container" className="min-h-[60px] flex flex-col justify-center"></div>
                         </div>
                       )}
