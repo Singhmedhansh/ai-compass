@@ -50,6 +50,36 @@ _outreach_job_lock = threading.Lock()
 def _outreach_job_running():
     return _outreach_job_lock.locked()
 
+# Lets the admin UI poll for real completion instead of guessing with fixed
+# timeouts — discovery/re-enrich chain per-candidate network calls and can
+# run for several minutes, far longer than a page's initial refresh window.
+_outreach_job_state = {
+    "kind": None,
+    "running": False,
+    "started_at": None,
+    "finished_at": None,
+    "result": None,
+    "error": None,
+}
+
+def _job_start(kind):
+    _outreach_job_state.update({
+        "kind": kind,
+        "running": True,
+        "started_at": datetime.now(timezone.utc).isoformat(),
+        "finished_at": None,
+        "result": None,
+        "error": None,
+    })
+
+def _job_finish(result=None, error=None):
+    _outreach_job_state.update({
+        "running": False,
+        "finished_at": datetime.now(timezone.utc).isoformat(),
+        "result": result,
+        "error": error,
+    })
+
 def _is_admin() -> bool:
     if not getattr(current_user, "is_authenticated", False):
         return False
@@ -374,6 +404,7 @@ def trigger_discovery():
         # Backgrounded now, same pattern as /re-enrich.
         app_obj = current_app._get_current_object()
         app_ctx = app_obj.app_context()
+        _job_start("discovery")
 
         def _bg():
             try:
@@ -381,8 +412,10 @@ def trigger_discovery():
                     try:
                         new_count = run_discovery_pipeline()
                         app_obj.logger.info("Background discovery completed: %s new candidates.", new_count)
+                        _job_finish(result={"new_candidates": new_count})
                     except Exception as ex:
                         app_obj.logger.exception("Background discovery failed: %s", ex)
+                        _job_finish(error=str(ex))
             finally:
                 _outreach_job_lock.release()
 
@@ -407,6 +440,7 @@ def trigger_re_enrich():
     try:
         app_obj = current_app._get_current_object()
         app_ctx = app_obj.app_context()
+        _job_start("re-enrich")
 
         def _bg():
             try:
@@ -417,8 +451,10 @@ def trigger_re_enrich():
                             "Background re-verification completed: %s emails fixed, %s names fixed, %s drafts regenerated.",
                             result.get("emails_fixed", 0), result.get("names_fixed", 0), result.get("drafts_regenerated", 0)
                         )
+                        _job_finish(result=result)
                     except Exception as ex:
                         app_obj.logger.exception("Background re-enrichment failed: %s", ex)
+                        _job_finish(error=str(ex))
             finally:
                 _outreach_job_lock.release()
 
@@ -470,6 +506,7 @@ def trigger_catalog_campaign():
         # single shared vCPU) for minutes and degrade /healthz along with it.
         app_obj = current_app._get_current_object()
         app_ctx = app_obj.app_context()
+        _job_start("catalog-campaign")
 
         def _bg():
             try:
@@ -477,8 +514,10 @@ def trigger_catalog_campaign():
                     try:
                         result = run_catalog_traffic_campaign(min_clicks=min_clicks, days=days)
                         app_obj.logger.info("Catalog traffic campaign completed: %s", result)
+                        _job_finish(result=result)
                     except Exception as ex:
                         app_obj.logger.exception("Catalog traffic campaign failed: %s", ex)
+                        _job_finish(error=str(ex))
             finally:
                 _outreach_job_lock.release()
 
@@ -542,6 +581,7 @@ def trigger_regenerate_all_drafts():
     try:
         app_obj = current_app._get_current_object()
         app_ctx = app_obj.app_context()
+        _job_start("regenerate-drafts")
 
         def _bg():
             try:
@@ -549,8 +589,10 @@ def trigger_regenerate_all_drafts():
                     try:
                         count = regenerate_all_drafts()
                         app_obj.logger.info("Background draft regeneration completed: %s drafts regenerated.", count)
+                        _job_finish(result={"drafts_regenerated": count})
                     except Exception as ex:
                         app_obj.logger.exception("Background draft regeneration failed: %s", ex)
+                        _job_finish(error=str(ex))
             finally:
                 _outreach_job_lock.release()
 
@@ -658,6 +700,13 @@ def submit_verification_results():
 
     db.session.commit()
     return jsonify({"success": True, "updated": updated})
+
+@outreach_bp.route("/api/v1/admin/outreach/job-status", methods=["GET"])
+@login_required
+def get_outreach_job_status():
+    if not _is_admin():
+        return jsonify({"error": "Forbidden"}), 403
+    return jsonify(_outreach_job_state)
 
 @outreach_bp.route("/api/v1/admin/outreach/diagnostics", methods=["GET"])
 @login_required

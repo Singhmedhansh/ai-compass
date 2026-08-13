@@ -317,6 +317,27 @@ function AdminPage() {
     }
   }, [])
 
+  // Discovery/re-enrich/etc. chain per-candidate network calls sequentially
+  // and can run for several minutes — polling job-status until it actually
+  // finishes (rather than guessing with fixed timeouts) is what tells us
+  // when it's safe to reload the candidate list and report a real result.
+  const waitForOutreachJob = useCallback(async (kind, { intervalMs = 3000, timeoutMs = 10 * 60 * 1000 } = {}) => {
+    const deadline = Date.now() + timeoutMs
+    while (Date.now() < deadline) {
+      let status = null
+      try {
+        status = await api('/api/v1/admin/outreach/job-status')
+      } catch {
+        // transient — keep polling
+      }
+      if (status && status.kind === kind && !status.running) {
+        return status
+      }
+      await new Promise(r => setTimeout(r, intervalMs))
+    }
+    return null
+  }, [])
+
   useEffect(() => {
     if (!authed || activeTab !== 'Links') return
 
@@ -1384,12 +1405,19 @@ function AdminPage() {
                     setOutreachBusy('discovery')
                     try {
                       await api('/api/v1/admin/outreach/trigger-discovery', { method: 'POST' })
-                      toast.success('Discovery running in background! Refreshing candidates list...')
-                      // Discovery enriches each new candidate's email sequentially and can
-                      // take a while — poll a few times to pick up results as they land.
-                      setTimeout(() => loadOutreachData(), 5000)
-                      setTimeout(() => loadOutreachData(), 15000)
-                      setTimeout(() => loadOutreachData(), 30000)
+                      toast.success('Discovery started — this can take several minutes (each candidate is checked and enriched one at a time).')
+                      const finalStatus = await waitForOutreachJob('discovery')
+                      await loadOutreachData()
+                      if (!finalStatus) {
+                        toast.error('Discovery is taking longer than expected — check back shortly, it may still be running.')
+                      } else if (finalStatus.error) {
+                        toast.error(`Discovery failed: ${finalStatus.error}`)
+                      } else {
+                        const count = finalStatus.result?.new_candidates ?? 0
+                        toast.success(count > 0
+                          ? `Discovery complete — ${count} new candidate${count === 1 ? '' : 's'} found.`
+                          : 'Discovery complete — no new candidates found this run.')
+                      }
                     } catch (e) {
                       toast.error(e.message)
                     } finally {
