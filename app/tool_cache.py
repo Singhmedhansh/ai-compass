@@ -327,14 +327,36 @@ def get_cached_tools(data_path: str = DEFAULT_TOOLS_PATH) -> List[Dict[str, Any]
 
 
 def get_visible_tools(data_path: str = DEFAULT_TOOLS_PATH) -> List[Dict[str, Any]]:
-    """Tools actually shown to users — excludes admin-hidden entries.
+    """Tools actually shown to users — excludes admin-hidden entries and
+    tools still waiting out their staggered-release delay (visible_at in
+    the future — see catalog_tools.visible_at / pricing_tiers.py).
 
     Single source of truth so the catalog listing and the public tool
     count can never disagree (or drift from a hardcoded number). A tool
-    hidden via the admin panel must not be displayed *and* must not be
-    counted.
+    hidden via the admin panel — or not yet past its release delay — must
+    not be displayed *and* must not be counted. The visible_at check is
+    re-evaluated on every call (not cached), so a tool goes live on its own
+    the moment now() passes it — no cron needed.
     """
-    return [t for t in get_cached_tools(data_path) if not t.get("hidden")]
+    from datetime import datetime, timezone
+
+    now = datetime.now(timezone.utc)
+    visible = []
+    for t in get_cached_tools(data_path):
+        if t.get("hidden"):
+            continue
+        visible_at_raw = t.get("visible_at")
+        if visible_at_raw:
+            try:
+                visible_at = datetime.fromisoformat(str(visible_at_raw).replace("Z", "+00:00"))
+                if visible_at.tzinfo is None:
+                    visible_at = visible_at.replace(tzinfo=timezone.utc)
+                if visible_at > now:
+                    continue
+            except (TypeError, ValueError):
+                pass
+        visible.append(t)
+    return visible
 
 
 def refresh_tools_cache(data_path: str = DEFAULT_TOOLS_PATH) -> List[Dict[str, Any]]:

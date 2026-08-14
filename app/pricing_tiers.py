@@ -7,10 +7,20 @@ without risking a circular import.
 """
 
 TIERS = {
-    "free": {"prefix": "free", "price": 0.0, "paid": False},
-    "quick": {"prefix": "quick", "price": 14.99, "paid": True},
-    "sponsored": {"prefix": "sponsored", "price": 49.99, "paid": True},
+    # visibility_delay_days: how long an approved submission sits in the
+    # catalog (row exists, hidden=False) before it actually appears in
+    # get_visible_tools() — paying more buys a shorter wait, same idea as
+    # the priority review queue. See catalog_tools.visible_at.
+    "free": {"prefix": "free", "price": 0.0, "paid": False, "visibility_delay_days": 14},
+    "quick": {"prefix": "quick", "price": 14.99, "paid": True, "visibility_delay_days": 2},
+    "sponsored": {"prefix": "sponsored", "price": 49.99, "paid": True, "visibility_delay_days": 1},
 }
+
+
+def visibility_delay_days_for_tier(tier_key):
+    """Days an approved submission waits before going live. Unrecognized
+    tiers fall back to the free-tier (longest/safest) delay."""
+    return TIERS.get(tier_key, TIERS["free"])["visibility_delay_days"]
 
 
 def tier_for_pricing_model(pricing_model_raw):

@@ -278,6 +278,95 @@ def test_admin_approve_fast_track_grants_sponsored_placement(client, app):
     assert body["tool"]["sponsored"] is True
 
 
+def test_admin_approve_free_tier_delays_visibility_two_weeks(client, app):
+    """Free-tier approvals must not appear in the public catalog immediately
+    — they're gated behind a 14-day visible_at, same idea as the review
+    queue's priority ordering but for the catalog listing itself."""
+    from datetime import datetime, timezone, timedelta
+    with app.app_context():
+        refresh_tools_cache()
+        s = Submission(
+            name="Free Tier Tool",
+            website="https://freetiertool.example.com",
+            category="Productivity",
+            description="A free-tier tool.",
+            pricing_model="free",
+            status="pending",
+            payment_status="unpaid",
+        )
+        db.session.add(s)
+        db.session.commit()
+        sub_id = s.id
+
+    _login_as_admin(client, app, "admin-free@t.test")
+
+    resp = client.post(f"/api/v1/admin/submissions/{sub_id}/approve")
+    assert resp.status_code == 200, resp.data
+    body = resp.get_json()
+    visible_at = datetime.fromisoformat(body["tool"]["visible_at"])
+    expected = datetime.now(timezone.utc) + timedelta(days=14)
+    assert abs((visible_at - expected).total_seconds()) < 60
+
+    from app.tool_cache import get_visible_tools
+    with app.app_context():
+        refresh_tools_cache()
+        slugs = {t["slug"] for t in get_visible_tools()}
+    assert "free-tier-tool" not in slugs
+
+
+def test_admin_approve_sponsored_tier_short_visibility_delay(client, app):
+    """Fast-Track ($49.99) buys a 1-day delay instead of the free tier's 14,
+    matching the paid-priority-review promise."""
+    from datetime import datetime, timezone, timedelta
+    with app.app_context():
+        refresh_tools_cache()
+        s = Submission(
+            name="Paid Delay Tool",
+            website="https://paiddelaytool.example.com",
+            category="Productivity",
+            description="A fast-tracked tool.",
+            pricing_model="sponsored_paypal:STX333333",
+            status="pending",
+            payment_status="verified",
+            is_priority=True,
+        )
+        db.session.add(s)
+        db.session.commit()
+        sub_id = s.id
+
+    _login_as_admin(client, app, "admin-paiddelay@t.test")
+
+    resp = client.post(f"/api/v1/admin/submissions/{sub_id}/approve")
+    assert resp.status_code == 200, resp.data
+    body = resp.get_json()
+    visible_at = datetime.fromisoformat(body["tool"]["visible_at"])
+    expected = datetime.now(timezone.utc) + timedelta(days=1)
+    assert abs((visible_at - expected).total_seconds()) < 60
+
+
+def test_hide_tool_delay_days_schedules_future_visibility(client, app):
+    """The manual admin override: hide a specific already-visible tool for
+    N more days rather than an indefinite hidden=True."""
+    with app.app_context():
+        CatalogTool.query.delete()
+        db.session.commit()
+        _seed_catalog_tool("delay-me-tool", "Delay Me Tool", False)
+        db.session.commit()
+        refresh_tools_cache()
+
+    _login_as_admin(client, app, "admin-hidedelay@t.test")
+
+    resp = client.post("/api/v1/admin/tools/delay-me-tool/hide", json={"delay_days": 13})
+    assert resp.status_code == 200, resp.data
+    assert resp.get_json()["hidden"] is False
+
+    from app.tool_cache import get_visible_tools
+    with app.app_context():
+        refresh_tools_cache()
+        slugs = {t["slug"] for t in get_visible_tools()}
+    assert "delay-me-tool" not in slugs
+
+
 def _seed_catalog_tool(slug, name, sponsored):
     data = {
         "slug": slug,

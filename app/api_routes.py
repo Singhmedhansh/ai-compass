@@ -2624,7 +2624,26 @@ def hide_tool(slug):
     if not _is_admin():
         return jsonify({"error": "Forbidden"}), 403
     from app.catalog_store import set_fields
-    hidden = (request.get_json(silent=True) or {}).get("hidden", True)
+    payload = request.get_json(silent=True) or {}
+
+    # delay_days is a manual override of the staggered-release gate (e.g.
+    # "hold this specific tool back N more days") — distinct from the
+    # permanent on/off `hidden` flag. Passing it implies hidden=False so
+    # the tool relies on visible_at alone once the delay elapses, instead
+    # of also needing a separate un-hide step.
+    if "delay_days" in payload:
+        from datetime import datetime, timezone, timedelta
+        try:
+            days = float(payload.get("delay_days"))
+        except (TypeError, ValueError):
+            return jsonify({"error": "delay_days must be a number"}), 400
+        visible_at = datetime.now(timezone.utc) + timedelta(days=days)
+        if not set_fields(slug, hidden=False, visible_at=visible_at):
+            return jsonify({"error": "Tool not found"}), 404
+        _refresh_catalog()
+        return jsonify({"success": True, "hidden": False, "visible_at": visible_at.isoformat()})
+
+    hidden = payload.get("hidden", True)
     if not set_fields(slug, hidden=bool(hidden)):
         return jsonify({"error": "Tool not found"}), 404
     _refresh_catalog()
@@ -4723,9 +4742,18 @@ def admin_approve_submission(sub_id):
     # Checking the tier prefix (not just is_priority) is what keeps that
     # distinction real instead of accidentally selling Fast-Track's perks
     # at Quick Review's price.
-    from app.pricing_tiers import tier_for_pricing_model
+    from app.pricing_tiers import tier_for_pricing_model, visibility_delay_days_for_tier
     tier_key = tier_for_pricing_model(s.pricing_model or "")
     is_sponsored = bool(tier_key == "sponsored" and s.payment_status == "verified")
+
+    # Staggered release: free listings wait out the full review window
+    # before appearing publicly; paid tiers buy a shorter wait (see
+    # pricing_tiers.TIERS). The row is created now (hidden=False) so admin
+    # tooling can see/edit it immediately — visible_at is what actually
+    # gates get_visible_tools() until the delay elapses.
+    from datetime import datetime, timezone, timedelta
+    delay_days = visibility_delay_days_for_tier(tier_key)
+    visible_at = datetime.now(timezone.utc) + timedelta(days=delay_days)
 
     record = _normalize_tool_record({
         "slug": slug,
@@ -4743,6 +4771,7 @@ def admin_approve_submission(sub_id):
         # review, rather than guessing wrong on the tool's behalf.
         "tags": [t.strip() for t in (s.tags or "").split(",") if t.strip()],
         "sponsored": is_sponsored,
+        "visible_at": visible_at.isoformat(),
     })
     if not upsert_tool(record):
         return jsonify({"error": "Could not add to catalog"}), 500

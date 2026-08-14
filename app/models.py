@@ -65,6 +65,12 @@ class CatalogTool(db.Model):
     name = db.Column(db.String(255), nullable=False, index=True)
     category = db.Column(db.String(100), nullable=True, index=True)
     hidden = db.Column(db.Boolean, nullable=False, default=False, index=True)
+    # Staggered-release gate: a tool with visible_at in the future is kept out
+    # of get_visible_tools() (public catalog) even though hidden=False, then
+    # becomes visible automatically once now() passes it — no cron needed,
+    # the read-path filter in tool_cache.get_visible_tools() just re-evaluates
+    # this on every call. NULL means no release delay.
+    visible_at = db.Column(db.DateTime, nullable=True, index=True)
     affiliate_url = db.Column(db.String(500), nullable=True)
     data = db.Column(db.Text, nullable=False)  # full normalized tool dict (JSON)
     sort_order = db.Column(db.Integer, nullable=True, index=True)

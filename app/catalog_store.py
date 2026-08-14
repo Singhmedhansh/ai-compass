@@ -13,8 +13,23 @@ from __future__ import annotations
 
 import json
 import logging
+from datetime import datetime, timezone
 
 log = logging.getLogger(__name__)
+
+
+def _parse_iso_datetime(value):
+    """Best-effort ISO-8601 string -> aware UTC datetime. Returns None on
+    anything unparseable so callers can treat it as "no restriction"."""
+    if value is None or isinstance(value, datetime):
+        return value
+    try:
+        dt = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    except (TypeError, ValueError):
+        return None
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt
 
 
 # Belt-and-braces guard: rows whose slug or name screams "left-over admin
@@ -43,6 +58,10 @@ def _row_to_record(row) -> dict:
     if row.category:
         rec["category"] = row.category
     rec["hidden"] = bool(row.hidden)
+    if row.visible_at:
+        rec["visible_at"] = row.visible_at.replace(tzinfo=timezone.utc).isoformat()
+    else:
+        rec.pop("visible_at", None)
     if row.affiliate_url:
         rec["affiliate_url"] = row.affiliate_url
     return rec
@@ -158,6 +177,9 @@ def upsert_tool(record: dict) -> bool:
         row.name = name
         row.category = str(record.get("category") or "").strip() or None
         row.hidden = bool(record.get("hidden", row.hidden if row.id else False))
+        if "visible_at" in record:
+            parsed = _parse_iso_datetime(record.get("visible_at"))
+            row.visible_at = parsed.replace(tzinfo=None) if parsed else None
         row.affiliate_url = record.get("affiliate_url") or None
         row.data = json.dumps(record, ensure_ascii=False)
         db.session.commit()
@@ -193,9 +215,9 @@ def delete_tool(slug: str) -> bool:
         return False
 
 
-def set_fields(slug: str, *, hidden=None, affiliate_url=None) -> bool:
-    """Lightweight column-only update (hide/show, affiliate URL) that also
-    keeps the JSON blob's mirrored keys in sync."""
+def set_fields(slug: str, *, hidden=None, affiliate_url=None, visible_at=None) -> bool:
+    """Lightweight column-only update (hide/show, affiliate URL, staggered-
+    release timestamp) that also keeps the JSON blob's mirrored keys in sync."""
     try:
         from app import db
         from app.models import CatalogTool
@@ -210,6 +232,13 @@ def set_fields(slug: str, *, hidden=None, affiliate_url=None) -> bool:
         if hidden is not None:
             row.hidden = bool(hidden)
             rec["hidden"] = bool(hidden)
+        if visible_at is not None:
+            parsed = _parse_iso_datetime(visible_at)
+            row.visible_at = parsed.replace(tzinfo=None) if parsed else None
+            if parsed:
+                rec["visible_at"] = parsed.isoformat()
+            else:
+                rec.pop("visible_at", None)
         if affiliate_url is not None:
             row.affiliate_url = affiliate_url or None
             if affiliate_url:

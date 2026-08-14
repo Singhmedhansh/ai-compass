@@ -762,6 +762,16 @@ def create_app(config: dict | None = None) -> Flask:
                         except Exception:
                             db.session.rollback()
 
+                    # Same fallback for catalog_tools: staggered-release gate
+                    # (visible_at) added after this table already existed on
+                    # Render, so it needs the same raw-SQL guarantee above.
+                    try:
+                        from sqlalchemy import text
+                        db.session.execute(text(f"ALTER TABLE catalog_tools ADD COLUMN {if_not_exists}visible_at TIMESTAMP;"))
+                        db.session.commit()
+                    except Exception:
+                        db.session.rollback()
+
                     try:
                         from app.catalog_store import seed_from_json_if_empty, sync_catalog_from_json, sync_ratings_and_verifications_from_json
                         seeded = seed_from_json_if_empty()
