@@ -74,6 +74,17 @@
   </tbody>
 </table>
 
+{% if dashboard_url %}
+<div style="text-align: center; margin: 32px 0;">
+  <a href="{{ dashboard_url }}" class="cta-button">View your dashboard</a>
+</div>
+<p class="paragraph" style="font-size: 13px; text-align: center;">
+  Track clicks, views, and (for Fast-Track) how you compare to the category average — anytime.
+</p>
+{% endif %}
+
+{% include "emails/_account_callout.html" %}
+
 <p class="paragraph" style="margin-top: 30px;">
   If you have any questions about your submission or billing, please contact us at help@ai-compass.in.
 </p>

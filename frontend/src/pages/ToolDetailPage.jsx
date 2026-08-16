@@ -464,6 +464,25 @@ function ToolDetailPage() {
     }
   }, [slug])
 
+  // Best-effort page-view counter for the submitter dashboard. Deduped
+  // client-side (30 min/tab) so reloads and re-renders don't inflate it —
+  // directional, not fraud-proof.
+  useEffect(() => {
+    const normalizedSlug = String(slug || '').trim().toLowerCase()
+    if (!normalizedSlug) {
+      return
+    }
+
+    const dedupeKey = `tpv:${normalizedSlug}`
+    const last = Number(sessionStorage.getItem(dedupeKey) || 0)
+    const now = Date.now()
+    if (now - last < 30 * 60 * 1000) {
+      return
+    }
+    sessionStorage.setItem(dedupeKey, String(now))
+    fetch(`/api/v1/tools/${encodeURIComponent(normalizedSlug)}/view`, { method: 'POST' }).catch(() => {})
+  }, [slug])
+
   const priceKey = (tool?.pricing || 'free').toLowerCase().includes('paid')
     ? 'paid'
     : (tool?.pricing || '').toLowerCase().includes('freemium')

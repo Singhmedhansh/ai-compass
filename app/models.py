@@ -80,6 +80,11 @@ class CatalogTool(db.Model):
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
     )
+    # Soft reference back to the Submission that created this row (set on
+    # approval) — lets the submitter dashboard resolve "this submission's
+    # live listing" without matching by slug/name. No FK constraint, same
+    # spirit as OutboundClick.slug not being one either.
+    submission_id = db.Column(db.Integer, nullable=True, index=True)
 
 
 class FeatureFlag(db.Model):
@@ -108,6 +113,22 @@ class OutboundClick(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     slug = db.Column(db.String(255), nullable=False, index=True)
     is_affiliate = db.Column(db.Boolean, nullable=False, default=False)
+    created_at = db.Column(
+        db.DateTime, nullable=False, index=True,
+        default=lambda: datetime.now(timezone.utc),
+    )
+
+
+class ToolPageView(db.Model):
+    """One row per tool-detail-page view — the 'views' half of the
+    submitter-dashboard views-vs-clicks signal, mirrors OutboundClick.
+    Best-effort/directional (client-side deduped, no server-side per-IP
+    debounce) — not a fraud-proof counter."""
+
+    __tablename__ = "tool_page_views"
+
+    id = db.Column(db.Integer, primary_key=True)
+    slug = db.Column(db.String(255), nullable=False, index=True)
     created_at = db.Column(
         db.DateTime, nullable=False, index=True,
         default=lambda: datetime.now(timezone.utc),

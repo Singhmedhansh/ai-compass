@@ -27,6 +27,18 @@ function RegisterPage() {
   const [touched, setTouched] = useState({})
   const [submitted, setSubmitted] = useState(false)
 
+  // Prefills from links like the submission-confirmation email's "Create
+  // your account" CTA (?email=...), so submitters don't have to retype the
+  // address they already gave us.
+  useEffect(() => {
+    const params = new URLSearchParams(location.search)
+    const prefill = params.get('email')
+    if (prefill && emailPattern.test(prefill)) {
+      setEmail(prefill)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   const markTouched = (field) =>
     setTouched((prev) => (prev[field] ? prev : { ...prev, [field]: true }))
 

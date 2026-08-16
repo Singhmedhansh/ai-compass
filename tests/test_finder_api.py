@@ -130,3 +130,27 @@ def test_finder_student_perk_and_fuzzy_match(client, monkeypatch):
     # The one with studentPerk and matching custom use-case should rank first
     assert tools[0]["slug"] == "super-student-writer"
 
+
+
+def test_record_tool_view_persists_and_counts(client, app):
+    """POST /tools/<slug>/view is the instrumentation the submitter
+    dashboard's 'views' numbers depend on — it must actually write rows
+    keyed by lowercased slug, not just return 200."""
+    from app import db
+    from app.models import ToolPageView
+
+    resp1 = client.post("/api/v1/tools/Some-Tool/view")
+    assert resp1.status_code == 201
+    resp2 = client.post("/api/v1/tools/some-tool/view")
+    assert resp2.status_code == 201
+
+    with app.app_context():
+        count = ToolPageView.query.filter_by(slug="some-tool").count()
+        assert count == 2
+        db.session.query(ToolPageView).delete()
+        db.session.commit()
+
+
+def test_record_tool_view_rejects_empty_slug(client):
+    resp = client.post("/api/v1/tools/ /view")
+    assert resp.status_code in (400, 404)

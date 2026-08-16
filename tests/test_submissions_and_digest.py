@@ -397,3 +397,315 @@ def test_tools_sponsored_endpoint_only_returns_active_sponsors(client, app):
     assert "free-tool" not in slugs
 
 
+# --- Submitter dashboard (analytics behind the paid tiers) ----------------
+
+def _record_click_and_view(app, slug, n=1):
+    from app.models import OutboundClick, ToolPageView
+    with app.app_context():
+        for _ in range(n):
+            db.session.add(OutboundClick(slug=slug))
+            db.session.add(ToolPageView(slug=slug))
+        db.session.commit()
+
+
+def test_submission_dashboard_sponsored_tier_returns_analytics_and_benchmark(client, app):
+    """End-to-end: submit -> approve -> real clicks/views -> minted token ->
+    dashboard endpoint returns totals plus a category benchmark, and
+    admin_approve_submission actually linked catalog_tools.submission_id."""
+    with app.app_context():
+        refresh_tools_cache()
+        CatalogTool.query.delete()
+        db.session.commit()
+        # A peer in the same category so the benchmark has something to
+        # compare against.
+        _seed_catalog_tool("peer-tool", "Peer Tool", False)
+        db.session.commit()
+
+        s = Submission(
+            name="Dash Sponsored Tool",
+            website="https://dashsponsored.example.com",
+            category="Productivity",
+            description="A fast-tracked tool for dashboard testing.",
+            pricing_model="sponsored_paypal:DSH333333",
+            submitter_email="founder@dashsponsored.example.com",
+            status="pending",
+            payment_status="verified",
+            is_priority=True,
+        )
+        db.session.add(s)
+        db.session.commit()
+        sub_id = s.id
+
+    _login_as_admin(client, app, "admin-dash@t.test")
+    resp = client.post(f"/api/v1/admin/submissions/{sub_id}/approve")
+    assert resp.status_code == 200, resp.data
+    slug = resp.get_json()["tool"]["slug"]
+
+    with app.app_context():
+        catalog_row = CatalogTool.query.filter_by(slug=slug).first()
+        assert catalog_row.submission_id == sub_id
+
+    _record_click_and_view(app, slug, n=3)
+    # Give the peer tool some clicks too, otherwise the benchmark denominator
+    # (avg_peer_clicks) is 0 and pct_vs_average comes back as None.
+    _record_click_and_view(app, "peer-tool", n=1)
+
+    with app.app_context():
+        from app.models import Favorite, Rating
+        voter = User(email="voter-dashsponsored@t.test")
+        db.session.add(voter)
+        db.session.commit()
+        db.session.add(Favorite(user_id=voter.id, tool_id=slug))
+        db.session.add(Rating(user_id=voter.id, tool_slug=slug, value=5))
+        db.session.commit()
+
+        from app.submission_dashboard import mint_dashboard_token
+        token = mint_dashboard_token(sub_id, "founder@dashsponsored.example.com")
+
+    resp = client.get(f"/api/v1/submissions/dashboard?token={token}")
+    assert resp.status_code == 200, resp.data
+    body = resp.get_json()
+
+    assert body["tier"] == "sponsored"
+    assert body["submission"]["status"] == "approved"
+    assert body["submission"]["slug"] == slug
+    assert body["analytics"]["total_clicks"] == 3
+    assert body["analytics"]["total_views"] == 3
+    assert body["analytics"]["clicks_30d"] == 3
+    assert len(body["analytics"]["daily_trend"]) == 15  # 14 days inclusive of today
+
+    # CTR = clicks / views = 3/3 = 100%
+    assert body["analytics"]["ctr"] == 100.0
+    assert body["analytics"]["favorites"] == 1
+    assert body["analytics"]["rating"]["count"] == 1
+    assert body["analytics"]["rating"]["average"] == 5.0
+
+    assert body["benchmark"]["available"] is True
+    assert body["benchmark"]["your_clicks_30d"] == 3
+    assert body["benchmark"]["category_avg_clicks_30d"] == 1.0
+    assert body["benchmark"]["pct_vs_average"] == 200.0  # 3 vs 1 avg = +200%
+    # 2 tools total in category (this one + peer-tool), this one has more
+    # clicks (3 vs 1), so it ranks #1.
+    assert body["benchmark"]["your_rank"] == 1
+    assert body["benchmark"]["total_tools_in_category"] == 2
+
+    assert body["featured"]["badge"] is True
+    assert body["featured"]["homepage_strip"] is True
+
+
+def test_submission_dashboard_ctr_is_none_without_views(client, app):
+    """CTR must be None (not a misleading 0%) when there's no view data —
+    clicks with zero views is a data gap, not a 0% conversion rate."""
+    with app.app_context():
+        refresh_tools_cache()
+        CatalogTool.query.delete()
+        db.session.commit()
+        _seed_catalog_tool("dash-quick-ctr-tool", "Dash Quick CTR Tool", False)
+        db.session.commit()
+
+        s = Submission(
+            name="Dash Quick CTR Tool",
+            website="https://dashquickctr.example.com",
+            category="Productivity",
+            description="A quick-tier tool for CTR edge-case testing.",
+            pricing_model="quick_paypal:QCT666666",
+            submitter_email="founder@dashquickctr.example.com",
+            status="approved",
+            payment_status="verified",
+        )
+        db.session.add(s)
+        db.session.commit()
+        sub_id = s.id
+
+        from app.models import OutboundClick
+        catalog_row = CatalogTool.query.filter_by(slug="dash-quick-ctr-tool").first()
+        catalog_row.submission_id = sub_id
+        db.session.add(OutboundClick(slug="dash-quick-ctr-tool"))
+        db.session.commit()
+
+        from app.submission_dashboard import mint_dashboard_token
+        token = mint_dashboard_token(sub_id, "founder@dashquickctr.example.com")
+
+    resp = client.get(f"/api/v1/submissions/dashboard?token={token}")
+    assert resp.status_code == 200, resp.data
+    body = resp.get_json()
+    assert body["tier"] == "quick"
+    assert body["analytics"]["total_clicks"] == 1
+    assert body["analytics"]["total_views"] == 0
+    assert body["analytics"]["ctr"] is None
+    assert body["analytics"]["favorites"] == 0
+    assert body["analytics"]["rating"] == {"average": 0.0, "count": 0}
+    # Quick tier doesn't get the benchmark/featured perks — those are
+    # Fast-Track only.
+    assert "benchmark" not in body
+    assert "featured" not in body
+
+
+def test_submission_dashboard_free_tier_is_status_only(client, app):
+    """Free-tier dashboards must never leak analytics — that gap is what's
+    supposed to make the paid tiers worth buying."""
+    with app.app_context():
+        refresh_tools_cache()
+        s = Submission(
+            name="Dash Free Tool",
+            website="https://dashfree.example.com",
+            category="Productivity",
+            description="A free-tier tool for dashboard testing.",
+            pricing_model="free",
+            submitter_email="founder@dashfree.example.com",
+            status="pending",
+            payment_status="unpaid",
+        )
+        db.session.add(s)
+        db.session.commit()
+        sub_id = s.id
+
+        from app.submission_dashboard import mint_dashboard_token
+        token = mint_dashboard_token(sub_id, "founder@dashfree.example.com")
+
+    resp = client.get(f"/api/v1/submissions/dashboard?token={token}")
+    assert resp.status_code == 200, resp.data
+    body = resp.get_json()
+
+    assert body["tier"] == "free"
+    assert body["submission"]["status"] == "pending"
+    assert "analytics" not in body
+    assert "benchmark" not in body
+
+
+def test_submission_dashboard_unverified_paid_claim_falls_back_to_free(client, app):
+    """An unverified 'sponsored_paypal' claim must not unlock paid-tier
+    analytics just because the pricing_model string says sponsored —
+    gating is on payment_status == 'verified', not the claimed tier."""
+    with app.app_context():
+        refresh_tools_cache()
+        s = Submission(
+            name="Dash Unverified Tool",
+            website="https://dashunverified.example.com",
+            category="Productivity",
+            description="An unverified paid claim.",
+            pricing_model="sponsored_paypal:UNV444444",
+            submitter_email="founder@dashunverified.example.com",
+            status="pending",
+            payment_status="unverified_review",
+        )
+        db.session.add(s)
+        db.session.commit()
+        sub_id = s.id
+
+        from app.submission_dashboard import mint_dashboard_token
+        token = mint_dashboard_token(sub_id, "founder@dashunverified.example.com")
+
+    resp = client.get(f"/api/v1/submissions/dashboard?token={token}")
+    assert resp.status_code == 200, resp.data
+    body = resp.get_json()
+    assert body["tier"] == "free"
+    assert "analytics" not in body
+
+
+def test_submission_dashboard_rejects_bad_token(client, app):
+    resp = client.get("/api/v1/submissions/dashboard?token=not-a-real-token")
+    assert resp.status_code == 401
+    assert resp.get_json()["error"] == "invalid"
+
+
+def test_resend_dashboard_link_always_returns_generic_success(client, app):
+    """Must not leak whether an email/tool-name pair matches a real
+    submission — same response either way."""
+    with app.app_context():
+        s = Submission(
+            name="Dash Resend Tool",
+            website="https://dashresend.example.com",
+            category="Productivity",
+            description="A tool for resend-link testing.",
+            pricing_model="quick_paypal:RSD555555",
+            submitter_email="founder@dashresend.example.com",
+            status="pending",
+            payment_status="verified",
+        )
+        db.session.add(s)
+        db.session.commit()
+
+    resp_match = client.post(
+        "/api/v1/submissions/dashboard/resend",
+        json={"email": "founder@dashresend.example.com", "tool_name": "Dash Resend Tool"},
+    )
+    resp_no_match = client.post(
+        "/api/v1/submissions/dashboard/resend",
+        json={"email": "nobody@nowhere.example.com", "tool_name": "Does Not Exist"},
+    )
+
+    assert resp_match.status_code == 200
+    assert resp_no_match.status_code == 200
+    assert resp_match.get_json()["success"] is True
+    assert resp_no_match.get_json()["success"] is True
+
+
+
+
+# --- "Create an account" CTA in submission confirmation emails ------------
+
+def test_free_tier_confirmation_email_includes_register_link(client, app, monkeypatch):
+    """Free submitters should get a confirmation email nudging them to
+    create an account for one-click dashboard access, alongside the
+    magic-link 'track your submission' CTA."""
+    import app.email_utils as email_utils_mod
+
+    sent = []
+    monkeypatch.setattr(
+        email_utils_mod, "send_email",
+        lambda **kwargs: sent.append(kwargs) or True,
+    )
+
+    resp = client.post("/api/v1/submit-tool", json={
+        "name": "Register CTA Free Tool",
+        "url": "https://registerctafree.example.com",
+        "category": "Productivity",
+        "reason": "Testing the register CTA.",
+        "submitter_email": "founder@registerctafree.example.com",
+    })
+    assert resp.status_code == 201, resp.data
+
+    confirmation = next(
+        (m for m in sent if m.get("to") == "founder@registerctafree.example.com"), None
+    )
+    assert confirmation is not None, sent
+    assert "Create my free account" in confirmation["html"]
+    assert "/register?email=" in confirmation["html"]
+
+
+def test_paid_invoice_email_includes_register_link(client, app, monkeypatch):
+    """Payment verification is server-side (verify_paypal_order), so it has
+    to be faked here to actually exercise the invoice-email branch rather
+    than falling through to the unverified-claim path."""
+    import app.payments as payments_mod
+    import app.email_utils as email_utils_mod
+
+    monkeypatch.setattr(
+        payments_mod, "verify_paypal_order",
+        lambda order_id, expected_amount=49.99, expected_currency="USD": (True, "paypal_order_verified"),
+    )
+
+    sent = []
+    monkeypatch.setattr(
+        email_utils_mod, "send_email",
+        lambda **kwargs: sent.append(kwargs) or True,
+    )
+
+    resp = client.post("/api/v1/submit-tool", json={
+        "name": "Register CTA Paid Tool",
+        "url": "https://registerctapaid.example.com",
+        "category": "Productivity",
+        "reason": "Testing the register CTA on a paid tier.",
+        "submitter_email": "founder@registerctapaid.example.com",
+        "pricing_model": "quick_paypal",
+        "transaction_ref": "REGCTA123",
+    })
+    assert resp.status_code == 201, resp.data
+
+    invoice = next(
+        (m for m in sent if m.get("to") == "founder@registerctapaid.example.com"), None
+    )
+    assert invoice is not None, sent
+    assert "Create my free account" in invoice["html"]
+    assert "/register?email=" in invoice["html"]

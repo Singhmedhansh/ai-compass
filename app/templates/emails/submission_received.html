@@ -1,0 +1,29 @@
+{% extends "emails/base.html" %}
+
+{% block title %}We received your submission - AI Compass{% endblock %}
+
+{% block content %}
+<h1 class="heading">We received your submission</h1>
+<p class="paragraph">
+  Thanks for submitting <strong>{{ tool_name }}</strong> to AI Compass! Free
+  submissions are reviewed in the order they arrive — usually within about
+  two weeks.
+</p>
+
+{% if dashboard_url %}
+<div style="text-align: center; margin: 32px 0;">
+  <a href="{{ dashboard_url }}" class="cta-button">Track your submission</a>
+</div>
+<p class="paragraph" style="font-size: 13px; text-align: center;">
+  Check review status anytime — and see what click/view analytics look like
+  once your tool is live.
+</p>
+{% endif %}
+
+{% include "emails/_account_callout.html" %}
+
+<p class="paragraph" style="margin-top: 30px;">
+  Want a faster review or guaranteed placement instead of the queue? See our
+  <a href="https://ai-compass.in/pricing" style="color: #059669; font-weight: 600;">paid listing tiers</a>.
+</p>
+{% endblock %}

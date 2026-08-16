@@ -1399,6 +1399,26 @@ def get_tool(slug: str):
     return jsonify({"error": "Tool not found"}), 404
 
 
+@api_bp.post("/tools/<slug>/view")
+@csrf.exempt
+def record_tool_view(slug: str):
+    """Best-effort page-view counter powering the submitter dashboard.
+    Never fails the page load — same failure philosophy as the /go/<slug>
+    click logger in routes.py."""
+    from app.models import ToolPageView
+
+    slug_l = (slug or "").strip().lower()
+    if not slug_l:
+        return jsonify({"ok": False}), 400
+    try:
+        db.session.add(ToolPageView(slug=slug_l))
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        current_app.logger.exception("record_tool_view failed for slug=%s", slug_l)
+    return jsonify({"ok": True}), 201
+
+
 @api_bp.get("/tools/<slug>/alternatives")
 def tool_alternatives(slug):
     from app.tool_cache import get_alternatives_for_tool
@@ -1458,11 +1478,11 @@ def get_tool_reviews(slug: str):
                       "message": "No reviews yet. Be the first!"}), 200
 
 
-@api_bp.get("/tools/<slug>/ratings")
-def get_tool_ratings(slug: str):
-    slug_value = str(slug or "").strip().lower()
-    t0 = time.time()
-    current_app.logger.info(f"[PERF] ratings start: {slug_value}")
+def _combined_rating_summary(slug_value: str):
+    """(average, count) blending live Rating rows with the seed rating/
+    review_count baked into the catalog JSON at import time — same
+    weighting get_tool_ratings has always used, factored out so the
+    submitter dashboard can show the same number without duplicating it."""
     result = (
         db.session.query(
             func.count(Rating.id).label("count"),
@@ -1471,8 +1491,6 @@ def get_tool_ratings(slug: str):
         .filter(Rating.tool_slug == slug_value)
         .first()
     )
-    current_app.logger.info(f"[PERF] after ratings query: {time.time() - t0:.2f}s")
-
     db_count = int(result.count or 0) if result else 0
     db_sum = float(result.sum or 0) if result and result.sum is not None else 0
 
@@ -1493,6 +1511,16 @@ def get_tool_ratings(slug: str):
         combined_avg = round(((seed_avg * seed_count) + db_sum) / combined_count, 1)
     else:
         combined_avg = 0.0
+    return combined_avg, combined_count
+
+
+@api_bp.get("/tools/<slug>/ratings")
+def get_tool_ratings(slug: str):
+    slug_value = str(slug or "").strip().lower()
+    t0 = time.time()
+    current_app.logger.info(f"[PERF] ratings start: {slug_value}")
+    combined_avg, combined_count = _combined_rating_summary(slug_value)
+    current_app.logger.info(f"[PERF] after ratings query: {time.time() - t0:.2f}s")
 
     user_rating = None
     if current_user.is_authenticated:
@@ -1756,9 +1784,10 @@ def submit_tool():
         # wiped on every deploy, so the queue was permanently empty and no
         # submission could ever be reviewed. Email notify below stays
         # best-effort and is no longer the durable channel.
+        sub = None
         try:
             from app.models import Submission
-            db.session.add(Submission(
+            sub = Submission(
                 name=name,
                 website=url,
                 category=category,
@@ -1770,7 +1799,8 @@ def submit_tool():
                 payment_status=payment_status,
                 payment_note=payment_note,
                 is_priority=payment_verified,
-            ))
+            )
+            db.session.add(sub)
             db.session.commit()
         except Exception:
             db.session.rollback()
@@ -1787,6 +1817,21 @@ def submit_tool():
         # 1. Only send an invoice / "payment approved" language for a
         # server-verified payment — never for an unverified claim.
         is_paid = payment_verified
+        dash_link = None
+        register_link = None
+        if sub is not None and submitter_email:
+            try:
+                from app.submission_dashboard import dashboard_url
+                dash_link = dashboard_url(sub.id, submitter_email)
+            except Exception:
+                current_app.logger.exception("Failed to mint dashboard link for submission_id=%s", getattr(sub, "id", None))
+            try:
+                from urllib.parse import quote
+                from app.oauth import _frontend_base_url
+                register_link = f"{_frontend_base_url()}/register?email={quote(submitter_email)}"
+            except Exception:
+                current_app.logger.exception("Failed to build register link for submission_id=%s", getattr(sub, "id", None))
+
         if is_paid and submitter_email:
             try:
                 # Extract clean payment method name
@@ -1826,16 +1871,46 @@ def submit_tool():
                     line_item_label=f"{tier_name} Curation",
                     line_item_amount=f"${tier_amount:.2f}",
                     total_amount=f"${tier_amount:.2f} USD",
+                    dashboard_url=dash_link,
+                    register_url=register_link,
                 )
+
+                invoice_text = f"Thank you for your purchase! {tier_name} payment of ${tier_amount:.2f} USD has been received. Invoice Number: {invoice_num}, Transaction Ref: {clean_ref}."
+                if dash_link:
+                    invoice_text += f" Track clicks and views on your listing: {dash_link}"
+                if register_link:
+                    invoice_text += f" Create a free account for one-click access: {register_link}"
 
                 send_email(
                     to=submitter_email,
                     subject=f"AI Compass - Payment Confirmation & Invoice ({invoice_num})",
                     html=invoice_html,
-                    text=f"Thank you for your purchase! {tier_name} payment of ${tier_amount:.2f} USD has been received. Invoice Number: {invoice_num}, Transaction Ref: {clean_ref}."
+                    text=invoice_text,
                 )
             except Exception:
                 current_app.logger.exception("Failed to send user invoice email — submission still recorded")
+        elif submitter_email and dash_link:
+            # Free-tier submitters previously got no email at all — this is
+            # new behavior, not a bug fix. Doubles as the upsell funnel:
+            # the dashboard's free view links out to /pricing.
+            try:
+                confirm_html = render_template(
+                    'emails/submission_received.html',
+                    tool_name=name,
+                    dashboard_url=dash_link,
+                    register_url=register_link,
+                )
+                confirm_text = f"Thanks for submitting {name}! We review free submissions in queue order (usually within 2 weeks). Track its status: {dash_link}"
+                if register_link:
+                    confirm_text += f" Create a free account for one-click access: {register_link}"
+                send_email(
+                    to=submitter_email,
+                    subject="We received your AI Compass submission",
+                    html=confirm_html,
+                    text=confirm_text,
+                )
+            except Exception:
+                current_app.logger.exception("Failed to send free-tier submission confirmation email")
 
         # 2. Send submission details to the admin. The subject line makes the
         # trust level obvious at a glance — an unverified sponsored claim
@@ -4775,6 +4850,12 @@ def admin_approve_submission(sub_id):
     })
     if not upsert_tool(record):
         return jsonify({"error": "Could not add to catalog"}), 500
+
+    from app.models import CatalogTool
+    catalog_row = CatalogTool.query.filter_by(slug=slug).first()
+    if catalog_row:
+        catalog_row.submission_id = s.id
+
     s.status = "approved"
     db.session.commit()
     _refresh_catalog()
@@ -4877,6 +4958,249 @@ def admin_analytics():
         "favorites_total": Favorite.query.count(),
         "submissions_pending": Submission.query.filter_by(status="pending").count(),
     })
+
+
+def _submission_dashboard_daily_trend(slug, days=14):
+    """[{"date": "YYYY-MM-DD", "clicks": N, "views": N}, ...] for the last
+    `days` days (oldest first), zero-filled for days with no activity."""
+    from sqlalchemy import func as _f
+
+    from app.models import OutboundClick, ToolPageView
+
+    since = datetime.now(timezone.utc) - timedelta(days=days)
+    clicks = dict(
+        db.session.query(_f.date(OutboundClick.created_at), _f.count())
+        .filter(OutboundClick.slug == slug, OutboundClick.created_at >= since)
+        .group_by(_f.date(OutboundClick.created_at))
+        .all()
+    )
+    views = dict(
+        db.session.query(_f.date(ToolPageView.created_at), _f.count())
+        .filter(ToolPageView.slug == slug, ToolPageView.created_at >= since)
+        .group_by(_f.date(ToolPageView.created_at))
+        .all()
+    )
+
+    out = []
+    for i in range(days, -1, -1):
+        d = (datetime.now(timezone.utc) - timedelta(days=i)).date()
+        # SQLite returns date-typed group-by keys as strings, Postgres as
+        # date objects — check both so the trend isn't silently all-zero
+        # depending on backend.
+        out.append({
+            "date": d.isoformat(),
+            "clicks": clicks.get(d, clicks.get(d.isoformat(), 0)),
+            "views": views.get(d, views.get(d.isoformat(), 0)),
+        })
+    return out
+
+
+def _submission_dashboard_category_benchmark(catalog_row, since_30d):
+    """Fast-Track-only proof point: how this tool's last-30d clicks compare
+    to the average for other approved tools in the same category."""
+    from sqlalchemy import func as _f
+
+    from app.models import CatalogTool, OutboundClick
+
+    this_clicks = OutboundClick.query.filter(
+        OutboundClick.slug == catalog_row.slug,
+        OutboundClick.created_at >= since_30d,
+    ).count()
+
+    peers = CatalogTool.query.filter(
+        CatalogTool.category == catalog_row.category,
+        CatalogTool.hidden == False,  # noqa: E712 — SQLAlchemy comparison, not a boolean check
+        CatalogTool.slug != catalog_row.slug,
+    ).all()
+    if not peers:
+        return {"available": False}
+
+    peer_slugs = [p.slug for p in peers]
+    peer_counts = dict(
+        db.session.query(OutboundClick.slug, _f.count())
+        .filter(OutboundClick.slug.in_(peer_slugs), OutboundClick.created_at >= since_30d)
+        .group_by(OutboundClick.slug)
+        .all()
+    )
+    avg_peer_clicks = sum(peer_counts.get(s, 0) for s in peer_slugs) / len(peer_slugs)
+    pct = (
+        None if avg_peer_clicks <= 0
+        else round(((this_clicks - avg_peer_clicks) / avg_peer_clicks) * 100, 1)
+    )
+
+    # Rank within category by 30d clicks — reuses the peer_counts already
+    # fetched above, no extra query.
+    all_counts = sorted(
+        [this_clicks] + [peer_counts.get(s, 0) for s in peer_slugs],
+        reverse=True,
+    )
+    your_rank = all_counts.index(this_clicks) + 1
+    total_tools = len(peer_slugs) + 1
+
+    return {
+        "available": True,
+        "category": catalog_row.category,
+        "your_clicks_30d": this_clicks,
+        "category_avg_clicks_30d": round(avg_peer_clicks, 1),
+        "pct_vs_average": pct,
+        "your_rank": your_rank,
+        "total_tools_in_category": total_tools,
+    }
+
+
+@api_bp.get("/submissions/dashboard")
+def submission_dashboard():
+    """Token-gated per-submitter analytics (no login — Submission has no
+    user_id). Response shape depends on tier:
+      free (or unverified paid claim) -> status only
+      quick   -> + click/view totals and a 14-day trend
+      sponsored -> + category benchmark + featured-status confirmation
+    """
+    from itsdangerous import BadSignature, SignatureExpired
+
+    from app.models import CatalogTool, OutboundClick, Submission, ToolPageView
+    from app.pricing_tiers import tier_for_pricing_model
+    from app.submission_dashboard import verify_dashboard_token
+
+    token = request.args.get("token", "")
+    try:
+        submission_id, _token_email = verify_dashboard_token(token)
+    except SignatureExpired:
+        return jsonify({"error": "expired"}), 401
+    except BadSignature:
+        return jsonify({"error": "invalid"}), 401
+
+    s = Submission.query.get(submission_id)
+    if not s:
+        return jsonify({"error": "not_found"}), 404
+
+    claimed_tier = tier_for_pricing_model(s.pricing_model or "") or "free"
+    # Gate on verified payment, not the claimed tier string — an
+    # unverified paid claim (payment_status == "unverified_review") falls
+    # back to the free view, mirroring how admin_approve_submission already
+    # gates the sponsored catalog perks on a verified payment_status.
+    tier_key = claimed_tier if s.payment_status == "verified" else "free"
+
+    resp = {
+        "submission": {
+            "name": s.name,
+            "status": s.status,
+            "tier": tier_key,
+            "submitted_at": s.submitted_at.isoformat() if s.submitted_at else None,
+        },
+        "tier": tier_key,
+    }
+
+    catalog_row = None
+    if s.status == "approved":
+        catalog_row = CatalogTool.query.filter_by(submission_id=s.id).first()
+        if not catalog_row:
+            # Pre-migration approvals have no submission_id set — fall
+            # back to the slug admin_approve_submission would have used.
+            catalog_row = CatalogTool.query.filter_by(slug=_slugify(s.name)).first()
+
+    if catalog_row:
+        resp["submission"]["slug"] = catalog_row.slug
+        resp["submission"]["live_at"] = (
+            catalog_row.visible_at.isoformat() if catalog_row.visible_at else None
+        )
+        # SQLite round-trips DateTime columns as naive even though every
+        # write path (visibility_delay_days_for_tier's caller, etc.) stores
+        # UTC — normalize before comparing or this raises on SQLite (works
+        # by accident on Postgres, which preserves tzinfo).
+        visible_at = catalog_row.visible_at
+        if visible_at is not None and visible_at.tzinfo is None:
+            visible_at = visible_at.replace(tzinfo=timezone.utc)
+        resp["submission"]["is_live"] = bool(
+            visible_at is None or visible_at <= datetime.now(timezone.utc)
+        )
+
+    if tier_key == "free" or not catalog_row:
+        return jsonify(resp)
+
+    slug = catalog_row.slug
+    since_30d = datetime.now(timezone.utc) - timedelta(days=30)
+    total_clicks = OutboundClick.query.filter_by(slug=slug).count()
+    total_views = ToolPageView.query.filter_by(slug=slug).count()
+    # Views→clicks conversion — the most actionable single number for a
+    # submitter: it isolates "is my listing convincing" from "how much
+    # traffic am I getting." None (not 0%) when there's no view data yet,
+    # so the frontend can show "not enough data" instead of a misleading 0%.
+    ctr = round((total_clicks / total_views) * 100, 1) if total_views > 0 else None
+
+    from app.models import Favorite
+    favorites_count = Favorite.query.filter_by(tool_id=slug).count()
+    rating_avg, rating_count = _combined_rating_summary(slug)
+
+    resp["analytics"] = {
+        "total_clicks": total_clicks,
+        "total_views": total_views,
+        "clicks_30d": OutboundClick.query.filter(
+            OutboundClick.slug == slug, OutboundClick.created_at >= since_30d
+        ).count(),
+        "views_30d": ToolPageView.query.filter(
+            ToolPageView.slug == slug, ToolPageView.created_at >= since_30d
+        ).count(),
+        "ctr": ctr,
+        "favorites": favorites_count,
+        "rating": {"average": rating_avg, "count": rating_count},
+        "daily_trend": _submission_dashboard_daily_trend(slug, days=14),
+    }
+
+    if tier_key == "sponsored":
+        resp["benchmark"] = _submission_dashboard_category_benchmark(catalog_row, since_30d)
+        resp["featured"] = {
+            "badge": True,
+            "homepage_strip": True,
+            "above_free_placement": True,
+        }
+
+    return jsonify(resp)
+
+
+@api_bp.post("/submissions/dashboard/resend")
+@csrf.exempt
+def resend_dashboard_link():
+    """Lost-link recovery, keyed by email + tool name (not submission_id —
+    a submitter has no reason to know their internal row id)."""
+    from app.models import Submission
+    from app.submission_dashboard import dashboard_url
+
+    payload = request.get_json(silent=True) or {}
+    email = str(payload.get("email") or "").strip().lower()
+    tool_name = str(payload.get("tool_name") or "").strip()
+    if not email or not tool_name:
+        return jsonify({"error": "email and tool_name are required"}), 400
+
+    ip = _feedback_client_ip()
+    if is_rate_limited(f"resend_dashboard:{ip}", limit=5, window_seconds=3600):
+        return jsonify({"error": "Too many requests. Try again later."}), 429
+
+    s = (
+        Submission.query.filter(
+            db.func.lower(Submission.submitter_email) == email,
+            db.func.lower(Submission.name) == tool_name.lower(),
+        )
+        .order_by(Submission.submitted_at.desc())
+        .first()
+    )
+    if s and s.submitter_email:
+        try:
+            from app.email_utils import send_email
+
+            link = dashboard_url(s.id, s.submitter_email)
+            send_email(
+                to=s.submitter_email,
+                subject="Your AI Compass dashboard link",
+                html=f'<p>Here is your submission dashboard link:</p><p><a href="{link}">{link}</a></p>',
+                text=f"Your submission dashboard link: {link}",
+            )
+        except Exception:
+            current_app.logger.exception("resend_dashboard_link failed for tool_name=%s", tool_name)
+
+    # Deliberately vague response either way, so this endpoint can't be
+    # used to probe which email/tool-name pairs exist.
+    return jsonify({"success": True, "message": "If that matches our records, a link has been sent."})
 
 
 @api_bp.post("/parse-syllabus")
