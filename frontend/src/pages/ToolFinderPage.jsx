@@ -683,6 +683,19 @@ function QuestionRow({ index, question, answer, isActive, onActivate, onSelect, 
                   style={{ fontSize: 16 }}
                   autoFocus
                 />
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <span className="text-xs font-semibold text-muted-2 mr-1">Most users pick:</span>
+                  {['Content writing', 'Data analysis', 'Video editing'].map((sug) => (
+                    <button
+                      key={sug}
+                      type="button"
+                      onClick={() => onTextChange(sug)}
+                      className="rounded-full border border-line bg-bg-elev px-3 py-1.5 text-xs text-ink transition hover:border-accent hover:text-accent focus:outline-none"
+                    >
+                      {sug}
+                    </button>
+                  ))}
+                </div>
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-4">
                   <span className="text-xs text-muted-2 transition-colors hover:text-muted">
                     {answer ? "Press Enter to continue" : "Completing this helps us match you to better tools."}
@@ -1035,7 +1048,7 @@ function ResultCard({ tool, index, navigate, onCardClick, onShowDetails }) {
             }}
             className="inline-flex items-center gap-1.5 rounded-full bg-accent px-3.5 py-1.5 text-xs font-bold text-accent-ink transition-all hover:scale-105 shadow-sm"
           >
-            <span>Visit Tool</span>
+            <span>Try this tool</span>
             <ArrowUpRight className="h-3.5 w-3.5" />
           </a>
         </div>
@@ -1154,7 +1167,7 @@ function AnchorToolCard({ tool, navigate, onCardClick, onShowDetails }) {
             }}
             className="flex-1 text-center bg-accent hover:bg-accent/90 text-bg font-bold py-2 px-4 rounded-xl text-xs shadow-sm transition-colors"
           >
-            Visit Tool
+            Try this tool →
           </a>
         </div>
       </div>
@@ -1947,6 +1960,34 @@ function ToolFinderPage() {
             </div>
           )}
 
+          {/* Inline Email Capture (Moved up for visibility) */}
+          <div className="w-full rounded-2xl border border-accent/20 bg-accent-soft/20 p-5 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4 mt-2 mb-4">
+            <div>
+              <h3 className="text-sm font-bold text-ink mb-1">Save these recommendations</h3>
+              <p className="text-xs text-muted-2">Enter your email and we'll send you a link to this stack.</p>
+            </div>
+            <form 
+              className="flex w-full md:w-auto gap-2"
+              onSubmit={(e) => {
+                e.preventDefault()
+                const email = e.currentTarget.email.value
+                if (email) {
+                  toast.success('Recommendations sent! Check your inbox.')
+                  e.currentTarget.reset()
+                }
+              }}
+            >
+              <input 
+                type="email" 
+                name="email"
+                placeholder="you@example.com" 
+                required
+                className="flex-1 md:w-64 rounded-lg border border-line bg-bg px-3 py-2 text-sm text-ink outline-none focus:border-accent"
+              />
+              <Button type="submit" variant="primary" size="sm">Send</Button>
+            </form>
+          </div>
+
           {/* Supporting Tools Grid */}
           {supportingTools.length > 0 && (
             <div className="space-y-3 pt-2">
@@ -1967,32 +2008,6 @@ function ToolFinderPage() {
           )}
 
           <div className="mt-12 flex flex-col items-center gap-6 pb-8">
-            {/* Inline Email Capture */}
-            <div className="w-full max-w-md rounded-2xl border border-line bg-bg-sunk p-6 text-center shadow-sm">
-              <h3 className="text-sm font-bold text-ink mb-1">Save these recommendations</h3>
-              <p className="text-xs text-muted mb-4">Enter your email and we'll send you a link to this stack.</p>
-              <form 
-                className="flex gap-2"
-                onSubmit={(e) => {
-                  e.preventDefault()
-                  const email = e.currentTarget.email.value
-                  if (email) {
-                    toast.success('Recommendations sent! Check your inbox.')
-                    e.currentTarget.reset()
-                  }
-                }}
-              >
-                <input 
-                  type="email" 
-                  name="email"
-                  placeholder="you@example.com" 
-                  required
-                  className="flex-1 rounded-lg border border-line bg-bg px-3 py-2 text-sm text-ink outline-none focus:border-accent"
-                />
-                <Button type="submit" variant="primary" size="sm">Send</Button>
-              </form>
-            </div>
-
             {/* Inline Emoji Feedback */}
             <div className="flex flex-col items-center gap-3">
               <span className="text-xs font-semibold text-muted uppercase tracking-wider">Did these recommendations feel right?</span>

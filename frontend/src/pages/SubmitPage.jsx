@@ -413,6 +413,10 @@ export default function SubmitPage() {
             <h2 className="text-lg font-bold text-ink">
               {submissionType === 'free' ? 'Tool Details' : `${selectedTier.name} Form`}
             </h2>
+            <p className="mt-2 text-sm text-ink-2">
+              Just drop a few details below and we'll take care of the rest. <br className="hidden sm:block" />
+              <strong className="text-ink">Example:</strong> If you built a flashcard app, just drop the link and tell us what makes it unique for students.
+            </p>
 
             <form className="mt-6 space-y-4" onSubmit={handleFormSubmit}>
 

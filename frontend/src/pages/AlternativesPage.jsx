@@ -504,6 +504,14 @@ export default function AlternativesPage() {
                           >
                             Compare with {tool.name} 🆚
                           </Link>
+                          {alt.category && (
+                            <Link
+                              to={`/tools?category=${encodeURIComponent(alt.category)}`}
+                              className="ml-auto inline-flex items-center gap-1 text-xs font-semibold text-ink-2 hover:text-ink transition-colors"
+                            >
+                              See more {alt.category} tools →
+                            </Link>
+                          )}
                         </div>
                       )
                     })()}

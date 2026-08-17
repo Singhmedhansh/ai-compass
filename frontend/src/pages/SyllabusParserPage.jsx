@@ -250,6 +250,16 @@ export default function SyllabusParserPage() {
                     placeholder="Paste your syllabus text here, including course description, grading policy, assignments, and schedule modules..."
                     className="rounded-xl border border-line bg-bg-sunk/30 p-4 text-sm text-ink outline-none focus:border-accent"
                   />
+                  <div className="mt-2 flex justify-start">
+                    <button
+                      type="button"
+                      onClick={() => setRawText("CSCI 101 Week 1: Intro to Python.\nAssignments: 3 coding projects (40%), Midterm (20%), Final Project (40%).\nCourse requires basic understanding of loops and variables. Expected to write scripts to analyze datasets.")}
+                      className="text-xs font-semibold text-accent hover:underline flex items-center gap-1"
+                    >
+                      <FileText className="h-3 w-3" />
+                      Try an example
+                    </button>
+                  </div>
                 </div>
               )}
 
