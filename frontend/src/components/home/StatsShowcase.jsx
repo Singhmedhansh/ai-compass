@@ -8,9 +8,9 @@ export default function StatsShowcase() {
 
   // PostHog Data (Session Duration & Bounce Rate removed)
   const posthogMetrics = [
-    { label: 'Unique Visitors', value: '4.02K', change: '+402.2k%', icon: Users },
-    { label: 'Page Views', value: '5.12K', change: '+85.2k%', icon: Eye },
-    { label: 'Sessions', value: '4.2K', change: '+419.9k%', icon: Activity }
+    { label: 'Unique Visitors', value: '5.12K', change: '+402.2k%', icon: Users },
+    { label: 'Page Views', value: '6.77K', change: '+85.2k%', icon: Eye },
+    { label: 'Sessions', value: '5.4K', change: '+419.9k%', icon: Activity }
   ]
 
   const posthogPaths = [
@@ -25,15 +25,15 @@ export default function StatsShowcase() {
     { x: 50, y: 176, label: 'May', value: '300 visitors' },
     { x: 180, y: 120, label: 'June', value: '1,000 visitors' },
     { x: 310, y: 36, label: 'July', value: '2,050 visitors' },
-    { x: 450, y: 142, label: 'August', value: '724 visitors' }
+    { x: 450, y: 52, label: 'August', value: '1,821 visitors' }
   ]
 
   // Google Search Console Data
   const gscMetrics = [
-    { label: 'Total Clicks', value: '2.65K', change: 'Growth', icon: MousePointerClick },
-    { label: 'Total Impressions', value: '110K', change: 'High', icon: Eye },
-    { label: 'Average CTR', value: '2.4%', change: 'Healthy', icon: Users },
-    { label: 'Average Position', value: '11.9', change: 'Top 12', icon: BarChart3 }
+    { label: 'Total Clicks', value: '3.28K', change: 'Growth', icon: MousePointerClick },
+    { label: 'Total Impressions', value: '132K', change: 'High', icon: Eye },
+    { label: 'Average CTR', value: '2.5%', change: 'Healthy', icon: Users },
+    { label: 'Average Position', value: '12.4', change: 'Top 12', icon: BarChart3 }
   ]
 
   const gscQueries = [
