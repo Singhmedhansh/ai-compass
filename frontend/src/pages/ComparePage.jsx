@@ -7,7 +7,7 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { useCurrency } from '../context/CurrencyContext'
 
-import { Button, SkeletonCompareColumn, ToolLogo, ConversionCTA } from '../components/ui'
+import { Button, SkeletonCompareColumn, ToolLogo, ConversionCTA, WizardFunnelCTA, StickyEscapeBar } from '../components/ui'
 import { sectionReveal, staggerChild, staggerParent } from '../lib/motion'
 import { MAX_COMPARE } from '../hooks/useCompare'
 import { outboundUrl, OUTBOUND_REL } from '../utils/outbound'
@@ -776,6 +776,15 @@ export default function ComparePage() {
         {pairTitle ? pairTitle : `Comparing ${count} tool${count === 1 ? '' : 's'}`}
       </h1>
 
+      {/* Above-the-fold intent bar — catches SEO visitors in the first 3 seconds */}
+      <div className="mt-4 max-w-5xl">
+        <WizardFunnelCTA
+          variant="inline"
+          title="Not sure which one to pick? Get a free personalized recommendation."
+          subtitle="Answer 3 quick questions — our wizard will match you to the perfect tool for your workflow."
+        />
+      </div>
+
       {selectedCurrency !== 'USD' && (
         <div className="mt-4 rounded-xl border border-accent-soft bg-accent-soft/20 p-3 text-xs text-ink-2 font-medium max-w-xl">
           Pricing displays are dynamically converted from USD. Kindly check the tool's official website for actual pricing in your country.
@@ -810,10 +819,21 @@ export default function ComparePage() {
         ))}
       </MotionDiv>
 
+      {/* Context-aware wizard shortcut — hooks engaged users before they scroll the matrix */}
+      {allToolsLoaded && (
+        <div className="mt-8 max-w-5xl mx-auto">
+          <WizardFunnelCTA
+            variant="inline"
+            title="Want a personal recommendation instead of comparing manually?"
+            subtitle="Answer 3 quick questions and we'll pick the best tool for your exact major and workflow."
+          />
+        </div>
+      )}
+
       {/* MATRIX */}
       {allToolsLoaded && (
         <>
-        <div className="mt-16 mb-20 space-y-2 animate-in fade-in duration-500">
+        <div className="mt-8 mb-20 space-y-2 animate-in fade-in duration-500">
           {/* PRICING */}
           <CompareRow
             title="Pricing"
@@ -1004,6 +1024,10 @@ export default function ComparePage() {
           </div>
         )}
         <ConversionCTA />
+        <StickyEscapeBar
+          storageKey="aic-escape-compare"
+          title="Still deciding? Find the perfect tool for your workflow in 60 seconds."
+        />
         </>
       )}
     </div>

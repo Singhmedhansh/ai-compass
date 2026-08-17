@@ -5,7 +5,7 @@ import { motion } from 'framer-motion'
 import { ArrowUpRight, Shield } from 'lucide-react'
 import clsx from 'clsx'
 
-import { SEO, WordReveal, ConversionCTA, WizardFunnelCTA } from '../components/ui'
+import { SEO, WordReveal, ConversionCTA, WizardFunnelCTA, StickyEscapeBar } from '../components/ui'
 import ErrorState from '../components/ErrorState'
 import { useCatalogStats } from '../hooks/useCatalogStats'
 import { sectionReveal, staggerParent, staggerChild } from '../lib/motion'
@@ -286,6 +286,20 @@ export default function AlternativesPage() {
           ) : null}
         </MotionDiv>
 
+        {/* Above-the-fold Wizard CTA — visible before any scrolling */}
+        <MotionDiv
+          variants={sectionReveal}
+          initial="initial"
+          animate="animate"
+          className="mx-auto max-w-5xl px-4 mb-8"
+        >
+          <WizardFunnelCTA
+            variant="inline"
+            title={`Not sure if ${tool.name} is right for you?`}
+            subtitle="Answer 3 quick questions and get a personalized recommendation in 60 seconds."
+          />
+        </MotionDiv>
+
         <MotionDiv
           variants={sectionReveal}
           initial="initial"
@@ -312,24 +326,6 @@ export default function AlternativesPage() {
                 <ArrowUpRight className="h-3.5 w-3.5" />
               </Link>
             </div>
-          </div>
-        </MotionDiv>
-
-        <MotionDiv
-          variants={sectionReveal}
-          initial="initial"
-          whileInView="animate"
-          viewport={{ once: true, margin: '-10% 0px' }}
-          className="mx-auto max-w-5xl px-4 mb-12"
-        >
-          <div className="rounded-2xl bg-accent-soft/30 border border-accent/20 p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-             <div>
-               <h2 className="text-lg font-semibold text-ink">Not sure which alternative is right for you?</h2>
-               <p className="text-sm text-muted mt-1">Use our quick wizard to find the perfect tool for your workflow.</p>
-             </div>
-             <Link to="/ai-tool-finder" className="whitespace-nowrap rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-bg transition hover:opacity-90">
-                Find the best alternative →
-             </Link>
           </div>
         </MotionDiv>
 
@@ -561,6 +557,10 @@ export default function AlternativesPage() {
         </div>
 
         <ConversionCTA />
+        <StickyEscapeBar
+          storageKey="aic-escape-alternatives"
+          title={`Still browsing ${tool.name} alternatives? Find your perfect match in 60 seconds.`}
+        />
       </div>
     </>
   )

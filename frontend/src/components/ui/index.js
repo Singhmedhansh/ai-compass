@@ -31,4 +31,4 @@ export { default as WordReveal } from './WordReveal'
 export { default as SEO } from './SEO'
 export { default as ConversionCTA } from './ConversionCTA'
 export { default as WizardFunnelCTA } from './WizardFunnelCTA'
-
+export { default as StickyEscapeBar } from './StickyEscapeBar'
