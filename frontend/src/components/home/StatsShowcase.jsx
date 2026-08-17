@@ -172,7 +172,7 @@ export default function StatsShowcase() {
                     <>
                       {/* PostHog Line Path */}
                       <path
-                        d="M 50 176 L 180 120 L 310 36 L 450 142"
+                        d="M 50 176 L 180 120 L 310 36 L 450 52"
                         fill="none"
                         stroke="var(--accent)"
                         strokeWidth="3"
@@ -181,7 +181,7 @@ export default function StatsShowcase() {
                       />
                       {/* Gradient Fill under line */}
                       <path
-                        d="M 50 200 L 50 176 L 180 120 L 310 36 L 450 142 L 450 200 Z"
+                        d="M 50 200 L 50 176 L 180 120 L 310 36 L 450 52 L 450 200 Z"
                         fill="url(#posthog-grad)"
                         opacity="0.1"
                       />
