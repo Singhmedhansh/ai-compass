@@ -11,6 +11,7 @@ import SubmitInvite from '../components/home/SubmitInvite'
 import StatsShowcase from '../components/home/StatsShowcase'
 import WizardDemo from '../components/home/WizardDemo'
 import StudentHubShowcase from '../components/home/StudentHubShowcase'
+import CommunityShowcase from '../components/home/CommunityShowcase'
 
 export default function HomePage() {
   const { roundedToolsText } = useCatalogStats() // {/* Dynamic — do not hardcode */}
@@ -31,6 +32,7 @@ export default function HomePage() {
       <FeaturedStrip />
       <WizardDemo />
       <StudentHubShowcase />
+      <CommunityShowcase />
       <CurationDiscipline />
       <NewsletterCapture />
       <StatsShowcase />
