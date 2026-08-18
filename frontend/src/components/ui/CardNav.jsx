@@ -82,7 +82,8 @@ const CardNav = ({ className = '', ease = 'power3.out' }) => {
         { label: 'Catalog', ariaLabel: 'Browse All AI Tools', href: '/tools' },
         { label: 'Collections', ariaLabel: 'AI Tool Collections', href: '/collections' },
         { label: 'Compare', ariaLabel: 'Compare AI Tools Side-by-Side', href: '/compare' },
-        { label: 'Cost Calculator', ariaLabel: 'LLM cost calculation', href: '/model-comparison' }
+        { label: 'Cost Calculator', ariaLabel: 'LLM cost calculation', href: '/model-comparison' },
+        { label: 'Community', ariaLabel: 'Community posts and discussions', href: '/community' }
       ]
     },
     {

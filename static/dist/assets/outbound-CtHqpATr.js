@@ -1,0 +1,2 @@
+function e(e){let t=e==null?void 0:e.slug;return t?`/go/${encodeURIComponent(t)}`:(e==null?void 0:e.affiliate_url)||(e==null?void 0:e.url)||(e==null?void 0:e.website)||(e==null?void 0:e.link)||`#`}var t=`sponsored nofollow noopener noreferrer`;export{e as n,t};
+//# sourceMappingURL=outbound-CtHqpATr.js.map

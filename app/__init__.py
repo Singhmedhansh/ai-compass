@@ -376,6 +376,13 @@ def create_app(config: dict | None = None) -> Flask:
             raise
 
         try:
+            from app.community_routes import community_bp
+            app.register_blueprint(community_bp, url_prefix="/api/v1/community")
+        except Exception as e:
+            app.logger.error(f"Failed to register community_routes: {e}")
+            raise
+
+        try:
             from app import oauth
             app.register_blueprint(oauth.oauth_bp)
             oauth.init_oauth(app)

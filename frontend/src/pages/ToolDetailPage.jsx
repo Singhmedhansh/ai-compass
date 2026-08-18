@@ -8,6 +8,7 @@ import { useCatalogStats } from '../hooks/useCatalogStats'
 
 import RatingWidget from '../components/ui/RatingWidget'
 import ReviewsSection from '../components/ui/ReviewsSection'
+import ToolDiscussionSection from '../components/community/ToolDiscussionSection'
 import { Badge, Button, PricingSection, SkeletonToolDetail, ToolLogo } from '../components/ui'
 import ErrorState from '../components/ErrorState'
 import { sectionReveal, staggerChild, staggerParent } from '../lib/motion'
@@ -1064,6 +1065,7 @@ function ToolDetailPage() {
               >
                 <RatingWidget slug={tool.slug} isLoggedIn={isLoggedIn} />
                 <ReviewsSection slug={tool.slug} isLoggedIn={isLoggedIn} />
+                <ToolDiscussionSection slug={tool.slug} isLoggedIn={isLoggedIn} />
               </motion.div>
             )}
           </AnimatePresence>

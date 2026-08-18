@@ -433,6 +433,71 @@ class TrendingVote(db.Model):
     )
 
 
+class CommunityPost(db.Model):
+    __tablename__ = "community_posts"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
+    title = db.Column(db.String(200), nullable=False)
+    body = db.Column(db.Text, nullable=False)
+    post_type = db.Column(db.String(20), nullable=False, default="discussion")  # news | question | showcase | discussion
+    tool_slug = db.Column(db.String(120), nullable=True, index=True)
+    created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc), index=True)
+    is_hidden = db.Column(db.Boolean, nullable=False, default=False)
+
+    user = db.relationship("User", backref=db.backref("community_posts", cascade="all, delete-orphan"))
+
+
+class PostVote(db.Model):
+    __tablename__ = "post_votes"
+
+    id = db.Column(db.Integer, primary_key=True)
+    post_id = db.Column(db.Integer, db.ForeignKey("community_posts.id"), nullable=False, index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
+    vote_type = db.Column(db.Integer, nullable=False)  # 1 for upvote, -1 for downvote
+    created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+
+    post = db.relationship("CommunityPost", backref=db.backref("votes", cascade="all, delete-orphan"))
+    user = db.relationship("User")
+
+    __table_args__ = (
+        db.UniqueConstraint("post_id", "user_id", name="uq_post_user_vote"),
+        db.CheckConstraint("vote_type = 1 OR vote_type = -1", name="ck_post_vote_type"),
+    )
+
+
+class CommunityComment(db.Model):
+    __tablename__ = "community_comments"
+
+    id = db.Column(db.Integer, primary_key=True)
+    post_id = db.Column(db.Integer, db.ForeignKey("community_posts.id"), nullable=False, index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
+    body = db.Column(db.String(1000), nullable=False)
+    created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc), index=True)
+    is_hidden = db.Column(db.Boolean, nullable=False, default=False)
+
+    post = db.relationship("CommunityPost", backref=db.backref("comments", cascade="all, delete-orphan"))
+    user = db.relationship("User", backref=db.backref("community_comments", cascade="all, delete-orphan"))
+
+
+class CommentVote(db.Model):
+    __tablename__ = "comment_votes"
+
+    id = db.Column(db.Integer, primary_key=True)
+    comment_id = db.Column(db.Integer, db.ForeignKey("community_comments.id"), nullable=False, index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
+    vote_type = db.Column(db.Integer, nullable=False)  # 1 for upvote, -1 for downvote
+    created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+
+    comment = db.relationship("CommunityComment", backref=db.backref("votes", cascade="all, delete-orphan"))
+    user = db.relationship("User")
+
+    __table_args__ = (
+        db.UniqueConstraint("comment_id", "user_id", name="uq_comment_user_vote"),
+        db.CheckConstraint("vote_type = 1 OR vote_type = -1", name="ck_comment_vote_type"),
+    )
+
+
 class StackVote(db.Model):
     __tablename__ = "stack_votes"
 

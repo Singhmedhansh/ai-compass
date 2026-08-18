@@ -64,6 +64,8 @@ const SyllabusParserPage = lazy(() => import('./pages/SyllabusParserPage'))
 const SharedToolkitPage = lazy(() => import('./pages/SharedToolkitPage'))
 const StudentDiscountsPage = lazy(() => import('./pages/StudentDiscountsPage'))
 const ModelComparisonPage = lazy(() => import('./pages/ModelComparisonPage'))
+const CommunityPage = lazy(() => import('./pages/CommunityPage'))
+const CommunityPostPage = lazy(() => import('./pages/CommunityPostPage'))
 
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 
@@ -228,6 +230,8 @@ function AnimatedRoutes() {
             <Route path="/shared-toolkit/:shareId" element={<SharedToolkitPage />} />
             <Route path="/student-discounts" element={<StudentDiscountsPage />} />
             <Route path="/model-comparison" element={<ModelComparisonPage />} />
+            <Route path="/community" element={<CommunityPage />} />
+            <Route path="/community/:id" element={<CommunityPostPage />} />
 
             <Route path="*" element={<NotFoundPage />} />
         </Route>
