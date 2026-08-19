@@ -1630,9 +1630,21 @@ def vote_review(review_id: int):
 
 @api_bp.get("/config/paypal")
 def get_paypal_config():
-    client_id = os.environ.get("PAYPAL_CLIENT_ID", "")
+    """PayPal SDK config for the browser.
+
+    ?context=sponsor returns the sponsorship app's credentials, which are
+    deliberately separate from the submission flow's hosted-button client
+    ID (see payments.sponsor_credentials). Only the public client ID is
+    ever returned — the secret stays server-side.
+    """
+    if (request.args.get("context") or "").strip().lower() == "sponsor":
+        from app.payments import sponsor_credentials
+
+        client_id, _secret, mode = sponsor_credentials()
+        return jsonify({"client_id": client_id or "", "mode": mode, "context": "sponsor"})
+
     return jsonify({
-        "client_id": client_id,
+        "client_id": os.environ.get("PAYPAL_CLIENT_ID", ""),
         "mode": os.environ.get("PAYPAL_MODE", "sandbox")
     })
 
@@ -1688,11 +1700,47 @@ def paypal_diagnostics():
     if not _is_admin():
         return jsonify({"error": "Forbidden"}), 403
 
-    from app.payments import _paypal_access_token, _paypal_base_url
+    from app.payments import _paypal_access_token, _paypal_base_url, sponsor_credentials
 
     client_id = os.environ.get("PAYPAL_CLIENT_ID", "")
     token = _paypal_access_token()
+
+    # The sponsorship checkout can run on its own REST app, so it needs its
+    # own verdict — a green light on the shared credentials tells you
+    # nothing about whether a placement can actually be sold.
+    s_id, s_secret, s_mode = sponsor_credentials()
+    s_token = _paypal_access_token(s_id, s_secret, s_mode) if (s_id and s_secret) else None
+    sponsor_block = {
+        "client_id_set": bool(s_id),
+        "client_id_preview": f"{s_id[:6]}…" if s_id else None,
+        "client_id_looks_like_hosted_button": bool(s_id and s_id.startswith("BAA")),
+        "client_secret_set": bool(s_secret),
+        "mode": s_mode,
+        "api_base": _paypal_base_url(s_mode),
+        "using_dedicated_app": bool(os.environ.get("PAYPAL_SPONSOR_CLIENT_ID")),
+        "oauth_token_acquired": bool(s_token),
+    }
+    if s_token:
+        sponsor_block["verdict"] = "OK — sponsorship checkout can verify payments."
+    elif not s_secret:
+        sponsor_block["verdict"] = (
+            "FAILED — no client secret. Set PAYPAL_SPONSOR_CLIENT_SECRET (or "
+            "PAYPAL_CLIENT_SECRET). Without it every booking is refused."
+        )
+    elif s_id and s_id.startswith("BAA"):
+        sponsor_block["verdict"] = (
+            "FAILED — this looks like a hosted-button client ID, which cannot "
+            "call the REST API. Create a REST app at developer.paypal.com and "
+            "set PAYPAL_SPONSOR_CLIENT_ID / PAYPAL_SPONSOR_CLIENT_SECRET."
+        )
+    else:
+        sponsor_block["verdict"] = (
+            "FAILED — PayPal rejected these credentials. Check the ID/secret are "
+            "a matching pair and that the mode matches the app (sandbox vs live)."
+        )
+
     return jsonify({
+        "sponsorship": sponsor_block,
         "client_id_set": bool(client_id),
         "client_id_preview": f"{client_id[:6]}…" if client_id else None,
         "client_secret_set": bool(os.environ.get("PAYPAL_CLIENT_SECRET")),
@@ -4510,6 +4558,35 @@ def admin_send_digest():
         return jsonify({"error": "digest_failed", "detail": str(exc)}), 500
 
 
+@api_bp.post("/admin/send-community-recap")
+@csrf.exempt
+def admin_send_community_recap():
+    """Trigger the weekly community recap.
+
+    Same auth and flags as send-digest so one external scheduler can drive
+    both. Unlike the digest this only ever reaches members who posted,
+    commented, or voted recently — see app/community_recap.py for why.
+    Query: ?dry_run=1 previews the audience and content without sending,
+    ?force=1 sends even in a week with no activity.
+    """
+    import hmac
+
+    secret = os.environ.get("DIGEST_SECRET")
+    provided = request.headers.get("X-Digest-Secret", "")
+    if not secret or not hmac.compare_digest(secret, provided):
+        return jsonify({"error": "unauthorized"}), 401
+
+    from app.community_recap import run_recap
+
+    dry_run = request.args.get("dry_run") in ("1", "true", "yes")
+    force = request.args.get("force") in ("1", "true", "yes")
+    try:
+        return jsonify(run_recap(dry_run=dry_run, force=force))
+    except Exception as exc:  # noqa: BLE001
+        current_app.logger.exception("send-community-recap failed")
+        return jsonify({"error": "recap_failed", "detail": str(exc)}), 500
+
+
 # ---------------------------------------------------------------------------
 # Admin: digest controls (session-authed — for the admin panel UI)
 # ---------------------------------------------------------------------------
@@ -4527,6 +4604,73 @@ def admin_digest():
     except Exception as exc:  # noqa: BLE001
         current_app.logger.exception("admin digest failed")
         return jsonify({"error": "digest_failed", "detail": str(exc)}), 500
+
+
+@api_bp.post("/admin/recap")
+@csrf.exempt
+@login_required
+def admin_recap():
+    """Session-authed twin of send-community-recap, for the admin panel."""
+    if not _is_admin():
+        return jsonify({"error": "Forbidden"}), 403
+    from app.community_recap import run_recap
+    dry_run = request.args.get("dry_run") in ("1", "true", "yes")
+    force = request.args.get("force") in ("1", "true", "yes")
+    try:
+        return jsonify(run_recap(dry_run=dry_run, force=force))
+    except Exception as exc:  # noqa: BLE001
+        current_app.logger.exception("admin recap failed")
+        return jsonify({"error": "recap_failed", "detail": str(exc)}), 500
+
+
+@api_bp.post("/admin/recap/test")
+@csrf.exempt
+@login_required
+def admin_recap_test():
+    """Send ONE sample recap to the logged-in admin only.
+
+    Same purpose as admin_digest_test: verify real inbox rendering and
+    deliverability without mailing the active community. Builds from live
+    data, so what lands is exactly what members would receive.
+    """
+    if not _is_admin():
+        return jsonify({"error": "Forbidden"}), 403
+
+    from app.community_recap import (
+        _render,
+        _standing_for,
+        build_summary,
+        score_builders,
+    )
+    from app.email_utils import email_enabled, make_unsubscribe_token, send_email
+
+    if not email_enabled():
+        return jsonify({
+            "status": "disabled",
+            "message": "No email transport configured - set RESEND_API_KEY on the server.",
+        }), 200
+
+    to = (current_user.email or "").strip()
+    if not to:
+        return jsonify({"status": "error", "message": "Your admin account has no email address."}), 400
+
+    try:
+        summary = build_summary()
+        standing = _standing_for(current_user.id, score_builders("week", limit=1000))
+        unsub = f"https://ai-compass.in/unsubscribe?token={make_unsubscribe_token(to)}"
+        subject, html, text = _render(current_user, summary, standing, unsub)
+        ok = send_email(to, f"[TEST] {subject}", html, text)
+        return jsonify({
+            "status": "sent" if ok else "failed",
+            "to": to,
+            "subject": subject,
+            "threads": len(summary["threads"]),
+            "board": len(summary["board"]),
+            "sponsors": len(summary["sponsors"]),
+        })
+    except Exception as exc:  # noqa: BLE001
+        current_app.logger.exception("admin recap test failed")
+        return jsonify({"error": "recap_test_failed", "detail": str(exc)}), 500
 
 
 @api_bp.post("/admin/digest/test")
@@ -5154,6 +5298,35 @@ def submission_dashboard():
             "homepage_strip": True,
             "above_free_placement": True,
         }
+
+    # Community placement delivery. Attached for every paid tier (not just
+    # sponsored) because a rail card is earned by any verified paid
+    # submission, and the whole reason to report impressions is so a sponsor
+    # can judge renewal on numbers rather than vibes. Failures here must
+    # never take down the analytics the submitter came for.
+    try:
+        from app import sponsorship
+
+        placements = [
+            {
+                "placement": slot.placement,
+                "label": sponsorship.PLACEMENT_LABELS.get(slot.placement, slot.placement),
+                "starts_at": sponsorship._aware(slot.starts_at).isoformat(),
+                "ends_at": sponsorship._aware(slot.ends_at).isoformat(),
+            }
+            for slot in sponsorship.active_slots()
+            if str(slot.tool_slug or "").strip().lower() == slug
+        ]
+        report = sponsorship.delivery_report(slug, days=30)
+        resp["sponsorship"] = {
+            "placements": placements,
+            "impressions": report["impressions"],
+            "clicks": report["clicks"],
+            "ctr": report["ctr"],
+            "window_days": report["window_days"],
+        }
+    except Exception:
+        current_app.logger.exception("submission dashboard: sponsorship section failed")
 
     return jsonify(resp)
 

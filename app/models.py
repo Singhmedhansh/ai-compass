@@ -555,3 +555,65 @@ class OutreachEmailLog(db.Model):
 
 
 
+
+
+class SponsorSlot(db.Model):
+    """A paid, time-boxed placement on the community surfaces.
+
+    Deliberately separate from Submission: a Submission is a one-time
+    "get me into the catalog" purchase, whereas a slot is rented inventory
+    with a start/end date, a placement position, and its own delivery
+    numbers. Keeping them apart means a sponsor can renew a slot without
+    re-submitting a tool, and the community pages can show honest
+    "3 slots left this week" scarcity by counting rows here.
+
+    placement:
+        'hero'      — the single large unit at the top of /community
+        'board'     — the labelled row pinned above the leaderboard
+        'rail'      — the sidebar card stack
+    """
+
+    __tablename__ = "sponsor_slots"
+
+    id = db.Column(db.Integer, primary_key=True)
+    tool_slug = db.Column(db.String(120), nullable=False, index=True)
+    placement = db.Column(db.String(20), nullable=False, default="rail", index=True)
+    tier = db.Column(db.String(20), nullable=False, default="sponsored")
+    headline = db.Column(db.String(140), nullable=True)
+    blurb = db.Column(db.String(280), nullable=True)
+    cta_label = db.Column(db.String(40), nullable=True)
+    starts_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc), index=True)
+    ends_at = db.Column(db.DateTime, nullable=False, index=True)
+    is_active = db.Column(db.Boolean, nullable=False, default=True, index=True)
+    # Soft link back to the purchase that paid for this slot, so an admin can
+    # audit "who paid for this" the same way submission_id works on
+    # catalog_tools. No FK constraint, matching the existing convention.
+    submission_id = db.Column(db.Integer, nullable=True, index=True)
+    amount_paid = db.Column(db.Float, nullable=False, default=0.0)
+    # The verified PayPal order this slot was bought with. Unique because it
+    # is the replay guard: without it, re-POSTing one captured order id mints
+    # unlimited slots from a single payment.
+    payment_ref = db.Column(db.String(64), unique=True, nullable=True, index=True)
+    contact_email = db.Column(db.String(255), nullable=True)
+    created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+
+
+class SponsorImpression(db.Model):
+    """One row per rendered sponsored unit.
+
+    This is the half of the sponsorship product that actually closes deals:
+    clicks were already countable via OutboundClick, but without impressions
+    there is no denominator, so no CTR, so nothing a sponsor can evaluate.
+    Recorded server-side from a beacon the placement fires once per view.
+    """
+
+    __tablename__ = "sponsor_impressions"
+
+    id = db.Column(db.Integer, primary_key=True)
+    slot_id = db.Column(db.Integer, nullable=True, index=True)
+    tool_slug = db.Column(db.String(120), nullable=False, index=True)
+    placement = db.Column(db.String(20), nullable=False, default="rail")
+    created_at = db.Column(
+        db.DateTime, nullable=False, index=True,
+        default=lambda: datetime.now(timezone.utc),
+    )

@@ -57,6 +57,8 @@ _ROUTE_META = {
     'help': ('FAQ & Support — AI Compass', 'Get answers to frequently asked questions, learn how the AI Stack Architect works, or contact support.'),
     'student-discounts': ('Student AI Discounts & UNiDAYS Deals — AI Compass', 'Explore the best student discounts and UNiDAYS deals on top AI tools. Save on writing, coding, research, and productivity tools with your student status.'),
     'syllabus-parser': ('Course Syllabus Parser — AI Semester Toolkit | AI Compass', 'Upload your course syllabus PDF or Docx. Automatically scan your assignments, grading criteria, and tech requirements to build a personalized AI toolpack.'),
+    'community': ('AI Tool Leaderboard & Community — AI Compass', 'A weekly AI tool leaderboard scored from real community votes, discussion and click-throughs — plus a builder karma board. Ranks are never for sale.'),
+    'sponsor': ('Sponsor the AI Compass Community — Placements from $39/week', 'Capped, clearly labelled sponsored placements beside the AI Compass community leaderboard. Impressions, clicks and CTR reported. Leaderboard ranks are never for sale.'),
 }
 
 # Routes the React SPA actually renders. Anything not in this set (and
@@ -94,6 +96,17 @@ _KNOWN_SPA_ROUTES: set[str] = {
     'reset-password',
     'verify-email-pending',
     'help',
+    'community',
+    'sponsor',
+    'pricing',
+    'stacks',
+    'trending',
+    'model-comparison',
+    'syllabus-parser',
+    'support',
+    'refunds',
+    'dashboard/submission',
+    'verify-success',
 }
 
 _INDEX_HTML_CACHE = None
@@ -678,6 +691,35 @@ def _meta_for_request_path(path: str):
         # Either malformed pair or one of the slugs doesn't exist — real 404.
         return _not_found_html(base, path), 404
 
+    # Community threads. Unlike collections these *are* cheap to validate —
+    # it's an indexed primary-key lookup — so a dead thread returns a real
+    # 404 and a live one gets its own title, which is what makes discussion
+    # pages worth indexing at all.
+    if normalized.startswith('community/') and normalized.count('/') == 1:
+        raw_id = normalized.split('/', 1)[1]
+        post = None
+        if raw_id.isdigit():
+            try:
+                from app.models import CommunityPost
+                post = CommunityPost.query.filter_by(id=int(raw_id), is_hidden=False).first()
+            except Exception:
+                post = None
+        if not post:
+            return _not_found_html(base, path), 404
+        title = f'{post.title} — AI Compass Community'
+        desc = (post.body or '')[:157].strip()
+        html = _inject_meta(
+            base,
+            title=title,
+            description=f'{desc}…' if len(post.body or '') > 157 else desc,
+            canonical_path=f'/{normalized}',
+        )
+        return _inject_seo_root(
+            html,
+            f'<h1>{_esc(post.title)}</h1><p>{_esc(post.body)}</p>'
+            f'<p><a href="/community">Back to the AI Compass community</a></p>',
+        ), 200
+
     # Collections slugs come from the DB and aren't cheap to validate
     # here, so we let those fall through to the SPA which renders its
     # own "collection not found" UI client-side.
@@ -789,6 +831,11 @@ def sitemap():
         ('/privacy', '0.2', 'yearly'),
         ('/terms', '0.2', 'yearly'),
         ('/help', '0.6', 'monthly'),
+        # The community surfaces change every time somebody posts or votes,
+        # so they get the same weekly cadence as /tools rather than the
+        # trust-page treatment above. /sponsor is a conversion surface.
+        ('/community', '0.8', 'daily'),
+        ('/sponsor', '0.6', 'monthly'),
     ]
     for path, priority, freq in static:
         safe_path = escape(str(path))
@@ -826,6 +873,31 @@ def sitemap():
                 f'<lastmod>{today}</lastmod><changefreq>monthly</changefreq>'
                 f'<priority>0.5</priority></url>'
             )
+
+    # Community threads. Each one is a real indexable page now that
+    # /community/<id> serves the thread's own title and body server-side.
+    # Capped and newest-first so a busy month can't crowd out the tool
+    # pages, which remain the primary search surface.
+    try:
+        from app.models import CommunityPost
+        threads = (
+            CommunityPost.query
+            .filter_by(is_hidden=False)
+            .order_by(CommunityPost.created_at.desc())
+            .limit(500)
+            .all()
+        )
+        for post in threads:
+            lastmod = (post.created_at or datetime.now(timezone.utc)).strftime('%Y-%m-%d')
+            urls.append(
+                f'<url><loc>{base}/community/{int(post.id)}</loc>'
+                f'<lastmod>{lastmod}</lastmod><changefreq>weekly</changefreq>'
+                f'<priority>0.5</priority></url>'
+            )
+    except Exception:
+        # A sitemap missing its threads is far better than a 500 that costs
+        # us the whole file — the static and tool URLs above still ship.
+        current_app.logger.exception('sitemap: community thread section failed')
 
     xml = (
         '<?xml version="1.0" encoding="UTF-8"?>\n'

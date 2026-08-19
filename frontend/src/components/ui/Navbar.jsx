@@ -365,6 +365,12 @@ function Navbar() {
             </AnimatePresence>
           </div>
 
+          <Link to="/community">
+            <Button variant="ghost" size="sm" className="text-ink-2">
+              Community
+            </Button>
+          </Link>
+
           <Link to="/model-comparison">
             <Button variant="ghost" size="sm" className="text-ink-2">
               LLM Cost Calculator
@@ -846,6 +852,13 @@ function Navbar() {
                   className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
                 >
                   Compare AI Tools
+                </Link>
+                <Link
+                  to="/community"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block rounded-lg px-3 py-2.5 text-sm font-medium text-ink-2 hover:bg-bg-sunk"
+                >
+                  Community &amp; Leaderboard
                 </Link>
                 <Link
                   to="/model-comparison"

@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import SearchInput from '../components/ui/SearchInput'
+import SponsorSlotsPanel from '../components/admin/SponsorSlotsPanel'
 
 // ESLint no-unused-vars doesn't recognise JSX namespaced tags (<MotionDiv>)
 // as a usage of `motion`. Alias to constants to satisfy the rule — same
@@ -14,7 +15,7 @@ const MotionSpan = motion.span
 
 const ADMIN_EMAILS = ['singhmedhansh07@gmail.com']
 const TOOLS_PAGE_SIZE = 15
-const TABS = ['Overview', 'Tools', 'Sync', 'Submissions', 'Feedback', 'Analytics', 'Email', 'Newsletter', 'Flags', 'Users', 'Reviews', 'Links', 'Outreach']
+const TABS = ['Overview', 'Tools', 'Sync', 'Submissions', 'Sponsors', 'Feedback', 'Analytics', 'Email', 'Newsletter', 'Flags', 'Users', 'Reviews', 'Links', 'Outreach']
 
 const EMPTY_TOOL = {
   slug: '', name: '', tagline: '', description: '', category: '',
@@ -192,6 +193,7 @@ function AdminPage() {
   const [toolsPage, setToolsPage] = useState(1)
   const [editing, setEditing] = useState(null)
   const [digestBusy, setDigestBusy] = useState('')
+  const [recapBusy, setRecapBusy] = useState('')
   const [liDrafts, setLiDrafts] = useState(null)
   const [bcSubject, setBcSubject] = useState("What's new on AI Compass")
   const [bcBody, setBcBody] = useState(
@@ -468,6 +470,22 @@ function AdminPage() {
       if (d.status === 'sent') toast.success(d.message)
       else toast.error(d.message || d.status)
     } catch (e) { toast.error(e.message) } finally { setDigestBusy('') }
+  }
+  const runRecap = async (dry) => {
+    setRecapBusy(dry ? 'dry' : 'send')
+    try {
+      const d = await api(`/api/v1/admin/recap?${dry ? 'dry_run=1' : ''}`, { method: 'POST' })
+      if (d.status === 'noop') toast.message(d.message || 'Nothing to report this week.')
+      else toast.success(`${d.status}: ${d.recipients ?? 0} active members${d.delivered != null ? ` · ${d.delivered} sent` : ''}`)
+    } catch (e) { toast.error(e.message) } finally { setRecapBusy('') }
+  }
+  const sendTestRecap = async () => {
+    setRecapBusy('test')
+    try {
+      const d = await api('/api/v1/admin/recap/test', { method: 'POST' })
+      if (d.status === 'sent') toast.success(`Sent to ${d.to} — ${d.threads} threads, ${d.board} board rows`)
+      else toast.error(d.message || d.status)
+    } catch (e) { toast.error(e.message) } finally { setRecapBusy('') }
   }
   const loadLinkedinDrafts = async () => {
     setLiBusy(true)
@@ -803,6 +821,22 @@ function AdminPage() {
             </Card>
 
             <Card>
+              <h2 className="text-xl font-semibold text-ink">Weekly Community Recap</h2>
+              <p className="mt-1 text-sm text-muted">
+                Goes only to members who posted, commented, or voted in the last 30 days — not the
+                newsletter list. Each email is personalised with that member&apos;s own karma and rank,
+                and carries the sponsored Presenting Partner mention. Sends itself weekly; skips
+                entirely in a week with no activity. Dry run shows the audience and content without
+                sending.
+              </p>
+              <div className="mt-4 flex gap-2">
+                <button disabled={!!recapBusy} onClick={() => runRecap(true)} className={BTN_GHOST}>{recapBusy === 'dry' ? 'Checking…' : 'Dry run'}</button>
+                <button disabled={!!recapBusy} onClick={sendTestRecap} className={BTN_GHOST}>{recapBusy === 'test' ? 'Sending…' : 'Send test to me'}</button>
+                <button disabled={!!recapBusy} onClick={() => { if (window.confirm('Send the recap to every active community member now? This is real — use “Send test to me” first.')) runRecap(false) }} className={BTN_PRIMARY}>{recapBusy === 'send' ? 'Sending…' : 'Send recap'}</button>
+              </div>
+            </Card>
+
+            <Card>
               <h2 className="text-xl font-semibold text-ink">LinkedIn post drafts</h2>
               <p className="mt-1 text-sm text-muted">
                 Ready-to-paste posts built from your 5 most recently added/updated tools. Generate, tweak if you like, copy, and post to the AI Compass Company Page. (No LinkedIn API needed — you post manually.)
@@ -959,6 +993,16 @@ function AdminPage() {
               ))}
               {flags.length === 0 && <p className="text-sm text-muted">No flags yet.</p>}
             </div>
+          </Card>
+        )}
+
+        {activeTab === 'Sponsors' && (
+          <Card>
+            <h2 className="mb-1 text-xl font-semibold text-ink">Sponsored placements</h2>
+            <p className="mb-5 text-sm text-muted">
+              Community slot inventory, delivery numbers, and manual placement.
+            </p>
+            <SponsorSlotsPanel />
           </Card>
         )}
 

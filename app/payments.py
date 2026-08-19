@@ -18,19 +18,39 @@ log = logging.getLogger(__name__)
 PAYPAL_ORDER_ID_RE = re.compile(r"^[A-Z0-9]{10,20}$")
 
 
-def _paypal_base_url():
-    mode = os.environ.get("PAYPAL_MODE", "live")
+def sponsor_credentials():
+    """Credentials for the sponsorship checkout, isolated from /submit.
+
+    The submission flow uses a PayPal *hosted button*, whose client ID
+    ("BAA…") cannot obtain an OAuth token and so cannot verify orders. The
+    sponsorship flow needs a REST app pair instead. Keeping them on separate
+    env vars means switching sponsorship to sandbox for a test does not
+    swap the live client ID out from under /submit and break real
+    submission payments.
+
+    Falls back to the shared vars so an operator who only ever configures
+    one REST app still works with no extra setup.
+    """
+    return (
+        os.environ.get("PAYPAL_SPONSOR_CLIENT_ID") or os.environ.get("PAYPAL_CLIENT_ID"),
+        os.environ.get("PAYPAL_SPONSOR_CLIENT_SECRET") or os.environ.get("PAYPAL_CLIENT_SECRET"),
+        os.environ.get("PAYPAL_SPONSOR_MODE") or os.environ.get("PAYPAL_MODE", "live"),
+    )
+
+
+def _paypal_base_url(mode=None):
+    mode = mode or os.environ.get("PAYPAL_MODE", "live")
     return "https://api-m.sandbox.paypal.com" if mode == "sandbox" else "https://api-m.paypal.com"
 
 
-def _paypal_access_token():
-    client_id = os.environ.get("PAYPAL_CLIENT_ID")
-    client_secret = os.environ.get("PAYPAL_CLIENT_SECRET")
+def _paypal_access_token(client_id=None, client_secret=None, mode=None):
+    client_id = client_id or os.environ.get("PAYPAL_CLIENT_ID")
+    client_secret = client_secret or os.environ.get("PAYPAL_CLIENT_SECRET")
     if not client_id or not client_secret:
         return None
     try:
         r = requests.post(
-            f"{_paypal_base_url()}/v1/oauth2/token",
+            f"{_paypal_base_url(mode)}/v1/oauth2/token",
             auth=(client_id, client_secret),
             data={"grant_type": "client_credentials"},
             timeout=8,
@@ -43,24 +63,30 @@ def _paypal_access_token():
     return None
 
 
-def verify_paypal_order(order_id, expected_amount=49.99, expected_currency="USD"):
+def verify_paypal_order(
+    order_id, expected_amount=49.99, expected_currency="USD",
+    client_id=None, client_secret=None, mode=None,
+):
     """Confirms a PayPal order ID was actually captured for the expected amount.
 
     Returns (verified: bool, detail: str). `detail` is always a short machine
     -readable reason code, safe to store in Submission.payment_note for an
     admin audit trail — never treat a False result as "maybe paid".
+
+    Credentials default to the shared PAYPAL_* env vars; callers on a
+    separate PayPal app (see sponsor_credentials) pass their own.
     """
     order_id = (order_id or "").strip()
     if not order_id or not PAYPAL_ORDER_ID_RE.match(order_id):
         return False, "invalid_order_id_format"
 
-    token = _paypal_access_token()
+    token = _paypal_access_token(client_id, client_secret, mode)
     if not token:
         return False, "paypal_credentials_not_configured"
 
     try:
         r = requests.get(
-            f"{_paypal_base_url()}/v2/checkout/orders/{order_id}",
+            f"{_paypal_base_url(mode)}/v2/checkout/orders/{order_id}",
             headers={"Authorization": f"Bearer {token}"},
             timeout=8,
         )

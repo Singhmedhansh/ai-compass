@@ -66,6 +66,7 @@ const StudentDiscountsPage = lazy(() => import('./pages/StudentDiscountsPage'))
 const ModelComparisonPage = lazy(() => import('./pages/ModelComparisonPage'))
 const CommunityPage = lazy(() => import('./pages/CommunityPage'))
 const CommunityPostPage = lazy(() => import('./pages/CommunityPostPage'))
+const SponsorPage = lazy(() => import('./pages/SponsorPage'))
 
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 
@@ -232,6 +233,7 @@ function AnimatedRoutes() {
             <Route path="/model-comparison" element={<ModelComparisonPage />} />
             <Route path="/community" element={<CommunityPage />} />
             <Route path="/community/:id" element={<CommunityPostPage />} />
+            <Route path="/sponsor" element={<SponsorPage />} />
 
             <Route path="*" element={<NotFoundPage />} />
         </Route>

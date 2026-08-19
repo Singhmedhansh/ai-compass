@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from flask import Blueprint, current_app, jsonify, request
 from flask_login import current_user, login_required
@@ -11,10 +11,15 @@ from app.models import (
     CommunityComment,
     CommunityPost,
     PostVote,
+    SponsorSlot,
     Submission,
+    User,
 )
+from app.payments import sponsor_credentials, verify_paypal_order
 from app.pricing_tiers import tier_for_pricing_model
 from app.rate_limit import is_rate_limited
+from app import community_leaderboard as lb
+from app import sponsorship
 
 community_bp = Blueprint("community", __name__)
 
@@ -35,13 +40,28 @@ def _author_name(user):
 
 
 def _is_tool_featured(tool_slug):
-    """A post is 'featured' if it references a tool whose submission is on a
-    paid (quick/sponsored) tier, verified, and still within the boost window.
-    Reuses the exact tier/payment fields already used for submission
-    approval (app/pricing_tiers.py) — no new payment plumbing."""
-    if not tool_slug:
+    """A post is 'featured' when its tool is currently paying for visibility,
+    by either of the two routes that exist:
+
+      1. An active sponsor slot (rented weekly inventory). Every placement
+         tier on /sponsor advertises a Featured badge on discussion threads,
+         so this branch is what makes that promise true — without it we
+         would be billing for a perk the code never delivers.
+      2. A verified paid submission inside its boost window, which is how
+         the feature originally shipped and what the one-time Fast-Track
+         tier still grants.
+    """
+    slug = str(tool_slug or "").strip().lower()
+    if not slug:
         return False
-    tool = CatalogTool.query.filter_by(slug=tool_slug).first()
+
+    if any(
+        str(s.tool_slug or "").strip().lower() == slug
+        for s in sponsorship.active_slots()
+    ):
+        return True
+
+    tool = CatalogTool.query.filter_by(slug=slug).first()
     if not tool or not tool.submission_id:
         return False
     submission = Submission.query.get(tool.submission_id)
@@ -329,3 +349,446 @@ def vote_comment(comment_id: int):
         db.session.rollback()
         current_app.logger.exception("community vote_comment failed")
         return jsonify({"error": "Could not save vote"}), 500
+
+
+# ---------------------------------------------------------------------------
+# Leaderboards
+#
+# Two boards, one shape: {period, rows, updated_at}. Both are computed live
+# from existing tables (see community_leaderboard) so there is no cron job
+# to fall behind and no cached rank to contradict the feed underneath it.
+# ---------------------------------------------------------------------------
+
+VALID_PERIODS = ("week", "month", "all")
+
+
+def _period_arg():
+    period = str(request.args.get("period") or "week").strip().lower()
+    return period if period in VALID_PERIODS else "week"
+
+
+def _limit_arg(default=10, ceiling=50):
+    try:
+        limit = int(request.args.get("limit", default))
+    except (TypeError, ValueError):
+        limit = default
+    return max(1, min(limit, ceiling))
+
+
+@community_bp.get("/leaderboard")
+def leaderboard():
+    """Tools ranked by community activity in the period.
+
+    Sponsored units are returned alongside but never inside `rows` — the
+    board's credibility is the asset the sponsorship is sold against, so
+    money buys a labelled unit, never a rank.
+    """
+    period = _period_arg()
+    limit = _limit_arg(10, 50)
+
+    try:
+        rows = lb.board(period)
+    except Exception:
+        current_app.logger.exception("community leaderboard failed")
+        return jsonify({"period": period, "rows": [], "total": 0}), 200
+
+    tools = sponsorship._tools_by_slug()
+    enriched = []
+    for row in rows[:limit]:
+        card = sponsorship._tool_card(tools.get(row["slug"]), row["slug"])
+        enriched.append({
+            **card,
+            "rank": row["rank"],
+            "score": row["score"],
+            "movement": row["movement"],
+            "is_new": row["is_new"],
+            "posts": row["breakdown"]["posts"],
+            "comments": row["breakdown"]["comments"],
+            "upvotes": row["breakdown"]["post_upvotes"] + row["breakdown"]["trending_upvotes"],
+        })
+
+    return jsonify({
+        "period": period,
+        "rows": enriched,
+        "total": len(rows),
+        "weights": lb.TOOL_WEIGHTS,
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+    })
+
+
+@community_bp.get("/builders")
+def builders():
+    """People ranked by contribution karma in the period."""
+    period = _period_arg()
+    limit = _limit_arg(10, 50)
+    try:
+        rows = lb.score_builders(period, limit=limit)
+    except Exception:
+        current_app.logger.exception("community builders failed")
+        return jsonify({"period": period, "rows": [], "total": 0}), 200
+
+    me = None
+    if current_user and current_user.is_authenticated:
+        me = next((r for r in rows if r["user_id"] == current_user.id), None)
+
+    return jsonify({
+        "period": period,
+        "rows": rows,
+        "total": len(rows),
+        "you": me,
+        "weights": lb.BUILDER_WEIGHTS,
+        "ranks": [
+            {"at": at, "label": label, "key": key}
+            for at, label, key in lb.BUILDER_RANKS
+        ],
+    })
+
+
+@community_bp.get("/stats")
+def stats():
+    """The pulse numbers above the fold.
+
+    Doubles as the sponsor pitch: an advertiser reads these before deciding
+    the surface is worth $39, so they are computed from real rows only —
+    there is no floor, no rounding up, and an empty community reports zeros.
+    """
+    try:
+        week_ago = (datetime.now(timezone.utc) - timedelta(days=7)).replace(tzinfo=None)
+        posts_total = CommunityPost.query.filter_by(is_hidden=False).count()
+        posts_week = CommunityPost.query.filter(
+            CommunityPost.is_hidden.is_(False),
+            CommunityPost.created_at >= week_ago,
+        ).count()
+        comments_total = CommunityComment.query.filter_by(is_hidden=False).count()
+        votes_total = PostVote.query.count() + CommentVote.query.count()
+        members = User.query.count()
+        discussed_tools = (
+            db.session.query(CommunityPost.tool_slug)
+            .filter(CommunityPost.tool_slug.isnot(None), CommunityPost.is_hidden.is_(False))
+            .distinct()
+            .count()
+        )
+        return jsonify({
+            "posts": posts_total,
+            "posts_this_week": posts_week,
+            "comments": comments_total,
+            "votes": votes_total,
+            "members": members,
+            "tools_discussed": discussed_tools,
+        })
+    except Exception:
+        current_app.logger.exception("community stats failed")
+        return jsonify({
+            "posts": 0, "posts_this_week": 0, "comments": 0,
+            "votes": 0, "members": 0, "tools_discussed": 0,
+        }), 200
+
+
+# ---------------------------------------------------------------------------
+# Sponsored placements
+# ---------------------------------------------------------------------------
+
+@community_bp.get("/sponsors")
+def sponsors():
+    """The sponsored units to render, plus what is still for sale."""
+    try:
+        units = sponsorship.sponsored_units()
+        return jsonify({
+            "hero": units["hero"],
+            "board": units["board"],
+            "rail": units["rail"],
+            "inventory": sponsorship.inventory(),
+        })
+    except Exception:
+        current_app.logger.exception("community sponsors failed")
+        return jsonify({
+            "hero": [], "board": [], "rail": [],
+            "inventory": sponsorship.inventory(),
+        }), 200
+
+
+@community_bp.get("/sponsors/inventory")
+def sponsor_inventory():
+    """Availability only — cheap enough for the /sponsor sales page to poll."""
+    try:
+        return jsonify({"inventory": sponsorship.inventory()})
+    except Exception:
+        current_app.logger.exception("community sponsor_inventory failed")
+        return jsonify({"inventory": []}), 200
+
+
+@community_bp.post("/sponsors/impression")
+@csrf.exempt
+def sponsor_impression():
+    """Beacon fired once per rendered sponsored unit.
+
+    Rate-limited per IP because the whole value of the number is that a
+    sponsor can trust it; an endpoint anyone can inflate reports nothing.
+    Always answers 200 — a dropped beacon is an undercount, not an error the
+    visitor should ever see.
+    """
+    payload = request.get_json(silent=True) or {}
+    slug = str(payload.get("tool_slug") or "").strip().lower()
+    placement = str(payload.get("placement") or "rail").strip().lower()
+    slot_id = payload.get("slot_id")
+    try:
+        slot_id = int(slot_id) if slot_id is not None else None
+    except (TypeError, ValueError):
+        slot_id = None
+
+    if not slug:
+        return jsonify({"recorded": False}), 200
+
+    ip = request.remote_addr or "unknown"
+    if is_rate_limited(f"sponsor_impr:{ip}:{slug}:{placement}", limit=6, window_seconds=3600):
+        return jsonify({"recorded": False, "throttled": True}), 200
+
+    return jsonify({"recorded": sponsorship.record_impression(slug, placement, slot_id)}), 200
+
+
+MAX_BOOKING_WEEKS = 12
+
+
+@community_bp.post("/sponsors/checkout")
+@csrf.exempt
+def sponsor_checkout():
+    """Books a slot against a PayPal order the server independently verified.
+
+    The order id arrives from the browser and is therefore untrusted — it is
+    checked against PayPal's own API for COMPLETED status *and* the exact
+    amount for the placement and week count requested, because otherwise
+    anyone could buy one week of the cheapest rail slot and claim twelve
+    weeks of the spotlight. Mirrors the submit-tool flow's stance: a
+    payment nobody could confirm is never treated as paid.
+    """
+    payload = request.get_json(silent=True) or {}
+    placement = str(payload.get("placement") or "").strip().lower()
+    tool_slug = str(payload.get("tool_slug") or "").strip().lower()
+    order_id = str(payload.get("order_id") or "").strip()
+    contact_email = str(payload.get("contact_email") or "").strip() or None
+
+    try:
+        weeks = int(payload.get("weeks", 1))
+    except (TypeError, ValueError):
+        weeks = 1
+    weeks = max(1, min(weeks, MAX_BOOKING_WEEKS))
+
+    if placement not in sponsorship.PLACEMENT_CAPACITY:
+        return jsonify({"error": "Unknown placement"}), 400
+    if not sponsorship.is_for_sale(placement):
+        # Checked before any payment work: refusing after capture would mean
+        # holding money for a tier we have not committed to delivering.
+        return jsonify({
+            "error": "That placement isn't on sale yet. Email admin@ai-compass.in and we'll "
+                     "arrange it manually.",
+        }), 400
+    if not tool_slug:
+        return jsonify({"error": "A tool is required"}), 400
+    if not order_id:
+        return jsonify({"error": "Missing payment reference"}), 400
+
+    tool = CatalogTool.query.filter_by(slug=tool_slug).first()
+    if not tool:
+        return jsonify({
+            "error": "That tool isn't in the catalog yet. Submit it first, then book a placement.",
+        }), 400
+
+    ip = request.remote_addr or "unknown"
+    if is_rate_limited(f"sponsor_checkout:{ip}", limit=8, window_seconds=3600):
+        return jsonify({"error": "Too many checkout attempts. Please try again later."}), 429
+
+    expected = round(sponsorship.PLACEMENT_PRICING[placement] * weeks, 2)
+    sponsor_client_id, sponsor_secret, sponsor_mode = sponsor_credentials()
+    verified, detail = verify_paypal_order(
+        order_id,
+        expected_amount=expected,
+        client_id=sponsor_client_id,
+        client_secret=sponsor_secret,
+        mode=sponsor_mode,
+    )
+    if not verified:
+        current_app.logger.warning(
+            "sponsor checkout rejected: placement=%s weeks=%s order=%s reason=%s",
+            placement, weeks, order_id, detail,
+        )
+        return jsonify({
+            "error": "We could not confirm that payment with PayPal. Nothing has been booked — "
+                     "email admin@ai-compass.in with your order ID and we'll sort it out.",
+            "reason": detail,
+        }), 402
+
+    slot, err = sponsorship.create_slot(
+        tool_slug=tool_slug,
+        placement=placement,
+        weeks=weeks,
+        amount_paid=expected,
+        payment_ref=order_id,
+        contact_email=contact_email,
+        headline=str(payload.get("headline") or "").strip()[:140] or None,
+        blurb=str(payload.get("blurb") or "").strip()[:280] or None,
+        cta_label=str(payload.get("cta_label") or "").strip()[:40] or None,
+        submission_id=tool.submission_id,
+    )
+    if err or not slot:
+        current_app.logger.error("sponsor checkout paid but slot write failed: %s", err)
+        return jsonify({
+            "error": "Your payment went through but we couldn't schedule the slot automatically. "
+                     "Email admin@ai-compass.in with your order ID — we'll place it manually.",
+            "reason": err,
+        }), 500
+
+    return jsonify({"success": True, "slot": sponsorship.slot_payload(slot)}), 201
+
+
+# --- admin slot management -------------------------------------------------
+
+def _require_admin():
+    if not (current_user and current_user.is_authenticated and current_user.is_admin):
+        return jsonify({"error": "Forbidden"}), 403
+    return None
+
+
+@community_bp.get("/admin/slots")
+@login_required
+def admin_list_slots():
+    denied = _require_admin()
+    if denied:
+        return denied
+    slots = SponsorSlot.query.order_by(SponsorSlot.ends_at.desc()).limit(200).all()
+    return jsonify({
+        "slots": [
+            {
+                **sponsorship.slot_payload(s),
+                **sponsorship.delivery_report(s.tool_slug, days=90),
+            }
+            for s in slots
+        ],
+        "inventory": sponsorship.inventory(),
+    })
+
+
+@community_bp.post("/admin/slots")
+@csrf.exempt
+@login_required
+def admin_create_slot():
+    """Manual placement — comp slots, make-goods, and invoiced deals that
+    never went through PayPal."""
+    denied = _require_admin()
+    if denied:
+        return denied
+
+    payload = request.get_json(silent=True) or {}
+    try:
+        weeks = max(1, min(int(payload.get("weeks", 1)), MAX_BOOKING_WEEKS))
+    except (TypeError, ValueError):
+        weeks = 1
+
+    slot, err = sponsorship.create_slot(
+        tool_slug=payload.get("tool_slug"),
+        placement=str(payload.get("placement") or "rail").strip().lower(),
+        weeks=weeks,
+        amount_paid=payload.get("amount_paid") or 0.0,
+        contact_email=payload.get("contact_email"),
+        headline=payload.get("headline"),
+        blurb=payload.get("blurb"),
+        cta_label=payload.get("cta_label"),
+    )
+    if err or not slot:
+        return jsonify({"error": err or "Could not create slot"}), 400
+    return jsonify({"success": True, "slot": sponsorship.slot_payload(slot)}), 201
+
+
+@community_bp.patch("/admin/slots/<int:slot_id>")
+@csrf.exempt
+@login_required
+def admin_update_slot(slot_id):
+    """Extend, edit copy, or pause a slot."""
+    denied = _require_admin()
+    if denied:
+        return denied
+
+    slot = SponsorSlot.query.get_or_404(slot_id)
+    payload = request.get_json(silent=True) or {}
+
+    if "is_active" in payload:
+        slot.is_active = bool(payload["is_active"])
+    for field, limit in (("headline", 140), ("blurb", 280), ("cta_label", 40)):
+        if field in payload:
+            value = str(payload[field] or "").strip()[:limit]
+            setattr(slot, field, value or None)
+    if payload.get("extend_weeks"):
+        try:
+            extra = max(1, min(int(payload["extend_weeks"]), MAX_BOOKING_WEEKS))
+            slot.ends_at = slot.ends_at + timedelta(days=7 * extra)
+        except (TypeError, ValueError):
+            pass
+
+    try:
+        db.session.commit()
+        return jsonify({"success": True, "slot": sponsorship.slot_payload(slot)})
+    except Exception:
+        db.session.rollback()
+        current_app.logger.exception("admin_update_slot failed")
+        return jsonify({"error": "Could not update slot"}), 500
+
+
+@community_bp.delete("/admin/slots/<int:slot_id>")
+@csrf.exempt
+@login_required
+def admin_delete_slot(slot_id):
+    denied = _require_admin()
+    if denied:
+        return denied
+    slot = SponsorSlot.query.get_or_404(slot_id)
+    try:
+        db.session.delete(slot)
+        db.session.commit()
+        return jsonify({"success": True})
+    except Exception:
+        db.session.rollback()
+        current_app.logger.exception("admin_delete_slot failed")
+        return jsonify({"error": "Could not delete slot"}), 500
+
+
+@community_bp.get("/sponsors/<slug>/report")
+@login_required
+def sponsor_report(slug):
+    """Delivery numbers for one tool — the sponsor's own ROI view.
+
+    Restricted to the account whose verified submission owns the listing (or
+    an admin), because impressions and CTR are the sponsor's commercial data,
+    not public directory stats.
+    """
+    slug = str(slug or "").strip().lower()
+    try:
+        days = int(request.args.get("days", 30))
+    except (TypeError, ValueError):
+        days = 30
+    days = max(1, min(days, 180))
+
+    tool = CatalogTool.query.filter_by(slug=slug).first()
+    if not tool:
+        return jsonify({"error": "Tool not found"}), 404
+
+    if not current_user.is_admin:
+        submission = Submission.query.get(tool.submission_id) if tool.submission_id else None
+        owner_email = (getattr(submission, "submitter_email", None) or "").strip().lower()
+        if not owner_email or owner_email != (current_user.email or "").strip().lower():
+            return jsonify({"error": "Not allowed"}), 403
+
+    try:
+        report = sponsorship.delivery_report(slug, days=days)
+        report["slots"] = [
+            {
+                "id": s.id,
+                "placement": s.placement,
+                "label": sponsorship.PLACEMENT_LABELS.get(s.placement, s.placement),
+                "ends_at": sponsorship._aware(s.ends_at).isoformat(),
+            }
+            for s in sponsorship.active_slots()
+            if str(s.tool_slug or "").strip().lower() == slug
+        ]
+        return jsonify(report)
+    except Exception:
+        current_app.logger.exception("community sponsor_report failed")
+        return jsonify({"error": "Could not build report"}), 500

@@ -1,0 +1,114 @@
+{% extends "emails/base.html" %}
+
+{% block title %}{{ subject }}{% endblock %}
+
+{% block content %}
+<h1 class="heading">Hey {{ user_name }},</h1>
+
+{# The recipient's own standing leads, because it is the only part of a
+   community recap that is unambiguously about them. #}
+{% if standing %}
+<p class="paragraph" style="margin-bottom: 16px;">
+  You're <strong>#{{ standing.rank }}</strong> on the builder board this week with
+  <strong>{{ standing.karma }} karma</strong> — {{ standing.badge }}.
+  {% if standing.next_label %}
+  You need <strong>{{ standing.next_needed }} more</strong> to reach {{ standing.next_label }}.
+  {% endif %}
+</p>
+{% else %}
+<p class="paragraph" style="margin-bottom: 16px;">
+  You didn't pick up karma this week. Posting earns {{ weights.post }}, commenting
+  {{ weights.comment }}, and every upvote your contributions get is worth
+  {{ weights.upvote_received }}.
+</p>
+{% endif %}
+
+{% if threads %}
+<h2 style="color:#111827; font-size:15px; font-weight:800; margin:28px 0 12px 0;">
+  Most discussed this week
+</h2>
+{% for thread in threads %}
+<div class="feature-card">
+  <div class="feature-title">
+    <a href="{{ thread.url }}" target="_blank" style="color:#111827; text-decoration:none;">{{ thread.title }}</a>
+    <span class="badge-emerald">{{ thread.comments }} comment{{ '' if thread.comments == 1 else 's' }}</span>
+  </div>
+  <div class="feature-desc">
+    by {{ thread.author }}{% if thread.score %} · {{ thread.score }} net upvotes{% endif %}
+  </div>
+</div>
+{% endfor %}
+{% endif %}
+
+{% if board %}
+<h2 style="color:#111827; font-size:15px; font-weight:800; margin:28px 0 12px 0;">
+  Tool board
+</h2>
+<table role="presentation" style="width:100%; border-collapse:collapse;">
+  {% for row in board %}
+  <tr>
+    <td style="padding:8px 0; border-bottom:1px solid #e5e7eb; color:#6b7280; font-size:13px; font-weight:700; width:28px;">
+      {{ row.rank }}
+    </td>
+    <td style="padding:8px 0; border-bottom:1px solid #e5e7eb;">
+      <a href="{{ row.url }}" target="_blank" style="color:#111827; text-decoration:none; font-size:14px; font-weight:600;">{{ row.name }}</a>
+      <span style="color:#9ca3af; font-size:12px;"> · {{ movement_label(row) }}</span>
+    </td>
+    <td style="padding:8px 0; border-bottom:1px solid #e5e7eb; text-align:right; color:#4b5563; font-size:13px; font-weight:700;">
+      {{ row.score }}
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+<p style="color:#9ca3af; font-size:12px; line-height:1.5; margin:10px 0 0 0;">
+  Scored from votes, comments and click-throughs. Sponsorship can't buy a rank.
+</p>
+{% endif %}
+
+{% if builders %}
+<h2 style="color:#111827; font-size:15px; font-weight:800; margin:28px 0 12px 0;">
+  Top builders
+</h2>
+<p class="paragraph" style="margin-bottom: 0;">
+  {% for builder in builders %}<strong>{{ builder.name }}</strong> ({{ builder.karma }}){% if not loop.last %} · {% endif %}{% endfor %}
+</p>
+{% endif %}
+
+<table role="presentation" style="width: auto;">
+  <tr>
+    <td>
+      <a href="{{ community_url }}" target="_blank" class="cta-button">Open the community →</a>
+    </td>
+  </tr>
+</table>
+
+{# Sponsored mentions sit below the editorial content and are labelled as
+   sponsored, matching how they appear on the site. This is the deliverable
+   the Presenting Partner tier is sold on. #}
+{% if sponsors %}
+<div style="margin-top:32px; padding-top:20px; border-top:1px solid #e5e7eb;">
+  <p style="color:#9ca3af; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; margin:0 0 10px 0;">
+    Sponsored
+  </p>
+  {% for sponsor in sponsors %}
+  <div class="feature-card">
+    <div class="feature-title">
+      <a href="{{ sponsor.url }}" target="_blank" style="color:#111827; text-decoration:none;">{{ sponsor.name }}</a>
+      <span class="badge-teal">{{ sponsor.label }}</span>
+    </div>
+    {% if sponsor.blurb %}
+    <div class="feature-desc">{{ sponsor.blurb }}</div>
+    {% endif %}
+  </div>
+  {% endfor %}
+  <p style="color:#9ca3af; font-size:11px; line-height:1.5; margin:8px 0 0 0;">
+    These are paid placements. They don't affect the board above.
+  </p>
+</div>
+{% endif %}
+
+<p style="color:#9ca3af; font-size:12px; line-height:1.5; margin:28px 0 0 0;">
+  You're getting this because you posted, commented, or voted in the AI Compass community
+  in the last month.
+</p>
+{% endblock %}

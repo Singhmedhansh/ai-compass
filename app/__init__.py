@@ -447,6 +447,15 @@ def create_app(config: dict | None = None) -> Flask:
                     maybe_run_digest()
                 except Exception:  # noqa: BLE001
                     app.logger.exception("digest_tick background run failed")
+                # Separate try: a failing digest must not stop the recap,
+                # and vice versa. Each owns its own DB-claimed interval, so
+                # sharing this thread only shares the wake-up, not the
+                # schedule (daily vs weekly).
+                try:
+                    from app.community_recap import maybe_run_recap
+                    maybe_run_recap()
+                except Exception:  # noqa: BLE001
+                    app.logger.exception("community recap tick background run failed")
 
         threading.Thread(target=_run, name="digest-tick", daemon=True).start()
         return None

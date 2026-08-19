@@ -348,6 +348,87 @@ function FeaturedStatusCard({ featured }) {
   )
 }
 
+/**
+ * Community placement delivery.
+ *
+ * Impressions are the number most directories never give a sponsor — without
+ * them clicks have no denominator and there is nothing to judge a renewal on.
+ * When there are no placements this card sells one instead of rendering
+ * empty, because a submitter reading their own analytics is the warmest
+ * possible audience for a slot.
+ */
+function SponsorshipCard({ sponsorship }) {
+  if (!sponsorship) return null
+  const { placements = [], impressions, clicks, ctr, window_days: windowDays } = sponsorship
+
+  if (placements.length === 0) {
+    return (
+      <Card>
+        <h2 className="flex items-center gap-1.5 font-semibold text-ink">
+          <Sparkles className="h-4 w-4 text-accent" /> Community placements
+        </h2>
+        <p className="mt-2 text-sm leading-relaxed text-ink-2">
+          You don&apos;t have an active placement on the community leaderboard page right now.
+          Placements are capped and clearly labelled, and you get impressions, clicks and CTR back
+          for every one.
+        </p>
+        <Link
+          to="/sponsor"
+          className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-90"
+        >
+          See placements &amp; availability
+        </Link>
+      </Card>
+    )
+  }
+
+  return (
+    <Card>
+      <h2 className="flex items-center gap-1.5 font-semibold text-ink">
+        <Sparkles className="h-4 w-4 text-accent" /> Community placements
+      </h2>
+
+      <ul className="mt-3 space-y-2">
+        {placements.map((p) => (
+          <li
+            key={`${p.placement}-${p.starts_at}`}
+            className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-line bg-bg px-3 py-2.5"
+          >
+            <span className="text-sm font-semibold text-ink">{p.label}</span>
+            <span className="text-xs text-muted">
+              until {new Date(p.ends_at).toLocaleDateString()}
+            </span>
+          </li>
+        ))}
+      </ul>
+
+      <div className="mt-4 grid grid-cols-3 gap-3">
+        <div className="rounded-xl border border-line bg-bg px-3 py-3 text-center">
+          <p className="text-lg font-extrabold tabular-nums text-ink">{impressions}</p>
+          <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted">
+            Impressions
+          </p>
+        </div>
+        <div className="rounded-xl border border-line bg-bg px-3 py-3 text-center">
+          <p className="text-lg font-extrabold tabular-nums text-ink">{clicks}</p>
+          <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted">
+            Clicks
+          </p>
+        </div>
+        <div className="rounded-xl border border-line bg-bg px-3 py-3 text-center">
+          <p className="text-lg font-extrabold tabular-nums text-ink">{ctr}%</p>
+          <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted">CTR</p>
+        </div>
+      </div>
+
+      <p className="mt-3 text-[11px] leading-relaxed text-muted">
+        Last {windowDays} days. An impression is counted once per visitor when your unit actually
+        enters the viewport — not once per page load — so this CTR is the real one.
+      </p>
+    </Card>
+  )
+}
+
 export default function SubmissionDashboardPage() {
   const [searchParams] = useSearchParams()
   const token = searchParams.get('token') || ''
@@ -430,6 +511,8 @@ export default function SubmissionDashboardPage() {
                     <FeaturedStatusCard featured={data.featured} />
                   </>
                 )}
+
+                <SponsorshipCard sponsorship={data.sponsorship} />
 
                 {data.tier === 'quick' && !data.analytics && (
                   <Card>
