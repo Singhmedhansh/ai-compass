@@ -12,6 +12,7 @@ from app.outreach import (
     run_discovery_pipeline,
     re_enrich_missing_candidate_emails,
     run_automated_followups,
+    run_automated_initial_sends,
     regenerate_all_drafts,
     trigger_github_verification_workflow,
     generate_draft_via_gemini,
@@ -637,11 +638,17 @@ def run_cron():
     try:
         # Run daily job
         new_candidates = run_discovery_pipeline()
+        # Drafts generated above (and any left over from a prior run) go out
+        # automatically now — see run_automated_initial_sends() for the send
+        # gate this still enforces (confidence threshold, real mailbox
+        # verification, shared DAILY_SEND_CAP).
+        initial_sent = run_automated_initial_sends()
         sent_followups = run_automated_followups()
 
         return jsonify({
             "status": "success",
             "new_candidates_discovered": new_candidates,
+            "initial_emails_sent": initial_sent,
             "followup_emails_sent": sent_followups
         })
     except Exception as e:

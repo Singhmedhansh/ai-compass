@@ -1,5 +1,6 @@
 import os
 import re
+import time
 import logging
 import threading
 from datetime import datetime, timezone, timedelta
@@ -9,7 +10,7 @@ from bs4 import BeautifulSoup
 
 from app import db
 from app.models import OutreachCandidate, OutreachEmailLog, CatalogTool
-from app.email_utils import send_email, make_unsubscribe_token
+from app.email_utils import send_email, send_email_with_details, make_unsubscribe_token
 
 log = logging.getLogger(__name__)
 
@@ -2083,6 +2084,68 @@ def run_automated_followups():
     if sent_count > 0:
         db.session.commit()
         log.info("Sent %s automated follow-up emails.", sent_count)
+
+    return sent_count
+
+
+def run_automated_initial_sends():
+    """Sends the first outreach email for every draft_ready candidate that has
+    already cleared the send gate — no admin click required.
+
+    This exists so a ready draft doesn't sit untouched until someone opens the
+    outreach dashboard; the cron tick is now the thing that actually sends it.
+    It does NOT loosen anything that protects sender reputation: the same
+    CONFIDENCE_SEND_THRESHOLD + real verification_result gate that
+    send_candidate_email/bulk_send_candidates enforce still applies here, and
+    every send still draws from the one shared DAILY_SEND_CAP (initial sends
+    and follow-ups combined) via sends_remaining_today() — it only removes the
+    human review step, not the deliverability guardrails.
+    """
+    candidates = OutreachCandidate.query.filter(
+        OutreachCandidate.status == "draft_ready",
+        OutreachCandidate.email.isnot(None),
+        OutreachCandidate.draft_subject.isnot(None),
+        OutreachCandidate.draft_body.isnot(None),
+    ).all()
+
+    remaining = sends_remaining_today()
+    sent_count = 0
+    for c in candidates:
+        if remaining <= 0:
+            log.info("Daily send cap (%s) reached — deferring remaining initial sends to tomorrow.", DAILY_SEND_CAP)
+            break
+        if (c.confidence_score or 0) < CONFIDENCE_SEND_THRESHOLD or not c.verification_result:
+            # Same reasoning as bulk_send_candidates: a heuristic-only score
+            # with no real mailbox check behind it is exactly what drives up
+            # bounce rate, so it stays in draft_ready for manual review
+            # instead of being auto-sent.
+            continue
+
+        success = False
+        err_msg = None
+        try:
+            success, err_msg = send_email_with_details(
+                to=c.email, subject=c.draft_subject, html=c.draft_body,
+                reply_to=OUTREACH_REPLY_TO, headers=_outreach_send_headers(c.email),
+            )
+        except Exception as exc:
+            err_msg = str(exc)
+
+        db.session.add(OutreachEmailLog(
+            candidate_id=c.id, email=c.email, subject=c.draft_subject, body=c.draft_body,
+            status="success" if success else "failure", error_message=err_msg,
+        ))
+
+        if success:
+            c.status = "sent"
+            c.last_status_change_at = datetime.now(timezone.utc)
+            sent_count += 1
+            remaining -= 1
+            time.sleep(1.5)  # spread sends out rather than bursting the provider
+
+    db.session.commit()
+    if sent_count > 0:
+        log.info("Automated initial sends: %s email(s) sent.", sent_count)
 
     return sent_count
 
