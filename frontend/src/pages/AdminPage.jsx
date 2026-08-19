@@ -824,7 +824,7 @@ function AdminPage() {
               <h2 className="text-xl font-semibold text-ink">Weekly Community Recap</h2>
               <p className="mt-1 text-sm text-muted">
                 Goes only to members who posted, commented, or voted in the last 30 days — not the
-                newsletter list. Each email is personalised with that member&apos;s own karma and rank,
+                newsletter list. Each email is personalised with that member&apos;s own reputation and rank,
                 and carries the sponsored Presenting Partner mention. Sends itself weekly; skips
                 entirely in a week with no activity. Dry run shows the audience and content without
                 sending.

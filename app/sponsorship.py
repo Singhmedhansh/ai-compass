@@ -120,6 +120,22 @@ def _tools_by_slug():
     }
 
 
+def _clean_emoji(value):
+    """Drop an emoji that survived a bad encoding round-trip.
+
+    Some catalog rows carry mojibake in this field (✳️ stored as "âœ³ï¸"),
+    and ToolLogo's fallback chain would happily render that garbage as the
+    tool's icon. A missing emoji degrades to a clean letter tile, which
+    looks deliberate; mojibake just looks broken.
+    """
+    if not isinstance(value, str):
+        return None
+    text = value.strip()
+    if not text:
+        return None
+    return None if any(marker in text for marker in ("Ã", "â", "Â")) else text
+
+
 def _tool_card(tool, slug):
     """Just enough of a tool to render a sponsored unit."""
     if not tool:
@@ -130,7 +146,13 @@ def _tool_card(tool, slug):
         "category": tool.get("category"),
         "tagline": tool.get("tagline") or tool.get("shortDescription") or tool.get("summary"),
         "logo": tool.get("logo") or tool.get("logo_url") or tool.get("logoUrl"),
-        "emoji": tool.get("emoji") or tool.get("logo_emoji"),
+        "emoji": _clean_emoji(tool.get("emoji") or tool.get("logo_emoji")),
+        # ToolLogo resolves a favicon from the tool's own domain via the
+        # first-party /icon proxy. Without one of these fields it cannot,
+        # and every row falls through to a generic letter tile.
+        "url": tool.get("url") or tool.get("website") or tool.get("link"),
+        "website": tool.get("website") or tool.get("url") or tool.get("link"),
+        "link": tool.get("link") or tool.get("url") or tool.get("website"),
         "pricing": tool.get("pricing") or tool.get("pricingType") or tool.get("pricing_type"),
         "rating": tool.get("rating") or tool.get("averageRating") or tool.get("average_rating"),
     }

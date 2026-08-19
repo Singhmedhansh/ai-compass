@@ -57,7 +57,7 @@ _ROUTE_META = {
     'help': ('FAQ & Support — AI Compass', 'Get answers to frequently asked questions, learn how the AI Stack Architect works, or contact support.'),
     'student-discounts': ('Student AI Discounts & UNiDAYS Deals — AI Compass', 'Explore the best student discounts and UNiDAYS deals on top AI tools. Save on writing, coding, research, and productivity tools with your student status.'),
     'syllabus-parser': ('Course Syllabus Parser — AI Semester Toolkit | AI Compass', 'Upload your course syllabus PDF or Docx. Automatically scan your assignments, grading criteria, and tech requirements to build a personalized AI toolpack.'),
-    'community': ('AI Tool Leaderboard & Community — AI Compass', 'A weekly AI tool leaderboard scored from real community votes, discussion and click-throughs — plus a builder karma board. Ranks are never for sale.'),
+    'community': ('AI Tool Leaderboard & Community — AI Compass', 'A weekly AI tool leaderboard scored from real community votes, discussion and click-throughs — plus a builder reputation board. Ranks are never for sale.'),
     'sponsor': ('Sponsor the AI Compass Community — Placements from $39/week', 'Capped, clearly labelled sponsored placements beside the AI Compass community leaderboard. Impressions, clicks and CTR reported. Leaderboard ranks are never for sale.'),
 }
 

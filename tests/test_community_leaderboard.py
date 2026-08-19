@@ -1,3 +1,4 @@
+import json
 import os
 import uuid
 from datetime import datetime, timedelta, timezone
@@ -152,7 +153,7 @@ def test_sponsorship_cannot_enter_the_ranked_rows(client, app):
 
 # --- builder board ---------------------------------------------------------
 
-def test_builders_rank_by_karma_and_expose_next_rank(client, app):
+def test_builders_rank_by_reputation_and_expose_next_rank(client, app):
     quiet = _user(app)
     loud = _user(app)
     for i in range(4):
@@ -161,7 +162,7 @@ def test_builders_rank_by_karma_and_expose_next_rank(client, app):
 
     data = client.get("/api/v1/community/builders?period=week").get_json()
     assert data["rows"][0]["user_id"] == loud
-    assert data["rows"][0]["karma"] == 24
+    assert data["rows"][0]["reputation"] == 24
     assert data["rows"][0]["rank_badge"]["key"] == "explorer"
     assert data["rows"][0]["next_rank"]["at"] == 50
 
@@ -178,7 +179,7 @@ def test_builders_credit_upvotes_to_the_author(client, app):
     rows = client.get("/api/v1/community/builders?period=week").get_json()["rows"]
     author_row = next(r for r in rows if r["user_id"] == author)
     assert author_row["upvotes"] == 1
-    assert author_row["karma"] == 6 + 3
+    assert author_row["reputation"] == 6 + 3
 
 
 def test_builders_you_field_is_the_logged_in_member(client, app):
@@ -638,3 +639,44 @@ def test_paypal_config_never_leaks_the_secret(client, monkeypatch):
     monkeypatch.setenv("PAYPAL_SPONSOR_CLIENT_SECRET", "top-secret-value")
     body = client.get("/api/v1/config/paypal?context=sponsor").get_data(as_text=True)
     assert "top-secret-value" not in body
+
+
+# --- board presentation ----------------------------------------------------
+
+def test_board_rows_carry_a_url_so_favicons_can_resolve(client, app):
+    """ToolLogo derives its favicon from the tool's own domain. Without a
+    url/website/link on the payload every row falls through to a generic
+    letter tile, which is what shipped and looked broken."""
+    from app.models import CatalogTool
+
+    user_id = _user(app)
+    with app.app_context():
+        db.session.add(CatalogTool(
+            slug="favicon-tool", name="Favicon Tool",
+            data=json.dumps({
+                "slug": "favicon-tool", "name": "Favicon Tool",
+                "link": "https://favicon-tool.example.com",
+            }),
+        ))
+        db.session.commit()
+        from app.tool_cache import refresh_tools_cache
+        refresh_tools_cache()
+
+    _post(app, user_id, "favicon-tool", title="A thread about the favicon tool")
+    row = next(
+        r for r in client.get("/api/v1/community/leaderboard?period=week").get_json()["rows"]
+        if r["slug"] == "favicon-tool"
+    )
+    assert row["url"] == "https://favicon-tool.example.com"
+
+
+def test_mojibake_emoji_is_dropped_rather_than_rendered(app):
+    """A double-encoded emoji ("âœ³ï¸") rendered as the tool's icon looks
+    broken; a clean letter tile looks deliberate."""
+    from app.sponsorship import _tool_card
+
+    garbled = _tool_card({"name": "Claude", "emoji": "\u00e2\u009c\u00b3\u00ef\u00b8\u008f"}, "claude")
+    assert garbled["emoji"] is None
+
+    fine = _tool_card({"name": "Rocket", "emoji": "🚀"}, "rocket")
+    assert fine["emoji"] == "🚀"

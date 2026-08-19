@@ -228,11 +228,11 @@ def test_send_renders_and_delivers_to_each_active_member(app, monkeypatch):
     assert "unsubscribe?token=" in body["html"]
     # Personalised standing — the line that actually drives a return visit.
     assert "builder board" in body["html"]
-    assert "karma" in body["text"]
+    assert "reputation" in body["text"]
 
 
-def test_recipients_with_no_karma_still_get_a_useful_email(app, monkeypatch):
-    """A voter earns no karma but is still active. Their email must nudge
+def test_recipients_with_no_reputation_still_get_a_useful_email(app, monkeypatch):
+    """A voter earns no reputation but is still active. Their email must nudge
     rather than report a bare zero."""
     from app import community_recap
 
@@ -251,7 +251,7 @@ def test_recipients_with_no_karma_still_get_a_useful_email(app, monkeypatch):
         community_recap.run_recap()
 
     voter_email = next(d for d in delivered if d["to"] != _email_of(app, author))
-    assert "didn&#39;t pick up karma" in voter_email["html"] or "didn't pick up karma" in voter_email["html"]
+    assert "didn&#39;t pick up reputation" in voter_email["html"] or "didn't pick up reputation" in voter_email["html"]
 
 
 def _email_of(app, user_id):

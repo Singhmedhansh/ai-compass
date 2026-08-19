@@ -126,13 +126,14 @@ function ScoringNote({ weights }) {
           <span className="font-bold tabular-nums text-ink">+{weights.trending_upvote}</span>
         </li>
         <li className="flex justify-between gap-2">
-          <span>Click-throughs (damped)</span>
-          <span className="font-bold tabular-nums text-ink">+{weights.click}×√n</span>
+          <span>Click-throughs</span>
+          <span className="font-bold tabular-nums text-ink">tapering</span>
         </li>
       </ul>
       <p className="mt-2.5 text-[11px] leading-relaxed text-muted-2">
-        Clicks count on a square root so a popular catalogue entry can&apos;t out-rank a tool people
-        are genuinely discussing. Participation always moves the board.
+        Click-throughs count, but each one counts for a little less than the last — so a tool with
+        lots of passing traffic can&apos;t out-rank one people are genuinely discussing. Taking part
+        always moves the board more than being popular does.
       </p>
       <p className="mt-2.5 border-t border-line pt-2.5 text-[11px] leading-relaxed text-muted-2">
         Sponsorship buys a labelled unit beside the board. It cannot move a row inside it.
@@ -371,7 +372,7 @@ function CommunityPage() {
         <title>Community — Leaderboards, Discussion & Featured AI Tools | AI Compass</title>
         <meta
           name="description"
-          content="The AI Compass community: a weekly tool leaderboard scored from real votes and discussion, a builder karma board, and labelled sponsored placements."
+          content="The AI Compass community: a weekly tool leaderboard scored from real votes and discussion, a builder reputation board, and labelled sponsored placements."
         />
         <link rel="canonical" href="https://ai-compass.in/community" />
       </Helmet>

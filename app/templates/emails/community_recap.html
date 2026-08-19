@@ -10,14 +10,14 @@
 {% if standing %}
 <p class="paragraph" style="margin-bottom: 16px;">
   You're <strong>#{{ standing.rank }}</strong> on the builder board this week with
-  <strong>{{ standing.karma }} karma</strong> — {{ standing.badge }}.
+  <strong>{{ standing.reputation }} reputation</strong> — {{ standing.badge }}.
   {% if standing.next_label %}
   You need <strong>{{ standing.next_needed }} more</strong> to reach {{ standing.next_label }}.
   {% endif %}
 </p>
 {% else %}
 <p class="paragraph" style="margin-bottom: 16px;">
-  You didn't pick up karma this week. Posting earns {{ weights.post }}, commenting
+  You didn't pick up reputation this week. Posting earns {{ weights.post }}, commenting
   {{ weights.comment }}, and every upvote your contributions get is worth
   {{ weights.upvote_received }}.
 </p>
@@ -70,7 +70,7 @@
   Top builders
 </h2>
 <p class="paragraph" style="margin-bottom: 0;">
-  {% for builder in builders %}<strong>{{ builder.name }}</strong> ({{ builder.karma }}){% if not loop.last %} · {% endif %}{% endfor %}
+  {% for builder in builders %}<strong>{{ builder.name }}</strong> ({{ builder.reputation }}){% if not loop.last %} · {% endif %}{% endfor %}
 </p>
 {% endif %}
 

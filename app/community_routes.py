@@ -418,7 +418,7 @@ def leaderboard():
 
 @community_bp.get("/builders")
 def builders():
-    """People ranked by contribution karma in the period."""
+    """People ranked by contribution reputation in the period."""
     period = _period_arg()
     limit = _limit_arg(10, 50)
     try:

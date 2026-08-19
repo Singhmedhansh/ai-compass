@@ -8,7 +8,7 @@ train the wider audience to ignore us, and would report a "community" to
 people who have never seen it.
 
 Each send is personalised with the recipient's own standing, because the
-single line that brings someone back is "you're 24 karma from Navigator",
+single line that brings someone back is "you're 24 reputation from Navigator",
 not a leaderboard they aren't on.
 
 It also carries the sponsored "Presenting Partner" mention that the board
@@ -227,18 +227,18 @@ def _movement_label(row):
 
 
 def _standing_for(user_id, builders_all):
-    """The recipient's own line. None when they have no karma this week —
+    """The recipient's own line. None when they have no reputation this week —
     the template then nudges instead of reporting a zero."""
     mine = next((b for b in builders_all if b["user_id"] == user_id), None)
     if not mine:
         return None
-    nxt = next_builder_rank(mine["karma"])
+    nxt = next_builder_rank(mine["reputation"])
     return {
         "rank": mine["rank"],
-        "karma": mine["karma"],
+        "reputation": mine["reputation"],
         "badge": mine["rank_badge"]["label"],
         "next_label": nxt["label"] if nxt else None,
-        "next_needed": max(0, nxt["at"] - mine["karma"]) if nxt else 0,
+        "next_needed": max(0, nxt["at"] - mine["reputation"]) if nxt else 0,
     }
 
 
@@ -278,10 +278,10 @@ def _render(user, summary, standing, unsubscribe_url):
     lines = ["Your AI Compass community week", ""]
     if standing:
         lines.append(
-            f"You're #{standing['rank']} ({standing['badge']}) with {standing['karma']} karma."
+            f"You're #{standing['rank']} ({standing['badge']}) with {standing['reputation']} reputation."
         )
         if standing["next_label"]:
-            lines.append(f"{standing['next_needed']} karma to {standing['next_label']}.")
+            lines.append(f"{standing['next_needed']} reputation to {standing['next_label']}.")
         lines.append("")
     if summary["board"]:
         lines.append("Tool board this week:")
@@ -321,7 +321,7 @@ def run_recap(dry_run: bool = False, force: bool = False) -> dict:
             "threads": len(summary["threads"]),
         }
 
-    # Karma standings are computed once for everyone, then looked up per
+    # Reputation standings are computed once for everyone, then looked up per
     # recipient — otherwise this is one full leaderboard pass per email.
     builders_all = score_builders("week", limit=1000)
 

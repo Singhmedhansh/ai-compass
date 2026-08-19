@@ -10,7 +10,7 @@ Two separate boards, deliberately scored from different signals:
     at zero here. A board that can be bought is a board nobody reads, and a
     board nobody reads has no sponsorship inventory worth selling.
 
-  * The Builder Board ranks *people* by contribution karma. It exists to
+  * The Builder Board ranks *people* by contribution reputation. It exists to
     give the feed a reason to come back to daily, which is what turns a
     dead directory comment section into inventory in the first place.
 
@@ -61,7 +61,7 @@ PERIODS = {
     "all": None,
 }
 
-# Karma thresholds for the public rank names shown next to a builder. Kept
+# Reputation thresholds for the public rank names shown next to a builder. Kept
 # ascending; resolve_builder_rank walks it forwards and keeps the last hit.
 BUILDER_RANKS = [
     (0, "Explorer", "explorer"),
@@ -98,18 +98,18 @@ def _in_window(value, since, until=None):
     return True
 
 
-def resolve_builder_rank(karma: int):
+def resolve_builder_rank(reputation: int):
     label, key = BUILDER_RANKS[0][1], BUILDER_RANKS[0][2]
     for threshold, name, slug in BUILDER_RANKS:
-        if karma >= threshold:
+        if reputation >= threshold:
             label, key = name, slug
     return {"label": label, "key": key}
 
 
-def next_builder_rank(karma: int):
+def next_builder_rank(reputation: int):
     """What the builder is climbing toward — the progress bar needs a target."""
     for threshold, name, slug in BUILDER_RANKS:
-        if karma < threshold:
+        if reputation < threshold:
             return {"label": name, "key": slug, "at": threshold}
     return None
 
@@ -223,7 +223,7 @@ def board(period: str = "week"):
 
 
 def score_builders(period: str = "week", limit: int = 20):
-    """Top contributors with karma, activity counts, and rank badge."""
+    """Top contributors with reputation, activity counts, and rank badge."""
     since = period_start(period)
     stats = {}
 
@@ -261,12 +261,12 @@ def score_builders(period: str = "week", limit: int = 20):
 
     rows = []
     for user_id, s in stats.items():
-        karma = (
+        reputation = (
             s["posts"] * BUILDER_WEIGHTS["post"]
             + s["comments"] * BUILDER_WEIGHTS["comment"]
             + s["upvotes"] * BUILDER_WEIGHTS["upvote_received"]
         )
-        if karma <= 0:
+        if reputation <= 0:
             continue
         user = users.get(user_id)
         rows.append({
@@ -275,15 +275,15 @@ def score_builders(period: str = "week", limit: int = 20):
             "username": getattr(user, "public_username", None),
             "avatar": getattr(user, "oauth_picture_url", None),
             "is_public": bool(getattr(user, "is_profile_public", False)),
-            "karma": karma,
+            "reputation": reputation,
             "posts": s["posts"],
             "comments": s["comments"],
             "upvotes": s["upvotes"],
-            "rank_badge": resolve_builder_rank(karma),
-            "next_rank": next_builder_rank(karma),
+            "rank_badge": resolve_builder_rank(reputation),
+            "next_rank": next_builder_rank(reputation),
         })
 
-    rows.sort(key=lambda r: (-r["karma"], r["name"].lower()))
+    rows.sort(key=lambda r: (-r["reputation"], r["name"].lower()))
     for i, row in enumerate(rows):
         row["rank"] = i + 1
     return rows[:limit]

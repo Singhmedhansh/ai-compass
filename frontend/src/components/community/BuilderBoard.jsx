@@ -1,7 +1,7 @@
 import { Crown, MessageSquare, PenLine, ThumbsUp } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
-// Rank names, not raw karma, are what people screenshot. Colours ascend so a
+// Rank names, not raw reputation, are what people screenshot. Colours ascend so a
 // promotion is visible at a glance in the list.
 const RANK_STYLES = {
   explorer: 'border-line bg-bg-sunk text-muted',
@@ -81,21 +81,21 @@ function BuilderRow({ builder }) {
       </div>
 
       <div className="shrink-0 text-right">
-        <div className="text-sm font-extrabold tabular-nums text-ink">{builder.karma}</div>
-        <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-2">karma</div>
+        <div className="text-sm font-extrabold tabular-nums text-ink">{builder.reputation}</div>
+        <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-2">reputation</div>
       </div>
     </li>
   )
 }
 
-/** "You're 24 karma from Navigator" — the one line that drives repeat posting. */
+/** "You're 24 reputation from Navigator" — the one line that drives repeat posting. */
 export function YourStanding({ you, weights }) {
   if (!you) {
     return (
       <div className="rounded-2xl border border-dashed border-line-strong bg-bg-sunk p-4">
         <h3 className="text-sm font-bold text-ink">You&apos;re not on the board yet</h3>
         <p className="mt-1.5 text-xs leading-relaxed text-muted">
-          Karma comes from posting ({weights?.post ?? 6} pts), commenting ({weights?.comment ?? 2} pts),
+          Reputation comes from posting ({weights?.post ?? 6} pts), commenting ({weights?.comment ?? 2} pts),
           and upvotes other members give your contributions ({weights?.upvote_received ?? 3} pts each).
         </p>
       </div>
@@ -103,8 +103,8 @@ export function YourStanding({ you, weights }) {
   }
 
   const next = you.next_rank
-  const remaining = next ? Math.max(0, next.at - you.karma) : 0
-  const progress = next && next.at > 0 ? Math.min(100, Math.round((you.karma / next.at) * 100)) : 100
+  const remaining = next ? Math.max(0, next.at - you.reputation) : 0
+  const progress = next && next.at > 0 ? Math.min(100, Math.round((you.reputation / next.at) * 100)) : 100
 
   return (
     <div className="rounded-2xl border border-accent/30 bg-accent-soft/60 p-4">
@@ -112,7 +112,7 @@ export function YourStanding({ you, weights }) {
         <h3 className="text-sm font-bold text-ink">
           You&apos;re #{you.rank} · {you.rank_badge?.label}
         </h3>
-        <span className="text-sm font-extrabold tabular-nums text-accent-ink">{you.karma}</span>
+        <span className="text-sm font-extrabold tabular-nums text-accent-ink">{you.reputation}</span>
       </div>
       {next ? (
         <>
@@ -120,7 +120,7 @@ export function YourStanding({ you, weights }) {
             <div className="h-full rounded-full bg-accent transition-all" style={{ width: `${progress}%` }} />
           </div>
           <p className="mt-2 text-xs text-ink-2">
-            {remaining} karma to <strong className="font-semibold">{next.label}</strong>.
+            {remaining} reputation to <strong className="font-semibold">{next.label}</strong>.
           </p>
         </>
       ) : (
@@ -153,10 +153,28 @@ export default function BuilderBoard({ rows = [], loading = false, compact = fal
   }
 
   return (
-    <ol className="space-y-2">
-      {rows.map((builder) => (
-        <BuilderRow key={builder.user_id} builder={builder} />
-      ))}
-    </ol>
+    <>
+      <ol className="space-y-2">
+        {rows.map((builder) => (
+          <BuilderRow key={builder.user_id} builder={builder} />
+        ))}
+      </ol>
+
+      {/* A board with one or two names on it reads as broken rather than
+          new. Rather than padding it out with people who aren't there, say
+          plainly that it's early and show what it takes to appear — the
+          open positions are the invitation. */}
+      {rows.length < 3 && !compact && (
+        <div className="mt-3 rounded-2xl border border-dashed border-line-strong bg-bg-sunk px-5 py-6 text-center">
+          <h3 className="text-sm font-bold text-ink">
+            {rows.length === 1 ? 'One builder so far' : `${rows.length} builders so far`}
+          </h3>
+          <p className="mx-auto mt-1.5 max-w-sm text-xs leading-relaxed text-muted">
+            This board is new and the top places are genuinely open. Reputation comes from posting,
+            commenting, and the upvotes other members give your contributions.
+          </p>
+        </div>
+      )}
+    </>
   )
 }
