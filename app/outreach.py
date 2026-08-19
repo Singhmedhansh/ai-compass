@@ -2089,17 +2089,17 @@ def run_automated_followups():
 
 
 def run_automated_initial_sends():
-    """Sends the first outreach email for every draft_ready candidate that has
-    already cleared the send gate — no admin click required.
+    """Sends the first outreach email for every draft_ready candidate — no
+    admin click, and no confidence/verification gate.
 
-    This exists so a ready draft doesn't sit untouched until someone opens the
-    outreach dashboard; the cron tick is now the thing that actually sends it.
-    It does NOT loosen anything that protects sender reputation: the same
-    CONFIDENCE_SEND_THRESHOLD + real verification_result gate that
-    send_candidate_email/bulk_send_candidates enforce still applies here, and
-    every send still draws from the one shared DAILY_SEND_CAP (initial sends
-    and follow-ups combined) via sends_remaining_today() — it only removes the
-    human review step, not the deliverability guardrails.
+    This is a deliberate product choice, not an oversight: the manual
+    Send/Bulk-Send buttons (send_candidate_email, bulk_send_candidates) still
+    enforce CONFIDENCE_SEND_THRESHOLD + a real verification_result, so an
+    admin working the dashboard by hand still gets that protection. This
+    automated path trades that deliverability guardrail for reach — it sends
+    every draft_ready candidate regardless of score, including pattern-guessed
+    addresses. The one thing still enforced is the shared DAILY_SEND_CAP
+    (initial sends + follow-ups combined) via sends_remaining_today().
     """
     candidates = OutreachCandidate.query.filter(
         OutreachCandidate.status == "draft_ready",
@@ -2114,12 +2114,6 @@ def run_automated_initial_sends():
         if remaining <= 0:
             log.info("Daily send cap (%s) reached — deferring remaining initial sends to tomorrow.", DAILY_SEND_CAP)
             break
-        if (c.confidence_score or 0) < CONFIDENCE_SEND_THRESHOLD or not c.verification_result:
-            # Same reasoning as bulk_send_candidates: a heuristic-only score
-            # with no real mailbox check behind it is exactly what drives up
-            # bounce rate, so it stays in draft_ready for manual review
-            # instead of being auto-sent.
-            continue
 
         success = False
         err_msg = None
