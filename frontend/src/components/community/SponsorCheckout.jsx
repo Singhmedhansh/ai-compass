@@ -3,22 +3,44 @@ import { AlertCircle, CheckCircle2, Loader2, X } from 'lucide-react'
 
 const MAX_WEEKS = 12
 
-// The SDK is loaded once per page and reused. Re-injecting the script on
-// every modal open leaves duplicate globals behind and the buttons silently
-// stop rendering the second time.
+// This checkout needs the `buttons` component, because the amount varies
+// with the week count and only a dynamic createOrder can express that.
+//
+// /submit loads the same SDK with `components=hosted-buttons`, which yields
+// a window.paypal exposing HostedButtons and NOT Buttons. Reusing that
+// instance — as this loader originally did — makes paypal.Buttons(...) throw
+// for anyone whose session touched /submit first. PayPal's data-namespace
+// option exists for exactly this: it parks our instance on its own global so
+// the two can coexist instead of clobbering each other.
+const SDK_NAMESPACE = 'paypalSponsorSdk'
 let paypalSdkPromise = null
 
 function loadPayPalSdk(clientId) {
-  if (window.paypal) return Promise.resolve(window.paypal)
+  const existing = window[SDK_NAMESPACE]
+  if (existing && typeof existing.Buttons === 'function') return Promise.resolve(existing)
   if (paypalSdkPromise) return paypalSdkPromise
 
   paypalSdkPromise = new Promise((resolve, reject) => {
     const script = document.createElement('script')
     script.id = 'paypal-sdk-sponsor'
-    script.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(clientId)}&currency=USD&disable-funding=venmo`
+    script.src =
+      `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(clientId)}` +
+      '&components=buttons&currency=USD&disable-funding=venmo'
     script.async = true
-    script.onload = () => (window.paypal ? resolve(window.paypal) : reject(new Error('SDK loaded without paypal global')))
-    script.onerror = () => reject(new Error('Could not load the PayPal SDK'))
+    script.setAttribute('data-namespace', SDK_NAMESPACE)
+    script.onload = () => {
+      const sdk = window[SDK_NAMESPACE]
+      if (!sdk) {
+        reject(new Error('SDK loaded but exposed no global'))
+      } else if (typeof sdk.Buttons !== 'function') {
+        // Almost always means the client ID is not enabled for the JS SDK's
+        // dynamic-amount checkout (e.g. a hosted-button-only credential).
+        reject(new Error('This PayPal client ID does not support dynamic checkout buttons'))
+      } else {
+        resolve(sdk)
+      }
+    }
+    script.onerror = () => reject(new Error('Could not reach the PayPal SDK'))
     document.body.appendChild(script)
   }).catch((err) => {
     paypalSdkPromise = null
@@ -162,8 +184,13 @@ export default function SponsorCheckout({ placement, availability, onClose }) {
             setStatus('error')
           },
         }).render(buttonRef.current)
-      } catch {
-        if (!cancelled) setSdkError('Could not load PayPal checkout. Use the email option below.')
+      } catch (err) {
+        // Surface the underlying reason. A bare "could not load" leaves the
+        // operator with nothing to act on, and this is the one path where a
+        // misconfigured PayPal app looks identical to a network blip.
+        if (!cancelled) {
+          setSdkError(err?.message || 'Could not load PayPal checkout.')
+        }
       }
     }
 
@@ -319,7 +346,7 @@ export default function SponsorCheckout({ placement, availability, onClose }) {
 
             {sdkError && (
               <p className="mt-3 text-center text-xs text-muted">
-                {sdkError}{' '}
+                {sdkError} You can still book by email:{' '}
                 <a href="mailto:admin@ai-compass.in" className="font-semibold text-accent hover:underline">
                   admin@ai-compass.in
                 </a>
