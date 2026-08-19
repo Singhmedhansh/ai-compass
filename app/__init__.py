@@ -273,11 +273,21 @@ def create_app(config: dict | None = None) -> Flask:
     # — PostHog (analytics) and Google Fonts — with images allowed from any
     # https host because tool logos come from many favicon/logo CDNs.
     # cloudflareinsights is listed defensively in case CF Web Analytics is on.
+    # PayPal's JS SDK is loaded by /submit and /sponsor. It needs script, frame,
+    # connect and form-action allowances, and the checkout runs inside a PayPal
+    # iframe — so a policy that omits any of these fails with an opaque
+    # script.onerror and no console detail beyond the CSP violation.
+    #
+    # This omission silently broke every PayPal *button* on the site; only the
+    # plain hosted-button link kept working, because a link navigation isn't a
+    # script load. Keep these in sync if the checkout ever moves hosts.
+    PAYPAL_HOSTS = "https://*.paypal.com https://*.paypalobjects.com"
+
     csp = {
         "default-src": "'self'",
         # 'unsafe-inline' needed for PostHog/theme-detector inline scripts in
         # index.html. GA4 loads from googletagmanager.com. PostHog JS from its CDN.
-        "script-src": "'self' 'unsafe-inline' https://www.googletagmanager.com https://us-assets.i.posthog.com https://us.i.posthog.com https://static.cloudflareinsights.com",
+        "script-src": f"'self' 'unsafe-inline' https://www.googletagmanager.com https://us-assets.i.posthog.com https://us.i.posthog.com https://static.cloudflareinsights.com {PAYPAL_HOSTS}",
         # 'unsafe-inline' is REQUIRED here. Framer Motion (and React itself) inject
         # inline style attributes at runtime for animations. Nonces do NOT apply to
         # style attributes — only to <style> elements — so a nonce-only policy
@@ -287,11 +297,15 @@ def create_app(config: dict | None = None) -> Flask:
         "img-src": "'self' data: https:",
         # Include ai-compass.in itself so the /ingest PostHog proxy is explicitly
         # allowed as a connect target (some browsers enforce this strictly).
-        "connect-src": "'self' https://us.i.posthog.com https://us-assets.i.posthog.com https://cloudflareinsights.com https://www.google-analytics.com",
+        "connect-src": f"'self' https://us.i.posthog.com https://us-assets.i.posthog.com https://cloudflareinsights.com https://www.google-analytics.com {PAYPAL_HOSTS}",
         "worker-src": "'self' blob:",
+        # PayPal renders its checkout and 3-D Secure steps in an iframe. With
+        # no frame-src this fell through to default-src 'self' and the payment
+        # window could never open.
+        "frame-src": f"'self' {PAYPAL_HOSTS}",
         "frame-ancestors": "'self'",
         "base-uri": "'self'",
-        "form-action": "'self'",
+        "form-action": f"'self' {PAYPAL_HOSTS}",
         "object-src": "'none'",
     }
     if Talisman is not None and not app.config.get("TESTING"):
@@ -324,7 +338,10 @@ def create_app(config: dict | None = None) -> Flask:
                 "geolocation": "()",
                 "microphone": "()",
                 "camera": "()",
-                "payment": "()",
+                # Was "()", which disables the Payment Request API outright —
+                # PayPal's checkout needs it. Scoped to us plus PayPal rather
+                # than opened to "*".
+                "payment": '(self "https://www.paypal.com")',
                 "interest-cohort": "()",  # opt out of FLoC
             },
             session_cookie_secure=is_production,
