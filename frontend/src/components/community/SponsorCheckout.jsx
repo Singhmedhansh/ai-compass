@@ -40,7 +40,16 @@ function loadPayPalSdk(clientId) {
         resolve(sdk)
       }
     }
-    script.onerror = () => reject(new Error('Could not reach the PayPal SDK'))
+    // A blocked script and a network failure are indistinguishable here —
+    // the browser fires onerror either way and tells us nothing more. A
+    // privacy blocker is far and away the likelier cause for this audience
+    // (the same reason tool favicons go through a first-party proxy), so
+    // name it and give the reader something to do about it.
+    script.onerror = () => reject(new Error(
+      'Your browser blocked the PayPal checkout script — usually an ad blocker ' +
+      'or Brave Shields. Allow paypal.com for this page and reload, or book by ' +
+      'email instead.'
+    ))
     document.body.appendChild(script)
   }).catch((err) => {
     paypalSdkPromise = null
@@ -346,7 +355,7 @@ export default function SponsorCheckout({ placement, availability, onClose }) {
 
             {sdkError && (
               <p className="mt-3 text-center text-xs text-muted">
-                {sdkError} You can still book by email:{' '}
+                {sdkError}{' '}
                 <a href="mailto:admin@ai-compass.in" className="font-semibold text-accent hover:underline">
                   admin@ai-compass.in
                 </a>
