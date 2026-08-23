@@ -1,4 +1,4 @@
-from app import create_app, db
+from app import create_app
 from app.models import CatalogTool
 import json
 

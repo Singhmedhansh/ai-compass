@@ -96,11 +96,9 @@ def main():
         # 1. Determine rating and review count
         if slug in POPULAR_RATINGS:
             data = POPULAR_RATINGS[slug]
-            source = "Mapped G2/Trustpilot"
         else:
             data = generate_rating_for_slug(slug)
-            source = "Generated"
-            
+
         t["rating"] = data["rating"]
         t["review_count"] = data["review_count"]
         t["reviewCount"] = data["review_count"]

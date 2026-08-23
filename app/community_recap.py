@@ -31,7 +31,6 @@ from app.community_leaderboard import (
     BUILDER_WEIGHTS,
     display_name,
     next_builder_rank,
-    resolve_builder_rank,
     score_builders,
 )
 from app.community_leaderboard import board as tool_board

@@ -755,7 +755,7 @@ def create_app(config: dict | None = None) -> Flask:
                             from sqlalchemy import text
                             db.session.execute(text(f"ALTER TABLE users ADD COLUMN {if_not_exists}{col_name} {col_type};"))
                             db.session.commit()
-                        except Exception as err:
+                        except Exception:
                             db.session.rollback()
 
                     # Same fallback for outreach_candidates: flask_migrate.upgrade()

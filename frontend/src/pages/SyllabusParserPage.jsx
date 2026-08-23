@@ -81,24 +81,24 @@ export default function SyllabusParserPage() {
     }
 
     const API = import.meta.env.VITE_API_URL || ''
-    
-    // Simulate steps for clean scanning experience
-    setTimeout(() => {
-      setStatus('analyzing')
-    }, 1500)
 
-    setTimeout(() => {
-      setStatus('matching')
-    }, 3200)
+    // Simulate steps for clean scanning experience — cleared below so a fast
+    // failure/response can't have these fire afterward and stomp the real status.
+    const analyzingTimer = setTimeout(() => setStatus('analyzing'), 1500)
+    const matchingTimer = setTimeout(() => setStatus('matching'), 3200)
+
+    const controller = new AbortController()
+    const abortTimer = setTimeout(() => controller.abort(), 45000)
 
     try {
       const response = await fetch(`${API}/api/v1/parse-syllabus`, {
         method: 'POST',
         body: formData,
+        signal: controller.signal,
       })
 
       if (!response.ok) {
-        const errData = await response.json()
+        const errData = await response.json().catch(() => ({}))
         throw new Error(errData.error || 'Server error parsing syllabus.')
       }
 
@@ -107,8 +107,16 @@ export default function SyllabusParserPage() {
       setStatus('success')
     } catch (err) {
       console.error(err)
-      setErrorMessage(err.message || 'Something went wrong during syllabus analysis.')
+      setErrorMessage(
+        err.name === 'AbortError'
+          ? 'This is taking longer than expected. Please try again.'
+          : err.message || 'Something went wrong during syllabus analysis.'
+      )
       setStatus('error')
+    } finally {
+      clearTimeout(analyzingTimer)
+      clearTimeout(matchingTimer)
+      clearTimeout(abortTimer)
     }
   }
 

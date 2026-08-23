@@ -325,7 +325,7 @@ function CommunityPage() {
           })
         )
       } else {
-        toast.error('Could not save your vote. Please try again.')
+        toast.error(data.error || 'Could not save your vote. Please try again.')
       }
     } catch {
       toast.error('Could not save your vote. Please try again.')

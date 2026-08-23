@@ -132,11 +132,14 @@ def list_posts():
 
         by_id = {p.id: p for p in posts}
         if sort == "new":
-            key = lambda pl: by_id[pl["id"]].created_at
+            def key(pl):
+                return by_id[pl["id"]].created_at
         elif sort == "top":
-            key = lambda pl: pl["score"]
+            def key(pl):
+                return pl["score"]
         else:  # hot
-            key = lambda pl: _hot_score(by_id[pl["id"]])
+            def key(pl):
+                return _hot_score(by_id[pl["id"]])
 
         featured.sort(key=key, reverse=True)
         rest.sort(key=key, reverse=True)
@@ -255,7 +258,15 @@ def delete_post(post_id: int):
 @login_required
 def vote_post(post_id: int):
     try:
-        CommunityPost.query.get_or_404(post_id)
+        post = CommunityPost.query.get_or_404(post_id)
+        if post.user_id == current_user.id:
+            return jsonify({"error": "You can't vote on your own post"}), 403
+
+        ip = request.remote_addr or "unknown"
+        if is_rate_limited(f"community_vote:{current_user.id}", limit=60, window_seconds=3600) or \
+           is_rate_limited(f"community_vote_ip:{ip}", limit=120, window_seconds=3600):
+            return jsonify({"error": "You're voting too fast. Try again later."}), 429
+
         payload = request.get_json(silent=True) or {}
         vote_type = payload.get("vote_type")
         if vote_type not in (1, -1, 0):
@@ -327,7 +338,15 @@ def delete_comment(comment_id: int):
 @login_required
 def vote_comment(comment_id: int):
     try:
-        CommunityComment.query.get_or_404(comment_id)
+        comment = CommunityComment.query.get_or_404(comment_id)
+        if comment.user_id == current_user.id:
+            return jsonify({"error": "You can't vote on your own comment"}), 403
+
+        ip = request.remote_addr or "unknown"
+        if is_rate_limited(f"community_vote:{current_user.id}", limit=60, window_seconds=3600) or \
+           is_rate_limited(f"community_vote_ip:{ip}", limit=120, window_seconds=3600):
+            return jsonify({"error": "You're voting too fast. Try again later."}), 429
+
         payload = request.get_json(silent=True) or {}
         vote_type = payload.get("vote_type")
         if vote_type not in (1, -1, 0):

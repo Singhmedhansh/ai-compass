@@ -1,6 +1,7 @@
-from flask import Blueprint, current_app, flash, redirect, request, session, url_for, jsonify, render_template
-from flask_login import current_user, login_required, login_user, logout_user
+from flask import Blueprint, current_app, flash, redirect, request, session, url_for, jsonify
+from flask_login import current_user, login_required, logout_user
 import json
+import os
 from itsdangerous import URLSafeTimedSerializer
 
 # Safe optional import for Sentry
@@ -11,7 +12,6 @@ except Exception:
 
 from app import bcrypt, db, csrf
 from app.models import User
-from app.rate_limit import is_rate_limited
 from app.oauth import _frontend_base_url
 from app.email_utils import send_email
 

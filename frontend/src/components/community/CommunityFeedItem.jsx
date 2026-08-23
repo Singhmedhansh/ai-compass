@@ -48,33 +48,49 @@ function relativeTime(iso) {
   return new Date(iso).toLocaleDateString()
 }
 
-function VoteStack({ post, onVote }) {
-  const up = post.user_vote === 1
-  const down = post.user_vote === -1
+export function VoteStack({ item, onVote, size = 'md' }) {
+  const up = item.user_vote === 1
+  const down = item.user_vote === -1
+  const dims = size === 'sm'
+    ? { icon: 'h-3.5 w-3.5', btn: 'p-0.5', score: 'text-[11px] min-w-[1.25rem]', gap: 'gap-0.5' }
+    : { icon: 'h-4 w-4', btn: 'p-1', score: 'text-xs min-w-[1.5rem]', gap: 'gap-0.5' }
+
   return (
-    <div className="flex shrink-0 flex-col items-center gap-0.5 rounded-xl border border-line bg-bg px-1 py-1.5 select-none">
+    <div
+      className={`flex shrink-0 flex-col items-center ${dims.gap} rounded-xl border border-line bg-bg px-1 py-1.5 select-none`}
+    >
       <button
         type="button"
-        onClick={() => onVote?.(post.id, up ? 0 : 1)}
-        aria-label="Upvote post"
+        onClick={() => onVote?.(item.id, up ? 0 : 1)}
+        aria-label="Upvote"
         aria-pressed={up}
-        className={`rounded-lg p-1 transition hover:bg-bg-sunk ${
-          up ? 'text-accent' : 'text-muted-2 hover:text-ink'
+        className={`rounded-lg ${dims.btn} transition-all duration-150 active:scale-90 ${
+          up
+            ? 'bg-accent-soft text-accent'
+            : 'text-muted-2 hover:bg-bg-sunk hover:text-ink'
         }`}
       >
-        <ChevronUp className="h-4 w-4" strokeWidth={up ? 3 : 2.25} />
+        <ChevronUp className={dims.icon} strokeWidth={up ? 3 : 2.25} />
       </button>
-      <span className="text-xs font-extrabold tabular-nums text-ink">{post.score || 0}</span>
+      <span
+        className={`font-extrabold tabular-nums text-center transition-colors ${dims.score} ${
+          up ? 'text-accent' : down ? 'text-rose-500' : 'text-ink'
+        }`}
+      >
+        {item.score || 0}
+      </span>
       <button
         type="button"
-        onClick={() => onVote?.(post.id, down ? 0 : -1)}
-        aria-label="Downvote post"
+        onClick={() => onVote?.(item.id, down ? 0 : -1)}
+        aria-label="Downvote"
         aria-pressed={down}
-        className={`rounded-lg p-1 transition hover:bg-bg-sunk ${
-          down ? 'text-rose-500' : 'text-muted-2 hover:text-ink'
+        className={`rounded-lg ${dims.btn} transition-all duration-150 active:scale-90 ${
+          down
+            ? 'bg-rose-500/10 text-rose-500'
+            : 'text-muted-2 hover:bg-bg-sunk hover:text-ink'
         }`}
       >
-        <ChevronDown className="h-4 w-4" strokeWidth={down ? 3 : 2.25} />
+        <ChevronDown className={dims.icon} strokeWidth={down ? 3 : 2.25} />
       </button>
     </div>
   )
@@ -92,7 +108,7 @@ export default function CommunityFeedItem({ post, onVote, onDelete, linkToDetail
           : 'border-line bg-bg-elev hover:border-line-strong'
       }`}
     >
-      <VoteStack post={post} onVote={onVote} />
+      <VoteStack item={post} onVote={onVote} />
 
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-1.5">

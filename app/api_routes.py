@@ -1,9 +1,11 @@
+import importlib.util
 import json
 import os
 import re
 from difflib import SequenceMatcher
 import subprocess
 import sys
+import threading
 import time
 from collections import Counter
 from datetime import datetime, timedelta, timezone
@@ -17,10 +19,10 @@ from sqlalchemy.orm import joinedload
 from html import escape as html_escape
 
 from app import bcrypt, cache, csrf, db
-from app.ml_recommender import clear_model_cache, detect_intent, get_similar_tools, load_model, rerank_by_category
+from app.ml_recommender import clear_model_cache, get_similar_tools, load_model
 from app.models import Favorite, Rating, Review, ToolRating, User, ReviewVote
 from app.rate_limit import is_rate_limited
-from app.search_utils import search_tools, weighted_search, llm_fallback_search
+from app.search_utils import search_tools, llm_fallback_search
 from app.tool_cache import DEFAULT_TOOLS_PATH, TOOL_CACHE, get_cached_tools, get_visible_tools
 
 api_bp = Blueprint("api", __name__)
@@ -2382,9 +2384,6 @@ def clone_stack(stack_id):
 
 
 # Link Finder Admin Background Task State
-import threading
-import requests
-
 link_audit_state = {
     "is_running": False,
     "current_index": 0,
@@ -5890,7 +5889,6 @@ try:
 except ImportError:
     _UpstashIndex = None
     _UPSTASH_AVAILABLE = False
-import importlib.util
 
 _TRANSFORMERS_AVAILABLE = importlib.util.find_spec("sentence_transformers") is not None
 

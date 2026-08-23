@@ -12,7 +12,7 @@ from pathlib import Path
 # Setup paths
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from app import create_app, db
+from app import create_app
 from app.models import CatalogTool
 from app.catalog_store import _is_placeholder, upsert_tool
 
@@ -201,8 +201,10 @@ def edit_tool_pricing(tool: dict):
                     features_raw = input(f"Features (comma-separated) [current: {','.join(tr.get('features', []))}]: ").strip()
                     is_popular_str = input(f"Mark as popular? (y/n) [current: {tr.get('is_popular')}]: ").strip().lower()
                     
-                    if name: tr["name"] = name
-                    if price_disp: tr["price_display"] = price_disp
+                    if name:
+                        tr["name"] = name
+                    if price_disp:
+                        tr["price_display"] = price_disp
                     if price_amt:
                         try:
                             tr["price_amount"] = float(price_amt)

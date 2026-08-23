@@ -258,7 +258,7 @@ def guess_product_domain(product_name):
             resp = requests.head(url, timeout=2, allow_redirects=True, headers={"User-Agent": "Mozilla/5.0"})
             if resp.status_code < 400:
                 return url
-        except:
+        except Exception:
             pass
     return None
 
@@ -373,7 +373,7 @@ def scrape_producthunt_ranked_posts():
             from urllib.parse import urlparse
             domain = urlparse(url).netloc.replace("www.", "").lower()
             return not any(d in domain for d in INTERNAL_DOMAINS) and "." in domain
-        except:
+        except Exception:
             return False
 
     product_urls = [u for u in all_external if _is_product_url(u)]
@@ -426,7 +426,7 @@ def scrape_producthunt_ranked_posts():
                     url = future.result()
                     if url and slug in posts_by_slug:
                         posts_by_slug[slug]["website"] = url
-                except:
+                except Exception:
                     pass
 
     # ── Build final candidate list: must have votes >= MIN and real website
@@ -1664,11 +1664,11 @@ def run_discovery_pipeline():
     # thread — cheap, and skips wasted network work on anything we'd
     # reject anyway (duplicates are common once four sources overlap).
     survivors = []
-    for l in launches:
-        website_url = l.get("website_url", "")
-        product_name = l.get("product_name", "")
-        tagline = l.get("tagline", "")
-        ph_id = l.get("ph_launch_id", "")
+    for launch in launches:
+        website_url = launch.get("website_url", "")
+        product_name = launch.get("product_name", "")
+        tagline = launch.get("tagline", "")
+        ph_id = launch.get("ph_launch_id", "")
 
         if ph_id and ph_id.startswith("hn_"):
             combined_lower = f"{product_name} {tagline}".lower()
@@ -1690,14 +1690,14 @@ def run_discovery_pipeline():
             skipped_duplicate += 1
             continue
 
-        survivors.append(l)
+        survivors.append(launch)
 
-    def _process(l):
-        website_url = l.get("website_url", "")
-        product_name = l.get("product_name", "")
-        tagline = l.get("tagline", "")
-        founder_name = l.get("founder_name", "")
-        ph_id = l.get("ph_launch_id", "")
+    def _process(launch):
+        website_url = launch.get("website_url", "")
+        product_name = launch.get("product_name", "")
+        tagline = launch.get("tagline", "")
+        founder_name = launch.get("founder_name", "")
+        ph_id = launch.get("ph_launch_id", "")
 
         # ── Gate 4: Must have commercial signals (pricing, paid plan, etc.)
         if not is_commercial_saas(website_url):
@@ -1705,7 +1705,7 @@ def run_discovery_pipeline():
 
         # ── Contact enrichment (best-effort, not a hard gate)
         email, source, score, verification_result = enrich_candidate_email(website_url, founder_name)
-        contact_twitter = l.get("twitter_handle", "")
+        contact_twitter = launch.get("twitter_handle", "")
         if not contact_twitter:
             contact_twitter = find_twitter_handle_for_product(product_name, website_url)
 
@@ -1746,7 +1746,7 @@ def run_discovery_pipeline():
     # instance has a single shared vCPU, so more workers here would just
     # starve the process's ability to answer other requests.
     with ThreadPoolExecutor(max_workers=3) as executor:
-        futures = [executor.submit(_process, l) for l in survivors]
+        futures = [executor.submit(_process, launch) for launch in survivors]
         for f in as_completed(futures):
             try:
                 c = f.result()

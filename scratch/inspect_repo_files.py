@@ -21,7 +21,7 @@ for repo in repos:
                 path = file_info.get("path", "")
                 if any(x in path.lower() for x in ["logo", "icon", "brand", "avatar", "favicon"]):
                     print(f"  {path}")
-    except Exception as e:
+    except Exception:
         # Try master branch if main doesn't exist
         url = f"https://api.github.com/repos/{repo}/git/trees/master?recursive=1"
         req = urllib.request.Request(url, headers={"User-Agent": ua})

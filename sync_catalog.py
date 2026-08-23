@@ -1,4 +1,3 @@
-import sys
 from app import create_app, db
 from app.catalog_store import upsert_tool
 from app.tool_cache import _load_tools_from_disk

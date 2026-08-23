@@ -4,7 +4,7 @@ import { Link, useParams, useLocation, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { Loader2, Trash2 } from 'lucide-react'
 
-import CommunityFeedItem from '../components/community/CommunityFeedItem'
+import CommunityFeedItem, { VoteStack } from '../components/community/CommunityFeedItem'
 import Button from '../components/ui/Button'
 import ErrorState from '../components/ErrorState'
 import { inferErrorVariant } from '../utils/errorState'
@@ -85,7 +85,7 @@ function CommunityPostPage() {
           return { ...prev, score: data.score, user_vote: nextVote === 0 ? null : voteType }
         })
       } else {
-        toast.error('Could not save your vote. Please try again.')
+        toast.error(data.error || 'Could not save your vote. Please try again.')
       }
     } catch {
       toast.error('Could not save your vote. Please try again.')
@@ -137,7 +137,7 @@ function CommunityPostPage() {
           }
         })
       } else {
-        toast.error('Could not save your vote. Please try again.')
+        toast.error(data.error || 'Could not save your vote. Please try again.')
       }
     } catch {
       toast.error('Could not save your vote. Please try again.')
@@ -293,29 +293,7 @@ function CommunityPostPage() {
           <div aria-live="polite" className="mt-4 space-y-3">
             {post.comments.map((comment) => (
               <article key={comment.id} className="flex gap-3 rounded-xl border border-line bg-bg-sunk p-4 items-start">
-                <div className="flex flex-col items-center justify-center shrink-0 gap-0.5 select-none bg-bg-elev/50 rounded-lg p-1 border border-line/20">
-                  <button
-                    type="button"
-                    onClick={() => handleCommentVote(comment.id, comment.user_vote === 1 ? 0 : 1)}
-                    className={`p-1 rounded hover:bg-bg-elev transition text-xs leading-none ${
-                      comment.user_vote === 1 ? 'text-emerald-500 font-bold' : 'text-muted'
-                    }`}
-                    aria-label="Upvote comment"
-                  >
-                    ▲
-                  </button>
-                  <span className="text-xs font-bold tabular-nums text-ink">{comment.score || 0}</span>
-                  <button
-                    type="button"
-                    onClick={() => handleCommentVote(comment.id, comment.user_vote === -1 ? 0 : -1)}
-                    className={`p-1 rounded hover:bg-bg-elev transition text-xs leading-none ${
-                      comment.user_vote === -1 ? 'text-rose-500 font-bold' : 'text-muted'
-                    }`}
-                    aria-label="Downvote comment"
-                  >
-                    ▼
-                  </button>
-                </div>
+                <VoteStack item={comment} size="sm" onVote={handleCommentVote} />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
                     <strong className="text-sm text-ink">{comment.author}</strong>

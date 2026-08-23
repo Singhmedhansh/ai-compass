@@ -140,7 +140,7 @@ def migrate(source_url, target_url):
             print(f"  -> Successfully migrated {success_count}/{len(rows)} rows.")
 
             # Reset sequence for this table immediately after migration
-            target_cur.execute(f"""
+            target_cur.execute("""
                 SELECT column_name, column_default 
                 FROM information_schema.columns 
                 WHERE table_name = %s AND column_default LIKE 'nextval%%';
@@ -152,7 +152,7 @@ def migrate(source_url, target_url):
                     target_cur.execute(f'SELECT MAX("{col}") FROM "{table}";')
                     max_id = target_cur.fetchone()[0]
                     if max_id is not None:
-                        target_cur.execute(f"SELECT setval(%s, %s);", (seq_name, max_id))
+                        target_cur.execute("SELECT setval(%s, %s);", (seq_name, max_id))
                         print(f"  -> Sequence {seq_name} reset to {max_id}.")
                 except Exception as seq_err:
                     print(f"  -> Warning resetting sequence for {table}.{col}: {seq_err}")
@@ -164,13 +164,13 @@ def migrate(source_url, target_url):
         print(f"An error occurred: {e}")
         try:
             target_conn.rollback()
-        except:
+        except Exception:
             pass
     finally:
         try:
             source_conn.close()
             target_conn.close()
-        except:
+        except Exception:
             pass
 
 if __name__ == "__main__":

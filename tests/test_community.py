@@ -61,27 +61,33 @@ def test_create_post_and_list(client, app):
 
 
 def test_vote_toggle_and_score(client, app):
-    _login(client, app)
+    _login(client, app, email="poster-vote@example.com")
     post_resp = client.post("/api/v1/community/posts", json={
         "title": "Vote on this post please",
         "body": "Body text long enough to pass validation checks.",
     })
     post_id = post_resp.get_json()["id"]
 
-    up = client.post(f"/api/v1/community/posts/{post_id}/vote", json={"vote_type": 1})
+    # Voting is blocked on your own post, so vote as a second identity — a
+    # separate client, since reusing the session_uuid across a _user_id
+    # switch on the same client trips session-hijack revocation.
+    voter = app.test_client()
+    _login(voter, app, email="voter@example.com")
+
+    up = voter.post(f"/api/v1/community/posts/{post_id}/vote", json={"vote_type": 1})
     assert up.get_json()["score"] == 1
 
     # toggling the same vote_type again via the API directly (not the UI's
     # toggle-to-0 logic) just re-applies it — clearing is an explicit 0.
-    clear = client.post(f"/api/v1/community/posts/{post_id}/vote", json={"vote_type": 0})
+    clear = voter.post(f"/api/v1/community/posts/{post_id}/vote", json={"vote_type": 0})
     assert clear.get_json()["score"] == 0
 
-    down = client.post(f"/api/v1/community/posts/{post_id}/vote", json={"vote_type": -1})
+    down = voter.post(f"/api/v1/community/posts/{post_id}/vote", json={"vote_type": -1})
     assert down.get_json()["score"] == -1
 
 
 def test_comment_flow(client, app):
-    _login(client, app)
+    _login(client, app, email="poster-comment@example.com")
     post_resp = client.post("/api/v1/community/posts", json={
         "title": "Post with comments",
         "body": "Body text long enough to pass validation checks.",
@@ -99,7 +105,10 @@ def test_comment_flow(client, app):
     assert body["comments"][0]["id"] == comment_id
     assert body["comments"][0]["body"] == "Nice post!"
 
-    vote = client.post(f"/api/v1/community/comments/{comment_id}/vote", json={"vote_type": 1})
+    # Voting is blocked on your own comment, so vote as a second identity.
+    voter = app.test_client()
+    _login(voter, app, email="commenter-voter@example.com")
+    vote = voter.post(f"/api/v1/community/comments/{comment_id}/vote", json={"vote_type": 1})
     assert vote.get_json()["score"] == 1
 
 

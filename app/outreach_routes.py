@@ -7,7 +7,7 @@ from flask_login import login_required, current_user
 
 from app import db, csrf
 from app.models import OutreachCandidate, OutreachEmailLog
-from app.email_utils import send_email, send_email_with_details
+from app.email_utils import send_email_with_details
 from app.outreach import (
     run_discovery_pipeline,
     re_enrich_missing_candidate_emails,
@@ -16,7 +16,6 @@ from app.outreach import (
     regenerate_all_drafts,
     trigger_github_verification_workflow,
     generate_draft_via_gemini,
-    is_valid_email,
     fetch_producthunt_launches,
     fetch_shownews_launches,
     fetch_betalist_launches,
@@ -179,9 +178,12 @@ def update_candidate(cid):
     data = request.json or {}
     
     # Update candidate fields
-    if "product_name" in data: c.product_name = data["product_name"]
-    if "website_url" in data: c.website_url = data["website_url"]
-    if "founder_name" in data: c.founder_name = data["founder_name"]
+    if "product_name" in data:
+        c.product_name = data["product_name"]
+    if "website_url" in data:
+        c.website_url = data["website_url"]
+    if "founder_name" in data:
+        c.founder_name = data["founder_name"]
     if "email" in data:
         c.email = data["email"]
         if c.status == "no_email_found" and c.email:
@@ -193,10 +195,14 @@ def update_candidate(cid):
         c.confidence_score = data["confidence_score"]
         c.verification_result = "manual_override"
         c.verified_at = datetime.now(timezone.utc)
-    if "tone" in data: c.tone = data["tone"]
-    if "tagline" in data: c.tagline = data["tagline"]
-    if "draft_subject" in data: c.draft_subject = data["draft_subject"]
-    if "draft_body" in data: c.draft_body = data["draft_body"]
+    if "tone" in data:
+        c.tone = data["tone"]
+    if "tagline" in data:
+        c.tagline = data["tagline"]
+    if "draft_subject" in data:
+        c.draft_subject = data["draft_subject"]
+    if "draft_body" in data:
+        c.draft_body = data["draft_body"]
     
     # Regenerate draft option
     if data.get("regenerate_draft"):
@@ -370,19 +376,19 @@ def get_outreach_logs():
         
     logs = OutreachEmailLog.query.order_by(OutreachEmailLog.sent_at.desc()).all()
     res = []
-    for l in logs:
+    for log_entry in logs:
         # Find candidate details safely
-        candidate = OutreachCandidate.query.get(l.candidate_id)
+        candidate = OutreachCandidate.query.get(log_entry.candidate_id)
         res.append({
-            "id": l.id,
-            "candidate_id": l.candidate_id,
+            "id": log_entry.id,
+            "candidate_id": log_entry.candidate_id,
             "product_name": candidate.product_name if candidate else "Deleted Candidate",
-            "email": l.email,
-            "subject": l.subject,
-            "body": l.body,
-            "status": l.status,
-            "error_message": l.error_message,
-            "sent_at": l.sent_at.isoformat() if l.sent_at else None
+            "email": log_entry.email,
+            "subject": log_entry.subject,
+            "body": log_entry.body,
+            "status": log_entry.status,
+            "error_message": log_entry.error_message,
+            "sent_at": log_entry.sent_at.isoformat() if log_entry.sent_at else None
         })
     return jsonify(res)
 
