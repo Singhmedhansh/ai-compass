@@ -29,6 +29,11 @@ jobs:
         # older client by default, which will fail with "server version
         # mismatch" against newer servers. Pull pg_dump 18 from the
         # PGDG apt repo.
+        #
+        # The runner image already has postgresql-client-16 installed, and
+        # its pg_dump alternative isn't automatically superseded by
+        # installing -18 alongside it — `pg_dump` on PATH keeps resolving
+        # to 16 unless we prepend the versioned bin dir ourselves.
         run: |
           set -euo pipefail
           sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
@@ -36,6 +41,8 @@ jobs:
           sudo sh -c 'echo "deb [signed-by=/usr/share/keyrings/postgresql.gpg] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
           sudo apt-get update
           sudo apt-get install -y postgresql-client-18
+          echo "/usr/lib/postgresql/18/bin" >> "$GITHUB_PATH"
+          export PATH="/usr/lib/postgresql/18/bin:$PATH"
           pg_dump --version
 
       - name: Dump Postgres to a gzipped .sql.gz
