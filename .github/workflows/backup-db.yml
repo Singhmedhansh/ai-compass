@@ -25,9 +25,9 @@ jobs:
 
     steps:
       - name: Install postgresql-client matching Postgres server version
-        # Postgres 16 is currently used. The Ubuntu runner ships an
+        # Render Postgres is currently on 18. The Ubuntu runner ships an
         # older client by default, which will fail with "server version
-        # mismatch" against newer servers. Pull pg_dump 16 from the
+        # mismatch" against newer servers. Pull pg_dump 18 from the
         # PGDG apt repo.
         run: |
           set -euo pipefail
@@ -35,7 +35,7 @@ jobs:
           curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo gpg --dearmor -o /usr/share/keyrings/postgresql.gpg
           sudo sh -c 'echo "deb [signed-by=/usr/share/keyrings/postgresql.gpg] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
           sudo apt-get update
-          sudo apt-get install -y postgresql-client-16
+          sudo apt-get install -y postgresql-client-18
           pg_dump --version
 
       - name: Dump Postgres to a gzipped .sql.gz
