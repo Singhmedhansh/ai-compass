@@ -769,6 +769,7 @@ def create_app(config: dict | None = None) -> Flask:
                     for col_name, col_type in [
                         ("verification_result", "VARCHAR(20)"),
                         ("verified_at", "TIMESTAMP"),
+                        ("fit_score", "INTEGER"),
                     ]:
                         try:
                             from sqlalchemy import text

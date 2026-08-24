@@ -537,6 +537,7 @@ class OutreachCandidate(db.Model):
     last_status_change_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
     verification_result = db.Column(db.String(20), nullable=True)  # 'valid', 'invalid', 'disposable', 'catchall', 'unknown', or None if never checked
     verified_at = db.Column(db.DateTime, nullable=True)
+    fit_score = db.Column(db.Integer, nullable=True)  # likelihood-to-convert ranking signal, see compute_fit_score()
 
 
 class OutreachEmailLog(db.Model):

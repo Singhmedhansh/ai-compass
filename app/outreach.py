@@ -149,6 +149,21 @@ COMMERCIAL_PRICING_SIGNALS = [
     "/mo", "monthly", "annually", "checkout", "premium"
 ]
 
+# Fit-score pricing sub-classification (see classify_pricing_signal below).
+# Deliberately separate from COMMERCIAL_PRICING_SIGNALS above: that list only
+# has to prove SOME commercial signal exists (the pass/fail gate in
+# is_commercial_saas). These buckets are a finer read of the same page for
+# ranking already-qualified candidates — they never affect the gate.
+FREEMIUM_SIGNALS = [
+    "free trial", "free tier", "free plan", "start for free", "start free",
+    "try for free", "free forever", "no credit card required", "forever free",
+]
+ENTERPRISE_ONLY_SIGNALS = [
+    "contact sales", "book a demo", "request a demo", "talk to sales",
+    "custom pricing", "contact us for pricing", "get in touch for pricing",
+]
+SELF_SERVE_PRICE_SIGNALS = ["/mo", "per month", "monthly", "annually", "checkout"]
+
 def is_student_relevant(product_name, tagline="", website_url=""):
     """Checks if the SaaS product is relevant to students, developers, researchers, or creators."""
     text = f"{product_name} {tagline} {website_url}".lower()
@@ -169,6 +184,34 @@ def is_commercial_saas(website_url):
         return has_pricing_signal
     except Exception:
         return True
+
+def classify_pricing_text(text_lower: str) -> str:
+    """Pure classifier: buckets already-fetched, lowercased homepage text as
+    'freemium', 'enterprise_only', or 'unknown' for fit-score ranking.
+    Split out from classify_pricing_signal so it's unit-testable without a
+    network call."""
+    has_freemium = any(sig in text_lower for sig in FREEMIUM_SIGNALS)
+    if has_freemium:
+        return "freemium"
+    has_enterprise_only = any(sig in text_lower for sig in ENTERPRISE_ONLY_SIGNALS)
+    has_self_serve_price = any(sig in text_lower for sig in SELF_SERVE_PRICE_SIGNALS)
+    if has_enterprise_only and not has_self_serve_price:
+        return "enterprise_only"
+    return "unknown"
+
+def classify_pricing_signal(website_url):
+    """Fetches the homepage (same request shape as is_commercial_saas, kept
+    separate so that function's pass/fail gate is untouched — this only
+    affects fit-score ranking of candidates that already passed it) and
+    buckets the pricing model for compute_fit_score."""
+    try:
+        headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AICompassBot/1.0"}
+        resp = requests.get(website_url, headers=headers, timeout=2.5, allow_redirects=True)
+        if not resp.ok or not resp.text:
+            return "unknown"
+        return classify_pricing_text(resp.text.lower())
+    except Exception:
+        return "unknown"
 
 def is_valid_email(email):
     if not email or "@" not in email:
@@ -444,7 +487,8 @@ def scrape_producthunt_ranked_posts():
             "website_url": p["website"],
             "founder_name": p.get("maker") or "",
             "twitter_handle": p.get("twitter") or "",
-            "votes": p["votes"]
+            "votes": p["votes"],
+            "traction_source": "ph"
         })
 
     log.info("PH scraper: %s candidates with %s+ votes and real URLs (from %s raw slugs)",
@@ -516,7 +560,8 @@ def fetch_producthunt_launches():
                         "website_url": website,
                         "founder_name": founder,
                         "twitter_handle": twitter,
-                        "votes": votes
+                        "votes": votes,
+                        "traction_source": "ph"
                     })
         except Exception as e:
             log.warning("PH GraphQL fetch failed: %s", e)
@@ -596,7 +641,8 @@ def fetch_shownews_launches():
                     "website_url": link,
                     "founder_name": author,
                     "twitter_handle": "",
-                    "votes": points
+                    "votes": points,
+                    "traction_source": "hn"
                 })
     except Exception as e:
         log.warning("Algolia Show HN fetch error: %s", e)
@@ -637,7 +683,8 @@ def fetch_shownews_launches():
                         "website_url": link,
                         "founder_name": author,
                         "twitter_handle": "",
-                        "votes": points
+                        "votes": points,
+                        "traction_source": "hn"
                     }
                 except Exception:
                     return None
@@ -1600,6 +1647,57 @@ def infer_tone(tagline, description):
     return "peer"
 
 
+# ─── FIT SCORE (likelihood-to-convert ranking, layered on top of the
+# existing relevance/is_commercial_saas filter — see compute_fit_score) ────
+#
+# Terms intentionally left out as documented no-ops, because the pipeline
+# doesn't yet capture a real signal for them (see Step 1 audit in the
+# founder-fit-score work):
+#   - team size (<=3)   — no reliable source; "I built"/"we built" phrasing
+#     is exactly the weak text heuristic that misfires often, so it's
+#     skipped rather than guessed.
+#   - launch recency    — only `created_at` (when WE discovered it) exists;
+#     that's not the product's actual launch date.
+#   - category match    — candidates have no assigned category; matching
+#     tagline text against catalog category names would be another weak
+#     guess, not a real signal.
+HN_HIGH_POINTS_THRESHOLD = 150
+PH_HIGH_VOTES_THRESHOLD = 300
+
+def compute_fit_score(email_source=None, pricing_signal="unknown", traction_score=None, traction_source=None):
+    """Pure function: estimates likelihood-to-convert for a candidate that
+    has ALREADY passed the relevance + is_commercial_saas filters. Only
+    ranks who gets picked first from that pool — never a replacement for
+    those gates.
+
+    traction_source must be 'ph' or 'hn' for the traction term to apply
+    (the two sources use different score scales, so an unlabeled number
+    can't be judged against either threshold).
+    """
+    score = 0
+
+    if pricing_signal == "freemium":
+        score += 2
+    elif pricing_signal == "enterprise_only":
+        score -= 3
+
+    # A founder-attributable public profile was the actual source of the
+    # discovered email (not just "a name string exists" — GitHub/HN profile
+    # strategies only return an email when they found and confirmed one).
+    # find_email_via_github returns "github_profile" or "github_commit"
+    # (never a bare "github"); hn_profile strategy always returns "hn_profile".
+    if email_source in ("github_profile", "github_commit", "hn_profile"):
+        score += 1
+
+    if traction_score is not None:
+        if traction_source == "ph" and traction_score > PH_HIGH_VOTES_THRESHOLD:
+            score -= 2
+        elif traction_source == "hn" and traction_score > HN_HIGH_POINTS_THRESHOLD:
+            score -= 2
+
+    return score
+
+
 # ─── 4. RUN PIPELINE JOBS ──────────────────────────────────────────────────
 def find_twitter_handle_for_product(product_name, website_url):
     """Searches for an X/Twitter handle by scraping the product's homepage for social links."""
@@ -1735,6 +1833,13 @@ def run_discovery_pipeline():
             c.email_source = "none"
             c.confidence_score = 0
             c.status = "no_email_found"
+
+        c.fit_score = compute_fit_score(
+            email_source=c.email_source,
+            pricing_signal=classify_pricing_signal(website_url),
+            traction_score=launch.get("votes"),
+            traction_source=launch.get("traction_source"),
+        )
 
         subject, body = generate_draft_via_gemini(c)
         c.draft_subject = subject
@@ -2100,12 +2205,21 @@ def run_automated_initial_sends():
     every send still draws from the one shared DAILY_SEND_CAP (initial sends
     and follow-ups combined) via sends_remaining_today() — it only removes the
     human review step, not the deliverability guardrails.
+
+    Ordered by fit_score DESC (oldest-first as the tie-breaker) so that
+    within a given day's cap, the candidates most likely to actually convert
+    get sent first — this only reorders who gets picked from the pool that
+    already cleared every gate above, it never changes which candidates are
+    eligible.
     """
     candidates = OutreachCandidate.query.filter(
         OutreachCandidate.status == "draft_ready",
         OutreachCandidate.email.isnot(None),
         OutreachCandidate.draft_subject.isnot(None),
         OutreachCandidate.draft_body.isnot(None),
+    ).order_by(
+        OutreachCandidate.fit_score.desc().nullslast(),
+        OutreachCandidate.created_at.asc(),
     ).all()
 
     remaining = sends_remaining_today()
