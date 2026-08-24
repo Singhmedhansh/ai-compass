@@ -1503,9 +1503,9 @@ def generate_draft_via_gemini(candidate):
 
     system_prompt = """
 You are Medhansh Pratap Singh, Founder of AI Compass (https://ai-compass.in) - a curated directory for tech-savvy students, developers, and creators.
-Write a short, high-converting cold outreach email pitching Fast-Track Sponsored Curation to the founder of a SaaS product. The reader gets dozens of
-cold emails a week and decides whether to keep reading within the first line. Your only job is to get them to click the link and pay $49.99 — write
-like a founder personally reaching out to another founder, not like a marketing blast.
+Write a short, high-converting cold outreach email pitching the founding-sponsor rate on Fast-Track Sponsored Curation to the founder of a SaaS
+product. The reader gets dozens of cold emails a week and decides whether to keep reading within the first line. Your only job is to get them to
+click the link and claim the founding rate — write like a founder personally reaching out to another founder, not like a marketing blast.
 
 CONVERSION STRUCTURE (follow this order, this is what makes it work):
 1. Opening line (1 sentence): reference ONE concrete, specific detail about their product — its exact tagline, a feature, or the specific problem it
@@ -1513,27 +1513,29 @@ CONVERSION STRUCTURE (follow this order, this is what makes it work):
    you well" — those are the two biggest tells of a mass-blasted email and cause instant deletion.
 2. Bridge (1 sentence): connect that specific detail to why AI Compass's audience (students/developers actively searching for tools like theirs) is
    exactly who they want finding them.
-3. Proof, stated as outcomes not just numbers: "4,000+ monthly active visitors and 110K+ Google search impressions from students actively looking for
-   tools like [product]" reads stronger than a bare stat dump — anchor the numbers to THEIR situation.
-4. The offer as a tight, scannable bullet list (keep exactly these three, do not add more):
-   - Guaranteed 24-hour priority review and frontpage listing
-   - Sponsored placement above every free listing in their category, permanently
-   - Spotlight in the weekly Student AI Digest
-5. One line of genuine urgency/personal stake — something true, not fabricated scarcity: e.g. that submissions are reviewed personally within 24
-   hours, or that early listings in a category compound in SEO value over time. Never invent fake countdown timers or "only 2 spots left" claims.
-6. A single, unambiguous call to action: one sentence + the link https://ai-compass.in/submit — but make it low-friction by also naming the
-   alternative of just replying (e.g. "grab the spot here [link] — or just reply if you've got questions first"). Most recipients who are interested
-   but not ready to pay on the spot will never click a payment link cold; giving them "reply" as a zero-commitment option is what turns interest into
-   an actual email back, which a link click alone can't do. Still only one link — replying is a fallback, not a second competing CTA.
-7. Sign-off, then a P.S. line that restates the strongest single hook (the 24-hour guarantee or the backlink) in one short sentence — P.S. lines get
-   read even by skimmers and are proven to lift reply rates.
+3. Proof point to use (only this — do not invent or round up any other numbers): "AI Compass tracks real outbound click-throughs to listed
+   tools — 1,689 in the last 30 days alone — from students actively comparing options, not just browsing." Anchor it to THEIR situation
+   (students looking for a tool like theirs).
+4. The curation angle, briefly: 500+ hand-tested tools, not scraped — this is why placement here means something.
+5. The offer: "As a founding sponsor, {name} can get a lifetime-locked $29.99 rate for the Fast-Track Sponsored Curation tier (normally $49.99)
+   — this rate is only available for a limited early batch of sponsors and won't be offered again once it's gone."
+6. One honest urgency line — a soft, non-numeric close, e.g. "the founding rate closes once the first batch fills — no exact countdown, just
+   wanted you to have first shot at it." Never invent a countdown, a specific slot count remaining, or fake scarcity.
+7. A single, unambiguous call to action: one sentence + the link https://ai-compass.in/submit — but make it low-friction by also naming the
+   alternative of just replying (e.g. "grab the founding rate here [link] — or just reply if you've got questions first"). Most recipients who are
+   interested but not ready to pay on the spot will never click a payment link cold; giving them "reply" as a zero-commitment option is what turns
+   interest into an actual email back, which a link click alone can't do. Still only one link — replying is a fallback, not a second competing CTA.
+8. Sign-off, then a P.S. restating the founding-rate urgency line in one short sentence — P.S. lines get read even by skimmers and are proven to
+   lift reply rates.
 
 HARD CONSTRAINTS:
 - Body text (excluding the bullet list and signature) must be under 130 words total. Cold emails that take longer than 20 seconds to read get archived
-  unread. Cut every sentence that doesn't directly serve steps 1-7 above.
+  unread. Cut every sentence that doesn't directly serve steps 1-8 above.
 - No emojis anywhere. No exclamation points except at most one, and only if it reads natural, not salesy.
 - No spam-trigger phrasing: avoid "FREE", "ACT NOW", "$$$", ALL CAPS words, or more than one "!!!"-style emphasis.
 - Never fabricate claims not in the metrics/perks below (no fake testimonials, no fake urgency, no invented statistics).
+- Never use the phrase "monthly active visitors", "impressions", or any specific visitor-count claim anywhere in the email. The only number you
+  may use is the 1,689-clicks-in-30-days proof point above.
 - Output valid JSON with exactly two fields: "subject" and "body". Do NOT include a signature — that is appended separately.
 - Subject line: under 50 characters, reads like a real 1:1 email a person would send (e.g. mentioning the product by name), never generic corporate
   phrasing like "Exciting Partnership Opportunity" or "Featured Placement Offer".
@@ -1543,8 +1545,8 @@ HARD CONSTRAINTS:
   <p style="margin:0 0 14px 0;">Hey Jane, ...</p>
 - The CTA paragraph must look like this pattern (adjust the wording, keep the styling): <p style="margin:0 0 4px 0;font-size:14.5px;"><a
   href="https://ai-compass.in/submit" style="color:#059669;font-weight:700;text-decoration:none;border-bottom:1.5px solid #059669;">[short CTA verb
-  phrase, e.g. "Get [Product] listed →"]</a> <span style="color:#64748b;font-size:13.5px;">$49.99 one-time — or just reply if you've got questions
-  first.</span></p>
+  phrase, e.g. "Get [Product] listed →"]</a> <span style="color:#64748b;font-size:13.5px;">$29.99 founding-sponsor rate — or just reply if you've
+  got questions first.</span></p>
 - The P.S. paragraph must use style="margin:16px 0 0 0;font-size:12px;color:#64748b;".
 
 Return ONLY the raw JSON block. Do not wrap in ```json or markdown codeblocks, just return the raw JSON object.
@@ -1619,19 +1621,15 @@ def get_generic_draft(candidate):
     """
     name = candidate.product_name
     first_name = candidate.founder_name.split(" ")[0] if _looks_like_real_name(candidate.founder_name) else "there"
-    hook = f"the way {name} handles \"{candidate.tagline}\"" if candidate.tagline else f"what you're building with {name}"
+    submit_url = "https://ai-compass.in/submit"
     subject = f"Quick one about {name}"[:50]
-    inner = f"""<p style="margin:0 0 14px 0;">Hey {first_name},</p>
-<p style="margin:0 0 14px 0;">I run <a href="https://ai-compass.in" style="color:#059669;font-weight:600;">AI Compass</a> and just saw {hook} — students and developers searching for exactly this kind of tool are who we send traffic to every day.</p>
-<p style="margin:0 0 14px 0;">AI Compass gets <b>4,000+ monthly active visitors</b> and <b>110K+ Google search impressions</b> from students actively looking for tools like {name}. Here's what Fast-Track Sponsored Curation gets you:</p>
-<ul style="margin:0 0 16px 0;padding-left:20px;color:#475569;font-size:13.5px;">
-  <li style="margin-bottom:5px;">Guaranteed 24-hour priority review and frontpage listing</li>
-  <li style="margin-bottom:5px;">Sponsored placement above every free listing in your category, permanently</li>
-  <li>Spotlight in the weekly Student AI Digest</li>
-</ul>
-<p style="margin:0 0 20px 0;">I personally review every fast-track submission within 24 hours of payment — no queue, no waiting.</p>
-<p style="margin:0 0 4px 0;font-size:14.5px;"><a href="https://ai-compass.in/submit" style="color:#059669;font-weight:700;text-decoration:none;border-bottom:1.5px solid #059669;">Get {name} listed &rarr;</a> <span style="color:#64748b;font-size:13.5px;">$49.99 one-time — or just reply if you've got questions first.</span></p>
-<p style="margin:16px 0 0 0;font-size:12px;color:#64748b;">P.S. The 24-hour review is a real guarantee, not a marketing line — most listings go live same-day.</p>"""
+    inner = f"""<p style="margin:0 0 14px 0;">Hi {first_name},</p>
+<p style="margin:0 0 14px 0;">I came across {name} and thought it'd be a strong fit for AI Compass — a hand-curated directory where every listed tool is manually tested, not scraped, aimed at students actively looking for tools like yours.</p>
+<p style="margin:0 0 14px 0;">Real number, not a vanity metric: we've tracked <b>1,689 outbound click-throughs</b> to listed tools in just the last 30 days — students clicking through to actually try what's listed, not just browsing a homepage.</p>
+<p style="margin:0 0 20px 0;">Since you're early to this, I can offer {name} a founding-sponsor rate: <b>$29.99 for a permanent sponsored listing</b> (normally $49.99), locked in for as long as you keep the listing. This rate is only available for a limited early batch and won't be repeated once it's gone.</p>
+<p style="margin:0 0 4px 0;font-size:14.5px;"><a href="{submit_url}" style="color:#059669;font-weight:700;text-decoration:none;border-bottom:1.5px solid #059669;">Claim the founding rate for {name} &rarr;</a> <span style="color:#64748b;font-size:13.5px;">or just reply if you've got questions first.</span></p>
+<p style="margin:0 0 4px 0;font-size:13.5px;">Either way, happy to add {name} to the free tier too if the paid route isn't the right fit yet — <a href="{submit_url}" style="color:#059669;font-weight:600;">takes 2 minutes</a>.</p>
+<p style="margin:16px 0 0 0;font-size:12px;color:#64748b;">P.S. No pressure on timing, just wanted you to have first shot at the founding rate before it's gone.</p>"""
     return subject, _append_unsubscribe_footer(_outreach_wrap(inner), candidate.email)
 
 def infer_tone(tagline, description):
@@ -2104,24 +2102,33 @@ def _followup_content(c: OutreachCandidate, stage: int) -> tuple[str, str, str]:
     far better than silently re-pitching the same offer again.
     """
     first_name = c.founder_name.split(" ")[0] if _looks_like_real_name(c.founder_name) else "there"
+    submit_url = "https://ai-compass.in/submit"
     if stage == 1:
         subject = f"Re: {c.draft_subject}"
         inner = f"""<p style="margin:0 0 14px 0;">Hi {first_name},</p>
-<p style="margin:0 0 14px 0;">Just wanted to quickly follow up on my previous message. Are you interested in featuring <b>{c.product_name}</b> on AI Compass to capture traffic from students and developers?</p>
-<p style="margin:0 0 4px 0;">Let me know if you have any questions — or just reply "not interested" and I'll leave it there.</p>"""
+<p style="margin:0 0 14px 0;">Following up in case this got buried — no worries if now isn't the right time.</p>
+<p style="margin:0 0 14px 0;">Quick recap: AI Compass is a hand-tested directory of AI tools for students (500+ listed so far), and we're currently offering a limited founding-sponsor rate — <b>$29.99 for a permanent sponsored listing</b>, down from $49.99.</p>
+<p style="margin:0 0 4px 0;">If it's easier, the free tier takes about 2 minutes and gets <b>{c.product_name}</b> listed either way: <a href="{submit_url}" style="color:#059669;font-weight:700;text-decoration:none;border-bottom:1.5px solid #059669;">{submit_url.replace('https://', '')}</a></p>"""
         text = (
-            f"Hi {first_name},\n\nJust wanted to quickly follow up on my previous message. "
-            f"Are you interested in featuring {c.product_name} on AI Compass?\n\n"
-            f"Let me know if you have any questions — or just reply \"not interested\" and I'll leave it there.\n\n"
+            f"Hi {first_name},\n\nFollowing up in case this got buried — no worries if now isn't the right time.\n\n"
+            f"Quick recap: AI Compass is a hand-tested directory of AI tools for students (500+ listed so far), and we're currently "
+            f"offering a limited founding-sponsor rate — $29.99 for a permanent sponsored listing, down from $49.99.\n\n"
+            f"If it's easier, the free tier takes about 2 minutes and gets {c.product_name} listed either way: {submit_url}\n\n"
             f"Medhansh Pratap Singh\nFounder, AI Compass — ai-compass.in"
         )
     else:
         subject = f"Re: {c.draft_subject}"
         inner = f"""<p style="margin:0 0 14px 0;">Hi {first_name},</p>
-<p style="margin:0 0 4px 0;">Last bump on this, promise. Still interested in getting <b>{c.product_name}</b> in front of AI Compass's student/dev audience? A quick "yes," "no," or "not now" is all I need to know whether to close this out.</p>"""
+<p style="margin:0 0 14px 0;">Last note from me on this so I don't clutter your inbox further.</p>
+<p style="margin:0 0 14px 0;">The founding-sponsor rate ($29.99, normally $49.99) is still open if <b>{c.product_name}</b> wants a permanent listing: <a href="{submit_url}" style="color:#059669;font-weight:700;text-decoration:none;border-bottom:1.5px solid #059669;">{submit_url.replace('https://', '')}</a></p>
+<p style="margin:0 0 4px 0;">If a paid listing isn't the right fit, the free tier is genuinely just as easy and still gets you in front of students searching for tools like yours: <a href="{submit_url}" style="color:#059669;font-weight:600;">{submit_url.replace('https://', '')}</a></p>
+<p style="margin:0 0 4px 0;">Either way — nice work on {c.product_name}, and good luck with it.</p>"""
         text = (
-            f"Hi {first_name},\n\nLast bump — still interested in getting {c.product_name} featured on AI Compass? "
-            f"A quick yes/no/not-now reply is all I need.\n\n"
+            f"Hi {first_name},\n\nLast note from me on this so I don't clutter your inbox further.\n\n"
+            f"The founding-sponsor rate ($29.99, normally $49.99) is still open if {c.product_name} wants a permanent listing: {submit_url}\n\n"
+            f"If a paid listing isn't the right fit, the free tier is genuinely just as easy and still gets you in front of students "
+            f"searching for tools like yours: {submit_url}\n\n"
+            f"Either way — nice work on {c.product_name}, and good luck with it.\n\n"
             f"Medhansh Pratap Singh\nFounder, AI Compass — ai-compass.in"
         )
     return subject, _outreach_wrap(inner), text
