@@ -5002,6 +5002,17 @@ def admin_approve_submission(sub_id):
     s.status = "approved"
     db.session.commit()
     _refresh_catalog()
+
+    # Paid tiers (Quick Review, Sponsored) get a real account so their
+    # founder can log in to the stats dashboard — free tier never does.
+    # get_or_create_founder_account() is idempotent and reuses any existing
+    # account for this email, so it's safe even if approval is retried.
+    # No email is sent here — a later prompt hooks the email step onto this
+    # result (created / temp_password) right at this call site.
+    if tier_key in ("quick", "sponsored") and s.payment_status == "verified" and s.submitter_email:
+        from app.founder_accounts import get_or_create_founder_account
+        get_or_create_founder_account(s.submitter_email, s.id)
+
     return jsonify({"success": True, "tool": record})
 
 
