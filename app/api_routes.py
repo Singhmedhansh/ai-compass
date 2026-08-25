@@ -23,7 +23,14 @@ from app.ml_recommender import clear_model_cache, get_similar_tools, load_model
 from app.models import Favorite, Rating, Review, ToolRating, User, ReviewVote
 from app.rate_limit import is_rate_limited
 from app.search_utils import search_tools, llm_fallback_search
-from app.tool_cache import DEFAULT_TOOLS_PATH, TOOL_CACHE, get_cached_tools, get_visible_tools
+from app.tool_cache import (
+    DEFAULT_TOOLS_PATH,
+    TOOL_CACHE,
+    _sponsored_active,
+    apply_editorial_blurb,
+    get_cached_tools,
+    get_visible_tools,
+)
 
 api_bp = Blueprint("api", __name__)
 compat_bp = Blueprint("compat", __name__)  # registered at /api for backward compat
@@ -1061,28 +1068,9 @@ _CARD_FIELDS = (
 
 
 
-def _sponsored_active(tool: dict) -> bool:
-    """True when a tool's paid placement is currently in effect.
-
-    'sponsored_until' is absent/None for one-time purchases (placement does
-    not lapse) and an ISO date for monthly subscriptions. A lapsed
-    subscription only demotes placement — the listing itself always stays,
-    because the indexed /tools/<slug> and /alternatives/<slug> pages are what
-    generate the search traffic that makes placement worth buying at all.
-    """
-    if not tool.get("sponsored"):
-        return False
-    until = tool.get("sponsored_until")
-    if not until:
-        return True
-    try:
-        expiry = datetime.fromisoformat(str(until).replace("Z", "+00:00"))
-    except (TypeError, ValueError):
-        # An unparseable date must not silently grant free placement forever.
-        return False
-    if expiry.tzinfo is None:
-        expiry = expiry.replace(tzinfo=timezone.utc)
-    return expiry > datetime.now(timezone.utc)
+# _sponsored_active lives in app/tool_cache.py now — apply_editorial_blurb()
+# there needs it too, and importing api_routes.py from tool_cache.py would
+# be circular. Imported below, not redefined.
 
 
 def _placement_rank(tool: dict) -> tuple:
@@ -1099,6 +1087,11 @@ def _placement_rank(tool: dict) -> tuple:
 
 
 def _card_projection(tool: dict) -> dict:
+    # Sponsored-tier editorial blurb (if set and currently active) replaces
+    # description/tagline before anything below reads them — see
+    # apply_editorial_blurb() in tool_cache.py for why this happens here
+    # rather than at normalization/storage time.
+    tool = apply_editorial_blurb(tool)
     out = {k: tool[k] for k in _CARD_FIELDS if k in tool}
     # Send the *effective* flag so the client never has to reason about
     # subscription expiry dates.
@@ -1353,8 +1346,13 @@ def get_tool(slug: str):
         current_app.logger.info(f"[PERF] after fallback scan: {time.time() - t0:.2f}s")
 
     if tool is not None:
-        tool_payload = dict(tool)
-        tool_payload["similar_tools"] = get_similar_tools(slug_value, limit=4)
+        # Sponsored-tier editorial blurb replaces description/tagline on the
+        # detail page (body copy, meta tags, JSON-LD) — see
+        # apply_editorial_blurb() in tool_cache.py.
+        tool_payload = apply_editorial_blurb(tool)
+        tool_payload["similar_tools"] = [
+            apply_editorial_blurb(t) for t in get_similar_tools(slug_value, limit=4)
+        ]
         current_app.logger.info(f"[PERF] after related tools: {time.time() - t0:.2f}s")
 
         # Aggregate live user ratings into the payload so the tool detail page
@@ -1431,8 +1429,8 @@ def tool_alternatives(slug):
 
     from flask import make_response
     response = make_response(jsonify({
-        "tool": main_tool,
-        "alternatives": alternatives,
+        "tool": apply_editorial_blurb(main_tool),
+        "alternatives": [apply_editorial_blurb(t) for t in alternatives],
         "count": len(alternatives),
     }))
     # Alternatives are derived from the tool itself + the similarity
@@ -2061,6 +2059,12 @@ def api_search():
         self_hosted=self_hosted,
         pay_as_you_go=pay_as_you_go,
     )
+    # search_tools() (unlike the directory/?fields=card path) returns raw
+    # tool dicts, not _card_projection() output — apply the Sponsored-tier
+    # editorial blurb override here so search results show the same
+    # description a card or the detail page would.
+    if isinstance(output, dict) and isinstance(output.get("results"), list):
+        output["results"] = [apply_editorial_blurb(t) for t in output["results"]]
     return jsonify(output)
 
 
@@ -2633,6 +2637,9 @@ _EDITABLE_SCALARS = (
     # ISO date (YYYY-MM-DD) of the last hand-test pass. Displayed as a
     # "Verified <Month Year>" chip on the tool card and detail page.
     "last_verified_at",
+    # Admin-authored, Sponsored-tier-only description override — see
+    # apply_editorial_blurb() in tool_cache.py. Never founder-editable.
+    "editorial_blurb",
 )
 _EDITABLE_LISTS = ("features", "tags", "use_cases")
 _EDITABLE_BOOLS = ("studentPerk", "student_perk", "hidden", "featured", "sponsored")
@@ -2673,7 +2680,17 @@ def admin_get_tool(slug):
     )
     if tool is None:
         return jsonify({"error": "Tool not found"}), 404
-    return jsonify({"success": True, "tool": tool})
+    # Deliberately returns the RAW tool dict (real submitted description,
+    # not apply_editorial_blurb()'s override) — this is what the edit form
+    # loads and saves back, and baking the blurb in here would let an
+    # unrelated field edit silently overwrite the submitter's own
+    # description. sponsored_active tells the frontend whether to show the
+    # editorial_blurb field at all (Sponsored-tier-only per Constraint 2).
+    return jsonify({
+        "success": True,
+        "tool": tool,
+        "sponsored_active": _sponsored_active(tool),
+    })
 
 
 @api_bp.put("/admin/tools/<slug>")
@@ -4509,6 +4526,8 @@ def compat_search():
         trending_only=trending,
         sort_by=sort_by,
     )
+    if isinstance(output, dict) and isinstance(output.get("results"), list):
+        output["results"] = [apply_editorial_blurb(t) for t in output["results"]]
     return jsonify(output)
 
 
@@ -4518,7 +4537,7 @@ def list_all_tools_compat():
     """Compat alias at /api/tools."""
     from app.tool_cache import get_cached_tools
     try:
-        tools = get_cached_tools()
+        tools = [apply_editorial_blurb(t) for t in (get_cached_tools() or [])]
     except Exception:
         tools = []
     return jsonify({

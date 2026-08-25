@@ -85,6 +85,12 @@ class CatalogTool(db.Model):
     # live listing" without matching by slug/name. No FK constraint, same
     # spirit as OutboundClick.slug not being one either.
     submission_id = db.Column(db.Integer, nullable=True, index=True)
+    # Admin-authored replacement for the submitter's own description, shown
+    # only while the tool is currently Sponsored (see _sponsored_active() in
+    # app/tool_cache.py — checked at render time, not just "is this set", so
+    # a lapsed/downgraded tool automatically reverts to its own description).
+    # Never founder-editable — admin-only, via the /admin/tools editor.
+    editorial_blurb = db.Column(db.Text, nullable=True)
 
 
 class FeatureFlag(db.Model):

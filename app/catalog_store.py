@@ -64,6 +64,10 @@ def _row_to_record(row) -> dict:
         rec.pop("visible_at", None)
     if row.affiliate_url:
         rec["affiliate_url"] = row.affiliate_url
+    if row.editorial_blurb:
+        rec["editorial_blurb"] = row.editorial_blurb
+    else:
+        rec.pop("editorial_blurb", None)
     return rec
 
 
@@ -181,6 +185,8 @@ def upsert_tool(record: dict) -> bool:
             parsed = _parse_iso_datetime(record.get("visible_at"))
             row.visible_at = parsed.replace(tzinfo=None) if parsed else None
         row.affiliate_url = record.get("affiliate_url") or None
+        if "editorial_blurb" in record:
+            row.editorial_blurb = str(record.get("editorial_blurb") or "").strip() or None
         row.data = json.dumps(record, ensure_ascii=False)
         db.session.commit()
         return True

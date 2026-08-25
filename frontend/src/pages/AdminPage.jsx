@@ -21,7 +21,7 @@ const EMPTY_TOOL = {
   slug: '', name: '', tagline: '', description: '', category: '',
   subCategory: '', pricing: '', link: '', affiliate_url: '',
   features: '', tags: '', use_cases: '', last_verified_at: '',
-  studentPerk: false, hidden: false,
+  studentPerk: false, hidden: false, editorial_blurb: '',
 }
 
 const fade = {
@@ -133,6 +133,37 @@ function ToolForm({ initial, isNew, onClose, onSaved }) {
           {field('Tags (comma-separated)', 'tags')}
           {field('Use cases (comma-separated)', 'use_cases')}
         </div>
+
+        {/* Sponsored-tier only — never shown/editable for Free or Quick
+            Review tools, since the blurb never displays for them either
+            (see apply_editorial_blurb() in app/tool_cache.py). Gated on the
+            server's _sponsored_active() result, not the raw `sponsored`
+            flag, so a lapsed sponsorship also hides this to avoid editing
+            a field that currently has no effect. */}
+        {isNew ? null : form._sponsoredActive ? (
+          <div className="mt-4 rounded-xl border border-accent/30 bg-accent-soft/20 p-4">
+            <label className="block">
+              <span className="text-xs font-bold uppercase tracking-wide text-accent">
+                Editorial blurb (Sponsored only)
+              </span>
+              <span className="mt-1 block text-xs text-muted">
+                Hand-written, AI-Compass-voiced copy shown instead of the founder's own description
+                everywhere this tool appears. Leave blank to fall back to their description.
+              </span>
+              <textarea
+                value={form.editorial_blurb}
+                onChange={set('editorial_blurb')}
+                rows={3}
+                className={INPUT}
+                placeholder="We tested this for two weeks and..."
+              />
+            </label>
+          </div>
+        ) : (
+          <p className="mt-4 text-xs text-muted-2">
+            Editorial blurb is only available for Sponsored-tier tools — this tool isn't currently sponsored.
+          </p>
+        )}
         <div className="mt-4 flex gap-6 text-sm text-ink-2">
           <label className="flex items-center gap-2"><input type="checkbox" checked={!!form.studentPerk} onChange={set('studentPerk')} /> Student-friendly</label>
           <label className="flex items-center gap-2"><input type="checkbox" checked={!!form.hidden} onChange={set('hidden')} /> Hidden</label>
@@ -427,7 +458,10 @@ function AdminPage() {
   const openEdit = async (tool) => {
     try {
       const data = await api(`/api/v1/admin/tools/${encodeURIComponent(getToolSlug(tool))}`)
-      setEditing({ tool: data.tool, isNew: false })
+      // sponsored_active gates the editorial-blurb field below — it's the
+      // server's _sponsored_active() check (accounts for sponsored_until
+      // expiry), not just the raw stored `sponsored` flag.
+      setEditing({ tool: { ...data.tool, _sponsoredActive: data.sponsored_active }, isNew: false })
     } catch (e) { toast.error(e.message) }
   }
   const toggleHide = async (tool) => {
@@ -1396,7 +1430,11 @@ function AdminPage() {
                           onClick={async () => {
                             try {
                               const detail = await api(`/api/v1/admin/tools/${item.slug}`)
-                              setEditing({ tool: detail, isNew: false })
+                              // Pre-existing bug fixed in passing: this used
+                              // to pass the whole {success, tool, ...}
+                              // response as `tool`, leaving every ToolForm
+                              // field blank when opened from this row.
+                              setEditing({ tool: { ...detail.tool, _sponsoredActive: detail.sponsored_active }, isNew: false })
                             } catch (e) {
                               toast.error('Failed to load tool details')
                             }
