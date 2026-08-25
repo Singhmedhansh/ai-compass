@@ -474,6 +474,15 @@ def _serialize_user(user: User) -> dict:
     interests_list = [x.strip() for x in (user.interests or "").split(",") if x.strip()]
     goals_list = [x.strip() for x in (user.goals or "").split(",") if x.strip()]
 
+    # "Founder account" isn't a stored flag — it's just whether any
+    # Submission points founder_user_id at this user (see
+    # app/founder_accounts.py). Computing it here keeps the FK the single
+    # source of truth instead of drifting a redundant column out of sync.
+    from app.models import Submission
+    is_founder = db.session.query(
+        Submission.query.filter_by(founder_user_id=user.id).exists()
+    ).scalar()
+
     return {
         "id": user.id,
         "name": user.display_name or "",
@@ -482,6 +491,8 @@ def _serialize_user(user: User) -> dict:
         "created_at": user.created_at.isoformat() if user.created_at else None,
         "member_since": member_since,
         "is_admin": is_admin,
+        "must_change_password": bool(getattr(user, "must_change_password", False)),
+        "is_founder": bool(is_founder),
         "is_verified": bool(getattr(user, "is_verified", False)),
         "onboarding_completed": bool(getattr(user, "onboarding_completed", False)),
         "interests": interests_list,
@@ -1833,23 +1844,45 @@ def submit_tool():
         # submission could ever be reviewed. Email notify below stays
         # best-effort and is no longer the durable channel.
         sub = None
+        is_retry = False
         try:
             from app.models import Submission
-            sub = Submission(
-                name=name,
-                website=url,
-                category=category,
-                description=reason,
-                pricing_model=pricing_model,
-                student_perks=student_perks,
-                submitter_email=submitter_email,
-                status="pending",
-                payment_status=payment_status,
-                payment_note=payment_note,
-                is_priority=payment_verified,
-            )
-            db.session.add(sub)
-            db.session.commit()
+
+            # A retried request (network retry, double-click on the PayPal
+            # redirect) resubmits the same transaction_ref. `pricing_model`
+            # already encodes tier+ref together (e.g. "quick_paypal:XYZ"), so
+            # matching on it catches the retry before a duplicate Submission
+            # row — and a duplicate founder account / welcome email — can be
+            # created from it.
+            if is_paid_claim and transaction_ref:
+                sub = Submission.query.filter_by(pricing_model=pricing_model).first()
+                is_retry = sub is not None
+
+            if sub is None:
+                sub = Submission(
+                    name=name,
+                    website=url,
+                    category=category,
+                    description=reason,
+                    pricing_model=pricing_model,
+                    student_perks=student_perks,
+                    submitter_email=submitter_email,
+                    status="pending",
+                    payment_status=payment_status,
+                    payment_note=payment_note,
+                    is_priority=payment_verified,
+                )
+                db.session.add(sub)
+                db.session.commit()
+            elif sub.payment_status != payment_status or sub.payment_note != payment_note:
+                # A retry can succeed where the first attempt didn't (e.g. a
+                # transient PayPal lookup failure) — keep the reused row's
+                # verification fields current rather than stuck on stale
+                # first-attempt values.
+                sub.payment_status = payment_status
+                sub.payment_note = payment_note
+                sub.is_priority = payment_verified
+                db.session.commit()
         except Exception:
             db.session.rollback()
             current_app.logger.exception("Failed to persist submission to DB")
@@ -1857,7 +1890,8 @@ def submit_tool():
             # the backup channel.
 
         notify_email = os.environ.get("SUBMIT_NOTIFY_EMAIL", "admin@ai-compass.in")
-        
+
+        import app.email_utils as email_utils_mod
         from app.email_utils import send_email
         from flask import render_template
         import random
@@ -1880,7 +1914,49 @@ def submit_tool():
             except Exception:
                 current_app.logger.exception("Failed to build register link for submission_id=%s", getattr(sub, "id", None))
 
-        if is_paid and submitter_email:
+        # Founder account creation/linking now fires here — at payment
+        # verification, in this same request — instead of at admin curation
+        # review (which can lag verification by up to 72 hours). Gated on
+        # welcome_email_sent_at rather than re-running on every call: the
+        # pricing_model-based dedup above already routes a retried request to
+        # this same Submission row, so this guard is what actually stops a
+        # retry from re-creating/re-emailing (get_or_create_founder_account
+        # itself is idempotent by email, but that alone wouldn't stop a
+        # second email send).
+        founder_result = None
+        # Gates BOTH the founder-account creation call below AND the
+        # invoice/welcome email send further down — a retry that the
+        # pricing_model dedup above routed to an already-processed
+        # Submission row must do neither a second time (Constraint 3).
+        should_process_founder_account = (
+            is_paid and submitter_email and sub is not None and sub.welcome_email_sent_at is None
+        )
+        if should_process_founder_account:
+            try:
+                from app.founder_accounts import get_or_create_founder_account
+                founder_result = get_or_create_founder_account(submitter_email, sub.id)
+            except Exception:
+                current_app.logger.exception(
+                    "Failed to create/link founder account for submission_id=%s", getattr(sub, "id", None)
+                )
+
+        # Real credentials/"your account is ready" copy only goes out once the
+        # founder explicitly confirms the first-login password-change UI
+        # (Prompt 3) is live — until then this stays a dry run: the account
+        # is created for real, but the email keeps today's register-CTA
+        # wording instead of advertising a login that has nowhere to land.
+        welcome_content_live = email_utils_mod.founder_welcome_email_live()
+        founder_account_created = bool(founder_result and founder_result.created and welcome_content_live)
+        founder_account_linked = bool(founder_result and not founder_result.created and welcome_content_live)
+        founder_temp_password = founder_result.temp_password if (founder_result and welcome_content_live) else None
+        if founder_result is not None and not welcome_content_live:
+            current_app.logger.info(
+                "[DRY-RUN] founder account ready for submission_id=%s (new_account=%s) — "
+                "credentials/linked-account email content withheld until FOUNDER_WELCOME_EMAIL_LIVE=1",
+                sub.id, founder_result.created,
+            )
+
+        if is_paid and submitter_email and should_process_founder_account:
             try:
                 # Extract clean payment method name
                 pay_method = "PayPal"
@@ -1920,27 +1996,59 @@ def submit_tool():
                     line_item_amount=f"${tier_amount:.2f}",
                     total_amount=f"${tier_amount:.2f} USD",
                     dashboard_url=dash_link,
-                    register_url=register_link,
+                    # The auto-created/linked-account callout replaces the
+                    # generic "create a free account" CTA — showing both
+                    # would tell a founder to sign up for an account they
+                    # (once welcome_content_live) already have.
+                    register_url=register_link if not (founder_account_created or founder_account_linked) else None,
+                    founder_account_created=founder_account_created,
+                    founder_account_linked=founder_account_linked,
+                    founder_temp_password=founder_temp_password,
                 )
 
                 invoice_text = f"Thank you for your purchase! {tier_name} payment of ${tier_amount:.2f} USD has been received. Invoice Number: {invoice_num}, Transaction Ref: {clean_ref}."
                 if dash_link:
                     invoice_text += f" Track clicks and views on your listing: {dash_link}"
-                if register_link:
+                if founder_account_created:
+                    invoice_text += (
+                        f" We've created a Growth Hub account for you (login: {submitter_email}) — "
+                        "see this email's HTML version for your temporary password. "
+                        "You'll be asked to set a new one on first login."
+                    )
+                elif founder_account_linked:
+                    invoice_text += " This tool is now linked to your existing AI Compass account — log in as usual to find it in your Growth Hub."
+                elif register_link:
                     invoice_text += f" Create a free account for one-click access: {register_link}"
 
+                # This send is unconditional — it's the pre-existing payment
+                # receipt email, unaffected by the welcome_content_live gate.
+                # Only the founder-account section above (credentials /
+                # "linked to existing account" copy vs. the plain register
+                # CTA) changes based on that flag.
                 send_email(
                     to=submitter_email,
                     subject=f"AI Compass - Payment Confirmation & Invoice ({invoice_num})",
                     html=invoice_html,
                     text=invoice_text,
                 )
+
+                # Send-once guard (Constraint 3): independent of
+                # get_or_create_founder_account()'s own account-level
+                # idempotency, this stops a retried request — which the
+                # pricing_model dedup above already routes to this same
+                # Submission row — from re-sending this email.
+                if should_process_founder_account:
+                    sub.welcome_email_sent_at = datetime.now(timezone.utc)
+                    db.session.commit()
             except Exception:
                 current_app.logger.exception("Failed to send user invoice email — submission still recorded")
-        elif submitter_email and dash_link:
+        elif not is_paid and submitter_email and dash_link:
             # Free-tier submitters previously got no email at all — this is
             # new behavior, not a bug fix. Doubles as the upsell funnel:
-            # the dashboard's free view links out to /pricing.
+            # the dashboard's free view links out to /pricing. `not is_paid`
+            # keeps a paid retry (is_paid True, should_process_founder_account
+            # False — already handled) from falling through to this branch
+            # and getting the free-tier email instead.
             try:
                 confirm_html = render_template(
                     'emails/submission_received.html',
@@ -2022,11 +2130,22 @@ def submit_tool():
             except Exception:
                 current_app.logger.exception("Failed to send admin submission email to %s", recipient)
 
+        # Success-page data (Step 3): the dashboard link works immediately —
+        # it's the same magic-link token minted above, independent of the
+        # welcome email actually being sent or of Prompt 3's login UI. The
+        # account_created/account_linked flags are withheld while
+        # welcome_content_live is off so the page never promises "check your
+        # email for login details" when no such email went out.
         return jsonify({
             "success": True,
             "message": "Submission received. Thanks!",
             "payment_status": payment_status,
             "payment_verified": payment_verified,
+            "tier": tier_key or "free",
+            "tier_price": TIERS.get(tier_key, {}).get("price", 0.0),
+            "dashboard_url": dash_link,
+            "founder_account_created": founder_account_created,
+            "founder_account_linked": founder_account_linked,
         }), 201
 
     except Exception:
@@ -3842,6 +3961,30 @@ def auth_logout():
 
 
 @csrf.exempt
+@api_bp.route("/auth/change-password", methods=["POST"])
+@login_required
+def auth_change_password():
+    """Sets a new password for the current session's user. The one
+    endpoint the must_change_password gate (see enforce_password_change_gate
+    in app/__init__.py) always leaves reachable — this is how a founder
+    clears it. Reuses the same length rule as auth_register()/reset_password()
+    (Constraint 4: no new password rules) and the same bcrypt hashing already
+    used everywhere else (Constraint 5).
+    """
+    payload = request.get_json(silent=True) or {}
+    new_password = str(payload.get("new_password") or "")
+
+    if len(new_password) < 8:
+        return jsonify({"error": "Password must be at least 8 characters."}), 400
+
+    current_user.password_hash = bcrypt.generate_password_hash(new_password).decode("utf-8")
+    current_user.must_change_password = False
+    db.session.commit()
+
+    return jsonify(_serialize_user(current_user))
+
+
+@csrf.exempt
 @api_bp.route("/auth/register", methods=["POST"])
 def auth_register():
     try:
@@ -5021,6 +5164,11 @@ def admin_approve_submission(sub_id):
     s.status = "approved"
     db.session.commit()
     _refresh_catalog()
+
+    # Founder account creation/linking no longer happens here — it now fires
+    # at payment verification time in submit_tool(), immediately instead of
+    # waiting on (up to 72-hour-later) admin curation review. See
+    # app/founder_accounts.py and the submit_tool() call site.
     return jsonify({"success": True, "tool": record})
 
 
@@ -5210,6 +5358,37 @@ def _submission_dashboard_category_benchmark(catalog_row, since_30d):
     }
 
 
+@api_bp.get("/founder/tools")
+@login_required
+def founder_tools():
+    """Growth Hub landing data: every Submission this session's user owns
+    via founder_user_id (see app/founder_accounts.py) — the same FK Prompt 1
+    added, no separate flag. The frontend uses the count to decide whether
+    to jump straight into the one dashboard or show a picker list."""
+    from app.models import CatalogTool, Submission
+    from app.pricing_tiers import tier_for_pricing_model
+
+    subs = Submission.query.filter_by(founder_user_id=current_user.id).order_by(
+        Submission.submitted_at.desc()
+    ).all()
+
+    tools = []
+    for s in subs:
+        claimed_tier = tier_for_pricing_model(s.pricing_model or "") or "free"
+        tier_key = claimed_tier if s.payment_status == "verified" else "free"
+        catalog_row = CatalogTool.query.filter_by(submission_id=s.id).first() if s.status == "approved" else None
+        tools.append({
+            "submission_id": s.id,
+            "name": s.name,
+            "status": s.status,
+            "tier": tier_key,
+            "slug": catalog_row.slug if catalog_row else None,
+            "submitted_at": s.submitted_at.isoformat() if s.submitted_at else None,
+        })
+
+    return jsonify({"tools": tools})
+
+
 @api_bp.get("/submissions/dashboard")
 def submission_dashboard():
     """Token-gated per-submitter analytics (no login — Submission has no
@@ -5224,12 +5403,37 @@ def submission_dashboard():
     from app.pricing_tiers import tier_for_pricing_model
     from app.submission_dashboard import verify_dashboard_token
 
+    # Additive, not a replacement (Constraint 2 of the founder-accounts
+    # work): the signed magic-link token remains the primary path — it's
+    # what the welcome/invoice email links to, and keeps working for
+    # someone opening it on a different device or without an account at
+    # all. A logged-in founder's own session is now ALSO accepted, scoped
+    # via ?submission_id= to the one submission that session's founder_user_id
+    # actually owns — a session can never read a token by omission, and a
+    # token still works with no session present.
     token = request.args.get("token", "")
-    try:
-        submission_id, _token_email = verify_dashboard_token(token)
-    except SignatureExpired:
-        return jsonify({"error": "expired"}), 401
-    except BadSignature:
+    session_submission_id = request.args.get("submission_id", "")
+
+    if token:
+        try:
+            submission_id, _token_email = verify_dashboard_token(token)
+        except SignatureExpired:
+            return jsonify({"error": "expired"}), 401
+        except BadSignature:
+            return jsonify({"error": "invalid"}), 401
+    elif session_submission_id:
+        if not current_user.is_authenticated:
+            return jsonify({"error": "unauthorized"}), 401
+        try:
+            submission_id = int(session_submission_id)
+        except (TypeError, ValueError):
+            return jsonify({"error": "invalid"}), 400
+        owned = Submission.query.filter_by(
+            id=submission_id, founder_user_id=current_user.id
+        ).first()
+        if not owned:
+            return jsonify({"error": "unauthorized"}), 403
+    else:
         return jsonify({"error": "invalid"}), 401
 
     s = Submission.query.get(submission_id)

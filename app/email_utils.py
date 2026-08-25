@@ -56,6 +56,19 @@ def email_enabled() -> bool:
     return bool(os.environ.get("RESEND_API_KEY") or os.environ.get("SMTP_HOST"))
 
 
+def founder_welcome_email_live() -> bool:
+    """Gate for actually dispatching the founder welcome/credentials email.
+
+    Defaults OFF even when email transport (RESEND_API_KEY/SMTP_HOST) is
+    otherwise configured — sending real temporary-password credentials to a
+    founder before the first-login password-change UI (a later prompt) ships
+    would strand them. Callers should build the full email regardless and
+    fall back to a log-only dry run when this is False. Flip
+    FOUNDER_WELCOME_EMAIL_LIVE=1 once that UI is confirmed ready.
+    """
+    return str(os.environ.get("FOUNDER_WELCOME_EMAIL_LIVE", "")).strip().lower() in ("1", "true", "yes")
+
+
 def html_to_plain_text(html: str) -> str:
     """Converts HTML email body into clean, natural plain text to prevent Gmail Promotions tab classification."""
     if not html:

@@ -1,4 +1,4 @@
-import { ArrowLeft, ChevronDown, LayoutDashboard, LogOut, Menu, Moon, Shield, Sparkles, Sun, UserCircle2, X } from 'lucide-react'
+import { ArrowLeft, ChevronDown, LayoutDashboard, LogOut, Menu, Moon, Rocket, Shield, Sparkles, Sun, UserCircle2, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -72,6 +72,10 @@ function Navbar() {
   const toolsMenuRef = useClickOutside(() => setIsToolsMenuOpen(false))
   const headerRef = useClickOutside(() => setIsMobileMenuOpen(false))
   const isAdmin = Boolean(user && (user.is_admin || ADMIN_EMAILS.includes(user.email)))
+  // "Founder account" = owns at least one Submission (see is_founder in
+  // app/api_routes.py's _serialize_user, computed from founder_user_id —
+  // no separate flag to keep in sync).
+  const isFounder = Boolean(user && user.is_founder)
   const avatarLetter = useMemo(
     () => String(user?.name || user?.email || 'U').charAt(0).toUpperCase(),
     [user?.email, user?.name],
@@ -211,6 +215,19 @@ function Navbar() {
         if (active) {
           setUser(mergedUser)
           setIsAuthenticated(true)
+        }
+
+        // Client-side convenience only — the actual boundary is
+        // enforce_password_change_gate() in app/__init__.py, which rejects
+        // the underlying API calls regardless of what page is showing.
+        // This just gets a stray authenticated tab (e.g. opened from an
+        // old bookmark) to the right place instead of a wall of 403s.
+        if (
+          mergedUser.must_change_password
+          && location.pathname !== '/account/change-password'
+          && location.pathname !== '/login'
+        ) {
+          navigate('/account/change-password', { replace: true })
         }
       } catch {
         if (active) {
@@ -643,6 +660,21 @@ function Navbar() {
 
                   <div className="my-2 border-t border-line" />
 
+                  {isFounder ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsProfileMenuOpen(false)
+                        navigate('/growth-hub')
+                      }}
+                      className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold text-accent transition hover:bg-accent-soft"
+                      role="menuitem"
+                    >
+                      <Rocket className="h-4 w-4" />
+                      Growth Hub
+                    </button>
+                  ) : null}
+
                   <button
                     type="button"
                     onClick={() => {
@@ -996,6 +1028,16 @@ function Navbar() {
                       <p className="truncate text-sm font-semibold text-ink">{user?.name || 'User'}</p>
                       <p className="truncate text-xs text-muted">{user?.email}</p>
                     </div>
+                    {isFounder ? (
+                      <Link
+                        to="/growth-hub"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold text-accent hover:bg-accent-soft"
+                      >
+                        <Rocket className="h-4 w-4" />
+                        Growth Hub
+                      </Link>
+                    ) : null}
                     <Link
                       to="/dashboard"
                       onClick={() => setIsMobileMenuOpen(false)}

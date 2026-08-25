@@ -26,6 +26,10 @@ class User(UserMixin, db.Model):
     theme_preference = db.Column(db.String(20), nullable=True)
     notifications_enabled = db.Column(db.Boolean, nullable=False, default=True)
     is_verified = db.Column(db.Boolean, nullable=False, default=False, server_default="0")
+    # Set on accounts auto-created for a paid submission's founder (see
+    # app/founder_accounts.py) so their first login is forced through a
+    # password-change step before they can use the temp credential further.
+    must_change_password = db.Column(db.Boolean, nullable=False, default=False, server_default="0")
     is_profile_public = db.Column(db.Boolean, nullable=False, default=False, server_default="0")
     public_username = db.Column(db.String(255), unique=True, nullable=True, index=True)
     bio = db.Column(db.Text, nullable=True)
@@ -202,6 +206,18 @@ class Submission(db.Model):
     payment_status = db.Column(db.String(20), nullable=False, default="unpaid")
     payment_note = db.Column(db.String(255), nullable=True)
     is_priority = db.Column(db.Boolean, nullable=False, default=False)
+    # Links this submission to the founder's User account (see
+    # app/founder_accounts.py). Set on paid-tier approval only — free
+    # submissions never get one. CatalogTool resolves back to this row via
+    # its own submission_id, so a founder's tools are reachable by joining
+    # Submission.founder_user_id -> Submission.id -> CatalogTool.submission_id,
+    # no separate FK needed on CatalogTool.
+    founder_user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True, index=True)
+    # Send-once guard for the founder welcome email (credentials/account-link
+    # note) — separate from get_or_create_founder_account()'s own account-level
+    # idempotency, since a retried submission request must not re-send the
+    # email even though the account lookup would just no-op safely on its own.
+    welcome_email_sent_at = db.Column(db.DateTime, nullable=True)
 
 
 class NewsletterSubscriber(db.Model):

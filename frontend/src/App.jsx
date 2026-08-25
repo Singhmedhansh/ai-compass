@@ -37,6 +37,8 @@ const LoginPage = lazy(() => import('./pages/LoginPage'))
 const RegisterPage = lazy(() => import('./pages/RegisterPage'))
 const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'))
 const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'))
+const ChangePasswordPage = lazy(() => import('./pages/ChangePasswordPage'))
+const GrowthHubPage = lazy(() => import('./pages/GrowthHubPage'))
 const VerificationPendingPage = lazy(() => import('./pages/VerificationPendingPage'))
 const VerificationSuccessPage = lazy(() => import('./pages/VerificationSuccessPage'))
 const ClerkTestPage = lazy(() => import('./pages/ClerkTestPage'))
@@ -205,6 +207,8 @@ function AnimatedRoutes() {
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/account/change-password" element={<ChangePasswordPage />} />
+            <Route path="/growth-hub" element={<GrowthHubPage />} />
             <Route path="/verify-email-pending" element={<VerificationPendingPage />} />
             <Route path="/verify-success" element={<VerificationSuccessPage />} />
             <Route path="/clerk-test" element={<ClerkTestPage />} />

@@ -432,15 +432,24 @@ function SponsorshipCard({ sponsorship }) {
 export default function SubmissionDashboardPage() {
   const [searchParams] = useSearchParams()
   const token = searchParams.get('token') || ''
-  const [state, setState] = useState({ loading: !!token, error: token ? null : 'missing_token', data: null })
+  // Session-based access (Prompt 3), additive to the token link the welcome
+  // email sends — the Growth Hub's tool list links here with submission_id
+  // instead of a token, and the backend authorizes it against the logged-in
+  // session's founder_user_id (GET /api/v1/submissions/dashboard).
+  const submissionId = searchParams.get('submission_id') || ''
+  const hasAccess = !!token || !!submissionId
+  const [state, setState] = useState({ loading: hasAccess, error: hasAccess ? null : 'missing_token', data: null })
 
   useEffect(() => {
-    if (!token) {
+    if (!hasAccess) {
       return
     }
     let cancelled = false
     setState({ loading: true, error: null, data: null })
-    fetch(`/api/v1/submissions/dashboard?token=${encodeURIComponent(token)}`)
+    const query = token
+      ? `token=${encodeURIComponent(token)}`
+      : `submission_id=${encodeURIComponent(submissionId)}`
+    fetch(`/api/v1/submissions/dashboard?${query}`)
       .then(async (res) => {
         const body = await res.json().catch(() => ({}))
         if (cancelled) return
@@ -456,7 +465,7 @@ export default function SubmissionDashboardPage() {
     return () => {
       cancelled = true
     }
-  }, [token])
+  }, [token, submissionId, hasAccess])
 
   const { loading, error, data } = state
 

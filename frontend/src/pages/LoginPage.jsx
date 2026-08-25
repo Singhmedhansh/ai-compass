@@ -116,6 +116,18 @@ function LoginPage() {
 
 
 
+      // A founder account created for a paid submission (see
+      // app/founder_accounts.py) must set a real password before anything
+      // else — the server enforces this on every other authenticated
+      // request, so sending them anywhere else here would just bounce them
+      // right back via a 403.
+      if (payload.must_change_password) {
+        setTimeout(() => {
+          navigate('/account/change-password', { replace: true })
+        }, 800)
+        return
+      }
+
       // Honor return URL from <Link state={{ from: '...' }}> on the page that
       // sent the user here. Falls back to /dashboard if the user navigated
       // directly to /login. Reject obviously-bad return targets (login/register
