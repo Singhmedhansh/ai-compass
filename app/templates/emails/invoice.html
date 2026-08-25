@@ -83,7 +83,34 @@
 </p>
 {% endif %}
 
+{% if founder_account_created %}
+<div class="account-callout">
+  <p style="font-weight: 700; color: #111827 !important; font-size: 15px; margin-bottom: 6px;">
+    Your Growth Hub account is ready
+  </p>
+  <p style="font-size: 13px; color: #4b5563 !important; margin-bottom: 10px;">
+    We've created an account for you so your dashboard is a normal login, not just a link to dig
+    up later. Here are your temporary credentials — you'll be asked to set a new password the
+    first time you sign in.
+  </p>
+  <p style="font-size: 13px; color: #111827 !important; margin-bottom: 4px;">
+    <strong>Email:</strong> {{ customer_email }}<br />
+    <strong>Temporary password:</strong> {{ founder_temp_password }}
+  </p>
+</div>
+{% elif founder_account_linked %}
+<div class="account-callout">
+  <p style="font-weight: 700; color: #111827 !important; font-size: 15px; margin-bottom: 6px;">
+    Linked to your existing account
+  </p>
+  <p style="font-size: 13px; color: #4b5563 !important;">
+    {{ tool_name }} is now linked to your existing AI Compass account ({{ customer_email }}) — log
+    in as usual and you'll find it in your Growth Hub.
+  </p>
+</div>
+{% else %}
 {% include "emails/_account_callout.html" %}
+{% endif %}
 
 <p class="paragraph" style="margin-top: 30px;">
   If you have any questions about your submission or billing, please contact us at help@ai-compass.in.

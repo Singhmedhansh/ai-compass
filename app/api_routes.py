@@ -1835,23 +1835,45 @@ def submit_tool():
         # submission could ever be reviewed. Email notify below stays
         # best-effort and is no longer the durable channel.
         sub = None
+        is_retry = False
         try:
             from app.models import Submission
-            sub = Submission(
-                name=name,
-                website=url,
-                category=category,
-                description=reason,
-                pricing_model=pricing_model,
-                student_perks=student_perks,
-                submitter_email=submitter_email,
-                status="pending",
-                payment_status=payment_status,
-                payment_note=payment_note,
-                is_priority=payment_verified,
-            )
-            db.session.add(sub)
-            db.session.commit()
+
+            # A retried request (network retry, double-click on the PayPal
+            # redirect) resubmits the same transaction_ref. `pricing_model`
+            # already encodes tier+ref together (e.g. "quick_paypal:XYZ"), so
+            # matching on it catches the retry before a duplicate Submission
+            # row — and a duplicate founder account / welcome email — can be
+            # created from it.
+            if is_paid_claim and transaction_ref:
+                sub = Submission.query.filter_by(pricing_model=pricing_model).first()
+                is_retry = sub is not None
+
+            if sub is None:
+                sub = Submission(
+                    name=name,
+                    website=url,
+                    category=category,
+                    description=reason,
+                    pricing_model=pricing_model,
+                    student_perks=student_perks,
+                    submitter_email=submitter_email,
+                    status="pending",
+                    payment_status=payment_status,
+                    payment_note=payment_note,
+                    is_priority=payment_verified,
+                )
+                db.session.add(sub)
+                db.session.commit()
+            elif sub.payment_status != payment_status or sub.payment_note != payment_note:
+                # A retry can succeed where the first attempt didn't (e.g. a
+                # transient PayPal lookup failure) — keep the reused row's
+                # verification fields current rather than stuck on stale
+                # first-attempt values.
+                sub.payment_status = payment_status
+                sub.payment_note = payment_note
+                sub.is_priority = payment_verified
+                db.session.commit()
         except Exception:
             db.session.rollback()
             current_app.logger.exception("Failed to persist submission to DB")
@@ -1859,7 +1881,8 @@ def submit_tool():
             # the backup channel.
 
         notify_email = os.environ.get("SUBMIT_NOTIFY_EMAIL", "admin@ai-compass.in")
-        
+
+        import app.email_utils as email_utils_mod
         from app.email_utils import send_email
         from flask import render_template
         import random
@@ -1882,7 +1905,49 @@ def submit_tool():
             except Exception:
                 current_app.logger.exception("Failed to build register link for submission_id=%s", getattr(sub, "id", None))
 
-        if is_paid and submitter_email:
+        # Founder account creation/linking now fires here — at payment
+        # verification, in this same request — instead of at admin curation
+        # review (which can lag verification by up to 72 hours). Gated on
+        # welcome_email_sent_at rather than re-running on every call: the
+        # pricing_model-based dedup above already routes a retried request to
+        # this same Submission row, so this guard is what actually stops a
+        # retry from re-creating/re-emailing (get_or_create_founder_account
+        # itself is idempotent by email, but that alone wouldn't stop a
+        # second email send).
+        founder_result = None
+        # Gates BOTH the founder-account creation call below AND the
+        # invoice/welcome email send further down — a retry that the
+        # pricing_model dedup above routed to an already-processed
+        # Submission row must do neither a second time (Constraint 3).
+        should_process_founder_account = (
+            is_paid and submitter_email and sub is not None and sub.welcome_email_sent_at is None
+        )
+        if should_process_founder_account:
+            try:
+                from app.founder_accounts import get_or_create_founder_account
+                founder_result = get_or_create_founder_account(submitter_email, sub.id)
+            except Exception:
+                current_app.logger.exception(
+                    "Failed to create/link founder account for submission_id=%s", getattr(sub, "id", None)
+                )
+
+        # Real credentials/"your account is ready" copy only goes out once the
+        # founder explicitly confirms the first-login password-change UI
+        # (Prompt 3) is live — until then this stays a dry run: the account
+        # is created for real, but the email keeps today's register-CTA
+        # wording instead of advertising a login that has nowhere to land.
+        welcome_content_live = email_utils_mod.founder_welcome_email_live()
+        founder_account_created = bool(founder_result and founder_result.created and welcome_content_live)
+        founder_account_linked = bool(founder_result and not founder_result.created and welcome_content_live)
+        founder_temp_password = founder_result.temp_password if (founder_result and welcome_content_live) else None
+        if founder_result is not None and not welcome_content_live:
+            current_app.logger.info(
+                "[DRY-RUN] founder account ready for submission_id=%s (new_account=%s) — "
+                "credentials/linked-account email content withheld until FOUNDER_WELCOME_EMAIL_LIVE=1",
+                sub.id, founder_result.created,
+            )
+
+        if is_paid and submitter_email and should_process_founder_account:
             try:
                 # Extract clean payment method name
                 pay_method = "PayPal"
@@ -1922,27 +1987,59 @@ def submit_tool():
                     line_item_amount=f"${tier_amount:.2f}",
                     total_amount=f"${tier_amount:.2f} USD",
                     dashboard_url=dash_link,
-                    register_url=register_link,
+                    # The auto-created/linked-account callout replaces the
+                    # generic "create a free account" CTA — showing both
+                    # would tell a founder to sign up for an account they
+                    # (once welcome_content_live) already have.
+                    register_url=register_link if not (founder_account_created or founder_account_linked) else None,
+                    founder_account_created=founder_account_created,
+                    founder_account_linked=founder_account_linked,
+                    founder_temp_password=founder_temp_password,
                 )
 
                 invoice_text = f"Thank you for your purchase! {tier_name} payment of ${tier_amount:.2f} USD has been received. Invoice Number: {invoice_num}, Transaction Ref: {clean_ref}."
                 if dash_link:
                     invoice_text += f" Track clicks and views on your listing: {dash_link}"
-                if register_link:
+                if founder_account_created:
+                    invoice_text += (
+                        f" We've created a Growth Hub account for you (login: {submitter_email}) — "
+                        "see this email's HTML version for your temporary password. "
+                        "You'll be asked to set a new one on first login."
+                    )
+                elif founder_account_linked:
+                    invoice_text += " This tool is now linked to your existing AI Compass account — log in as usual to find it in your Growth Hub."
+                elif register_link:
                     invoice_text += f" Create a free account for one-click access: {register_link}"
 
+                # This send is unconditional — it's the pre-existing payment
+                # receipt email, unaffected by the welcome_content_live gate.
+                # Only the founder-account section above (credentials /
+                # "linked to existing account" copy vs. the plain register
+                # CTA) changes based on that flag.
                 send_email(
                     to=submitter_email,
                     subject=f"AI Compass - Payment Confirmation & Invoice ({invoice_num})",
                     html=invoice_html,
                     text=invoice_text,
                 )
+
+                # Send-once guard (Constraint 3): independent of
+                # get_or_create_founder_account()'s own account-level
+                # idempotency, this stops a retried request — which the
+                # pricing_model dedup above already routes to this same
+                # Submission row — from re-sending this email.
+                if should_process_founder_account:
+                    sub.welcome_email_sent_at = datetime.now(timezone.utc)
+                    db.session.commit()
             except Exception:
                 current_app.logger.exception("Failed to send user invoice email — submission still recorded")
-        elif submitter_email and dash_link:
+        elif not is_paid and submitter_email and dash_link:
             # Free-tier submitters previously got no email at all — this is
             # new behavior, not a bug fix. Doubles as the upsell funnel:
-            # the dashboard's free view links out to /pricing.
+            # the dashboard's free view links out to /pricing. `not is_paid`
+            # keeps a paid retry (is_paid True, should_process_founder_account
+            # False — already handled) from falling through to this branch
+            # and getting the free-tier email instead.
             try:
                 confirm_html = render_template(
                     'emails/submission_received.html',
@@ -2024,11 +2121,22 @@ def submit_tool():
             except Exception:
                 current_app.logger.exception("Failed to send admin submission email to %s", recipient)
 
+        # Success-page data (Step 3): the dashboard link works immediately —
+        # it's the same magic-link token minted above, independent of the
+        # welcome email actually being sent or of Prompt 3's login UI. The
+        # account_created/account_linked flags are withheld while
+        # welcome_content_live is off so the page never promises "check your
+        # email for login details" when no such email went out.
         return jsonify({
             "success": True,
             "message": "Submission received. Thanks!",
             "payment_status": payment_status,
             "payment_verified": payment_verified,
+            "tier": tier_key or "free",
+            "tier_price": TIERS.get(tier_key, {}).get("price", 0.0),
+            "dashboard_url": dash_link,
+            "founder_account_created": founder_account_created,
+            "founder_account_linked": founder_account_linked,
         }), 201
 
     except Exception:
@@ -5003,16 +5111,10 @@ def admin_approve_submission(sub_id):
     db.session.commit()
     _refresh_catalog()
 
-    # Paid tiers (Quick Review, Sponsored) get a real account so their
-    # founder can log in to the stats dashboard — free tier never does.
-    # get_or_create_founder_account() is idempotent and reuses any existing
-    # account for this email, so it's safe even if approval is retried.
-    # No email is sent here — a later prompt hooks the email step onto this
-    # result (created / temp_password) right at this call site.
-    if tier_key in ("quick", "sponsored") and s.payment_status == "verified" and s.submitter_email:
-        from app.founder_accounts import get_or_create_founder_account
-        get_or_create_founder_account(s.submitter_email, s.id)
-
+    # Founder account creation/linking no longer happens here — it now fires
+    # at payment verification time in submit_tool(), immediately instead of
+    # waiting on (up to 72-hour-later) admin curation review. See
+    # app/founder_accounts.py and the submit_tool() call site.
     return jsonify({"success": True, "tool": record})
 
 
