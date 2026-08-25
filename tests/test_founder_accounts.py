@@ -1,4 +1,7 @@
-"""Founder account auto-creation/linking on paid-tier submission approval.
+"""Unit coverage for get_or_create_founder_account() itself, plus a
+regression check that admin_approve_submission() no longer triggers it
+(that moved to submit_tool() at payment-verification time — see
+test_founder_welcome_email.py for those tests).
 
 See app/founder_accounts.py. Uses the same isolated, function-scoped
 app+DB fixture pattern as test_submissions_and_digest.py's approval tests,
@@ -160,26 +163,25 @@ def test_idempotent_on_repeat_call(app):
 # --- Integration via admin_approve_submission() -----------------------------
 
 
-def test_free_tier_approval_never_creates_or_links_account(client, app):
-    """The most important guardrail here: free tier must never get an
-    auto-created account, no matter how it looks otherwise."""
+def test_admin_approval_no_longer_creates_account(client, app):
+    """As of Prompt 2, account creation/linking fires at payment
+    verification time (submit_tool()), not at admin curation review —
+    approve() must not independently trigger it anymore, even for a
+    submission inserted directly (bypassing submit-tool) with a paid,
+    verified status."""
     with app.app_context():
         refresh_tools_cache()
-        s = Submission(
-            name="Free Founder Tool",
-            website="https://freefoundertool.example.com",
-            category="Productivity",
-            description="A free-tier tool.",
-            pricing_model="free",
-            submitter_email="freefounder@example.com",
-            status="pending",
-            payment_status="unpaid",
+        s = _make_submission(
+            name="Bypassed Approve Tool",
+            website="https://bypassedapprove.example.com",
+            submitter_email="bypassed-founder@example.com",
+            pricing_model="sponsored_paypal:BYP555555",
         )
         db.session.add(s)
         db.session.commit()
         sub_id = s.id
 
-    _login_as_admin(client, app, "admin-free-founder@t.test")
+    _login_as_admin(client, app, "admin-bypassed@t.test")
 
     resp = client.post(f"/api/v1/admin/submissions/{sub_id}/approve")
     assert resp.status_code == 200, resp.data
@@ -187,87 +189,4 @@ def test_free_tier_approval_never_creates_or_links_account(client, app):
     with app.app_context():
         s = Submission.query.get(sub_id)
         assert s.founder_user_id is None
-        assert User.query.filter_by(email="freefounder@example.com").first() is None
-
-
-def test_paid_tier_approval_creates_and_links_new_account(client, app):
-    with app.app_context():
-        refresh_tools_cache()
-        s = _make_submission(
-            name="Paid Approve Tool",
-            website="https://paidapprovetool.example.com",
-            submitter_email="paidfounder@example.com",
-            pricing_model="sponsored_paypal:PAD222222",
-        )
-        db.session.add(s)
-        db.session.commit()
-        sub_id = s.id
-
-    _login_as_admin(client, app, "admin-paid-founder@t.test")
-
-    resp = client.post(f"/api/v1/admin/submissions/{sub_id}/approve")
-    assert resp.status_code == 200, resp.data
-
-    with app.app_context():
-        s = Submission.query.get(sub_id)
-        founder = User.query.filter_by(email="paidfounder@example.com").first()
-        assert founder is not None
-        assert s.founder_user_id == founder.id
-        assert founder.must_change_password is True
-        assert founder.password_hash is not None
-
-
-def test_paid_tier_approval_links_preexisting_account(client, app):
-    with app.app_context():
-        refresh_tools_cache()
-        existing = User(email="preexisting-founder@example.com")
-        db.session.add(existing)
-        db.session.commit()
-        existing_id = existing.id
-
-        s = _make_submission(
-            name="Paid Preexisting Tool",
-            website="https://paidpreexisting.example.com",
-            submitter_email="preexisting-founder@example.com",
-            pricing_model="quick_paypal:PRE333333",
-        )
-        db.session.add(s)
-        db.session.commit()
-        sub_id = s.id
-
-    _login_as_admin(client, app, "admin-preexisting@t.test")
-
-    resp = client.post(f"/api/v1/admin/submissions/{sub_id}/approve")
-    assert resp.status_code == 200, resp.data
-
-    with app.app_context():
-        s = Submission.query.get(sub_id)
-        assert s.founder_user_id == existing_id
-        assert User.query.filter_by(email="preexisting-founder@example.com").count() == 1
-
-
-def test_paid_tier_unverified_claim_does_not_create_account(client, app):
-    """An unverified paid claim (server couldn't confirm payment) must not
-    grant an account any more than it grants sponsored placement."""
-    with app.app_context():
-        refresh_tools_cache()
-        s = _make_submission(
-            name="Unverified Paid Tool",
-            website="https://unverifiedpaid.example.com",
-            submitter_email="unverified-founder@example.com",
-            pricing_model="quick_paypal:UNV444444",
-            payment_status="unverified_review",
-        )
-        db.session.add(s)
-        db.session.commit()
-        sub_id = s.id
-
-    _login_as_admin(client, app, "admin-unverified@t.test")
-
-    resp = client.post(f"/api/v1/admin/submissions/{sub_id}/approve")
-    assert resp.status_code == 200, resp.data
-
-    with app.app_context():
-        s = Submission.query.get(sub_id)
-        assert s.founder_user_id is None
-        assert User.query.filter_by(email="unverified-founder@example.com").first() is None
+        assert User.query.filter_by(email="bypassed-founder@example.com").first() is None
