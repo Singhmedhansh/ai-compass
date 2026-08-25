@@ -749,7 +749,11 @@ def create_app(config: dict | None = None) -> Flask:
                         ("bio", "TEXT"),
                         ("github_username", "VARCHAR(255)"),
                         ("linkedin_username", "VARCHAR(255)"),
-                        ("twitter_username", "VARCHAR(255)")
+                        ("twitter_username", "VARCHAR(255)"),
+                        # Forces a password change on first login for accounts
+                        # auto-created for a paid submission's founder — see
+                        # app/founder_accounts.py.
+                        ("must_change_password", "BOOLEAN NOT NULL DEFAULT FALSE"),
                     ]:
                         try:
                             from sqlalchemy import text
@@ -788,6 +792,14 @@ def create_app(config: dict | None = None) -> Flask:
                         ("payment_status", "VARCHAR(20) NOT NULL DEFAULT 'unpaid'"),
                         ("payment_note", "VARCHAR(255)"),
                         ("is_priority", "BOOLEAN NOT NULL DEFAULT FALSE"),
+                        # Links a paid-tier submission to its founder's User
+                        # account (see app/founder_accounts.py). No inline
+                        # REFERENCES here — Postgres allows it, but keeping
+                        # this fallback symmetric with the other ADD COLUMN
+                        # calls above (which never define constraints either)
+                        # means one thing to reason about if it ever needs to
+                        # retry against a partially-applied table.
+                        ("founder_user_id", "INTEGER"),
                     ]:
                         try:
                             from sqlalchemy import text
