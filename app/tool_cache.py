@@ -3,6 +3,7 @@ import os
 import re
 import sys
 import time
+from datetime import datetime, timezone
 from typing import List, Dict, Any
 from filelock import FileLock, Timeout
 
@@ -178,6 +179,34 @@ def _normalize_category(raw_category: Any, tool: Dict[str, Any]) -> str:
     return inferred
 
 
+def _sponsored_active(tool: dict) -> bool:
+    """True when a tool's paid placement is currently in effect.
+
+    'sponsored_until' is absent/None for one-time purchases (placement does
+    not lapse) and an ISO date for monthly subscriptions. A lapsed
+    subscription only demotes placement — the listing itself always stays,
+    because the indexed /tools/<slug> and /alternatives/<slug> pages are what
+    generate the search traffic that makes placement worth buying at all.
+
+    Lives here (not api_routes.py) so _normalize_tool_record below can reuse
+    it for the editorial-blurb display gate without a circular import —
+    api_routes.py imports this same function rather than redefining it.
+    """
+    if not tool.get("sponsored"):
+        return False
+    until = tool.get("sponsored_until")
+    if not until:
+        return True
+    try:
+        expiry = datetime.fromisoformat(str(until).replace("Z", "+00:00"))
+    except (TypeError, ValueError):
+        # An unparseable date must not silently grant free placement forever.
+        return False
+    if expiry.tzinfo is None:
+        expiry = expiry.replace(tzinfo=timezone.utc)
+    return expiry > datetime.now(timezone.utc)
+
+
 def _normalize_tool_record(tool: Dict[str, Any]) -> Dict[str, Any]:
     if not isinstance(tool, dict):
         return {}
@@ -194,6 +223,35 @@ def _normalize_tool_record(tool: Dict[str, Any]) -> Dict[str, Any]:
 
     normalized["category"] = _normalize_category(normalized.get("category"), normalized)
     return normalized
+
+
+def apply_editorial_blurb(tool: Dict[str, Any]) -> Dict[str, Any]:
+    """Presentation-only override: a Sponsored tool with editorial_blurb set
+    shows that admin-authored copy instead of its submitted
+    description/tagline. Deliberately NOT folded into _normalize_tool_record
+    — that function's output is also what the admin edit form loads and
+    round-trips back through upsert_tool(), and baking the override in there
+    would silently overwrite (and eventually destroy, on the next unrelated
+    admin save) the submitter's real description. Callers apply this once,
+    at the point a tool is actually served to a reader — see get_tool(),
+    _card_projection(), and search_tools() in api_routes.py / search_utils.py.
+
+    Checks CURRENT sponsored status via _sponsored_active(), not merely
+    "does a blurb exist" — a tool that loses Sponsored status (downgrade,
+    lapsed subscription) reverts to its own description automatically,
+    without needing the blurb column cleared.
+    """
+    # Always a copy — several callers (e.g. get_tool() in api_routes.py)
+    # mutate the returned dict further (adding similar_tools, live rating
+    # aggregates, etc.), and `tool` here is frequently a direct reference
+    # into TOOL_CACHE. Returning the input unchanged on the no-op path would
+    # let that later mutation corrupt the shared cache entry.
+    out = dict(tool)
+    blurb = str(tool.get("editorial_blurb") or "").strip()
+    if blurb and _sponsored_active(tool):
+        out["description"] = blurb
+        out["tagline"] = blurb
+    return out
 
 
 def _load_tools_from_disk(data_path: str = DEFAULT_TOOLS_PATH) -> List[Dict[str, Any]]:
