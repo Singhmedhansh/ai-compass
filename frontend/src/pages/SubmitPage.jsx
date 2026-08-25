@@ -82,6 +82,14 @@ export default function SubmitPage() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
 
+  // Populated from the /submit-tool response so the success panel can show
+  // a working dashboard link and founder-account status immediately —
+  // without waiting on (or depending on) the welcome email actually
+  // arriving.
+  const [dashboardUrl, setDashboardUrl] = useState(null)
+  const [founderAccountCreated, setFounderAccountCreated] = useState(false)
+  const [founderAccountLinked, setFounderAccountLinked] = useState(false)
+
   // Payment states
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState('paypal') // Stripe/Razorpay are shown as "Maintenance" (disabled) — PayPal is the only live gateway
@@ -151,6 +159,9 @@ export default function SubmitPage() {
             setSubmittedTier(tier.id)
             setPaymentVerified(!!payload.payment_verified)
             setTransactionRef(txRef)
+            setDashboardUrl(payload.dashboard_url || null)
+            setFounderAccountCreated(!!payload.founder_account_created)
+            setFounderAccountLinked(!!payload.founder_account_linked)
             sessionStorage.removeItem('submit_form_data')
             sessionStorage.removeItem('submit_submission_type')
             sessionStorage.removeItem('submit_payment_method')
@@ -340,6 +351,9 @@ export default function SubmitPage() {
     setSubmitting(true)
     setSubmitted(false)
     setPaymentVerified(false)
+    setDashboardUrl(null)
+    setFounderAccountCreated(false)
+    setFounderAccountLinked(false)
 
     try {
       const response = await fetch('/api/v1/submit-tool', {
@@ -367,6 +381,9 @@ export default function SubmitPage() {
       setSubmitted(true)
       setSubmittedTier(tier.id)
       setPaymentVerified(!!payload.payment_verified)
+      setDashboardUrl(payload.dashboard_url || null)
+      setFounderAccountCreated(!!payload.founder_account_created)
+      setFounderAccountLinked(!!payload.founder_account_linked)
       setFormData(INITIAL_FORM)
       setPaymentDone(false)
     } catch (requestError) {
@@ -588,6 +605,13 @@ export default function SubmitPage() {
                       <p className="bg-bg-elev/80 p-3 rounded-xl border border-line font-medium text-ink">
                         <strong>{submittedTierObj.reviewEta}</strong> Our team will review your submission and contact you soon via email at your provided founder address.
                       </p>
+                      {(founderAccountCreated || founderAccountLinked) && (
+                        <p className="bg-accent-soft/30 p-3 rounded-xl border border-accent/15 font-medium text-ink">
+                          {founderAccountCreated
+                            ? "We've created a Growth Hub account for you — check your confirmation email for login details."
+                            : 'This tool is now linked to your existing AI Compass account — log in as usual to find it in your Growth Hub.'}
+                        </p>
+                      )}
                     </>
                   ) : (
                     <>
@@ -598,6 +622,20 @@ export default function SubmitPage() {
                         <strong>Our team will manually verify your payment and follow up via email within 24 hours.</strong> If you completed payment and don't hear back, reply to your confirmation email with your transaction reference.
                       </p>
                     </>
+                  )}
+
+                  {dashboardUrl && (
+                    <div className="pt-1">
+                      <a
+                        href={dashboardUrl}
+                        className="inline-flex items-center justify-center gap-2 w-full bg-accent hover:bg-accent/90 text-white font-bold py-3 px-5 rounded-xl text-xs transition-all shadow-sm"
+                      >
+                        View your submission dashboard <ArrowRight className="h-3.5 w-3.5" />
+                      </a>
+                      <p className="mt-2 text-[11px] text-muted-2 text-center">
+                        A confirmation email with this link (and login details, if applicable) is on its way to your inbox for future reference.
+                      </p>
+                    </div>
                   )}
                 </div>
               </div>
