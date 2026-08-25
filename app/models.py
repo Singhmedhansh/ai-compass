@@ -538,6 +538,7 @@ class OutreachCandidate(db.Model):
     verification_result = db.Column(db.String(20), nullable=True)  # 'valid', 'invalid', 'disposable', 'catchall', 'unknown', or None if never checked
     verified_at = db.Column(db.DateTime, nullable=True)
     fit_score = db.Column(db.Integer, nullable=True)  # likelihood-to-convert ranking signal, see compute_fit_score()
+    draft_template_version = db.Column(db.Integer, nullable=True)  # copy/pricing template version stamped at draft generation, see CURRENT_DRAFT_TEMPLATE_VERSION
 
 
 class OutreachEmailLog(db.Model):

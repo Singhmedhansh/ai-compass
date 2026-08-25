@@ -770,6 +770,7 @@ def create_app(config: dict | None = None) -> Flask:
                         ("verification_result", "VARCHAR(20)"),
                         ("verified_at", "TIMESTAMP"),
                         ("fit_score", "INTEGER"),
+                        ("draft_template_version", "INTEGER"),
                     ]:
                         try:
                             from sqlalchemy import text

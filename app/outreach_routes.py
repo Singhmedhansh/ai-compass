@@ -36,6 +36,8 @@ from app.outreach import (
     CATALOG_CAMPAIGN_MIN_CLICKS,
     CATALOG_CAMPAIGN_MAX_PER_RUN,
     CATALOG_CANDIDATE_ID_PREFIX,
+    CURRENT_DRAFT_TEMPLATE_VERSION,
+    get_stale_draft_candidates,
 )
 
 outreach_bp = Blueprint("outreach", __name__)
@@ -161,7 +163,8 @@ def add_candidate():
     subject, body = generate_draft_via_gemini(c)
     c.draft_subject = subject
     c.draft_body = body
-    
+    c.draft_template_version = CURRENT_DRAFT_TEMPLATE_VERSION
+
     db.session.add(c)
     db.session.commit()
     
@@ -209,7 +212,9 @@ def update_candidate(cid):
         subject, body = generate_draft_via_gemini(c)
         c.draft_subject = subject
         c.draft_body = body
-        
+        c.draft_template_version = CURRENT_DRAFT_TEMPLATE_VERSION
+
+
     if "status" in data:
         old_status = c.status
         c.status = data["status"]
@@ -715,6 +720,36 @@ def submit_verification_results():
 
     db.session.commit()
     return jsonify({"success": True, "updated": updated})
+
+@outreach_bp.route("/api/v1/admin/outreach/stale-drafts", methods=["GET"])
+@login_required
+def get_stale_drafts():
+    """Read-only visibility into candidates whose stored draft predates
+    CURRENT_DRAFT_TEMPLATE_VERSION — i.e. still carrying old copy/pricing
+    that nothing will regenerate automatically. See get_stale_draft_candidates()
+    for exactly what counts as stale and why. Use the existing per-candidate
+    PUT /candidates/<id> {"regenerate_draft": true} (or Regenerate All Drafts,
+    for the full draft_ready pool) to fix what this reports.
+    """
+    if not _is_admin():
+        return jsonify({"error": "Forbidden"}), 403
+
+    stale = get_stale_draft_candidates()
+    return jsonify({
+        "current_template_version": CURRENT_DRAFT_TEMPLATE_VERSION,
+        "stale_count": len(stale),
+        "candidates": [
+            {
+                "id": c.id,
+                "product_name": c.product_name,
+                "email": c.email,
+                "status": c.status,
+                "draft_template_version": c.draft_template_version,
+                "created_at": c.created_at.isoformat() if c.created_at else None,
+            }
+            for c in stale
+        ],
+    })
 
 @outreach_bp.route("/api/v1/admin/outreach/job-status", methods=["GET"])
 @login_required
