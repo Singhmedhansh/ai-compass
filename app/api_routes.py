@@ -467,6 +467,15 @@ def _serialize_user(user: User) -> dict:
     interests_list = [x.strip() for x in (user.interests or "").split(",") if x.strip()]
     goals_list = [x.strip() for x in (user.goals or "").split(",") if x.strip()]
 
+    # "Founder account" isn't a stored flag — it's just whether any
+    # Submission points founder_user_id at this user (see
+    # app/founder_accounts.py). Computing it here keeps the FK the single
+    # source of truth instead of drifting a redundant column out of sync.
+    from app.models import Submission
+    is_founder = db.session.query(
+        Submission.query.filter_by(founder_user_id=user.id).exists()
+    ).scalar()
+
     return {
         "id": user.id,
         "name": user.display_name or "",
@@ -475,6 +484,8 @@ def _serialize_user(user: User) -> dict:
         "created_at": user.created_at.isoformat() if user.created_at else None,
         "member_since": member_since,
         "is_admin": is_admin,
+        "must_change_password": bool(getattr(user, "must_change_password", False)),
+        "is_founder": bool(is_founder),
         "is_verified": bool(getattr(user, "is_verified", False)),
         "onboarding_completed": bool(getattr(user, "onboarding_completed", False)),
         "interests": interests_list,
@@ -3933,6 +3944,30 @@ def auth_logout():
 
 
 @csrf.exempt
+@api_bp.route("/auth/change-password", methods=["POST"])
+@login_required
+def auth_change_password():
+    """Sets a new password for the current session's user. The one
+    endpoint the must_change_password gate (see enforce_password_change_gate
+    in app/__init__.py) always leaves reachable — this is how a founder
+    clears it. Reuses the same length rule as auth_register()/reset_password()
+    (Constraint 4: no new password rules) and the same bcrypt hashing already
+    used everywhere else (Constraint 5).
+    """
+    payload = request.get_json(silent=True) or {}
+    new_password = str(payload.get("new_password") or "")
+
+    if len(new_password) < 8:
+        return jsonify({"error": "Password must be at least 8 characters."}), 400
+
+    current_user.password_hash = bcrypt.generate_password_hash(new_password).decode("utf-8")
+    current_user.must_change_password = False
+    db.session.commit()
+
+    return jsonify(_serialize_user(current_user))
+
+
+@csrf.exempt
 @api_bp.route("/auth/register", methods=["POST"])
 def auth_register():
     try:
@@ -5304,6 +5339,37 @@ def _submission_dashboard_category_benchmark(catalog_row, since_30d):
     }
 
 
+@api_bp.get("/founder/tools")
+@login_required
+def founder_tools():
+    """Growth Hub landing data: every Submission this session's user owns
+    via founder_user_id (see app/founder_accounts.py) — the same FK Prompt 1
+    added, no separate flag. The frontend uses the count to decide whether
+    to jump straight into the one dashboard or show a picker list."""
+    from app.models import CatalogTool, Submission
+    from app.pricing_tiers import tier_for_pricing_model
+
+    subs = Submission.query.filter_by(founder_user_id=current_user.id).order_by(
+        Submission.submitted_at.desc()
+    ).all()
+
+    tools = []
+    for s in subs:
+        claimed_tier = tier_for_pricing_model(s.pricing_model or "") or "free"
+        tier_key = claimed_tier if s.payment_status == "verified" else "free"
+        catalog_row = CatalogTool.query.filter_by(submission_id=s.id).first() if s.status == "approved" else None
+        tools.append({
+            "submission_id": s.id,
+            "name": s.name,
+            "status": s.status,
+            "tier": tier_key,
+            "slug": catalog_row.slug if catalog_row else None,
+            "submitted_at": s.submitted_at.isoformat() if s.submitted_at else None,
+        })
+
+    return jsonify({"tools": tools})
+
+
 @api_bp.get("/submissions/dashboard")
 def submission_dashboard():
     """Token-gated per-submitter analytics (no login — Submission has no
@@ -5318,12 +5384,37 @@ def submission_dashboard():
     from app.pricing_tiers import tier_for_pricing_model
     from app.submission_dashboard import verify_dashboard_token
 
+    # Additive, not a replacement (Constraint 2 of the founder-accounts
+    # work): the signed magic-link token remains the primary path — it's
+    # what the welcome/invoice email links to, and keeps working for
+    # someone opening it on a different device or without an account at
+    # all. A logged-in founder's own session is now ALSO accepted, scoped
+    # via ?submission_id= to the one submission that session's founder_user_id
+    # actually owns — a session can never read a token by omission, and a
+    # token still works with no session present.
     token = request.args.get("token", "")
-    try:
-        submission_id, _token_email = verify_dashboard_token(token)
-    except SignatureExpired:
-        return jsonify({"error": "expired"}), 401
-    except BadSignature:
+    session_submission_id = request.args.get("submission_id", "")
+
+    if token:
+        try:
+            submission_id, _token_email = verify_dashboard_token(token)
+        except SignatureExpired:
+            return jsonify({"error": "expired"}), 401
+        except BadSignature:
+            return jsonify({"error": "invalid"}), 401
+    elif session_submission_id:
+        if not current_user.is_authenticated:
+            return jsonify({"error": "unauthorized"}), 401
+        try:
+            submission_id = int(session_submission_id)
+        except (TypeError, ValueError):
+            return jsonify({"error": "invalid"}), 400
+        owned = Submission.query.filter_by(
+            id=submission_id, founder_user_id=current_user.id
+        ).first()
+        if not owned:
+            return jsonify({"error": "unauthorized"}), 403
+    else:
         return jsonify({"error": "invalid"}), 401
 
     s = Submission.query.get(submission_id)

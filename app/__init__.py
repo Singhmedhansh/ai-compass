@@ -628,6 +628,36 @@ def create_app(config: dict | None = None) -> Flask:
 
         return None
 
+    # Paths an authenticated must_change_password=True user may still hit.
+    # Everything else under /api/ is "authenticated functionality" and gets
+    # rejected server-side — a client-side-only redirect would be trivially
+    # bypassable by calling the API directly (Constraint 3).
+    _PASSWORD_GATE_ALLOWED_API_PATHS = {
+        "/api/v1/auth/me",
+        "/api/v1/auth/logout",
+        "/api/v1/auth/change-password",
+    }
+
+    @app.before_request
+    def enforce_password_change_gate():
+        from flask import jsonify
+        from flask_login import current_user
+
+        if not request.path.startswith('/api/'):
+            # Non-API routes serve the SPA shell/static assets — the SPA's
+            # own must_change_password check redirects the user client-side.
+            # Blocking the shell itself would just break the page before it
+            # can render that redirect.
+            return None
+        if not (current_user and current_user.is_authenticated):
+            return None
+        if not bool(getattr(current_user, "must_change_password", False)):
+            return None
+        if request.path in _PASSWORD_GATE_ALLOWED_API_PATHS:
+            return None
+
+        return jsonify({"error": "password_change_required"}), 403
+
     @app.before_request
     def setup_nonce():
         import secrets
