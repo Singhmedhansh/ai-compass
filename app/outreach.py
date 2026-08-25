@@ -22,6 +22,17 @@ log = logging.getLogger(__name__)
 # inbox is ever something other than the signature address.
 OUTREACH_REPLY_TO = os.environ.get("OUTREACH_REPLY_TO", "medhansh.singh@ai-compass.in")
 
+# Bump this whenever the cold-pitch template (generate_draft_via_gemini's
+# prompt or get_generic_draft's copy) changes in a way that makes existing
+# stored drafts outdated — e.g. a pricing change, a rewritten offer, banned
+# language removed. Drafts are generated once and stored (never touched
+# again automatically), so this is the only way to tell "generated against
+# the current template" apart from "stranded on an old one." See
+# OutreachCandidate.draft_template_version and get_stale_draft_candidates()
+# below. History: 1 = pre-founding-sponsor rework ($49.99, MAU/impressions
+# claims); 2 = founding-sponsor $29.99 rework (2026-08-24/25).
+CURRENT_DRAFT_TEMPLATE_VERSION = 2
+
 
 def _outreach_send_headers(email: str) -> dict[str, str]:
     """List-Unsubscribe headers for a cold outreach send.
@@ -1842,6 +1853,7 @@ def run_discovery_pipeline():
         subject, body = generate_draft_via_gemini(c)
         c.draft_subject = subject
         c.draft_body = body
+        c.draft_template_version = CURRENT_DRAFT_TEMPLATE_VERSION
         return c
 
     # Same concurrency cap used elsewhere in this file for this exact
@@ -2023,6 +2035,7 @@ def re_enrich_missing_candidate_emails():
             subject, body = generate_draft_via_gemini(c)
             c.draft_subject = subject
             c.draft_body = body
+            c.draft_template_version = CURRENT_DRAFT_TEMPLATE_VERSION
             drafts_regenerated += 1
 
         if changed:
@@ -2305,6 +2318,7 @@ def regenerate_all_drafts():
                 c = cand_dict[cid]
                 c.draft_subject = subject
                 c.draft_body = body
+                c.draft_template_version = CURRENT_DRAFT_TEMPLATE_VERSION
                 c.updated_at = datetime.now(timezone.utc)
                 regenerated += 1
             except Exception as e:
@@ -2315,6 +2329,27 @@ def regenerate_all_drafts():
         log.info("Regenerated %s draft(s).", regenerated)
 
     return regenerated
+
+def get_stale_draft_candidates():
+    """Candidates whose stored draft was generated against an older copy/
+    pricing template than CURRENT_DRAFT_TEMPLATE_VERSION — i.e. still
+    carrying content nobody has re-run through the current template since
+    it changed. Rows created before draft_template_version existed have it
+    NULL, which counts as stale (NULL is not "less than" anything in SQL,
+    so it needs its own explicit check rather than a plain `< CURRENT`).
+
+    Scoped to draft_ready and no_email_found only: sent/followed_up/replied/
+    bounced/rejected/unsubscribed rows already went out (or never will) with
+    whatever content they had — regenerating those changes history, not a
+    pending send, so they're deliberately excluded here.
+    """
+    return OutreachCandidate.query.filter(
+        OutreachCandidate.status.in_(["draft_ready", "no_email_found"]),
+        db.or_(
+            OutreachCandidate.draft_template_version.is_(None),
+            OutreachCandidate.draft_template_version < CURRENT_DRAFT_TEMPLATE_VERSION,
+        ),
+    ).order_by(OutreachCandidate.created_at.asc()).all()
 
 # ─── 7. REMOTE VERIFICATION TRIGGER (GitHub Actions) ────────────────────────
 
