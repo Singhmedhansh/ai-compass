@@ -259,6 +259,83 @@ def get_recommendations(goal=None, budget=None, platform=None, level=None, use_c
 
     return results
 
+# Bounded, tie-break-only visibility boost for Sponsored-tier tools in
+# "similar tools" results (see get_similar_tools() / _apply_sponsor_tiebreak()
+# below). The non-negotiable rule this exists to serve: a sponsored tool must
+# never appear here unless it would already have qualified on real TF-IDF
+# cosine-similarity grounds alone.
+#
+# SIMILAR_TOOLS_POOL_MARGIN: the raw-similarity candidate pool considered for
+# the boost is `limit + this many` extra slots, built and sorted by
+# UNMODIFIED cosine similarity before any boost is applied. A sponsored tool
+# can only ever end up in the final results if it was already in this pool —
+# it is structurally impossible for the boost to inject a tool that wasn't
+# already relevant on real similarity grounds, independent of how the boost
+# factor below is tuned.
+SIMILAR_TOOLS_POOL_MARGIN = 4
+
+# SIMILAR_TOOLS_RELEVANCE_THRESHOLD: minimum raw cosine similarity for a
+# candidate to be boost-eligible at all. get_similar_tools() itself has never
+# had a relevance floor — today it just returns top-N regardless of how low
+# the absolute score is — so this value exists solely to anchor the tie-break
+# to a real number. Reuses the 0.10 floor already established in this
+# codebase as "meaningfully related" for TF-IDF cosine scores (see
+# SEMANTIC_CONFIDENCE_THRESHOLD in app/search_utils.py) rather than inventing
+# a second, divergent threshold.
+SIMILAR_TOOLS_RELEVANCE_THRESHOLD = 0.10
+
+# SPONSORED_TIEBREAK_FACTOR: a 5% multiplicative bump, applied only to
+# boost-eligible candidates (see above). Multiplicative rather than a fixed
+# additive amount so it scales with the candidate's own score instead of
+# needing a dataset-specific magic number. 5% is small enough that it can
+# only flip the order of two candidates whose raw similarity already sits
+# within 5% of each other — it cannot make a tool leapfrog another candidate
+# that is meaningfully (>5%) more relevant.
+SPONSORED_TIEBREAK_FACTOR = 1.05
+
+
+def _apply_sponsor_tiebreak(ranked, limit):
+    """Bounded, tie-break-only reorder of an already relevance-qualified
+    candidate pool.
+
+    `ranked` must be a list of (tool, raw_similarity) tuples, already sorted
+    descending by real, UNMODIFIED similarity — every tool in the list this
+    function returns was already present in `ranked` before any boost was
+    applied, so a tool that isn't genuinely similar can never appear here, no
+    matter how SPONSORED_TIEBREAK_FACTOR is tuned.
+
+    Checks CURRENT sponsorship, not the pickled model's frozen snapshot of
+    `sponsored`/`sponsored_until` from training time — the live catalog
+    (CatalogTool via app.tool_cache) is the source of truth, same reasoning
+    as the name-rekey search_utils.py already does against SEARCH_INDEX for
+    this same model-staleness reason.
+    """
+    if not ranked:
+        return []
+
+    try:
+        from app.api_routes import _sponsored_active
+        from app.tool_cache import get_cached_tools, _tool_slug
+
+        live_by_slug = {_tool_slug(t): t for t in (get_cached_tools() or [])}
+    except Exception:
+        # Can't verify current sponsorship — fail closed to no boost rather
+        # than trusting stale/unverifiable data.
+        return [t for t, _ in ranked[:limit]]
+
+    boosted = []
+    for tool, score in ranked:
+        live_tool = live_by_slug.get(_tool_slug(tool), tool)
+        eligible = score >= SIMILAR_TOOLS_RELEVANCE_THRESHOLD and _sponsored_active(live_tool)
+        adjusted = score * SPONSORED_TIEBREAK_FACTOR if eligible else score
+        boosted.append((tool, adjusted))
+
+    # Stable sort: ties (including all-non-sponsored, unboosted candidates)
+    # keep their original relevance-ranked relative order.
+    boosted.sort(key=lambda x: x[1], reverse=True)
+    return [t for t, _ in boosted[:limit]]
+
+
 @lru_cache(maxsize=128)
 def get_similar_tools(slug, limit=4):
     slug = str(slug or "").strip().lower()
@@ -312,18 +389,27 @@ def get_similar_tools(slug, limit=4):
         if arr.ndim == 1 and arr.size > 0:
             if idx < arr.size:
                 arr[idx] = -1.0
-            top_k = min(limit, arr.size)
+            # Pool is wider than `limit` — real, unmodified similarity decides
+            # who's even a candidate; the tie-break below only re-sorts inside
+            # this pool. See _apply_sponsor_tiebreak().
+            top_k = min(limit + SIMILAR_TOOLS_POOL_MARGIN, arr.size)
             if top_k <= 0:
                 return []
             candidate_idx = np.argpartition(arr, -top_k)[-top_k:]
             ranked_idx = candidate_idx[np.argsort(arr[candidate_idx])[::-1]]
-            return [tools[int(i)] for i in ranked_idx if 0 <= int(i) < len(tools)]
+            ranked = [
+                (tools[int(i)], float(arr[int(i)]))
+                for i in ranked_idx if 0 <= int(i) < len(tools)
+            ]
+            return _apply_sponsor_tiebreak(ranked, limit)
     except Exception:
         pass
 
     # Fallback for non-numpy sequence types.
-    sim_scores = heapq.nlargest(limit + 1, enumerate(row), key=lambda x: x[1])
-    return [tools[i] for i, _ in sim_scores[1:limit + 1]]
+    pool_size = limit + SIMILAR_TOOLS_POOL_MARGIN
+    sim_scores = heapq.nlargest(pool_size + 1, enumerate(row), key=lambda x: x[1])
+    ranked = [(tools[i], float(s)) for i, s in sim_scores if i != idx][:pool_size]
+    return _apply_sponsor_tiebreak(ranked, limit)
 
 def semantic_search(query, limit=50):
     """Return tools ranked by TF-IDF cosine similarity to a free-form query.
