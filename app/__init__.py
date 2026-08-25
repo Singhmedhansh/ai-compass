@@ -800,6 +800,7 @@ def create_app(config: dict | None = None) -> Flask:
                         # means one thing to reason about if it ever needs to
                         # retry against a partially-applied table.
                         ("founder_user_id", "INTEGER"),
+                        ("welcome_email_sent_at", "TIMESTAMP"),
                     ]:
                         try:
                             from sqlalchemy import text

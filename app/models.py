@@ -207,6 +207,11 @@ class Submission(db.Model):
     # Submission.founder_user_id -> Submission.id -> CatalogTool.submission_id,
     # no separate FK needed on CatalogTool.
     founder_user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True, index=True)
+    # Send-once guard for the founder welcome email (credentials/account-link
+    # note) — separate from get_or_create_founder_account()'s own account-level
+    # idempotency, since a retried submission request must not re-send the
+    # email even though the account lookup would just no-op safely on its own.
+    welcome_email_sent_at = db.Column(db.DateTime, nullable=True)
 
 
 class NewsletterSubscriber(db.Model):
