@@ -1844,7 +1844,6 @@ def submit_tool():
         # submission could ever be reviewed. Email notify below stays
         # best-effort and is no longer the durable channel.
         sub = None
-        is_retry = False
         try:
             from app.models import Submission
 
@@ -1856,7 +1855,6 @@ def submit_tool():
             # created from it.
             if is_paid_claim and transaction_ref:
                 sub = Submission.query.filter_by(pricing_model=pricing_model).first()
-                is_retry = sub is not None
 
             if sub is None:
                 sub = Submission(
