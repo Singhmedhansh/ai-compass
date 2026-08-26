@@ -636,6 +636,13 @@ def create_app(config: dict | None = None) -> Flask:
         "/api/v1/auth/me",
         "/api/v1/auth/logout",
         "/api/v1/auth/change-password",
+        # A must_change_password user who still carries a valid remember-me
+        # session (e.g. a second login attempt without logging out first)
+        # would otherwise have this gate reject the login POST itself before
+        # it's ever processed — surfacing "password_change_required" as a
+        # login error instead of either logging them in or bouncing them to
+        # the change-password page.
+        "/api/v1/auth/login",
     }
 
     @app.before_request

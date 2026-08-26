@@ -112,6 +112,21 @@ def test_gate_allows_me_logout_and_change_password_endpoints(client, app):
     assert change_resp.status_code == 200
 
 
+def test_gate_allows_relogin_for_already_authenticated_gated_user(client, app):
+    """A must_change_password user who still carries a valid session (e.g.
+    resubmitting the login form instead of hitting /account/change-password)
+    must not have the login POST itself rejected by the gate — it isn't in
+    the "fresh, unauthenticated" case the gate is meant to allow through,
+    since flask-login's remember-me cookie already authenticates them before
+    this view runs."""
+    _create_user(app, "gated4@example.com", must_change_password=True)
+    _login(client, "gated4@example.com")  # first login, establishes the session
+
+    resp = _login(client, "gated4@example.com")  # second login, same session
+    assert resp.status_code == 200
+    assert resp.get_json()["must_change_password"] is True
+
+
 def test_gate_does_not_affect_users_without_the_flag(client, app):
     _create_user(app, "normal@example.com", must_change_password=False)
     _login(client, "normal@example.com")
