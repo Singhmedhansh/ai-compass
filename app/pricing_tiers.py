@@ -35,3 +35,15 @@ def tier_for_pricing_model(pricing_model_raw):
         if raw.startswith(cfg["prefix"]):
             return key
     return None
+
+
+def effective_tier(pricing_model_raw, payment_status):
+    """The tier a submission actually gets, not merely the one it claimed.
+
+    An unverified paid claim (payment_status != "verified") is treated as
+    'free' — the same rule already inlined in submit_tool()/the submitter
+    dashboard (api_routes.py). Unrecognized pricing_model strings also fall
+    back to 'free'. Always returns one of 'free' | 'quick' | 'sponsored'.
+    """
+    claimed = tier_for_pricing_model(pricing_model_raw) or "free"
+    return claimed if payment_status == "verified" else "free"

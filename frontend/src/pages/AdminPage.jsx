@@ -15,7 +15,7 @@ const MotionSpan = motion.span
 
 const ADMIN_EMAILS = ['singhmedhansh07@gmail.com']
 const TOOLS_PAGE_SIZE = 15
-const TABS = ['Overview', 'Tools', 'Sync', 'Submissions', 'Sponsors', 'Feedback', 'Analytics', 'Email', 'Newsletter', 'Flags', 'Users', 'Reviews', 'Links', 'Outreach']
+const TABS = ['Overview', 'Tools', 'Sync', 'Submissions', 'Sponsors', 'Feedback', 'Analytics', 'Tier Breakdown', 'Email', 'Newsletter', 'Flags', 'Users', 'Reviews', 'Links', 'Outreach']
 
 const EMPTY_TOOL = {
   slug: '', name: '', tagline: '', description: '', category: '',
@@ -194,6 +194,8 @@ function AdminPage() {
   const [feedbackUnread, setFeedbackUnread] = useState(0)
   const [analytics, setAnalytics] = useState(null)
   const [analyticsErr, setAnalyticsErr] = useState('')
+  const [tierStats, setTierStats] = useState(null)
+  const [tierStatsErr, setTierStatsErr] = useState('')
   const [flags, setFlags] = useState([])
   const [newsletterSubs, setNewsletterSubs] = useState([])
   const [newsletterStats, setNewsletterStats] = useState({ count: 0, new_today: 0, new_this_week: 0 })
@@ -294,6 +296,10 @@ function AdminPage() {
     if (activeTab === 'Analytics') {
       setAnalyticsErr('')
       api('/api/v1/admin/analytics').then(setAnalytics).catch((e) => setAnalyticsErr(e.message || 'Failed to load analytics'))
+    }
+    if (activeTab === 'Tier Breakdown') {
+      setTierStatsErr('')
+      api('/api/v1/admin/tier-breakdown').then(setTierStats).catch((e) => setTierStatsErr(e.message || 'Failed to load tier breakdown'))
     }
     if (activeTab === 'Flags') api('/api/v1/admin/flags').then(setFlags).catch(() => setFlags([]))
     if (activeTab === 'Newsletter') {
@@ -834,6 +840,65 @@ function AdminPage() {
                     </div>
                   ))}
                   {(analytics.outbound?.top || []).length === 0 && <p className="text-sm text-muted">No clicks recorded yet.</p>}
+                </Card>
+              </>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'Tier Breakdown' && (
+          <div className="space-y-4">
+            {tierStatsErr ? (
+              <Card><p className="text-sm text-danger">{tierStatsErr}</p></Card>
+            ) : !tierStats ? (
+              <Card><p className="text-sm text-muted">Loading tier breakdown…</p></Card>
+            ) : (
+              <>
+                <Card>
+                  <h2 className="text-xl font-semibold text-ink">Listings by pricing tier</h2>
+                  <p className="mt-1 text-sm text-muted">
+                    Our submission pricing ladder — not the tool&apos;s own Free/Freemium/Paid label.
+                    <b> Live</b> = tools currently shown to visitors. <b>Pending</b> = submissions still
+                    awaiting review (queue depth per tier). An unverified paid claim counts as Free.
+                  </p>
+                  <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
+                    {[
+                      ['Free', 'free'],
+                      ['Quick Review', 'quick'],
+                      ['Fast-Track Sponsored', 'sponsored'],
+                    ].map(([label, key]) => (
+                      <div key={key} className="rounded-2xl border border-line bg-bg-elev p-5 shadow-sm">
+                        <p className="text-xs uppercase tracking-wide text-muted">{label}</p>
+                        <div className="mt-3 flex items-end gap-5">
+                          <div>
+                            <p className="text-3xl font-bold text-ink">{tierStats.live?.[key] ?? 0}</p>
+                            <p className="text-[11px] uppercase tracking-wide text-muted-2">Live</p>
+                          </div>
+                          <div>
+                            <p className="text-3xl font-bold text-ink-2">{tierStats.pending?.[key] ?? 0}</p>
+                            <p className="text-[11px] uppercase tracking-wide text-muted-2">Pending</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+
+                <Card>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-ink-2">
+                      Editorial / seed listings <span className="text-muted">(no pricing tier — seeded from tools.json)</span>
+                    </span>
+                    <span className="text-xl font-bold text-ink">{tierStats.live?.editorial ?? 0}</span>
+                  </div>
+                  <div className="mt-3 flex items-center justify-between border-t border-line/60 pt-3 text-sm">
+                    <span className="text-muted">Live catalog total</span>
+                    <span className="font-semibold text-ink">{tierStats.live_total ?? 0}</span>
+                  </div>
+                  <div className="mt-2 flex items-center justify-between text-sm">
+                    <span className="text-muted">Pending submissions total</span>
+                    <span className="font-semibold text-ink">{tierStats.pending_total ?? 0}</span>
+                  </div>
                 </Card>
               </>
             )}

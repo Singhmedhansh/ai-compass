@@ -2666,6 +2666,70 @@ def admin_stats():
     )
 
 
+@api_bp.get("/admin/tier-breakdown")
+@login_required
+def admin_tier_breakdown():
+    """Read-only reporting: how many catalog listings / pending submissions
+    sit in each pricing tier (Free / Quick Review / Fast-Track Sponsored).
+
+    Tier is OUR submission pricing ladder (app/pricing_tiers.py), not the
+    tool's own Free/Freemium/Paid price label (that's what /admin/stats'
+    free_tools counts). "live" = tools actually shown to visitors
+    (get_visible_tools() — excludes hidden + not-yet-released). A live
+    listing's tier is only recoverable by joining back to its Submission
+    via CatalogTool.submission_id; Fast-Track is additionally detectable
+    from the catalog row itself via _sponsored_active(). Tools seeded from
+    tools.json never went through the ladder at all — reported separately
+    as "editorial" so the live counts still reconcile to the visible total.
+    """
+    if not _is_admin():
+        return jsonify({"error": "Forbidden"}), 403
+
+    from app.models import CatalogTool, Submission
+    from app.pricing_tiers import effective_tier
+
+    # --- Pending submissions, grouped by effective tier -------------------
+    pending = {"free": 0, "quick": 0, "sponsored": 0}
+    for pricing_model, payment_status in db.session.query(
+        Submission.pricing_model, Submission.payment_status
+    ).filter(Submission.status == "pending"):
+        pending[effective_tier(pricing_model, payment_status)] += 1
+
+    # --- Live catalog tools, grouped by tier -----------------------------
+    # slug -> effective tier of the submission that created the row (if any)
+    sub_tier_by_slug = {}
+    for slug, pricing_model, payment_status in (
+        db.session.query(
+            CatalogTool.slug, Submission.pricing_model, Submission.payment_status
+        )
+        .join(Submission, CatalogTool.submission_id == Submission.id)
+    ):
+        sub_tier_by_slug[slug] = effective_tier(pricing_model, payment_status)
+
+    live = {"free": 0, "quick": 0, "sponsored": 0, "editorial": 0}
+    for tool in get_visible_tools(DATA_PATH):
+        if _sponsored_active(tool):
+            live["sponsored"] += 1
+            continue
+        tier = sub_tier_by_slug.get(tool.get("slug"))
+        if tier == "quick":
+            live["quick"] += 1
+        elif tier == "free":
+            live["free"] += 1
+        else:
+            # No linked submission — seeded from tools.json, never ticketed.
+            live["editorial"] += 1
+
+    return jsonify(
+        {
+            "live": live,
+            "pending": pending,
+            "live_total": sum(live.values()),
+            "pending_total": sum(pending.values()),
+        }
+    )
+
+
 @api_bp.post("/admin/retrain")
 @login_required
 def retrain_model():
