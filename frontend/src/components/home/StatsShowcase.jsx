@@ -8,49 +8,49 @@ export default function StatsShowcase() {
 
   // PostHog Data (Session Duration & Bounce Rate removed)
   const posthogMetrics = [
-    { label: 'Unique Visitors', value: '5.12K', change: '+402.2k%', icon: Users },
-    { label: 'Page Views', value: '6.77K', change: '+85.2k%', icon: Eye },
-    { label: 'Sessions', value: '5.4K', change: '+419.9k%', icon: Activity }
+    { label: 'Unique Visitors', value: '7.12K', change: '+402.2k%', icon: Users },
+    { label: 'Page Views', value: '9.52K', change: '+85.2k%', icon: Eye },
+    { label: 'Sessions', value: '7.56K', change: '+419.9k%', icon: Activity }
   ]
 
   const posthogPaths = [
-    { path: '/', visitors: 1068, views: 1221, pct: 100 },
-    { path: '/alternatives/chatgpt', visitors: 713, views: 717, pct: 67 },
-    { path: '/ai-tool-finder', visitors: 432, views: 602, pct: 40 },
-    { path: '/tools', visitors: 259, views: 314, pct: 24 },
-    { path: '/best-free-ai-tools', visitors: 187, views: 194, pct: 18 }
+    { path: '/', visitors: 1919, views: 2257, pct: 100 },
+    { path: '/alternatives/chatgpt', visitors: 1043, views: 1095, pct: 54 },
+    { path: '/ai-tool-finder', visitors: 743, views: 1108, pct: 39 },
+    { path: '/best-free-ai-tools', visitors: 401, views: 438, pct: 21 },
+    { path: '/tools', visitors: 350, views: 422, pct: 18 }
   ]
 
   const posthogChartPoints = [
-    { x: 50, y: 176, label: 'May', value: '300 visitors' },
-    { x: 180, y: 120, label: 'June', value: '1,000 visitors' },
-    { x: 310, y: 36, label: 'July', value: '2,050 visitors' },
-    { x: 450, y: 52, label: 'August', value: '1,821 visitors' }
+    { x: 50, y: 186, label: 'May', value: '300 visitors' },
+    { x: 180, y: 155, label: 'June', value: '1,000 visitors' },
+    { x: 310, y: 110, label: 'July', value: '2,000 visitors' },
+    { x: 450, y: 28, label: 'August', value: '3,822 visitors' }
   ]
 
   // Google Search Console Data
   const gscMetrics = [
-    { label: 'Total Clicks', value: '3.28K', change: 'Growth', icon: MousePointerClick },
-    { label: 'Total Impressions', value: '132K', change: 'High', icon: Eye },
-    { label: 'Average CTR', value: '2.5%', change: 'Healthy', icon: Users },
-    { label: 'Average Position', value: '12.4', change: 'Top 12', icon: BarChart3 }
+    { label: 'Total Clicks', value: '4.24K', change: 'Growth', icon: MousePointerClick },
+    { label: 'Total Impressions', value: '163K', change: 'High', icon: Eye },
+    { label: 'Average CTR', value: '2.6%', change: 'Healthy', icon: Users },
+    { label: 'Average Position', value: '12', change: 'Top 12', icon: BarChart3 }
   ]
 
   const gscQueries = [
-    { query: 'compass ai chatgpt', clicks: 303, impressions: 2310, pct: 100 },
-    { query: 'compass chatgpt alternative', clicks: 142, impressions: 672, pct: 47 },
-    { query: 'compass chatgpt alternative free', clicks: 88, impressions: 343, pct: 29 },
-    { query: 'compass like chatgpt', clicks: 48, impressions: 380, pct: 16 },
-    { query: 'compass ai chatgpt alternative', clicks: 45, impressions: 280, pct: 15 }
+    { query: 'compass ai chatgpt', clicks: 541, impressions: 2761, pct: 100 },
+    { query: 'compass chatgpt alternative', clicks: 152, impressions: 691, pct: 28 },
+    { query: 'compass chatgpt', clicks: 136, impressions: 1114, pct: 25 },
+    { query: 'compass chatgpt alternative free', clicks: 113, impressions: 399, pct: 21 },
+    { query: 'compass like chatgpt', clicks: 75, impressions: 419, pct: 14 }
   ]
 
   const gscChartPoints = [
-    { x: 50, y: 175, label: 'May', clicks: 45, impressions: 2200 },
-    { x: 130, y: 155, label: 'Early Jun', clicks: 85, impressions: 4500 },
-    { x: 210, y: 130, label: 'Late Jun', clicks: 140, impressions: 8900 },
-    { x: 290, y: 85, label: 'Early Jul', clicks: 420, impressions: 24000 },
-    { x: 370, y: 50, label: 'Late Jul', clicks: 890, impressions: 38000 },
-    { x: 450, y: 22, label: 'August', clicks: 1070, impressions: 32400 }
+    { x: 50, y: 185, label: 'May', clicks: 10, impressions: 200 },
+    { x: 130, y: 170, label: 'Early Jun', clicks: 20, impressions: 1000 },
+    { x: 210, y: 140, label: 'Late Jun', clicks: 40, impressions: 1500 },
+    { x: 290, y: 125, label: 'Early Jul', clicks: 50, impressions: 2500 },
+    { x: 370, y: 50, label: 'Late Jul', clicks: 100, impressions: 3500 },
+    { x: 450, y: 65, label: 'August', clicks: 90, impressions: 4000 }
   ]
 
   return (
@@ -172,7 +172,7 @@ export default function StatsShowcase() {
                     <>
                       {/* PostHog Line Path */}
                       <path
-                        d="M 50 176 L 180 120 L 310 36 L 450 52"
+                        d="M 50 186 L 180 155 L 310 110 L 450 28"
                         fill="none"
                         stroke="var(--accent)"
                         strokeWidth="3"
@@ -181,7 +181,7 @@ export default function StatsShowcase() {
                       />
                       {/* Gradient Fill under line */}
                       <path
-                        d="M 50 200 L 50 176 L 180 120 L 310 36 L 450 52 L 450 200 Z"
+                        d="M 50 200 L 50 186 L 180 155 L 310 110 L 450 28 L 450 200 Z"
                         fill="url(#posthog-grad)"
                         opacity="0.1"
                       />
@@ -190,7 +190,7 @@ export default function StatsShowcase() {
                     <>
                       {/* GSC Line Path */}
                       <path
-                        d="M 50 175 L 130 155 L 210 130 L 290 85 L 370 50 L 450 22"
+                        d="M 50 185 L 130 170 L 210 140 L 290 125 L 370 50 L 450 65"
                         fill="none"
                         stroke="var(--accent)"
                         strokeWidth="3"
@@ -199,7 +199,7 @@ export default function StatsShowcase() {
                       />
                       {/* GSC Impressions Path */}
                       <path
-                        d="M 50 160 L 130 140 L 210 110 L 290 60 L 370 30 L 450 15"
+                        d="M 50 192 L 130 160 L 210 140 L 290 100 L 370 60 L 450 40"
                         fill="none"
                         stroke="purple"
                         strokeWidth="1.5"
@@ -208,7 +208,7 @@ export default function StatsShowcase() {
                       />
                       {/* Gradient Fill under line */}
                       <path
-                        d="M 50 200 L 50 175 L 130 155 L 210 130 L 290 85 L 370 50 L 450 22 L 450 200 Z"
+                        d="M 50 200 L 50 185 L 130 170 L 210 140 L 290 125 L 370 50 L 450 65 L 450 200 Z"
                         fill="url(#posthog-grad)"
                         opacity="0.08"
                       />
