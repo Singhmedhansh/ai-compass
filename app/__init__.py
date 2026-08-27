@@ -287,7 +287,31 @@ def create_app(config: dict | None = None) -> Flask:
         "default-src": "'self'",
         # 'unsafe-inline' needed for PostHog/theme-detector inline scripts in
         # index.html. GA4 loads from googletagmanager.com. PostHog JS from its CDN.
-        "script-src": f"'self' 'unsafe-inline' https://www.googletagmanager.com https://us-assets.i.posthog.com https://us.i.posthog.com https://static.cloudflareinsights.com {PAYPAL_HOSTS}",
+        #
+        # 'strict-dynamic' is what makes the PayPal checkout work under a nonce
+        # policy. PayPal's HostedButtons component injects a large inline
+        # <script> at runtime (window.__pp_form_fields_<BUTTON_ID>, carrying
+        # onInit/onClick/getUserInputs/onError). Because a nonce is present,
+        # 'unsafe-inline' is IGNORED per CSP3, so that script was blocked
+        # (script-src-elem, blockedURI "inline", sourceFile
+        # https://www.paypal.com/sdk/js) and the hosted button's click handler
+        # and input collection never existed at all. Reproduced in Chrome:
+        # without this the global is undefined; with it, all five handlers are
+        # present. This affected both the sponsor and Quick Review tiers.
+        #
+        # PayPal's own documented nonce fix (data-csp-nonce on the SDK script
+        # tag, set in SubmitPage.jsx) is necessary but NOT sufficient — it does
+        # not propagate to the HostedButtons form-fields script. Verified.
+        #
+        # 'strict-dynamic' trusts scripts created BY an already-trusted
+        # (nonced) script, which covers PayPal's injection without loosening
+        # anything for our own markup: a parser-inserted inline script with no
+        # nonce is still blocked (verified in-browser). It does make the host
+        # allowlist below be ignored in CSP3 browsers — GTM/PostHog/GA still
+        # load because our own nonced inline snippets load them — and the
+        # allowlist is retained for CSP2-only browsers, which ignore
+        # 'strict-dynamic' and fall back to it plus 'unsafe-inline'.
+        "script-src": f"'self' 'unsafe-inline' 'strict-dynamic' https://www.googletagmanager.com https://us-assets.i.posthog.com https://us.i.posthog.com https://static.cloudflareinsights.com {PAYPAL_HOSTS}",
         # 'unsafe-inline' is REQUIRED here. Framer Motion (and React itself) inject
         # inline style attributes at runtime for animations. Nonces do NOT apply to
         # style attributes — only to <style> elements — so a nonce-only policy

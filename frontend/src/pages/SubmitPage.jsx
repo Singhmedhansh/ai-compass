@@ -98,7 +98,12 @@ export default function SubmitPage() {
   const [paymentVerified, setPaymentVerified] = useState(false)
   const [transactionRef, setTransactionRef] = useState('')
   const [paypalLoaded, setPaypalLoaded] = useState(false)
+  // paypalError was previously set in three failure paths and read by
+  // nothing — the modal simply rendered empty space when the SDK failed.
+  // It is now the source of truth for the checkout block's error state.
   const [paypalError, setPaypalError] = useState(false)
+  // Bumped by the "Try again" button to re-run the SDK load effect.
+  const [paypalRetry, setPaypalRetry] = useState(0)
   const [paypalLinkClicked, setPaypalLinkClicked] = useState(false)
   const [manualTxId, setManualTxId] = useState('')
 
@@ -197,8 +202,20 @@ export default function SubmitPage() {
   useEffect(() => {
     if (showPaymentModal && paymentMethod === 'paypal') {
       const tierParam = submissionType === 'quick' ? 'quick' : 'sponsor'
+      // Clear both flags up front. Without this a retry (or reopening the
+      // modal after a failure) starts out still showing the previous
+      // attempt's error.
+      setPaypalError(false)
+      setPaypalLoaded(!!window.paypal)
+
       fetch(`/api/v1/config/paypal-hosted?tier=${tierParam}`)
-        .then(res => res.json())
+        .then(res => {
+          // A 5xx from the origin returns an HTML error page, and res.json()
+          // on that throws a parse error that used to escape as an
+          // unhandled rejection rather than a visible failure.
+          if (!res.ok) throw new Error(`paypal-hosted config returned ${res.status}`)
+          return res.json()
+        })
         .then(data => {
           setPaypalHostedConfig(data)
           const clientId = data.client_id || 'sb'
@@ -217,8 +234,40 @@ export default function SubmitPage() {
               existingScript.remove()
             }
 
+            // A blocker (uBlock, corporate proxy, DNS sinkhole) frequently makes
+            // the request HANG rather than fail, so neither onload nor onerror
+            // ever fires. Without this the modal spins forever and the buyer
+            // just leaves. Treat silence as failure.
+            let settled = false
+            const timeoutId = setTimeout(() => {
+              if (settled) return
+              settled = true
+              console.error('PayPal SDK load timed out after 15s.')
+              setPaypalError(true)
+            }, 15000)
+
             const script = document.createElement('script')
             script.id = 'paypal-sdk-script'
+
+            // PayPal's SDK injects its own inline <script> elements at runtime.
+            // Our CSP carries a per-request nonce, and per spec a nonce makes
+            // 'unsafe-inline' be IGNORED — so those injected scripts were being
+            // blocked (script-src-elem, blockedURI "inline", sourceFile
+            // https://www.paypal.com/sdk/js).
+            //
+            // PayPal's documented fix is data-csp-nonce: pass our nonce to the
+            // SDK and it stamps that nonce onto everything it injects, so the
+            // existing nonce policy covers them without loosening it.
+            // https://developer.paypal.com/sdk/js/best-practices/
+            //
+            // The nonce is read off one of our own server-nonced script tags via
+            // the .nonce IDL property — the content attribute is hidden from
+            // getAttribute() by browsers, so the property is the only way.
+            const cspNonce = document.querySelector('script[nonce]')?.nonce || ''
+            if (cspNonce) {
+              script.nonce = cspNonce
+              script.setAttribute('data-csp-nonce', cspNonce)
+            }
 
             if (data.hosted_button_id) {
               script.src = `https://www.paypal.com/sdk/js?client-id=${cid}&components=hosted-buttons&disable-funding=venmo&currency=USD`
@@ -229,6 +278,9 @@ export default function SubmitPage() {
             script.crossOrigin = 'anonymous'
 
             script.onload = () => {
+              if (settled) return
+              settled = true
+              clearTimeout(timeoutId)
               if (window.paypal) {
                 setPaypalLoaded(true)
               } else {
@@ -237,6 +289,9 @@ export default function SubmitPage() {
             }
 
             script.onerror = () => {
+              if (settled) return
+              settled = true
+              clearTimeout(timeoutId)
               handleLoadError()
             }
 
@@ -260,7 +315,7 @@ export default function SubmitPage() {
           setPaypalError(true)
         })
     }
-  }, [showPaymentModal, paymentMethod, submissionType])
+  }, [showPaymentModal, paymentMethod, submissionType, paypalRetry])
 
   useEffect(() => {
     if (paypalLoaded && window.paypal && paymentMethod === 'paypal') {
@@ -270,12 +325,19 @@ export default function SubmitPage() {
 
         if (paypalHostedConfig && paypalHostedConfig.hosted_button_id) {
           try {
+            // .render() returns a Promise. The try/catch only ever caught a
+            // synchronous throw — a rejection escaped as an unhandled
+            // rejection (captured by PostHog as an exception) and left the
+            // container empty with no error shown.
             window.paypal.HostedButtons({
               hostedButtonId: paypalHostedConfig.hosted_button_id
-            }).render('#paypal-button-container')
+            }).render('#paypal-button-container').catch((err) => {
+              console.error('Failed to render HostedButtons:', err)
+              setPaypalError(true)
+            })
           } catch (err) {
             console.error('Failed to render HostedButtons:', err)
-            setError('Could not load PayPal checkout buttons.')
+            setPaypalError(true)
           }
         } else {
           try {
@@ -311,14 +373,18 @@ export default function SubmitPage() {
                 console.error('PayPal Buttons error:', err)
                 setError('An error occurred during the PayPal transaction.')
               }
-            }).render('#paypal-button-container')
+            }).render('#paypal-button-container').catch((err) => {
+              console.error('Failed to render standard PayPal buttons:', err)
+              setPaypalError(true)
+            })
           } catch (err) {
             console.error('Failed to render standard PayPal buttons:', err)
+            setPaypalError(true)
           }
         }
       }
     }
-  }, [paypalLoaded, paymentMethod, paypalHostedConfig, submissionType])
+  }, [paypalLoaded, paymentMethod, paypalHostedConfig, submissionType, paypalRetry])
 
   function handleChange(event) {
     const { name, value } = event.target
@@ -937,7 +1003,46 @@ export default function SubmitPage() {
                         </p>
                       )}
 
-                      {paypalLoaded && (
+                      {/* Three explicit states. Previously only the third existed,
+                          so a failed SDK load — and, on Quick Review, ANY failure,
+                          since that tier has no hosted-button link to fall back on
+                          — rendered nothing at all: the modal showed one sentence
+                          over empty space, indistinguishable from still loading. */}
+                      {paypalError ? (
+                        <div className="rounded-xl border border-danger bg-danger-soft px-4 py-3 text-left space-y-2" role="alert">
+                          <p className="text-xs font-semibold text-danger">
+                            PayPal checkout couldn&apos;t load.
+                          </p>
+                          <p className="text-[11px] text-danger/90 leading-relaxed">
+                            This is usually a network blip, an ad/script blocker, or a browser
+                            extension blocking paypal.com. You have <b>not</b> been charged.
+                          </p>
+                          <div className="flex flex-wrap items-center gap-2 pt-1">
+                            <button
+                              type="button"
+                              onClick={() => setPaypalRetry((n) => n + 1)}
+                              className="px-3 py-1.5 bg-accent text-white font-bold text-[11px] rounded-lg hover:bg-accent/90 transition"
+                            >
+                              Try again
+                            </button>
+                            <a
+                              href={`mailto:help@ai-compass.in?subject=${encodeURIComponent(`Checkout failed — ${selectedTier.name}`)}&body=${encodeURIComponent(`PayPal checkout wouldn't load for ${selectedTier.name} (${selectedTier.priceLabel}).
+
+Tool: ${formData.name}
+URL: ${formData.url}
+Email: ${formData.submitter_email}`)}`}
+                              className="text-[11px] font-semibold text-accent hover:underline"
+                            >
+                              Or email us and we&apos;ll invoice you directly →
+                            </a>
+                          </div>
+                        </div>
+                      ) : !paypalLoaded ? (
+                        <div className="min-h-[60px] flex items-center justify-center gap-2 text-[11px] text-muted">
+                          <span className="h-3.5 w-3.5 rounded-full border-2 border-accent border-t-transparent animate-spin" />
+                          Loading secure PayPal checkout…
+                        </div>
+                      ) : (
                         <div className={paypalHostedConfig?.hosted_button_id ? 'pt-2 border-t border-line/40' : ''}>
                           {paypalHostedConfig?.hosted_button_id && (
                             <p className="text-[11px] text-muted mb-2">Or use PayPal Smart Buttons:</p>
