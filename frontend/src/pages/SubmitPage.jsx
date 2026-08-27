@@ -249,6 +249,26 @@ export default function SubmitPage() {
             const script = document.createElement('script')
             script.id = 'paypal-sdk-script'
 
+            // PayPal's SDK injects its own inline <script> elements at runtime.
+            // Our CSP carries a per-request nonce, and per spec a nonce makes
+            // 'unsafe-inline' be IGNORED — so those injected scripts were being
+            // blocked (script-src-elem, blockedURI "inline", sourceFile
+            // https://www.paypal.com/sdk/js).
+            //
+            // PayPal's documented fix is data-csp-nonce: pass our nonce to the
+            // SDK and it stamps that nonce onto everything it injects, so the
+            // existing nonce policy covers them without loosening it.
+            // https://developer.paypal.com/sdk/js/best-practices/
+            //
+            // The nonce is read off one of our own server-nonced script tags via
+            // the .nonce IDL property — the content attribute is hidden from
+            // getAttribute() by browsers, so the property is the only way.
+            const cspNonce = document.querySelector('script[nonce]')?.nonce || ''
+            if (cspNonce) {
+              script.nonce = cspNonce
+              script.setAttribute('data-csp-nonce', cspNonce)
+            }
+
             if (data.hosted_button_id) {
               script.src = `https://www.paypal.com/sdk/js?client-id=${cid}&components=hosted-buttons&disable-funding=venmo&currency=USD`
             } else {
