@@ -73,24 +73,25 @@ window.addEventListener('error', (event) => {
 
 const originalFetch = window.fetch.bind(window)
 
+// We patch the global fetch only to point our own /api and /auth calls at
+// the API origin and send credentials. The patch sits on window, so every
+// script on the page passes through it — including third-party ones we do
+// not ship. Requests we do not rewrite go straight to the native fetch, so
+// a failed third-party call carries the native call site, not a main.jsx
+// frame that would file it as a first-party error.
 window.fetch = (input, init) => {
-  if (typeof input === 'string') {
-    const rewritten = toApiUrl(input)
-    const wasRewritten = rewritten !== input
-    return originalFetch(
-      rewritten,
-      wasRewritten ? { credentials: 'include', ...init } : init,
-    )
-  }
+  const path =
+    typeof input === 'string'
+      ? input
+      : input instanceof URL
+        ? input.toString()
+        : null
 
-  if (input instanceof URL) {
-    const original = input.toString()
-    const rewritten = toApiUrl(original)
-    const wasRewritten = rewritten !== original
-    return originalFetch(
-      rewritten,
-      wasRewritten ? { credentials: 'include', ...init } : init,
-    )
+  if (path !== null) {
+    const rewritten = toApiUrl(path)
+    if (rewritten !== path) {
+      return originalFetch(rewritten, { credentials: 'include', ...init })
+    }
   }
 
   return originalFetch(input, init)
