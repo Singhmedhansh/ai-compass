@@ -1,0 +1,81 @@
+{% extends "emails/base.html" %}
+
+{#
+  Sent when someone chose a PAID tier and we could NOT confirm the payment
+  automatically. Silence here is the most expensive thing the funnel does:
+  a founder who paid $49.99 and hears nothing assumes they were robbed.
+
+  Two variants, because honesty differs by case:
+    indeterminate — we never got an answer from PayPal. The payment may be
+                    perfectly real, so we say we are checking manually.
+    refused       — PayPal actively told us the reference is not a completed
+                    payment. We must NOT imply a payment is being confirmed;
+                    we say what happened and invite them to send proof.
+
+  Neither variant promises paid perks. Only a verified payment does that.
+#}
+
+{% block title %}
+  {%- if indeterminate -%}
+    We're confirming your payment - AI Compass
+  {%- else -%}
+    We couldn't confirm your payment - AI Compass
+  {%- endif -%}
+{% endblock %}
+
+{% block content %}
+{% if indeterminate %}
+<h1 class="heading">We're confirming your payment</h1>
+<p class="paragraph">
+  Thanks for submitting <strong>{{ tool_name }}</strong> to AI Compass, and for
+  choosing the <strong>{{ tier_name }}</strong> listing.
+</p>
+<p class="paragraph">
+  We have your submission and your payment reference
+  {% if transaction_ref %}(<strong>{{ transaction_ref }}</strong>){% endif %},
+  but we couldn't confirm the payment with PayPal automatically. That is
+  almost always a problem on our side, not yours — so a person is checking it
+  by hand now. We'll email you as soon as it's sorted, normally within one
+  business day.
+</p>
+<p class="paragraph">
+  <strong>Please don't pay again.</strong> If you were charged, your listing
+  will be upgraded to {{ tier_name }} and backdated to today. If you weren't
+  charged, we'll tell you and nothing further happens.
+</p>
+{% else %}
+<h1 class="heading">We couldn't confirm your payment</h1>
+<p class="paragraph">
+  Thanks for submitting <strong>{{ tool_name }}</strong> to AI Compass. You
+  chose the <strong>{{ tier_name }}</strong> listing, but PayPal could not
+  confirm the payment reference
+  {% if transaction_ref %}(<strong>{{ transaction_ref }}</strong>){% endif %}
+  as a completed charge.
+</p>
+<p class="paragraph">
+  <strong>As far as we can tell you have not been charged</strong>, so there is
+  nothing to refund. Your tool is in the standard free review queue and will be
+  listed either way — the paid tier only changes how fast that happens and
+  where it appears.
+</p>
+<p class="paragraph">
+  If you believe you <em>were</em> charged, just reply to this email with your
+  PayPal order ID and we'll fix it manually.
+</p>
+{% endif %}
+
+{% if dashboard_url %}
+<div style="text-align: center; margin: 32px 0;">
+  <a href="{{ dashboard_url }}" class="cta-button">Track your submission</a>
+</div>
+<p class="paragraph" style="font-size: 13px; text-align: center;">
+  Check review status anytime — and see click/view analytics once your tool is live.
+</p>
+{% endif %}
+
+<p class="paragraph" style="margin-top: 30px; font-size: 13px;">
+  Questions about this? Reply to this email, or write to
+  <a href="mailto:admin@ai-compass.in" style="color: #059669; font-weight: 600;">admin@ai-compass.in</a>
+  — a human reads it.
+</p>
+{% endblock %}

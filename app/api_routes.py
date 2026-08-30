@@ -1921,6 +1921,12 @@ def submit_tool():
         # submission could ever be reviewed. Email notify below stays
         # best-effort and is no longer the durable channel.
         sub = None
+        # True only when THIS request created the row. The paid-claim
+        # acknowledgement email below is send-once, and the retry dedup a few
+        # lines down is what makes this a sound guard: a resubmitted
+        # transaction_ref reuses the existing row, so it lands here False and
+        # the founder is not emailed twice about one payment.
+        submission_row_created = False
         try:
             from app.models import Submission
 
@@ -1949,6 +1955,7 @@ def submit_tool():
                 )
                 db.session.add(sub)
                 db.session.commit()
+                submission_row_created = True
             elif sub.payment_status != payment_status or sub.payment_note != payment_note:
                 # A retry can succeed where the first attempt didn't (e.g. a
                 # transient PayPal lookup failure) — keep the reused row's
@@ -2117,6 +2124,74 @@ def submit_tool():
                     db.session.commit()
             except Exception:
                 current_app.logger.exception("Failed to send user invoice email — submission still recorded")
+        elif is_paid_claim and submitter_email and submission_row_created and payment_outcome:
+            # A paid claim we could not verify used to send NOTHING — the
+            # reasoning being that these are almost all bogus, and mailing a
+            # possibly-forged address is its own problem. But the cost is
+            # wildly asymmetric: spam that gets one transactional email is a
+            # nuisance, while a founder who paid $49.99 and hears nothing
+            # concludes they were robbed. That silence is the single most
+            # expensive behaviour in this funnel, so it ends here.
+            #
+            # The copy differs by outcome and never overstates what we know
+            # (see the template): 'indeterminate' says we are checking
+            # manually and not to pay again; 'refused' says PayPal reported no
+            # completed charge and invites proof. Neither grants a perk —
+            # payment_status is unchanged and only 'verified' unlocks
+            # anything.
+            #
+            # missing_reference is excluded by requiring payment_outcome from
+            # a real verification attempt with a reference: someone who picked
+            # a paid tier and never paid gets the ordinary free-tier flow, not
+            # a note about a payment that never happened.
+            try:
+                from app.payments import VERIFY_INDETERMINATE
+
+                indeterminate = payment_outcome == VERIFY_INDETERMINATE
+                tier_display = {
+                    "quick": "Quick Review",
+                    "sponsored": "Fast-Track Sponsored Curation",
+                }.get(tier_key, "paid")
+
+                if indeterminate:
+                    ack_subject = f"We're confirming your payment for {name}"
+                    ack_text = (
+                        f"Thanks for submitting {name} to AI Compass. We have your payment "
+                        f"reference ({transaction_ref or 'not supplied'}) but couldn't confirm it "
+                        f"with PayPal automatically, so a person is checking it by hand now. "
+                        f"Please don't pay again — if you were charged, your listing will be "
+                        f"upgraded to {tier_display} and backdated to today."
+                    )
+                else:
+                    ack_subject = f"We couldn't confirm your payment for {name}"
+                    ack_text = (
+                        f"Thanks for submitting {name} to AI Compass. PayPal could not confirm "
+                        f"the payment reference ({transaction_ref or 'not supplied'}) as a "
+                        f"completed charge, so as far as we can tell you have not been charged. "
+                        f"Your tool is in the standard free review queue either way. If you "
+                        f"believe you were charged, reply with your PayPal order ID."
+                    )
+                if dash_link:
+                    ack_text += f" Track your submission: {dash_link}"
+
+                send_email(
+                    to=submitter_email,
+                    subject=ack_subject,
+                    html=render_template(
+                        'emails/payment_under_review.html',
+                        tool_name=name,
+                        tier_name=tier_display,
+                        transaction_ref=transaction_ref,
+                        indeterminate=indeterminate,
+                        dashboard_url=dash_link,
+                    ),
+                    text=ack_text,
+                )
+            except Exception:
+                current_app.logger.exception(
+                    "Failed to send paid-claim acknowledgement for submission_id=%s",
+                    getattr(sub, "id", None),
+                )
         elif not is_paid and not is_paid_claim and submitter_email and dash_link:
             # Free-tier submitters previously got no email at all — this is
             # new behavior, not a bug fix. Doubles as the upsell funnel:
@@ -2149,22 +2224,34 @@ def submit_tool():
         # trust level obvious at a glance — an unverified sponsored claim
         # must never look like a confirmed payment in the inbox.
         #
-        # Unverified paid claims (someone picked a paid tier but no PayPal
-        # order verifies) are almost entirely bogus/automated spam — a real
-        # payer's order verifies; these never do. They still create a durable
-        # Submission row that shows up in /admin/submissions, so the admin
-        # loses nothing by NOT emailing about them. Only verified payments and
-        # genuine free submissions generate an admin email.
-        skip_admin_notification = is_paid_claim and not payment_verified
+        # Unverified paid claims used to be silently swallowed here on the
+        # theory that they are all spam. That held only while every claim
+        # failed for the same undifferentiated reason. Now that a failure is
+        # classified, the two cases are not comparable: a REFUSED claim is
+        # very likely bogus, but an INDETERMINATE one means we could not
+        # reach an answer and there may be real money behind it. Never
+        # emailing about the second is how a paying founder goes unnoticed.
+        #
+        # The only claim that still sends nothing is one with no reference at
+        # all — someone picked a paid tier and never paid. That is not a
+        # payment event, it is an abandoned checkout, and the row is in
+        # /admin/submissions if it matters.
+        skip_admin_notification = is_paid_claim and not payment_verified and not transaction_ref
         if skip_admin_notification:
             current_app.logger.info(
-                "Skipping admin email for unverified paid claim '%s' (ref=%s, note=%s) — "
-                "visible in /admin/submissions queue instead.",
-                name, transaction_ref or "N/A", payment_note or "none",
+                "Skipping admin email for paid-tier claim '%s' with no payment reference "
+                "(note=%s) — visible in /admin/submissions queue instead.",
+                name, payment_note or "none",
             )
 
         if is_paid:
             subject_tag = "[PAYMENT APPROVED]"
+        elif is_paid_claim and payment_outcome == "indeterminate":
+            # Distinct from the refused tag on purpose: this one may be real
+            # money and needs a person today, while the refused pile can be
+            # triaged whenever. Keeping them separable in the inbox is what
+            # stops the urgent case drowning in the spam case.
+            subject_tag = "[ACTION NEEDED — POSSIBLE UNCONFIRMED PAYMENT]"
         elif is_paid_claim:
             subject_tag = "[UNVERIFIED PAYMENT CLAIM — DO NOT FAST-TRACK]"
         else:
@@ -2173,8 +2260,35 @@ def submit_tool():
         if transaction_ref:
             admin_subject += f" (Ref: {transaction_ref})"
 
+        # An alert that doesn't say what to do gets triaged as noise. For the
+        # case that may be real money, spell out the reconciliation step and
+        # the exact reference to search PayPal for.
+        action_html = ""
+        action_text = ""
+        if is_paid_claim and payment_outcome == "indeterminate":
+            action_html = (
+                f"<p style='background:#fff4e5;border-left:4px solid #d97706;padding:12px 16px;'>"
+                f"<b>Action needed — this may be a real payment.</b><br/>"
+                f"Verification did not fail because PayPal rejected the order; it failed because "
+                f"we could not get an answer (<code>{payment_note or 'unknown'}</code>).<br/><br/>"
+                f"Search PayPal Activity for <b>{transaction_ref or 'the reference above'}</b>, or by "
+                f"amount and date. If it captured, mark the submission verified in "
+                f"/admin/submissions and reply to the founder. If it did not, no action is needed — "
+                f"they have already been told they were not charged."
+                f"</p>"
+            )
+            action_text = (
+                f"\nACTION NEEDED — this may be a real payment.\n"
+                f"Verification failed because we could not get an answer from PayPal "
+                f"({payment_note or 'unknown'}), not because PayPal rejected it.\n"
+                f"Search PayPal Activity for {transaction_ref or 'the reference above'}, or by "
+                f"amount and date. If it captured, mark it verified in /admin/submissions and "
+                f"reply to the founder.\n"
+            )
+
         admin_html = (
             f"<h2>{subject_tag} New Tool Submission</h2>"
+            f"{action_html}"
             f"<p>A new tool was submitted via ai-compass.in/submit:</p>"
             f"<ul>"
             f"<li><b>Name:</b> {name}</li>"
@@ -2190,7 +2304,8 @@ def submit_tool():
             f"<p><b>Why it's useful / description:</b><br/>{reason}</p>"
         )
         admin_text = (
-            f"{subject_tag} New tool submission via ai-compass.in/submit:\n\n"
+            f"{subject_tag} New tool submission via ai-compass.in/submit:\n"
+            f"{action_text}\n"
             f"Name: {name}\n"
             f"URL: {url}\n"
             f"Category: {category}\n"

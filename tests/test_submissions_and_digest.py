@@ -737,7 +737,22 @@ def test_refused_paid_claim_sends_no_emails(client, app, monkeypatch):
     }, headers={"X-Forwarded-For": "203.0.113.11"})  # own rate-limit bucket
     assert resp.status_code == 201, resp.data
     assert resp.get_json()["payment_status"] == "unverified_review"
-    assert sent == [], f"no emails should go out for a refused paid claim, got: {sent}"
+
+    subjects = [kw.get("subject", "") for kw in sent]
+    # The founder still hears from us — silence is what we are fixing — but
+    # the copy must not imply a payment is being confirmed, because PayPal
+    # explicitly said there is no completed charge.
+    founder_mail = [kw for kw in sent if kw.get("to") == "someone@boguspaid.example.com"]
+    assert len(founder_mail) == 1, f"exactly one founder email expected, got {subjects}"
+    assert "couldn't confirm" in founder_mail[0]["subject"]
+    assert "confirming your payment" not in founder_mail[0]["subject"]
+    assert "have not been charged" in founder_mail[0]["text"]
+
+    # The admin is told, but under the low-urgency tag so it can be triaged
+    # separately from a possible real payment.
+    admin_mail = [kw for kw in sent if kw.get("to") != "someone@boguspaid.example.com"]
+    assert admin_mail, "admin should still be notified of a refused claim"
+    assert "[UNVERIFIED PAYMENT CLAIM" in admin_mail[0]["subject"]
 
     with app.app_context():
         sub = Submission.query.filter_by(name="Bogus Paid Claim Tool").first()
@@ -939,3 +954,111 @@ def test_submit_tool_does_not_email_admin_during_tests(client, app, monkeypatch)
 
     with app.app_context():
         assert Submission.query.filter_by(name="Inbox Noise Regression Tool").first() is not None
+
+
+def test_indeterminate_claim_emails_founder_and_admin(client, app, monkeypatch):
+    """The behaviour this whole prompt exists for. A payment we could not
+    confirm may be real money; the founder must be told we are checking, and
+    the admin must be paged with the reference to reconcile."""
+    import app.email_utils as email_utils_mod
+    import app.payments as payments_mod
+
+    sent = []
+    monkeypatch.setattr(email_utils_mod, "send_email", lambda **kw: sent.append(kw) or True)
+    monkeypatch.setattr(
+        payments_mod, "verify_paypal_order",
+        lambda *a, **kw: (False, "paypal_api_unreachable"),
+    )
+
+    resp = client.post("/api/v1/submit-tool", json={
+        "name": "Maybe Paid Tool",
+        "url": "https://maybepaid.example.com",
+        "category": "Productivity",
+        "reason": "A real purchase during a PayPal outage.",
+        "submitter_email": "founder@maybepaid.example.com",
+        "pricing_model": "sponsored_paypal",
+        "transaction_ref": "7QQ11223AB445566C",
+    }, headers={"X-Forwarded-For": "203.0.113.61"})
+    assert resp.status_code == 201, resp.data
+
+    founder_mail = [kw for kw in sent if kw.get("to") == "founder@maybepaid.example.com"]
+    assert len(founder_mail) == 1, f"expected one founder email, got {[k.get('subject') for k in sent]}"
+    fm = founder_mail[0]
+    assert "confirming your payment" in fm["subject"]
+    # Must actively discourage paying twice — that is the concrete harm.
+    assert "don't pay again" in fm["text"].lower()
+    assert "7QQ11223AB445566C" in fm["text"]
+
+    admin_mail = [kw for kw in sent if kw.get("to") != "founder@maybepaid.example.com"]
+    assert admin_mail, "admin must be alerted when money may be unaccounted for"
+    am = admin_mail[0]
+    assert "[ACTION NEEDED" in am["subject"]
+    assert "7QQ11223AB445566C" in am["subject"]
+    # The alert has to say what to do, or it gets triaged as noise.
+    assert "ACTION NEEDED" in am["text"]
+    assert "PayPal Activity" in am["text"]
+
+    # Still no perks on an unconfirmed payment.
+    with app.app_context():
+        sub = Submission.query.filter_by(name="Maybe Paid Tool").first()
+        assert sub.payment_status == "needs_manual_review"
+        from app.pricing_tiers import effective_tier
+        assert effective_tier(sub.pricing_model, sub.payment_status) == "free"
+
+
+def test_paid_claim_acknowledgement_is_sent_once_across_retries(client, app, monkeypatch):
+    """A double-clicked checkout resubmits the same reference. The retry dedup
+    routes it to the existing row, so the founder must not be emailed twice
+    about one payment."""
+    import app.email_utils as email_utils_mod
+    import app.payments as payments_mod
+
+    sent = []
+    monkeypatch.setattr(email_utils_mod, "send_email", lambda **kw: sent.append(kw) or True)
+    monkeypatch.setattr(
+        payments_mod, "verify_paypal_order",
+        lambda *a, **kw: (False, "paypal_api_unreachable"),
+    )
+
+    payload = {
+        "name": "Double Clicked Tool",
+        "url": "https://doubleclick.example.com",
+        "category": "Productivity",
+        "reason": "Submitted twice by an impatient founder.",
+        "submitter_email": "founder@doubleclick.example.com",
+        "pricing_model": "sponsored_paypal",
+        "transaction_ref": "6RR99887CD665544E",
+    }
+    headers = {"X-Forwarded-For": "203.0.113.62"}
+    assert client.post("/api/v1/submit-tool", json=payload, headers=headers).status_code == 201
+    assert client.post("/api/v1/submit-tool", json=payload, headers=headers).status_code == 201
+
+    founder_mail = [kw for kw in sent if kw.get("to") == "founder@doubleclick.example.com"]
+    assert len(founder_mail) == 1, f"acknowledgement must be send-once, got {len(founder_mail)}"
+
+    with app.app_context():
+        rows = Submission.query.filter_by(name="Double Clicked Tool").all()
+        assert len(rows) == 1, "retry must reuse the existing submission row"
+
+
+def test_paid_tier_with_no_reference_does_not_page_the_admin(client, app, monkeypatch):
+    """Picking a paid tier and never paying is an abandoned checkout, not a
+    payment event. It must not generate a payment alert — that is the gate
+    that keeps junk from drowning the case that matters."""
+    import app.email_utils as email_utils_mod
+
+    sent = []
+    monkeypatch.setattr(email_utils_mod, "send_email", lambda **kw: sent.append(kw) or True)
+
+    resp = client.post("/api/v1/submit-tool", json={
+        "name": "Abandoned Checkout Tool",
+        "url": "https://abandoned.example.com",
+        "category": "Productivity",
+        "reason": "Chose a paid tier, never paid.",
+        "submitter_email": "founder@abandoned.example.com",
+        "pricing_model": "sponsored_paypal",
+    }, headers={"X-Forwarded-For": "203.0.113.63"})
+    assert resp.status_code == 201, resp.data
+
+    assert not any("ACTION NEEDED" in kw.get("subject", "") for kw in sent)
+    assert not any("UNVERIFIED PAYMENT CLAIM" in kw.get("subject", "") for kw in sent)
