@@ -29,6 +29,18 @@ graceful_timeout = 30  # Time for in-flight requests to finish on shutdown
 keepalive = 5
 
 # ---------------------------------------------------------------------------
+# Worker recycling — Render free tier caps RAM at 512 MB. scikit-learn /
+# numpy cosine matrices and per-request allocation spikes are never fully
+# returned to the OS, so a long-lived worker only grows. Recycling the
+# worker every ~400 requests releases that bloat before it OOM-kills the
+# instance. The jitter staggers the restart so it never happens mid-burst
+# for every request at once. gthread keeps in-flight requests draining
+# during the graceful restart, so this is transparent to users.
+# ---------------------------------------------------------------------------
+max_requests = 400
+max_requests_jitter = 50
+
+# ---------------------------------------------------------------------------
 # Preload — CRITICAL for Render port binding.
 #
 # preload_app = False means gunicorn's MASTER process binds to the port

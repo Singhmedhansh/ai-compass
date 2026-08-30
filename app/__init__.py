@@ -1,5 +1,6 @@
 import os
 import sys
+import tempfile
 import threading
 import time
 from urllib.parse import urlparse
@@ -750,14 +751,33 @@ def create_app(config: dict | None = None) -> Flask:
     # without blocking startup.
     if not app.config.get("TESTING"):
         # Guard: only run the heavy warmup phases once per deployment.
-        # With preload_app=True, create_app() is called in the gunicorn
-        # master process and then forked to workers. If a worker is
-        # recycled, gunicorn calls create_app() again — the env sentinel
-        # prevents the expensive DB + model work from repeating.
+        #
+        # gunicorn.conf.py runs with preload_app=False, so create_app() is
+        # called independently in every worker — an os.environ sentinel set
+        # in one worker is invisible to the next. That was harmless while
+        # workers=1 with no recycling (warmup ran once at boot, process
+        # lived forever), but gunicorn now recycles the worker every
+        # ~400 requests (max_requests) to cap RAM growth on Render's
+        # 512 MB free tier. Without a cross-process guard, each recycled
+        # worker would replay the full migrate + catalog seed/sync + prime
+        # — a memory spike and DB churn on a schedule.
+        #
+        # A marker file in the container's tmp dir survives worker recycles
+        # but not a redeploy (fresh container = empty /tmp), so the heavy
+        # phases run exactly once per deployment, which is the intent.
         _WARMUP_SENTINEL = "AI_COMPASS_WARMUP_DONE"
-        _first_warmup = os.environ.get(_WARMUP_SENTINEL) != "1"
+        _warmup_marker = os.path.join(tempfile.gettempdir(), "ai_compass_warmup.done")
+        _first_warmup = (
+            os.environ.get(_WARMUP_SENTINEL) != "1"
+            and not os.path.exists(_warmup_marker)
+        )
         if _first_warmup:
             os.environ[_WARMUP_SENTINEL] = "1"  # set before thread starts
+            try:
+                with open(_warmup_marker, "w") as _mf:
+                    _mf.write("1")
+            except OSError as exc:
+                print(f"[WARMUP] could not write marker {_warmup_marker}: {exc}", flush=True)
 
         app.warmup_status = {
             "migrate": "pending",
