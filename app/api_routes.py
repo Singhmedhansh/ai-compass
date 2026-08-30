@@ -1835,19 +1835,64 @@ def submit_tool():
         is_paid_claim = tier_key in ("quick", "sponsored")
         payment_verified = False
         payment_note = None
+        # 'refused' | 'indeterminate' once a paid claim fails. See
+        # payments.classify_failure — the distinction is the whole point:
+        # 'refused' means PayPal told us the payment isn't real, while
+        # 'indeterminate' means we never found out, and treating the second
+        # like the first is how someone who genuinely paid ends up on a free
+        # listing with no email.
+        payment_outcome = None
         if is_paid_claim:
+            from app.payments import (
+                VERIFY_INDETERMINATE,
+                classify_failure,
+                verify_paypal_order,
+            )
             if "paypal" in pricing_model_raw and transaction_ref:
-                from app.payments import verify_paypal_order
                 expected_amount = TIERS.get(tier_key, {}).get("price", 49.99)
-                payment_verified, payment_note = verify_paypal_order(transaction_ref, expected_amount=expected_amount)
-            else:
-                payment_note = "no_verifiable_gateway"
-            if not payment_verified:
-                current_app.logger.warning(
-                    "Unverified paid submission claim for '%s': pricing_model=%s ref=%s reason=%s",
-                    name, pricing_model_raw, transaction_ref, payment_note
+                payment_verified, detail = verify_paypal_order(
+                    transaction_ref, expected_amount=expected_amount
                 )
-        payment_status = "verified" if payment_verified else ("unverified_review" if is_paid_claim else "unpaid")
+            elif transaction_ref:
+                detail = "no_verifiable_gateway"
+            else:
+                detail = "missing_reference"
+
+            if payment_verified:
+                payment_note = detail
+            else:
+                payment_outcome = classify_failure(detail)
+                # Keep the reference next to the reason. It is the only
+                # evidence a real payment left behind, and an admin
+                # reconciling a charge in PayPal needs it in the row rather
+                # than having to reconstruct it from pricing_model.
+                payment_note = f"{payment_outcome}:{detail}"
+                if transaction_ref:
+                    payment_note = f"{payment_note} ref={transaction_ref}"
+                payment_note = payment_note[:255]
+
+                if payment_outcome == VERIFY_INDETERMINATE:
+                    # error, not warning: this is OUR failure, and it may be
+                    # sitting on top of a real charge.
+                    current_app.logger.error(
+                        "UNRESOLVED paid submission for '%s' — payment may be genuine. "
+                        "pricing_model=%s ref=%s reason=%s",
+                        name, pricing_model_raw, transaction_ref, detail,
+                    )
+                else:
+                    current_app.logger.warning(
+                        "Refused paid submission claim for '%s': pricing_model=%s ref=%s reason=%s",
+                        name, pricing_model_raw, transaction_ref, detail,
+                    )
+
+        if payment_verified:
+            payment_status = "verified"
+        elif payment_outcome == "indeterminate":
+            payment_status = "needs_manual_review"
+        elif is_paid_claim:
+            payment_status = "unverified_review"
+        else:
+            payment_status = "unpaid"
 
         pricing_model = pricing_model_raw
         if transaction_ref and is_paid_claim:
@@ -5203,6 +5248,11 @@ def admin_list_submissions():
             "submitter_email": s.submitter_email, "status": s.status,
             "submitted_at": s.submitted_at.isoformat() if s.submitted_at else None,
             "payment_status": s.payment_status, "is_priority": s.is_priority,
+            # payment_note carries the failure reason AND the transaction
+            # reference for anything unverified. A 'needs_manual_review' row
+            # is useless without it — reconciling the charge in PayPal is
+            # exactly what the admin has to do next.
+            "payment_note": s.payment_note,
         }
         for s in subs
     ])

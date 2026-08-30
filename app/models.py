@@ -201,8 +201,17 @@ class Submission(db.Model):
     submitter_email = db.Column(db.String(255), nullable=True)
     status = db.Column(db.String(20), nullable=False, default="pending")
     submitted_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
-    # 'unpaid' | 'verified' (server confirmed real payment) | 'unverified_review' (claimed
-    # payment, could not be confirmed server-side — never auto-treated as paid) | 'rejected'
+    # 'unpaid'      — free listing, or a paid claim with no reference at all.
+    # 'verified'    — server independently confirmed a real payment.
+    # 'unverified_review' — PayPal answered and REFUSED the claim (no such
+    #                 order, voided, underpaid). Safe to treat as free.
+    # 'needs_manual_review' — verification was INDETERMINATE: PayPal was
+    #                 unreachable, our credentials failed, or the reference
+    #                 is a shape we cannot resolve (e.g. a legacy NCP ref).
+    #                 The payment may be entirely genuine, so this must
+    #                 reach a human — never silently treated as free.
+    # 'rejected'    — admin decision.
+    # Only 'verified' ever unlocks paid perks; see pricing_tiers.effective_tier.
     payment_status = db.Column(db.String(20), nullable=False, default="unpaid")
     payment_note = db.Column(db.String(255), nullable=True)
     is_priority = db.Column(db.Boolean, nullable=False, default=False)

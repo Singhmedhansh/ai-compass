@@ -626,14 +626,37 @@ def sponsor_checkout():
         mode=sponsor_mode,
     )
     if not verified:
+        # "PayPal says this isn't a real payment" and "we couldn't reach
+        # PayPal" need different words. Telling someone whose charge may have
+        # gone through to just try again is how a buyer gets billed twice.
+        from app.payments import VERIFY_INDETERMINATE, classify_failure
+
+        outcome = classify_failure(detail)
+        if outcome == VERIFY_INDETERMINATE:
+            current_app.logger.error(
+                "UNRESOLVED sponsor checkout — payment may be genuine. "
+                "placement=%s weeks=%s order=%s reason=%s",
+                placement, weeks, order_id, detail,
+            )
+            return jsonify({
+                "error": "We couldn't reach PayPal to confirm this payment, so we haven't booked "
+                         "the slot yet. Please do NOT pay again — if you were charged, email "
+                         "admin@ai-compass.in with your order ID and we'll book it manually or "
+                         "refund you.",
+                "reason": detail,
+                "outcome": outcome,
+            }), 503
+
         current_app.logger.warning(
             "sponsor checkout rejected: placement=%s weeks=%s order=%s reason=%s",
             placement, weeks, order_id, detail,
         )
         return jsonify({
-            "error": "We could not confirm that payment with PayPal. Nothing has been booked — "
-                     "email admin@ai-compass.in with your order ID and we'll sort it out.",
+            "error": "PayPal could not confirm that payment. Nothing has been booked and you have "
+                     "not been charged by us — email admin@ai-compass.in with your order ID if you "
+                     "believe this is wrong.",
             "reason": detail,
+            "outcome": outcome,
         }), 402
 
     slot, err = sponsorship.create_slot(

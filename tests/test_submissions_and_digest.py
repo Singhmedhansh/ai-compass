@@ -175,12 +175,13 @@ def test_submit_tool_with_quick_review_transaction_ref(client, app):
         s = Submission.query.filter_by(name="Quick Reviewed AI Tool").first()
         assert s is not None
         assert s.pricing_model == "quick_paypal:PAYPAL-TX-654321"
-        # No real PayPal creds in the test env, so verification can't
-        # succeed — same behavior the existing sponsored-tier test relies
-        # on implicitly. What matters here is that a "quick" claim is
-        # treated as paid at all (routed into the same unverified_review
-        # path), not silently dropped to 'unpaid' like a free listing.
-        assert s.payment_status == "unverified_review"
+        # No real PayPal creds in the test env, so verification cannot
+        # succeed. What matters here is that a "quick" claim is treated as
+        # paid at all rather than silently dropped to 'unpaid' like a free
+        # listing — and that an unresolvable reference lands as
+        # needs_manual_review, not as a refusal we never actually looked into.
+        assert s.payment_status == "needs_manual_review"
+        assert "PAYPAL-TX-654321" in (s.payment_note or "")
 
 
 def test_paypal_config_quick_tier_has_no_hosted_flow_either(client, monkeypatch):
@@ -708,15 +709,22 @@ def test_paid_invoice_email_includes_register_link(client, app, monkeypatch):
 
 # --- Unverified paid claims: no automated emails ------------------------------
 
-def test_unverified_paid_claim_sends_no_emails(client, app, monkeypatch):
-    """A paid-tier submission whose PayPal order can't be verified is almost
-    always bogus/automated. It still lands in the /admin/submissions queue as
-    a durable row, but must NOT generate the noisy '[UNVERIFIED PAYMENT CLAIM]'
-    admin email or a confirmation to a possibly-forged submitter address."""
+def test_refused_paid_claim_sends_no_emails(client, app, monkeypatch):
+    """A paid claim PayPal actively REFUSED (no such order / voided /
+    underpaid) is bogus. It lands in /admin/submissions as a durable row but
+    must not generate the noisy '[UNVERIFIED PAYMENT CLAIM]' admin email or a
+    confirmation to a possibly-forged submitter address."""
     import app.email_utils as email_utils_mod
+    import app.payments as payments_mod
 
     sent = []
     monkeypatch.setattr(email_utils_mod, "send_email", lambda **kw: sent.append(kw) or True)
+    # api_routes imports verify_paypal_order at call time, so patching the
+    # module attribute is enough. order_status_VOIDED classifies as refused.
+    monkeypatch.setattr(
+        payments_mod, "verify_paypal_order",
+        lambda *a, **kw: (False, "order_status_VOIDED"),
+    )
 
     resp = client.post("/api/v1/submit-tool", json={
         "name": "Bogus Paid Claim Tool",
@@ -725,17 +733,55 @@ def test_unverified_paid_claim_sends_no_emails(client, app, monkeypatch):
         "reason": "Definitely a real payment, trust me.",
         "submitter_email": "someone@boguspaid.example.com",
         "pricing_model": "quick_paypal",
-        "transaction_ref": "TOTALLY-FAKE-REF",
+        "transaction_ref": "8AB12345CD678901E",
     }, headers={"X-Forwarded-For": "203.0.113.11"})  # own rate-limit bucket
     assert resp.status_code == 201, resp.data
     assert resp.get_json()["payment_status"] == "unverified_review"
+    assert sent == [], f"no emails should go out for a refused paid claim, got: {sent}"
 
-    assert sent == [], f"no emails should go out for an unverified paid claim, got: {sent}"
-
-    # …but the submission is still persisted for manual review.
     with app.app_context():
-        s = Submission.query.filter_by(name="Bogus Paid Claim Tool").first()
-        assert s is not None and s.payment_status == "unverified_review"
+        sub = Submission.query.filter_by(name="Bogus Paid Claim Tool").first()
+        assert sub is not None and sub.payment_status == "unverified_review"
+
+
+def test_indeterminate_paid_claim_is_flagged_for_a_human(client, app, monkeypatch):
+    """When we could NOT reach an answer — PayPal down, credentials broken, a
+    reference shape we cannot resolve — the payment may be entirely real. That
+    must never be filed as a refusal: it gets its own status and keeps the
+    reference, so an admin can reconcile the charge against PayPal."""
+    import app.email_utils as email_utils_mod
+    import app.payments as payments_mod
+
+    sent = []
+    monkeypatch.setattr(email_utils_mod, "send_email", lambda **kw: sent.append(kw) or True)
+    monkeypatch.setattr(
+        payments_mod, "verify_paypal_order",
+        lambda *a, **kw: (False, "paypal_api_unreachable"),
+    )
+
+    resp = client.post("/api/v1/submit-tool", json={
+        "name": "Paid While PayPal Was Down",
+        "url": "https://paypaldown.example.com",
+        "category": "Productivity",
+        "reason": "A genuine purchase made during an outage.",
+        "submitter_email": "founder@paypaldown.example.com",
+        "pricing_model": "sponsored_paypal",
+        "transaction_ref": "9XY87654ZW321098A",
+    }, headers={"X-Forwarded-For": "203.0.113.12"})
+    assert resp.status_code == 201, resp.data
+    assert resp.get_json()["payment_status"] == "needs_manual_review"
+
+    with app.app_context():
+        sub = Submission.query.filter_by(name="Paid While PayPal Was Down").first()
+        assert sub is not None
+        assert sub.payment_status == "needs_manual_review"
+        # The reason AND the reference both survive onto the row.
+        assert "indeterminate" in sub.payment_note
+        assert "paypal_api_unreachable" in sub.payment_note
+        assert "9XY87654ZW321098A" in sub.payment_note
+        # Still never granted paid perks on an unconfirmed payment.
+        from app.pricing_tiers import effective_tier
+        assert effective_tier(sub.pricing_model, sub.payment_status) == "free"
 
 
 def test_genuine_free_submission_still_notifies_admin(client, app, monkeypatch):
@@ -778,16 +824,118 @@ def test_hosted_button_heuristic_does_not_flag_a_real_rest_client_id():
     assert looks_like_hosted_button_id(None) is False
 
 
-def test_verify_paypal_order_refuses_a_transaction_id_shaped_reference():
-    """The removed manual-paste flow asked buyers for a "Transaction ID /
-    Receipt Number" (e.g. PAYID-…), which cannot be looked up as an order.
-    Verification must refuse it on format rather than reaching PayPal."""
-    from app.payments import verify_paypal_order
+def test_verify_paypal_order_branches_on_reference_shape():
+    """Every non-Smart-Buttons reference used to collapse into one
+    'invalid_order_id_format', throwing away the only evidence a real payment
+    left behind. Each shape now gets its own answer."""
+    from app.payments import (
+        VERIFY_INDETERMINATE,
+        VERIFY_REFUSED,
+        classify_failure,
+        verify_paypal_order,
+    )
 
-    ok, detail = verify_paypal_order("PAYID-ABCDEFG1234567")
+    # Nothing supplied — there is no claim to investigate.
+    ok, detail = verify_paypal_order("")
     assert ok is False
-    assert detail == "invalid_order_id_format"
+    assert detail == "missing_reference"
+    assert classify_failure(detail) == VERIFY_REFUSED
 
+    # A legacy hosted-button reference: not resolvable by us, but a real
+    # payment may sit behind it, so it goes to a human.
     ok, detail = verify_paypal_order("PAYPAL-NCP-XMWMPTJH5ZHPY-952228")
     assert ok is False
-    assert detail == "invalid_order_id_format"
+    assert detail == "ncp_reference_needs_manual_lookup"
+    assert classify_failure(detail) == VERIFY_INDETERMINATE
+
+    # Anything else we cannot look up also routes to review rather than being
+    # silently discarded as malformed.
+    ok, detail = verify_paypal_order("PAYID-ABCDEFG1234567")
+    assert ok is False
+    assert detail == "unrecognized_reference_format"
+    assert classify_failure(detail) == VERIFY_INDETERMINATE
+
+
+def test_classify_failure_separates_refusal_from_not_knowing():
+    """The distinction this whole change exists for: "PayPal says no" must not
+    be confused with "we could not ask"."""
+    from app.payments import VERIFY_INDETERMINATE, VERIFY_REFUSED, classify_failure
+
+    for detail in (
+        "order_status_VOIDED", "order_status_CREATED", "missing_reference",
+        "amount_mismatch_1.0_USD", "order_lookup_failed_http_404",
+        "order_lookup_failed_http_422",
+    ):
+        assert classify_failure(detail) == VERIFY_REFUSED, detail
+
+    for detail in (
+        "paypal_credentials_not_configured", "paypal_api_unreachable",
+        "amount_parse_failed", "unrecognized_reference_format",
+        "ncp_reference_needs_manual_lookup", "order_lookup_failed_http_500",
+        "order_lookup_failed_http_503", "order_lookup_failed_http_429",
+    ):
+        assert classify_failure(detail) == VERIFY_INDETERMINATE, detail
+
+    # An unfamiliar code is treated as "we do not know", because claiming to
+    # understand a reason we have never seen is how a payer gets dropped.
+    assert classify_failure("some_future_reason") == VERIFY_INDETERMINATE
+    assert classify_failure("order_lookup_failed_http_notanumber") == VERIFY_INDETERMINATE
+
+
+def test_email_transport_is_suppressed_under_testing(app, monkeypatch):
+    """The test suite used to send REAL admin email.
+
+    app/__init__ calls load_dotenv() at import, so pytest inherits the live
+    RESEND_API_KEY from .env, and send_email_with_details() gated only on
+    that key — nothing consulted config["TESTING"]. Every run mailed a
+    "[AI Compass] New tool submission: Test Widget AI" notice that looked
+    like a genuine submission in the admin inbox.
+
+    Guard at the transport, so no future test can reintroduce this by
+    forgetting a monkeypatch.
+    """
+    from app import email_utils
+
+    monkeypatch.setenv("RESEND_API_KEY", "re_pretend_this_is_live")
+    calls = []
+    monkeypatch.setattr(
+        email_utils, "_send_via_resend",
+        lambda *a, **kw: calls.append(a) or (True, None),
+    )
+
+    with app.app_context():
+        assert app.config["TESTING"] is True
+        ok, reason = email_utils.send_email_with_details(
+            "admin@example.com", "should not send", "<p>nope</p>",
+        )
+        assert ok is False
+        assert reason == "email_suppressed_in_testing"
+        assert calls == [], "no transport may be invoked while TESTING"
+        # email_enabled() must agree, so callers that pre-check don't build
+        # and log a message they think went out.
+        assert email_utils.email_enabled() is False
+
+
+def test_submit_tool_does_not_email_admin_during_tests(client, app, monkeypatch):
+    """End-to-end version of the above: the exact request that was filling
+    the admin inbox must now produce a submission row and no email."""
+    from app import email_utils
+
+    monkeypatch.setenv("RESEND_API_KEY", "re_pretend_this_is_live")
+    sent = []
+    monkeypatch.setattr(
+        email_utils, "_send_via_resend",
+        lambda *a, **kw: sent.append(a) or (True, None),
+    )
+
+    resp = client.post("/api/v1/submit-tool", json={
+        "name": "Inbox Noise Regression Tool",
+        "url": "https://inboxnoise.example.com",
+        "category": "Productivity",
+        "reason": "Automates a thing students do a lot.",
+    }, headers={"X-Forwarded-For": "203.0.113.44"})
+    assert resp.status_code == 201, resp.data
+    assert sent == [], f"submitting a tool must not email during tests, got: {sent}"
+
+    with app.app_context():
+        assert Submission.query.filter_by(name="Inbox Noise Regression Tool").first() is not None

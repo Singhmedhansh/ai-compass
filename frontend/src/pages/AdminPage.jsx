@@ -729,16 +729,29 @@ function AdminPage() {
             <h2 className="mb-4 text-xl font-semibold text-ink">Pending Submissions ({submissions.length})</h2>
             <div className="space-y-3">
               {submissions.map((s) => (
-                <div key={s.id} className={`rounded-xl border p-4 ${s.is_priority ? 'border-amber-400/60 bg-amber-500/5' : 'border-line'}`}>
+                <div key={s.id} className={`rounded-xl border p-4 ${
+                  // needs_manual_review outranks priority styling: a payment we
+                  // could not confirm may be real money sitting unacknowledged,
+                  // which is more urgent than a queue position.
+                  s.payment_status === 'needs_manual_review'
+                    ? 'border-orange-500/70 bg-orange-500/5'
+                    : s.is_priority ? 'border-amber-400/60 bg-amber-500/5' : 'border-line'
+                }`}>
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="font-medium text-ink">
                         {s.is_priority && <span className="mr-2 rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-600 dark:text-amber-400">⚡ Priority · Paid</span>}
-                        {s.payment_status === 'unverified_review' && <span className="mr-2 rounded-full bg-rose-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-rose-600 dark:text-rose-400">Unverified payment claim</span>}
+                        {s.payment_status === 'needs_manual_review' && <span className="mr-2 rounded-full bg-orange-500/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-orange-700 dark:text-orange-300">⚠ Check PayPal — may have paid</span>}
+                        {s.payment_status === 'unverified_review' && <span className="mr-2 rounded-full bg-rose-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-rose-600 dark:text-rose-400">Payment refused by PayPal</span>}
                         {s.name} <span className="text-xs text-muted">· {s.category} · {s.pricing_model}</span>
                       </p>
                       <a href={s.website} target="_blank" rel="noreferrer" className="text-xs text-accent-ink">{s.website}</a>
                       <p className="mt-1 text-sm text-muted">{s.description}</p>
+                      {/* The reason and transaction reference, so reconciling
+                          the charge in PayPal doesn't need a DB query. */}
+                      {s.payment_note && s.payment_status !== 'verified' && (
+                        <p className="mt-1 font-mono text-[11px] text-muted break-all">{s.payment_note}</p>
+                      )}
                     </div>
                     <div className="flex shrink-0 gap-2">
                       <button onClick={() => reviewSubmission(s.id, 'approve')} className={`${BTN_PRIMARY} px-3 py-1.5 text-xs`}>Approve</button>

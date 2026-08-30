@@ -17,6 +17,65 @@ log = logging.getLogger(__name__)
 
 PAYPAL_ORDER_ID_RE = re.compile(r"^[A-Z0-9]{10,20}$")
 
+# References produced by the retired hosted-button / NCP checkout. Kept so a
+# reference of this shape can be recognised and routed to a human rather
+# than being thrown away as malformed — see verify_paypal_order.
+NCP_REFERENCE_RE = re.compile(r"^PAYPAL-NCP-[A-Z0-9]+(-\d+)?$", re.IGNORECASE)
+
+# Two very different failures used to produce the same outcome, and that is
+# how a paying customer silently ends up on a free listing:
+#
+#   REFUSED       PayPal answered, and the answer was "this is not a valid
+#                 completed payment for this amount". The claim is bogus (or
+#                 the buyer underpaid). Downgrading to free is correct.
+#
+#   INDETERMINATE We never got an answer. Our credentials are wrong, PayPal
+#                 is down, the reference is a shape we cannot look up. The
+#                 payment may be perfectly real. Downgrading to free here is
+#                 a silent theft, so these must be surfaced to a human with
+#                 the reference preserved.
+#
+# Callers branch on classify_failure(), never on the raw detail string.
+VERIFY_REFUSED = "refused"
+VERIFY_INDETERMINATE = "indeterminate"
+
+_INDETERMINATE_DETAILS = frozenset({
+    "paypal_credentials_not_configured",
+    "paypal_api_unreachable",
+    "amount_parse_failed",
+    "unrecognized_reference_format",
+    "ncp_reference_needs_manual_lookup",
+})
+
+# HTTP statuses from the order lookup that mean "PayPal could not answer"
+# rather than "PayPal says no". 404 is deliberately NOT here: it means the
+# order genuinely does not exist. 429 is — a rate-limited lookup tells us
+# nothing about the payment.
+_INDETERMINATE_HTTP = frozenset({408, 429, 500, 502, 503, 504})
+
+
+def classify_failure(detail):
+    """REFUSED (PayPal said no) vs INDETERMINATE (we could not find out).
+
+    Only meaningful when verify_paypal_order() returned False. An unknown
+    detail string classifies as INDETERMINATE on purpose: a reason code we
+    do not recognise is, by definition, one we cannot claim to understand,
+    and the safe failure here is bothering an admin rather than silently
+    downgrading someone who paid.
+    """
+    detail = (detail or "").strip()
+    if detail in _INDETERMINATE_DETAILS:
+        return VERIFY_INDETERMINATE
+    if detail.startswith("order_lookup_failed_http_"):
+        try:
+            code = int(detail.rsplit("_", 1)[1])
+        except (ValueError, IndexError):
+            return VERIFY_INDETERMINATE
+        return VERIFY_INDETERMINATE if code in _INDETERMINATE_HTTP else VERIFY_REFUSED
+    if detail in ("missing_reference",) or detail.startswith(("order_status_", "amount_mismatch_")):
+        return VERIFY_REFUSED
+    return VERIFY_INDETERMINATE
+
 # A hosted-button ("no-code payments") client ID cannot obtain an OAuth token
 # and so can never verify an order. Both kinds start with "BAA" — the REST
 # app created for AI Compass is BAAsYL_t53nt… — so the prefix ALONE is not a
@@ -94,8 +153,36 @@ def verify_paypal_order(
     separate PayPal app (see sponsor_credentials) pass their own.
     """
     order_id = (order_id or "").strip()
-    if not order_id or not PAYPAL_ORDER_ID_RE.match(order_id):
-        return False, "invalid_order_id_format"
+
+    # Branch on the shape of the reference instead of rejecting everything
+    # that isn't a Smart-Buttons order ID.
+    #
+    # This used to be one `invalid_order_id_format` for both "you sent
+    # nothing" and "you sent a reference we don't know how to look up",
+    # which threw away the only evidence a real payment left behind. Now:
+    #
+    #   nothing at all          -> REFUSED. There is no claim to check.
+    #   Smart-Buttons order ID  -> Orders v2 lookup, below.
+    #   NCP / anything else     -> INDETERMINATE. We cannot resolve it
+    #                              ourselves, so it goes to a human with the
+    #                              reference intact rather than being
+    #                              silently downgraded to a free listing.
+    #
+    # Resolving an NCP reference automatically needs PayPal's Transaction
+    # Search API (Dashboard -> your app -> Features -> "Transaction search",
+    # currently disabled for this account) or a webhook subscription.
+    # Neither is wired up, and guessing at an API we cannot exercise would
+    # be worse than routing to review — so this is the honest stopping
+    # point, and the branch is where that code goes when the capability is
+    # switched on.
+    if not order_id:
+        return False, "missing_reference"
+    if NCP_REFERENCE_RE.match(order_id):
+        log.warning("NCP-shaped payment reference needs manual lookup: %s", order_id)
+        return False, "ncp_reference_needs_manual_lookup"
+    if not PAYPAL_ORDER_ID_RE.match(order_id):
+        log.warning("Unrecognized payment reference shape, routing to review: %s", order_id)
+        return False, "unrecognized_reference_format"
 
     token = _paypal_access_token(client_id, client_secret, mode)
     if not token:
