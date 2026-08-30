@@ -104,8 +104,6 @@ export default function SubmitPage() {
   const [paypalError, setPaypalError] = useState(false)
   // Bumped by the "Try again" button to re-run the SDK load effect.
   const [paypalRetry, setPaypalRetry] = useState(0)
-  const [paypalLinkClicked, setPaypalLinkClicked] = useState(false)
-  const [manualTxId, setManualTxId] = useState('')
 
   const [paypalHostedConfig, setPaypalHostedConfig] = useState(null)
 
@@ -133,12 +131,16 @@ export default function SubmitPage() {
       setPaymentMethod(savedMethod)
     }
 
-    // Check if redirecting back from PayPal
+    // Legacy PayPal redirect return. Smart Buttons complete in-page and
+    // never navigate away, so this only fires for someone finishing an old
+    // hosted-link checkout that was already in flight. It is kept for that
+    // window and is safe because the server verifies the reference
+    // independently — but it no longer invents one: the old
+    // 'PAYPAL-REDIRECT-VERIFIED' default asserted a verification that had
+    // not happened, and with no usable reference there is nothing to submit.
     const query = new URLSearchParams(window.location.search)
-    const hasPaypalParams = query.has('tx') || query.has('paymentId') || query.has('token') || query.has('PayerID')
-    if (hasPaypalParams) {
-      const txRef = query.get('tx') || query.get('paymentId') || query.get('token') || query.get('PayerID') || 'PAYPAL-REDIRECT-VERIFIED'
-
+    const txRef = query.get('tx') || query.get('paymentId') || query.get('token') || query.get('PayerID')
+    if (txRef) {
       if (savedForm) {
         try {
           const parsedForm = JSON.parse(savedForm)
@@ -228,7 +230,7 @@ export default function SubmitPage() {
           setPaypalLoaded(false)
           setPaypalError(false)
 
-          const loadPaypalScript = (cid, isFallback = false) => {
+          const loadPaypalScript = (cid) => {
             const existingScript = document.getElementById('paypal-sdk-script')
             if (existingScript) {
               existingScript.remove()
@@ -269,11 +271,7 @@ export default function SubmitPage() {
               script.setAttribute('data-csp-nonce', cspNonce)
             }
 
-            if (data.hosted_button_id) {
-              script.src = `https://www.paypal.com/sdk/js?client-id=${cid}&components=hosted-buttons&disable-funding=venmo&currency=USD`
-            } else {
-              script.src = `https://www.paypal.com/sdk/js?client-id=${cid}&currency=USD`
-            }
+            script.src = `https://www.paypal.com/sdk/js?client-id=${cid}&currency=USD&intent=capture`
             script.async = true
             script.crossOrigin = 'anonymous'
 
@@ -295,14 +293,15 @@ export default function SubmitPage() {
               handleLoadError()
             }
 
+            // No client-id=sb fallback. That fallback loaded PayPal's shared
+            // SANDBOX demo client, so a buyer could complete a checkout that
+            // looked real, receive a sandbox order ID, and have it rejected by
+            // live verification — taking their money nowhere and landing the
+            // submission as unverified_review. A checkout that cannot be
+            // verified must fail loudly instead.
             const handleLoadError = () => {
-              if (!isFallback && cid !== 'sb') {
-                console.warn('Failed to load PayPal SDK with client-id. Trying fallback client-id=sb...')
-                loadPaypalScript('sb', true)
-              } else {
-                console.error('Failed to load PayPal SDK entirely.')
-                setPaypalError(true)
-              }
+              console.error('Failed to load PayPal SDK.')
+              setPaypalError(true)
             }
 
             document.body.appendChild(script)
@@ -323,64 +322,70 @@ export default function SubmitPage() {
       if (container) {
         container.innerHTML = ''
 
-        if (paypalHostedConfig && paypalHostedConfig.hosted_button_id) {
-          try {
-            // .render() returns a Promise. The try/catch only ever caught a
-            // synchronous throw — a rejection escaped as an unhandled
-            // rejection (captured by PostHog as an exception) and left the
-            // container empty with no error shown.
-            window.paypal.HostedButtons({
-              hostedButtonId: paypalHostedConfig.hosted_button_id
-            }).render('#paypal-button-container').catch((err) => {
-              console.error('Failed to render HostedButtons:', err)
-              setPaypalError(true)
-            })
-          } catch (err) {
-            console.error('Failed to render HostedButtons:', err)
-            setPaypalError(true)
-          }
-        } else {
-          try {
-            window.paypal.Buttons({
-              createOrder: (data, actions) => {
-                return actions.order.create({
-                  purchase_units: [{
-                    amount: {
-                      value: getTier(submissionType).price.toFixed(2)
-                    }
-                  }]
-                })
-              },
-              onApprove: async (data, actions) => {
-                setPaying(true)
-                try {
-                  const details = await actions.order.capture()
+        try {
+          window.paypal.Buttons({
+            createOrder: (data, actions) => {
+              const tier = getTier(submissionType)
+              return actions.order.create({
+                purchase_units: [{
+                  // description shows on the buyer's PayPal receipt, so a
+                  // charge is recognisable months later in a dispute.
+                  description: `AI Compass — ${tier.name}`,
+                  amount: {
+                    // currency_code is explicit rather than inherited from
+                    // the SDK's ?currency= param: verify_paypal_order()
+                    // rejects anything that isn't USD, so an inherited
+                    // locale currency would fail verification server-side
+                    // after the buyer had already been charged.
+                    currency_code: 'USD',
+                    value: tier.price.toFixed(2)
+                  }
+                }]
+              })
+            },
+            onApprove: async (data, actions) => {
+              setPaying(true)
+              try {
+                const details = await actions.order.capture()
+                // Never fabricate a reference. This used to fall back to
+                // `TXN-PAYPAL-${Math.random()}` when the capture returned no
+                // id, which produced an official-looking string that could
+                // never verify — the same failure mode as the historical
+                // PAYPAL-NCP-* references. If PayPal gave us no order ID
+                // there is nothing to verify, and the buyer must be told.
+                const txRef = details?.id
+                if (!txRef) {
                   setPaying(false)
-                  setPaymentDone(true)
-                  const txRef = details.id || `TXN-PAYPAL-${Math.floor(Math.random() * 9000000 + 1000000)}`
-                  setTransactionRef(txRef)
-
-                  setTimeout(() => {
-                    setShowPaymentModal(false)
-                    submitData(submissionType, txRef)
-                  }, 1500)
-                } catch (err) {
-                  setPaying(false)
-                  setError('PayPal transaction capture failed. Please try again.')
+                  setError(
+                    'PayPal did not return an order reference, so we cannot confirm the payment. ' +
+                    'Please email help@ai-compass.in before paying again — do not retry, you may be charged twice.'
+                  )
+                  return
                 }
-              },
-              onError: (err) => {
-                console.error('PayPal Buttons error:', err)
-                setError('An error occurred during the PayPal transaction.')
+                setPaying(false)
+                setPaymentDone(true)
+                setTransactionRef(txRef)
+
+                setTimeout(() => {
+                  setShowPaymentModal(false)
+                  submitData(submissionType, txRef)
+                }, 1500)
+              } catch (err) {
+                setPaying(false)
+                setError('PayPal transaction capture failed. Please try again.')
               }
-            }).render('#paypal-button-container').catch((err) => {
-              console.error('Failed to render standard PayPal buttons:', err)
-              setPaypalError(true)
-            })
-          } catch (err) {
+            },
+            onError: (err) => {
+              console.error('PayPal Buttons error:', err)
+              setError('An error occurred during the PayPal transaction.')
+            }
+          }).render('#paypal-button-container').catch((err) => {
             console.error('Failed to render standard PayPal buttons:', err)
             setPaypalError(true)
-          }
+          })
+        } catch (err) {
+          console.error('Failed to render standard PayPal buttons:', err)
+          setPaypalError(true)
         }
       }
     }
@@ -938,70 +943,16 @@ export default function SubmitPage() {
                         </span>
                       </div>
 
-                      {/* The manual "pay via link, paste tx id" path only exists for
-                          tiers with a real pre-made PayPal hosted-button product
-                          behind them. Quick Review has none yet (its env vars are
-                          unset), so it goes straight to the dynamic Smart Buttons
-                          flow below — fully automated, no manual paste step. */}
-                      {paypalHostedConfig?.hosted_button_id ? (
-                        <div className="space-y-3 max-w-md mx-auto">
-                          <p className="text-xs text-ink-2 leading-relaxed font-normal">
-                            Complete your <b>{selectedTier.priceLabel} {selectedTier.name}</b> payment directly on PayPal&apos;s secure checkout page:
-                          </p>
-
-                          <a
-                            href={paypalHostedConfig.payment_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={() => {
-                              setPaypalLinkClicked(true)
-                            }}
-                            className="inline-flex items-center justify-center gap-2 w-full bg-[#0070ba] hover:bg-[#005ea6] text-white font-bold py-3.5 px-6 rounded-xl text-sm transition-all shadow-md hover:shadow-lg active:scale-[0.98]"
-                          >
-                            <span>Pay {selectedTier.priceLabel} via PayPal Checkout</span>
-                            <ArrowUpRight className="h-4 w-4" />
-                          </a>
-                          <span className="block text-[10px] text-muted-2">Opens PayPal&apos;s official checkout in a new window</span>
-
-                          {paypalLinkClicked && (
-                            <div className="mt-4 p-4 rounded-xl border border-line bg-bg-elev text-left space-y-3 animate-fade-in">
-                              <p className="text-xs font-semibold text-ink">
-                                Opened PayPal checkout in a new window.
-                              </p>
-                              <p className="text-[11px] text-ink-2">
-                                Once you complete payment on PayPal, paste your <b>Transaction ID / Receipt Number</b> below to submit for review:
-                              </p>
-                              <div className="flex gap-2">
-                                <input
-                                  type="text"
-                                  value={manualTxId}
-                                  onChange={(e) => setManualTxId(e.target.value)}
-                                  placeholder="e.g. 5XY123456789 or PAYID-..."
-                                  className="flex-1 rounded-lg border border-line bg-bg px-3 py-2 text-xs text-ink outline-none focus:border-accent"
-                                />
-                                <button
-                                  type="button"
-                                  disabled={!manualTxId.trim() || submitting}
-                                  onClick={() => {
-                                    if (!manualTxId.trim()) return
-                                    const txRef = manualTxId.trim()
-                                    setTransactionRef(txRef)
-                                    setShowPaymentModal(false)
-                                    submitData(submissionType, txRef)
-                                  }}
-                                  className="px-4 py-2 bg-accent text-white font-bold text-xs rounded-lg hover:bg-accent/90 disabled:opacity-50 transition shrink-0"
-                                >
-                                  Confirm & Submit
-                                </button>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        <p className="text-xs text-ink-2 leading-relaxed font-normal max-w-md mx-auto">
-                          Pay {selectedTier.priceLabel} securely below via PayPal.
-                        </p>
-                      )}
+                      {/* Smart Buttons only. The removed alternative sent the
+                          buyer to an NCP payment link and asked them to paste a
+                          "Transaction ID / Receipt Number" back into the form —
+                          a value that can never verify, because a transaction ID
+                          is not an order ID and verify_paypal_order() resolves
+                          order IDs at /v2/checkout/orders/{id}. Every payment
+                          made that way was destined for unverified_review. */}
+                      <p className="text-xs text-ink-2 leading-relaxed font-normal max-w-md mx-auto">
+                        Pay {selectedTier.priceLabel} securely below via PayPal.
+                      </p>
 
                       {/* Three explicit states. Previously only the third existed,
                           so a failed SDK load — and, on Quick Review, ANY failure,
@@ -1043,12 +994,7 @@ Email: ${formData.submitter_email}`)}`}
                           Loading secure PayPal checkout…
                         </div>
                       ) : (
-                        <div className={paypalHostedConfig?.hosted_button_id ? 'pt-2 border-t border-line/40' : ''}>
-                          {paypalHostedConfig?.hosted_button_id && (
-                            <p className="text-[11px] text-muted mb-2">Or use PayPal Smart Buttons:</p>
-                          )}
-                          <div id="paypal-button-container" className="min-h-[60px] flex flex-col justify-center"></div>
-                        </div>
+                        <div id="paypal-button-container" className="min-h-[60px] flex flex-col justify-center"></div>
                       )}
                     </div>
                   )}

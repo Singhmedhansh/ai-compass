@@ -17,6 +17,23 @@ log = logging.getLogger(__name__)
 
 PAYPAL_ORDER_ID_RE = re.compile(r"^[A-Z0-9]{10,20}$")
 
+# A hosted-button ("no-code payments") client ID cannot obtain an OAuth token
+# and so can never verify an order. Both kinds start with "BAA" — the REST
+# app created for AI Compass is BAAsYL_t53nt… — so the prefix ALONE is not a
+# discriminator, and using it as one flags a perfectly good REST app as
+# broken. Length is what actually separates them: hosted-button IDs are ~25
+# characters, REST client IDs ~80. Treat this as a hint for error messages
+# only; the authoritative test is whether _paypal_access_token() succeeds.
+_HOSTED_BUTTON_ID_MAX_LEN = 40
+
+
+def looks_like_hosted_button_id(client_id):
+    """Heuristic: does this look like an NCP hosted-button ID rather than a
+    REST app client ID? Used to turn an opaque auth failure into an
+    actionable message, never to gate behaviour."""
+    cid = (client_id or "").strip()
+    return bool(cid) and cid.startswith("BAA") and len(cid) < _HOSTED_BUTTON_ID_MAX_LEN
+
 
 def sponsor_credentials():
     """Credentials for the sponsorship checkout, isolated from /submit.

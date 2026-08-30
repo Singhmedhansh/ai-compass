@@ -138,16 +138,23 @@ def test_submit_tool_with_transaction_ref(client, app):
         assert s.pricing_model == "sponsored_paypal:PAYPAL-TX-123456"
 
 
-def test_paypal_hosted_config_endpoint(client, monkeypatch):
+def test_paypal_config_never_advertises_a_hosted_button(client, monkeypatch):
+    """Smart Buttons are the only verifiable checkout, so the config endpoint
+    must never hand the frontend a hosted-button/NCP link — not even when the
+    legacy env vars are still set in Render. Populating them again would
+    resurrect the manual "paste your Transaction ID" flow, whose references
+    can never verify (a transaction ID is not an order ID)."""
     monkeypatch.setenv("PAYPAL_CLIENT_ID", "TEST_CLIENT_ID")
     monkeypatch.setenv("PAYPAL_HOSTED_BUTTON_ID", "TEST_BUTTON_ID")
+    monkeypatch.setenv("PAYPAL_PAYMENT_URL", "https://www.paypal.com/ncp/payment/LEGACY")
     monkeypatch.setenv("PAYPAL_MODE", "live")
     resp = client.get("/api/v1/config/paypal-hosted")
     assert resp.status_code == 200
     data = resp.get_json()
     assert data["client_id"] == "TEST_CLIENT_ID"
-    assert data["hosted_button_id"] == "TEST_BUTTON_ID"
     assert data["mode"] == "live"
+    assert data["hosted_button_id"] == ""
+    assert data["payment_url"] == ""
 
 
 def test_submit_tool_with_quick_review_transaction_ref(client, app):
@@ -176,12 +183,12 @@ def test_submit_tool_with_quick_review_transaction_ref(client, app):
         assert s.payment_status == "unverified_review"
 
 
-def test_paypal_hosted_config_quick_tier_defaults_empty(client, monkeypatch):
-    """Until a second PayPal hosted-button product exists for Quick Review,
-    this must NEVER fall back to the sponsor tier's $49.99 payment URL —
-    that would let a $14.99 buyer land on the wrong-priced checkout page."""
-    monkeypatch.delenv("PAYPAL_HOSTED_BUTTON_ID_QUICK", raising=False)
-    monkeypatch.delenv("PAYPAL_PAYMENT_URL_QUICK", raising=False)
+def test_paypal_config_quick_tier_has_no_hosted_flow_either(client, monkeypatch):
+    """Quick Review previously had no hosted button of its own, and the risk
+    was that it would fall back to the sponsor tier's $49.99 payment URL. That
+    whole class of bug is gone with the hosted flow — assert it stays gone."""
+    monkeypatch.setenv("PAYPAL_HOSTED_BUTTON_ID_QUICK", "QUICK_BUTTON_ID")
+    monkeypatch.setenv("PAYPAL_PAYMENT_URL_QUICK", "https://www.paypal.com/ncp/payment/QUICKID")
     resp = client.get("/api/v1/config/paypal-hosted?tier=quick")
     assert resp.status_code == 200
     data = resp.get_json()
@@ -190,19 +197,7 @@ def test_paypal_hosted_config_quick_tier_defaults_empty(client, monkeypatch):
     assert data["tier"] == "quick"
 
 
-def test_paypal_hosted_config_quick_tier_once_configured(client, monkeypatch):
-    monkeypatch.setenv("PAYPAL_CLIENT_ID", "TEST_CLIENT_ID")
-    monkeypatch.setenv("PAYPAL_HOSTED_BUTTON_ID_QUICK", "QUICK_BUTTON_ID")
-    monkeypatch.setenv("PAYPAL_PAYMENT_URL_QUICK", "https://www.paypal.com/ncp/payment/QUICKID")
-    resp = client.get("/api/v1/config/paypal-hosted?tier=quick")
-    assert resp.status_code == 200
-    data = resp.get_json()
-    assert data["hosted_button_id"] == "QUICK_BUTTON_ID"
-    assert data["payment_url"] == "https://www.paypal.com/ncp/payment/QUICKID"
-
-
-def test_paypal_hosted_config_unknown_tier_falls_back_to_sponsor(client, monkeypatch):
-    monkeypatch.setenv("PAYPAL_HOSTED_BUTTON_ID", "SPONSOR_BUTTON_ID")
+def test_paypal_config_unknown_tier_falls_back_to_sponsor(client):
     resp = client.get("/api/v1/config/paypal-hosted?tier=bogus")
     assert resp.status_code == 200
     assert resp.get_json()["tier"] == "sponsor"
@@ -760,3 +755,39 @@ def test_genuine_free_submission_still_notifies_admin(client, app, monkeypatch):
     subjects = [m.get("subject", "") for m in sent]
     assert any("New tool submission" in s for s in subjects), subjects
     assert not any("UNVERIFIED PAYMENT CLAIM" in s for s in subjects), subjects
+
+
+def test_hosted_button_heuristic_does_not_flag_a_real_rest_client_id():
+    """Both hosted-button and REST client IDs start with "BAA", so the prefix
+    alone is not a discriminator — the live AI Compass REST app's ID is
+    BAAsYL_t53nt…, and flagging it as a hosted button would send an operator
+    chasing a credential problem that does not exist. Length is what
+    separates them."""
+    from app.payments import looks_like_hosted_button_id
+
+    hosted = "BAA5cs6jiQb9N5nwDlMUap1ID"
+    rest = (
+        "BAAsYL_t53ntBBJoR7ojj1lgxRvBIHIVbFAqZNZYA"
+        "nl6MagHDokTlfRHHn8PkvIFcXYi8zXSF50Mj8ZDMs"
+    )
+    assert looks_like_hosted_button_id(hosted) is True
+    assert looks_like_hosted_button_id(rest) is False
+    # Classic "A"-prefixed REST IDs must not be flagged either.
+    assert looks_like_hosted_button_id("AeA1QIZXiflr1_-r0U2UbWTg9" * 3) is False
+    assert looks_like_hosted_button_id("") is False
+    assert looks_like_hosted_button_id(None) is False
+
+
+def test_verify_paypal_order_refuses_a_transaction_id_shaped_reference():
+    """The removed manual-paste flow asked buyers for a "Transaction ID /
+    Receipt Number" (e.g. PAYID-…), which cannot be looked up as an order.
+    Verification must refuse it on format rather than reaching PayPal."""
+    from app.payments import verify_paypal_order
+
+    ok, detail = verify_paypal_order("PAYID-ABCDEFG1234567")
+    assert ok is False
+    assert detail == "invalid_order_id_format"
+
+    ok, detail = verify_paypal_order("PAYPAL-NCP-XMWMPTJH5ZHPY-952228")
+    assert ok is False
+    assert detail == "invalid_order_id_format"

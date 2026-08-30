@@ -1660,40 +1660,39 @@ def get_paypal_config():
     })
 
 
-# Each paid tier's PayPal "hosted button" is a separate pre-made Business
-# "Buy Now" product fixed at that tier's amount — it can't be repointed to a
-# different price from code. Quick's env vars are unset until a hosted
-# button is created for it in the PayPal dashboard; until then this
-# endpoint returns an empty hosted_button_id/payment_url for tier=quick and
-# the frontend falls back to PayPal's dynamic Smart Buttons instead. Once
-# the env vars are set, the hosted-button/manual-link flow "turns on" for
-# Quick automatically — no further code change needed.
-_PAYPAL_HOSTED_ENV = {
-    "sponsor": {
-        "button_id_env": "PAYPAL_HOSTED_BUTTON_ID",
-        "payment_url_env": "PAYPAL_PAYMENT_URL",
-        "payment_url_default": "https://www.paypal.com/ncp/payment/XMWMPTJH5ZHPY",
-    },
-    "quick": {
-        "button_id_env": "PAYPAL_HOSTED_BUTTON_ID_QUICK",
-        "payment_url_env": "PAYPAL_PAYMENT_URL_QUICK",
-        # No default — must never silently fall back to the sponsor tier's
-        # $49.99 payment URL for a $14.99 purchase.
-        "payment_url_default": "",
-    },
-}
+_PAYPAL_TIERS = ("sponsor", "quick")
 
 
 @api_bp.get("/config/paypal-hosted")
 def get_paypal_hosted_config():
+    """PayPal client config for the /submit checkout. Smart Buttons only.
+
+    The hosted-button flow this endpoint used to drive is gone. It sent the
+    buyer to an NCP payment link and then asked them to paste a "Transaction
+    ID / Receipt Number" back into the form — a value that can NEVER verify,
+    because a transaction ID is not an order ID and verify_paypal_order()
+    resolves order IDs at /v2/checkout/orders/{id}. Every payment made that
+    way was destined for 'unverified_review' no matter how genuine it was,
+    and the buyer got a free listing and silence.
+
+    Smart Buttons are the only flow that yields an independently
+    confirmable order ID, so they are now the sole path.
+
+    hosted_button_id/payment_url are still emitted, hardcoded empty, on
+    purpose: a browser holding a cached copy of the old bundle reads them as
+    "no hosted flow configured" and falls through to Smart Buttons. Removing
+    the keys outright would make that stale bundle read `undefined` and
+    behave the same, but leaving them explicit documents the contract and
+    costs nothing. Do not reintroduce a way to populate them without also
+    building a reference capture that can actually be verified.
+    """
     tier = (request.args.get("tier") or "sponsor").strip().lower()
-    if tier not in _PAYPAL_HOSTED_ENV:
+    if tier not in _PAYPAL_TIERS:
         tier = "sponsor"
-    cfg = _PAYPAL_HOSTED_ENV[tier]
     return jsonify({
         "client_id": os.environ.get("PAYPAL_CLIENT_ID", ""),
-        "hosted_button_id": os.environ.get(cfg["button_id_env"], ""),
-        "payment_url": os.environ.get(cfg["payment_url_env"], cfg["payment_url_default"]),
+        "hosted_button_id": "",
+        "payment_url": "",
         "mode": os.environ.get("PAYPAL_MODE", "live"),
         "tier": tier,
     })
@@ -1711,9 +1710,15 @@ def paypal_diagnostics():
     if not _is_admin():
         return jsonify({"error": "Forbidden"}), 403
 
-    from app.payments import _paypal_access_token, _paypal_base_url, sponsor_credentials
+    from app.payments import (
+        _paypal_access_token,
+        _paypal_base_url,
+        looks_like_hosted_button_id,
+        sponsor_credentials,
+    )
 
     client_id = os.environ.get("PAYPAL_CLIENT_ID", "")
+    client_secret = os.environ.get("PAYPAL_CLIENT_SECRET", "")
     token = _paypal_access_token()
 
     # The sponsorship checkout can run on its own REST app, so it needs its
@@ -1724,7 +1729,7 @@ def paypal_diagnostics():
     sponsor_block = {
         "client_id_set": bool(s_id),
         "client_id_preview": f"{s_id[:6]}…" if s_id else None,
-        "client_id_looks_like_hosted_button": bool(s_id and s_id.startswith("BAA")),
+        "client_id_looks_like_hosted_button": looks_like_hosted_button_id(s_id),
         "client_secret_set": bool(s_secret),
         "mode": s_mode,
         "api_base": _paypal_base_url(s_mode),
@@ -1738,7 +1743,7 @@ def paypal_diagnostics():
             "FAILED — no client secret. Set PAYPAL_SPONSOR_CLIENT_SECRET (or "
             "PAYPAL_CLIENT_SECRET). Without it every booking is refused."
         )
-    elif s_id and s_id.startswith("BAA"):
+    elif looks_like_hosted_button_id(s_id):
         sponsor_block["verdict"] = (
             "FAILED — this looks like a hosted-button client ID, which cannot "
             "call the REST API. Create a REST app at developer.paypal.com and "
@@ -1750,19 +1755,46 @@ def paypal_diagnostics():
             "a matching pair and that the mode matches the app (sandbox vs live)."
         )
 
+    # Submission checkout verdict — same shape and specificity as the
+    # sponsorship block above. It previously collapsed every failure into
+    # "see server logs", which is how a missing secret and a hosted-button
+    # ID in PAYPAL_CLIENT_ID went undiagnosed for a month.
+    if token:
+        submit_verdict = "OK — /submit can verify payments."
+    elif not client_id:
+        submit_verdict = (
+            "FAILED — PAYPAL_CLIENT_ID is unset. Every paid submission will "
+            "land as unverified_review."
+        )
+    elif not client_secret:
+        submit_verdict = (
+            "FAILED — no client secret. Set PAYPAL_CLIENT_SECRET from the same "
+            "REST app as PAYPAL_CLIENT_ID. Without it every paid submission is refused."
+        )
+    elif looks_like_hosted_button_id(client_id):
+        submit_verdict = (
+            "FAILED — this looks like a hosted-button client ID (~25 chars), which "
+            "cannot call the REST API. Use the Client ID from a REST app at "
+            "developer.paypal.com (~80 chars) and keep the hosted-button ID in "
+            "PAYPAL_HOSTED_BUTTON_ID."
+        )
+    else:
+        submit_verdict = (
+            "FAILED — PayPal rejected these credentials. Check the ID/secret are "
+            "a matching pair and that PAYPAL_MODE matches the app (sandbox vs live)."
+        )
+
     return jsonify({
         "sponsorship": sponsor_block,
         "client_id_set": bool(client_id),
         "client_id_preview": f"{client_id[:6]}…" if client_id else None,
-        "client_secret_set": bool(os.environ.get("PAYPAL_CLIENT_SECRET")),
+        "client_id_length": len(client_id) or None,
+        "client_id_looks_like_hosted_button": looks_like_hosted_button_id(client_id),
+        "client_secret_set": bool(client_secret),
         "mode": os.environ.get("PAYPAL_MODE", "live"),
         "api_base": _paypal_base_url(),
         "oauth_token_acquired": bool(token),
-        "verdict": (
-            "OK — Client ID and Secret are a valid pair, PayPal's API accepted them."
-            if token else
-            "FAILED — see server logs for the exact reason (bad pairing, wrong mode, or PayPal API unreachable)."
-        ),
+        "verdict": submit_verdict,
     })
 
 
