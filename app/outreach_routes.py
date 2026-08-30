@@ -8,6 +8,7 @@ from flask_login import login_required, current_user
 from app import db, csrf
 from app.models import OutreachCandidate, OutreachEmailLog
 from app.email_utils import send_email_with_details
+from app.send_budget import reserve_send_slots, release_send_slots
 from app.outreach import (
     run_discovery_pipeline,
     re_enrich_missing_candidate_emails,
@@ -25,8 +26,8 @@ from app.outreach import (
     is_student_relevant,
     is_commercial_saas,
     sends_remaining_today,
+    can_send_candidate,
     DAILY_SEND_CAP,
-    CONFIDENCE_SEND_THRESHOLD,
     VERIFICATION_RESULT_CONFIDENCE,
     _status_for_email_confidence,
     OUTREACH_REPLY_TO,
@@ -232,22 +233,18 @@ def send_candidate_email(cid):
         return jsonify({"error": "Forbidden"}), 403
         
     c = OutreachCandidate.query.get_or_404(cid)
-    if not c.email:
-        return jsonify({"error": "Email is missing for candidate"}), 400
-    if not c.draft_subject or not c.draft_body:
-        return jsonify({"error": "Draft subject and body are required to send"}), 400
-    if (c.confidence_score or 0) < CONFIDENCE_SEND_THRESHOLD:
-        return jsonify({"error": f"Email confidence ({c.confidence_score or 0}%) is below the {CONFIDENCE_SEND_THRESHOLD}% send threshold. Re-verify this address (Re-Enrich) or manually confirm it first."}), 400
-    if not c.verification_result:
-        # A high confidence_score alone isn't enough — enrich_candidate_email()
-        # returns verification_result=None whenever that score is a heuristic
-        # guess (source-quality) rather than an actual mailbox check, which
-        # happens for every candidate whenever NEVERBOUNCE_APIKEY isn't set.
-        # Sending on a heuristic score with no real verification behind it is
-        # exactly what drives up bounce rate and tanks sender reputation.
-        return jsonify({"error": "This address hasn't been mailbox-verified yet (only a heuristic confidence score). Re-Enrich to run the free SMTP verifier, or manually confirm it first."}), 400
+
+    ok, reason = can_send_candidate(c)
+    if not ok:
+        return jsonify({"error": reason}), 400
+
     if sends_remaining_today() <= 0:
         return jsonify({"error": f"Daily send cap ({DAILY_SEND_CAP}) reached. Try again after 9 AM IST, or raise OUTREACH_DAILY_SEND_CAP."}), 429
+
+    # Manual sends draw on the same shared Resend 100/day budget as the
+    # automated outreach cron and the new-tools digest.
+    if reserve_send_slots(1, requester="outreach-manual")["granted"] == 0:
+        return jsonify({"error": "Shared daily send budget is exhausted (outreach + digest + manual combined). Try again tomorrow."}), 429
 
     success = False
     err_msg = None
@@ -259,6 +256,9 @@ def send_candidate_email(cid):
         )
     except Exception as exc:
         err_msg = str(exc)
+
+    if not success:
+        release_send_slots(1, requester="outreach-manual")
 
     log_entry = OutreachEmailLog(
         candidate_id=c.id,
@@ -294,19 +294,21 @@ def bulk_send_candidates():
     failed = 0
     remaining = sends_remaining_today()
     capped = 0
-    skipped_low_confidence = 0
+    skipped_ineligible = 0
 
     for c in candidates:
-        if not c.email or not c.draft_subject or not c.draft_body or c.status == "sent":
-            failed += 1
-            continue
-        if (c.confidence_score or 0) < CONFIDENCE_SEND_THRESHOLD or not c.verification_result:
-            # See send_candidate_email for why verification_result is required
-            # alongside the score — a heuristic-only confidence (no real
-            # mailbox check) is exactly what's been driving bounce rate up.
-            skipped_low_confidence += 1
+        ok, _reason = can_send_candidate(c)
+        if not ok:
+            # Missing draft/email, opted-out status, or not mailbox-verified —
+            # not a send failure, just not eligible.
+            skipped_ineligible += 1
             continue
         if remaining <= 0:
+            capped += 1
+            continue
+
+        # Shared Resend 100/day budget (outreach + digest + manual combined).
+        if reserve_send_slots(1, requester="outreach-manual")["granted"] == 0:
             capped += 1
             continue
 
@@ -319,6 +321,9 @@ def bulk_send_candidates():
             )
         except Exception as exc:
             err_msg = str(exc)
+
+        if not success:
+            release_send_slots(1, requester="outreach-manual")
 
         log_entry = OutreachEmailLog(
             candidate_id=c.id,
@@ -344,10 +349,10 @@ def bulk_send_candidates():
     messages = []
     if capped:
         resp["capped"] = capped
-        messages.append(f"Daily send cap ({DAILY_SEND_CAP}) reached — {capped} candidate(s) deferred to tomorrow.")
-    if skipped_low_confidence:
-        resp["skipped_low_confidence"] = skipped_low_confidence
-        messages.append(f"{skipped_low_confidence} candidate(s) skipped — below the {CONFIDENCE_SEND_THRESHOLD}% confidence send threshold.")
+        messages.append(f"Send cap reached — {capped} candidate(s) deferred to a later run (daily ramp {DAILY_SEND_CAP}/day or shared Resend budget).")
+    if skipped_ineligible:
+        resp["skipped_ineligible"] = skipped_ineligible
+        messages.append(f"{skipped_ineligible} candidate(s) skipped — not eligible (no verified email, missing draft, or opted-out/already-contacted status).")
     if messages:
         resp["message"] = " ".join(messages)
     return jsonify(resp)
@@ -379,22 +384,39 @@ def get_outreach_logs():
     if not _is_admin():
         return jsonify({"error": "Forbidden"}), 403
         
-    logs = OutreachEmailLog.query.order_by(OutreachEmailLog.sent_at.desc()).all()
-    res = []
-    for log_entry in logs:
-        # Find candidate details safely
-        candidate = OutreachCandidate.query.get(log_entry.candidate_id)
-        res.append({
-            "id": log_entry.id,
-            "candidate_id": log_entry.candidate_id,
-            "product_name": candidate.product_name if candidate else "Deleted Candidate",
-            "email": log_entry.email,
-            "subject": log_entry.subject,
-            "body": log_entry.body,
-            "status": log_entry.status,
-            "error_message": log_entry.error_message,
-            "sent_at": log_entry.sent_at.isoformat() if log_entry.sent_at else None
-        })
+    try:
+        limit = min(max(int(request.args.get("limit", 300)), 1), 1000)
+    except (TypeError, ValueError):
+        limit = 300
+
+    logs = (
+        OutreachEmailLog.query
+        .order_by(OutreachEmailLog.sent_at.desc())
+        .limit(limit)
+        .all()
+    )
+    # One query for every candidate referenced, instead of one per log row.
+    cand_ids = {lg.candidate_id for lg in logs}
+    names = dict(
+        db.session.query(OutreachCandidate.id, OutreachCandidate.product_name)
+        .filter(OutreachCandidate.id.in_(cand_ids))
+        .all()
+    ) if cand_ids else {}
+
+    res = [
+        {
+            "id": lg.id,
+            "candidate_id": lg.candidate_id,
+            "product_name": names.get(lg.candidate_id, "Deleted Candidate"),
+            "email": lg.email,
+            "subject": lg.subject,
+            "body": lg.body,
+            "status": lg.status,
+            "error_message": lg.error_message,
+            "sent_at": lg.sent_at.isoformat() if lg.sent_at else None,
+        }
+        for lg in logs
+    ]
     return jsonify(res)
 
 @outreach_bp.route("/api/v1/admin/outreach/trigger-discovery", methods=["POST"])
@@ -646,22 +668,39 @@ def run_cron():
     if not _outreach_job_lock.acquire(blocking=False):
         return jsonify({"error": "Another discovery/re-enrich job is already running — skipping this cron tick."}), 409
 
+    out = {"status": "success"}
     try:
-        # Run daily job
-        new_candidates = run_discovery_pipeline()
-        # Drafts generated above (and any left over from a prior run) go out
-        # automatically now — see run_automated_initial_sends() for the send
-        # gate this still enforces (confidence threshold, real mailbox
-        # verification, shared DAILY_SEND_CAP).
-        initial_sent = run_automated_initial_sends()
-        sent_followups = run_automated_followups()
+        # Sends run FIRST and each phase is isolated. Discovery is slow and
+        # network-heavy (minutes), and the GitHub Actions caller gives up after
+        # ~300s — if discovery ran first and overran, the connection dropped
+        # and the sends never happened, which is exactly "outreach emails are
+        # not getting sent". Sends only ever dispatch drafts from PRIOR runs
+        # (a freshly-discovered candidate still needs async SMTP verification
+        # before it's eligible), so nothing is lost by doing them up front.
+        # Each phase's failure is logged and swallowed so it can't block the
+        # others.
+        try:
+            out["followup_emails_sent"] = run_automated_followups()
+        except Exception:
+            current_app.logger.exception("cron: automated follow-ups failed")
+            out["followup_emails_sent"] = 0
+            out["followups_error"] = True
 
-        return jsonify({
-            "status": "success",
-            "new_candidates_discovered": new_candidates,
-            "initial_emails_sent": initial_sent,
-            "followup_emails_sent": sent_followups
-        })
+        try:
+            out["initial_emails_sent"] = run_automated_initial_sends()
+        except Exception:
+            current_app.logger.exception("cron: automated initial sends failed")
+            out["initial_emails_sent"] = 0
+            out["initial_sends_error"] = True
+
+        try:
+            out["new_candidates_discovered"] = run_discovery_pipeline()
+        except Exception:
+            current_app.logger.exception("cron: discovery pipeline failed")
+            out["new_candidates_discovered"] = 0
+            out["discovery_error"] = True
+
+        return jsonify(out)
     except Exception as e:
         current_app.logger.exception("Automated outreach cron job failed")
         return jsonify({"error": str(e)}), 500

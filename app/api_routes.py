@@ -2040,13 +2040,15 @@ def submit_tool():
                     db.session.commit()
             except Exception:
                 current_app.logger.exception("Failed to send user invoice email — submission still recorded")
-        elif not is_paid and submitter_email and dash_link:
+        elif not is_paid and not is_paid_claim and submitter_email and dash_link:
             # Free-tier submitters previously got no email at all — this is
             # new behavior, not a bug fix. Doubles as the upsell funnel:
             # the dashboard's free view links out to /pricing. `not is_paid`
             # keeps a paid retry (is_paid True, should_process_founder_account
             # False — already handled) from falling through to this branch
-            # and getting the free-tier email instead.
+            # and getting the free-tier email instead. `not is_paid_claim`
+            # keeps an UNVERIFIED paid claim (bogus/automated, almost always
+            # anonymous) from triggering an email to a possibly-forged address.
             try:
                 confirm_html = render_template(
                     'emails/submission_received.html',
@@ -2069,6 +2071,21 @@ def submit_tool():
         # 2. Send submission details to the admin. The subject line makes the
         # trust level obvious at a glance — an unverified sponsored claim
         # must never look like a confirmed payment in the inbox.
+        #
+        # Unverified paid claims (someone picked a paid tier but no PayPal
+        # order verifies) are almost entirely bogus/automated spam — a real
+        # payer's order verifies; these never do. They still create a durable
+        # Submission row that shows up in /admin/submissions, so the admin
+        # loses nothing by NOT emailing about them. Only verified payments and
+        # genuine free submissions generate an admin email.
+        skip_admin_notification = is_paid_claim and not payment_verified
+        if skip_admin_notification:
+            current_app.logger.info(
+                "Skipping admin email for unverified paid claim '%s' (ref=%s, note=%s) — "
+                "visible in /admin/submissions queue instead.",
+                name, transaction_ref or "N/A", payment_note or "none",
+            )
+
         if is_paid:
             subject_tag = "[PAYMENT APPROVED]"
         elif is_paid_claim:
@@ -2117,7 +2134,7 @@ def submit_tool():
             if e and isinstance(e, str):
                 admin_recipients.add(e.strip())
 
-        for recipient in admin_recipients:
+        for recipient in (admin_recipients if not skip_admin_notification else ()):
             try:
                 send_email(
                     to=recipient,
@@ -2662,6 +2679,70 @@ def admin_stats():
             "ml_status": ml_status,
             "model_status": ml_status,
             "index_size": index_size,
+        }
+    )
+
+
+@api_bp.get("/admin/tier-breakdown")
+@login_required
+def admin_tier_breakdown():
+    """Read-only reporting: how many catalog listings / pending submissions
+    sit in each pricing tier (Free / Quick Review / Fast-Track Sponsored).
+
+    Tier is OUR submission pricing ladder (app/pricing_tiers.py), not the
+    tool's own Free/Freemium/Paid price label (that's what /admin/stats'
+    free_tools counts). "live" = tools actually shown to visitors
+    (get_visible_tools() — excludes hidden + not-yet-released). A live
+    listing's tier is only recoverable by joining back to its Submission
+    via CatalogTool.submission_id; Fast-Track is additionally detectable
+    from the catalog row itself via _sponsored_active(). Tools seeded from
+    tools.json never went through the ladder at all — reported separately
+    as "editorial" so the live counts still reconcile to the visible total.
+    """
+    if not _is_admin():
+        return jsonify({"error": "Forbidden"}), 403
+
+    from app.models import CatalogTool, Submission
+    from app.pricing_tiers import effective_tier
+
+    # --- Pending submissions, grouped by effective tier -------------------
+    pending = {"free": 0, "quick": 0, "sponsored": 0}
+    for pricing_model, payment_status in db.session.query(
+        Submission.pricing_model, Submission.payment_status
+    ).filter(Submission.status == "pending"):
+        pending[effective_tier(pricing_model, payment_status)] += 1
+
+    # --- Live catalog tools, grouped by tier -----------------------------
+    # slug -> effective tier of the submission that created the row (if any)
+    sub_tier_by_slug = {}
+    for slug, pricing_model, payment_status in (
+        db.session.query(
+            CatalogTool.slug, Submission.pricing_model, Submission.payment_status
+        )
+        .join(Submission, CatalogTool.submission_id == Submission.id)
+    ):
+        sub_tier_by_slug[slug] = effective_tier(pricing_model, payment_status)
+
+    live = {"free": 0, "quick": 0, "sponsored": 0, "editorial": 0}
+    for tool in get_visible_tools(DATA_PATH):
+        if _sponsored_active(tool):
+            live["sponsored"] += 1
+            continue
+        tier = sub_tier_by_slug.get(tool.get("slug"))
+        if tier == "quick":
+            live["quick"] += 1
+        elif tier == "free":
+            live["free"] += 1
+        else:
+            # No linked submission — seeded from tools.json, never ticketed.
+            live["editorial"] += 1
+
+    return jsonify(
+        {
+            "live": live,
+            "pending": pending,
+            "live_total": sum(live.values()),
+            "pending_total": sum(pending.values()),
         }
     )
 

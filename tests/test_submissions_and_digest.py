@@ -709,3 +709,54 @@ def test_paid_invoice_email_includes_register_link(client, app, monkeypatch):
     assert invoice is not None, sent
     assert "Create my free account" in invoice["html"]
     assert "/register?email=" in invoice["html"]
+
+
+# --- Unverified paid claims: no automated emails ------------------------------
+
+def test_unverified_paid_claim_sends_no_emails(client, app, monkeypatch):
+    """A paid-tier submission whose PayPal order can't be verified is almost
+    always bogus/automated. It still lands in the /admin/submissions queue as
+    a durable row, but must NOT generate the noisy '[UNVERIFIED PAYMENT CLAIM]'
+    admin email or a confirmation to a possibly-forged submitter address."""
+    import app.email_utils as email_utils_mod
+
+    sent = []
+    monkeypatch.setattr(email_utils_mod, "send_email", lambda **kw: sent.append(kw) or True)
+
+    resp = client.post("/api/v1/submit-tool", json={
+        "name": "Bogus Paid Claim Tool",
+        "url": "https://boguspaid.example.com",
+        "category": "Productivity",
+        "reason": "Definitely a real payment, trust me.",
+        "submitter_email": "someone@boguspaid.example.com",
+        "pricing_model": "quick_paypal",
+        "transaction_ref": "TOTALLY-FAKE-REF",
+    }, headers={"X-Forwarded-For": "203.0.113.11"})  # own rate-limit bucket
+    assert resp.status_code == 201, resp.data
+    assert resp.get_json()["payment_status"] == "unverified_review"
+
+    assert sent == [], f"no emails should go out for an unverified paid claim, got: {sent}"
+
+    # …but the submission is still persisted for manual review.
+    with app.app_context():
+        s = Submission.query.filter_by(name="Bogus Paid Claim Tool").first()
+        assert s is not None and s.payment_status == "unverified_review"
+
+
+def test_genuine_free_submission_still_notifies_admin(client, app, monkeypatch):
+    import app.email_utils as email_utils_mod
+
+    sent = []
+    monkeypatch.setattr(email_utils_mod, "send_email", lambda **kw: sent.append(kw) or True)
+
+    resp = client.post("/api/v1/submit-tool", json={
+        "name": "Honest Free Tool",
+        "url": "https://honestfree.example.com",
+        "category": "Productivity",
+        "reason": "A normal free submission.",
+    }, headers={"X-Forwarded-For": "203.0.113.12"})  # own rate-limit bucket
+    assert resp.status_code == 201, resp.data
+
+    subjects = [m.get("subject", "") for m in sent]
+    assert any("New tool submission" in s for s in subjects), subjects
+    assert not any("UNVERIFIED PAYMENT CLAIM" in s for s in subjects), subjects
