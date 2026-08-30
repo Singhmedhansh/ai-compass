@@ -52,7 +52,42 @@ def read_unsubscribe_token(token: str, max_age_days: int = 365) -> str | None:
         return None
 
 
+def sending_suppressed() -> tuple[bool, str]:
+    """Should this process refuse to actually dispatch mail?
+
+    Returns (suppressed, reason).
+
+    This exists because the test suite was sending REAL email. app/__init__
+    calls load_dotenv() at import time, so pytest inherits the live
+    RESEND_API_KEY from .env, and send_email_with_details() gated only on
+    that key being present — nothing consulted app.config["TESTING"], which
+    conftest sets. Every run of the suite mailed the admin address a
+    "[AI Compass] New tool submission: Test Widget AI" notice, which is
+    indistinguishable at a glance from a genuine submission.
+
+    Guarding here rather than by monkeypatching each test is deliberate: a
+    per-test mock only protects the tests someone remembered to write it
+    into, and the test that caused this had simply never needed one.
+
+    EMAIL_SUPPRESS_SEND is the same switch for local development, which
+    matters here because .env holds production credentials — running the app
+    locally otherwise sends real mail from a dev machine.
+    """
+    if str(os.environ.get("EMAIL_SUPPRESS_SEND", "")).strip().lower() in ("1", "true", "yes", "on"):
+        return True, "email_suppressed_by_env"
+    try:
+        # Outside an app context (scripts, workers) current_app raises —
+        # that is not a test, so fall through to sending.
+        if current_app.config.get("TESTING"):
+            return True, "email_suppressed_in_testing"
+    except Exception:
+        pass
+    return False, ""
+
+
 def email_enabled() -> bool:
+    if sending_suppressed()[0]:
+        return False
     return bool(os.environ.get("RESEND_API_KEY") or os.environ.get("SMTP_HOST"))
 
 
@@ -148,6 +183,12 @@ def send_email_with_details(
     looks identical to "no one responded." `headers` carries things like
     List-Unsubscribe that aren't part of the message body.
     """
+    # Checked before any transport, so neither Resend nor SMTP can fire.
+    suppressed, reason = sending_suppressed()
+    if suppressed:
+        log.info("Email suppressed (%s) — would have sent to %s (%s)", reason, to, subject)
+        return False, reason
+
     if os.environ.get("RESEND_API_KEY"):
         return _send_via_resend(to, subject, html, text, reply_to, headers)
 
