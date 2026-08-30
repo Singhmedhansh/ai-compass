@@ -36,7 +36,22 @@ function getToolSlug(tool = {}) {
 }
 
 async function api(url, options = {}) {
-  const res = await fetch(url, { credentials: 'include', ...options })
+  // fetch() has no default timeout — a wedged backend request would otherwise
+  // hang forever, leaving action buttons stuck on "Sending…" with no error.
+  const { timeoutMs = 60000, ...fetchOpts } = options
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), timeoutMs)
+  let res
+  try {
+    res = await fetch(url, { credentials: 'include', signal: controller.signal, ...fetchOpts })
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      throw new Error(`Request timed out after ${Math.round(timeoutMs / 1000)}s — the server may be busy. Try again in a moment.`)
+    }
+    throw err
+  } finally {
+    clearTimeout(timer)
+  }
   const data = await res.json().catch(() => ({}))
   if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`)
   return data

@@ -11,6 +11,7 @@ from bs4 import BeautifulSoup
 from app import db
 from app.models import OutreachCandidate, OutreachEmailLog, CatalogTool
 from app.email_utils import send_email, send_email_with_details, make_unsubscribe_token
+from app.send_budget import reserve_send_slots, release_send_slots
 
 log = logging.getLogger(__name__)
 
@@ -2064,15 +2065,95 @@ DAILY_SEND_CAP = int(os.environ.get("OUTREACH_DAILY_SEND_CAP", "30"))
 # through the whole NeverBounce credit balance unattended in one run.
 NEVERBOUNCE_MAX_PER_RUN = int(os.environ.get("NEVERBOUNCE_MAX_VERIFICATIONS_PER_RUN", "300"))
 
-# Minimum confidence_score required to send — enforced at the route layer as
-# a hard gate (not just a UI hint), since a bounce against an unverified
-# guess costs sender reputation, not just a wasted lead. 80 rather than a
-# stricter 90+ because the free SMTP prober's 'catchall'/'unknown' verdicts
-# (60/50) are legitimately inconclusive, not wrong — some real mail
-# providers (Microsoft 365 in particular) never give a clean answer at the
-# SMTP stage — so anything scoring in the low-verified tiers still needs a
-# real ceiling above them, not a bar so high nothing clears it.
-CONFIDENCE_SEND_THRESHOLD = int(os.environ.get("OUTREACH_CONFIDENCE_SEND_THRESHOLD", "80"))
+# Minimum confidence_score required to send — enforced as a hard gate (not
+# just a UI hint), since a bounce against an unverified guess costs sender
+# reputation, not just a wasted lead.
+#
+# This is a FLOOR, not the real gate: the real gate is SENDABLE_VERIFICATION_
+# RESULTS below (an address must carry a genuine mailbox-verification verdict
+# that isn't a hard fail). The floor exists only to reject heuristic-only
+# guesses. It has to sit at/under the lowest sendable verdict's score —
+# VERIFICATION_RESULT_CONFIDENCE['unknown'] == 50 — or the free SMTP prober's
+# perfectly-legitimate 'catchall' (60) / 'unknown' (50) results (which is what
+# Microsoft 365 / Google Workspace domains almost always return) would never
+# clear it and NOTHING would ever send. It was previously 80, which silently
+# blocked every verdict except 'valid' — the cause of "outreach emails aren't
+# going out". Raise OUTREACH_CONFIDENCE_SEND_THRESHOLD to 60 to exclude
+# 'unknown', or 95 to require a clean 'valid'.
+CONFIDENCE_SEND_THRESHOLD = int(os.environ.get("OUTREACH_CONFIDENCE_SEND_THRESHOLD", "50"))
+
+# A candidate may be sent to only if its verification_result is one of these:
+# a real verdict from NeverBounce or the free SMTP prober that isn't a
+# confirmed bad address. 'catchall'/'unknown' are inconclusive but not wrong;
+# 'manual_override' is an admin vouching for an address they confirmed out of
+# band (see update_candidate in outreach_routes.py). 'invalid'/'disposable'
+# are confirmed bad and never sendable. A None verification_result (heuristic
+# score only, no real check) is also blocked.
+SENDABLE_VERIFICATION_RESULTS = frozenset({"valid", "catchall", "unknown", "manual_override"})
+
+# Manual send (send_candidate_email / bulk_send_candidates) must refuse these
+# statuses outright: the recipient opted out, already replied, already bounced,
+# was rejected, or was already contacted. The automated senders filter on
+# status up front so they never see these; the manual routes need an explicit
+# guard.
+NON_SENDABLE_STATUSES = frozenset({"unsubscribed", "bounced", "replied", "rejected", "sent"})
+
+# The free SMTP verifier runs on GitHub Actions (Render blocks outbound SMTP).
+# When that workflow isn't producing verdicts, every discovered candidate sits
+# in draft_ready with verification_result=None forever and nothing sends. With
+# this ON (the default), such a candidate is still sendable when its heuristic
+# confidence clears CONFIDENCE_SEND_THRESHOLD *and* a live DNS check confirms
+# the domain can still receive mail (MX, or an A record) right now — the stored
+# address already passed exactly this check when it was discovered
+# (enrich_candidate_email drops anything that doesn't), so this just re-confirms
+# it hasn't gone dead since. It is NOT a mailbox check: a real SMTP/NeverBounce
+# verdict is still strictly better and always wins. Set
+# OUTREACH_ALLOW_UNVERIFIED_SEND=0 to require a real verdict again.
+ALLOW_UNVERIFIED_SEND = str(
+    os.environ.get("OUTREACH_ALLOW_UNVERIFIED_SEND", "1")
+).strip().lower() in ("1", "true", "yes")
+
+
+def can_send_candidate(c) -> tuple[bool, str | None]:
+    """Single source of truth for 'is this candidate allowed to be emailed
+    right now'. Returns (ok, reason_if_not). Used by BOTH the manual send
+    routes and run_automated_initial_sends()."""
+    if not c.email:
+        return False, "Email is missing for candidate"
+    if not c.draft_subject or not c.draft_body:
+        return False, "Draft subject and body are required to send"
+    if c.status in NON_SENDABLE_STATUSES:
+        return False, f"Candidate status is '{c.status}' — not eligible to send."
+
+    if (c.confidence_score or 0) < CONFIDENCE_SEND_THRESHOLD:
+        return False, (
+            f"Email confidence ({c.confidence_score or 0}%) is below the "
+            f"{CONFIDENCE_SEND_THRESHOLD}% floor. Re-verify (Re-Enrich) or mark "
+            "it manually verified."
+        )
+
+    if c.verification_result:
+        if c.verification_result not in SENDABLE_VERIFICATION_RESULTS:
+            return False, (
+                f"Address was verified as '{c.verification_result}' — confirmed "
+                "undeliverable, so it can't be sent."
+            )
+        return True, None
+
+    # No real verdict on file.
+    if not ALLOW_UNVERIFIED_SEND:
+        return False, (
+            "This address hasn't been mailbox-verified yet (only a heuristic "
+            "confidence score). Re-Enrich to run the free SMTP verifier, or "
+            "mark it manually verified first."
+        )
+    domain = c.email.split("@", 1)[-1] if "@" in c.email else ""
+    if not domain or not _domain_has_mail_capability(domain):
+        return False, (
+            f"Email domain '{domain or c.email}' has no working mail server "
+            "(no MX/A record) — sending would just bounce."
+        )
+    return True, None
 
 # Below this, an email is treated as not worth an admin's review time or
 # the reputation risk of sending — auto-rejected rather than left sitting
@@ -2202,9 +2283,18 @@ def run_automated_followups():
         if not c.email or not c.draft_subject:
             continue
 
+        # Shared Resend daily budget (outreach + digest + manual all draw from
+        # one 100/day account cap). Reserve per-send so a failure can hand the
+        # slot straight back.
+        if reserve_send_slots(1, requester="outreach-followup")["granted"] == 0:
+            log.info("Shared send budget exhausted — deferring remaining follow-ups to next run.")
+            break
+
         if _send_followup(c, stage, next_status):
             sent_count += 1
             remaining -= 1
+        else:
+            release_send_slots(1, requester="outreach-followup")
 
     if sent_count > 0:
         db.session.commit()
@@ -2232,6 +2322,18 @@ def run_automated_initial_sends():
     already cleared every gate above, it never changes which candidates are
     eligible.
     """
+    remaining = sends_remaining_today()
+    if remaining <= 0:
+        log.info("Daily send cap (%s) already reached — no initial sends this run.", DAILY_SEND_CAP)
+        return 0
+
+    # Only pull a bounded slice, not the whole draft_ready pool: we need at
+    # most `remaining` sendable candidates, and can_send_candidate() may run a
+    # live DNS check per row for unverified addresses — churning hundreds of
+    # those in one request would blow past the cron caller's timeout. Best
+    # candidates come first (fit_score), so the sendable ones are near the top;
+    # anything missed rolls to the next run.
+    scan_limit = max(remaining * 8, 60)
     candidates = OutreachCandidate.query.filter(
         OutreachCandidate.status == "draft_ready",
         OutreachCandidate.email.isnot(None),
@@ -2240,20 +2342,27 @@ def run_automated_initial_sends():
     ).order_by(
         OutreachCandidate.fit_score.desc().nullslast(),
         OutreachCandidate.created_at.asc(),
-    ).all()
+    ).limit(scan_limit).all()
 
-    remaining = sends_remaining_today()
     sent_count = 0
     for c in candidates:
         if remaining <= 0:
             log.info("Daily send cap (%s) reached — deferring remaining initial sends to tomorrow.", DAILY_SEND_CAP)
             break
-        if (c.confidence_score or 0) < CONFIDENCE_SEND_THRESHOLD or not c.verification_result:
-            # Same reasoning as bulk_send_candidates: a heuristic-only score
-            # with no real mailbox check behind it is exactly what drives up
-            # bounce rate, so it stays in draft_ready for manual review
-            # instead of being auto-sent.
+        ok, skip_reason = can_send_candidate(c)
+        if not ok:
+            # Not eligible (no verified/MX-reachable email, missing draft, or an
+            # opted-out status). Stays in draft_ready for Re-Enrich / manual
+            # review rather than being auto-sent.
+            log.debug("Auto-send skip for candidate %s: %s", c.id, skip_reason)
             continue
+
+        # Shared Resend daily budget (outreach + digest + manual all draw from
+        # one 100/day account cap). Reserved per-send so a failed send can
+        # return the slot immediately.
+        if reserve_send_slots(1, requester="outreach-initial")["granted"] == 0:
+            log.info("Shared send budget exhausted — deferring remaining initial sends to next run.")
+            break
 
         success = False
         err_msg = None
@@ -2276,6 +2385,8 @@ def run_automated_initial_sends():
             sent_count += 1
             remaining -= 1
             time.sleep(1.5)  # spread sends out rather than bursting the provider
+        else:
+            release_send_slots(1, requester="outreach-initial")
 
     db.session.commit()
     if sent_count > 0:

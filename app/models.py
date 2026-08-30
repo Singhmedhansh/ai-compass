@@ -641,3 +641,63 @@ class SponsorImpression(db.Model):
         db.DateTime, nullable=False, index=True,
         default=lambda: datetime.now(timezone.utc),
     )
+
+
+class SendBudget(db.Model):
+    """One row per UTC calendar day tracking how many transactional/outreach
+    emails have been committed against Resend's shared 100/day account limit.
+
+    Both independent senders — cold outreach and the new-tools digest — draw
+    from this single counter via app.send_budget.reserve_send_slots(), instead
+    of each assuming a private fixed allowance and colliding on a day they both
+    run near capacity.
+
+    `cap` defaults to 90 (SEND_BUDGET_DAILY_CAP), deliberately under Resend's
+    real 100/day so there's headroom for manual/ad-hoc sends (replies, tests,
+    password resets). It is snapshotted onto the row at creation time — changing
+    the env var only affects days that haven't started yet.
+
+    Keyed on the UTC date to match Resend's own midnight-UTC reset. Note this is
+    intentionally NOT the same boundary as outreach's internal 30/day ramp
+    window (which resets 03:30 UTC / 09:00 IST); that ramp is a separate,
+    stricter guard layered on top of this one.
+    """
+
+    __tablename__ = "send_budget"
+
+    date = db.Column(db.Date, primary_key=True)
+    sent_count = db.Column(db.Integer, nullable=False, default=0)
+    cap = db.Column(db.Integer, nullable=False, default=90)
+    # Subset of sent_count that came from the new-tools digest, so the digest
+    # can hold itself to DIGEST_DAILY_SEND_CAP (default 50/day) and never eat
+    # the whole shared allowance in one announcement.
+    digest_sent_count = db.Column(db.Integer, nullable=False, default=0)
+    updated_at = db.Column(
+        db.DateTime,
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
+
+
+class DigestRecipientLog(db.Model):
+    """Per-recipient record of who has already received the current, not-yet-
+    snapshotted digest batch.
+
+    Only used on a day the digest can't email everyone in one run because the
+    shared SendBudget was exhausted: the served recipients are recorded here so
+    the next run (self-scheduled maybe_run_digest is daily) picks up only the
+    un-served remainder instead of re-blasting the whole list. Every row is
+    deleted the moment a run finally reaches everyone and advances the
+    known-slugs snapshot, so a present row always means "already got the batch
+    that's still pending".
+    """
+
+    __tablename__ = "digest_recipient_log"
+
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(255), nullable=False, index=True)
+    # Informational only — dedupe keys on row existence, not on this date
+    # (a deferred batch can straddle a midnight-UTC boundary).
+    sent_on = db.Column(db.Date, nullable=False, default=lambda: datetime.now(timezone.utc).date())
+    created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))

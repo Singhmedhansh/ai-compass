@@ -2040,13 +2040,15 @@ def submit_tool():
                     db.session.commit()
             except Exception:
                 current_app.logger.exception("Failed to send user invoice email — submission still recorded")
-        elif not is_paid and submitter_email and dash_link:
+        elif not is_paid and not is_paid_claim and submitter_email and dash_link:
             # Free-tier submitters previously got no email at all — this is
             # new behavior, not a bug fix. Doubles as the upsell funnel:
             # the dashboard's free view links out to /pricing. `not is_paid`
             # keeps a paid retry (is_paid True, should_process_founder_account
             # False — already handled) from falling through to this branch
-            # and getting the free-tier email instead.
+            # and getting the free-tier email instead. `not is_paid_claim`
+            # keeps an UNVERIFIED paid claim (bogus/automated, almost always
+            # anonymous) from triggering an email to a possibly-forged address.
             try:
                 confirm_html = render_template(
                     'emails/submission_received.html',
@@ -2069,6 +2071,21 @@ def submit_tool():
         # 2. Send submission details to the admin. The subject line makes the
         # trust level obvious at a glance — an unverified sponsored claim
         # must never look like a confirmed payment in the inbox.
+        #
+        # Unverified paid claims (someone picked a paid tier but no PayPal
+        # order verifies) are almost entirely bogus/automated spam — a real
+        # payer's order verifies; these never do. They still create a durable
+        # Submission row that shows up in /admin/submissions, so the admin
+        # loses nothing by NOT emailing about them. Only verified payments and
+        # genuine free submissions generate an admin email.
+        skip_admin_notification = is_paid_claim and not payment_verified
+        if skip_admin_notification:
+            current_app.logger.info(
+                "Skipping admin email for unverified paid claim '%s' (ref=%s, note=%s) — "
+                "visible in /admin/submissions queue instead.",
+                name, transaction_ref or "N/A", payment_note or "none",
+            )
+
         if is_paid:
             subject_tag = "[PAYMENT APPROVED]"
         elif is_paid_claim:
@@ -2117,7 +2134,7 @@ def submit_tool():
             if e and isinstance(e, str):
                 admin_recipients.add(e.strip())
 
-        for recipient in admin_recipients:
+        for recipient in (admin_recipients if not skip_admin_notification else ()):
             try:
                 send_email(
                     to=recipient,
