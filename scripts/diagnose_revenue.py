@@ -8,16 +8,15 @@ accidental write raises instead of landing.
 
 Usage: .venv/Scripts/python.exe scripts/diagnose_revenue.py
 """
-import os
 import json
+import os
 from collections import Counter, defaultdict
-from datetime import datetime, timezone
+from datetime import datetime
 
 from dotenv import load_dotenv
+from sqlalchemy import create_engine, text
 
 load_dotenv()
-
-from sqlalchemy import create_engine, text
 
 db_url = os.environ.get("DATABASE_URL", "").strip()
 if not db_url:
