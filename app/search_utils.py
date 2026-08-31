@@ -20,6 +20,31 @@ def _safe_int(v):
     except (ValueError, TypeError):
         return 0
 
+# Paid placement inside keyword search.
+#
+# "Sponsored placement above free listings in your category, permanently" is
+# sold on /pricing, and until now search_tools() — the path that actually
+# serves browsing and querying — had no sponsored term at all. Only `featured`
+# scored, which is an editorial flag ~30 tools already carry for free. So the
+# headline perk did not exist on the surface people use.
+#
+# Two mechanisms, each with one job, because they answer different questions:
+#
+#   Browsing (no query)  The user asked "show me this category", so there is
+#                        no relevance to protect and paid placement sorts
+#                        strictly first. This is the promise as written.
+#
+#   Searching (a query)  The user asked for a specific thing. Sponsorship is a
+#                        bounded bonus that can only break ties between
+#                        comparably-matching tools — never enough to lift an
+#                        unrelated paid tool above the thing someone searched
+#                        for. Same rule fuzzy_search_tools already follows.
+#
+# 8 is deliberately small: token scores reach the hundreds, so this decides
+# near-ties and nothing else. Raising it would start selling the answer rather
+# than the placement.
+SPONSORED_RELEVANCE_BONUS = 8
+
 # WHY: semantic path only kicks in for relevance-sorted queries with this much
 # cosine confidence; below this we treat the model as having no opinion and let
 # the keyword scorer run as before.
@@ -276,7 +301,7 @@ def search_tools(raw_query, category_filter="All", pricing_filter_ui="All",
                  student_only=False, trending_only=False, sort_by="Relevance", limit=50, actually_free=False,
                  open_source=False, self_hosted=False, pay_as_you_go=False):
 
-    from app.tool_cache import SEARCH_INDEX, get_cached_tools
+    from app.tool_cache import SEARCH_INDEX, _sponsored_active, get_cached_tools
 
     # Lazy-prime in case search is the first endpoint hit (e.g. under TESTING where
     # startup-time cache priming is skipped) — get_cached_tools rebuilds SEARCH_INDEX.
@@ -420,7 +445,16 @@ def search_tools(raw_query, category_filter="All", pricing_filter_ui="All",
             continue
 
         # ── SCORING ─────────────────────────────────────────
+        # _sponsored_active(), not tool["sponsored"]: the raw field stays True
+        # on a lapsed subscription, so reading it directly would both rank and
+        # LABEL an expired sponsor as paid placement. Expiry has to be applied
+        # at the point of serving.
+        sponsored_now = _sponsored_active(tool)
+
         if not tokens:
+            # No sponsored term here on purpose — browsing is ordered by
+            # placement in the sort below, so adding a bonus too would apply
+            # the same advantage twice.
             score = (float(tool.get("rating", 3.0)) * 8
                      + (15 if tool.get("trending") else 0)
                      + (10 if tool.get("featured")  else 0))
@@ -462,9 +496,15 @@ def search_tools(raw_query, category_filter="All", pricing_filter_ui="All",
                     score += 6
                 if tool.get("featured"):
                     score += 4
+                if sponsored_now:
+                    score += SPONSORED_RELEVANCE_BONUS
 
         if score > 0:
-            results.append({**tool, "_score": score})
+            # Overwrite `sponsored` with the effective value. The frontend
+            # already renders a "Sponsored" badge and sorts on this key
+            # (Card.jsx, DirectoryPage.jsx), so passing the raw field through
+            # would disclose paid placement for a sponsorship that has lapsed.
+            results.append({**tool, "_score": score, "sponsored": sponsored_now})
 
     # ── FALLBACK ────────────────────────────────────────────
     if not results and tokens:
@@ -493,7 +533,13 @@ def search_tools(raw_query, category_filter="All", pricing_filter_ui="All",
                           key=lambda x: x["_raw"].get("rating", 0),
                           reverse=True)[:6]
         return {
-            "results": [f["_raw"] for f in fallback],
+            # Effective flag here too — this path bypasses the scoring loop,
+            # and a lapsed sponsor must not be badged as paid placement just
+            # because a query found nothing.
+            "results": [
+                {**f["_raw"], "sponsored": _sponsored_active(f["_raw"])}
+                for f in fallback
+            ],
             "fallback": True,
             "fuzzy_matched": False,
             "original_query": raw_query,
@@ -501,14 +547,28 @@ def search_tools(raw_query, category_filter="All", pricing_filter_ui="All",
         }
 
     # ── SORT ────────────────────────────────────────────────
+    # On an EXPLICIT sort the user has named the ordering they want, so
+    # sponsorship only ever breaks a tie between equal values. Letting paid
+    # placement reorder "sort by rating" would make the control lie, which is
+    # worth more to us intact than any placement is.
     if sort_by == "Rating":
-        results.sort(key=lambda x: _safe_float(x.get("rating", 0)), reverse=True)
+        results.sort(key=lambda x: (_safe_float(x.get("rating", 0)),
+                                    bool(x.get("sponsored"))), reverse=True)
     elif sort_by == "Reviews":
-        results.sort(key=lambda x: _safe_int(x.get("review_count", 0)), reverse=True)
+        results.sort(key=lambda x: (_safe_int(x.get("review_count", 0)),
+                                    bool(x.get("sponsored"))), reverse=True)
     elif sort_by == "Trending":
-        results.sort(key=lambda x: (bool(x.get("trending", False)), _safe_float(x.get("rating", 0))), reverse=True)
-    else:  # Relevance (default)
+        results.sort(key=lambda x: (bool(x.get("trending", False)),
+                                    _safe_float(x.get("rating", 0)),
+                                    bool(x.get("sponsored"))), reverse=True)
+    elif tokens:
+        # Relevance against a real query — the bonus is already inside _score,
+        # bounded so it cannot outrank a genuinely better match.
         results.sort(key=lambda x: x["_score"], reverse=True)
+    else:
+        # Browsing a category with no query. This is the sold promise: paid
+        # placement above free listings, then ordinary curation order.
+        results.sort(key=lambda x: (bool(x.get("sponsored")), x["_score"]), reverse=True)
 
     return {
         "results": results[:limit],
