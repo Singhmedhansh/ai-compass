@@ -205,6 +205,9 @@ function AdminPage() {
   const [users, setUsers] = useState([])
   const [reviews, setReviews] = useState([])
   const [submissions, setSubmissions] = useState([])
+  // The queue used to be pending-only, which meant the time-boxed perks an
+  // approval grants were invisible the moment they started running.
+  const [submissionStatus, setSubmissionStatus] = useState('pending')
   const [feedback, setFeedback] = useState([])
   const [feedbackUnread, setFeedbackUnread] = useState(0)
   const [analytics, setAnalytics] = useState(null)
@@ -309,7 +312,7 @@ function AdminPage() {
 
   useEffect(() => {
     if (!authed) return
-    if (activeTab === 'Submissions') api('/api/v1/admin/submissions?status=pending').then(setSubmissions).catch(() => setSubmissions([]))
+    if (activeTab === 'Submissions') api(`/api/v1/admin/submissions?status=${submissionStatus}`).then(setSubmissions).catch(() => setSubmissions([]))
     if (activeTab === 'Feedback') {
       api('/api/v1/admin/feedback')
         .then((d) => { setFeedback(d.feedback || []); setFeedbackUnread(d.unread || 0) })
@@ -361,7 +364,7 @@ function AdminPage() {
     if (activeTab === 'Outreach') {
       loadOutreachData()
     }
-  }, [activeTab, authed])
+  }, [activeTab, authed, submissionStatus])
 
   const loadPaypalHealth = useCallback(async () => {
     setPaypalHealthLoading(true)
@@ -747,7 +750,24 @@ function AdminPage() {
 
         {activeTab === 'Submissions' && (
           <Card>
-            <h2 className="mb-4 text-xl font-semibold text-ink">Pending Submissions ({submissions.length})</h2>
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <h2 className="text-xl font-semibold text-ink">
+                {submissionStatus === 'pending' ? 'Pending' : submissionStatus === 'approved' ? 'Approved' : 'All'} Submissions ({submissions.length})
+              </h2>
+              <div className="flex gap-1 rounded-lg border border-line p-1">
+                {['pending', 'approved', 'all'].map((k) => (
+                  <button
+                    key={k}
+                    onClick={() => setSubmissionStatus(k)}
+                    className={`rounded-md px-3 py-1 text-xs font-medium capitalize ${
+                      submissionStatus === k ? 'bg-accent text-white' : 'text-muted hover:text-ink'
+                    }`}
+                  >
+                    {k}
+                  </button>
+                ))}
+              </div>
+            </div>
             <div className="space-y-3">
               {submissions.map((s) => (
                 <div key={s.id} className={`rounded-xl border p-4 ${
@@ -773,15 +793,59 @@ function AdminPage() {
                       {s.payment_note && s.payment_status !== 'verified' && (
                         <p className="mt-1 font-mono text-[11px] text-muted break-all">{s.payment_note}</p>
                       )}
+                      {/* Time-boxed perks, from the same predicate the
+                          community rail and the founder dashboard use. The
+                          admin is the only person who can act on a window
+                          about to lapse, and had no view of one. */}
+                      {s.perk_window && (
+                        <p className={`mt-1 text-[11px] font-medium ${
+                          s.perk_window.days_remaining <= 5
+                            ? 'text-orange-600 dark:text-orange-400'
+                            : 'text-muted'
+                        }`}>
+                          Complimentary rail unit · {s.perk_window.days_remaining} day{s.perk_window.days_remaining === 1 ? '' : 's'} left
+                          {' '}(ends {new Date(s.perk_window.ends_at).toLocaleDateString()})
+                        </p>
+                      )}
+                      {s.status === 'approved' && !s.perk_window && s.payment_status === 'verified' && (
+                        <p className="mt-1 text-[11px] text-muted">
+                          Complimentary rail window ended · badge and placement are permanent
+                        </p>
+                      )}
+                      {s.queue_age_days != null && s.queue_age_days > 0 && (
+                        <p className={`mt-1 text-[11px] ${
+                          // Fast-Track promises a 24-hour review. Perk time no
+                          // longer burns while a row waits, but the promise does.
+                          s.is_priority && s.queue_age_days >= 1
+                            ? 'font-medium text-orange-600 dark:text-orange-400'
+                            : 'text-muted'
+                        }`}>
+                          Waiting {s.queue_age_days} day{s.queue_age_days === 1 ? '' : 's'} in review
+                          {s.is_priority && s.queue_age_days >= 1 ? ' — past the 24-hour Fast-Track promise' : ''}
+                        </p>
+                      )}
+                      {s.approved_at && (
+                        <p className="mt-1 text-[11px] text-muted">
+                          Approved {new Date(s.approved_at).toLocaleDateString()}
+                        </p>
+                      )}
                     </div>
                     <div className="flex shrink-0 gap-2">
-                      <button onClick={() => reviewSubmission(s.id, 'approve')} className={`${BTN_PRIMARY} px-3 py-1.5 text-xs`}>Approve</button>
-                      <button onClick={() => reviewSubmission(s.id, 'reject')} className={`${BTN_GHOST} px-3 py-1.5 text-xs`}>Reject</button>
+                      {s.status === 'pending' ? (
+                        <>
+                          <button onClick={() => reviewSubmission(s.id, 'approve')} className={`${BTN_PRIMARY} px-3 py-1.5 text-xs`}>Approve</button>
+                          <button onClick={() => reviewSubmission(s.id, 'reject')} className={`${BTN_GHOST} px-3 py-1.5 text-xs`}>Reject</button>
+                        </>
+                      ) : (
+                        <span className="rounded-full bg-line/60 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-muted">
+                          {s.status}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
               ))}
-              {submissions.length === 0 && <p className="text-sm text-muted">No pending submissions.</p>}
+              {submissions.length === 0 && <p className="text-sm text-muted">No {submissionStatus === 'all' ? '' : `${submissionStatus} `}submissions.</p>}
             </div>
           </Card>
         )}

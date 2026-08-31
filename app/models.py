@@ -227,6 +227,19 @@ class Submission(db.Model):
     # idempotency, since a retried submission request must not re-send the
     # email even though the account lookup would just no-op safely on its own.
     welcome_email_sent_at = db.Column(db.DateTime, nullable=True)
+    # When an admin approved this submission and the listing went live.
+    #
+    # This is the start of the clock for time-boxed paid perks (see
+    # sponsorship.complimentary_window). It used to be measured from
+    # submitted_at, which quietly charged the founder for our own review
+    # queue: a Fast-Track buyer whose row sat unreviewed for a week got 23
+    # days of the 30 they paid for, with nothing in the UI explaining where
+    # the other seven went.
+    #
+    # Nullable, and consumers fall back to submitted_at: rows approved before
+    # this column existed have no honest value to backfill, and inventing one
+    # would be worse than the documented fallback.
+    approved_at = db.Column(db.DateTime, nullable=True)
     # Owner test data, not a real founder. Excluded from every count in
     # /admin/tier-breakdown — attempts, failure reasons and revenue.
     #

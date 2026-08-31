@@ -886,6 +886,9 @@ def create_app(config: dict | None = None) -> Flask:
                         # Owner test rows, excluded from admin revenue and
                         # paid-attempt reporting. See Submission.is_test.
                         ("is_test", "BOOLEAN NOT NULL DEFAULT FALSE"),
+                        # Start of the clock for time-boxed paid perks.
+                        # See Submission.approved_at.
+                        ("approved_at", "TIMESTAMP"),
                     ]:
                         try:
                             from sqlalchemy import text

@@ -5416,6 +5416,9 @@ def admin_set_flag(key):
 def admin_list_submissions():
     if not _is_admin():
         return jsonify({"error": "Forbidden"}), 403
+    from datetime import datetime, timezone
+
+    from app import sponsorship
     from app.models import Submission
     status = request.args.get("status", "pending")
     q = Submission.query
@@ -5425,6 +5428,33 @@ def admin_list_submissions():
     # priority review promise is something the queue actually enforces,
     # not just an email subject line.
     subs = q.order_by(Submission.is_priority.desc(), Submission.submitted_at.desc()).limit(200).all()
+
+    now = datetime.now(timezone.utc)
+
+    def _perk_window(sub):
+        """The live complimentary rail window, as the admin needs to see it.
+
+        Surfaced here because the perk is time-boxed and nothing outside the
+        founder's own dashboard reported it — so the one person who could
+        notice a window running out had no view of it. Same predicate as the
+        renderer and the dashboard (sponsorship.complimentary_window), which
+        is the whole point: a third opinion about who is currently boosted is
+        how the first two got to disagree.
+        """
+        window = sponsorship.complimentary_window(sub)
+        if window is None:
+            return None
+        starts, ends = window
+        return {
+            "placement": "rail",
+            "starts_at": starts.isoformat(),
+            "ends_at": ends.isoformat(),
+            # Rounded UP: truncation reports a window with four hours left
+            # as "0 days", which reads as already over — the opposite of the
+            # thing this display exists to warn about.
+            "days_remaining": max(0, -((now - ends).days)),
+        }
+
     return jsonify([
         {
             "id": s.id, "name": s.name, "website": s.website,
@@ -5432,6 +5462,18 @@ def admin_list_submissions():
             "pricing_model": s.pricing_model, "tags": s.tags,
             "submitter_email": s.submitter_email, "status": s.status,
             "submitted_at": s.submitted_at.isoformat() if s.submitted_at else None,
+            # Approval is what starts the clock on time-boxed paid perks
+            # (see Submission.approved_at). Null on anything still pending,
+            # and on rows approved before the column existed.
+            "approved_at": s.approved_at.isoformat() if s.approved_at else None,
+            # Whole days a still-pending row has waited. Review time no
+            # longer eats the founder's perk window, but it does still delay
+            # their listing going live, so the queue age stays worth seeing.
+            "queue_age_days": (
+                (now - sponsorship._aware(s.submitted_at)).days
+                if s.status == "pending" and s.submitted_at else None
+            ),
+            "perk_window": _perk_window(s),
             "payment_status": s.payment_status, "is_priority": s.is_priority,
             # payment_note carries the failure reason AND the transaction
             # reference for anything unverified. A 'needs_manual_review' row
@@ -5528,6 +5570,12 @@ def admin_approve_submission(sub_id):
         catalog_row.submission_id = s.id
 
     s.status = "approved"
+    # Starts the clock on time-boxed paid perks (the complimentary rail
+    # window). Set once — a re-approval must not hand the founder a second
+    # 30 days, and the slug-already-in-catalog 409 above is a guard against
+    # the common path, not a guarantee.
+    if s.approved_at is None:
+        s.approved_at = datetime.now(timezone.utc)
     db.session.commit()
     _refresh_catalog()
 

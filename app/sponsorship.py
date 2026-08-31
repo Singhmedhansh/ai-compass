@@ -168,6 +168,13 @@ def complimentary_window(submission):
     placements at all, so the perk was delivered and invisible at the same
     time.
 
+    The window runs from APPROVAL, not submission. Measuring it from
+    submitted_at billed the founder for our own review queue — a row that sat
+    three days in moderation delivered 27 of the 30 days it bought, and
+    nothing in the UI accounted for the difference. Rows approved before
+    Submission.approved_at existed fall back to submitted_at, which is the
+    old (slightly short) behaviour rather than a fabricated start date.
+
     Deliberately NOT implemented by writing a SponsorSlot row on approval,
     which was the obvious-looking fix. Rail capacity is real inventory
     (PLACEMENT_CAPACITY["rail"] == 4) and next_available_start() counts
@@ -182,13 +189,21 @@ def complimentary_window(submission):
         return None
     if tier_for_pricing_model(submission.pricing_model) not in COMPLIMENTARY_TIERS:
         return None
-    submitted = _aware(getattr(submission, "submitted_at", None))
-    if submitted is None:
+    if getattr(submission, "status", None) != "approved":
+        # Nothing is boosted before the listing exists. Worth stating
+        # explicitly rather than relying on the renderer's CatalogTool join
+        # to filter it: the submitted_at fallback below would otherwise hand
+        # a still-pending row a live window, and the admin queue reads this
+        # predicate directly, without that join.
         return None
-    ends = submitted + timedelta(days=COMPLIMENTARY_WINDOW_DAYS)
+    starts = (_aware(getattr(submission, "approved_at", None))
+              or _aware(getattr(submission, "submitted_at", None)))
+    if starts is None:
+        return None
+    ends = starts + timedelta(days=COMPLIMENTARY_WINDOW_DAYS)
     if ends <= datetime.now(timezone.utc):
         return None
-    return submitted, ends
+    return starts, ends
 
 
 def complimentary_placement_for_slug(slug):
