@@ -1,6 +1,6 @@
 import { Helmet } from 'react-helmet-async'
-import { CheckCircle2, Clock, ExternalLink, Heart, MousePointerClick, Percent, Sparkles, Star, Trophy, TrendingUp, XCircle } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { CheckCircle2, Clock, ExternalLink, Heart, MousePointerClick, Pencil, Percent, Rocket, Sparkles, Star, Trophy, TrendingUp, XCircle } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 
 function Card({ children, className = '' }) {
@@ -270,8 +270,9 @@ function UpsellCard() {
         <div>
           <h2 className="font-semibold text-ink">Unlock click &amp; view analytics</h2>
           <p className="mt-1 text-sm text-ink-2">
-            Quick Review and Fast-Track submissions get real analytics on this dashboard — how many students clicked through,
-            how many viewed your listing, and (Fast-Track) how you compare to the category average.
+            Fast-Track ($49) and Reviewed ($79) listings get real analytics on this dashboard — how many students
+            clicked through, how many viewed your listing, and how you compare to the category average. Reviewed also
+            gets a written hands-on review of your tool, published on this listing's own page.
           </p>
           <Link
             to="/pricing"
@@ -327,7 +328,7 @@ function BenchmarkCard({ benchmark }) {
   )
 }
 
-function FeaturedStatusCard({ featured }) {
+function FeaturedStatusCard({ featured, partnerSurfaces = [] }) {
   // Keys come from resp["perks"], derived live from the catalog record — a
   // lapsed sponsorship greys these out instead of continuing to claim them.
   const items = [
@@ -337,7 +338,7 @@ function FeaturedStatusCard({ featured }) {
   ]
   return (
     <Card>
-      <h2 className="font-semibold text-ink">Fast-Track perks active</h2>
+      <h2 className="font-semibold text-ink">Paid placement active</h2>
       <ul className="mt-3 space-y-2">
         {items.map(([key, label]) => (
           <li key={key} className="flex items-start gap-2 text-sm text-ink-2">
@@ -346,6 +347,30 @@ function FeaturedStatusCard({ featured }) {
           </li>
         ))}
       </ul>
+
+      {/* Named pages beat a claim. "Placed above free listings" is true and
+          unverifiable; these are links the founder can open. */}
+      {partnerSurfaces.length > 0 && (
+        <div className="mt-4 border-t border-line pt-3">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-muted">
+            Your partner unit is on
+          </h3>
+          <ul className="mt-2 space-y-1.5">
+            {partnerSurfaces.map((s) => (
+              <li key={s.surface} className="text-sm">
+                <Link to={s.path} className="font-semibold text-accent hover:underline">
+                  {s.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-2 text-[11px] leading-relaxed text-muted-2">
+            Shown as a labelled Partner card beside each page&apos;s picks, never inside them —
+            and only where it is honestly relevant. Impressions and clicks are counted the same
+            way as your rail card.
+          </p>
+        </div>
+      )}
     </Card>
   )
 }
@@ -359,6 +384,73 @@ function FeaturedStatusCard({ featured }) {
  * empty, because a submitter reading their own analytics is the warmest
  * possible audience for a slot.
  */
+/**
+ * The commissioned editorial review (see app/editorial.py).
+ *
+ * Sits on the dashboard because this is the one place a founder is already
+ * looking at what their listing is doing for them — and a review is the
+ * thing that keeps working after a placement expires. If we have already
+ * published one, this card stops selling and just hands over the URL, which
+ * is what they actually came for.
+ */
+function EditorialReviewCard({ slug }) {
+  const [review, setReview] = useState(null)
+
+  useEffect(() => {
+    if (!slug) return undefined
+    const controller = new AbortController()
+    fetch(`/api/v1/reviews/${encodeURIComponent(slug)}`, { signal: controller.signal })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => d?.review && setReview(d.review))
+      .catch(() => {})
+    return () => controller.abort()
+  }, [slug])
+
+  if (!slug) return null
+
+  return (
+    <Card>
+      <h2 className="flex items-center gap-1.5 font-semibold text-ink">
+        <Pencil className="h-4 w-4 text-accent" /> Editorial review
+      </h2>
+      {review ? (
+        <>
+          <p className="mt-2 text-sm leading-relaxed text-ink-2">
+            Your review is live: <strong>{review.headline}</strong>
+            {typeof review.score === 'number' && ` — ${review.score}/5`}. It is a permanent,
+            indexed page with our byline on it, so it is yours to cite anywhere.
+          </p>
+          <Link
+            to={`/tools/${slug}`}
+            className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-90"
+          >
+            Read it <ExternalLink className="h-4 w-4" />
+          </Link>
+        </>
+      ) : (
+        <>
+          <p className="mt-2 text-sm leading-relaxed text-ink-2">
+            A placement rents attention for a week. A review is an artifact you keep: 300–500 words
+            after we actually use your tool, with screenshots, pros, cons and a scored verdict, on
+            your own indexed page. A third-party URL for your site, your launch post and your
+            investor update.
+          </p>
+          <p className="mt-2 text-xs leading-relaxed text-muted">
+            The verdict is ours and the page says it was commissioned — which is exactly why the
+            link is worth having.
+          </p>
+          <Link
+            to="/sponsor#review"
+            className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-90"
+          >
+            Commission a review
+          </Link>
+        </>
+      )}
+    </Card>
+  )
+}
+
 function SponsorshipCard({ sponsorship }) {
   if (!sponsorship) return null
   const { placements = [], impressions, clicks, ctr, window_days: windowDays } = sponsorship
@@ -431,6 +523,155 @@ function SponsorshipCard({ sponsorship }) {
   )
 }
 
+/**
+ * Launch Day (see app/launch_day.py).
+ *
+ * Nothing new is sold here — this schedules the perks a paid listing already
+ * has, onto one date the founder chooses and can tell their own audience
+ * about. The card only offers dates the backend says it can honour: a picker
+ * that shows a day we cannot deliver is a promise broken at the moment it is
+ * made.
+ */
+function LaunchDayCard({ query }) {
+  const [state, setState] = useState({ loading: true, launch: null, availability: [] })
+  const [choice, setChoice] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+
+  const load = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/v1/launch?${query}`, { credentials: 'include' })
+      const body = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setState({ loading: false, launch: null, availability: [] })
+        return
+      }
+      setState({ loading: false, launch: body.launch, availability: body.availability || [] })
+    } catch {
+      setState({ loading: false, launch: null, availability: [] })
+    }
+  }, [query])
+
+  useEffect(() => { load() }, [load])
+
+  const save = async (date) => {
+    setBusy(true)
+    setError('')
+    try {
+      const res = await fetch(`/api/v1/launch?${query}`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(date ? { date } : {}),
+      })
+      const body = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setError(body.error || 'That did not save. Try again in a moment.')
+        return
+      }
+      setChoice('')
+      await load()
+    } catch {
+      setError('That did not save. Try again in a moment.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  // Not eligible (free tier, or an unverified payment) — the backend returns
+  // a null launch, and we say nothing rather than dangling a perk.
+  if (state.loading || !state.launch) return null
+
+  const { launch_at: launchAt, launched, days_until: daysUntil, can_change: canChange } = state.launch
+  const open = state.availability.filter((d) => d.available)
+  const pretty = (iso) => new Date(`${iso}T00:00:00`).toLocaleDateString(undefined, {
+    weekday: 'long', day: 'numeric', month: 'long',
+  })
+
+  return (
+    <Card>
+      <h2 className="flex items-center gap-1.5 font-semibold text-ink">
+        <Rocket className="h-4 w-4 text-accent" /> Launch Day
+      </h2>
+
+      {launched ? (
+        <p className="mt-2 text-sm leading-relaxed text-ink-2">
+          Your launch ran on <strong>{pretty(launchAt)}</strong>. It is done and cannot be
+          rescheduled — but everything it turned on (your placement, the rail card, the digest
+          spot) is still running on its own clock.
+        </p>
+      ) : launchAt ? (
+        <>
+          <p className="mt-2 text-sm leading-relaxed text-ink-2">
+            You are booked for <strong>{pretty(launchAt)}</strong>
+            {typeof daysUntil === 'number' && daysUntil > 0 && ` — ${daysUntil} day${daysUntil === 1 ? '' : 's'} away`}.
+            Your listing goes live that morning, leads the next digest, and gets a showcase post
+            you can edit. Tell your own list the same date.
+          </p>
+          <p className="mt-2 text-xs leading-relaxed text-muted">
+            We run one launch a day, which is the whole point — your date is held.
+          </p>
+        </>
+      ) : (
+        <p className="mt-2 text-sm leading-relaxed text-ink-2">
+          Your listing already earns a placement, a community rail card and first position in the
+          new-tools digest. Pick a date and they all land together instead of trickling out —
+          one day you can plan around and point your own audience at.
+        </p>
+      )}
+
+      {canChange && open.length > 0 && (
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <label htmlFor="launch-date" className="sr-only">Launch date</label>
+          <select
+            id="launch-date"
+            value={choice}
+            onChange={(e) => setChoice(e.target.value)}
+            className="rounded-lg border border-line bg-bg px-3 py-2 text-sm text-ink focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+          >
+            <option value="">{launchAt ? 'Move to…' : 'Choose a date…'}</option>
+            {open.map((d) => (
+              <option key={d.date} value={d.date}>{pretty(d.date)}</option>
+            ))}
+          </select>
+          <button
+            type="button"
+            disabled={!choice || busy}
+            onClick={() => save(choice)}
+            className="rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-50"
+          >
+            {busy ? 'Saving…' : launchAt ? 'Move my launch' : 'Book this date'}
+          </button>
+          {launchAt && (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => save(null)}
+              className="rounded-xl border border-line px-4 py-2 text-sm font-semibold text-ink-2 transition hover:border-line-strong disabled:opacity-50"
+            >
+              Cancel
+            </button>
+          )}
+        </div>
+      )}
+
+      {canChange && open.length === 0 && (
+        <p className="mt-3 text-sm text-muted">
+          Every date in the next few weeks is taken. Email admin@ai-compass.in and we will find you one.
+        </p>
+      )}
+
+      {error && <p className="mt-3 text-sm font-semibold text-red-500">{error}</p>}
+
+      <p className="mt-4 text-[11px] leading-relaxed text-muted-2">
+        A launch date schedules what your tier already includes — it does not buy a rank, a
+        verdict, or a place in our editorial picks. Dates before your listing can go live are not
+        offered, and you can move or cancel yours right up until it runs.
+      </p>
+    </Card>
+  )
+}
+
 export default function SubmissionDashboardPage() {
   const [searchParams] = useSearchParams()
   const token = searchParams.get('token') || ''
@@ -442,15 +683,22 @@ export default function SubmissionDashboardPage() {
   const hasAccess = !!token || !!submissionId
   const [state, setState] = useState({ loading: hasAccess, error: hasAccess ? null : 'missing_token', data: null })
 
+  // The one credential every card on this page authenticates with — either the
+  // signed link from the invoice email, or a logged-in founder's own session
+  // scoped to a submission they own.
+  const query = useMemo(
+    () => (token
+      ? `token=${encodeURIComponent(token)}`
+      : `submission_id=${encodeURIComponent(submissionId)}`),
+    [token, submissionId],
+  )
+
   useEffect(() => {
     if (!hasAccess) {
       return
     }
     let cancelled = false
     setState({ loading: true, error: null, data: null })
-    const query = token
-      ? `token=${encodeURIComponent(token)}`
-      : `submission_id=${encodeURIComponent(submissionId)}`
     fetch(`/api/v1/submissions/dashboard?${query}`)
       .then(async (res) => {
         const body = await res.json().catch(() => ({}))
@@ -467,7 +715,7 @@ export default function SubmissionDashboardPage() {
     return () => {
       cancelled = true
     }
-  }, [token, submissionId, hasAccess])
+  }, [query, hasAccess])
 
   const { loading, error, data } = state
 
@@ -496,6 +744,8 @@ export default function SubmissionDashboardPage() {
               <>
                 <StatusBanner submission={data.submission} />
 
+                <LaunchDayCard query={query} />
+
                 {data.tier === 'free' && <UpsellCard />}
 
                 {data.analytics && (
@@ -516,14 +766,16 @@ export default function SubmissionDashboardPage() {
                   </>
                 )}
 
-                {data.tier === 'sponsored' && (
+                {(data.tier === 'sponsored' || data.tier === 'reviewed') && (
                   <>
                     <BenchmarkCard benchmark={data.benchmark} />
-                    <FeaturedStatusCard featured={data.perks} />
+                    <FeaturedStatusCard featured={data.perks} partnerSurfaces={data.partner_surfaces} />
                   </>
                 )}
 
                 <SponsorshipCard sponsorship={data.sponsorship} />
+
+                <EditorialReviewCard slug={data.submission?.slug} />
 
                 {data.tier === 'quick' && !data.analytics && (
                   <Card>

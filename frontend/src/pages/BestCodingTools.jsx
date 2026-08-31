@@ -8,6 +8,7 @@ import { MagneticWrapper, WordReveal, ConversionCTA } from "../components/ui";
 import { useCatalogStats } from "../hooks/useCatalogStats";
 import { sectionReveal, staggerParent, staggerChild } from "../lib/motion";
 import { toolHoverHandlers, alternativesHoverHandlers } from "../lib/prefetch";
+import PartnerUnits from "../components/tools/PartnerUnits";
 
 const MotionDiv = motion.div;
 const FALLBACK_TOOL_COUNT = 400;
@@ -472,6 +473,12 @@ export default function BestCodingTools() {
               );
             })}
           </MotionDiv>
+        </div>
+
+        {/* Paid units, below the editorial list and outside it — see
+            app/partner_slots.py. The picks above are never for sale. */}
+        <div className="mx-auto max-w-[860px] px-6 mt-14">
+          <PartnerUnits surface="best-coding-tools" />
         </div>
 
         {/* FAQs */}

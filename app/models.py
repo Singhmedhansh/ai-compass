@@ -240,6 +240,18 @@ class Submission(db.Model):
     # this column existed have no honest value to backfill, and inventing one
     # would be worse than the documented fallback.
     approved_at = db.Column(db.DateTime, nullable=True)
+    # The founder's chosen Launch Day (see app/launch_day.py). When set, it —
+    # not approved_at — is when the time-boxed perks fire: the listing goes
+    # live, the rail card starts, the digest announces it, and a showcase post
+    # is written. A date is something a founder can plan around and tell their
+    # own audience about; a permanent flag that switches on whenever an admin
+    # happens to click approve is neither. It also concentrates a small
+    # audience into one spike instead of spreading it into invisibility.
+    launch_at = db.Column(db.DateTime, nullable=True, index=True)
+    # Set the first time the launch actually fires, so the announcement side
+    # effects (the showcase post) happen exactly once even if the tick runs
+    # twice or the date is edited afterwards.
+    launched_at = db.Column(db.DateTime, nullable=True)
     # Owner test data, not a real founder. Excluded from every count in
     # /admin/tier-breakdown — attempts, failure reasons and revenue.
     #
@@ -306,6 +318,12 @@ class Review(db.Model):
     body = db.Column(db.String(1000), nullable=False)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     is_hidden = db.Column(db.Boolean, default=False)
+    # A public reply from the tool's claimed maker (see app/claims.py). One
+    # per review, on the review rather than in its own table: a reply is not
+    # a conversation, it is the maker's single answer of record, and a thread
+    # here would turn every critical review into an argument on our page.
+    maker_reply = db.Column(db.String(1000), nullable=True)
+    maker_reply_at = db.Column(db.DateTime, nullable=True)
 
     user = db.relationship("User", backref="reviews")
 
@@ -737,3 +755,149 @@ class DigestRecipientLog(db.Model):
     # (a deferred batch can straddle a midnight-UTC boundary).
     sent_on = db.Column(db.Date, nullable=False, default=lambda: datetime.now(timezone.utc).date())
     created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+
+
+class EditorialReview(db.Model):
+    """A commissioned, hands-on review of one tool, published on /tools/<slug>.
+
+    The full-size sibling of CatalogTool.editorial_blurb: the blurb is a
+    sentence that replaces a submitted description, this is a 300–500 word
+    piece with screenshots, pros, cons and a verdict, written and bylined by
+    a human.
+
+    What the founder buys is the *artifact*, not a position — a third-party
+    review URL they can cite from their own site, their launch post and their
+    investor update. Which is why nothing here touches ranking, and why
+    `verdict`/`rating` are ours to write: the money buys the work of testing
+    the tool and publishing the result honestly, and `outcome` records that
+    the piece can land negative without a refund being owed for it.
+
+    Deliberately its own table rather than more columns on catalog_tools:
+    a review has a purchase, a lifecycle (ordered -> drafting -> published)
+    and an author, none of which belong on a catalog row, and a tool can be
+    reviewed without ever having been submitted through the paid ladder.
+    """
+
+    __tablename__ = "editorial_reviews"
+
+    STATUSES = ("ordered", "drafting", "published", "declined", "refunded")
+
+    id = db.Column(db.Integer, primary_key=True)
+    # One live review per tool. Not unique at the DB level: a declined or
+    # refunded order for a slug must not block a later, honest re-order.
+    tool_slug = db.Column(db.String(120), nullable=False, index=True)
+    status = db.Column(db.String(20), nullable=False, default="ordered", index=True)
+
+    # --- the review itself ------------------------------------------------
+    headline = db.Column(db.String(180), nullable=True)
+    # Markdown-ish plain text; rendered as paragraphs, never as HTML.
+    body = db.Column(db.Text, nullable=True)
+    verdict = db.Column(db.Text, nullable=True)
+    # JSON arrays of strings / {url, caption} objects. Stored as text so this
+    # works identically on SQLite (tests) and Postgres (production).
+    pros = db.Column(db.Text, nullable=True)
+    cons = db.Column(db.Text, nullable=True)
+    screenshots = db.Column(db.Text, nullable=True)
+    # Our score out of 5 — separate from the crowd rating on the tool, and
+    # never written by the buyer.
+    score = db.Column(db.Float, nullable=True)
+    author_name = db.Column(db.String(120), nullable=True)
+    published_at = db.Column(db.DateTime, nullable=True, index=True)
+    # Set on every substantive edit so the page can say "updated on", which
+    # is the difference between a review worth citing and a stale one.
+    updated_at = db.Column(
+        db.DateTime,
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
+
+    # --- the purchase -----------------------------------------------------
+    amount_paid = db.Column(db.Float, nullable=False, default=0.0)
+    # Verified PayPal order id. Unique for the same reason as
+    # SponsorSlot.payment_ref: it is the replay guard that stops one captured
+    # order minting an unlimited number of commissions.
+    payment_ref = db.Column(db.String(64), unique=True, nullable=True, index=True)
+    contact_email = db.Column(db.String(255), nullable=True)
+    # Anything the founder wants us to look at: docs, a demo login, the
+    # feature they think we will miss. Context for the reviewer, never copy
+    # we publish verbatim.
+    brief = db.Column(db.Text, nullable=True)
+    # Free-text admin trail: why it was declined, when a refund was sent.
+    admin_note = db.Column(db.String(500), nullable=True)
+    created_at = db.Column(
+        db.DateTime, nullable=False, index=True,
+        default=lambda: datetime.now(timezone.utc),
+    )
+
+
+class ToolClaim(db.Model):
+    """A maker's claim on their own catalog listing.
+
+    Turns a one-time transaction into an account someone logs back into: the
+    founder claims the listing, gets a "Claimed by the maker" badge on it,
+    and can edit their own copy without going through an admin.
+
+    Deliberately NOT keyed off Submission.founder_user_id, which only exists
+    for tools that came through the paid submission ladder. Most of the
+    catalog was seeded editorially and has no Submission at all, and those
+    listings are exactly the ones a maker is most likely to want to correct.
+    A claim is its own record so any listing can be claimed.
+
+    verified_domain_match is the load-bearing field: a claimant whose email
+    domain matches the tool's own website is auto-approved, because that is a
+    fact we can check rather than an assertion we have to trust. Everything
+    else waits for a human, since the cost of a wrong approval is handing a
+    stranger edit rights over somebody else's listing.
+    """
+
+    __tablename__ = "tool_claims"
+
+    STATUSES = ("pending", "approved", "rejected", "revoked")
+
+    id = db.Column(db.Integer, primary_key=True)
+    tool_slug = db.Column(db.String(120), nullable=False, index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
+    status = db.Column(db.String(20), nullable=False, default="pending", index=True)
+    # True when the claimant's email domain matched the tool's website domain
+    # at the time of claiming. Stored rather than recomputed: the tool's URL
+    # can change later, and an audit needs to know what was true when the
+    # decision was made.
+    verified_domain_match = db.Column(db.Boolean, nullable=False, default=False)
+    # The claimant's own words: their role, a link to a team page, anything
+    # that helps a human decide. Never published.
+    evidence = db.Column(db.Text, nullable=True)
+    admin_note = db.Column(db.String(500), nullable=True)
+    created_at = db.Column(
+        db.DateTime, nullable=False, index=True,
+        default=lambda: datetime.now(timezone.utc),
+    )
+    decided_at = db.Column(db.DateTime, nullable=True)
+
+    user = db.relationship("User", backref=db.backref("tool_claims", cascade="all, delete-orphan"))
+
+
+class ToolEdit(db.Model):
+    """Audit trail for a founder editing their own claimed listing.
+
+    Founder edits apply immediately — a maker correcting their own pricing
+    should not wait on a queue, and a listing that is wrong for three days is
+    worse for the reader than one edited without review. That tradeoff is only
+    defensible with a record of who changed what, which is this table: it is
+    what makes an immediate edit reversible instead of merely fast.
+    """
+
+    __tablename__ = "tool_edits"
+
+    id = db.Column(db.Integer, primary_key=True)
+    tool_slug = db.Column(db.String(120), nullable=False, index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True, index=True)
+    field = db.Column(db.String(64), nullable=False)
+    # Truncated on write — this is an audit trail, not a backup, and a long
+    # description would make the table the biggest thing in the database.
+    old_value = db.Column(db.Text, nullable=True)
+    new_value = db.Column(db.Text, nullable=True)
+    created_at = db.Column(
+        db.DateTime, nullable=False, index=True,
+        default=lambda: datetime.now(timezone.utc),
+    )

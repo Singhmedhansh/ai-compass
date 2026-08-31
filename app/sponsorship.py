@@ -20,7 +20,7 @@ from app.models import (
     SponsorSlot,
     Submission,
 )
-from app.pricing_tiers import tier_for_pricing_model
+from app.pricing_tiers import SPONSORED_PERK_TIERS, tier_for_pricing_model
 from app.tool_cache import get_cached_tools
 
 # How many units each surface can hold at once. These caps are the product:
@@ -42,7 +42,7 @@ PLACEMENT_LABELS = {
 PLACEMENT_PRICING = {
     "hero": 149.0,
     "board": 89.0,
-    "rail": 19.99,
+    "rail": 14.99,
 }
 
 # Placements currently on sale. The others still exist as inventory an admin
@@ -59,7 +59,10 @@ def is_for_sale(placement):
     return placement in LIVE_PLACEMENTS
 
 # Paid submission tiers that earn a complimentary rail slot on approval.
-COMPLIMENTARY_TIERS = {"sponsored"}
+# Sourced from pricing_tiers so a new placement-bearing tier cannot be added
+# to the ladder and silently miss this perk — which is exactly how the four
+# inline `== "sponsored"` checks would have failed when Reviewed landed.
+COMPLIMENTARY_TIERS = set(SPONSORED_PERK_TIERS)
 COMPLIMENTARY_WINDOW_DAYS = 30
 
 
@@ -196,7 +199,14 @@ def complimentary_window(submission):
         # a still-pending row a live window, and the admin queue reads this
         # predicate directly, without that join.
         return None
-    starts = (_aware(getattr(submission, "approved_at", None))
+    # A booked Launch Day is what the window is timed on, when there is one:
+    # the founder chose that date and told their own audience about it, so
+    # starting their rail card days earlier — on whichever afternoon an admin
+    # clicked approve — spends the perk before anyone is looking for it.
+    # Falls back to approval, then to submission for rows that predate the
+    # approved_at column.
+    starts = (_aware(getattr(submission, "launch_at", None))
+              or _aware(getattr(submission, "approved_at", None))
               or _aware(getattr(submission, "submitted_at", None)))
     if starts is None:
         return None
@@ -449,6 +459,14 @@ def slot_payload(slot):
     }
 
 
+# Placements an impression may be recorded against. A superset of the
+# rentable inventory: "partner" units on the guide and alternatives pages are
+# a perk of the paid listing tiers rather than a slot anyone books (see
+# app/partner_slots.py), but they are reported on exactly like rented ones —
+# a deliverable a sponsor cannot measure is one they have to take on trust.
+IMPRESSION_PLACEMENTS = frozenset(PLACEMENT_CAPACITY) | {"partner"}
+
+
 def record_impression(tool_slug, placement="rail", slot_id=None):
     """Fire-and-forget; a lost beacon must never break a page render."""
     slug = str(tool_slug or "").strip().lower()
@@ -458,7 +476,7 @@ def record_impression(tool_slug, placement="rail", slot_id=None):
         db.session.add(SponsorImpression(
             slot_id=slot_id,
             tool_slug=slug,
-            placement=placement if placement in PLACEMENT_CAPACITY else "rail",
+            placement=placement if placement in IMPRESSION_PLACEMENTS else "rail",
         ))
         db.session.commit()
         return True

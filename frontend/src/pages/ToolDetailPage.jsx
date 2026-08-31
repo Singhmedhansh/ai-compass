@@ -6,6 +6,8 @@ import { Helmet } from 'react-helmet-async'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useCatalogStats } from '../hooks/useCatalogStats'
 
+import ClaimPanel, { ClaimBadge } from '../components/tools/ClaimListing'
+import EditorialReviewSection from '../components/tools/EditorialReviewSection'
 import RatingWidget from '../components/ui/RatingWidget'
 import ReviewsSection from '../components/ui/ReviewsSection'
 import ToolDiscussionSection from '../components/community/ToolDiscussionSection'
@@ -226,6 +228,14 @@ function normalizeTool(rawTool) {
     free_tier_summary: rawTool?.free_tier_summary ?? rawTool?.freeTierSummary ?? null,
     student_note: rawTool?.student_note ?? rawTool?.studentNote ?? null,
     last_verified: rawTool?.last_verified ?? rawTool?.lastVerified ?? rawTool?.last_verified_at ?? rawTool?.lastVerifiedAt ?? null,
+    // Commissioned hands-on review, when one has been published for this
+    // tool. Arrives on the tool payload itself (see get_tool in
+    // app/api_routes.py) so the page doesn't need a second round trip for
+    // the most substantial thing on it.
+    editorialReview: rawTool?.editorial_review || null,
+    // "Claimed by the maker": the copy has an owner answerable for it.
+    // Never an endorsement — a claimed listing is not a better tool.
+    claim: rawTool?.claim || null,
   }
 }
 
@@ -269,6 +279,10 @@ function ToolDetailPage() {
   const [isFavorite, setIsFavorite] = useState(false)
   const [folders, setFolders] = useState([])
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
+  // Does THIS viewer hold the approved claim on THIS tool? Drives the maker
+  // reply affordance on reviews; the server checks it again on write, so a
+  // wrong answer here costs a disabled button, never an unauthorised reply.
+  const [isMaker, setIsMaker] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
     try {
       return Boolean(JSON.parse(localStorage.getItem('user') || 'null'))
@@ -357,6 +371,26 @@ function ToolDetailPage() {
       window.removeEventListener('userLoggedIn', syncUserState)
     }
   }, [])
+
+  // Resolve maker status from the claims the signed-in account holds. One
+  // request, and only when signed in — a logged-out reader is never a maker.
+  useEffect(() => {
+    if (!isLoggedIn || !tool?.slug) {
+      setIsMaker(false)
+      return undefined
+    }
+    const controller = new AbortController()
+    fetch('/api/v1/claims/mine/list', { credentials: 'include', signal: controller.signal })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        const mine = (d?.claims || []).find(
+          (c) => c.tool_slug === tool.slug && c.status === 'approved'
+        )
+        setIsMaker(Boolean(mine))
+      })
+      .catch(() => {})
+    return () => controller.abort()
+  }, [isLoggedIn, tool?.slug])
 
   useEffect(() => {
     let cancelled = false
@@ -612,6 +646,34 @@ function ToolDetailPage() {
                     },
                   }
                 : {}),
+              // Our own hands-on review, when one has been published. This
+              // is a single authored Review with a byline — distinct from
+              // aggregateRating above, which is the crowd's score. Emitted
+              // only when we actually gave a numeric verdict, because a
+              // Review without reviewRating is markup Google ignores.
+              ...(tool.editorialReview && typeof tool.editorialReview.score === 'number'
+                ? {
+                    review: {
+                      '@type': 'Review',
+                      name: tool.editorialReview.headline || `${tool.name} review`,
+                      author: {
+                        '@type': 'Person',
+                        name: tool.editorialReview.author_name,
+                      },
+                      ...(tool.editorialReview.published_at
+                        ? { datePublished: tool.editorialReview.published_at.slice(0, 10) }
+                        : {}),
+                      reviewBody: tool.editorialReview.verdict || tool.editorialReview.body,
+                      reviewRating: {
+                        '@type': 'Rating',
+                        ratingValue: tool.editorialReview.score,
+                        bestRating: 5,
+                        worstRating: 1,
+                      },
+                      publisher: { '@type': 'Organization', name: 'AI Compass' },
+                    },
+                  }
+                : {}),
               url: `https://ai-compass.in/tools/${tool.slug}`,
               image: `https://ai-compass.in/og/${tool.slug}.png`,
             })}
@@ -681,6 +743,7 @@ function ToolDetailPage() {
                   >
                     {tool.pricing}
                   </span>
+                  <ClaimBadge claim={tool.claim} />
                   {(() => {
                     const tr = TRENDING_LOOKUP[tool.slug]
                     return tr && (
@@ -1028,6 +1091,11 @@ function ToolDetailPage() {
                   </section>
                 )}
 
+                {/* Above "About this tool" on purpose: when a hands-on
+                    review exists it is the most useful thing on the page,
+                    and the founder's own description is the summary. */}
+                <EditorialReviewSection review={tool.editorialReview} toolName={tool.name} />
+
                 <section className="rounded-2xl border border-line bg-bg-elev p-6">
                   <h2 className="text-lg font-semibold text-ink">About this tool</h2>
                   <p className="mt-3 leading-relaxed text-ink-2">{tool.description}</p>
@@ -1064,7 +1132,7 @@ function ToolDetailPage() {
                 className="space-y-6"
               >
                 <RatingWidget slug={tool.slug} isLoggedIn={isLoggedIn} />
-                <ReviewsSection slug={tool.slug} isLoggedIn={isLoggedIn} />
+                <ReviewsSection slug={tool.slug} isLoggedIn={isLoggedIn} canReply={isMaker} />
                 <ToolDiscussionSection slug={tool.slug} isLoggedIn={isLoggedIn} />
               </motion.div>
             )}
@@ -1072,6 +1140,10 @@ function ToolDetailPage() {
         </div>
 
         <aside className="space-y-6 lg:sticky lg:top-24 lg:h-fit lg:w-80">
+          {/* Renders nothing for a reader who has no business here: someone
+              else's claimed listing shows no panel at all. */}
+          <ClaimPanel tool={tool} isLoggedIn={isLoggedIn} />
+
           <MotionDiv variants={sectionReveal} initial="initial" animate="animate">
           <section className="rounded-2xl border border-line bg-bg-elev p-5">
             <h3 className="text-base font-semibold text-ink">Quick info</h3>

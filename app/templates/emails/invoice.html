@@ -65,11 +65,11 @@
   <tbody>
     <tr>
       <td>{{ line_item_label or "Sponsored Curation" }}</td>
-      <td style="text-align: right;">{{ line_item_amount or "$49.99" }}</td>
+      <td style="text-align: right;">{{ line_item_amount or "$49.00" }}</td>
     </tr>
     <tr class="total-row">
       <td>Total Paid</td>
-      <td style="text-align: right;">{{ total_amount or "$49.99 USD" }}</td>
+      <td style="text-align: right;">{{ total_amount or "$49.00 USD" }}</td>
     </tr>
   </tbody>
 </table>
@@ -81,6 +81,25 @@
 <p class="paragraph" style="font-size: 13px; text-align: center;">
   Track clicks, views, and (for Fast-Track) how you compare to the category average — anytime.
 </p>
+{% endif %}
+
+{# Launch Day. The one thing on this invoice that needs the founder to act:
+   the perks are theirs either way, but they start on a date nobody chose
+   unless they pick one. #}
+{% if launch_eligible and dashboard_url %}
+<div style="border: 1px solid #d1fae5; background: #f0fdf4; border-radius: 10px; padding: 16px 18px; margin: 26px 0;">
+  <p style="font-weight: 700; color: #111827 !important; font-size: 15px; margin: 0 0 6px 0;">
+    Pick your Launch Day
+  </p>
+  <p style="font-size: 13px; color: #4b5563 !important; line-height: 1.6; margin: 0;">
+    Your placement, your Featured rail card on the community page and your spot at the top of the
+    new-tools digest can all start on a date you choose, instead of whenever we happen to approve
+    you. We run <strong>one launch a day</strong>, so tell your own audience the same date and it
+    lands together. Choose yours on
+    <a href="{{ dashboard_url }}" style="color: #059669; font-weight: 600;">your dashboard</a> —
+    you can move it right up until it runs.
+  </p>
+</div>
 {% endif %}
 
 {% if founder_account_created %}

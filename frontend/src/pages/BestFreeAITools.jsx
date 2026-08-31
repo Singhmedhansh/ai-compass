@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { ArrowUpRight, Sparkles, Shield, Cpu, RefreshCw, Layers, Check, Laptop, WifiOff, FolderOpen, ShieldAlert } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
+import PartnerUnits from "../components/tools/PartnerUnits";
 
 import { MagneticWrapper, WordReveal, ConversionCTA, WizardFunnelCTA } from "../components/ui";
 import { useCatalogStats } from "../hooks/useCatalogStats";
@@ -678,6 +679,12 @@ export default function BestFreeAITools() {
             </Link>
           </div>
         </MotionDiv>
+
+        {/* Paid units, below the editorial list and outside it — see
+            app/partner_slots.py. The picks above are never for sale. */}
+        <div className="mx-auto max-w-[860px] px-6 mt-14">
+          <PartnerUnits surface="best-free-ai-tools" />
+        </div>
 
         {/* FAQ */}
         <MotionDiv

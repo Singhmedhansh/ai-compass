@@ -425,6 +425,20 @@ def create_app(config: dict | None = None) -> Flask:
             raise
 
         try:
+            from app.claims_routes import claims_bp
+            app.register_blueprint(claims_bp, url_prefix="/api/v1/claims")
+        except Exception as e:
+            app.logger.error(f"Failed to register claims_routes: {e}")
+            raise
+
+        try:
+            from app.editorial_routes import editorial_bp
+            app.register_blueprint(editorial_bp, url_prefix="/api/v1/reviews")
+        except Exception as e:
+            app.logger.error(f"Failed to register editorial_routes: {e}")
+            raise
+
+        try:
             from app import oauth
             app.register_blueprint(oauth.oauth_bp)
             oauth.init_oauth(app)
@@ -498,6 +512,24 @@ def create_app(config: dict | None = None) -> Flask:
                     maybe_run_recap()
                 except Exception:  # noqa: BLE001
                     app.logger.exception("community recap tick background run failed")
+                # Monthly, and its own DB-claimed interval again — this
+                # thread shares only the wake-up, never the schedule.
+                try:
+                    from app.founder_report import maybe_run_reports
+                    maybe_run_reports()
+                except Exception:  # noqa: BLE001
+                    app.logger.exception("founder report tick background run failed")
+                # Launch Days fire on the date the founder picked. No claim
+                # key needed: launched_at is the idempotency guard, so a
+                # second worker running this simultaneously fires nothing
+                # twice.
+                try:
+                    from app.launch_day import fire_due_launches
+                    fired = fire_due_launches()
+                    if fired:
+                        app.logger.info("Launch Day fired for: %s", ", ".join(fired))
+                except Exception:  # noqa: BLE001
+                    app.logger.exception("launch day tick background run failed")
 
         threading.Thread(target=_run, name="digest-tick", daemon=True).start()
         return None
@@ -889,6 +921,10 @@ def create_app(config: dict | None = None) -> Flask:
                         # Start of the clock for time-boxed paid perks.
                         # See Submission.approved_at.
                         ("approved_at", "TIMESTAMP"),
+                        # Launch Day: the founder-chosen date the perks fire
+                        # on, and the stamp that keeps them firing once.
+                        ("launch_at", "TIMESTAMP"),
+                        ("launched_at", "TIMESTAMP"),
                     ]:
                         try:
                             from sqlalchemy import text
@@ -915,6 +951,23 @@ def create_app(config: dict | None = None) -> Flask:
                         db.session.commit()
                     except Exception:
                         db.session.rollback()
+
+                    # reviews.maker_reply: a claimed maker's public answer to
+                    # one review (see app/claims.py). create_all() below adds
+                    # missing TABLES but never missing COLUMNS, so an existing
+                    # reviews table needs the same raw-SQL guarantee as the
+                    # columns above — without it every review read raises
+                    # UndefinedColumn and the tool page loses its reviews.
+                    for col_name, col_type in [
+                        ("maker_reply", "VARCHAR(1000)"),
+                        ("maker_reply_at", "TIMESTAMP"),
+                    ]:
+                        try:
+                            from sqlalchemy import text
+                            db.session.execute(text(f"ALTER TABLE reviews ADD COLUMN {if_not_exists}{col_name} {col_type};"))
+                            db.session.commit()
+                        except Exception:
+                            db.session.rollback()
 
                     try:
                         from app.catalog_store import seed_from_json_if_empty, sync_catalog_from_json, sync_ratings_and_verifications_from_json

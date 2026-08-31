@@ -18,6 +18,7 @@ import {
   GraduationCap
 } from "lucide-react";
 import { ConversionCTA, WizardFunnelCTA, WordReveal } from "../components/ui";
+import PartnerUnits from "../components/tools/PartnerUnits";
 import { sectionReveal, staggerParent, staggerChild } from "../lib/motion";
 
 const MotionDiv = motion.div;
@@ -342,6 +343,12 @@ export default function BestAIToolsForTeachers() {
               </div>
             ))}
           </div>
+        </div>
+
+        {/* Paid units, below the editorial list and outside it — see
+            app/partner_slots.py. The picks above are never for sale. */}
+        <div className="mx-auto max-w-[860px] px-6 mt-14">
+          <PartnerUnits surface="best-ai-tools-for-teachers" />
         </div>
 
         <div className="mx-auto max-w-[860px] px-6">

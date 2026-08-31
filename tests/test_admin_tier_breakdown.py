@@ -112,7 +112,7 @@ def test_pending_submissions_grouped_by_effective_tier(client, app):
     _login_as_admin(client, app)
 
     body = client.get("/api/v1/admin/tier-breakdown").get_json()
-    assert body["pending"] == {"free": 3, "quick": 2, "sponsored": 1}
+    assert body["pending"] == {"free": 3, "quick": 2, "sponsored": 1, "reviewed": 0}
     assert body["pending_total"] == 6
 
 
@@ -125,7 +125,7 @@ def test_unverified_paid_claim_counts_as_free(client, app):
     _login_as_admin(client, app)
 
     body = client.get("/api/v1/admin/tier-breakdown").get_json()
-    assert body["pending"] == {"free": 2, "quick": 0, "sponsored": 0}
+    assert body["pending"] == {"free": 2, "quick": 0, "sponsored": 0, "reviewed": 0}
 
 
 def test_live_listings_grouped_by_tier(client, app):
@@ -146,7 +146,7 @@ def test_live_listings_grouped_by_tier(client, app):
     _login_as_admin(client, app)
     body = client.get("/api/v1/admin/tier-breakdown").get_json()
 
-    assert body["live"] == {"free": 1, "quick": 1, "sponsored": 1, "editorial": 2}
+    assert body["live"] == {"free": 1, "quick": 1, "sponsored": 1, "reviewed": 0, "editorial": 2}
     assert body["live_total"] == 5
 
 
@@ -173,7 +173,7 @@ def test_hidden_and_unreleased_tools_excluded_from_live(client, app):
     body = client.get("/api/v1/admin/tier-breakdown").get_json()
 
     # Only the one genuinely-visible seed row is counted.
-    assert body["live"] == {"free": 0, "quick": 0, "sponsored": 0, "editorial": 1}
+    assert body["live"] == {"free": 0, "quick": 0, "sponsored": 0, "reviewed": 0, "editorial": 1}
     assert body["live_total"] == 1
 
 
@@ -212,7 +212,7 @@ def test_paid_attempts_are_reported_even_though_tiers_show_them_as_free(client, 
     assert a["refused"] == 1
     # An abandoned checkout is not a refusal and must not inflate it.
     assert a["no_reference"] == 1
-    assert a["revenue_usd"] == 49.99
+    assert a["revenue_usd"] == 49.0
 
     reasons = {r["reason"]: r["count"] for r in body["failure_reasons"]}
     assert reasons["paypal_api_unreachable"] == 2
@@ -261,7 +261,7 @@ def test_paid_attempts_are_zero_when_nobody_has_tried(client, app):
 def test_test_rows_are_excluded_from_every_count(client, app):
     """The Manila row is a real catalog listing whose payment_status was set
     to 'verified' by hand during paid-tier UX testing. Once the breakdown
-    started reporting revenue, that row made it claim $49.99 nobody paid — a
+    started reporting revenue, that row made it claim $49 nobody paid — a
     reporting fix that immediately lies is worse than no reporting."""
     _add_submission(app, "Real Founder", "sponsored_paypal:V9", "verified",
                     payment_note="paypal_order_verified")
@@ -281,7 +281,7 @@ def test_test_rows_are_excluded_from_every_count(client, app):
     # Revenue and attempts count the real founder only.
     assert body["attempts"]["total"] == 1
     assert body["attempts"]["verified"] == 1
-    assert body["attempts"]["revenue_usd"] == 49.99
+    assert body["attempts"]["revenue_usd"] == 49.0
     # The flagged free junk row must not inflate queue depth either.
     assert body["pending"]["free"] == 0
     assert body["pending"]["sponsored"] == 1

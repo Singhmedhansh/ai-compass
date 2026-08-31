@@ -24,7 +24,16 @@ from app import sponsorship
 community_bp = Blueprint("community", __name__)
 
 POST_TYPES = {"news", "question", "showcase", "discussion"}
-FEATURED_TIERS = {"quick", "sponsored"}
+
+# A changelog post is a maker announcing a release on their OWN tool. It is
+# the reason a claimed listing is an account rather than a receipt: the
+# founder has a standing reason to come back. Restricted to the tool's
+# claimed owner — anyone may post about any tool, but only its maker may
+# speak as its maker, or the label means nothing.
+OWNER_ONLY_POST_TYPES = {"changelog"}
+# Includes the retired "quick" tier: rows bought before it was retired
+# keep what they paid for.
+FEATURED_TIERS = {"quick", "sponsored", "reviewed"}
 FEATURED_WINDOW_DAYS = 30
 
 
@@ -100,8 +109,30 @@ def _post_payload(post, comment_counts=None):
         "user_vote": user_vote,
         "comment_count": comment_count,
         "is_featured": _is_tool_featured(post.tool_slug),
+        # True when the post is the tool's own maker speaking. Read live so a
+        # revoked claim stops a historical post from still carrying the label.
+        "by_maker": _is_by_maker(post),
         "can_delete": can_moderate,
     }
+
+
+def _is_by_maker(post):
+    """Is this post its tool's owner speaking as the owner?
+
+    Computed rather than stored: a claim can be revoked, and a post that
+    keeps claiming to be from the maker after that is a label nobody can
+    trust. Cheap enough — one indexed lookup, and only for posts that name a
+    tool at all.
+    """
+    if not post.tool_slug:
+        return False
+    try:
+        from app import claims as claims_module
+
+        claim = claims_module.approved_claim_for_slug(post.tool_slug)
+        return bool(claim and claim.user_id == post.user_id)
+    except Exception:
+        return False
 
 
 def _hot_score(post):
@@ -217,7 +248,19 @@ def create_post():
             return jsonify({"error": "Title must be 5-200 characters"}), 400
         if len(body) < 10 or len(body) > 2000:
             return jsonify({"error": "Body must be 10-2000 characters"}), 400
-        if post_type not in POST_TYPES:
+        if post_type in OWNER_ONLY_POST_TYPES:
+            from app import claims as claims_module
+
+            if not tool_slug:
+                return jsonify({
+                    "error": "A changelog post has to name the tool it is about.",
+                }), 400
+            if not claims_module.user_can_edit(current_user, tool_slug):
+                return jsonify({
+                    "error": "Only the maker of a claimed listing can post a changelog for it. "
+                             "Claim the listing on its page first.",
+                }), 403
+        elif post_type not in POST_TYPES:
             post_type = "discussion"
 
         post = CommunityPost(

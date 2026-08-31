@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { ArrowUpRight, Sparkles, Check, Gift } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
+import PartnerUnits from "../components/tools/PartnerUnits";
 
 // Brand logos: tools with a curated SVG under /assets/brand/ get pixel-perfect
 // vector marks; everything else uses Clearbit's logo CDN keyed off the tool's
@@ -609,6 +610,12 @@ export default function BestAIToolsForStudents() {
             </Link>
           </div>
         </MotionDiv>
+
+        {/* Paid units, below the editorial list and outside it — see
+            app/partner_slots.py. The picks above are never for sale. */}
+        <div className="mx-auto max-w-[860px] px-6 mt-14">
+          <PartnerUnits surface="best-ai-tools-for-students" />
+        </div>
 
         {/* FAQ */}
         <MotionDiv

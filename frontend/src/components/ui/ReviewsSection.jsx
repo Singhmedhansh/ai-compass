@@ -4,7 +4,41 @@ import { AlertTriangle, Loader2, MessageSquare, GraduationCap } from 'lucide-rea
 
 import Button from './Button'
 
-export default function ReviewsSection({ slug, isLoggedIn }) {
+// `canReply` is true only for the tool's claimed maker (see app/claims.py).
+// The reply is the maker's single answer of record, not a thread: an
+// unanswered complaint is worth less to a reader than one with the maker's
+// side beside it, but a back-and-forth would turn every critical review into
+// an argument hosted on our page.
+export default function ReviewsSection({ slug, isLoggedIn, canReply = false }) {
+  const [replyingTo, setReplyingTo] = useState(null)
+  const [replyDraft, setReplyDraft] = useState('')
+
+  async function saveReply(reviewId) {
+    try {
+      const res = await fetch(`/api/v1/reviews/${reviewId}/reply`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ body: replyDraft }),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setReviews((prev) =>
+          prev.map((r) =>
+            r.id === reviewId
+              ? { ...r, maker_reply: data.maker_reply, maker_reply_at: data.maker_reply_at }
+              : r
+          )
+        )
+        setReplyingTo(null)
+        setReplyDraft('')
+      }
+    } catch {
+      // Leaving the editor open with the draft intact is the right failure
+      // here — retyping a considered reply is worse than a silent retry.
+    }
+  }
+
   const location = useLocation()
   const [reviews, setReviews] = useState([])
   const [body, setBody] = useState('')
@@ -264,6 +298,59 @@ export default function ReviewsSection({ slug, isLoggedIn }) {
                   </span>
                 </div>
                 <p className="mt-2 text-sm text-ink-2 whitespace-pre-wrap">{review.body}</p>
+
+                {review.maker_reply && (
+                  <div className="mt-3 rounded-xl border-l-2 border-accent bg-bg-elev px-3 py-2">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-accent-ink">
+                      Reply from the maker
+                      {review.maker_reply_at &&
+                        ` · ${new Date(review.maker_reply_at).toLocaleDateString()}`}
+                    </p>
+                    <p className="mt-1 whitespace-pre-wrap text-sm text-ink-2">{review.maker_reply}</p>
+                  </div>
+                )}
+
+                {canReply && replyingTo !== review.id && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setReplyingTo(review.id)
+                      setReplyDraft(review.maker_reply || '')
+                    }}
+                    className="mt-2 text-xs font-semibold text-accent hover:underline"
+                  >
+                    {review.maker_reply ? 'Edit your reply' : 'Reply as the maker'}
+                  </button>
+                )}
+
+                {canReply && replyingTo === review.id && (
+                  <div className="mt-2 space-y-2">
+                    <textarea
+                      rows={3}
+                      maxLength={1000}
+                      value={replyDraft}
+                      onChange={(e) => setReplyDraft(e.target.value)}
+                      placeholder="Answer the point they raised. Clearing this removes your reply."
+                      className="w-full rounded-xl border border-line bg-bg px-3 py-2 text-sm text-ink outline-none transition focus:border-accent"
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => saveReply(review.id)}
+                        className="rounded-lg bg-accent px-3 py-1.5 text-xs font-semibold text-white transition hover:opacity-90"
+                      >
+                        Save reply
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setReplyingTo(null)}
+                        className="rounded-lg border border-line-strong px-3 py-1.5 text-xs font-semibold text-ink-2 transition hover:bg-bg-sunk"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </article>
           ))}

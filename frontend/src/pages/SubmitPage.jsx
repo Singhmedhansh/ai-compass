@@ -64,9 +64,13 @@ function TierCard({ tier, selected, onSelect }) {
 }
 
 export default function SubmitPage() {
-  // 'free' = basic listing, reviewed when we get to it. 'quick' = $14.99
-  // faster review, no placement/badge/newsletter perks. 'sponsor' = $49.99
-  // full Fast-Track package. The free tier is the top of the funnel: it
+  // 'free' = basic listing, reviewed after the paid ones. 'sponsor' = $49
+  // Fast-Track (placement, badge, rail card, reporting). 'reviewed' = $79,
+  // Fast-Track plus a written hands-on review of the tool.
+  //
+  // The retired 'quick' tier is deliberately absent: it sold queue position,
+  // sold zero times, and the server refuses it now (pricing_tiers.is_for_sale).
+  // The free tier is the top of the funnel: it
   // costs nothing to serve, it's what gets a founder to hand over their
   // email at all, and those contacts are who the paid upgrades are later
   // sold to. A paid-only submit page has no top of funnel — nobody pays a
@@ -203,7 +207,7 @@ export default function SubmitPage() {
 
   useEffect(() => {
     if (showPaymentModal && paymentMethod === 'paypal') {
-      const tierParam = submissionType === 'quick' ? 'quick' : 'sponsor'
+      const tierParam = submissionType === 'reviewed' ? 'reviewed' : 'sponsor'
       // Clear both flags up front. Without this a retry (or reopening the
       // modal after a failure) starts out still showing the previous
       // attempt's error.
@@ -477,7 +481,7 @@ export default function SubmitPage() {
         </div>
         <h1 className="text-2xl font-bold text-ink tracking-tight sm:text-3xl">Submit Your AI Tool</h1>
         <p className="mt-2 text-sm text-ink-2 max-w-2xl font-normal leading-relaxed">
-          Get your tool in front of students, creators, and developers. Free listings are welcome — Quick Review skips the queue for $14.99, or pick Fast-Track for a guaranteed 24-hour review and featured placement.
+          Get your tool in front of students, creators, and developers. Free listings are welcome and permanent — Fast-Track ($49) is reviewed first and placed above free listings, labelled as sponsored, and Reviewed ($79) adds a written hands-on review of your tool on its own page.
         </p>
 
         {/* Tier selector — free is a real, selectable path, not a decoy. */}
@@ -653,7 +657,7 @@ export default function SubmitPage() {
                       </p>
                       <div className="bg-bg-elev/80 p-3 rounded-xl border border-line">
                         <p className="font-medium text-ink">
-                          Need it live sooner? Quick Review gets you a 48–72 hour turnaround for $14.99, or Fast-Track gets a guaranteed 24-hour review, sponsored placement above free listings, and a featured badge for $49.99 one-time.
+                          Need it live sooner? Fast-Track is reviewed first (target 24 hours), goes live the next day, and sits above free listings with a labelled “Sponsored” badge — $49 one-time. Reviewed ($79) adds a 300–500 word hands-on review of your tool, published on your own indexed page.
                         </p>
                         <button
                           type="button"
@@ -732,29 +736,14 @@ export default function SubmitPage() {
                   <span className="font-semibold text-accent-ink">{selectedTier.reviewEta}</span>
                 </div>
 
-                {submissionType === 'sponsor' ? (
-                  <>
-                    <div className="space-y-2 border-b border-line pb-3">
-                      <div className="flex justify-between">
-                        <span className="text-ink-2">Priority submission fee</span>
-                        <span className="font-semibold text-ink">$75.00</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-ink-2">Launch Discount</span>
-                        <span className="font-semibold text-accent">-$25.01</span>
-                      </div>
-                    </div>
-                    <div className="flex justify-between items-baseline pt-1">
-                      <span className="font-bold text-ink">Total Due</span>
-                      <span className="text-xl font-bold text-ink">{selectedTier.priceLabel}</span>
-                    </div>
-                  </>
-                ) : (
-                  <div className="flex justify-between items-baseline pt-1 pb-1 border-b border-line">
-                    <span className="font-bold text-ink">Total Due</span>
-                    <span className="text-xl font-bold text-ink">{selectedTier.priceLabel}</span>
-                  </div>
-                )}
+{/* One line, one number. There was a struck-through "$75.00 priority
+                    submission fee - $25.01 launch discount" here, and no $75 tier
+                    has ever existed in the code — it was a discount off a price
+                    nobody was ever charged. */}
+                <div className="flex justify-between items-baseline pt-1 pb-1 border-b border-line">
+                  <span className="font-bold text-ink">Total Due</span>
+                  <span className="text-xl font-bold text-ink">{selectedTier.priceLabel} <span className="text-xs font-medium text-muted">one-time</span></span>
+                </div>
 
                 <ul className="space-y-2 text-ink-2 leading-relaxed pt-2 font-normal">
                   {selectedTier.perks.map((perk) => (
@@ -844,10 +833,10 @@ export default function SubmitPage() {
           <div className="space-y-2">
             <div className="flex items-center gap-2 font-bold text-sm text-ink">
               <ShieldCheck className="h-4 w-4 text-accent" />
-              <span>24-Hour Review & Newsletter Spotlight</span>
+              <span>Reviewed First, Live in a Day</span>
             </div>
             <p className="text-xs text-ink-2 leading-relaxed font-normal">
-              Skip the backlog. Guaranteed editorial review within 24 hours, featured badge placement, and inclusion in our weekly student AI newsletter.
+              Skip the backlog: Fast-Track submissions are reviewed ahead of every free one (target 24 hours) and go live the day after approval instead of two weeks later. You also get the labelled &quot;Sponsored&quot; badge, first position in the weekly new-tools email, and a Featured rail card on the community page for 30 days.
             </p>
           </div>
         </div>
@@ -955,8 +944,8 @@ export default function SubmitPage() {
                       </p>
 
                       {/* Three explicit states. Previously only the third existed,
-                          so a failed SDK load — and, on Quick Review, ANY failure,
-                          since that tier has no hosted-button link to fall back on
+                          so a failed SDK load — with no hosted-button link left to
+                          fall back on, ANY failure
                           — rendered nothing at all: the modal showed one sentence
                           over empty space, indistinguishable from still loading. */}
                       {paypalError ? (

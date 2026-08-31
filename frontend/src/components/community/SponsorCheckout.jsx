@@ -1,63 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { AlertCircle, CheckCircle2, Loader2, X } from 'lucide-react'
 
+import { loadPayPalSdk } from '../../lib/paypalSdk'
+
 const MAX_WEEKS = 12
 
 // This checkout needs the `buttons` component, because the amount varies
-// with the week count and only a dynamic createOrder can express that.
-//
-// /submit loads the same SDK with `components=hosted-buttons`, which yields
-// a window.paypal exposing HostedButtons and NOT Buttons. Reusing that
-// instance — as this loader originally did — makes paypal.Buttons(...) throw
-// for anyone whose session touched /submit first. PayPal's data-namespace
-// option exists for exactly this: it parks our instance on its own global so
-// the two can coexist instead of clobbering each other.
-const SDK_NAMESPACE = 'paypalSponsorSdk'
-let paypalSdkPromise = null
-
-function loadPayPalSdk(clientId) {
-  const existing = window[SDK_NAMESPACE]
-  if (existing && typeof existing.Buttons === 'function') return Promise.resolve(existing)
-  if (paypalSdkPromise) return paypalSdkPromise
-
-  paypalSdkPromise = new Promise((resolve, reject) => {
-    const script = document.createElement('script')
-    script.id = 'paypal-sdk-sponsor'
-    script.src =
-      `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(clientId)}` +
-      '&components=buttons&currency=USD&disable-funding=venmo'
-    script.async = true
-    script.setAttribute('data-namespace', SDK_NAMESPACE)
-    script.onload = () => {
-      const sdk = window[SDK_NAMESPACE]
-      if (!sdk) {
-        reject(new Error('SDK loaded but exposed no global'))
-      } else if (typeof sdk.Buttons !== 'function') {
-        // Almost always means the client ID is not enabled for the JS SDK's
-        // dynamic-amount checkout (e.g. a hosted-button-only credential).
-        reject(new Error('This PayPal client ID does not support dynamic checkout buttons'))
-      } else {
-        resolve(sdk)
-      }
-    }
-    // A blocked script and a network failure are indistinguishable here —
-    // the browser fires onerror either way and tells us nothing more. A
-    // privacy blocker is far and away the likelier cause for this audience
-    // (the same reason tool favicons go through a first-party proxy), so
-    // name it and give the reader something to do about it.
-    script.onerror = () => reject(new Error(
-      'Your browser blocked the PayPal checkout script — usually an ad blocker ' +
-      'or Brave Shields. Allow paypal.com for this page and reload, or book by ' +
-      'email instead.'
-    ))
-    document.body.appendChild(script)
-  }).catch((err) => {
-    paypalSdkPromise = null
-    throw err
-  })
-
-  return paypalSdkPromise
-}
+// with the week count and only a dynamic createOrder can express that. The
+// SDK loader itself lives in ../../lib/paypalSdk so the review checkout can
+// share it — see that file for why it needs its own namespace.
 
 function Field({ label, hint, children }) {
   return (

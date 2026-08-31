@@ -7,6 +7,7 @@ import clsx from 'clsx'
 
 import { SEO, WordReveal, ConversionCTA, WizardFunnelCTA, StickyEscapeBar } from '../components/ui'
 import ErrorState from '../components/ErrorState'
+import PartnerUnits from '../components/tools/PartnerUnits'
 import { useCatalogStats } from '../hooks/useCatalogStats'
 import { sectionReveal, staggerParent, staggerChild } from '../lib/motion'
 import { toolHoverHandlers } from '../lib/prefetch'
@@ -521,6 +522,14 @@ export default function AlternativesPage() {
             ))}
           </div>
         </MotionDiv>
+
+        {/* The highest-intent page on the site: someone here has already
+            decided to switch. Paid units sit below the ranked alternatives
+            and outside them — the ranking is by similarity and is never for
+            sale. See app/partner_slots.py. */}
+        <div className="mx-auto max-w-3xl px-4 mb-12">
+          <PartnerUnits surface={`alternatives:${tool.slug}`} />
+        </div>
 
         <MotionDiv
           variants={sectionReveal}

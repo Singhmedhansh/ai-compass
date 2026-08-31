@@ -249,4 +249,4 @@ def test_dashboard_url_present_in_success_response_regardless_of_email(client, a
     body = resp.get_json()
     assert body["dashboard_url"]
     assert body["tier"] == "sponsored"
-    assert body["tier_price"] == 49.99
+    assert body["tier_price"] == 49.0

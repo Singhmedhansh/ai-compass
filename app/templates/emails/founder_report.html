@@ -1,0 +1,85 @@
+{% extends "emails/base.html" %}
+
+{% block title %}{{ subject }}{% endblock %}
+
+{% block content %}
+<h1 class="heading">{{ report.name }} — last {{ report.window_days }} days</h1>
+
+{# The two numbers that matter lead, with the previous window beside them.
+   A figure with nothing to compare it to is a figure nobody can act on. #}
+<table role="presentation" style="width:100%; border-collapse:collapse; margin:18px 0 8px 0;">
+  <tr>
+    <td style="padding:14px 16px; border:1px solid #e5e7eb; border-radius:8px; width:50%;">
+      <div style="color:#6b7280; font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;">
+        Views
+      </div>
+      <div style="color:#111827; font-size:26px; font-weight:800; line-height:1.2;">{{ report.views }}</div>
+      <div style="color:#9ca3af; font-size:12px;">
+        {% if report.views_delta > 0 %}up {{ report.views_delta }} from {{ report.prev_views }}
+        {%- elif report.views_delta < 0 %}down {{ -report.views_delta }} from {{ report.prev_views }}
+        {%- else %}same as the previous {{ report.window_days }} days{% endif %}
+      </div>
+    </td>
+    <td style="width:12px;"></td>
+    <td style="padding:14px 16px; border:1px solid #e5e7eb; border-radius:8px; width:50%;">
+      <div style="color:#6b7280; font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;">
+        Clicks to your site
+      </div>
+      <div style="color:#059669; font-size:26px; font-weight:800; line-height:1.2;">{{ report.clicks }}</div>
+      <div style="color:#9ca3af; font-size:12px;">
+        {% if report.clicks_delta > 0 %}up {{ report.clicks_delta }} from {{ report.prev_clicks }}
+        {%- elif report.clicks_delta < 0 %}down {{ -report.clicks_delta }} from {{ report.prev_clicks }}
+        {%- else %}same as the previous {{ report.window_days }} days{% endif %}
+      </div>
+    </td>
+  </tr>
+</table>
+
+<p class="paragraph" style="margin-top:14px;">
+  {% if report.ctr is not none %}
+    That is a <strong>{{ report.ctr }}%</strong> click-through rate — of everyone who opened your
+    listing, that share went on to your site.
+  {% else %}
+    Nobody has opened the listing yet this month, so there is no click-through rate to quote.
+  {% endif %}
+  {% if report.favorites %} {{ report.favorites }} {{ 'person has' if report.favorites == 1 else 'people have' }} saved it.{% endif %}
+</p>
+
+{% if report.rating_count %}
+<p class="paragraph">
+  Readers rate it <strong>{{ report.rating }}/5</strong> from {{ report.rating_count }}
+  {{ 'rating' if report.rating_count == 1 else 'ratings' }}.
+</p>
+{% endif %}
+
+{% if report.benchmark %}
+<h2 style="color:#111827; font-size:15px; font-weight:800; margin:28px 0 12px 0;">
+  How that compares
+</h2>
+<p class="paragraph">
+  In <strong>{{ report.benchmark.category }}</strong> you are
+  <strong>#{{ report.benchmark.your_rank }} of {{ report.benchmark.total_tools_in_category }}</strong>
+  by click-throughs.
+  {% if report.benchmark.pct_vs_average is not none %}
+    That is
+    {% if report.benchmark.pct_vs_average >= 0 %}{{ report.benchmark.pct_vs_average }}% above{% else %}{{ -report.benchmark.pct_vs_average }}% below{% endif %}
+    the {{ report.benchmark.category_avg_clicks_30d }} clicks the average tool in your category got.
+  {% endif %}
+</p>
+{% endif %}
+
+<table role="presentation" style="width: auto; margin-top:22px;">
+  <tr>
+    <td>
+      <a href="{{ report.dashboard_url }}" target="_blank" class="cta-button">See the full dashboard →</a>
+    </td>
+  </tr>
+</table>
+
+<p style="color:#9ca3af; font-size:12px; line-height:1.6; margin:22px 0 0 0;">
+  Views are page loads of <a href="{{ report.tool_url }}" style="color:#6b7280;">your listing</a>;
+  clicks are outbound click-throughs on your link, counted by the same redirect that powers our own
+  analytics — so your numbers and ours can never disagree. These are the real figures, including the
+  small ones: a report you only get in a good month is one you cannot plan against.
+</p>
+{% endblock %}

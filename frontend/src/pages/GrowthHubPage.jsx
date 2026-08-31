@@ -3,7 +3,13 @@ import { ArrowRight, Rocket } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
-const TIER_LABELS = { free: 'Free Listing', quick: 'Quick Review', sponsored: 'Fast-Track Sponsored' }
+const TIER_LABELS = {
+  free: 'Free Listing',
+  sponsored: 'Fast-Track',
+  reviewed: 'Reviewed Listing',
+  // Retired tier — kept so rows bought under it still label correctly.
+  quick: 'Quick Review',
+}
 const STATUS_LABELS = { pending: 'In review', approved: 'Live', rejected: 'Not approved' }
 
 function ToolRow({ tool }) {

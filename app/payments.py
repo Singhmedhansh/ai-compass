@@ -140,7 +140,7 @@ def _paypal_access_token(client_id=None, client_secret=None, mode=None):
 
 
 def verify_paypal_order(
-    order_id, expected_amount=49.99, expected_currency="USD",
+    order_id, expected_amount=49.0, expected_currency="USD",
     client_id=None, client_secret=None, mode=None,
 ):
     """Confirms a PayPal order ID was actually captured for the expected amount.

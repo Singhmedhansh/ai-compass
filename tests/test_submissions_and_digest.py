@@ -157,11 +157,16 @@ def test_paypal_config_never_advertises_a_hosted_button(client, monkeypatch):
     assert data["payment_url"] == ""
 
 
-def test_submit_tool_with_quick_review_transaction_ref(client, app):
-    """Quick Review ($14.99) is also a real paid claim, distinct from the
-    Fast-Track 'sponsored' prefix — it must still trigger verification and
-    get its own composite pricing_model, not silently fall through as
-    unpaid."""
+def test_submit_tool_refuses_the_retired_quick_review_tier(client, app):
+    """Quick Review ($14.99, "skip the queue") is retired — it sold queue
+    position, sold zero times, and made the ladder read as a toll booth.
+
+    This used to assert the opposite: that a quick claim was treated as paid
+    and verified. The refusal now happens BEFORE any payment work, which is
+    the point — accepting money for a tier we have stopped delivering means
+    holding a charge we immediately owe back. Rows bought under it still
+    resolve everywhere else; see tests/test_pricing_ladder.py.
+    """
     resp = client.post("/api/v1/submit-tool", json={
         "name": "Quick Reviewed AI Tool",
         "url": "https://quickreviewed.example.com",
@@ -170,24 +175,18 @@ def test_submit_tool_with_quick_review_transaction_ref(client, app):
         "pricing_model": "quick_paypal",
         "transaction_ref": "PAYPAL-TX-654321",
     })
-    assert resp.status_code == 201
+    assert resp.status_code == 400
+    assert "no longer offered" in resp.get_json()["error"]
     with app.app_context():
-        s = Submission.query.filter_by(name="Quick Reviewed AI Tool").first()
-        assert s is not None
-        assert s.pricing_model == "quick_paypal:PAYPAL-TX-654321"
-        # No real PayPal creds in the test env, so verification cannot
-        # succeed. What matters here is that a "quick" claim is treated as
-        # paid at all rather than silently dropped to 'unpaid' like a free
-        # listing — and that an unresolvable reference lands as
-        # needs_manual_review, not as a refusal we never actually looked into.
-        assert s.payment_status == "needs_manual_review"
-        assert "PAYPAL-TX-654321" in (s.payment_note or "")
+        assert Submission.query.filter_by(name="Quick Reviewed AI Tool").first() is None
 
 
 def test_paypal_config_quick_tier_has_no_hosted_flow_either(client, monkeypatch):
-    """Quick Review previously had no hosted button of its own, and the risk
-    was that it would fall back to the sponsor tier's $49.99 payment URL. That
-    whole class of bug is gone with the hosted flow — assert it stays gone."""
+    """Quick Review had no hosted button of its own, and the risk was that it
+    would fall back to the sponsor tier's payment URL. That whole class of bug
+    is gone with the hosted flow — assert it stays gone. The tier is retired
+    from sale, but a stale cached bundle can still ask for its config, so the
+    endpoint must keep answering safely rather than 404-ing into a fallback."""
     monkeypatch.setenv("PAYPAL_HOSTED_BUTTON_ID_QUICK", "QUICK_BUTTON_ID")
     monkeypatch.setenv("PAYPAL_PAYMENT_URL_QUICK", "https://www.paypal.com/ncp/payment/QUICKID")
     resp = client.get("/api/v1/config/paypal-hosted?tier=quick")
@@ -274,10 +273,15 @@ def test_admin_approve_fast_track_grants_sponsored_placement(client, app):
     assert body["tool"]["sponsored"] is True
 
 
-def test_admin_approve_free_tier_delays_visibility_two_weeks(client, app):
+def test_admin_approve_free_tier_delays_visibility_one_week(client, app):
     """Free-tier approvals must not appear in the public catalog immediately
-    — they're gated behind a 14-day visible_at, same idea as the review
-    queue's priority ordering but for the catalog listing itself."""
+    — they're gated behind a visible_at delay, same idea as the review
+    queue's priority ordering but for the catalog listing itself.
+
+    Seven days, not the original fourteen: two weeks of invisibility did not
+    create urgency to upgrade, it created churn, and it left most submitted
+    tools unseen for a fortnight after their founder had stopped checking.
+    See pricing_tiers.TIERS."""
     from datetime import datetime, timezone, timedelta
     with app.app_context():
         refresh_tools_cache()
@@ -300,7 +304,7 @@ def test_admin_approve_free_tier_delays_visibility_two_weeks(client, app):
     assert resp.status_code == 200, resp.data
     body = resp.get_json()
     visible_at = datetime.fromisoformat(body["tool"]["visible_at"])
-    expected = datetime.now(timezone.utc) + timedelta(days=14)
+    expected = datetime.now(timezone.utc) + timedelta(days=7)
     assert abs((visible_at - expected).total_seconds()) < 60
 
     from app.tool_cache import get_visible_tools
@@ -698,7 +702,9 @@ def test_paid_invoice_email_includes_register_link(client, app, monkeypatch):
         "category": "Productivity",
         "reason": "Testing the register CTA on a paid tier.",
         "submitter_email": "founder@registerctapaid.example.com",
-        "pricing_model": "quick_paypal",
+        # Any tier that is actually on sale — quick_paypal is retired and is
+        # now refused before the invoice path is ever reached.
+        "pricing_model": "sponsored_paypal",
         "transaction_ref": "REGCTA123",
     })
     assert resp.status_code == 201, resp.data
@@ -736,7 +742,7 @@ def test_refused_paid_claim_sends_no_emails(client, app, monkeypatch):
         "category": "Productivity",
         "reason": "Definitely a real payment, trust me.",
         "submitter_email": "someone@boguspaid.example.com",
-        "pricing_model": "quick_paypal",
+        "pricing_model": "sponsored_paypal",
         "transaction_ref": "8AB12345CD678901E",
     }, headers={"X-Forwarded-For": "203.0.113.11"})  # own rate-limit bucket
     assert resp.status_code == 201, resp.data

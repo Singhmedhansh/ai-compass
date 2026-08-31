@@ -10,8 +10,8 @@ export const SPONSOR_PLACEMENTS = [
   {
     id: 'rail',
     name: 'Featured Tool',
-    price: 19.99,
-    priceLabel: '$19.99',
+    price: 14.99,
+    priceLabel: '$14.99',
     cadence: '/ week',
     capacity: 4,
     comingSoon: false,
@@ -61,6 +61,33 @@ export const SPONSOR_PLACEMENTS = [
     comingSoon: true,
   },
 ]
+
+// The commissioned editorial review. Not a placement: a placement is rented
+// attention that expires, this is an artifact the founder keeps and can link
+// from their own site, their launch post and their investor update.
+//
+// This is the STANDALONE price, for a tool that is already listed. Bundled
+// with a new listing it is the $79 Reviewed tier (see config/pricingTiers.js).
+// Price and turnaround mirror REVIEW_PRICE / TURNAROUND_DAYS in
+// app/editorial.py; live capacity comes from /api/v1/reviews/pricing, and the
+// server is what actually refuses an order.
+export const REVIEW_PRODUCT = {
+  id: 'review',
+  name: 'Editorial review',
+  price: 39,
+  priceLabel: '$39',
+  cadence: 'one-off',
+  turnaroundDays: 10,
+  tagline: 'A real hands-on review of your tool, on its own indexed page.',
+  includes: [
+    '300–500 words written after we actually use the tool',
+    'Screenshots from the session, not your press kit',
+    'Pros, cons and a scored verdict — ours, not yours',
+    'Published on /tools/<your-slug>, indexed and permanent',
+    'Bylined and dated, so it reads as a third party because it is one',
+  ],
+  best: 'A URL you can cite in your launch post, your site and your investor update.',
+}
 
 // What a sponsor is actually buying — stated as mechanics, not adjectives,
 // because the honest version is the version that survives a refund request.

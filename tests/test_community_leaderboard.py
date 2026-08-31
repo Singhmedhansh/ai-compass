@@ -360,7 +360,7 @@ def test_checkout_verifies_the_full_multi_week_amount(client, app, monkeypatch):
         "order_id": "GOODORDER1", "placement": "rail", "weeks": 3, "tool_slug": slug,
     })
     assert resp.status_code == 201
-    assert seen["expected"] == round(19.99 * 3, 2)
+    assert seen["expected"] == round(14.99 * 3, 2)
 
 
 def test_checkout_is_idempotent_on_replay(client, app, monkeypatch):
@@ -574,7 +574,7 @@ def test_inventory_marks_unsold_tiers_coming_soon_not_sold_out(client):
     }
     assert inventory["rail"]["for_sale"] is True
     assert inventory["rail"]["coming_soon"] is False
-    assert inventory["rail"]["price_weekly"] == 19.99
+    assert inventory["rail"]["price_weekly"] == 14.99
     for placement in ("hero", "board"):
         assert inventory[placement]["coming_soon"] is True
         assert inventory[placement]["sold_out"] is False

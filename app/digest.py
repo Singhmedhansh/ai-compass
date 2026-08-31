@@ -29,6 +29,12 @@ On top of the shared budget the digest also has its OWN daily sub-cap
 the whole day's Resend allowance and starve outreach: a 197-recipient batch
 goes out ~50/day over several days, the rest deferred each run.
 
+Fast-Track (sponsored) listings are announced first within a batch and carry a
+"Sponsored" badge in the email — the one thing the paid listing tiers buy
+here.
+Everything else is announced too, in the same email, regardless of tier: the
+perk is position and a label, never inclusion.
+
 "New tool" means LIVE, not merely approved: a free-tier submission is gated
 behind a ~14-day visible_at delay, so this diffs against tool_cache.
 get_visible_tools() (hidden + not-yet-released excluded). A tool that is still
@@ -46,7 +52,7 @@ from app import db
 from flask import render_template
 from app.email_utils import email_enabled, make_unsubscribe_token, send_email
 from app.models import DigestState, NewsletterSubscriber, User
-from app.tool_cache import get_visible_tools
+from app.tool_cache import _sponsored_active, get_visible_tools
 
 log = logging.getLogger(__name__)
 
@@ -88,7 +94,19 @@ def compute_new_tools() -> tuple[list[dict], bool]:
     if not known:
         return [], True
     new_slugs = [s for s in by_slug if s not in known]
-    return [by_slug[s] for s in new_slugs], False
+    new_tools = [by_slug[s] for s in new_slugs]
+    # Fast-Track listings are announced first — this is the "digest spotlight"
+    # the paid tiers are sold on (see frontend/src/config/pricingTiers.js), and
+    # it was previously promised but never implemented, so every tool went out
+    # in arbitrary dict order.
+    #
+    # Ordering is the whole perk: nothing here can add a tool that would not
+    # have been announced anyway (free listings are announced too, and always
+    # have been), and _email_html labels the sponsored ones "Sponsored" so the
+    # position is disclosed rather than disguised. Same rule as every other
+    # paid unit on the site.
+    new_tools.sort(key=lambda t: 0 if _sponsored_active(t) else 1)
+    return new_tools, False
 
 
 def _seed_snapshot() -> int:
@@ -121,6 +139,11 @@ def _email_html(tools: list[dict], unsubscribe_url: str) -> tuple[str, str]:
         badge = "New"
         if t.get("student_friendly") or t.get("student_discount"):
             badge = "Student Friendly"
+        # Disclosure wins the single badge slot: a paid position that isn't
+        # labelled is exactly what makes a directory's recommendations
+        # worthless.
+        if _sponsored_active(t):
+            badge = "Sponsored"
             
         news_items.append({
             "title": name,

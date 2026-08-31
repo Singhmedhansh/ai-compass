@@ -8,13 +8,15 @@ import {
   CircleSlash,
   Clock,
   Mail,
+  PenLine,
   ShieldCheck,
   Trophy,
 } from 'lucide-react'
 
 import CountUp from '../components/ui/CountUp'
+import ReviewCheckout from '../components/community/ReviewCheckout'
 import SponsorCheckout from '../components/community/SponsorCheckout'
-import { SPONSOR_PLACEMENTS, SPONSOR_PROMISES } from '../config/sponsorTiers'
+import { REVIEW_PRODUCT, SPONSOR_PLACEMENTS, SPONSOR_PROMISES } from '../config/sponsorTiers'
 
 const SPONSOR_EMAIL = 'admin@ai-compass.in'
 
@@ -170,18 +172,22 @@ export default function SponsorPage() {
   const [inventory, setInventory] = useState([])
   const [stats, setStats] = useState(null)
   const [booking, setBooking] = useState(null)
+  const [reviewAvailability, setReviewAvailability] = useState(null)
+  const [commissioning, setCommissioning] = useState(false)
 
   useEffect(() => {
     const controller = new AbortController()
 
     async function load() {
       try {
-        const [invRes, statsRes] = await Promise.all([
+        const [invRes, statsRes, reviewRes] = await Promise.all([
           fetch('/api/v1/community/sponsors/inventory', { signal: controller.signal }),
           fetch('/api/v1/community/stats', { signal: controller.signal }),
+          fetch('/api/v1/reviews/pricing', { signal: controller.signal }),
         ])
         if (invRes.ok) setInventory((await invRes.json()).inventory || [])
         if (statsRes.ok) setStats(await statsRes.json())
+        if (reviewRes.ok) setReviewAvailability(await reviewRes.json())
       } catch {
         // The rate card is static; live availability is a bonus, not a blocker.
       }
@@ -205,10 +211,10 @@ export default function SponsorPage() {
   return (
     <div className="mx-auto w-full max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
       <Helmet>
-        <title>Sponsor the AI Compass Community — Labelled Placements from $39/week</title>
+        <title>Sponsor AI Compass — Commissioned Reviews & Labelled Placements</title>
         <meta
           name="description"
-          content="Capped, clearly labelled sponsored placements beside the AI Compass community leaderboard. Impressions, clicks and CTR reported. Leaderboard ranks are never for sale."
+          content="Commission a hands-on editorial review of your tool ($49, published on its own indexed page), or take a capped, clearly labelled placement beside the AI Compass leaderboard. Verdicts and ranks are never for sale."
         />
         <link rel="canonical" href="https://ai-compass.in/sponsor" />
       </Helmet>
@@ -264,6 +270,73 @@ export default function SponsorPage() {
           <StatTile label="Posts" value={stats?.posts ?? 0} />
           <StatTile label="Comments" value={stats?.comments ?? 0} />
           <StatTile label="Tools discussed" value={stats?.tools_discussed ?? 0} />
+        </div>
+      </section>
+
+      {/* The editorial review — the one thing here that outlives the week
+          you bought it in, so it leads. */}
+      <section id="review" aria-labelledby="review-heading" className="mt-12 scroll-mt-24">
+        <div className="rounded-3xl border border-accent/40 bg-bg-elev p-6 shadow-md sm:p-8">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/30 bg-accent-soft px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-accent-ink">
+                <PenLine className="h-3 w-3" aria-hidden="true" /> Most useful thing we sell
+              </span>
+              <h2 id="review-heading" className="mt-3 text-xl font-bold tracking-tight text-ink sm:text-2xl">
+                {REVIEW_PRODUCT.name}: buy the artifact, not the impressions
+              </h2>
+              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-2">
+                A placement rents you attention for a week. A review is a page that keeps
+                existing: we use your tool properly, write {REVIEW_PRODUCT.includes[0].toLowerCase()},
+                and publish it on your own indexed <span className="font-mono text-xs">/tools/</span>
+                page with screenshots, pros, cons and a scored verdict. It is a third-party URL you
+                can cite from your site, your launch post and your investor update.
+              </p>
+            </div>
+            <div className="text-right">
+              <div className="text-3xl font-extrabold tracking-tight text-ink">
+                {REVIEW_PRODUCT.priceLabel}
+              </div>
+              <div className="text-xs font-semibold text-muted">{REVIEW_PRODUCT.cadence}</div>
+            </div>
+          </div>
+
+          <ul className="mt-5 grid gap-2 sm:grid-cols-2">
+            {REVIEW_PRODUCT.includes.map((line) => (
+              <li key={line} className="flex gap-2 text-xs leading-relaxed text-ink-2">
+                <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent" aria-hidden="true" />
+                <span>{line}</span>
+              </li>
+            ))}
+          </ul>
+
+          <p className="mt-4 rounded-xl border border-line bg-bg-sunk px-3 py-2.5 text-[11px] leading-relaxed text-muted">
+            <strong className="font-semibold text-ink-2">What you are not buying:</strong> the
+            verdict. We publish what we find, the review says on its face that it was commissioned,
+            and if we cannot review your tool fairly we refund you and say why. That is precisely
+            what makes the link worth linking.
+          </p>
+
+          <div className="mt-5 flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setCommissioning(true)}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-90"
+            >
+              Commission a review
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </button>
+            {/* Writing throughput is the real constraint, so it is quoted
+                rather than hidden — a queue is a reason to book now, and an
+                oversold month is a refund. */}
+            {reviewAvailability && (
+              <p className="text-xs text-muted">
+                {reviewAvailability.slots_left > 0
+                  ? `${reviewAvailability.slots_left} of ${reviewAvailability.capacity_per_month} review slots left this month · published within ${reviewAvailability.turnaround_days} days`
+                  : `This month is full — new orders publish in about ${reviewAvailability.turnaround_days * 2} days`}
+              </p>
+            )}
+          </div>
         </div>
       </section>
 
@@ -363,8 +436,9 @@ export default function SponsorPage() {
           </h2>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-2">
             A weekly placement is rented attention. A catalogue listing is permanent, self-serve, and
-            costs a one-time $49.99 on the Fast-Track tier — which also earns a Featured rail card for
-            30 days, so you can measure this audience before committing to a slot.
+            costs a one-time $49 on the Fast-Track tier — which also earns a Featured rail card for
+            30 days, so you can measure this audience before committing to a slot. $79 adds a written
+            hands-on review of your tool.
           </p>
           <div className="mt-5 flex flex-wrap gap-2.5">
             <Link
@@ -400,6 +474,22 @@ export default function SponsorPage() {
           <Mail className="h-4 w-4" aria-hidden="true" /> {SPONSOR_EMAIL}
         </a>
       </section>
+
+      {commissioning && (
+        <ReviewCheckout
+          product={REVIEW_PRODUCT}
+          availability={reviewAvailability}
+          onClose={() => {
+            setCommissioning(false)
+            // The queue just got longer if they ordered — requote it rather
+            // than leaving a stale "4 slots left" on screen.
+            fetch('/api/v1/reviews/pricing')
+              .then((r) => (r.ok ? r.json() : null))
+              .then((d) => d && setReviewAvailability(d))
+              .catch(() => {})
+          }}
+        />
+      )}
 
       {booking && (
         <SponsorCheckout

@@ -11,7 +11,7 @@ const BTN_GHOST =
 const PLACEMENTS = [
   { id: 'hero', label: 'Community Spotlight ($149/wk)' },
   { id: 'board', label: 'Presenting Partner ($89/wk)' },
-  { id: 'rail', label: 'Featured Tool ($39/wk)' },
+  { id: 'rail', label: 'Featured Tool ($14.99/wk)' },
 ]
 
 const EMPTY = {

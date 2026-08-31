@@ -373,6 +373,23 @@ def _tools_faq_block() -> str:
     return f'<h2>Frequently asked questions</h2><dl>{rows}</dl>{script}'
 
 
+def _review_seo_block(slug, name: str) -> str:
+    """Crawler HTML for a tool's commissioned review, or '' if it has none.
+
+    Wrapped in its own try/except because the SPA shell is served for every
+    route: a missing editorial_reviews table (a deploy where the migration
+    has not landed yet) must degrade to a page without a review section,
+    never to a 500 on every tool page on the site.
+    """
+    try:
+        from app import editorial
+
+        review = editorial.published_review_for_slug(slug)
+        return editorial.seo_block(review, name, _esc)
+    except Exception:
+        return ''
+
+
 def _seo_body(normalized: str, tool: dict | None = None) -> str:
     """Build a minimal semantic HTML block for crawlers, per route."""
     if tool is not None:
@@ -414,6 +431,12 @@ def _seo_body(normalized: str, tool: dict | None = None) -> str:
             uc = ', '.join(_esc(u) for u in use_cases[:6] if u)
             if uc:
                 parts.append(f'<p>Best for: {uc}.</p>')
+
+        # A commissioned hands-on review is the one piece of copy on this
+        # page that exists nowhere else on the web — the reason a founder
+        # buys one is that it is indexable and citable, so it has to be in
+        # the crawler shell, not only in the React bundle.
+        parts.append(_review_seo_block(tool.get('slug'), tool.get('name') or tool.get('slug') or ''))
 
         if link:
             parts.append(f'<p><a href="{link}" rel="nofollow noopener">Visit {name}</a></p>')

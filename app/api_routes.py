@@ -1327,6 +1327,38 @@ def get_student_discounts():
     return response
 
 
+@api_bp.get("/partners")
+@cache.cached(timeout=300, query_string=True)
+def partner_units():
+    """Labelled partner units for one high-intent page.
+
+    ?surface=best-coding-tools | best-free-ai-tools |
+             best-ai-tools-for-students | best-ai-tools-for-teachers |
+             alternatives:<slug>
+
+    Always 200 with a list, empty when nobody eligible is sponsored — the
+    page then renders nothing at all, which is the honest shape of no
+    inventory. The eligibility rules (a paid-only tool cannot appear on the
+    free-tools guide, and so on) live in app/partner_slots.py.
+    """
+    from app import partner_slots
+
+    surface = (request.args.get("surface") or "").strip().lower()
+    try:
+        units = partner_slots.partner_units(surface)
+    except Exception:
+        # A guide page must render with or without us.
+        current_app.logger.exception("partner units failed for surface=%s", surface)
+        units = []
+
+    return jsonify({
+        "surface": surface,
+        "label": partner_slots.LABEL,
+        "disclosure": partner_slots.DISCLOSURE,
+        "units": units,
+    })
+
+
 @api_bp.get("/stats")
 def get_public_stats():
     # Public counterpart to /admin/stats — used by the homepage to display a live tool count
@@ -1393,6 +1425,35 @@ def get_tool(slug: str):
             # Ratings table missing or unreachable — fall back to static fields.
             db.session.rollback()
         current_app.logger.info(f"[PERF] after rating aggregate: {time.time() - t0:.2f}s")
+
+        # "Claimed by the maker" badge, when someone has proven they own the
+        # tool. Says the copy has an owner answerable for it — never that the
+        # tool is better, which is why the payload carries no endorsement and
+        # names nobody.
+        try:
+            from app import claims
+
+            badge = claims.public_claim_badge(slug_value)
+            if badge:
+                tool_payload["claim"] = badge
+        except Exception:
+            db.session.rollback()
+
+        # Commissioned hands-on review, if one is published for this tool.
+        # Attached here rather than fetched separately by the client so the
+        # review is part of the same payload the page already waits on — a
+        # second round trip would render it below the fold a beat late, and
+        # the review is the most valuable thing on the page when it exists.
+        try:
+            from app import editorial
+
+            review = editorial.published_review_for_slug(slug_value)
+            if review is not None:
+                tool_payload["editorial_review"] = editorial.public_payload(review)
+        except Exception:
+            # A missing table or unreachable DB must never take the tool page
+            # down — same stance as the rating aggregate above.
+            db.session.rollback()
         current_app.logger.info(f"[PERF] total: {time.time() - t0:.2f}s")
         from flask import make_response
         response = make_response(jsonify(tool_payload))
@@ -1477,6 +1538,9 @@ def get_tool_reviews(slug: str):
                 "created_at": r.created_at.isoformat(),
                 "score": sum(v.vote_type for v in r.votes),
                 "user_vote": next((v.vote_type for v in r.votes if v.user_id == current_user.id), None) if current_user and current_user.is_authenticated else None,
+                # The maker's single public answer, if they left one.
+                "maker_reply": r.maker_reply,
+                "maker_reply_at": r.maker_reply_at.isoformat() if r.maker_reply_at else None,
             } for r in reviews],
             "count": len(reviews),
             "message": "No reviews yet. Be the first!" if not reviews else None
@@ -1605,6 +1669,54 @@ def post_review(slug: str):
         return jsonify({"error": "Could not save review"}), 500
 
 
+@api_bp.post("/reviews/<int:review_id>/reply")
+@csrf.exempt
+@login_required
+def reply_to_review(review_id: int):
+    """The claimed maker's public answer to one review of their tool.
+
+    Replying is the half of "claim your listing" that a reader benefits
+    from: an unanswered complaint is worth less to everyone than one with
+    the maker's side next to it. Bounded deliberately — one reply per
+    review, editable, and never able to hide or alter the review itself.
+    """
+    from app import claims
+
+    review = Review.query.get(review_id)
+    if review is None:
+        return jsonify({"error": "Review not found"}), 404
+
+    if not claims.user_can_edit(current_user, review.tool_slug):
+        return jsonify({
+            "error": "Only the claimed maker of this tool can reply to its reviews.",
+        }), 403
+
+    body = str((request.get_json(silent=True) or {}).get("body") or "").strip()
+    if not body:
+        # Empty means "take my reply down", which a maker must be able to do
+        # without asking us.
+        review.maker_reply = None
+        review.maker_reply_at = None
+    else:
+        if len(body) > 1000:
+            return jsonify({"error": "Replies are limited to 1000 characters."}), 400
+        review.maker_reply = body
+        review.maker_reply_at = datetime.now(timezone.utc)
+
+    try:
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        current_app.logger.exception("maker reply failed for review %s", review_id)
+        return jsonify({"error": "Could not save that reply"}), 500
+
+    return jsonify({
+        "success": True,
+        "maker_reply": review.maker_reply,
+        "maker_reply_at": review.maker_reply_at.isoformat() if review.maker_reply_at else None,
+    })
+
+
 @api_bp.post("/reviews/<int:review_id>/vote")
 @csrf.exempt
 @login_required
@@ -1660,7 +1772,11 @@ def get_paypal_config():
     })
 
 
-_PAYPAL_TIERS = ("sponsor", "quick")
+# Tier labels the /submit checkout may ask for. Echoed back only — the
+# amount that actually gets verified comes from pricing_tiers, never from
+# this parameter. "quick" stays accepted so a stale cached bundle asking
+# for it gets a config response instead of a silent fallback surprise.
+_PAYPAL_TIERS = ("sponsor", "reviewed", "quick")
 
 
 @api_bp.get("/config/paypal-hosted")
@@ -1830,9 +1946,28 @@ def submit_tool():
         # ref, or a payment method with no real server-side gateway wired up
         # yet) is recorded as 'unverified_review' so it can never silently
         # unlock PAYMENT APPROVED / fast-track / an invoice email on its own.
-        from app.pricing_tiers import TIERS, tier_for_pricing_model
+        from app.pricing_tiers import (
+            TIERS,
+            includes_editorial_review,
+            includes_sponsored_perks,
+            is_for_sale,
+            price_for_tier,
+            tier_for_pricing_model,
+        )
         tier_key = tier_for_pricing_model(pricing_model_raw)
-        is_paid_claim = tier_key in ("quick", "sponsored")
+        is_paid_claim = bool(TIERS.get(tier_key, {}).get("paid"))
+
+        # A retired tier is refused BEFORE any payment work, the same way
+        # sponsor_checkout() refuses a placement that isn't on sale: taking
+        # money for something we have stopped delivering means holding a
+        # charge we owe back. Retired only ever means retired for NEW
+        # purchases — existing rows keep resolving to their tier everywhere
+        # else (see pricing_tiers.TIERS).
+        if is_paid_claim and not is_for_sale(tier_key):
+            return jsonify({
+                "error": "That tier is no longer offered. Pick Fast-Track or Reviewed on "
+                         "/pricing — or submit for free, which now goes live in 7 days.",
+            }), 400
         payment_verified = False
         payment_note = None
         # 'refused' | 'indeterminate' once a paid claim fails. See
@@ -1849,7 +1984,7 @@ def submit_tool():
                 verify_paypal_order,
             )
             if "paypal" in pricing_model_raw and transaction_ref:
-                expected_amount = TIERS.get(tier_key, {}).get("price", 49.99)
+                expected_amount = price_for_tier(tier_key)
                 payment_verified, detail = verify_paypal_order(
                     transaction_ref, expected_amount=expected_amount
                 )
@@ -1971,6 +2106,51 @@ def submit_tool():
             # Don't hard-fail the user — the notification email below is
             # the backup channel.
 
+        # The Reviewed tier's price includes a commissioned hands-on review,
+        # so the commission is queued here rather than waiting for someone to
+        # notice the tier on the invoice. An owed deliverable that exists only
+        # in a human's memory is the failure this whole ladder was rebuilt to
+        # stop repeating.
+        #
+        # Only on a VERIFIED payment — an unverified claim buys nothing, here
+        # as everywhere else. create_order() is idempotent on payment_ref, so
+        # a retried checkout reuses the commission instead of queueing a
+        # second one.
+        if payment_verified and includes_editorial_review(tier_key) and sub is not None:
+            try:
+                from app import editorial
+
+                review_slug = _slugify(name)
+                _review, review_err = editorial.create_order(
+                    tool_slug=review_slug,
+                    contact_email=submitter_email,
+                    brief=None,
+                    # Zero, deliberately: the $79 is already counted as
+                    # submission revenue, and booking it again on the review
+                    # row would double-count one payment across two reports.
+                    # The note carries where the money actually landed.
+                    amount_paid=0.0,
+                    payment_ref=transaction_ref or None,
+                )
+                if review_err:
+                    current_app.logger.error(
+                        "Reviewed tier paid but review commission failed: "
+                        "submission_id=%s slug=%s reason=%s",
+                        sub.id, review_slug, review_err,
+                    )
+                else:
+                    review_note = (
+                        f"Included in the ${price_for_tier(tier_key):.0f} Reviewed tier "
+                        f"— billed on submission #{sub.id}."
+                    )
+                    editorial.update_review(_review, {"admin_note": review_note})
+            except Exception:
+                db.session.rollback()
+                current_app.logger.exception(
+                    "Reviewed tier paid but review commission errored (submission_id=%s)",
+                    getattr(sub, "id", None),
+                )
+
         notify_email = os.environ.get("SUBMIT_NOTIFY_EMAIL", "admin@ai-compass.in")
 
         import app.email_utils as email_utils_mod
@@ -2055,13 +2235,23 @@ def submit_tool():
                 today_str = datetime.now(timezone.utc).strftime("%B %d, %Y")
                 invoice_num = f"INV-{datetime.now(timezone.utc).strftime('%Y%m%d')}-{random.randint(1000, 9999)}"
 
-                tier_names = {"quick": "Quick Review", "sponsored": "Fast-Track Sponsored Curation"}
+                tier_names = {
+                    # Retired, but rows bought under it still generate invoices
+                    # and dashboards, so it keeps its name.
+                    "quick": "Quick Review",
+                    "sponsored": "Fast-Track",
+                    "reviewed": "Reviewed Listing",
+                }
                 tier_review_promises = {
                     "quick": "Our editorial team will review it within 48–72 hours.",
-                    "sponsored": "Our editorial team will test and index your tool within 24 hours.",
+                    "sponsored": "We review yours first — target 24 hours — and it goes live the next day.",
+                    "reviewed": (
+                        "We review yours first — target 24 hours — it goes live the next day, "
+                        "and your hands-on review follows within 10 days."
+                    ),
                 }
-                tier_name = tier_names.get(tier_key, "Sponsored Curation")
-                tier_amount = TIERS.get(tier_key, {}).get("price", 49.99)
+                tier_name = tier_names.get(tier_key, "Fast-Track")
+                tier_amount = price_for_tier(tier_key)
                 review_promise = tier_review_promises.get(tier_key, "Our editorial team will review it shortly.")
 
                 invoice_html = render_template(
@@ -2078,6 +2268,11 @@ def submit_tool():
                     line_item_amount=f"${tier_amount:.2f}",
                     total_amount=f"${tier_amount:.2f} USD",
                     dashboard_url=dash_link,
+                    # Launch Day is the one perk a founder has to act on, and
+                    # the invoice is the only moment we know they are reading.
+                    # Left to the dashboard alone it goes unbooked, and an
+                    # unbooked launch is a perk paid for and never delivered.
+                    launch_eligible=includes_sponsored_perks(tier_key),
                     # The auto-created/linked-account callout replaces the
                     # generic "create a free account" CTA — showing both
                     # would tell a founder to sign up for an account they
@@ -2091,6 +2286,12 @@ def submit_tool():
                 invoice_text = f"Thank you for your purchase! {tier_name} payment of ${tier_amount:.2f} USD has been received. Invoice Number: {invoice_num}, Transaction Ref: {clean_ref}."
                 if dash_link:
                     invoice_text += f" Track clicks and views on your listing: {dash_link}"
+                if dash_link and includes_sponsored_perks(tier_key):
+                    invoice_text += (
+                        " Your listing also comes with a Launch Day: pick the date your placement, "
+                        "rail card and digest spot all start on, from the same dashboard. "
+                        "We run one launch a day."
+                    )
                 if founder_account_created:
                     invoice_text += (
                         f" We've created a Growth Hub account for you (login: {submitter_email}) — "
@@ -2879,7 +3080,8 @@ def admin_stats():
 @login_required
 def admin_tier_breakdown():
     """Read-only reporting: how many catalog listings / pending submissions
-    sit in each pricing tier (Free / Quick Review / Fast-Track Sponsored).
+    sit in each pricing tier (Free / Fast-Track / Reviewed, plus the retired
+    Quick Review, which still has live rows).
 
     Tier is OUR submission pricing ladder (app/pricing_tiers.py), not the
     tool's own Free/Freemium/Paid price label (that's what /admin/stats'
@@ -2895,10 +3097,12 @@ def admin_tier_breakdown():
         return jsonify({"error": "Forbidden"}), 403
 
     from app.models import CatalogTool, Submission
-    from app.pricing_tiers import effective_tier
+    from app.pricing_tiers import TIERS, effective_tier
 
     # --- Pending submissions, grouped by effective tier -------------------
-    pending = {"free": 0, "quick": 0, "sponsored": 0}
+    # One bucket per tier in the ladder, retired ones included — a report
+    # that silently drops a tier is how a paying cohort goes unnoticed.
+    pending = {key: 0 for key in TIERS}
     for pricing_model, payment_status in db.session.query(
         Submission.pricing_model, Submission.payment_status
     ).filter(Submission.status == "pending", Submission.is_test.is_(False)):
@@ -2915,16 +3119,20 @@ def admin_tier_breakdown():
     ):
         sub_tier_by_slug[slug] = effective_tier(pricing_model, payment_status)
 
-    live = {"free": 0, "quick": 0, "sponsored": 0, "editorial": 0}
+    live = {key: 0 for key in TIERS}
+    # Seeded from tools.json, never ticketed through the ladder at all.
+    live["editorial"] = 0
     for tool in get_visible_tools(DATA_PATH):
-        if _sponsored_active(tool):
-            live["sponsored"] += 1
-            continue
         tier = sub_tier_by_slug.get(tool.get("slug"))
-        if tier == "quick":
-            live["quick"] += 1
-        elif tier == "free":
-            live["free"] += 1
+        if _sponsored_active(tool):
+            # Placement is visible on the catalog row itself, so it can be
+            # counted without a submission — but when there IS one, credit
+            # the tier that actually paid rather than lumping Reviewed in
+            # with Fast-Track.
+            live[tier if tier in live else "sponsored"] += 1
+            continue
+        if tier in ("quick", "free"):
+            live[tier] += 1
         else:
             # No linked submission — seeded from tools.json, never ticketed.
             live["editorial"] += 1
@@ -2938,7 +3146,7 @@ def admin_tier_breakdown():
     # "everyone picks free", when what had actually happened was that no
     # payment could be verified at all. This block exists so that reading
     # cannot happen again.
-    from app.pricing_tiers import TIERS, tier_for_pricing_model
+    from app.pricing_tiers import tier_for_pricing_model
 
     attempts = {
         "total": 0,
@@ -2958,7 +3166,7 @@ def admin_tier_breakdown():
     for pricing_model, payment_status, payment_note in db.session.query(
         Submission.pricing_model, Submission.payment_status, Submission.payment_note
     ).filter(Submission.is_test.is_(False)):
-        if tier_for_pricing_model(pricing_model) not in ("quick", "sponsored"):
+        if not TIERS.get(tier_for_pricing_model(pricing_model), {}).get("paid"):
             continue
         attempts["total"] += 1
 
@@ -5089,6 +5297,33 @@ def admin_send_community_recap():
         return jsonify({"error": "recap_failed", "detail": str(exc)}), 500
 
 
+@api_bp.post("/admin/send-founder-reports")
+@csrf.exempt
+def admin_send_founder_reports():
+    """Trigger the monthly listing report to paid founders.
+
+    Same auth and flags as send-digest so one external scheduler can drive
+    every mail path. ?dry_run=1 previews the audience and the numbers
+    without sending; ?force=1 sends even to listings with nothing to report.
+    """
+    import hmac
+
+    secret = os.environ.get("DIGEST_SECRET")
+    provided = request.headers.get("X-Digest-Secret", "")
+    if not secret or not hmac.compare_digest(secret, provided):
+        return jsonify({"error": "unauthorized"}), 401
+
+    from app.founder_report import run_reports
+
+    dry_run = request.args.get("dry_run") in ("1", "true", "yes")
+    force = request.args.get("force") in ("1", "true", "yes")
+    try:
+        return jsonify(run_reports(dry_run=dry_run, force=force))
+    except Exception as exc:
+        current_app.logger.exception("send-founder-reports failed")
+        return jsonify({"error": "founder_report_failed", "detail": str(exc)}), 500
+
+
 # ---------------------------------------------------------------------------
 # Admin: digest controls (session-authed — for the admin panel UI)
 # ---------------------------------------------------------------------------
@@ -5106,6 +5341,23 @@ def admin_digest():
     except Exception as exc:  # noqa: BLE001
         current_app.logger.exception("admin digest failed")
         return jsonify({"error": "digest_failed", "detail": str(exc)}), 500
+
+
+@api_bp.post("/admin/founder-reports")
+@csrf.exempt
+@login_required
+def admin_founder_reports():
+    """Session-authed twin of send-founder-reports, for the admin panel."""
+    if not _is_admin():
+        return jsonify({"error": "Forbidden"}), 403
+    from app.founder_report import run_reports
+    dry_run = request.args.get("dry_run") in ("1", "true", "yes")
+    force = request.args.get("force") in ("1", "true", "yes")
+    try:
+        return jsonify(run_reports(dry_run=dry_run, force=force))
+    except Exception as exc:  # noqa: BLE001
+        current_app.logger.exception("admin founder reports failed")
+        return jsonify({"error": "founder_report_failed", "detail": str(exc)}), 500
 
 
 @api_bp.post("/admin/recap")
@@ -5504,15 +5756,20 @@ def admin_approve_submission(sub_id):
         return jsonify({"error": f"Slug '{slug}' already in catalog"}), 409
 
     # A verified payment is what buys placement — never the client's claim.
-    # Quick Review is also a verified paid tier (it jumps the review queue
-    # via is_priority, same as Fast-Track), but only Fast-Track buys the
-    # catalog "sponsored" boost — permanent above-free placement + badge.
-    # Checking the tier prefix (not just is_priority) is what keeps that
-    # distinction real instead of accidentally selling Fast-Track's perks
-    # at Quick Review's price.
-    from app.pricing_tiers import tier_for_pricing_model, visibility_delay_days_for_tier
+    # Every paid tier jumps the review queue via is_priority, but only the
+    # placement tiers (Fast-Track, Reviewed — see SPONSORED_PERK_TIERS) buy
+    # the catalog "sponsored" boost: above-free placement + badge. Asking
+    # includes_sponsored_perks() rather than testing one tier name inline is
+    # what keeps that distinction real as the ladder changes; the retired
+    # Quick Review tier is the case that proves it, since it is paid and
+    # priority but was never a placement tier.
+    from app.pricing_tiers import (
+        includes_sponsored_perks,
+        tier_for_pricing_model,
+        visibility_delay_days_for_tier,
+    )
     tier_key = tier_for_pricing_model(s.pricing_model or "")
-    is_sponsored = bool(tier_key == "sponsored" and s.payment_status == "verified")
+    is_sponsored = bool(includes_sponsored_perks(tier_key) and s.payment_status == "verified")
 
     # Deliberately NOT setting `featured` here, even for Fast-Track.
     #
@@ -5772,6 +6029,104 @@ def _submission_dashboard_category_benchmark(catalog_row, since_30d):
     }
 
 
+def _launch_submission_for_request():
+    """Resolve the submission a launch request is about, and prove the caller
+    owns it. Accepts the same two credentials as the founder dashboard: the
+    signed magic-link token from the invoice email, or a logged-in founder's
+    own session scoped to a submission they own."""
+    from itsdangerous import BadSignature, SignatureExpired
+
+    from app.models import Submission
+    from app.submission_dashboard import verify_dashboard_token
+
+    token = request.args.get("token", "")
+    submission_id = request.args.get("submission_id", "")
+
+    if token:
+        try:
+            sub_id, _email = verify_dashboard_token(token)
+        except SignatureExpired:
+            return None, (jsonify({"error": "expired"}), 401)
+        except BadSignature:
+            return None, (jsonify({"error": "invalid"}), 401)
+        return Submission.query.get(sub_id), None
+
+    if submission_id:
+        if not current_user.is_authenticated:
+            return None, (jsonify({"error": "unauthorized"}), 401)
+        try:
+            sub_id = int(submission_id)
+        except (TypeError, ValueError):
+            return None, (jsonify({"error": "invalid"}), 400)
+        owned = Submission.query.filter_by(
+            id=sub_id, founder_user_id=current_user.id
+        ).first()
+        if not owned:
+            return None, (jsonify({"error": "unauthorized"}), 403)
+        return owned, None
+
+    return None, (jsonify({"error": "invalid"}), 401)
+
+
+@api_bp.get("/launch")
+def get_launch():
+    """This listing's Launch Day, and the dates still open."""
+    submission, denied = _launch_submission_for_request()
+    if denied:
+        return denied
+    if submission is None:
+        return jsonify({"error": "not_found"}), 404
+
+    from app import launch_day
+
+    return jsonify({
+        "launch": launch_day.status(submission),
+        "availability": launch_day.availability(submission),
+    })
+
+
+@api_bp.post("/launch")
+@csrf.exempt
+def set_launch():
+    """Book, move, or cancel a Launch Day.
+
+    Sending no date cancels, returning the listing to the ordinary release
+    schedule — a founder who cannot unbook is a founder who will not book.
+    """
+    submission, denied = _launch_submission_for_request()
+    if denied:
+        return denied
+    if submission is None:
+        return jsonify({"error": "not_found"}), 404
+
+    from app import launch_day
+
+    payload = request.get_json(silent=True) or {}
+    when = str(payload.get("date") or "").strip()
+
+    if not when:
+        err = launch_day.cancel(submission)
+        if err:
+            return jsonify({"error": err}), 400
+        return jsonify({"success": True, "launch": launch_day.status(submission)})
+
+    _booked, err = launch_day.schedule(submission, when)
+    if err:
+        messages = {
+            "tier_not_eligible": "Launch Day comes with Fast-Track and Reviewed listings.",
+            "already_launched": "That launch has already happened — it can't be moved now.",
+            "invalid_date": "That date could not be read. Use YYYY-MM-DD.",
+            "too_early": "That is before your listing can go live. Pick a later date.",
+            "too_far_out": "That is further out than we book. Email admin@ai-compass.in.",
+            "date_taken": "Another tool is launching that day. We only run one at a time, "
+                          "which is the point — pick another date.",
+        }
+        status_code = 500 if err == "launch_write_failed" else 400
+        return jsonify({"error": messages.get(err, err), "reason": err}), status_code
+
+    return jsonify({"success": True, "launch": launch_day.status(submission)})
+
+
 @api_bp.get("/founder/tools")
 @login_required
 def founder_tools():
@@ -5808,13 +6163,14 @@ def submission_dashboard():
     """Token-gated per-submitter analytics (no login — Submission has no
     user_id). Response shape depends on tier:
       free (or unverified paid claim) -> status only
-      quick   -> + click/view totals and a 14-day trend
-      sponsored -> + category benchmark + featured-status confirmation
+      any paid tier -> + click/view totals and a 14-day trend
+      a placement tier (Fast-Track, Reviewed) -> + category benchmark and
+        live perk confirmation; Reviewed also carries its review status
     """
     from itsdangerous import BadSignature, SignatureExpired
 
     from app.models import CatalogTool, OutboundClick, Submission, ToolPageView
-    from app.pricing_tiers import tier_for_pricing_model
+    from app.pricing_tiers import includes_sponsored_perks, tier_for_pricing_model
     from app.submission_dashboard import verify_dashboard_token
 
     # Additive, not a replacement (Constraint 2 of the founder-accounts
@@ -5927,7 +6283,7 @@ def submission_dashboard():
         "daily_trend": _submission_dashboard_daily_trend(slug, days=14),
     }
 
-    if tier_key == "sponsored":
+    if includes_sponsored_perks(tier_key):
         resp["benchmark"] = _submission_dashboard_category_benchmark(catalog_row, since_30d)
         # Derived from the live catalog record, not asserted. These were
         # hardcoded True, so the dashboard kept promising perks after a
@@ -5948,6 +6304,18 @@ def submission_dashboard():
             "homepage_strip": placement_live,
             "above_free_placement": placement_live,
         }
+
+        # The pages the partner unit is currently on, by name. "Placement
+        # above free listings" is true but unverifiable by the person paying
+        # for it; a list of URLs they can open is the same perk stated as
+        # something checkable. See app/partner_slots.py.
+        try:
+            from app import partner_slots
+
+            resp["partner_surfaces"] = partner_slots.surfaces_for_tool(tool_record)
+        except Exception:
+            current_app.logger.exception("partner surfaces failed for %s", catalog_row.slug)
+            resp["partner_surfaces"] = []
 
     # Community placement delivery. Attached for every paid tier (not just
     # sponsored) because a rail card is earned by any verified paid

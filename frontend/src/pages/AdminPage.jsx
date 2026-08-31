@@ -5,6 +5,8 @@ import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import SearchInput from '../components/ui/SearchInput'
+import EditorialReviewsPanel from '../components/admin/EditorialReviewsPanel'
+import ToolClaimsPanel from '../components/admin/ToolClaimsPanel'
 import SponsorSlotsPanel from '../components/admin/SponsorSlotsPanel'
 
 // ESLint no-unused-vars doesn't recognise JSX namespaced tags (<MotionDiv>)
@@ -15,7 +17,7 @@ const MotionSpan = motion.span
 
 const ADMIN_EMAILS = ['singhmedhansh07@gmail.com']
 const TOOLS_PAGE_SIZE = 15
-const TABS = ['Overview', 'Tools', 'Sync', 'Submissions', 'Sponsors', 'Feedback', 'Analytics', 'Tier Breakdown', 'Email', 'Newsletter', 'Flags', 'Users', 'Reviews', 'Links', 'Outreach']
+const TABS = ['Overview', 'Tools', 'Sync', 'Submissions', 'Claims', 'Sponsors', 'Feedback', 'Analytics', 'Tier Breakdown', 'Email', 'Newsletter', 'Flags', 'Users', 'Reviews', 'Links', 'Outreach']
 
 const EMPTY_TOOL = {
   slug: '', name: '', tagline: '', description: '', category: '',
@@ -252,6 +254,7 @@ function AdminPage() {
   const [editing, setEditing] = useState(null)
   const [digestBusy, setDigestBusy] = useState('')
   const [recapBusy, setRecapBusy] = useState('')
+  const [reportBusy, setReportBusy] = useState('')
   const [liDrafts, setLiDrafts] = useState(null)
   const [bcSubject, setBcSubject] = useState("What's new on AI Compass")
   const [bcBody, setBcBody] = useState(
@@ -557,6 +560,15 @@ function AdminPage() {
       if (d.status === 'noop') toast.message(d.message || 'Nothing to report this week.')
       else toast.success(`${d.status}: ${d.recipients ?? 0} active members${d.delivered != null ? ` · ${d.delivered} sent` : ''}`)
     } catch (e) { toast.error(e.message) } finally { setRecapBusy('') }
+  }
+  const runFounderReports = async (dry) => {
+    setReportBusy(dry ? 'dry' : 'send')
+    try {
+      const d = await api(`/api/v1/admin/founder-reports?${dry ? 'dry_run=1' : ''}`, { method: 'POST' })
+      if (d.status === 'noop') toast.message(d.message || 'Nothing to report this month.')
+      else if (d.status === 'deferred') toast.error(d.message || 'Send budget exhausted — deferred.')
+      else toast.success(`${d.status}: ${d.reports ?? 0} listings${d.delivered != null ? ` · ${d.delivered} sent` : ''}`)
+    } catch (e) { toast.error(e.message) } finally { setReportBusy('') }
   }
   const sendTestRecap = async () => {
     setRecapBusy('test')
@@ -1048,11 +1060,14 @@ function AdminPage() {
                     <b> Live</b> = tools currently shown to visitors. <b>Pending</b> = submissions still
                     awaiting review (queue depth per tier). An unverified paid claim counts as Free.
                   </p>
-                  <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
+                  <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     {[
                       ['Free', 'free'],
-                      ['Quick Review', 'quick'],
-                      ['Fast-Track Sponsored', 'sponsored'],
+                      ['Fast-Track', 'sponsored'],
+                      ['Reviewed', 'reviewed'],
+                      // Retired tier: no longer sold, but live rows still
+                      // carry it, so it stays visible in reporting.
+                      ['Quick Review (retired)', 'quick'],
                     ].map(([label, key]) => (
                       <div key={key} className="rounded-2xl border border-line bg-bg-elev p-5 shadow-sm">
                         <p className="text-xs uppercase tracking-wide text-muted">{label}</p>
@@ -1198,6 +1213,20 @@ function AdminPage() {
                 <button disabled={!!recapBusy} onClick={() => runRecap(true)} className={BTN_GHOST}>{recapBusy === 'dry' ? 'Checking…' : 'Dry run'}</button>
                 <button disabled={!!recapBusy} onClick={sendTestRecap} className={BTN_GHOST}>{recapBusy === 'test' ? 'Sending…' : 'Send test to me'}</button>
                 <button disabled={!!recapBusy} onClick={() => { if (window.confirm('Send the recap to every active community member now? This is real — use “Send test to me” first.')) runRecap(false) }} className={BTN_PRIMARY}>{recapBusy === 'send' ? 'Sending…' : 'Send recap'}</button>
+              </div>
+            </Card>
+
+            <Card>
+              <h2 className="text-xl font-semibold text-ink">Monthly Listing Report</h2>
+              <p className="mt-1 text-sm text-muted">
+                Views, clicks, CTR and category rank, emailed to each founder whose listing is on a
+                verified paid tier — the numbers they would otherwise have to visit a dashboard for.
+                Sends itself monthly and skips a listing with nothing at all to report. Dry run
+                shows who would get one and what it would say.
+              </p>
+              <div className="mt-4 flex gap-2">
+                <button disabled={!!reportBusy} onClick={() => runFounderReports(true)} className={BTN_GHOST}>{reportBusy === 'dry' ? 'Checking…' : 'Dry run'}</button>
+                <button disabled={!!reportBusy} onClick={() => { if (window.confirm("Email this month's report to every paid founder now? This is real.")) runFounderReports(false) }} className={BTN_PRIMARY}>{reportBusy === 'send' ? 'Sending…' : 'Send reports'}</button>
               </div>
             </Card>
 
@@ -1361,6 +1390,18 @@ function AdminPage() {
           </Card>
         )}
 
+        {activeTab === 'Claims' && (
+          <Card>
+            <h2 className="mb-1 text-xl font-semibold text-ink">Listing claims</h2>
+            <p className="mb-5 text-sm text-muted">
+              Makers asking for edit rights over their own listing. Approving one lets that account
+              rewrite the listing&apos;s copy immediately — never its placement, rating, or any
+              review we wrote.
+            </p>
+            <ToolClaimsPanel />
+          </Card>
+        )}
+
         {activeTab === 'Sponsors' && (
           <Card>
             <h2 className="mb-1 text-xl font-semibold text-ink">Sponsored placements</h2>
@@ -1368,6 +1409,16 @@ function AdminPage() {
               Community slot inventory, delivery numbers, and manual placement.
             </p>
             <SponsorSlotsPanel />
+
+            <div className="mt-8 border-t border-line pt-6">
+              <h2 className="mb-1 text-xl font-semibold text-ink">Commissioned reviews</h2>
+              <p className="mb-5 text-sm text-muted">
+                Hands-on reviews someone has paid for. Each open row owes a founder a published
+                page on <code className="rounded bg-bg-sunk px-1.5 py-0.5 text-xs">/tools/&lt;slug&gt;</code> —
+                write it here, and publish when it is honest rather than when it is flattering.
+              </p>
+              <EditorialReviewsPanel />
+            </div>
           </Card>
         )}
 
