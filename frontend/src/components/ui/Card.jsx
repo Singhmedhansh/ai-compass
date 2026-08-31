@@ -18,6 +18,15 @@ const pricingClasses = {
 }
 
 
+// "2026-07-02" -> "Jul 2026". Returns null for missing/unparseable dates so
+// the caller can fall back to an unqualified "Hand-tested" chip.
+function formatVerifiedShort(iso) {
+  if (!iso) return null
+  const date = new Date(iso)
+  if (Number.isNaN(date.getTime())) return null
+  return date.toLocaleString('en-US', { month: 'short', year: 'numeric' })
+}
+
 function slugify(value = '') {
   return value
     .toString()
@@ -56,7 +65,10 @@ function Card({ tool = {}, layoutType = 'standard', glass = false, folders = nul
   }, [isHovered])
 
   const isLarge = layoutType === 'large'
-  const isWide = layoutType === 'wide'
+  // 'wide' used to be a third layoutType, but it was only ever read here and
+  // changed nothing about the render — the grid widened the cell and the card
+  // inside was identical to a standard one. Removed with the bento grid.
+  const isFeatured = Boolean(tool.featured) && !tool.sponsored
 
   const name = tool.name || 'Unknown Tool'
   const description = tool.shortDescription || tool.description || 'No description available.'
@@ -69,6 +81,10 @@ function Card({ tool = {}, layoutType = 'standard', glass = false, folders = nul
   const hasRealRating = rating > 0 && reviewCount > 0
   const pricing = (tool.pricing || 'free').toLowerCase()
   const slug = tool.slug || slugify(name)
+  // Shown instead of a star widget when there are no real reviews. Backed by
+  // the actual hand-test date from the catalog, so the chip is a claim we can
+  // stand behind.
+  const verifiedLabel = formatVerifiedShort(tool.last_verified_at || tool.lastVerifiedAt)
 
   const ratingStars = Array.from({ length: 5 }, (_, index) => {
     const floor = Math.floor(rating)
@@ -178,7 +194,10 @@ function Card({ tool = {}, layoutType = 'standard', glass = false, folders = nul
       style={{ minHeight: baseMinHeight }}
       transition={{ type: 'spring', stiffness: 300, damping: 20 }}
       className={clsx(
-        "group relative flex w-full flex-col gap-4 overflow-hidden rounded-2xl border border-line text-left shadow-sm cursor-pointer transition-all hover:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg",
+        "group relative flex w-full flex-col gap-4 overflow-hidden rounded-2xl border text-left shadow-sm cursor-pointer transition-all hover:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg",
+        // Editorial emphasis that costs the grid nothing: a featured tool keeps
+        // the same footprint as every other card, so the set stays comparable.
+        isFeatured ? "border-accent/40" : "border-line",
         glass ? "glass-card bg-opacity-70 hover:bg-opacity-80" : "bg-bg-elev",
         isLarge ? "p-6" : "p-4"
       )}
@@ -249,11 +268,15 @@ function Card({ tool = {}, layoutType = 'standard', glass = false, folders = nul
  
         <div className={clsx("min-w-0 flex-1", isLarge ? "mt-4 w-full" : "")}>
           <h3 className={clsx("truncate font-semibold text-ink", isLarge ? "text-xl" : "text-base", !isLarge && (folders ? "pr-20" : "pr-8"))}>{name}</h3>
+          {/* Fixed clamp. This used to grow from 2 lines to 3 on hover, which
+              reflowed the card under the user's cursor and pushed the badges
+              and pricing chip down mid-interaction. A stable 3 lines shows more
+              than the old resting state did, and nothing moves. */}
           <p
             className={clsx("mt-1 overflow-hidden text-muted", isLarge ? "text-base" : "text-sm")}
             style={{
               display: '-webkit-box',
-              WebkitLineClamp: isHovered ? (isLarge ? 6 : 3) : (isLarge ? 4 : 2),
+              WebkitLineClamp: isLarge ? 4 : 3,
               WebkitBoxOrient: 'vertical',
             }}
           >
@@ -277,6 +300,17 @@ function Card({ tool = {}, layoutType = 'standard', glass = false, folders = nul
               title="Paid placement — this listing's maker sponsors its spot in this category"
             >
               Sponsored
+            </span>
+          )}
+          {/* Deliberately not called "Featured" — the homepage strip uses that
+              word for paid placement. This one is an editorial pick, and the
+              two must never read as the same thing. */}
+          {isFeatured && (
+            <span
+              className="inline-flex items-center gap-1 rounded-full border border-line-strong bg-bg-sunk px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-ink-2"
+              title="Hand-picked by the AI Compass editors — not a paid placement"
+            >
+              Editor&apos;s pick
             </span>
           )}
           <Badge label={category} variant={category} />
@@ -316,14 +350,11 @@ function Card({ tool = {}, layoutType = 'standard', glass = false, folders = nul
         ) : (
           <span
             className="inline-flex items-center gap-1 rounded-full bg-accent-soft px-2 py-0.5 text-[11px] font-medium text-accent-ink"
-            aria-label="Hand-curated pick"
+            aria-label={verifiedLabel ? `Hand-tested ${verifiedLabel}` : 'Hand-tested pick'}
+            title={verifiedLabel ? `Last hand-tested ${verifiedLabel}` : undefined}
           >
             <Star className="h-3 w-3 fill-current" />
-            {(() => {
-              const hash = slug.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
-              const count = 150 + (hash % 15) * 50
-              return `Curated · ${count}+ students`
-            })()}
+            {verifiedLabel ? `Verified ${verifiedLabel}` : 'Hand-tested'}
           </span>
         )}
  

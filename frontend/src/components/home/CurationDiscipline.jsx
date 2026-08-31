@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { useCatalogStats } from '../../hooks/useCatalogStats'
 import { useCountUp, useScrollReveal } from '../../lib/motion'
 import { GridBackground } from '../ui'
+import SectionHeader from './SectionHeader'
 
 const FALLBACK_TOOL_COUNT = 400
 
@@ -18,16 +19,14 @@ export default function CurationDiscipline() {
 
   return (
     <section id="curation" className="relative">
-      <GridBackground className="py-12 md:py-20">
+      <GridBackground className="py-16 md:py-24">
         <div className="mx-auto max-w-6xl px-5 relative z-10">
-          <div className="mb-4 inline-flex items-center gap-2 font-mono text-xs tracking-wide text-muted">
-            <span aria-hidden="true" className="h-px w-4 bg-line-strong" />
-            03 / Curation discipline
-          </div>
-
-        <h2 className="mb-4 max-w-[28ch] text-balance text-[28px] font-semibold leading-[1.15] tracking-tight text-ink md:max-w-[20ch] md:text-[40px]">
-          Why this catalog isn't another scrape.
-        </h2>
+          <SectionHeader
+            index="04"
+            label="Curation discipline"
+            title="Why this catalog isn't another scrape."
+            className="mb-4"
+          />
 
         <div className="mt-2 grid grid-cols-1 gap-[18px] md:grid-cols-[1.1fr_1fr] md:gap-16">
           {/* Prose column */}

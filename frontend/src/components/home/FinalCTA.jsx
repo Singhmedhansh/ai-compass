@@ -1,22 +1,18 @@
 import { Link } from 'react-router-dom'
 
+import SectionHeader from './SectionHeader'
+
 export default function FinalCTA() {
   return (
-    <section id="final" className="py-12 md:py-20">
+    <section id="final" className="py-16 md:py-24">
       <div className="mx-auto max-w-6xl px-5">
-        <div className="mb-4 inline-flex items-center gap-2 font-mono text-xs tracking-wide text-muted">
-          <span aria-hidden="true" className="h-px w-4 bg-line-strong" />
-          05 / Your turn
-        </div>
-
-        <h2 className="mb-3 max-w-[24ch] text-balance text-[32px] font-semibold leading-[1.1] tracking-[-0.025em] text-ink md:max-w-[18ch] md:text-[48px]">
-          Tell us your situation. We'll do the picking.
-        </h2>
-
-        <p className="mb-6 max-w-[44ch] text-base text-muted md:text-[17px]">
-          Four questions. About 40 seconds. No account, no email, no upsell at the end —
-          just five tools chosen for you and the reasons we chose them.
-        </p>
+        <SectionHeader
+          index="06"
+          label="Your turn"
+          title="Tell us your situation. We'll do the picking."
+          lede="Four questions. About 40 seconds. No account, no email, no upsell at the end — just five tools chosen for you and the reasons we chose them."
+          className="mb-6"
+        />
 
         {/* Both CTAs route to full pages instead of in-page anchors. The
             old `#wizard` worked (WizardDemo has id="wizard") but `#catalog`

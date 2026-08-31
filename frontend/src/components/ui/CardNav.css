@@ -106,16 +106,21 @@ html[data-theme='dark'] .card-nav-container {
   height: 100%;
 }
 
+/* Soft-filled, not saturated. This used to be a solid --accent fill, which
+   made "Sign up" the loudest control on every page — directly competing with
+   the hero's "Start the wizard" and contradicting the headline promise that
+   no account is required. The soft fill keeps it branded and obviously
+   clickable while sitting a tier below the page's real CTA. */
 .card-nav-cta-button {
-  background-color: var(--accent);
-  color: var(--bg);
-  border: none;
+  background-color: var(--accent-soft);
+  color: var(--accent-ink);
+  border: 1px solid color-mix(in oklab, var(--accent) 30%, transparent);
   border-radius: var(--radius);
   padding: 0 1rem;
   height: 40px;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
@@ -123,7 +128,7 @@ html[data-theme='dark'] .card-nav-container {
 }
 
 .card-nav-cta-button:hover {
-  opacity: 0.9;
+  border-color: var(--accent);
   transform: scale(1.02);
 }
 
@@ -262,7 +267,45 @@ html[data-theme='dark'] .card-nav-content {
   right: 1.5rem;
 }
 
+/* Mobile search. Hidden entirely above the breakpoint, where the real search
+   field already sits in the bar. */
+.mobile-search-toggle {
+  display: none;
+}
+
+.mobile-search-row {
+  display: none;
+}
+
 @media (max-width: 768px) {
+  .mobile-search-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 40px;
+    width: 40px;
+    flex-shrink: 0;
+    border-radius: var(--radius);
+    border: 1px solid var(--line-strong);
+    background-color: var(--bg-elev);
+    color: var(--ink-2);
+    cursor: pointer;
+  }
+
+  /* Positioned like .card-nav-content so the 60px bar doesn't clip it. */
+  .mobile-search-row {
+    display: block;
+    position: absolute;
+    top: 60px;
+    left: 0;
+    width: 100%;
+    padding: 0.625rem 1rem;
+    background-color: var(--bg-elev);
+    border-bottom: 1px solid var(--line);
+    box-shadow: var(--shadow-md);
+    z-index: 11;
+  }
+
   .card-nav-top {
     padding: 0.5rem 1rem;
     gap: 0.25rem;
@@ -306,8 +349,11 @@ html[data-theme='dark'] .card-nav-content {
     margin-bottom: 0.25rem;
   }
 
+  /* Was 0.85rem / 5px 8px — roughly a 24px tap target, well under the 44px
+     minimum, on the menu that holds every destination on the site. */
   .nav-card-link {
-    font-size: 0.85rem;
-    padding: 5px 8px;
+    font-size: 0.9375rem;
+    padding: 10px 12px;
+    min-height: 44px;
   }
 }

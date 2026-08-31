@@ -8,9 +8,11 @@ import {
   LayoutDashboard,
   LogOut,
   Moon,
+  Search,
   Shield,
   Sparkles,
   Sun,
+  X,
   UserCircle2,
   ArrowUpRight
 } from 'lucide-react'
@@ -43,6 +45,11 @@ const CardNav = ({ className = '', ease = 'power3.out' }) => {
   const [isDark, setIsDark] = useState(getInitialTheme)
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
   const [isCurrencyMenuOpen, setIsCurrencyMenuOpen] = useState(false)
+  // Under 768px the top bar has no room for the search field, so it used to be
+  // display:none — leaving a 400-tool directory with no search at all on the
+  // breakpoint most of its traffic arrives on. The field now collapses to an
+  // icon that opens a full-width row beneath the bar.
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false)
   const [failedAvatarUrl, setFailedAvatarUrl] = useState(null)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [authRefreshKey, setAuthRefreshKey] = useState(0)
@@ -364,6 +371,20 @@ const CardNav = ({ className = '', ease = 'power3.out' }) => {
           )}
 
           <div className="right-controls">
+            {/* Mobile-only search trigger — hidden at >=768px by CSS, where the
+                real field is already in the bar. */}
+            {hideSearchOnRoute ? null : (
+              <button
+                type="button"
+                className="mobile-search-toggle"
+                onClick={() => setIsMobileSearchOpen((prev) => !prev)}
+                aria-label={isMobileSearchOpen ? 'Close search' : 'Search tools'}
+                aria-expanded={isMobileSearchOpen}
+              >
+                {isMobileSearchOpen ? <X className="h-4 w-4" /> : <Search className="h-4 w-4" />}
+              </button>
+            )}
+
             {/* Currency Selector Trigger */}
             <div className="relative hide-mobile">
               <button
@@ -448,6 +469,21 @@ const CardNav = ({ className = '', ease = 'power3.out' }) => {
             )}
           </div>
         </div>
+
+        {isMobileSearchOpen && !hideSearchOnRoute && (
+          <div className="mobile-search-row">
+            <SearchInput
+              value={searchValue}
+              onChange={setSearchValue}
+              onClear={() => setSearchValue('')}
+              onKeyDown={(event) => {
+                handleSearchKeyDown(event)
+                if (event.key === 'Enter') setIsMobileSearchOpen(false)
+              }}
+              placeholder="Search tools..."
+            />
+          </div>
+        )}
 
         <div className="card-nav-content" aria-hidden={!isExpanded}>
           {items.map((item, idx) => (

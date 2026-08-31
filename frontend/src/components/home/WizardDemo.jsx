@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import MockupChrome from '../ui/MockupChrome'
+import SectionHeader from './SectionHeader'
 import { Tilt } from '../ui'
 import chatgptIcon from '../../assets/brand/chatgpt.svg'
 import claudeIcon from '../../assets/brand/claude.svg'
@@ -220,22 +221,15 @@ export default function WizardDemo() {
   }
 
   return (
-    <section id="wizard" className="py-12 md:py-20">
+    <section id="wizard" className="py-16 md:py-24">
       <div className="mx-auto max-w-6xl px-5">
-        <div className="mb-4 inline-flex items-center gap-2 font-mono text-xs tracking-wide text-muted">
-          <span aria-hidden="true" className="h-px w-4 bg-line-strong" />
-          02 / The wizard, demonstrated
-        </div>
-
-        <h2 className="mb-4 max-w-[28ch] text-balance text-[28px] font-semibold leading-[1.15] tracking-tight text-ink md:max-w-[20ch] md:text-[40px]">
-          Five questions. Five tools. One reason for each.
-        </h2>
-
-        <p className="mb-8 max-w-[52ch] text-pretty text-base text-muted md:text-[17px]">
-          This is what the wizard actually does. Not a video — it runs itself once,
-          then it&apos;s yours: tap the use case or budget and the right side
-          re-ranks in real time.
-        </p>
+        <SectionHeader
+          index="01"
+          label="The wizard, demonstrated"
+          title="Five questions. Five tools. One reason for each."
+          lede="This is what the wizard actually does. Not a video — it runs itself once, then it's yours: tap the use case or budget and the right side re-ranks in real time."
+          className="mb-8"
+        />
 
         <MockupChrome
           url="wizard.ai-compass.in"

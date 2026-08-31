@@ -226,7 +226,18 @@ export default function Footer() {
           </div>
         </div>
 
+        {/* Moved down from a dismissible banner above the homepage hero. The
+            point stands, but leading with a warning about imitators made the
+            first thing a new visitor read a defensive one. It belongs here,
+            next to the other disclosures. */}
         <p className="mt-8 border-t border-line pt-5 text-xs leading-relaxed text-muted">
+          <strong className="font-semibold text-ink-2">This is the official AI Compass</strong>{' '}
+          (ai-compass.in) — the original student-built discovery engine, with real
+          ML recommendations behind the wizard. Static copies on lookalike domains
+          are not us.
+        </p>
+
+        <p className="mt-4 text-xs leading-relaxed text-muted">
           Some links to tools are affiliate links — if you sign up through them
           we may earn a small commission, at no extra cost to you. This never
           affects which tools we list or how we rank them; curation is

@@ -5,7 +5,6 @@ import CurationDiscipline from '../components/home/CurationDiscipline'
 import FeaturedStrip from '../components/home/FeaturedStrip'
 import FinalCTA from '../components/home/FinalCTA'
 import Hero from '../components/home/Hero'
-import OriginalBrandBanner from '../components/OriginalBrandBanner'
 import NewsletterCapture from '../components/home/NewsletterCapture'
 import SubmitInvite from '../components/home/SubmitInvite'
 import StatsShowcase from '../components/home/StatsShowcase'
@@ -27,7 +26,8 @@ export default function HomePage() {
             per-route by _inject_meta) to avoid a duplicate <link> tag. */}
       </Helmet>
 
-      <OriginalBrandBanner />
+      {/* The "official AI Compass / beware of knock-offs" notice moved to the
+          footer — see Footer.jsx. The hero now opens the page. */}
       <Hero />
       <FeaturedStrip />
       <WizardDemo />

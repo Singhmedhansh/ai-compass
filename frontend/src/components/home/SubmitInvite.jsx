@@ -27,7 +27,7 @@ export default function SubmitInvite() {
   const displayCount = totalTools ?? FALLBACK_TOOL_COUNT
 
   return (
-    <section ref={ref} id="submit-invite" className="pb-16 pt-4 md:pb-24 md:pt-8">
+    <section ref={ref} id="submit-invite" className="pb-16 pt-12 md:pb-24 md:pt-16">
       <div className="mx-auto max-w-6xl px-5">
         <motion.div
           initial={{ opacity: 0, y: 16 }}

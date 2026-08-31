@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import clsx from 'clsx'
 import { motion } from 'framer-motion'
 import { Plus, Loader2 } from 'lucide-react'
 
@@ -28,36 +27,28 @@ export default function FlatToolGrid({ tools, defaultLimit = 24 }) {
         variants={staggerParent}
         initial="initial"
         animate="animate"
-        className="tools-grid grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 auto-rows-[minmax(224px,auto)] grid-flow-row-dense"
+        // Uniform cells, matching CategorySection and the DirectoryPage grids.
+        //
+        // This used to be an "asymmetric bento" that made every 7th tool a 2x2
+        // card and items 3 and 6 double-wide, on grid-flow-row-dense. Size is
+        // the strongest ranking signal a grid has, and it was being assigned by
+        // array position — so a tool looked like a featured pick purely because
+        // of where it landed, on a catalog that promises no ranking tricks. The
+        // dense flow also reordered cards to backfill gaps, so what you saw
+        // stopped matching relevance order. Tools are a comparable set; they
+        // get comparable cells. Editorial emphasis is carried by the card's
+        // "Editor's pick" treatment instead, which doesn't distort the grid.
+        className="tools-grid grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
       >
-        {visibleTools.map((tool, i) => {
-        // Asymmetric Bento pattern (repeats every 7 items)
-        const patternIndex = i % 7
-        
-        let layoutType = 'standard'
-        let colSpanClass = 'col-span-1'
-        let rowSpanClass = 'row-span-1'
-        
-        if (patternIndex === 0) {
-          layoutType = 'large'
-          colSpanClass = 'md:col-span-2'
-          rowSpanClass = 'md:row-span-2'
-        } else if (patternIndex === 3 || patternIndex === 6) {
-          layoutType = 'wide'
-          colSpanClass = 'md:col-span-2'
-        }
-
-        return (
+        {visibleTools.map((tool, i) => (
           <MotionDiv
             key={tool.slug || tool.name}
             variants={staggerChild}
             custom={Math.min(i, 11) * 0.04}
-            className={clsx(colSpanClass, rowSpanClass)}
           >
-            <Card tool={tool} layoutType={layoutType} />
+            <Card tool={tool} />
           </MotionDiv>
-        )
-      })}
+        ))}
       </MotionDiv>
 
       {hasMore && (

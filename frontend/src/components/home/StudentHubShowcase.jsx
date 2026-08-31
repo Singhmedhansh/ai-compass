@@ -3,10 +3,11 @@ import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   FileText, Star, UploadCloud, CheckCircle2,
-  FileCheck, Users, Layers, Award, ArrowRight,
+  FileCheck, Users, Layers, ArrowRight,
   Plus, ShieldCheck, Copy, Check, RotateCcw
 } from 'lucide-react'
 import MockupChrome from '../ui/MockupChrome'
+import SectionHeader from './SectionHeader'
 
 const tabsData = [
   {
@@ -595,21 +596,17 @@ export default function StudentHubShowcase() {
   const activeData = tabsData.find(t => t.id === activeTab)
 
   return (
-    <section className="border-t border-line bg-bg py-20 relative overflow-hidden" onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
+    <section className="border-t border-line bg-bg py-16 md:py-24 relative overflow-hidden" onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-accent/5 to-transparent pointer-events-none" />
 
-      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-accent-soft text-accent text-xs font-semibold uppercase tracking-wider mb-4">
-            <Award className="h-3.5 w-3.5" /> Student Hub Features
-          </div>
-          <h2 className="text-3xl font-semibold text-ink tracking-tight sm:text-4xl leading-[1.15]">
-            Syllabi, Galleries, and Discounts
-          </h2>
-          <p className="mt-4 text-muted text-sm md:text-base leading-relaxed">
-            AI Compass is more than a directory. Use the Student Hub to sync your course curriculum, share stacks with classmates, and claim premium software licenses for free.
-          </p>
-        </div>
+      <div className="mx-auto w-full max-w-6xl px-5 relative z-10">
+        <SectionHeader
+          index="02"
+          label="Student Hub"
+          title="Syllabi, galleries, and discounts."
+          lede="AI Compass is more than a directory. Use the Student Hub to sync your course curriculum, share stacks with classmates, and claim premium software licenses for free."
+          className="mb-12"
+        />
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           {/* Left: Tab Selectors */}

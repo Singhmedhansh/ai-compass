@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
-  Users, MessageSquare, ArrowRight, ArrowUpRight,
+  MessageSquare, ArrowRight, ArrowUpRight,
   Newspaper, HelpCircle, Sparkles, MessagesSquare,
 } from 'lucide-react'
+
+import SectionHeader from './SectionHeader'
 
 const TYPE_META = {
   news: { label: 'News', icon: Newspaper },
@@ -35,35 +37,33 @@ export default function CommunityShowcase() {
   }, [])
 
   return (
-    <section className="border-t border-line bg-bg py-20 relative overflow-hidden">
+    <section className="border-t border-line bg-bg py-16 md:py-24 relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-accent/5 to-transparent pointer-events-none" />
 
-      <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8 relative z-10">
+      <div className="mx-auto w-full max-w-6xl px-5 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-start">
           {/* Left: Pitch */}
           <div className="lg:col-span-5">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-accent-soft text-accent text-xs font-semibold uppercase tracking-wider mb-4">
-              <Users className="h-3.5 w-3.5" /> Community
-            </div>
-            <h2 className="text-3xl font-semibold text-ink tracking-tight sm:text-4xl leading-[1.15]">
-              Talk shop with students actually using these tools
-            </h2>
-            <p className="mt-4 text-muted text-sm md:text-base leading-relaxed max-w-md">
-              Share what you found, ask what actually works, and see what other
-              students are building. No noise, no ranking games — just a live
-              feed of real tool news, questions, and discussion.
-            </p>
+            <SectionHeader
+              index="03"
+              label="Community"
+              title="Talk shop with students actually using these tools."
+              lede="Share what you found, ask what actually works, and see what other students are building. No noise, no ranking games — just a live feed of real tool news, questions, and discussion."
+            />
 
             <div className="mt-6 flex flex-wrap gap-3">
+              {/* Matches the pill CTA language used by Hero / FinalCTA /
+                  SubmitInvite. This section previously used a third style
+                  (rounded-xl + accent fill), which read as a different site. */}
               <Link
                 to="/community"
-                className="inline-flex items-center gap-1.5 rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-bg shadow-sm transition hover:opacity-90"
+                className="group inline-flex items-center gap-2 rounded-full bg-ink px-[18px] py-3 text-sm font-medium text-bg transition-all hover:-translate-y-px hover:shadow-md"
               >
-                Join the Community <ArrowRight className="h-4 w-4" />
+                Join the Community <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </Link>
               <Link
                 to="/community"
-                className="inline-flex items-center gap-1.5 rounded-xl border border-line bg-bg-elev px-4 py-2.5 text-sm font-semibold text-ink-2 shadow-sm transition hover:border-line-strong hover:text-ink"
+                className="inline-flex items-center gap-2 rounded-full border border-line-strong bg-bg-elev px-[18px] py-3 text-sm font-medium text-ink transition-all hover:border-ink hover:bg-bg-sunk"
               >
                 <MessagesSquare className="h-4 w-4" /> Start a discussion
               </Link>

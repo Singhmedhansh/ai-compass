@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Users, MousePointerClick, Eye, Activity, BarChart3 } from 'lucide-react'
 
+import SectionHeader from './SectionHeader'
+
 export default function StatsShowcase() {
   const [activeTab, setActiveTab] = useState('posthog') // 'posthog' | 'gsc'
   const [hoveredPoint, setHoveredPoint] = useState(null)
@@ -54,22 +56,15 @@ export default function StatsShowcase() {
   ]
 
   return (
-    <section id="stats-showcase" className="py-12 md:py-20 bg-bg-sunk/15 border-t border-b border-line/45">
+    <section id="stats-showcase" className="py-16 md:py-24 bg-bg-sunk/15 border-t border-b border-line/45">
       <div className="mx-auto max-w-6xl px-5">
-        <div className="mb-4 inline-flex items-center gap-2 font-mono text-xs tracking-wide text-muted">
-          <span aria-hidden="true" className="h-px w-4 bg-line-strong" />
-          04 / Growth & trust
-        </div>
-
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
-          <div>
-            <h2 className="text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
-              Verification & Platform Growth
-            </h2>
-            <p className="mt-2 text-sm text-ink-2 max-w-2xl font-normal leading-relaxed">
-              Transparency builds trust. Instead of listing arbitrary rankings, we display our verified, interactive platform metrics compiled from PostHog Analytics and Google Search Console.
-            </p>
-          </div>
+          <SectionHeader
+            index="05"
+            label="Growth & trust"
+            title="Verification and platform growth."
+            lede="Transparency builds trust. Instead of listing arbitrary rankings, we display our verified, interactive platform metrics compiled from PostHog Analytics and Google Search Console."
+          />
 
           {/* Toggle buttons */}
           <div className="flex rounded-xl bg-bg-sunk border border-line p-1 self-start md:self-auto shrink-0">

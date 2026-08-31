@@ -7,6 +7,11 @@ const variantClasses = {
     'border border-line-strong bg-transparent text-ink hover:bg-bg-sunk focus-visible:ring-accent disabled:text-muted',
   ghost:
     'bg-transparent text-ink-2 hover:bg-bg-sunk focus-visible:ring-accent disabled:text-muted',
+  // Third tier, below secondary: reads as a link, not a button. For utility
+  // actions sitting next to a real CTA (tours, "learn more", skip) that
+  // shouldn't compete with it for the click.
+  tertiary:
+    'bg-transparent px-0 text-muted underline-offset-4 hover:text-ink hover:underline focus-visible:ring-accent disabled:text-muted-2',
 }
 
 const sizeClasses = {

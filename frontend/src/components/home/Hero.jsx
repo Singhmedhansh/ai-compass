@@ -86,10 +86,15 @@ export default function Hero() {
               >
                 Browse the catalog
               </Link>
+              {/* Third tier on purpose. The tour is a helper, not a peer of
+                  "Start the wizard" and "Browse the catalog" — as a bordered
+                  button it made three near-identical controls and flattened
+                  the choice. Text-link treatment keeps it available without
+                  competing for the primary click. */}
               <button
                 type="button"
                 onClick={handleStartTour}
-                className="inline-flex items-center gap-1.5 rounded-full border border-line/50 bg-bg-elev/30 backdrop-blur-sm shadow-sm px-[18px] py-3 text-sm font-medium text-muted hover:text-ink hover:border-line-strong hover:bg-bg-elev/50 hover:backdrop-blur-md transition-all"
+                className="inline-flex items-center gap-1.5 rounded-full px-2 py-3 text-sm font-medium text-muted underline-offset-4 transition-colors hover:text-ink hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
               >
                 <HelpCircle className="h-4 w-4" /> Take a Tour
               </button>
@@ -105,12 +110,11 @@ export default function Hero() {
               <span className="inline-flex items-center gap-1.5">
                 <b className="font-semibold text-ink">0</b> · accounts required
               </span>
+              {/* The stock i.pravatar.cc faces that used to sit here were
+                  invented people illustrating a real number — they undercut the
+                  claim they were meant to support (and cost three third-party
+                  image requests above the fold). The stat stands on its own. */}
               <span className="inline-flex items-center gap-1.5 border-l border-line pl-4">
-                <span className="flex -space-x-2 mr-1">
-                  <img className="inline-block h-5 w-5 rounded-full ring-2 ring-bg" src="https://i.pravatar.cc/100?img=1" alt=""/>
-                  <img className="inline-block h-5 w-5 rounded-full ring-2 ring-bg" src="https://i.pravatar.cc/100?img=2" alt=""/>
-                  <img className="inline-block h-5 w-5 rounded-full ring-2 ring-bg" src="https://i.pravatar.cc/100?img=3" alt=""/>
-                </span>
                 <b className="font-semibold text-ink">4,000+</b> · users finding tools
               </span>
             </div>

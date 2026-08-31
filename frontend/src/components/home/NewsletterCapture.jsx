@@ -58,11 +58,14 @@ export default function NewsletterCapture() {
     }
   }
 
+  // Tighter than the py-16/24 major-section rhythm on purpose: this and
+  // SubmitInvite are bordered cards, so their own padding already reads as
+  // separation. The full rhythm here would double up.
   return (
     <section
       ref={ref}
       id="newsletter"
-      className="py-12 md:py-20"
+      className="py-12 md:py-16"
     >
       <div className="mx-auto max-w-6xl px-5">
         <motion.div
