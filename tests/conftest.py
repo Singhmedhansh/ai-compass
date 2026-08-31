@@ -1,4 +1,5 @@
 import os
+import tempfile
 from importlib import import_module
 
 import pytest
@@ -9,11 +10,23 @@ import_module("app.models")
 
 @pytest.fixture(scope="session")
 def app():
-    db_path = "test.db"
-
-    # remove old test DB if exists
-    if os.path.exists(db_path):
-        os.remove(db_path)
+    # A private database file per pytest session, not a fixed "test.db" in the
+    # repo root.
+    #
+    # The shared path made the suite silently un-runnable more than once at a
+    # time: this fixture deletes the file on setup and drop_all()s on
+    # teardown, so a second session pulls the tables out from under the first.
+    # The result is dozens of unrelated OperationalErrors with nothing
+    # pointing at concurrency as the cause — which is exactly how it wasted
+    # time here. It would behave the same way under a parallel CI job.
+    #
+    # test_admin_tier_breakdown.py and test_sponsored_ranking.py already use
+    # per-test temp files; this brings the shared fixture in line.
+    fd, db_path = tempfile.mkstemp(prefix="aicompass-test-", suffix=".db")
+    os.close(fd)
+    # SQLAlchemy needs to create the schema in a file it owns, and mkstemp
+    # has already made an empty one — harmless for SQLite, which treats a
+    # zero-byte file as an empty database.
 
     app = create_app({
         "TESTING": True,
@@ -30,8 +43,12 @@ def app():
         db.drop_all()
 
     # cleanup after tests
-    if os.path.exists(db_path):
+    try:
         os.remove(db_path)
+    except OSError:
+        # Windows keeps a handle open occasionally; a stray temp file is not
+        # worth failing a green suite over.
+        pass
 
 
 @pytest.fixture

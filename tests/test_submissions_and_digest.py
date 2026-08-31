@@ -485,8 +485,12 @@ def test_submission_dashboard_sponsored_tier_returns_analytics_and_benchmark(cli
     assert body["benchmark"]["your_rank"] == 1
     assert body["benchmark"]["total_tools_in_category"] == 2
 
-    assert body["featured"]["badge"] is True
-    assert body["featured"]["homepage_strip"] is True
+    # Renamed from body["featured"]: `featured` is the editorial curation
+    # flag and is not what a sponsor buys, so naming the paid perk block
+    # after it is what let the two blur together.
+    assert body["perks"]["sponsored_badge"] is True
+    assert body["perks"]["homepage_strip"] is True
+    assert body["perks"]["above_free_placement"] is True
 
 
 def test_submission_dashboard_ctr_is_none_without_views(client, app):
@@ -534,7 +538,7 @@ def test_submission_dashboard_ctr_is_none_without_views(client, app):
     # Quick tier doesn't get the benchmark/featured perks — those are
     # Fast-Track only.
     assert "benchmark" not in body
-    assert "featured" not in body
+    assert "perks" not in body
 
 
 def test_submission_dashboard_free_tier_is_status_only(client, app):
@@ -1062,3 +1066,184 @@ def test_paid_tier_with_no_reference_does_not_page_the_admin(client, app, monkey
 
     assert not any("ACTION NEEDED" in kw.get("subject", "") for kw in sent)
     assert not any("UNVERIFIED PAYMENT CLAIM" in kw.get("subject", "") for kw in sent)
+
+
+def test_fast_track_approval_grants_sponsored_but_never_featured(client, app):
+    """`featured` is editorial curation — "we looked at this and picked it" —
+    and ~30 seeded tools carry it for free. Granting it on payment would make
+    an endorsement purchasable, the same line community_leaderboard refuses to
+    cross. Everything actually sold runs off `sponsored` instead."""
+    from app.models import CatalogTool
+
+    with app.app_context():
+        sub = Submission(
+            name="Bought Placement",
+            website="https://boughtplacement.example.com",
+            category="Productivity",
+            description="A paid listing.",
+            pricing_model="sponsored_paypal:PAID1",
+            status="pending",
+            payment_status="verified",
+        )
+        db.session.add(sub)
+        db.session.commit()
+        sub_id = sub.id
+
+    _login_as_admin(client, app, "featured-check@t.test")
+    resp = client.post(f"/api/v1/admin/submissions/{sub_id}/approve")
+    assert resp.status_code == 200, resp.data
+
+    with app.app_context():
+        row = CatalogTool.query.filter_by(slug="bought-placement").first()
+        assert row is not None
+        record = json.loads(row.data)
+        assert record["sponsored"] is True, "paid placement must be granted"
+        assert not record.get("featured"), (
+            "payment must never set the editorial featured flag — change the "
+            "promise, not this behaviour"
+        )
+
+
+def test_dashboard_perks_go_false_when_sponsorship_lapses(client, app):
+    """The perk list was hardcoded True, so it kept promising placement after
+    a subscription expired. It is now derived from the live catalog record."""
+    from datetime import datetime, timedelta, timezone
+
+    from app.models import CatalogTool
+    from app.submission_dashboard import dashboard_url
+
+    with app.app_context():
+        sub = Submission(
+            name="Lapsed Sponsor Tool",
+            website="https://lapsedsponsor.example.com",
+            category="Productivity",
+            description="Sponsorship has expired.",
+            pricing_model="sponsored_paypal:LAPSE1",
+            status="approved",
+            payment_status="verified",
+            submitter_email="founder@lapsedsponsor.example.com",
+        )
+        db.session.add(sub)
+        db.session.commit()
+        past = (datetime.now(timezone.utc) - timedelta(days=2)).isoformat()
+        db.session.add(CatalogTool(
+            slug="lapsed-sponsor-tool",
+            name="Lapsed Sponsor Tool",
+            category="Productivity",
+            submission_id=sub.id,
+            data=json.dumps({
+                "slug": "lapsed-sponsor-tool",
+                "name": "Lapsed Sponsor Tool",
+                "category": "Productivity",
+                "sponsored": True,
+                "sponsored_until": past,
+            }),
+        ))
+        db.session.commit()
+        token_url = dashboard_url(sub.id, sub.submitter_email)
+
+    token = token_url.split("token=", 1)[1]
+    body = client.get(f"/api/v1/submissions/dashboard?token={token}").get_json()
+
+    assert body["perks"] == {
+        "sponsored_badge": False,
+        "homepage_strip": False,
+        "above_free_placement": False,
+    }, "an expired sponsorship must stop claiming perks it no longer delivers"
+
+
+def test_fast_track_comp_rail_shows_on_the_founder_dashboard(client, app):
+    """A Fast-Track submission earns a 30-day rail unit that is synthesised at
+    render time, never stored as a SponsorSlot — so free boosts cannot consume
+    the rail inventory we sell. The dashboard only ever read SponsorSlot rows,
+    so those founders saw "no placements" while their card was live on the
+    community page: delivered and reported absent at the same time, which
+    reads as not delivered at all."""
+    from datetime import datetime, timedelta, timezone
+
+    from app.models import CatalogTool
+    from app.submission_dashboard import dashboard_url
+
+    with app.app_context():
+        sub = Submission(
+            name="Comped Rail Tool",
+            website="https://compedrail.example.com",
+            category="Productivity",
+            description="Fast-Track, inside its boost window.",
+            pricing_model="sponsored_paypal:COMP1",
+            status="approved",
+            payment_status="verified",
+            submitter_email="founder@compedrail.example.com",
+            submitted_at=datetime.now(timezone.utc) - timedelta(days=3),
+        )
+        db.session.add(sub)
+        db.session.commit()
+        db.session.add(CatalogTool(
+            slug="comped-rail-tool",
+            name="Comped Rail Tool",
+            category="Productivity",
+            submission_id=sub.id,
+            hidden=False,
+            data=json.dumps({
+                "slug": "comped-rail-tool",
+                "name": "Comped Rail Tool",
+                "category": "Productivity",
+                "sponsored": True,
+            }),
+        ))
+        db.session.commit()
+        token_url = dashboard_url(sub.id, sub.submitter_email)
+        # No SponsorSlot row exists, and none should be created.
+        from app.models import SponsorSlot
+        assert SponsorSlot.query.filter_by(tool_slug="comped-rail-tool").count() == 0
+
+    token = token_url.split("token=", 1)[1]
+    body = client.get(f"/api/v1/submissions/dashboard?token={token}").get_json()
+
+    placements = body["sponsorship"]["placements"]
+    assert len(placements) == 1, f"comp rail must be reported, got {placements}"
+    assert placements[0]["placement"] == "rail"
+    assert placements[0]["source"] == "submission"
+
+
+def test_comp_rail_disappears_after_its_thirty_day_window(client, app):
+    """The boost is time-boxed. Once it lapses the dashboard must stop
+    claiming it, the same way the perk list does."""
+    from datetime import datetime, timedelta, timezone
+
+    from app.models import CatalogTool
+    from app.submission_dashboard import dashboard_url
+
+    with app.app_context():
+        sub = Submission(
+            name="Expired Comp Tool",
+            website="https://expiredcomp.example.com",
+            category="Productivity",
+            description="Fast-Track, boost window elapsed.",
+            pricing_model="sponsored_paypal:COMP2",
+            status="approved",
+            payment_status="verified",
+            submitter_email="founder@expiredcomp.example.com",
+            submitted_at=datetime.now(timezone.utc) - timedelta(days=45),
+        )
+        db.session.add(sub)
+        db.session.commit()
+        db.session.add(CatalogTool(
+            slug="expired-comp-tool",
+            name="Expired Comp Tool",
+            category="Productivity",
+            submission_id=sub.id,
+            hidden=False,
+            data=json.dumps({
+                "slug": "expired-comp-tool",
+                "name": "Expired Comp Tool",
+                "category": "Productivity",
+                "sponsored": True,
+            }),
+        ))
+        db.session.commit()
+        token_url = dashboard_url(sub.id, sub.submitter_email)
+
+    token = token_url.split("token=", 1)[1]
+    body = client.get(f"/api/v1/submissions/dashboard?token={token}").get_json()
+    assert body["sponsorship"]["placements"] == []

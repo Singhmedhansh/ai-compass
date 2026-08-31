@@ -5472,6 +5472,26 @@ def admin_approve_submission(sub_id):
     tier_key = tier_for_pricing_model(s.pricing_model or "")
     is_sponsored = bool(tier_key == "sponsored" and s.payment_status == "verified")
 
+    # Deliberately NOT setting `featured` here, even for Fast-Track.
+    #
+    # `featured` is editorial curation — "we looked at this and picked it" —
+    # and ~30 seeded tools carry it for free. Granting it on payment would
+    # make an endorsement purchasable, which is the same line
+    # community_leaderboard refuses to cross ("ranks are never for sale") and
+    # sponsorship.py enforces by always rendering paid units as their own
+    # labelled row.
+    #
+    # Nothing is lost by withholding it. Everything actually sold now runs
+    # off `sponsored`: above-free placement (search_utils.search_tools), the
+    # homepage strip (/tools/sponsored reads _sponsored_active, never
+    # `featured`), and the disclosed "Sponsored" badge on every card
+    # (Card.jsx). `featured` uniquely buys an ml_recommender nudge and a slot
+    # in the directory's student picks — neither of which we sell, and the
+    # second of which is exactly the endorsement that must stay unbought.
+    #
+    # The /pricing copy was corrected to match (pricingTiers.js). If you are
+    # here to "fix" the missing badge, change the promise, not this line.
+
     # Staggered release: free listings wait out the full review window
     # before appearing publicly; paid tiers buy a shorter wait (see
     # pricing_tiers.TIERS). The row is created now (hidden=False) so admin
@@ -5861,10 +5881,24 @@ def submission_dashboard():
 
     if tier_key == "sponsored":
         resp["benchmark"] = _submission_dashboard_category_benchmark(catalog_row, since_30d)
-        resp["featured"] = {
-            "badge": True,
-            "homepage_strip": True,
-            "above_free_placement": True,
+        # Derived from the live catalog record, not asserted. These were
+        # hardcoded True, so the dashboard kept promising perks after a
+        # sponsorship lapsed — and claimed a "Featured badge" that approval
+        # never granted at all.
+        #
+        # Renamed from resp["featured"]: `featured` is the editorial
+        # curation flag and is NOT what a sponsor gets (see
+        # admin_approve_submission). Calling the paid perk block "featured"
+        # is what let the two quietly blur together.
+        try:
+            tool_record = json.loads(catalog_row.data or "{}")
+        except (TypeError, ValueError):
+            tool_record = {}
+        placement_live = _sponsored_active(tool_record)
+        resp["perks"] = {
+            "sponsored_badge": placement_live,
+            "homepage_strip": placement_live,
+            "above_free_placement": placement_live,
         }
 
     # Community placement delivery. Attached for every paid tier (not just
@@ -5881,10 +5915,22 @@ def submission_dashboard():
                 "label": sponsorship.PLACEMENT_LABELS.get(slot.placement, slot.placement),
                 "starts_at": sponsorship._aware(slot.starts_at).isoformat(),
                 "ends_at": sponsorship._aware(slot.ends_at).isoformat(),
+                "source": "slot",
             }
             for slot in sponsorship.active_slots()
             if str(slot.tool_slug or "").strip().lower() == slug
         ]
+        # A Fast-Track submission earns a 30-day rail unit that is synthesised
+        # at render time rather than stored as a SponsorSlot (so free boosts
+        # cannot consume paid inventory — see complimentary_window). This list
+        # only ever read SponsorSlot rows, so those founders saw "no
+        # placements" on their dashboard while their card was live on the
+        # community page: the perk was being delivered and reported as absent
+        # at the same time, which reads as not delivered at all.
+        if not placements:
+            comp = sponsorship.complimentary_placement_for_slug(slug)
+            if comp:
+                placements.append(comp)
         report = sponsorship.delivery_report(slug, days=30)
         resp["sponsorship"] = {
             "placements": placements,

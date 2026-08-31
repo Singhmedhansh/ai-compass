@@ -328,8 +328,10 @@ function BenchmarkCard({ benchmark }) {
 }
 
 function FeaturedStatusCard({ featured }) {
+  // Keys come from resp["perks"], derived live from the catalog record — a
+  // lapsed sponsorship greys these out instead of continuing to claim them.
   const items = [
-    ['badge', 'Featured badge in search & catalog results'],
+    ['sponsored_badge', 'A labelled "Sponsored" badge on your card'],
     ['homepage_strip', 'Eligible for the homepage "Featured on AI Compass" strip'],
     ['above_free_placement', 'Placed above free listings in your category'],
   ]
@@ -517,7 +519,7 @@ export default function SubmissionDashboardPage() {
                 {data.tier === 'sponsored' && (
                   <>
                     <BenchmarkCard benchmark={data.benchmark} />
-                    <FeaturedStatusCard featured={data.featured} />
+                    <FeaturedStatusCard featured={data.perks} />
                   </>
                 )}
 

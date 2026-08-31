@@ -158,6 +158,71 @@ def _tool_card(tool, slug):
     }
 
 
+def complimentary_window(submission):
+    """(starts_at, ends_at) of a paid submission's free rail boost, or None.
+
+    The single definition of "is this submission currently earning a
+    complimentary rail unit". Both the renderer and the founder dashboard
+    call it, because the bug this fixes was exactly the two disagreeing: the
+    community page showed a sponsor's card while their dashboard reported no
+    placements at all, so the perk was delivered and invisible at the same
+    time.
+
+    Deliberately NOT implemented by writing a SponsorSlot row on approval,
+    which was the obvious-looking fix. Rail capacity is real inventory
+    (PLACEMENT_CAPACITY["rail"] == 4) and next_available_start() counts
+    active slots — so materialising comps as slots would let free boosts
+    consume, and eventually sell out, the placements we charge money for.
+    Complimentary units are synthesised precisely so they yield to paid
+    inventory instead of competing with it.
+    """
+    if submission is None:
+        return None
+    if getattr(submission, "payment_status", None) != "verified":
+        return None
+    if tier_for_pricing_model(submission.pricing_model) not in COMPLIMENTARY_TIERS:
+        return None
+    submitted = _aware(getattr(submission, "submitted_at", None))
+    if submitted is None:
+        return None
+    ends = submitted + timedelta(days=COMPLIMENTARY_WINDOW_DAYS)
+    if ends <= datetime.now(timezone.utc):
+        return None
+    return submitted, ends
+
+
+def complimentary_placement_for_slug(slug):
+    """The dashboard's view of the above: a placement dict, or None.
+
+    Mirrors the shape active_slots() produces for a rented slot so the
+    founder sees one consistent list regardless of how the placement was
+    earned.
+    """
+    slug = str(slug or "").strip().lower()
+    if not slug:
+        return None
+    row = (
+        CatalogTool.query
+        .filter(CatalogTool.slug == slug,
+                CatalogTool.submission_id.isnot(None),
+                CatalogTool.hidden.is_(False))
+        .first()
+    )
+    if row is None:
+        return None
+    window = complimentary_window(Submission.query.get(row.submission_id))
+    if window is None:
+        return None
+    starts, ends = window
+    return {
+        "placement": "rail",
+        "label": PLACEMENT_LABELS["rail"],
+        "starts_at": starts.isoformat(),
+        "ends_at": ends.isoformat(),
+        "source": "submission",
+    }
+
+
 def _complimentary_rail_units(tools, exclude_slugs):
     """Rail units earned by a recent paid submission rather than a rented slot.
 
@@ -166,7 +231,6 @@ def _complimentary_rail_units(tools, exclude_slugs):
     it onto the same rendering path as rented inventory, so a sponsor sees
     one consistent unit and one consistent report either way.
     """
-    cutoff = datetime.now(timezone.utc) - timedelta(days=COMPLIMENTARY_WINDOW_DAYS)
     units = []
 
     rows = (
@@ -190,14 +254,11 @@ def _complimentary_rail_units(tools, exclude_slugs):
         slug = str(row.slug or "").strip().lower()
         if not slug or slug in exclude_slugs:
             continue
-        submission = subs.get(row.submission_id)
-        if not submission:
+        # One predicate, shared with the dashboard — see complimentary_window.
+        window = complimentary_window(subs.get(row.submission_id))
+        if window is None:
             continue
-        if tier_for_pricing_model(submission.pricing_model) not in COMPLIMENTARY_TIERS:
-            continue
-        submitted = _aware(submission.submitted_at)
-        if submitted is None or submitted < cutoff:
-            continue
+        _submitted, ends = window
 
         card = _tool_card(tools.get(slug), slug)
         units.append({
@@ -208,7 +269,7 @@ def _complimentary_rail_units(tools, exclude_slugs):
             "headline": None,
             "blurb": card.get("tagline"),
             "cta_label": "Visit site",
-            "ends_at": (submitted + timedelta(days=COMPLIMENTARY_WINDOW_DAYS)).isoformat(),
+            "ends_at": ends.isoformat(),
             "source": "submission",
         })
         exclude_slugs.add(slug)
