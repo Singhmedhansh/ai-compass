@@ -112,7 +112,7 @@ def test_pending_submissions_grouped_by_effective_tier(client, app):
     _login_as_admin(client, app)
 
     body = client.get("/api/v1/admin/tier-breakdown").get_json()
-    assert body["pending"] == {"free": 3, "quick": 2, "sponsored": 1, "reviewed": 0}
+    assert body["pending"] == {"free": 3, "analytics": 0, "quick": 2, "sponsored": 1, "reviewed": 0}
     assert body["pending_total"] == 6
 
 
@@ -125,7 +125,7 @@ def test_unverified_paid_claim_counts_as_free(client, app):
     _login_as_admin(client, app)
 
     body = client.get("/api/v1/admin/tier-breakdown").get_json()
-    assert body["pending"] == {"free": 2, "quick": 0, "sponsored": 0, "reviewed": 0}
+    assert body["pending"] == {"free": 2, "analytics": 0, "quick": 0, "sponsored": 0, "reviewed": 0}
 
 
 def test_live_listings_grouped_by_tier(client, app):
@@ -146,7 +146,7 @@ def test_live_listings_grouped_by_tier(client, app):
     _login_as_admin(client, app)
     body = client.get("/api/v1/admin/tier-breakdown").get_json()
 
-    assert body["live"] == {"free": 1, "quick": 1, "sponsored": 1, "reviewed": 0, "editorial": 2}
+    assert body["live"] == {"free": 1, "analytics": 0, "quick": 1, "sponsored": 1, "reviewed": 0, "editorial": 2}
     assert body["live_total"] == 5
 
 
@@ -173,7 +173,7 @@ def test_hidden_and_unreleased_tools_excluded_from_live(client, app):
     body = client.get("/api/v1/admin/tier-breakdown").get_json()
 
     # Only the one genuinely-visible seed row is counted.
-    assert body["live"] == {"free": 0, "quick": 0, "sponsored": 0, "reviewed": 0, "editorial": 1}
+    assert body["live"] == {"free": 0, "analytics": 0, "quick": 0, "sponsored": 0, "reviewed": 0, "editorial": 1}
     assert body["live_total"] == 1
 
 

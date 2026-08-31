@@ -27,6 +27,18 @@ correction this file records:
   Fast-Track plus the thing that actually survives a week of attention: a
   hands-on editorial review on an indexed page (see app/editorial.py). The
   review alone, for a tool already listed, is $39.
+
+  Listing + Analytics ($19) is the paid entry point, and it is deliberately
+  NOT the "claimed listing" the diagnostic proposed. Claiming a listing,
+  editing its copy, the maker badge and replying to reviews all shipped
+  free (app/claims.py) — anyone who can prove they own the domain gets
+  them. Charging for those now would be withdrawing a live free feature and
+  calling it a product. What this tier actually sells is the only thing
+  behind that wall: the numbers. The dashboard, and the monthly report
+  emailed to the founder (app/founder_report.py). It buys no placement, no
+  badge and no queue position beyond the ordinary paid-before-free review
+  order, which is why it keeps the free tier's 7-day release delay: a
+  directory that sells time-to-live is selling the weakest thing it has.
 """
 
 TIERS = {
@@ -38,6 +50,12 @@ TIERS = {
     # retired tier keeps its entry so existing rows still resolve to it.
     "free": {
         "prefix": "free", "price": 0.0, "paid": False,
+        "visibility_delay_days": 7, "for_sale": True,
+    },
+    "analytics": {
+        # The $19 entry point. Same wait as free — it sells the reporting,
+        # not the speed, and not the claim (which is free for everyone).
+        "prefix": "analytics", "price": 19.0, "paid": True,
         "visibility_delay_days": 7, "for_sale": True,
     },
     "quick": {
@@ -100,7 +118,7 @@ def includes_editorial_review(tier_key):
 
 
 def tier_for_pricing_model(pricing_model_raw):
-    """Returns 'quick' | 'sponsored' | 'reviewed' | 'free' | None (unrecognized).
+    """Returns 'analytics' | 'quick' | 'sponsored' | 'reviewed' | 'free' | None.
 
     Matches by prefix against the raw or composite pricing_model string
     (e.g. "quick_paypal" or "sponsored_paypal:8AB12345"). Tier prefixes are

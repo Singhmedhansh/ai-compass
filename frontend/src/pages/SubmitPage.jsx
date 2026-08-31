@@ -207,7 +207,10 @@ export default function SubmitPage() {
 
   useEffect(() => {
     if (showPaymentModal && paymentMethod === 'paypal') {
-      const tierParam = submissionType === 'reviewed' ? 'reviewed' : 'sponsor'
+      // 'sponsor' is the API's name for the Fast-Track tier; every other
+      // paid tier passes its own id. Falling everything back to 'sponsor'
+      // would quote a $19 buyer a $49 checkout.
+      const tierParam = submissionType === 'free' ? 'sponsor' : submissionType
       // Clear both flags up front. Without this a retry (or reopening the
       // modal after a failure) starts out still showing the previous
       // attempt's error.
@@ -481,11 +484,11 @@ export default function SubmitPage() {
         </div>
         <h1 className="text-2xl font-bold text-ink tracking-tight sm:text-3xl">Submit Your AI Tool</h1>
         <p className="mt-2 text-sm text-ink-2 max-w-2xl font-normal leading-relaxed">
-          Get your tool in front of students, creators, and developers. Free listings are welcome and permanent — Fast-Track ($49) is reviewed first and placed above free listings, labelled as sponsored, and Reviewed ($79) adds a written hands-on review of your tool on its own page.
+          Get your tool in front of students, creators, and developers. Free listings are welcome and permanent. Listing + Analytics ($19) adds a dashboard and a monthly report on what your listing is actually doing; Fast-Track ($49) is reviewed first and placed above free listings, labelled as sponsored; Reviewed ($79) adds a written hands-on review of your tool on its own page.
         </p>
 
         {/* Tier selector — free is a real, selectable path, not a decoy. */}
-        <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {PRICING_TIERS.map((tier) => (
             <TierCard
               key={tier.id}

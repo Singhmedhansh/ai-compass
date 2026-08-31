@@ -1060,9 +1060,10 @@ function AdminPage() {
                     <b> Live</b> = tools currently shown to visitors. <b>Pending</b> = submissions still
                     awaiting review (queue depth per tier). An unverified paid claim counts as Free.
                   </p>
-                  <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                  <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
                     {[
                       ['Free', 'free'],
+                      ['Listing + Analytics', 'analytics'],
                       ['Fast-Track', 'sponsored'],
                       ['Reviewed', 'reviewed'],
                       // Retired tier: no longer sold, but live rows still

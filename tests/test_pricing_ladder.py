@@ -225,3 +225,140 @@ def test_reviewed_tier_gets_the_same_placement_perks_as_fast_track(client, app):
         # The complimentary rail card, from the same shared predicate the
         # renderer and the founder dashboard both read.
         assert sponsorship.complimentary_window(Submission.query.get(sub_id)) is not None
+
+
+# --- the $19 entry rung -----------------------------------------------------
+#
+# The diagnostic proposed a $19 "Claimed Listing": account, edit rights,
+# verified badge, monthly report. Three of those four shipped FREE in
+# app/claims.py before this tier existed, so selling them now would be
+# withdrawing a live free feature. What this rung actually sells is the one
+# thing that was ever behind the wall — the numbers — and these tests exist
+# to stop it quietly growing back into the perks it is priced under.
+
+
+def test_the_entry_tier_is_nineteen_dollars_and_for_sale():
+    assert price_for_tier("analytics") == 19.0
+    assert is_for_sale("analytics") is True
+    assert TIERS["analytics"]["paid"] is True
+
+
+def test_the_entry_tier_verifies_against_nineteen_dollars(client, app):
+    with patch("app.payments.verify_paypal_order", return_value=(True, "ok")) as verify:
+        resp = _submit(client, "Entry Price Tool", "analytics_paypal")
+    assert resp.status_code == 201
+    assert verify.call_args.kwargs["expected_amount"] == 19.0
+
+
+def test_the_entry_tier_buys_no_placement(client, app):
+    """It is priced below Fast-Track precisely because it does not place you
+    above anyone. If this ever passes, the $49 tier has been given away."""
+    assert includes_sponsored_perks("analytics") is False
+
+    with patch("app.payments.verify_paypal_order", return_value=(True, "ok")):
+        resp = _submit(client, "Entry Placement Tool", "analytics_paypal")
+    assert resp.status_code == 201
+
+    with app.app_context():
+        sub = Submission.query.filter_by(name="Entry Placement Tool").one()
+        _login_as_admin(client, app)
+        client.post(f"/api/v1/admin/submissions/{sub.id}/approve")
+
+        row = CatalogTool.query.filter_by(submission_id=sub.id).one()
+        data = json.loads(row.data)
+        assert not data.get("sponsored")
+        assert not data.get("featured")
+
+
+def test_the_entry_tier_buys_no_editorial_review(client, app):
+    with patch("app.payments.verify_paypal_order", return_value=(True, "ok")):
+        resp = _submit(client, "Entry Review Tool", "analytics_paypal")
+    assert resp.status_code == 201
+    with app.app_context():
+        assert EditorialReview.query.count() == 0
+
+
+def test_the_entry_tier_buys_no_launch_day(client, app):
+    """Launch Day schedules the placement perks. A tier with no placement has
+    nothing to schedule, and offering a date would be selling an empty box."""
+    from app import launch_day
+
+    with patch("app.payments.verify_paypal_order", return_value=(True, "ok")):
+        _submit(client, "Entry Launch Tool", "analytics_paypal")
+    with app.app_context():
+        sub = Submission.query.filter_by(name="Entry Launch Tool").one()
+        sub.payment_status = "verified"
+        db.session.commit()
+        assert launch_day.is_eligible(sub) is False
+
+
+def test_the_entry_tier_does_not_buy_a_shorter_wait():
+    """Time-to-live is the weakest thing a directory can sell, and selling it
+    here would make the ladder a toll booth again — which is what retiring
+    Quick Review was for."""
+    assert visibility_delay_days_for_tier("analytics") == visibility_delay_days_for_tier("free")
+    assert visibility_delay_days_for_tier("analytics") == 7
+
+
+def test_the_entry_tier_does_get_the_dashboard_numbers(client, app):
+    """The one thing it actually sells."""
+    from app.models import OutboundClick, ToolPageView
+
+    with patch("app.payments.verify_paypal_order", return_value=(True, "ok")):
+        _submit(client, "Entry Numbers Tool", "analytics_paypal")
+
+    with app.app_context():
+        sub = Submission.query.filter_by(name="Entry Numbers Tool").one()
+        sub_id = sub.id
+        _login_as_admin(client, app)
+        client.post(f"/api/v1/admin/submissions/{sub_id}/approve")
+        slug = CatalogTool.query.filter_by(submission_id=sub_id).one().slug
+        db.session.add(ToolPageView(slug=slug))
+        db.session.add(OutboundClick(slug=slug))
+        db.session.commit()
+
+        from app.submission_dashboard import mint_dashboard_token
+        token = mint_dashboard_token(sub_id, "founder@example.com")
+
+    body = client.get(f"/api/v1/submissions/dashboard?token={token}").get_json()
+    assert body["tier"] == "analytics"
+    assert body["analytics"]["total_views"] == 1
+    assert body["analytics"]["total_clicks"] == 1
+    # …and no placement confirmation, because there is no placement.
+    assert "perks" not in body
+
+
+def test_the_entry_tier_is_owed_a_monthly_report(client, app):
+    """The report IS the deliverable here. A free listing must not get one,
+    or the tier has nothing left to sell."""
+    import app.founder_report as fr
+
+    with patch("app.payments.verify_paypal_order", return_value=(True, "ok")):
+        _submit(client, "Entry Report Tool", "analytics_paypal")
+
+    with app.app_context():
+        sub = Submission.query.filter_by(name="Entry Report Tool").one()
+        _login_as_admin(client, app)
+        client.post(f"/api/v1/admin/submissions/{sub.id}/approve")
+
+        row = CatalogTool.query.filter_by(submission_id=sub.id).one()
+        row.visible_at = datetime.now(timezone.utc).replace(tzinfo=None)
+        db.session.commit()
+
+        assert any(s.id == sub.id for s, _row in fr.recipients())
+
+
+def test_claiming_stays_free_at_every_tier():
+    """The three things the diagnostic wanted to charge for. Charging for them
+    now would be withdrawing something already shipped free."""
+    import inspect
+
+    import app.claims as claims
+
+    source = inspect.getsource(claims)
+    for paywall_word in ("price", "paypal", "amount_paid", "payment_status"):
+        assert paywall_word not in source, (
+            f"app/claims.py mentions {paywall_word!r} — claiming, editing and the "
+            "maker badge are free for every founder who can prove the domain, and "
+            "the $19 tier is priced on the assumption that they stay that way."
+        )

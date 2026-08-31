@@ -38,10 +38,23 @@
 //                        category benchmark and live perk confirmation.
 //   editorial review     app/editorial.py — commissioned automatically on a
 //                        verified Reviewed-tier payment (submit_tool).
+//   monthly report       app/founder_report.py — emailed to every verified
+//                        PAID listing that is actually live, with the previous
+//                        window beside the current one. This is the whole
+//                        deliverable of the $19 tier, so it is the one line
+//                        that must never quietly become free.
 //   partner units        app/partner_slots.py — a labelled card on the best-of
 //                        guides and /alternatives pages, capped at 2 per page,
 //                        rotated when oversubscribed, and only where the tool
 //                        is honestly relevant to that page.
+//
+// Note on the $19 tier: the diagnostic proposed selling a "Claimed Listing"
+// — founder account, edit rights, verified badge, monthly report. Three of
+// those four shipped FREE in app/claims.py: anyone who can prove they own the
+// domain can claim their listing, edit its copy, carry the maker badge and
+// reply to reviews, at no charge. Charging for them now would be withdrawing
+// a live free feature and calling it a product. So this tier sells the only
+// part that was ever actually behind the wall — the numbers — and says so.
 //
 // Note on the badge: this used to promise a "Featured badge". `featured` is
 // the EDITORIAL curation flag (~30 seeded tools carry it for free) and is
@@ -72,10 +85,35 @@ export const PRICING_TIERS = [
       'Placement above free listings',
       'Sponsored badge',
       'Homepage Featured strip',
-      'Click and view analytics',
+      'Click and view analytics, and the monthly report',
       'Choosing your own launch date',
       'A written review of your tool',
     ],
+  },
+  {
+    id: 'analytics',
+    pricingModel: 'analytics_paypal',
+    price: 19,
+    priceLabel: '$19',
+    badgeLabel: 'Analytics',
+    name: 'Listing + Analytics',
+    tagline: 'The same listing, plus the numbers it earns — a dashboard, and a report in your inbox every month.',
+    reviewEta: 'Reviewed ahead of free submissions · goes live 7 days after approval.',
+    perks: [
+      'Everything in the free listing',
+      'Reviewed ahead of every free submission',
+      'A founder dashboard: clicks, views, CTR, saves and a 14-day trend',
+      'A monthly report emailed to you — this month beside last month, with the real numbers including the small ones',
+      'Outbound clicks counted by the same redirect that powers our own analytics, so your figures and ours can never disagree',
+    ],
+    notIncluded: [
+      'Placement above free listings — this tier buys the numbers, not the position',
+      'A "Sponsored" badge, the homepage strip or Partner cards',
+      'A faster go-live — the 7-day wait is the same as free, on purpose',
+      'A written review of your tool',
+    ],
+    // Claiming is free for everyone (app/claims.py), so it is deliberately
+    // absent from both lists here: it is neither sold nor withheld.
   },
   {
     id: 'sponsor',
@@ -87,7 +125,7 @@ export const PRICING_TIERS = [
     tagline: 'Reviewed first, live the next day, and placed above free listings for as long as the listing stands — every unit of it labelled.',
     reviewEta: 'Reviewed first, target 24 hours · goes live 1 day after approval.',
     perks: [
-      'Everything in the free listing',
+      'Everything in Listing + Analytics, including the monthly report',
       'Priority review queue — ahead of every free submission',
       'Goes live 1 day after approval, not 7',
       'Placement above free listings in your category and in search, permanently',

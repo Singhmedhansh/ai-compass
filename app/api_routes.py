@@ -1075,6 +1075,10 @@ _CARD_FIELDS = (
     "url", "website", "link", "accent_color", "tagline",
     "featured", "student_friendly", "trending", "sponsored", "sponsored_until",
     "curation_score", "popularity_score", "openSource", "open_source", "platforms",
+    # Date of the last hand-test pass. Cards use it for the "Verified <Mon
+    # YYYY>" chip shown when a tool has no real user reviews — a claim we can
+    # actually back, unlike the synthetic student count it replaced.
+    "last_verified_at",
 )
 
 
@@ -1776,7 +1780,7 @@ def get_paypal_config():
 # amount that actually gets verified comes from pricing_tiers, never from
 # this parameter. "quick" stays accepted so a stale cached bundle asking
 # for it gets a config response instead of a silent fallback surprise.
-_PAYPAL_TIERS = ("sponsor", "reviewed", "quick")
+_PAYPAL_TIERS = ("sponsor", "reviewed", "analytics", "quick")
 
 
 @api_bp.get("/config/paypal-hosted")
@@ -2239,11 +2243,16 @@ def submit_tool():
                     # Retired, but rows bought under it still generate invoices
                     # and dashboards, so it keeps its name.
                     "quick": "Quick Review",
+                    "analytics": "Listing + Analytics",
                     "sponsored": "Fast-Track",
                     "reviewed": "Reviewed Listing",
                 }
                 tier_review_promises = {
                     "quick": "Our editorial team will review it within 48–72 hours.",
+                    "analytics": (
+                        "We review it ahead of the free queue, and it goes live 7 days after "
+                        "approval. Your dashboard starts counting the day it does."
+                    ),
                     "sponsored": "We review yours first — target 24 hours — and it goes live the next day.",
                     "reviewed": (
                         "We review yours first — target 24 hours — it goes live the next day, "
@@ -3080,8 +3089,8 @@ def admin_stats():
 @login_required
 def admin_tier_breakdown():
     """Read-only reporting: how many catalog listings / pending submissions
-    sit in each pricing tier (Free / Fast-Track / Reviewed, plus the retired
-    Quick Review, which still has live rows).
+    sit in each pricing tier (Free / Listing + Analytics / Fast-Track /
+    Reviewed, plus the retired Quick Review, which still has live rows).
 
     Tier is OUR submission pricing ladder (app/pricing_tiers.py), not the
     tool's own Free/Freemium/Paid price label (that's what /admin/stats'
@@ -3131,7 +3140,11 @@ def admin_tier_breakdown():
             # with Fast-Track.
             live[tier if tier in live else "sponsored"] += 1
             continue
-        if tier in ("quick", "free"):
+        if tier in live:
+            # Any non-placement tier, named rather than listed inline: the
+            # $19 Listing + Analytics tier buys no placement, so it reaches
+            # here, and an inline ("quick", "free") tuple would have quietly
+            # filed a paying cohort under "editorial".
             live[tier] += 1
         else:
             # No linked submission — seeded from tools.json, never ticketed.

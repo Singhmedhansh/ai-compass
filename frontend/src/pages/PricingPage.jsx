@@ -74,7 +74,7 @@ export default function PricingPage() {
         <title>Pricing — List Your AI Tool | AI Compass</title>
         <meta
           name="description"
-          content="Three ways to list your AI tool on AI Compass: a permanent free listing, $49 Fast-Track for labelled placement above free listings, or $79 Reviewed, which adds a written hands-on review on your own indexed page. One-time payments, no subscription. Editorial picks and leaderboard ranks are never for sale."
+          content="Four ways to list your AI tool on AI Compass: a permanent free listing, $19 Listing + Analytics for a dashboard and a monthly report, $49 Fast-Track for labelled placement above free listings, or $79 Reviewed, which adds a written hands-on review on your own indexed page. One-time payments, no subscription. Editorial picks and leaderboard ranks are never for sale."
         />
       </Helmet>
 
@@ -82,29 +82,41 @@ export default function PricingPage() {
         <div className="mx-auto max-w-5xl px-4 py-12 md:py-20">
           <section className="text-center max-w-2xl mx-auto">
             <span className="text-[10px] font-bold text-accent uppercase tracking-widest">Pricing</span>
-            <h1 className="mt-2 text-3xl font-bold text-ink sm:text-4xl">Three ways to get listed</h1>
+            <h1 className="mt-2 text-3xl font-bold text-ink sm:text-4xl">Four ways to get listed</h1>
             <p className="mt-3 text-sm text-ink-2 leading-relaxed font-normal">
               Every tool is welcome for free, and every listing gets the same page, the same search
-              index and the same digest announcement. What the paid tiers buy is <strong>where you
-              sit</strong> and <strong>work we do for you</strong> — never a better verdict, an
-              editorial pick, or a rank. All one-time: nothing here renews, and nothing disappears
+              index and the same digest announcement. What the paid tiers buy is <strong>what you
+              can see</strong>, <strong>where you sit</strong> and <strong>work we do for
+              you</strong> — never a better verdict, an editorial pick, or a rank. Claiming your
+              listing and editing it is free for every founder who can prove the domain, at any
+              tier, and always will be. All one-time: nothing here renews, and nothing disappears
               if you stop paying, because there is nothing to stop paying.
             </p>
           </section>
 
-          <div className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-3">
+          <div className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {PRICING_TIERS.map((tier) => (
               <TierColumn key={tier.id} tier={tier} />
             ))}
           </div>
 
-          {/* The three Fast-Track perks that are not obvious from a bullet
-              list, each stated as the mechanism that delivers it — this is
-              the section a founder reads to decide whether the price is real. */}
+          {/* The paid perks that are not obvious from a bullet list, each
+              stated as the mechanism that delivers it — this is the section a
+              founder reads to decide whether the price is real. The first
+              entry is what the $19 tier sells; the rest start at $49. */}
           <section className="mt-14 rounded-2xl border border-line bg-bg-elev p-6 sm:p-8">
             <h2 className="text-base font-bold text-ink">What the paid tiers actually do for you</h2>
             <dl className="mt-4 grid gap-4 sm:grid-cols-2">
               {[
+                [
+                  'Your numbers, every month',
+                  <>
+                    Views, click-throughs, CTR, saves and a 14-day trend on your own dashboard —
+                    and a report emailed to you monthly, this month beside last month. Clicks are
+                    counted by the same redirect that powers our own analytics, so your figures
+                    and ours can never disagree. This is the whole of the $19 tier.
+                  </>,
+                ],
                 [
                   'Placed above free listings',
                   <>

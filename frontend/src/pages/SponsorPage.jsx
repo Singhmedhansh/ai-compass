@@ -214,7 +214,7 @@ export default function SponsorPage() {
         <title>Sponsor AI Compass — Commissioned Reviews & Labelled Placements</title>
         <meta
           name="description"
-          content="Commission a hands-on editorial review of your tool ($49, published on its own indexed page), or take a capped, clearly labelled placement beside the AI Compass leaderboard. Verdicts and ranks are never for sale."
+          content="Commission a hands-on editorial review of your tool ($39, published on its own indexed page), or take a capped, clearly labelled placement beside the AI Compass leaderboard. Verdicts and ranks are never for sale."
         />
         <link rel="canonical" href="https://ai-compass.in/sponsor" />
       </Helmet>

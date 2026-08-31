@@ -270,9 +270,10 @@ function UpsellCard() {
         <div>
           <h2 className="font-semibold text-ink">Unlock click &amp; view analytics</h2>
           <p className="mt-1 text-sm text-ink-2">
-            Fast-Track ($49) and Reviewed ($79) listings get real analytics on this dashboard — how many students
-            clicked through, how many viewed your listing, and how you compare to the category average. Reviewed also
-            gets a written hands-on review of your tool, published on this listing's own page.
+            Listing + Analytics ($19) turns this page on: how many people viewed your listing, how many clicked
+            through, and a report in your inbox every month. Fast-Track ($49) adds labelled placement above free
+            listings and the category benchmark, and Reviewed ($79) adds a written hands-on review of your tool,
+            published on this listing&apos;s own page.
           </p>
           <Link
             to="/pricing"
