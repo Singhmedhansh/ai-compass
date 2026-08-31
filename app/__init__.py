@@ -883,6 +883,9 @@ def create_app(config: dict | None = None) -> Flask:
                         # retry against a partially-applied table.
                         ("founder_user_id", "INTEGER"),
                         ("welcome_email_sent_at", "TIMESTAMP"),
+                        # Owner test rows, excluded from admin revenue and
+                        # paid-attempt reporting. See Submission.is_test.
+                        ("is_test", "BOOLEAN NOT NULL DEFAULT FALSE"),
                     ]:
                         try:
                             from sqlalchemy import text

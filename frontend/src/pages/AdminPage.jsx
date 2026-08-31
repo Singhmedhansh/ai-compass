@@ -1064,6 +1064,13 @@ function AdminPage() {
                       ${(tierStats.attempts?.revenue_usd ?? 0).toFixed(2)}
                     </span>
                   </div>
+                  {(tierStats.test_rows_excluded ?? 0) > 0 && (
+                    <p className="mt-2 text-[11px] text-muted-2">
+                      Excludes {tierStats.test_rows_excluded} row{tierStats.test_rows_excluded === 1 ? '' : 's'} flagged
+                      as owner test data. Shown so the exclusion is visible rather than silent — a reporting
+                      screen that quietly drops rows is one you stop trusting.
+                    </p>
+                  )}
                 </Card>
 
                 {(tierStats.failure_reasons || []).length > 0 && (

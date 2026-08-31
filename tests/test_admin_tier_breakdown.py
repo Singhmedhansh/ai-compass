@@ -256,3 +256,48 @@ def test_paid_attempts_are_zero_when_nobody_has_tried(client, app):
     assert body["attempts"]["total"] == 0
     assert body["attempts"]["revenue_usd"] == 0.0
     assert body["failure_reasons"] == []
+
+
+def test_test_rows_are_excluded_from_every_count(client, app):
+    """The Manila row is a real catalog listing whose payment_status was set
+    to 'verified' by hand during paid-tier UX testing. Once the breakdown
+    started reporting revenue, that row made it claim $49.99 nobody paid — a
+    reporting fix that immediately lies is worse than no reporting."""
+    _add_submission(app, "Real Founder", "sponsored_paypal:V9", "verified",
+                    payment_note="paypal_order_verified")
+    qa_id = _add_submission(app, "Owner QA Tool", "sponsored_paypal:INTERNAL-QA", "verified",
+                            payment_note="INTERNAL QA - not a real payment")
+    junk_id = _add_submission(app, "teat", "free", "unpaid")
+
+    with app.app_context():
+        for sid in (qa_id, junk_id):
+            db.session.get(Submission, sid).is_test = True
+        db.session.commit()
+        refresh_tools_cache()
+    _login_as_admin(client, app)
+
+    body = client.get("/api/v1/admin/tier-breakdown").get_json()
+
+    # Revenue and attempts count the real founder only.
+    assert body["attempts"]["total"] == 1
+    assert body["attempts"]["verified"] == 1
+    assert body["attempts"]["revenue_usd"] == 49.99
+    # The flagged free junk row must not inflate queue depth either.
+    assert body["pending"]["free"] == 0
+    assert body["pending"]["sponsored"] == 1
+    # The exclusion is reported, not silent.
+    assert body["test_rows_excluded"] == 2
+
+
+def test_untagged_rows_still_count(client, app):
+    """is_test defaults False — flagging must be opt-in, so a real founder is
+    never quietly dropped from reporting."""
+    _add_submission(app, "Ordinary Paid", "sponsored_paypal:V10", "verified",
+                    payment_note="paypal_order_verified")
+    with app.app_context():
+        refresh_tools_cache()
+    _login_as_admin(client, app)
+
+    body = client.get("/api/v1/admin/tier-breakdown").get_json()
+    assert body["attempts"]["verified"] == 1
+    assert body["test_rows_excluded"] == 0

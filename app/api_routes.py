@@ -2901,7 +2901,7 @@ def admin_tier_breakdown():
     pending = {"free": 0, "quick": 0, "sponsored": 0}
     for pricing_model, payment_status in db.session.query(
         Submission.pricing_model, Submission.payment_status
-    ).filter(Submission.status == "pending"):
+    ).filter(Submission.status == "pending", Submission.is_test.is_(False)):
         pending[effective_tier(pricing_model, payment_status)] += 1
 
     # --- Live catalog tools, grouped by tier -----------------------------
@@ -2957,7 +2957,7 @@ def admin_tier_breakdown():
 
     for pricing_model, payment_status, payment_note in db.session.query(
         Submission.pricing_model, Submission.payment_status, Submission.payment_note
-    ):
+    ).filter(Submission.is_test.is_(False)):
         if tier_for_pricing_model(pricing_model) not in ("quick", "sponsored"):
             continue
         attempts["total"] += 1
@@ -2995,6 +2995,11 @@ def admin_tier_breakdown():
             "live_total": sum(live.values()),
             "pending_total": sum(pending.values()),
             "attempts": attempts,
+            # Surfaced rather than silently dropped: a reporting screen that
+            # quietly omits rows is how you end up mistrusting it later.
+            "test_rows_excluded": db.session.query(Submission)
+            .filter(Submission.is_test.is_(True))
+            .count(),
             # Most common first — the top row is what to fix next.
             "failure_reasons": [
                 {"reason": reason, "count": count}

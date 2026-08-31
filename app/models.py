@@ -227,6 +227,20 @@ class Submission(db.Model):
     # idempotency, since a retried submission request must not re-send the
     # email even though the account lookup would just no-op safely on its own.
     welcome_email_sent_at = db.Column(db.DateTime, nullable=True)
+    # Owner test data, not a real founder. Excluded from every count in
+    # /admin/tier-breakdown — attempts, failure reasons and revenue.
+    #
+    # This exists because the Manila row is pricing_model
+    # 'sponsored_paypal:INTERNAL-QA' with payment_status 'verified', set by
+    # hand while testing the paid-tier UX. It is a legitimate catalog
+    # listing, so deleting it is wrong, but leaving it 'verified' made the
+    # new revenue counter report $49.99 that nobody ever paid — a reporting
+    # fix that immediately lies is worse than no reporting.
+    #
+    # A flag rather than an email filter: test rows have been submitted from
+    # a personal Gmail as well as test@company.com, and hardcoding addresses
+    # in reporting queries fails the moment a real founder uses Gmail.
+    is_test = db.Column(db.Boolean, nullable=False, default=False, server_default="0")
 
 
 class NewsletterSubscriber(db.Model):
