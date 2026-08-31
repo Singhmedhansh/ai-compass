@@ -211,6 +211,13 @@ function AdminPage() {
   const [analyticsErr, setAnalyticsErr] = useState('')
   const [tierStats, setTierStats] = useState(null)
   const [tierStatsErr, setTierStatsErr] = useState('')
+  // Live PayPal credential health. This is a real OAuth round-trip against
+  // PayPal on every load, not a config echo — the whole point is that a
+  // config echo would have shown "client id set, secret set" and told us
+  // nothing, while the credentials silently could not authenticate.
+  const [paypalHealth, setPaypalHealth] = useState(null)
+  const [paypalHealthErr, setPaypalHealthErr] = useState('')
+  const [paypalHealthLoading, setPaypalHealthLoading] = useState(false)
   const [flags, setFlags] = useState([])
   const [newsletterSubs, setNewsletterSubs] = useState([])
   const [newsletterStats, setNewsletterStats] = useState({ count: 0, new_today: 0, new_this_week: 0 })
@@ -315,6 +322,7 @@ function AdminPage() {
     if (activeTab === 'Tier Breakdown') {
       setTierStatsErr('')
       api('/api/v1/admin/tier-breakdown').then(setTierStats).catch((e) => setTierStatsErr(e.message || 'Failed to load tier breakdown'))
+      loadPaypalHealth()
     }
     if (activeTab === 'Flags') api('/api/v1/admin/flags').then(setFlags).catch(() => setFlags([]))
     if (activeTab === 'Newsletter') {
@@ -354,6 +362,19 @@ function AdminPage() {
       loadOutreachData()
     }
   }, [activeTab, authed])
+
+  const loadPaypalHealth = useCallback(async () => {
+    setPaypalHealthLoading(true)
+    setPaypalHealthErr('')
+    try {
+      setPaypalHealth(await api('/api/v1/admin/diagnostics/paypal'))
+    } catch (e) {
+      setPaypalHealth(null)
+      setPaypalHealthErr(e.message || 'Could not reach the diagnostic endpoint')
+    } finally {
+      setPaypalHealthLoading(false)
+    }
+  }, [])
 
   const loadOutreachData = useCallback(async () => {
     setLoading(true)
@@ -876,6 +897,80 @@ function AdminPage() {
 
         {activeTab === 'Tier Breakdown' && (
           <div className="space-y-4">
+            {/* Payment-verification health. This is the row whose absence let a
+                broken checkout look like a pricing problem for a month: the
+                config was present and plausible the whole time, and only an
+                actual OAuth round-trip could tell you it did not work. */}
+            <Card>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-xl font-semibold text-ink">Payment verification</h2>
+                  <p className="mt-1 text-sm text-muted">
+                    Live check — requests a real OAuth token from PayPal, the same call
+                    <code className="mx-1 rounded bg-bg-sunk px-1 py-0.5 text-[11px]">verify_paypal_order()</code>
+                    depends on. If this is red, every paid submission silently becomes a free listing.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={loadPaypalHealth}
+                  disabled={paypalHealthLoading}
+                  className={`${BTN_GHOST} shrink-0 px-3 py-1.5 text-xs disabled:opacity-50`}
+                >
+                  {paypalHealthLoading ? 'Checking…' : 'Re-check'}
+                </button>
+              </div>
+
+              {paypalHealthErr ? (
+                <p className="mt-4 text-sm text-danger">{paypalHealthErr}</p>
+              ) : !paypalHealth ? (
+                <p className="mt-4 text-sm text-muted">Checking PayPal credentials…</p>
+              ) : (
+                <div className="mt-4 space-y-4">
+                  {[
+                    ['Submissions (/submit)', paypalHealth],
+                    ['Sponsorship checkout', paypalHealth.sponsorship],
+                  ].filter(([, block]) => block).map(([label, block]) => {
+                    const ok = !!block.oauth_token_acquired
+                    return (
+                      <div
+                        key={label}
+                        className={`rounded-2xl border p-4 ${ok ? 'border-emerald-500/50 bg-emerald-500/5' : 'border-danger bg-danger-soft'}`}
+                      >
+                        <div className="flex flex-wrap items-center gap-3">
+                          <span
+                            className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
+                              ok
+                                ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
+                                : 'bg-danger/20 text-danger'
+                            }`}
+                          >
+                            {ok ? '● Live' : '● Misconfigured'}
+                          </span>
+                          <span className="text-sm font-semibold text-ink">{label}</span>
+                        </div>
+                        <p className={`mt-2 text-sm ${ok ? 'text-ink-2' : 'text-danger'}`}>{block.verdict}</p>
+                        <div className="mt-3 grid grid-cols-2 gap-x-6 gap-y-1 font-mono text-[11px] text-muted sm:grid-cols-3">
+                          <span>mode: {block.mode || '—'}</span>
+                          <span>secret: {block.client_secret_set ? 'set' : 'MISSING'}</span>
+                          <span className="break-all">
+                            client id: {block.client_id_preview || '—'}
+                            {block.client_id_length ? ` (${block.client_id_length} chars)` : ''}
+                          </span>
+                        </div>
+                        {block.client_id_looks_like_hosted_button && (
+                          <p className="mt-2 text-[11px] text-amber-600 dark:text-amber-400">
+                            Heads up: this client ID looks like a hosted-button ID (~25 chars), which cannot
+                            call the REST API. A REST app client ID is ~80 characters.
+                          </p>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </Card>
+
             {tierStatsErr ? (
               <Card><p className="text-sm text-danger">{tierStatsErr}</p></Card>
             ) : !tierStats ? (
@@ -928,6 +1023,78 @@ function AdminPage() {
                     <span className="font-semibold text-ink">{tierStats.pending_total ?? 0}</span>
                   </div>
                 </Card>
+
+                {/* The counts above fold every unverified paid claim into
+                    "Free" — correct for entitlement, but it hides the only
+                    signal that matters here: somebody tried to pay. */}
+                <Card>
+                  <h2 className="text-xl font-semibold text-ink">Paid attempts</h2>
+                  <p className="mt-1 text-sm text-muted">
+                    Every submission that <b>chose</b> a paid tier, whatever became of the payment.
+                    The tier counts above deliberately show these as Free, because an unconfirmed
+                    payment must never buy a perk — which is exactly why &ldquo;someone tried to pay
+                    and it failed&rdquo; needs its own row.
+                  </p>
+                  <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-5">
+                    {[
+                      ['Attempts', tierStats.attempts?.total ?? 0, 'text-ink'],
+                      ['Verified', tierStats.attempts?.verified ?? 0, 'text-emerald-600 dark:text-emerald-400'],
+                      ['Needs review', tierStats.attempts?.needs_manual_review ?? 0, 'text-orange-600 dark:text-orange-400'],
+                      ['Refused', tierStats.attempts?.refused ?? 0, 'text-ink-2'],
+                      ['Never paid', tierStats.attempts?.no_reference ?? 0, 'text-muted'],
+                    ].map(([label, value, tone]) => (
+                      <div key={label} className="rounded-2xl border border-line bg-bg-elev p-4 shadow-sm">
+                        <p className={`text-2xl font-bold ${tone}`}>{value}</p>
+                        <p className="mt-1 text-[11px] uppercase tracking-wide text-muted-2">{label}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  {(tierStats.attempts?.needs_manual_review ?? 0) > 0 && (
+                    <p className="mt-4 rounded-xl border border-orange-500/50 bg-orange-500/5 px-4 py-3 text-sm text-orange-700 dark:text-orange-300">
+                      <b>{tierStats.attempts.needs_manual_review} payment{tierStats.attempts.needs_manual_review === 1 ? '' : 's'} could not be confirmed either way.</b>{' '}
+                      These may be real charges. Each one is in the Submissions tab with its
+                      reference — search PayPal Activity for it and mark it verified if it captured.
+                    </p>
+                  )}
+
+                  <div className="mt-4 flex items-center justify-between border-t border-line/60 pt-3 text-sm">
+                    <span className="text-muted">Confirmed revenue from submissions</span>
+                    <span className="font-semibold text-ink">
+                      ${(tierStats.attempts?.revenue_usd ?? 0).toFixed(2)}
+                    </span>
+                  </div>
+                </Card>
+
+                {(tierStats.failure_reasons || []).length > 0 && (
+                  <Card>
+                    <h2 className="text-xl font-semibold text-ink">Why payments failed</h2>
+                    <p className="mt-1 text-sm text-muted">
+                      Reason codes from <code className="rounded bg-bg-sunk px-1 py-0.5 text-[11px]">verify_paypal_order()</code>,
+                      most common first. A code repeating across every attempt is a configuration
+                      problem, not a run of bad customers.
+                    </p>
+                    <div className="mt-4 space-y-2">
+                      {tierStats.failure_reasons.map(({ reason, count }) => {
+                        const top = tierStats.failure_reasons[0]?.count || 1
+                        return (
+                          <div key={reason} className="flex items-center gap-3">
+                            <span className="w-64 shrink-0 truncate font-mono text-[11px] text-ink-2" title={reason}>
+                              {reason}
+                            </span>
+                            <span className="h-2 flex-1 overflow-hidden rounded-full bg-bg-sunk">
+                              <span
+                                className="block h-full rounded-full bg-accent"
+                                style={{ width: `${Math.max(4, (count / top) * 100)}%` }}
+                              />
+                            </span>
+                            <span className="w-8 shrink-0 text-right font-mono text-xs text-ink">{count}</span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </Card>
+                )}
               </>
             )}
           </div>

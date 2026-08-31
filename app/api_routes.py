@@ -2929,12 +2929,77 @@ def admin_tier_breakdown():
             # No linked submission — seeded from tools.json, never ticketed.
             live["editorial"] += 1
 
+    # --- Paid attempts: the fact the tier counts above deliberately hide --
+    #
+    # effective_tier() folds every unverified paid claim into "free". That is
+    # correct for entitlement — an unconfirmed payment must never buy a perk —
+    # but it also erases the single most important operational signal there
+    # is: somebody tried to give us money. For a month the UI said only
+    # "everyone picks free", when what had actually happened was that no
+    # payment could be verified at all. This block exists so that reading
+    # cannot happen again.
+    from app.pricing_tiers import TIERS, tier_for_pricing_model
+
+    attempts = {
+        "total": 0,
+        "verified": 0,
+        # Indeterminate — we never got an answer, so this may be real money
+        # sitting unacknowledged. The number to act on.
+        "needs_manual_review": 0,
+        # PayPal answered and said no.
+        "refused": 0,
+        # Picked a paid tier and never paid. An abandoned checkout, not a
+        # payment event — counted apart so it can't inflate "refused".
+        "no_reference": 0,
+        "revenue_usd": 0.0,
+    }
+    failure_reasons = Counter()
+
+    for pricing_model, payment_status, payment_note in db.session.query(
+        Submission.pricing_model, Submission.payment_status, Submission.payment_note
+    ):
+        if tier_for_pricing_model(pricing_model) not in ("quick", "sponsored"):
+            continue
+        attempts["total"] += 1
+
+        if payment_status == "verified":
+            attempts["verified"] += 1
+            attempts["revenue_usd"] += float(
+                TIERS.get(tier_for_pricing_model(pricing_model), {}).get("price", 0.0)
+            )
+            continue
+
+        # payment_note is "<outcome>:<reason> ref=<ref>" since the
+        # refused/indeterminate split. Older rows hold a bare reason or
+        # nothing at all, so parse defensively rather than assuming shape.
+        note = str(payment_note or "")
+        reason = note.split(" ref=", 1)[0]
+        if ":" in reason:
+            reason = reason.split(":", 1)[1]
+        reason = reason.strip() or "unknown"
+
+        if payment_status == "needs_manual_review":
+            attempts["needs_manual_review"] += 1
+        elif reason == "missing_reference":
+            attempts["no_reference"] += 1
+        else:
+            attempts["refused"] += 1
+        failure_reasons[reason] += 1
+
+    attempts["revenue_usd"] = round(attempts["revenue_usd"], 2)
+
     return jsonify(
         {
             "live": live,
             "pending": pending,
             "live_total": sum(live.values()),
             "pending_total": sum(pending.values()),
+            "attempts": attempts,
+            # Most common first — the top row is what to fix next.
+            "failure_reasons": [
+                {"reason": reason, "count": count}
+                for reason, count in failure_reasons.most_common()
+            ],
         }
     )
 
