@@ -904,14 +904,6 @@ def create_app(config: dict | None = None) -> Flask:
                     # it forever and the whole schema phase wedges. Fail fast
                     # instead and let the next worker retry: the marker is not
                     # written unless every column lands, so a retry is free.
-                    if is_postgres:
-                        try:
-                            from sqlalchemy import text
-                            db.session.execute(text("SET lock_timeout = '10s'"))
-                            db.session.execute(text("SET statement_timeout = '30s'"))
-                            db.session.commit()
-                        except Exception:
-                            db.session.rollback()
 
                     # Every ADD COLUMN below is individually try/excepted so
                     # one unrelated failure can't abort the rest. That made
@@ -925,6 +917,22 @@ def create_app(config: dict | None = None) -> Flask:
                         is present afterwards (added, or already there)."""
                         from sqlalchemy import text
                         try:
+                            if is_postgres:
+                                # SET LOCAL, so it is scoped to this
+                                # transaction and therefore guaranteed to be
+                                # on the same connection as the ALTER below.
+                                # A plain SET would be handed back to the pool
+                                # at commit and might not apply to the next
+                                # statement at all.
+                                #
+                                # ALTER TABLE takes ACCESS EXCLUSIVE. If an
+                                # overlapping deploy's container or a long
+                                # read holds a conflicting lock, an unbounded
+                                # ALTER waits behind it forever and wedges the
+                                # whole schema phase. A retry is free now, so
+                                # failing fast is strictly better than waiting.
+                                db.session.execute(text("SET LOCAL lock_timeout = '10s'"))
+                                db.session.execute(text("SET LOCAL statement_timeout = '30s'"))
                             db.session.execute(text(
                                 f"ALTER TABLE {table} ADD COLUMN {if_not_exists}{col_name} {col_type};"
                             ))
