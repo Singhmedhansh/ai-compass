@@ -809,9 +809,43 @@ def create_app(config: dict | None = None) -> Flask:
         # progressed on this database, so those raw-SQL ALTERs are the only
         # thing that adds a new column — half of them running leaves the app
         # querying columns that do not exist, with no way to retry.
+        # Two files, two jobs. `.done` means the schema phase SUCCEEDED and
+        # nothing need run again this deployment. `.lock` means a warmup is
+        # RUNNING right now — it stops two workers (or an overlapping
+        # deploy's container) issuing conflicting ALTER TABLEs at once, and
+        # it goes stale so a worker that died holding it cannot block the
+        # retry forever. Conflating the two is what broke this in the first
+        # place: one file meaning both "started" and "finished" turned a
+        # crashed warmup into a permanent claim.
         _WARMUP_SENTINEL = "AI_COMPASS_WARMUP_DONE"
         _warmup_marker = os.path.join(tempfile.gettempdir(), "ai_compass_warmup.done")
+        _warmup_lock = os.path.join(tempfile.gettempdir(), "ai_compass_warmup.lock")
         _warmup_status_file = os.path.join(tempfile.gettempdir(), "ai_compass_warmup.json")
+        _WARMUP_LOCK_STALE_SECONDS = 600
+
+        def _claim_warmup_lock():
+            """Atomically claim the in-progress lock. False if someone has it."""
+            try:
+                age = time.time() - os.path.getmtime(_warmup_lock)
+                if age > _WARMUP_LOCK_STALE_SECONDS:
+                    print(f"[WARMUP] clearing stale lock ({int(age)}s old)", flush=True)
+                    os.unlink(_warmup_lock)
+            except OSError:
+                pass
+            try:
+                fd = os.open(_warmup_lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+                os.write(fd, str(os.getpid()).encode())
+                os.close(fd)
+                return True
+            except OSError:
+                return False
+
+        def _release_warmup_lock():
+            try:
+                os.unlink(_warmup_lock)
+            except OSError:
+                pass
+
         _first_warmup = (
             os.environ.get(_WARMUP_SENTINEL) != "1"
             and not os.path.exists(_warmup_marker)
@@ -845,6 +879,10 @@ def create_app(config: dict | None = None) -> Flask:
                 pass
 
         def _warm_up():
+            if not _claim_warmup_lock():
+                print("[WARMUP] another worker holds the warmup lock; standing down.", flush=True)
+                app.warmup_status = {k: "held by another worker" for k in app.warmup_status}
+                return
             try:
                 with app.app_context():
                     try:
@@ -1095,6 +1133,8 @@ def create_app(config: dict | None = None) -> Flask:
 
             except Exception as e:
                 print(f"[WARMUP] Unhandled exception in warmup thread: {e}", flush=True)
+            finally:
+                _release_warmup_lock()
 
     is_cli = sys.argv and any(x in sys.argv[0] or x in sys.argv for x in ['flask', 'db', 'migrate', 'manage.py'])
 
