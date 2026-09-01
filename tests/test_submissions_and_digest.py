@@ -71,6 +71,36 @@ def test_submit_tool_persists_to_db(client, app):
         assert s.pricing_model  # NOT NULL satisfied
 
 
+def test_submit_tool_reports_failure_instead_of_a_false_success(client, app, monkeypatch):
+    """A submission that could not be stored must not return the success screen.
+
+    Production had `submissions` unqueryable (a half-applied schema), so every
+    insert here raised, was swallowed by the rollback-and-log handler, and the
+    submitter was shown a confirmation for a row that does not exist. For a
+    paid tier there is no backup channel at all — an unverified paid claim
+    sends no automated mail — so the row is the only record the money ever
+    happened. Silence is the one response this must never give.
+    """
+    def boom(*args, **kwargs):
+        raise RuntimeError("simulated UndefinedColumn on submissions")
+
+    monkeypatch.setattr(db.session, "commit", boom)
+
+    resp = client.post("/api/v1/submit-tool", json={
+        "name": "Dropped Widget AI",
+        "url": "https://dropped.example.com",
+        "category": "Productivity",
+        "reason": "This submission cannot be persisted.",
+    })
+
+    assert resp.status_code == 500, resp.data
+    body = resp.get_json()
+    assert body["persisted"] is False
+    # The message has to be actionable, not just an error: it must stop the
+    # submitter retrying into a duplicate and tell them where to go.
+    assert "help@ai-compass.in" in body["error"]
+
+
 def test_only_one_admin_submissions_route(app):
     """The legacy unauthenticated JSON route must be gone, so the URL
     maps to the DB-backed, auth-checked handler."""

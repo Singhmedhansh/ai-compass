@@ -11,6 +11,7 @@ resolved as their own labelled row; see community_leaderboard's docstring.
 """
 
 from datetime import datetime, timedelta, timezone
+from flask import current_app
 
 from app import db
 from app.models import (
@@ -334,7 +335,19 @@ def sponsored_units():
 
     rail_room = PLACEMENT_CAPACITY["rail"] - len(buckets["rail"])
     if rail_room > 0:
-        buckets["rail"].extend(_complimentary_rail_units(tools, seen)[:rail_room])
+        # Complimentary units are a perk; rented slots are revenue. They read
+        # different tables (catalog_tools + submissions vs sponsor_slots), and
+        # letting the perk lookup fail the whole call meant one bad column on
+        # `submissions` blanked the placements people had actually paid for.
+        # Degrade the perk, never the paid inventory.
+        try:
+            buckets["rail"].extend(_complimentary_rail_units(tools, seen)[:rail_room])
+        except Exception:
+            current_app.logger.exception("complimentary rail units unavailable")
+            try:
+                db.session.rollback()
+            except Exception:
+                current_app.logger.exception("complimentary rail rollback failed")
 
     return buckets
 

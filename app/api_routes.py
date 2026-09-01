@@ -2107,8 +2107,26 @@ def submit_tool():
         except Exception:
             db.session.rollback()
             current_app.logger.exception("Failed to persist submission to DB")
-            # Don't hard-fail the user — the notification email below is
-            # the backup channel.
+            # The notification email is a backup channel for a FREE listing.
+            # It is not one for a paid tier: an unverified paid claim sends no
+            # automated mail at all, so the Submission row is the only record
+            # that the money and the tool ever existed. Returning the success
+            # screen anyway is how paid submissions were accepted and dropped
+            # without anyone — submitter or admin — being able to tell.
+            #
+            # Tell the truth instead, and give the submitter something to
+            # quote. The rest of this handler needs a row it does not have.
+            ref = payment_note or transaction_ref or "n/a"
+            return jsonify({
+                "error": (
+                    "We could not save your submission. Nothing has been "
+                    "recorded, so please do not submit again — email "
+                    "help@ai-compass.in with your tool name and payment "
+                    "reference and we will finish this by hand."
+                ),
+                "payment_reference": ref,
+                "persisted": False,
+            }), 500
 
         # The Reviewed tier's price includes a commissioned hands-on review,
         # so the commission is queued here rather than waiting for someone to

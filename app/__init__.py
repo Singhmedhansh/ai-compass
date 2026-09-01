@@ -1,3 +1,4 @@
+import json
 import os
 import sys
 import tempfile
@@ -797,28 +798,51 @@ def create_app(config: dict | None = None) -> Flask:
         # A marker file in the container's tmp dir survives worker recycles
         # but not a redeploy (fresh container = empty /tmp), so the heavy
         # phases run exactly once per deployment, which is the intent.
+        #
+        # The marker is written only once the SCHEMA phase has actually
+        # finished, never up-front. Writing it before the work was the bug
+        # that took /api/v1/community/sponsors and every submissions read to
+        # a 500: this worker claimed the warmup, died partway through the
+        # ALTER TABLE guarantees (recycled at max_requests, or OOM-killed on
+        # the 512 MB tier), and the marker it had already written told every
+        # later worker the schema was done. flask_migrate.upgrade() has never
+        # progressed on this database, so those raw-SQL ALTERs are the only
+        # thing that adds a new column — half of them running leaves the app
+        # querying columns that do not exist, with no way to retry.
         _WARMUP_SENTINEL = "AI_COMPASS_WARMUP_DONE"
         _warmup_marker = os.path.join(tempfile.gettempdir(), "ai_compass_warmup.done")
+        _warmup_status_file = os.path.join(tempfile.gettempdir(), "ai_compass_warmup.json")
         _first_warmup = (
             os.environ.get(_WARMUP_SENTINEL) != "1"
             and not os.path.exists(_warmup_marker)
         )
         if _first_warmup:
-            os.environ[_WARMUP_SENTINEL] = "1"  # set before thread starts
-            try:
-                with open(_warmup_marker, "w") as _mf:
-                    _mf.write("1")
-            except OSError as exc:
-                print(f"[WARMUP] could not write marker {_warmup_marker}: {exc}", flush=True)
+            # Process-local only. Stops this worker double-starting the
+            # thread; deliberately does NOT stop a *later* worker retrying,
+            # which is what makes a half-finished schema phase recoverable.
+            os.environ[_WARMUP_SENTINEL] = "1"
 
         app.warmup_status = {
             "migrate": "pending",
             "db_create": "pending",
             "users_alter": "pending",
+            "schema": "pending",
             "seed": "pending",
             "sync": "pending",
             "error": None
         }
+
+        def _publish_warmup_status():
+            """Persist status so /healthz-detailed can answer from any worker.
+
+            Without this, every recycled worker reported {"...": "skipped"},
+            which is why a half-applied schema stayed invisible.
+            """
+            try:
+                with open(_warmup_status_file, "w") as _sf:
+                    json.dump(app.warmup_status, _sf)
+            except OSError:
+                pass
 
         def _warm_up():
             try:
@@ -845,6 +869,33 @@ def create_app(config: dict | None = None) -> Flask:
                     is_postgres = db.engine.name in ("postgresql", "postgres")
                     if_not_exists = "IF NOT EXISTS " if is_postgres else ""
 
+                    # Every ADD COLUMN below is individually try/excepted so
+                    # one unrelated failure can't abort the rest. That made
+                    # partial application silent, so record it: the phase is
+                    # only "complete" if nothing was left undone, and only a
+                    # complete phase claims the once-per-deploy marker.
+                    _schema_failures = []
+
+                    def _add_column(table, col_name, col_type):
+                        """Idempotent ADD COLUMN. Returns True if the column
+                        is present afterwards (added, or already there)."""
+                        from sqlalchemy import text
+                        try:
+                            db.session.execute(text(
+                                f"ALTER TABLE {table} ADD COLUMN {if_not_exists}{col_name} {col_type};"
+                            ))
+                            db.session.commit()
+                            return True
+                        except Exception as exc:
+                            db.session.rollback()
+                            # On SQLite (no IF NOT EXISTS) "duplicate column"
+                            # is the success case, not a failure.
+                            if "duplicate column" in str(exc).lower():
+                                return True
+                            _schema_failures.append(f"{table}.{col_name}: {exc}")
+                            print(f"[WARMUP] ADD COLUMN {table}.{col_name} failed: {exc}", flush=True)
+                            return False
+
                     try:
                         from sqlalchemy import text
                         db.session.execute(text(f"ALTER TABLE users ADD COLUMN {if_not_exists}is_verified BOOLEAN NOT NULL DEFAULT FALSE;"))
@@ -868,12 +919,7 @@ def create_app(config: dict | None = None) -> Flask:
                         # app/founder_accounts.py.
                         ("must_change_password", "BOOLEAN NOT NULL DEFAULT FALSE"),
                     ]:
-                        try:
-                            from sqlalchemy import text
-                            db.session.execute(text(f"ALTER TABLE users ADD COLUMN {if_not_exists}{col_name} {col_type};"))
-                            db.session.commit()
-                        except Exception:
-                            db.session.rollback()
+                        _add_column("users", col_name, col_type)
 
                     # Same fallback for outreach_candidates: flask_migrate.upgrade()
                     # above has never actually progressed past the very first
@@ -889,12 +935,7 @@ def create_app(config: dict | None = None) -> Flask:
                         ("fit_score", "INTEGER"),
                         ("draft_template_version", "INTEGER"),
                     ]:
-                        try:
-                            from sqlalchemy import text
-                            db.session.execute(text(f"ALTER TABLE outreach_candidates ADD COLUMN {if_not_exists}{col_name} {col_type};"))
-                            db.session.commit()
-                        except Exception:
-                            db.session.rollback()
+                        _add_column("outreach_candidates", col_name, col_type)
 
                     # Same fallback for submissions: the payment-verification
                     # migration (a4e91c2b7d3f) never applied here either, for
@@ -926,31 +967,16 @@ def create_app(config: dict | None = None) -> Flask:
                         ("launch_at", "TIMESTAMP"),
                         ("launched_at", "TIMESTAMP"),
                     ]:
-                        try:
-                            from sqlalchemy import text
-                            db.session.execute(text(f"ALTER TABLE submissions ADD COLUMN {if_not_exists}{col_name} {col_type};"))
-                            db.session.commit()
-                        except Exception:
-                            db.session.rollback()
+                        _add_column("submissions", col_name, col_type)
 
                     # Same fallback for catalog_tools: staggered-release gate
                     # (visible_at) added after this table already existed on
                     # Render, so it needs the same raw-SQL guarantee above.
-                    try:
-                        from sqlalchemy import text
-                        db.session.execute(text(f"ALTER TABLE catalog_tools ADD COLUMN {if_not_exists}visible_at TIMESTAMP;"))
-                        db.session.commit()
-                    except Exception:
-                        db.session.rollback()
+                    _add_column("catalog_tools", "visible_at", "TIMESTAMP")
 
                     # Same fallback for catalog_tools.editorial_blurb (admin-
                     # authored Sponsored-tier description override).
-                    try:
-                        from sqlalchemy import text
-                        db.session.execute(text(f"ALTER TABLE catalog_tools ADD COLUMN {if_not_exists}editorial_blurb TEXT;"))
-                        db.session.commit()
-                    except Exception:
-                        db.session.rollback()
+                    _add_column("catalog_tools", "editorial_blurb", "TEXT")
 
                     # reviews.maker_reply: a claimed maker's public answer to
                     # one review (see app/claims.py). create_all() below adds
@@ -962,12 +988,29 @@ def create_app(config: dict | None = None) -> Flask:
                         ("maker_reply", "VARCHAR(1000)"),
                         ("maker_reply_at", "TIMESTAMP"),
                     ]:
+                        _add_column("reviews", col_name, col_type)
+
+                    # The schema phase is the part that must not be left half
+                    # done. Claim the once-per-deploy marker only now, and
+                    # only if every column landed — a failure here leaves the
+                    # marker absent so the next worker (recycled at
+                    # max_requests) retries instead of inheriting a database
+                    # the code cannot query.
+                    if _schema_failures:
+                        app.warmup_status["schema"] = f"incomplete: {'; '.join(_schema_failures[:5])}"
+                        print(
+                            f"[WARMUP] schema INCOMPLETE ({len(_schema_failures)} column(s)); "
+                            "marker not written, a later worker will retry.",
+                            flush=True,
+                        )
+                    else:
+                        app.warmup_status["schema"] = "success"
                         try:
-                            from sqlalchemy import text
-                            db.session.execute(text(f"ALTER TABLE reviews ADD COLUMN {if_not_exists}{col_name} {col_type};"))
-                            db.session.commit()
-                        except Exception:
-                            db.session.rollback()
+                            with open(_warmup_marker, "w") as _mf:
+                                _mf.write("1")
+                        except OSError as exc:
+                            print(f"[WARMUP] could not write marker {_warmup_marker}: {exc}", flush=True)
+                    _publish_warmup_status()
 
                     try:
                         from app.catalog_store import seed_from_json_if_empty, sync_catalog_from_json, sync_ratings_and_verifications_from_json
@@ -1010,6 +1053,8 @@ def create_app(config: dict | None = None) -> Flask:
 
                     print("[WARMUP] ML model loading skipped (memory budget: free-tier 512MB)", flush=True)
                     
+                    _publish_warmup_status()
+
                     # Inside the with block, explicitly try to remove session
                     try:
                         db.session.remove()
@@ -1046,6 +1091,17 @@ def create_app(config: dict | None = None) -> Flask:
     def healthz_detailed():
         from flask import jsonify
         status = getattr(app, "warmup_status", {"message": "Not initialized / testing mode"})
+        # A recycled worker never ran warmup, so its own dict is all
+        # "skipped" — which reported a healthy-looking nothing while the
+        # schema was in fact half applied. Prefer the status the worker that
+        # actually did the work left behind.
+        if all(v == "skipped" for v in status.values()):
+            try:
+                marker = os.path.join(tempfile.gettempdir(), "ai_compass_warmup.json")
+                with open(marker) as _sf:
+                    status = {**json.load(_sf), "reported_by": "warmup worker"}
+            except (OSError, ValueError):
+                pass
         return jsonify(status), 200
 
     @app.route('/debug-threads')
@@ -1054,6 +1110,14 @@ def create_app(config: dict | None = None) -> Flask:
         import traceback
         import sys
         from flask import jsonify
+
+        # Stack traces name absolute server paths, installed packages and
+        # in-flight frames. That is a fine debugging aid and a bad thing to
+        # serve anonymously on the public internet, which is what it was
+        # doing. Opt in explicitly per deploy.
+        if os.environ.get("ENABLE_DEBUG_THREADS", "").lower() not in ("1", "true", "yes"):
+            from flask import abort
+            abort(404)
 
         id_to_thread = {t.ident: t for t in threading.enumerate()}
         res = []

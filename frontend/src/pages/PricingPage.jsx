@@ -143,7 +143,7 @@ export default function PricingPage() {
                   'On the pages that rank',
                   <>
                     A labelled Partner card on the best-of guide for your category — like{' '}
-                    <Link to="/best-coding-tools" className="font-semibold text-accent hover:underline">
+                    <Link to="/best-coding-tools-for-students" className="font-semibold text-accent hover:underline">
                       Best Coding Tools
                     </Link>{' '}
                     — and on the alternatives page of every tool in it. Beside those pages&apos;

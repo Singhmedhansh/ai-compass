@@ -107,7 +107,24 @@ _KNOWN_SPA_ROUTES: set[str] = {
     'refunds',
     'dashboard/submission',
     'verify-success',
+    # Missing from this set while <Route>s existed for them in App.jsx, so
+    # every one of these served a "Page not found" title and a 404 status
+    # before React mounted over it. /growth-hub is linked from the navbar and
+    # is where ChangePasswordPage redirects on success; /account/change-password
+    # is the forced-password-change screen founder accounts land on.
+    'growth-hub',
+    'account/change-password',
+    'clerk-test',
 }
+
+# SPA routes with a dynamic trailing segment and no cheap server-side
+# validation. Same omission as above: /shared-toolkit/<id> is the link the
+# syllabus parser tells people to share, and it 404'd for every recipient.
+_KNOWN_SPA_PREFIXES: tuple[str, ...] = (
+    'u/',              # public profiles
+    'stacks/',         # a shared stack
+    'shared-toolkit/', # a shared syllabus toolkit
+)
 
 _INDEX_HTML_CACHE = None
 POSTHOG_API_BASE = os.environ.get('POSTHOG_API_BASE', 'https://us.i.posthog.com').rstrip('/')
@@ -782,6 +799,16 @@ def _meta_for_request_path(path: str):
     # Known SPA route with no server-side meta (login, dashboard, etc.):
     # serve the shell unchanged. Status 200.
     if normalized in _KNOWN_SPA_ROUTES:
+        return base, 200
+
+    # Dynamic known routes. Validating the id would mean a DB lookup per
+    # request for pages nobody needs indexed, so serve the shell at 200 and
+    # let the SPA render its own "not found" state — the same trade-off
+    # collections/<slug> already makes above.
+    if any(
+        normalized.startswith(prefix) and normalized.count('/') == 1
+        for prefix in _KNOWN_SPA_PREFIXES
+    ):
         return base, 200
 
     # Anything else: real 404 (still serving the SPA shell so the React

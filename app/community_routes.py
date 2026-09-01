@@ -563,9 +563,24 @@ def sponsors():
         })
     except Exception:
         current_app.logger.exception("community sponsors failed")
+        # The degraded path has to actually degrade. On Postgres a failed
+        # statement aborts the whole transaction, so the inventory() call
+        # that used to sit unguarded here raised PendingRollbackError and
+        # turned a handled failure into a 500 — taking /community and the
+        # /sponsor sales page down with it. Roll back first, then treat the
+        # fallback as fallible too.
+        try:
+            db.session.rollback()
+        except Exception:
+            current_app.logger.exception("community sponsors rollback failed")
+        try:
+            inventory = sponsorship.inventory()
+        except Exception:
+            current_app.logger.exception("community sponsors inventory fallback failed")
+            inventory = []
         return jsonify({
             "hero": [], "board": [], "rail": [],
-            "inventory": sponsorship.inventory(),
+            "inventory": inventory,
         }), 200
 
 
@@ -576,6 +591,10 @@ def sponsor_inventory():
         return jsonify({"inventory": sponsorship.inventory()})
     except Exception:
         current_app.logger.exception("community sponsor_inventory failed")
+        try:
+            db.session.rollback()
+        except Exception:
+            current_app.logger.exception("community sponsor_inventory rollback failed")
         return jsonify({"inventory": []}), 200
 
 

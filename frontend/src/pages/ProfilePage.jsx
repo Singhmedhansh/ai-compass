@@ -2598,7 +2598,7 @@ function ProfilePage() {
               <Button
                 variant="secondary"
                 size="sm"
-                onClick={() => navigate('/submit-tool')}
+                onClick={() => navigate('/submit')}
                 className="shrink-0"
               >
                 Submit New Tool
@@ -2614,7 +2614,7 @@ function ProfilePage() {
               <div className="rounded-2xl border border-dashed border-line-strong bg-bg-sunk/35 p-6 text-center text-sm text-muted mt-6">
                 <p>You haven't submitted any AI tools yet.</p>
                 <button
-                  onClick={() => navigate('/submit-tool')}
+                  onClick={() => navigate('/submit')}
                   className="mt-2 text-accent font-semibold hover:underline"
                 >
                   Submit your first tool to get started!
