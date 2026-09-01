@@ -1171,15 +1171,19 @@ def create_app(config: dict | None = None) -> Flask:
     def healthz_detailed():
         from flask import jsonify
         status = getattr(app, "warmup_status", {"message": "Not initialized / testing mode"})
-        # A recycled worker never ran warmup, so its own dict is all
-        # "skipped" — which reported a healthy-looking nothing while the
-        # schema was in fact half applied. Prefer the status the worker that
-        # actually did the work left behind.
-        if all(v == "skipped" for v in status.values()):
+        # Whichever worker answers this request usually is not the one that
+        # ran warmup — it reports "skipped" (recycled), "pending" (its own
+        # thread hasn't got there) or "held by another worker". All three
+        # look like an answer and are not one, which is how a broken schema
+        # stayed invisible. Prefer the status the warmup worker left behind
+        # whenever this worker has no verdict of its own.
+        if str(status.get("schema", "")) in ("", "pending", "skipped", "held by another worker"):
             try:
                 marker = os.path.join(tempfile.gettempdir(), "ai_compass_warmup.json")
                 with open(marker) as _sf:
-                    status = {**json.load(_sf), "reported_by": "warmup worker"}
+                    published = json.load(_sf)
+                if str(published.get("schema", "")) not in ("", "pending"):
+                    status = {**published, "reported_by": "warmup worker"}
             except (OSError, ValueError):
                 pass
         return jsonify(status), 200
