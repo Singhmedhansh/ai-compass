@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { CreditCard, Sparkles, CheckCircle2, ShieldCheck, ArrowRight, User, Wallet, QrCode, ArrowUpRight, Lock, TrendingUp, Users, Search, BarChart3 } from 'lucide-react'
+import { CreditCard, Sparkles, CheckCircle2, ShieldCheck, ArrowRight, User, Wallet, QrCode, ArrowUpRight, Lock, TrendingUp, Users, Search, BarChart3, Image as ImageIcon } from 'lucide-react'
 
 import Button from '../components/ui/Button'
 import { PRICING_TIERS, getTier } from '../config/pricingTiers'
@@ -24,6 +24,27 @@ const INITIAL_FORM = {
   reason: '',
   submitter_email: '',
   student_perks: '',
+  // A base64 data: URL, not a File. The form is stashed in sessionStorage
+  // and replayed after the PayPal redirect (see the tx-ref effect below), and
+  // a File object does not survive JSON.stringify — a founder who uploaded a
+  // logo and then paid would have silently lost it on the way back.
+  logo: '',
+  logo_name: '',
+}
+
+// Matches app/tool_logos.py. Kept in sync deliberately: rejecting a 4MB file
+// in the browser is a better experience than uploading it and being told no,
+// but the server check is the one that counts.
+const LOGO_MAX_BYTES = 512 * 1024
+const LOGO_TYPES = ['image/png', 'image/jpeg']
+
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(String(reader.result || ''))
+    reader.onerror = () => reject(new Error('Could not read that file.'))
+    reader.readAsDataURL(file)
+  })
 }
 
 function TierCard({ tier, selected, onSelect }) {
@@ -85,6 +106,7 @@ export default function SubmitPage() {
   const [submittedTier, setSubmittedTier] = useState('sponsor')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const [logoError, setLogoError] = useState('')
 
   // Populated from the /submit-tool response so the success panel can show
   // a working dashboard link and founder-account status immediately —
@@ -192,9 +214,27 @@ export default function SubmitPage() {
     }
   }, [])
 
-  // Persist form state to sessionStorage on inputs
+  // Persist form state to sessionStorage on inputs, so it survives the
+  // PayPal redirect. Guarded because the logo rides along as base64 and a
+  // near-full quota throws here — an uncaught error inside this effect would
+  // take down the whole form over a convenience feature. Losing the stash is
+  // recoverable; losing the page is not.
   useEffect(() => {
-    sessionStorage.setItem('submit_form_data', JSON.stringify(formData))
+    try {
+      sessionStorage.setItem('submit_form_data', JSON.stringify(formData))
+    } catch {
+      // Quota exceeded (or storage disabled). Drop the logo first — it is by
+      // far the largest field, and the text the founder typed is the part
+      // worth keeping across the redirect.
+      try {
+        sessionStorage.setItem(
+          'submit_form_data',
+          JSON.stringify({ ...formData, logo: '', logo_name: '' }),
+        )
+      } catch {
+        /* no stash this time; the form still works, it just won't restore */
+      }
+    }
   }, [formData])
 
   useEffect(() => {
@@ -406,6 +446,36 @@ export default function SubmitPage() {
     }))
   }
 
+  async function handleLogoChange(event) {
+    const file = event.target.files && event.target.files[0]
+    // Clear the input's value so picking the same file again after an error
+    // still fires a change event.
+    event.target.value = ''
+    if (!file) return
+
+    setLogoError('')
+    if (!LOGO_TYPES.includes(file.type)) {
+      setLogoError('Logo must be a PNG or JPG image.')
+      return
+    }
+    if (file.size > LOGO_MAX_BYTES) {
+      setLogoError(`Logo must be under ${Math.round(LOGO_MAX_BYTES / 1024)}KB.`)
+      return
+    }
+
+    try {
+      const dataUrl = await readFileAsDataUrl(file)
+      setFormData((current) => ({ ...current, logo: dataUrl, logo_name: file.name }))
+    } catch {
+      setLogoError('Could not read that file — try a different one.')
+    }
+  }
+
+  function clearLogo() {
+    setLogoError('')
+    setFormData((current) => ({ ...current, logo: '', logo_name: '' }))
+  }
+
   function handleFormSubmit(event) {
     event.preventDefault()
     setError('')
@@ -446,6 +516,7 @@ export default function SubmitPage() {
           pricing_model: tier.pricingModel,
           student_perks: formData.student_perks,
           submitter_email: formData.submitter_email,
+          logo: formData.logo,
           transaction_ref: transactionRef,
         }),
       })
@@ -579,6 +650,56 @@ export default function SubmitPage() {
                     placeholder="https://example.com"
                   />
                 </div>
+              </div>
+
+              <div>
+                <span className="mb-1 block text-xs font-semibold text-ink-2">
+                  Logo (Optional)
+                </span>
+                <div className="flex items-center gap-3 rounded-lg border border-dashed border-line bg-bg px-3 py-3">
+                  {formData.logo ? (
+                    <img
+                      src={formData.logo}
+                      alt="Logo preview"
+                      className="h-10 w-10 shrink-0 rounded-lg bg-white object-contain p-1"
+                    />
+                  ) : (
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-bg-sunk text-muted-2">
+                      <ImageIcon className="h-4 w-4" />
+                    </div>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <label
+                      htmlFor="logo"
+                      className="cursor-pointer text-xs font-semibold text-accent hover:underline"
+                    >
+                      {formData.logo ? 'Choose a different file' : 'Upload a logo'}
+                    </label>
+                    <input
+                      id="logo"
+                      name="logo"
+                      type="file"
+                      accept="image/png,image/jpeg"
+                      onChange={handleLogoChange}
+                      className="sr-only"
+                    />
+                    <p className="mt-0.5 truncate text-[11px] text-muted-2">
+                      {formData.logo_name || 'PNG or JPG, up to 500KB. Leave it blank and we’ll pull the logo from your site.'}
+                    </p>
+                  </div>
+                  {formData.logo && (
+                    <button
+                      type="button"
+                      onClick={clearLogo}
+                      className="shrink-0 text-[11px] font-semibold text-muted-2 hover:text-ink"
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
+                {logoError && (
+                  <p className="mt-1 text-[11px] font-semibold text-red-600 dark:text-red-400">{logoError}</p>
+                )}
               </div>
 
               <div>

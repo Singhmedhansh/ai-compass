@@ -13,7 +13,8 @@ from datetime import datetime, timedelta, timezone
 import requests
 from flask import Blueprint, current_app, jsonify, request
 from flask_login import current_user, login_required, login_user, logout_user
-from sqlalchemy import func
+from sqlalchemy import func, inspect as sa_inspect
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import joinedload
 
 from html import escape as html_escape
@@ -2040,6 +2041,18 @@ def submit_tool():
 
         student_perks = str(payload.get("student_perks") or "").strip()
 
+        # Optional logo, as a data: URL from the form's file picker (see
+        # app/tool_logos.py). Validated HERE, before the Submission row and
+        # before any payment work, so a bad image is a 400 the submitter can
+        # act on rather than a half-finished submission they have to guess
+        # about. An absent logo is not an error — approval fetches one from
+        # the tool's own domain instead.
+        from app.tool_logos import LogoError, decode_logo_data_url
+        try:
+            logo_bytes, logo_mime = decode_logo_data_url(payload.get("logo"))
+        except LogoError as logo_err:
+            return jsonify({"error": str(logo_err)}), 400
+
         if not name or not url or not category or not reason:
             return jsonify({"error": "Name, URL, category, and reason are all required."}), 400
 
@@ -2091,19 +2104,36 @@ def submit_tool():
                     payment_status=payment_status,
                     payment_note=payment_note,
                     is_priority=payment_verified,
+                    logo_data=logo_bytes,
+                    logo_mime=logo_mime,
+                    logo_source="upload" if logo_bytes else None,
                 )
                 db.session.add(sub)
                 db.session.commit()
                 submission_row_created = True
-            elif sub.payment_status != payment_status or sub.payment_note != payment_note:
-                # A retry can succeed where the first attempt didn't (e.g. a
-                # transient PayPal lookup failure) — keep the reused row's
-                # verification fields current rather than stuck on stale
-                # first-attempt values.
-                sub.payment_status = payment_status
-                sub.payment_note = payment_note
-                sub.is_priority = payment_verified
-                db.session.commit()
+            else:
+                dirty = False
+                if sub.payment_status != payment_status or sub.payment_note != payment_note:
+                    # A retry can succeed where the first attempt didn't (e.g. a
+                    # transient PayPal lookup failure) — keep the reused row's
+                    # verification fields current rather than stuck on stale
+                    # first-attempt values.
+                    sub.payment_status = payment_status
+                    sub.payment_note = payment_note
+                    sub.is_priority = payment_verified
+                    dirty = True
+                if logo_bytes and not sub.logo_data:
+                    # A retry that reuses an existing row still gets to add a
+                    # logo the first attempt did not carry. Checked alongside
+                    # the payment fields rather than as a second branch of the
+                    # same if/elif: a retry can perfectly well bring both, and
+                    # an elif would have silently dropped one of them.
+                    sub.logo_data = logo_bytes
+                    sub.logo_mime = logo_mime
+                    sub.logo_source = "upload"
+                    dirty = True
+                if dirty:
+                    db.session.commit()
         except Exception:
             db.session.rollback()
             current_app.logger.exception("Failed to persist submission to DB")
@@ -5694,6 +5724,20 @@ def admin_set_flag(key):
 # ---------------------------------------------------------------------------
 # Admin: submissions (review user-submitted tools)
 # ---------------------------------------------------------------------------
+def _missing_table_columns(model):
+    """Columns the model declares that the live table does not have.
+
+    Diagnostic only, and deliberately tolerant: it runs inside an error path,
+    so it must never raise on top of the failure it is explaining.
+    """
+    try:
+        table = model.__table__
+        live = {c["name"] for c in sa_inspect(db.engine).get_columns(table.name)}
+        return sorted(c.name for c in table.columns if c.name not in live)
+    except Exception:  # noqa: BLE001
+        return []
+
+
 @api_bp.get("/admin/submissions")
 @login_required
 def admin_list_submissions():
@@ -5703,6 +5747,7 @@ def admin_list_submissions():
 
     from app import sponsorship
     from app.models import Submission
+    from app.tool_logos import logo_url_for
     status = request.args.get("status", "pending")
     q = Submission.query
     if status != "all":
@@ -5710,7 +5755,31 @@ def admin_list_submissions():
     # Verified-paid submissions (fast-track) surface first so the 24-hour
     # priority review promise is something the queue actually enforces,
     # not just an email subject line.
-    subs = q.order_by(Submission.is_priority.desc(), Submission.submitted_at.desc()).limit(200).all()
+    try:
+        subs = q.order_by(Submission.is_priority.desc(), Submission.submitted_at.desc()).limit(200).all()
+    except SQLAlchemyError as exc:
+        # A failed read here used to reach the admin as "No pending
+        # submissions" — the UI caught the error and rendered an empty list,
+        # so a queue that could not be queried was indistinguishable from a
+        # queue that was genuinely empty, and real submissions sat invisible.
+        #
+        # The likely cause is worth naming in the response rather than
+        # leaving to the logs: flask_migrate.upgrade() has never progressed
+        # on this database (see the warmup notes in app/__init__.py), so a
+        # column added in code exists on the model and not in the table. The
+        # INSERT on /submit-tool still succeeds — SQLAlchemy omits nullable
+        # columns it has no value for — while every SELECT of the full model
+        # raises. That asymmetry is exactly how a submission gets accepted,
+        # emailed, and then never shown.
+        db.session.rollback()
+        current_app.logger.exception("admin_list_submissions query failed")
+        return jsonify({
+            "error": "Could not read the submissions queue — the database "
+                     "rejected the query. This is a server-side fault, not "
+                     "an empty queue.",
+            "detail": str(getattr(exc, "orig", exc))[:300],
+            "missing_columns": _missing_table_columns(Submission),
+        }), 500
 
     now = datetime.now(timezone.utc)
 
@@ -5757,6 +5826,11 @@ def admin_list_submissions():
                 if s.status == "pending" and s.submitted_at else None
             ),
             "perk_window": _perk_window(s),
+            # So the reviewer can see the logo that will ship with the
+            # listing — including whether it is the founder's own upload or
+            # the favicon we found for them — before approving it.
+            "logo_url": logo_url_for(s),
+            "logo_source": s.logo_source,
             "payment_status": s.payment_status, "is_priority": s.is_priority,
             # payment_note carries the failure reason AND the transaction
             # reference for anything unverified. A 'needs_manual_review' row
@@ -5831,6 +5905,26 @@ def admin_approve_submission(sub_id):
     delay_days = visibility_delay_days_for_tier(tier_key)
     visible_at = datetime.now(timezone.utc) + timedelta(days=delay_days)
 
+    # Find the logo ourselves when the founder did not upload one. The
+    # favicon comes from the domain in s.website — the tool's OWN URL — which
+    # is the whole point: the browser-side fallback guessed a domain from the
+    # tool's NAME, so "SimplAI" resolved to simplai.com and showed a stranger's
+    # icon (or nothing) for a submission that plainly said simplai.ai.
+    #
+    # Best-effort by design. This reaches out to a third-party favicon service
+    # over the network, and an admin clicking Approve must not get a 500
+    # because that service was slow — a missing logo is a letter tile, which
+    # is exactly where we were before.
+    from app.tool_logos import autofetch_logo, logo_url_for
+    try:
+        if autofetch_logo(s):
+            db.session.commit()
+    except Exception:
+        db.session.rollback()
+        current_app.logger.exception("Logo auto-fetch failed for submission_id=%s", s.id)
+
+    logo_url = logo_url_for(s)
+
     record = _normalize_tool_record({
         "slug": slug,
         "name": s.name,
@@ -5848,6 +5942,10 @@ def admin_approve_submission(sub_id):
         "tags": [t.strip() for t in (s.tags or "").split(",") if t.strip()],
         "sponsored": is_sponsored,
         "visible_at": visible_at.isoformat(),
+        # Only set when we actually hold bytes. An empty string here would
+        # make ToolLogo start in its 'custom' stage against a URL that 404s,
+        # costing every card a failed request before it falls back.
+        **({"logo_url": logo_url} if logo_url else {}),
     })
     if not upsert_tool(record):
         return jsonify({"error": "Could not add to catalog"}), 500

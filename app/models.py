@@ -267,6 +267,23 @@ class Submission(db.Model):
     # in reporting queries fails the moment a real founder uses Gmail.
     is_test = db.Column(db.Boolean, nullable=False, default=False, server_default="0")
 
+    # The tool's logo, stored as bytes in the row rather than as a file.
+    #
+    # Render's filesystem is ephemeral — anything written to static/ is gone
+    # on the next deploy — so a logo saved to disk would silently vanish and
+    # take every card that referenced it back to a letter tile. The DB is the
+    # only durable store this app has, and a favicon-sized PNG is small
+    # enough (capped at LOGO_MAX_BYTES) that a BYTEA column is the honest
+    # answer rather than a premature object-store dependency.
+    #
+    # logo_source distinguishes the two ways a row gets one: 'upload' is the
+    # founder's own file from the submit form, 'auto' is the favicon we
+    # fetched from their domain at approval. Upload always wins — an
+    # auto-fetch never overwrites a logo a human chose.
+    logo_data = db.Column(db.LargeBinary, nullable=True)
+    logo_mime = db.Column(db.String(32), nullable=True)
+    logo_source = db.Column(db.String(16), nullable=True)
+
 
 class NewsletterSubscriber(db.Model):
     __tablename__ = "newsletter_subscribers"

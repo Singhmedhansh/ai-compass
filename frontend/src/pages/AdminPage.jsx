@@ -207,6 +207,7 @@ function AdminPage() {
   const [users, setUsers] = useState([])
   const [reviews, setReviews] = useState([])
   const [submissions, setSubmissions] = useState([])
+  const [submissionsErr, setSubmissionsErr] = useState('')
   // The queue used to be pending-only, which meant the time-boxed perks an
   // approval grants were invisible the moment they started running.
   const [submissionStatus, setSubmissionStatus] = useState('pending')
@@ -315,7 +316,15 @@ function AdminPage() {
 
   useEffect(() => {
     if (!authed) return
-    if (activeTab === 'Submissions') api(`/api/v1/admin/submissions?status=${submissionStatus}`).then(setSubmissions).catch(() => setSubmissions([]))
+    if (activeTab === 'Submissions') {
+      // A failed load must NOT render as an empty queue. It did, and a real
+      // submission that the server could not read looked exactly like no
+      // submission at all — so nobody knew to go looking.
+      setSubmissionsErr('')
+      api(`/api/v1/admin/submissions?status=${submissionStatus}`)
+        .then((d) => setSubmissions(Array.isArray(d) ? d : []))
+        .catch((e) => { setSubmissions([]); setSubmissionsErr(e.message || 'Could not load submissions.') })
+    }
     if (activeTab === 'Feedback') {
       api('/api/v1/admin/feedback')
         .then((d) => { setFeedback(d.feedback || []); setFeedbackUnread(d.unread || 0) })
@@ -791,7 +800,20 @@ function AdminPage() {
                     : s.is_priority ? 'border-amber-400/60 bg-amber-500/5' : 'border-line'
                 }`}>
                   <div className="flex items-start justify-between gap-3">
-                    <div>
+                    {/* The logo that will ship with the listing — the
+                        founder's upload, or the favicon we fetched from
+                        their domain at approval. Seeing it before approving
+                        is the point; a wrong logo is easier to catch here
+                        than on a live card. */}
+                    {s.logo_url && (
+                      <img
+                        src={s.logo_url}
+                        alt=""
+                        className="h-10 w-10 shrink-0 rounded-lg bg-white object-contain p-1"
+                        title={s.logo_source === 'upload' ? 'Uploaded by the founder' : 'Fetched from their domain'}
+                      />
+                    )}
+                    <div className="min-w-0 flex-1">
                       <p className="font-medium text-ink">
                         {s.is_priority && <span className="mr-2 rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-600 dark:text-amber-400">⚡ Priority · Paid</span>}
                         {s.payment_status === 'needs_manual_review' && <span className="mr-2 rounded-full bg-orange-500/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-orange-700 dark:text-orange-300">⚠ Check PayPal — may have paid</span>}
@@ -857,7 +879,16 @@ function AdminPage() {
                   </div>
                 </div>
               ))}
-              {submissions.length === 0 && <p className="text-sm text-muted">No {submissionStatus === 'all' ? '' : `${submissionStatus} `}submissions.</p>}
+              {submissionsErr && (
+                <div className="rounded-xl border border-red-500/50 bg-red-500/5 p-4">
+                  <p className="text-sm font-semibold text-red-700 dark:text-red-300">Could not load the queue</p>
+                  <p className="mt-1 text-xs text-red-700/90 dark:text-red-300/90">{submissionsErr}</p>
+                  <p className="mt-1 text-[11px] text-muted">
+                    This is a load failure, not an empty queue — submissions may exist and be unreadable.
+                  </p>
+                </div>
+              )}
+              {!submissionsErr && submissions.length === 0 && <p className="text-sm text-muted">No {submissionStatus === 'all' ? '' : `${submissionStatus} `}submissions.</p>}
             </div>
           </Card>
         )}

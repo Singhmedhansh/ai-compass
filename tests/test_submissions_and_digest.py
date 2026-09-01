@@ -736,7 +736,11 @@ def test_paid_invoice_email_includes_register_link(client, app, monkeypatch):
         # now refused before the invoice path is ever reached.
         "pricing_model": "sponsored_paypal",
         "transaction_ref": "REGCTA123",
-    })
+    # /submit-tool allows 5 posts per IP per hour, and every test in this
+    # file shares one client. Without an IP of its own this test passes
+    # alone and 429s when the file runs in full — which is the worst
+    # possible way for a test to fail, since it looks like the feature.
+    }, headers={"X-Forwarded-For": "10.9.0.11"})
     assert resp.status_code == 201, resp.data
 
     invoice = next(
@@ -1283,3 +1287,29 @@ def test_comp_rail_disappears_after_its_thirty_day_window(client, app):
     token = token_url.split("token=", 1)[1]
     body = client.get(f"/api/v1/submissions/dashboard?token={token}").get_json()
     assert body["sponsorship"]["placements"] == []
+
+
+def test_unreadable_queue_reports_a_fault_instead_of_an_empty_list(client, app, monkeypatch):
+    """A queue the database cannot read must not answer 200 with [].
+
+    This is the failure that hid a real submission: the row was written, the
+    notification email went out, and the admin tab said "No pending
+    submissions" — because the read 500'd on a column the table did not have
+    and the UI rendered the error as emptiness. The endpoint now says which
+    columns are missing, and the tab shows a fault instead of a clean zero.
+    """
+    from sqlalchemy.exc import OperationalError
+    from sqlalchemy.orm import Query
+
+    def _boom(self):
+        raise OperationalError("SELECT submissions.logo_data", {}, Exception("no such column"))
+
+    monkeypatch.setattr(Query, "all", _boom)
+
+    _login_as_admin(client, app, "admin-unreadable@t.test")
+    resp = client.get("/api/v1/admin/submissions?status=pending")
+
+    assert resp.status_code == 500
+    body = resp.get_json()
+    assert "not an empty queue" in body["error"]
+    assert "no such column" in body["detail"]

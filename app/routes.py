@@ -977,6 +977,7 @@ def robots():
         'Disallow: /auth/\n'      # OAuth callback paths
         'Disallow: /unsubscribe\n'  # tokenised, single-use
         'Disallow: /icon/\n'      # internal favicon proxy
+        'Disallow: /logo/\n'      # stored submission logos
         'Disallow: /og/\n'        # generated per-tool social cards
         'Sitemap: https://ai-compass.in/sitemap.xml\n'
     )
@@ -1155,6 +1156,30 @@ def tool_icon(domain):
 
     resp = Response(body, mimetype='image/x-icon')
     resp.headers['Cache-Control'] = 'public, max-age=604800, immutable'
+    resp.headers['X-Robots-Tag'] = 'noindex'
+    return resp
+
+
+@main_bp.route('/logo/submission/<int:submission_id>')
+def submission_logo(submission_id):
+    """Serve a submitted tool's stored logo (see app/tool_logos.py).
+
+    Public and unauthenticated on purpose: this is the <img> src on a live
+    catalog card, and the bytes are a brand logo the founder handed us to
+    publish. Nothing else about the submission is exposed here.
+
+    NOT cached 'immutable' the way /icon/<domain> is — a founder can replace
+    their logo on a URL that does not change, and a week of an immutable
+    cache would hide the new one from everyone who had seen the old one.
+    """
+    from app.models import Submission
+
+    sub = Submission.query.get(submission_id)
+    if sub is None or not sub.logo_data:
+        return Response(status=404)
+
+    resp = Response(bytes(sub.logo_data), mimetype=sub.logo_mime or 'image/png')
+    resp.headers['Cache-Control'] = 'public, max-age=86400'
     resp.headers['X-Robots-Tag'] = 'noindex'
     return resp
 

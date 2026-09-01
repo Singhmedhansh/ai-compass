@@ -848,15 +848,6 @@ def create_app(config: dict | None = None) -> Flask:
             try:
                 with app.app_context():
                     try:
-                        from flask_migrate import upgrade as db_upgrade
-                        db_upgrade()
-                        print("[WARMUP] flask db upgrade done", flush=True)
-                        app.warmup_status["migrate"] = "success"
-                    except Exception as e:
-                        print(f"[WARMUP] migrate skipped: {e}", flush=True)
-                        app.warmup_status["migrate"] = f"skipped: {e}"
-
-                    try:
                         from app.models import ReviewVote  # noqa: F401
                         db.create_all()
                         print("[WARMUP] db.create_all() done", flush=True)
@@ -868,6 +859,21 @@ def create_app(config: dict | None = None) -> Flask:
                     # Raw SQL Fallback: Guarantee that user profile columns exist
                     is_postgres = db.engine.name in ("postgresql", "postgres")
                     if_not_exists = "IF NOT EXISTS " if is_postgres else ""
+
+                    # ALTER TABLE takes ACCESS EXCLUSIVE. If anything else is
+                    # holding a conflicting lock — an overlapping deploy's
+                    # container, a long read — an unbounded ALTER waits behind
+                    # it forever and the whole schema phase wedges. Fail fast
+                    # instead and let the next worker retry: the marker is not
+                    # written unless every column lands, so a retry is free.
+                    if is_postgres:
+                        try:
+                            from sqlalchemy import text
+                            db.session.execute(text("SET lock_timeout = '10s'"))
+                            db.session.execute(text("SET statement_timeout = '30s'"))
+                            db.session.commit()
+                        except Exception:
+                            db.session.rollback()
 
                     # Every ADD COLUMN below is individually try/excepted so
                     # one unrelated failure can't abort the rest. That made
@@ -966,6 +972,13 @@ def create_app(config: dict | None = None) -> Flask:
                         # on, and the stamp that keeps them firing once.
                         ("launch_at", "TIMESTAMP"),
                         ("launched_at", "TIMESTAMP"),
+                        # The founder's uploaded logo (or the favicon we
+                        # fetched for them at approval). Bytes in the row,
+                        # because Render's disk does not survive a deploy —
+                        # see Submission.logo_data.
+                        ("logo_data", "BYTEA" if is_postgres else "BLOB"),
+                        ("logo_mime", "VARCHAR(32)"),
+                        ("logo_source", "VARCHAR(16)"),
                     ]:
                         _add_column("submissions", col_name, col_type)
 
@@ -1010,6 +1023,25 @@ def create_app(config: dict | None = None) -> Flask:
                                 _mf.write("1")
                         except OSError as exc:
                             print(f"[WARMUP] could not write marker {_warmup_marker}: {exc}", flush=True)
+                    _publish_warmup_status()
+
+                    # Migrate runs LAST, not first. flask_migrate.upgrade()
+                    # has never progressed on this database (alembic_version
+                    # isn't stamped, so it retries "-> 79c4860332f8" and fails
+                    # on tables that already exist) — but it is not merely
+                    # useless at the front of this sequence, it is dangerous
+                    # there. It takes locks and can block indefinitely, and
+                    # when it did, the ALTERs below it never ran at all and
+                    # the schema stayed broken through every retry. The thing
+                    # that actually fixes the database now goes first.
+                    try:
+                        from flask_migrate import upgrade as db_upgrade
+                        db_upgrade()
+                        print("[WARMUP] flask db upgrade done", flush=True)
+                        app.warmup_status["migrate"] = "success"
+                    except Exception as e:
+                        print(f"[WARMUP] migrate skipped: {e}", flush=True)
+                        app.warmup_status["migrate"] = f"skipped: {e}"
                     _publish_warmup_status()
 
                     try:
