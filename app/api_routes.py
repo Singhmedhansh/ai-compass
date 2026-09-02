@@ -6466,6 +6466,34 @@ def admin_listings():
             and (visible_at is None or visible_at <= now)
         )
 
+        # Why it is not live, as a machine-readable reason.
+        #
+        # "approved" is four different situations wearing one word, and they
+        # need opposite responses: a row still inside its release delay needs
+        # nothing but patience, a hidden row needs one click, and an approved
+        # submission with no catalog row at all is a failed approval — the
+        # founder was told yes and nothing was ever published. That last case
+        # is invisible in every other screen, and it is the one that silently
+        # ends a paid relationship.
+        blocker = None
+        if not is_live:
+            if sub.status == "rejected":
+                blocker = "rejected"
+            elif sub.status != "approved":
+                blocker = "awaiting_review"
+            elif tool is None:
+                blocker = "approved_but_no_catalog_row"
+            elif tool.hidden:
+                blocker = "hidden"
+            elif visible_at is not None and visible_at > now:
+                blocker = "waiting_for_release"
+            else:
+                blocker = "unknown"
+
+        days_until_live = None
+        if blocker == "waiting_for_release":
+            days_until_live = max(0, (visible_at - now).days)
+
         # Revenue counts only VERIFIED payments on non-test rows — the same
         # rule /admin/tier-breakdown uses. A dashboard that books unverified
         # claims as income is a dashboard that talks you into decisions.
@@ -6490,6 +6518,9 @@ def admin_listings():
             "payment_status": sub.payment_status,
             "is_test": bool(sub.is_test),
             "is_live": is_live,
+            "live_blocker": blocker,
+            "days_until_live": days_until_live,
+            "hidden": bool(tool.hidden) if tool is not None else None,
             "live_at": visible_at.isoformat() if visible_at else None,
             "submitted_at": sub.submitted_at.isoformat() if sub.submitted_at else None,
             "approved_at": sub.approved_at.isoformat() if sub.approved_at else None,
@@ -6509,7 +6540,84 @@ def admin_listings():
 
     totals["revenue"] = round(totals["revenue"], 2)
     totals["listings"] = len(listings)
+    totals["blockers"] = {}
+    for row in listings:
+        if row["live_blocker"]:
+            totals["blockers"][row["live_blocker"]] = (
+                totals["blockers"].get(row["live_blocker"], 0) + 1
+            )
     return jsonify({"listings": listings, "totals": totals})
+
+
+@api_bp.post("/admin/listings/release")
+@csrf.exempt
+@login_required
+def admin_release_listings():
+    """Publish listings that are sitting out their release delay, now.
+
+    The staggered release (pricing_tiers.visibility_delay_days) holds an
+    approved free listing back 7 days. That is a defensible policy for new
+    submissions and a bad deal for a backlog: a listing nobody can see earns
+    no views, cannot be announced to its founder, and is not being crawled.
+    Waiting costs indexing time, which is the one thing a young directory
+    cannot buy back.
+
+    Clears visible_at rather than setting it to now(): NULL means "no release
+    delay" everywhere that reads it (tool_cache.get_visible_tools, the founder
+    dashboard, app/listing_live.py), whereas a now() timestamp is a value that
+    has to keep being compared. One less thing to be wrong about later.
+
+    Only touches rows that are ALREADY approved and not hidden. It cannot
+    publish something an admin rejected, hid, or has not reviewed - this
+    releases a queue, it does not approve anything.
+
+    ?slug=<slug> releases one listing; with no slug it releases every waiting
+    one. Returns the slugs it actually changed.
+    """
+    if not _is_admin():
+        return jsonify({"error": "Forbidden"}), 403
+
+    from app.models import CatalogTool, Submission
+
+    now = datetime.now(timezone.utc)
+    slug = (request.args.get("slug") or "").strip()
+
+    q = (
+        db.session.query(CatalogTool)
+        .filter(CatalogTool.hidden.is_(False))
+        .filter(CatalogTool.visible_at.isnot(None))
+    )
+    if slug:
+        q = q.filter(CatalogTool.slug == slug)
+
+    released = []
+    for tool in q.all():
+        visible_at = tool.visible_at
+        if visible_at is not None and visible_at.tzinfo is None:
+            visible_at = visible_at.replace(tzinfo=timezone.utc)
+        if visible_at is None or visible_at <= now:
+            continue  # already public; nothing to release
+
+        # Never publish something whose submission was not approved. A
+        # catalog row can outlive a rejected submission, and "release the
+        # queue" must not become "publish the rejects".
+        if tool.submission_id:
+            sub = db.session.get(Submission, tool.submission_id)
+            if sub is not None and sub.status != "approved":
+                continue
+
+        tool.visible_at = None
+        released.append(tool.slug)
+
+    if released:
+        db.session.commit()
+        _refresh_catalog()
+
+    current_app.logger.info(
+        "Released %s listing(s) from their release delay: %s",
+        len(released), ", ".join(released) or "none",
+    )
+    return jsonify({"released": released, "count": len(released)})
 
 
 @api_bp.get("/submissions/dashboard")

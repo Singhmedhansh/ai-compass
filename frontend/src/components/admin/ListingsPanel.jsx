@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { ExternalLink, RefreshCw, Send } from 'lucide-react'
+import { ExternalLink, RefreshCw, Rocket, Send } from 'lucide-react'
 
 // The founder dashboard, for every listing at once.
 //
@@ -22,11 +22,27 @@ const TIER_LABEL = {
   reviewed: 'Reviewed $79',
 }
 
+// "approved" is four different situations wearing one word, and they need
+// opposite responses. Spelling them out is the difference between a table you
+// read and a table you act on.
+const BLOCKER = {
+  rejected: { label: 'Rejected', tone: 'muted' },
+  awaiting_review: { label: 'In review queue', tone: 'muted' },
+  waiting_for_release: { label: 'Waiting to go live', tone: 'muted' },
+  hidden: { label: 'Hidden - unhide it', tone: 'warn' },
+  // The bad one. The founder was told yes and nothing was ever published;
+  // no other screen shows this, and it is what silently ends a paid
+  // relationship.
+  approved_but_no_catalog_row: { label: 'Approved but never published', tone: 'bad' },
+  unknown: { label: 'Not live (reason unclear)', tone: 'warn' },
+}
+
 const FILTERS = [
+  ['real', 'Real listings'],
   ['all', 'All'],
   ['live', 'Live'],
   ['paid', 'Paid'],
-  ['pending', 'Not live yet'],
+  ['stuck', 'Stuck'],
   ['untold', 'Live, not told'],
 ]
 
@@ -44,10 +60,12 @@ export default function ListingsPanel({ api }) {
   const [data, setData] = useState(null)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState('all')
+  const [filter, setFilter] = useState('real')
   const [sort, setSort] = useState('clicks')
   const [sending, setSending] = useState(false)
   const [sendResult, setSendResult] = useState('')
+  const [releasing, setReleasing] = useState(false)
+  const [releaseResult, setReleaseResult] = useState('')
 
   const load = useCallback(() => {
     setLoading(true)
@@ -63,9 +81,18 @@ export default function ListingsPanel({ api }) {
   const rows = useMemo(() => {
     const all = data?.listings || []
     const filtered = all.filter((row) => {
+      // Default view. Seven of the nineteen rows in this table are owner test
+      // submissions and rejected junk, and leaving them in made the
+      // catalogue look both bigger and worse than it is - the eye reads
+      // nineteen rows of zeros instead of eleven real ones.
+      if (filter === 'real') return !row.is_test && row.status !== 'rejected'
       if (filter === 'live') return row.is_live
       if (filter === 'paid') return row.tier !== 'free' && row.payment_status === 'verified'
-      if (filter === 'pending') return !row.is_live && row.status !== 'rejected'
+      // Not "everything not yet live" - only the ones a person can unblock.
+      // A row inside its release delay needs patience, not attention.
+      if (filter === 'stuck') {
+        return ['hidden', 'approved_but_no_catalog_row', 'unknown'].includes(row.live_blocker)
+      }
       // The backlog that has no other symptom: the listing is public and its
       // founder has still never been told it went live.
       if (filter === 'untold') return row.is_live && !row.live_email_sent_at
@@ -80,6 +107,28 @@ export default function ListingsPanel({ api }) {
     })
     return sorted
   }, [data, filter, sort])
+
+  async function releaseWaiting() {
+    // No confirm dialog on purpose: this is reversible (an admin can re-hide
+    // or re-set a release date), it only ever touches rows that are already
+    // approved, and a confirm on a one-click unblock is friction on the thing
+    // we want done.
+    setReleasing(true)
+    setReleaseResult('')
+    try {
+      const res = await api('/api/v1/admin/listings/release', { method: 'POST' })
+      setReleaseResult(
+        res.count === 0
+          ? 'Nothing was waiting.'
+          : `Published ${res.count}: ${res.released.join(', ')}`,
+      )
+      load()
+    } catch (err) {
+      setReleaseResult(err.message || 'Release failed.')
+    } finally {
+      setReleasing(false)
+    }
+  }
 
   async function sendLiveEmails(dryRun) {
     setSending(true)
@@ -107,6 +156,12 @@ export default function ListingsPanel({ api }) {
 
   const totals = data?.totals || {}
   const untold = (data?.listings || []).filter((r) => r.is_live && !r.live_email_sent_at).length
+  const blockers = totals.blockers || {}
+  const stuck =
+    (blockers.hidden || 0) +
+    (blockers.approved_but_no_catalog_row || 0) +
+    (blockers.unknown || 0)
+  const waiting = blockers.waiting_for_release || 0
 
   return (
     <div className="space-y-6">
@@ -121,6 +176,31 @@ export default function ListingsPanel({ api }) {
           hint={totals.views ? `${(((totals.clicks || 0) / totals.views) * 100).toFixed(1)}% CTR` : 'No view data'}
         />
       </div>
+
+      {waiting > 0 && (
+        <div className="rounded-xl border border-accent/40 bg-accent-soft/10 p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="max-w-xl">
+              <p className="text-sm font-semibold text-ink">
+                {waiting} listing{waiting === 1 ? '' : 's'} waiting out the release delay
+              </p>
+              <p className="mt-0.5 text-xs text-ink-2">
+                Approved, but held back until their release date. Publishing them now starts the
+                clock on indexing &mdash; a page nobody can see is a page Google has not crawled,
+                and that is the one delay you cannot buy back later. They stay permanent either way.
+              </p>
+            </div>
+            <button
+              onClick={releaseWaiting}
+              disabled={releasing}
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-xs font-semibold text-bg transition hover:opacity-90 disabled:opacity-60"
+            >
+              <Rocket className="h-3.5 w-3.5" /> {releasing ? 'Publishing…' : 'Publish all now'}
+            </button>
+          </div>
+          {releaseResult && <p className="mt-3 text-xs text-ink-2">{releaseResult}</p>}
+        </div>
+      )}
 
       <div className="rounded-xl border border-line bg-bg p-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -145,6 +225,19 @@ export default function ListingsPanel({ api }) {
         </div>
         {sendResult && <p className="mt-3 text-xs text-ink-2">{sendResult}</p>}
       </div>
+
+      {stuck > 0 && (
+        <div className="rounded-xl border border-amber-500/40 bg-amber-500/5 p-4">
+          <p className="text-sm font-semibold text-ink">
+            {stuck} listing{stuck === 1 ? '' : 's'} approved but not published
+          </p>
+          <p className="mt-0.5 text-xs text-ink-2">
+            These are not waiting out a release delay &mdash; they are hidden, or an approval never
+            created a catalog row. A listing that is not live cannot earn a view, be announced, or
+            be upgraded, so this is the first thing to clear. Use the <b>Stuck</b> filter below.
+          </p>
+        </div>
+      )}
 
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex flex-wrap gap-1.5">
@@ -205,7 +298,22 @@ export default function ListingsPanel({ api }) {
                   {row.is_live ? (
                     <span className="font-semibold text-accent-ink">Live</span>
                   ) : (
-                    <span className="text-muted-2">{row.status}</span>
+                    <span
+                      className={
+                        BLOCKER[row.live_blocker]?.tone === 'bad'
+                          ? 'font-semibold text-red-600 dark:text-red-400'
+                          : BLOCKER[row.live_blocker]?.tone === 'warn'
+                          ? 'font-semibold text-amber-600 dark:text-amber-400'
+                          : 'text-muted-2'
+                      }
+                    >
+                      {BLOCKER[row.live_blocker]?.label || row.status}
+                    </span>
+                  )}
+                  {row.live_blocker === 'waiting_for_release' && row.days_until_live !== null && (
+                    <div className="text-[11px] text-muted-2">
+                      {row.days_until_live === 0 ? 'live within a day' : `${row.days_until_live}d to go`}
+                    </div>
                   )}
                   {row.is_live && !row.live_email_sent_at && (
                     <div className="text-[11px] font-semibold text-amber-600 dark:text-amber-400">not announced</div>
