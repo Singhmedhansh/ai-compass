@@ -124,6 +124,10 @@ _KNOWN_SPA_PREFIXES: tuple[str, ...] = (
     'u/',              # public profiles
     'stacks/',         # a shared stack
     'shared-toolkit/', # a shared syllabus toolkit
+    # The claim-approved listing editor, added with the maker editor in
+    # 6120e777 without a matching entry here — every approved maker who
+    # followed the link in their approval email hit a 404 shell first.
+    'dashboard/listing/',
 )
 
 _INDEX_HTML_CACHE = None

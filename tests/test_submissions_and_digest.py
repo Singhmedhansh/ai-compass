@@ -316,7 +316,7 @@ def test_admin_approve_free_tier_publishes_immediately(client, app):
     the tier's delay, which is now 0). What matters is that it is not in the
     future, because that is what get_visible_tools actually tests. See
     pricing_tiers.TIERS."""
-    from datetime import datetime, timezone, timedelta
+    from datetime import datetime, timezone
     with app.app_context():
         refresh_tools_cache()
         s = Submission(
@@ -360,7 +360,7 @@ def test_admin_approve_sponsored_tier_also_publishes_immediately(client, app):
     product: priority in the review queue (is_priority), placement above free
     listings, the labelled badge, the rail card, partner units, digest
     position and the reporting."""
-    from datetime import datetime, timezone, timedelta
+    from datetime import datetime, timezone
     with app.app_context():
         refresh_tools_cache()
         s = Submission(
