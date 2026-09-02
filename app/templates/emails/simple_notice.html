@@ -1,0 +1,41 @@
+{% extends "emails/base.html" %}
+
+{#  A one-message-one-button email: heading, a paragraph or two, an optional
+    green CTA, an optional line of fine print.
+
+    It exists so that short transactional mail (verify your address, reset
+    your password, and anything of that shape added later) stops being
+    written as inline HTML at the call site. Three of those had been, and all
+    three had drifted: one carried its own hand-rolled 120-line stylesheet
+    with a slightly different green, one was four bare <p> tags with no shell
+    at all, and none of them carried the support/billing footer. A founder
+    cannot tell a real password-reset from a phishing one if our own mail
+    does not look like itself twice in a row.
+
+    Context:
+      heading      required
+      paragraphs   list of HTML-safe strings (rendered in order)
+      cta_url      optional
+      cta_label    required when cta_url is set
+      fine_print   optional trailing line, quieter than the body
+#}
+
+{% block title %}{{ subject_title or heading }}{% endblock %}
+
+{% block content %}
+<h1 class="heading">{{ heading }}</h1>
+
+{% for para in paragraphs %}
+<p class="paragraph">{{ para }}</p>
+{% endfor %}
+
+{% if cta_url %}
+<div class="btn-container">
+  <a href="{{ cta_url }}" class="cta-button">{{ cta_label }}</a>
+</div>
+{% endif %}
+
+{% if fine_print %}
+<p class="fine-print">{{ fine_print }}</p>
+{% endif %}
+{% endblock %}

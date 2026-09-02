@@ -218,3 +218,94 @@ def verify_paypal_order(
         return False, f"amount_mismatch_{value}_{currency}"
 
     return True, "paypal_order_verified"
+
+
+def create_paypal_order(
+    tier_key, amount, description, currency="USD",
+    client_id=None, client_secret=None, mode=None,
+):
+    """Create a PayPal order server-side. Returns (order_id, error_detail).
+
+    Why this exists
+    ---------------
+    The checkout used to build the order in the BROWSER:
+
+        actions.order.create({ purchase_units: [{ amount: { value: tier.price } }] })
+
+    which means the price a buyer is charged was, literally, whatever the page
+    said it was. Anyone with devtools could have paid $0.01 for a $79 tier.
+
+    That was never a way to get a free listing — verify_paypal_order() checks
+    the captured amount against price_for_tier() and refuses a short payment,
+    so the attack ends in a REFUSED claim and a free listing. But it ends there
+    only after PayPal has actually taken the money. The buyer is out of pocket,
+    we owe a refund on a payment we never wanted, and the row lands in the
+    manual-review pile. Charging the wrong amount and sorting it out afterwards
+    is not a pipeline; it is a reconciliation queue.
+
+    So the amount is now decided here, from pricing_tiers, and the browser is
+    told only the resulting order id. Verification is unchanged and still runs
+    on capture — this closes the door, it does not replace the lock behind it.
+
+    Returns (None, detail) on any failure. The caller falls back to the
+    client-side path in that case rather than blocking the sale: an outage in
+    THIS function must not stop someone paying us, and the verification step
+    catches everything it caught before.
+    """
+    if not order_amount_is_sane(amount):
+        return None, "amount_out_of_range"
+
+    token = _paypal_access_token(client_id, client_secret, mode)
+    if not token:
+        return None, "paypal_credentials_not_configured"
+
+    try:
+        r = requests.post(
+            f"{_paypal_base_url(mode)}/v2/checkout/orders",
+            headers={
+                "Authorization": f"Bearer {token}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "intent": "CAPTURE",
+                "purchase_units": [{
+                    # Shows on the buyer's PayPal receipt, so a charge is
+                    # recognisable months later in a dispute.
+                    "description": description[:127],
+                    "custom_id": str(tier_key)[:127],
+                    "amount": {
+                        "currency_code": currency,
+                        "value": f"{float(amount):.2f}",
+                    },
+                }],
+            },
+            timeout=10,
+        )
+    except Exception as exc:
+        log.warning("PayPal order creation errored: %s", exc)
+        return None, "paypal_api_unreachable"
+
+    if not r.ok:
+        log.warning("PayPal order creation failed: HTTP %s %s", r.status_code, r.text[:200])
+        return None, f"order_create_failed_http_{r.status_code}"
+
+    order_id = (r.json() or {}).get("id")
+    if not order_id:
+        return None, "order_create_no_id"
+    return order_id, "paypal_order_created"
+
+
+# A tier price we would ever charge. Not a validation of the ladder — that is
+# pricing_tiers' job — but a floor and ceiling on what this module will ask
+# PayPal for at all, so a bug upstream (a None coerced to 0.0, a stray zero on
+# the end of a price) cannot become a real charge.
+_MIN_ORDER_USD = 1.0
+_MAX_ORDER_USD = 500.0
+
+
+def order_amount_is_sane(amount):
+    try:
+        value = float(amount)
+    except (TypeError, ValueError):
+        return False
+    return _MIN_ORDER_USD <= value <= _MAX_ORDER_USD

@@ -24,13 +24,13 @@
 {% endif %}
 
 {% if threads %}
-<h2 style="color:#111827; font-size:15px; font-weight:800; margin:28px 0 12px 0;">
+<h2 style="color:#0f1411; font-size:15px; font-weight:800; margin:28px 0 12px 0;">
   Most discussed this week
 </h2>
 {% for thread in threads %}
 <div class="feature-card">
   <div class="feature-title">
-    <a href="{{ thread.url }}" target="_blank" style="color:#111827; text-decoration:none;">{{ thread.title }}</a>
+    <a href="{{ thread.url }}" target="_blank" style="color:#0f1411; text-decoration:none;">{{ thread.title }}</a>
     <span class="badge-emerald">{{ thread.comments }} comment{{ '' if thread.comments == 1 else 's' }}</span>
   </div>
   <div class="feature-desc">
@@ -41,32 +41,32 @@
 {% endif %}
 
 {% if board %}
-<h2 style="color:#111827; font-size:15px; font-weight:800; margin:28px 0 12px 0;">
+<h2 style="color:#0f1411; font-size:15px; font-weight:800; margin:28px 0 12px 0;">
   Tool board
 </h2>
 <table role="presentation" style="width:100%; border-collapse:collapse;">
   {% for row in board %}
   <tr>
-    <td style="padding:8px 0; border-bottom:1px solid #e5e7eb; color:#6b7280; font-size:13px; font-weight:700; width:28px;">
+    <td style="padding:8px 0; border-bottom:1px solid #e6e5de; color:#7f857f; font-size:13px; font-weight:700; width:28px;">
       {{ row.rank }}
     </td>
-    <td style="padding:8px 0; border-bottom:1px solid #e5e7eb;">
-      <a href="{{ row.url }}" target="_blank" style="color:#111827; text-decoration:none; font-size:14px; font-weight:600;">{{ row.name }}</a>
-      <span style="color:#9ca3af; font-size:12px;"> · {{ movement_label(row) }}</span>
+    <td style="padding:8px 0; border-bottom:1px solid #e6e5de;">
+      <a href="{{ row.url }}" target="_blank" style="color:#0f1411; text-decoration:none; font-size:14px; font-weight:600;">{{ row.name }}</a>
+      <span style="color:#9aa09a; font-size:12px;"> · {{ movement_label(row) }}</span>
     </td>
-    <td style="padding:8px 0; border-bottom:1px solid #e5e7eb; text-align:right; color:#4b5563; font-size:13px; font-weight:700;">
+    <td style="padding:8px 0; border-bottom:1px solid #e6e5de; text-align:right; color:#6b716d; font-size:13px; font-weight:700;">
       {{ row.score }}
     </td>
   </tr>
   {% endfor %}
 </table>
-<p style="color:#9ca3af; font-size:12px; line-height:1.5; margin:10px 0 0 0;">
+<p style="color:#9aa09a; font-size:12px; line-height:1.5; margin:10px 0 0 0;">
   Scored from votes, comments and click-throughs. Sponsorship can't buy a rank.
 </p>
 {% endif %}
 
 {% if builders %}
-<h2 style="color:#111827; font-size:15px; font-weight:800; margin:28px 0 12px 0;">
+<h2 style="color:#0f1411; font-size:15px; font-weight:800; margin:28px 0 12px 0;">
   Top builders
 </h2>
 <p class="paragraph" style="margin-bottom: 0;">
@@ -86,14 +86,14 @@
    sponsored, matching how they appear on the site. This is the deliverable
    the Presenting Partner tier is sold on. #}
 {% if sponsors %}
-<div style="margin-top:32px; padding-top:20px; border-top:1px solid #e5e7eb;">
-  <p style="color:#9ca3af; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; margin:0 0 10px 0;">
+<div style="margin-top:32px; padding-top:20px; border-top:1px solid #e6e5de;">
+  <p style="color:#9aa09a; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; margin:0 0 10px 0;">
     Sponsored
   </p>
   {% for sponsor in sponsors %}
   <div class="feature-card">
     <div class="feature-title">
-      <a href="{{ sponsor.url }}" target="_blank" style="color:#111827; text-decoration:none;">{{ sponsor.name }}</a>
+      <a href="{{ sponsor.url }}" target="_blank" style="color:#0f1411; text-decoration:none;">{{ sponsor.name }}</a>
       <span class="badge-teal">{{ sponsor.label }}</span>
     </div>
     {% if sponsor.blurb %}
@@ -101,13 +101,13 @@
     {% endif %}
   </div>
   {% endfor %}
-  <p style="color:#9ca3af; font-size:11px; line-height:1.5; margin:8px 0 0 0;">
+  <p style="color:#9aa09a; font-size:11px; line-height:1.5; margin:8px 0 0 0;">
     These are paid placements. They don't affect the board above.
   </p>
 </div>
 {% endif %}
 
-<p style="color:#9ca3af; font-size:12px; line-height:1.5; margin:28px 0 0 0;">
+<p style="color:#9aa09a; font-size:12px; line-height:1.5; margin:28px 0 0 0;">
   You're getting this because you posted, commented, or voted in the AI Compass community
   in the last month.
 </p>

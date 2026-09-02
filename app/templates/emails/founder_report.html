@@ -9,24 +9,24 @@
    A figure with nothing to compare it to is a figure nobody can act on. #}
 <table role="presentation" style="width:100%; border-collapse:collapse; margin:18px 0 8px 0;">
   <tr>
-    <td style="padding:14px 16px; border:1px solid #e5e7eb; border-radius:8px; width:50%;">
-      <div style="color:#6b7280; font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;">
+    <td style="padding:14px 16px; border:1px solid #e6e5de; border-radius:8px; width:50%;">
+      <div style="color:#7f857f; font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;">
         Views
       </div>
-      <div style="color:#111827; font-size:26px; font-weight:800; line-height:1.2;">{{ report.views }}</div>
-      <div style="color:#9ca3af; font-size:12px;">
+      <div style="color:#0f1411; font-size:26px; font-weight:800; line-height:1.2;">{{ report.views }}</div>
+      <div style="color:#9aa09a; font-size:12px;">
         {% if report.views_delta > 0 %}up {{ report.views_delta }} from {{ report.prev_views }}
         {%- elif report.views_delta < 0 %}down {{ -report.views_delta }} from {{ report.prev_views }}
         {%- else %}same as the previous {{ report.window_days }} days{% endif %}
       </div>
     </td>
     <td style="width:12px;"></td>
-    <td style="padding:14px 16px; border:1px solid #e5e7eb; border-radius:8px; width:50%;">
-      <div style="color:#6b7280; font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;">
+    <td style="padding:14px 16px; border:1px solid #e6e5de; border-radius:8px; width:50%;">
+      <div style="color:#7f857f; font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;">
         Clicks to your site
       </div>
-      <div style="color:#059669; font-size:26px; font-weight:800; line-height:1.2;">{{ report.clicks }}</div>
-      <div style="color:#9ca3af; font-size:12px;">
+      <div style="color:#168358; font-size:26px; font-weight:800; line-height:1.2;">{{ report.clicks }}</div>
+      <div style="color:#9aa09a; font-size:12px;">
         {% if report.clicks_delta > 0 %}up {{ report.clicks_delta }} from {{ report.prev_clicks }}
         {%- elif report.clicks_delta < 0 %}down {{ -report.clicks_delta }} from {{ report.prev_clicks }}
         {%- else %}same as the previous {{ report.window_days }} days{% endif %}
@@ -53,7 +53,7 @@
 {% endif %}
 
 {% if report.benchmark %}
-<h2 style="color:#111827; font-size:15px; font-weight:800; margin:28px 0 12px 0;">
+<h2 style="color:#0f1411; font-size:15px; font-weight:800; margin:28px 0 12px 0;">
   How that compares
 </h2>
 <p class="paragraph">
@@ -76,8 +76,8 @@
   </tr>
 </table>
 
-<p style="color:#9ca3af; font-size:12px; line-height:1.6; margin:22px 0 0 0;">
-  Views are page loads of <a href="{{ report.tool_url }}" style="color:#6b7280;">your listing</a>;
+<p style="color:#9aa09a; font-size:12px; line-height:1.6; margin:22px 0 0 0;">
+  Views are page loads of <a href="{{ report.tool_url }}" style="color:#7f857f;">your listing</a>;
   clicks are outbound click-throughs on your link, counted by the same redirect that powers our own
   analytics — so your numbers and ours can never disagree. These are the real figures, including the
   small ones: a report you only get in a good month is one you cannot plan against.

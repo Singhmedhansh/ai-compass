@@ -1819,6 +1819,74 @@ def get_paypal_hosted_config():
     })
 
 
+# The /submit tier selector's ids are not pricing_tiers' keys: the UI calls
+# the $49 tier "sponsor" while the ladder calls it "sponsored". That mismatch
+# is harmless while the id is only echoed back, and becomes a wrong PRICE the
+# moment it is used to look one up — so the translation lives here, once,
+# beside the endpoint that needs it.
+_UI_TIER_TO_LADDER = {
+    "free": "free",
+    "analytics": "analytics",
+    "sponsor": "sponsored",
+    "reviewed": "reviewed",
+    "quick": "quick",
+}
+
+
+@api_bp.post("/checkout/paypal/order")
+@csrf.exempt
+def create_checkout_order():
+    """Create the PayPal order server-side, at OUR price.
+
+    The browser used to build the order itself, which meant the amount charged
+    was whatever the page said it was. Verification caught a short payment
+    afterwards (verify_paypal_order compares the captured amount against
+    price_for_tier), but only after PayPal had already taken the money — which
+    left the buyer out of pocket and us owing a refund on a sale we never
+    wanted. The amount is decided here now.
+
+    Returns {"id": "<order id>"} on success. On failure it returns a 502 with
+    a reason code and the frontend falls back to building the order in the
+    browser, exactly as before: an outage in this endpoint must not be able to
+    stop someone paying us, and the capture-time verification that has always
+    been the real guard is unchanged either way.
+    """
+    from app.payments import create_paypal_order
+    from app.pricing_tiers import is_for_sale, price_for_tier
+
+    ip = _feedback_client_ip()
+    # Order creation is an unauthenticated outbound call to PayPal. Without a
+    # limit it is a free way to make us hammer their API from a stranger's
+    # keyboard.
+    if is_rate_limited(f"create_order:{ip}", limit=20, window_seconds=3600):
+        return jsonify({"error": "Too many checkout attempts. Try again shortly."}), 429
+
+    payload = request.get_json(silent=True) or {}
+    ui_tier = str(payload.get("tier") or "").strip().lower()
+    tier_key = _UI_TIER_TO_LADDER.get(ui_tier)
+
+    # Refused before any money moves, the same way submit_tool refuses a
+    # retired tier: taking a payment for something we have stopped selling
+    # means holding a charge we owe straight back.
+    if not tier_key or tier_key == "free" or not is_for_sale(tier_key):
+        return jsonify({"error": "That tier is not available for purchase."}), 400
+
+    amount = price_for_tier(tier_key)
+    tool_name = str(payload.get("tool_name") or "").strip()[:60]
+    description = f"AI Compass listing - {ui_tier}" + (f" - {tool_name}" if tool_name else "")
+
+    order_id, detail = create_paypal_order(tier_key, amount, description)
+    if not order_id:
+        current_app.logger.warning(
+            "Server-side PayPal order creation failed (tier=%s reason=%s) — "
+            "client will fall back to browser-side creation.",
+            tier_key, detail,
+        )
+        return jsonify({"error": "order_create_failed", "detail": detail}), 502
+
+    return jsonify({"id": order_id, "tier": tier_key, "amount": f"{amount:.2f}", "currency": "USD"})
+
+
 @api_bp.get("/admin/diagnostics/paypal")
 @login_required
 def paypal_diagnostics():
@@ -2466,7 +2534,14 @@ def submit_tool():
                     dashboard_url=dash_link,
                     register_url=register_link,
                 )
-                confirm_text = f"Thanks for submitting {name}! We review free submissions in queue order (usually within 2 weeks). Track its status: {dash_link}"
+                # 7 days, not 2 weeks — the free window changed with the
+                # pricing restructure and this string did not. And it now
+                # promises the go-live email, which app/listing_live.py sends.
+                confirm_text = (
+                    f"Thanks for submitting {name}! We review free submissions in queue order, "
+                    f"after paid ones, and they go live 7 days after approval. We'll email you "
+                    f"the link the moment yours is live. Track its status: {dash_link}"
+                )
                 if register_link:
                     confirm_text += f" Create a free account for one-click access: {register_link}"
                 send_email(
@@ -5329,6 +5404,38 @@ def admin_send_digest():
         return jsonify({"error": "digest_failed", "detail": str(exc)}), 500
 
 
+@api_bp.post("/admin/send-live-emails")
+@csrf.exempt
+def admin_send_live_emails():
+    """Tell founders whose listings have just gone live.
+
+    Same X-Digest-Secret auth as send-digest so one external scheduler drives
+    both, and additionally accepts a logged-in admin session so the button in
+    /admin can fire it by hand. ?dry_run=1 lists who would be mailed without
+    sending or stamping anything.
+
+    Idempotent: each Submission carries a live_email_sent_at stamp written
+    only on a confirmed send, so calling this twice a minute apart mails
+    nobody twice. See app/listing_live.py.
+    """
+    import hmac
+
+    secret = os.environ.get("DIGEST_SECRET")
+    provided = request.headers.get("X-Digest-Secret", "")
+    authorized = bool(secret and hmac.compare_digest(secret, provided)) or _is_admin()
+    if not authorized:
+        return jsonify({"error": "unauthorized"}), 401
+
+    from app.listing_live import send_live_notifications
+
+    dry_run = request.args.get("dry_run") in ("1", "true", "yes")
+    try:
+        return jsonify(send_live_notifications(dry_run=dry_run))
+    except Exception as exc:  # noqa: BLE001
+        current_app.logger.exception("send-live-emails failed")
+        return jsonify({"error": "live_emails_failed", "detail": str(exc)}), 500
+
+
 @api_bp.post("/admin/send-community-recap")
 @csrf.exempt
 def admin_send_community_recap():
@@ -6287,6 +6394,124 @@ def founder_tools():
     return jsonify({"tools": tools})
 
 
+@api_bp.get("/admin/listings")
+@login_required
+def admin_listings():
+    """Every listing's founder-dashboard numbers, in one table.
+
+    The per-founder dashboard (/submissions/dashboard) answers "how is MY
+    listing doing" and is reachable only with that founder's signed token.
+    There was no way to ask the same question across the catalogue, which
+    made the one thing worth knowing before selling another $49 placement —
+    do these listings actually earn clicks? — unanswerable without opening
+    twenty magic links.
+
+    Free listings are included on purpose. They are the majority of the
+    catalogue and the entire upgrade funnel: a free listing pulling real
+    click-throughs is the single most persuasive thing to point at when
+    pitching that founder Listing + Analytics, and a free listing pulling
+    none is a page that needs fixing before anyone is charged for one like
+    it.
+
+    Two aggregate queries, not two per row. The naive version ran a COUNT per
+    listing per metric, which is 4N round trips on a free Postgres instance.
+    """
+    if not _is_admin():
+        return jsonify({"error": "Forbidden"}), 403
+
+    from app.models import CatalogTool, OutboundClick, Submission, ToolPageView
+    from app.pricing_tiers import effective_tier, price_for_tier
+
+    now = datetime.now(timezone.utc)
+    since_30d = now - timedelta(days=30)
+
+    rows = (
+        db.session.query(Submission, CatalogTool)
+        .outerjoin(CatalogTool, CatalogTool.submission_id == Submission.id)
+        .order_by(Submission.submitted_at.desc())
+        .limit(500)
+        .all()
+    )
+
+    slugs = [tool.slug for _sub, tool in rows if tool is not None]
+
+    def _counts(model, only_recent=False):
+        if not slugs:
+            return {}
+        q = db.session.query(model.slug, db.func.count(model.id)).filter(model.slug.in_(slugs))
+        if only_recent:
+            q = q.filter(model.created_at >= since_30d)
+        return dict(q.group_by(model.slug).all())
+
+    clicks_all = _counts(OutboundClick)
+    clicks_30d = _counts(OutboundClick, only_recent=True)
+    views_all = _counts(ToolPageView)
+    views_30d = _counts(ToolPageView, only_recent=True)
+
+    listings = []
+    totals = {"clicks": 0, "views": 0, "live": 0, "paid": 0, "revenue": 0.0}
+
+    for sub, tool in rows:
+        tier = effective_tier(sub.pricing_model, sub.payment_status)
+        slug = tool.slug if tool is not None else None
+        clicks = clicks_all.get(slug, 0)
+        views = views_all.get(slug, 0)
+
+        visible_at = tool.visible_at if tool is not None else None
+        if visible_at is not None and visible_at.tzinfo is None:
+            visible_at = visible_at.replace(tzinfo=timezone.utc)
+        is_live = bool(
+            tool is not None
+            and not tool.hidden
+            and (visible_at is None or visible_at <= now)
+        )
+
+        # Revenue counts only VERIFIED payments on non-test rows — the same
+        # rule /admin/tier-breakdown uses. A dashboard that books unverified
+        # claims as income is a dashboard that talks you into decisions.
+        paid = tier != "free" and sub.payment_status == "verified" and not sub.is_test
+        if paid:
+            totals["paid"] += 1
+            totals["revenue"] += price_for_tier(tier)
+        if is_live:
+            totals["live"] += 1
+        totals["clicks"] += clicks
+        totals["views"] += views
+
+        listings.append({
+            "submission_id": sub.id,
+            "name": sub.name,
+            "slug": slug,
+            "url": sub.website,
+            "category": sub.category,
+            "email": sub.submitter_email,
+            "tier": tier,
+            "status": sub.status,
+            "payment_status": sub.payment_status,
+            "is_test": bool(sub.is_test),
+            "is_live": is_live,
+            "live_at": visible_at.isoformat() if visible_at else None,
+            "submitted_at": sub.submitted_at.isoformat() if sub.submitted_at else None,
+            "approved_at": sub.approved_at.isoformat() if sub.approved_at else None,
+            # Whether the founder has been told their listing is live. A row
+            # that is live with this still null is the sweeper's backlog —
+            # visible here rather than only in the logs, because "the founder
+            # was never told" is a failure with no other symptom.
+            "live_email_sent_at": (
+                sub.live_email_sent_at.isoformat() if sub.live_email_sent_at else None
+            ),
+            "clicks": clicks,
+            "clicks_30d": clicks_30d.get(slug, 0),
+            "views": views,
+            "views_30d": views_30d.get(slug, 0),
+            "ctr": round((clicks / views) * 100, 1) if views else None,
+        })
+
+    totals["revenue"] = round(totals["revenue"], 2)
+    totals["listings"] = len(listings)
+    return jsonify({"listings": listings, "totals": totals})
+
+
 @api_bp.get("/submissions/dashboard")
 def submission_dashboard():
     """Token-gated per-submitter analytics (no login — Submission has no
@@ -6518,13 +6743,33 @@ def resend_dashboard_link():
     )
     if s and s.submitter_email:
         try:
+            from flask import render_template
+
             from app.email_utils import send_email
 
             link = dashboard_url(s.id, s.submitter_email)
+            # The shared shell, like every other message — this was the
+            # last bare-<p> email on the site, and it is one a founder reads
+            # while already anxious about a listing they cannot find.
             send_email(
                 to=s.submitter_email,
                 subject="Your AI Compass dashboard link",
-                html=f'<p>Here is your submission dashboard link:</p><p><a href="{link}">{link}</a></p>',
+                html=render_template(
+                    "emails/simple_notice.html",
+                    subject_title="Your dashboard link",
+                    heading="Here is your dashboard link",
+                    paragraphs=[
+                        f"This is the private link to the dashboard for {s.name}. "
+                        "It shows your listing's status, and once it is live, the "
+                        "views and click-throughs it earns.",
+                    ],
+                    cta_url=link,
+                    cta_label="Open your dashboard",
+                    fine_print=(
+                        "Keep this email — the link is the only way in, and it "
+                        "works for six months."
+                    ),
+                ),
                 text=f"Your submission dashboard link: {link}",
             )
         except Exception:

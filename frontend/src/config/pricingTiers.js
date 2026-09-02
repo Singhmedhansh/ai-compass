@@ -165,6 +165,123 @@ export const PRICING_TIERS = [
   },
 ]
 
+// ---------------------------------------------------------------------------
+// Card highlights vs. the full perk list
+// ---------------------------------------------------------------------------
+// `perks` above is the complete, contractual list — every line is something
+// the backend actually delivers, and it is what the /submit checkout sidebar
+// shows a buyer who has already chosen a tier.
+//
+// It is the wrong thing to put on a pricing CARD. Rendered as four side-by-
+// side columns it produced 5, 4, 12 and 6 bullets: one column ran to nearly
+// twice the height of its neighbours, the cheapest tier looked like the
+// biggest, and the $49 column — the one that has to sell — read as a wall.
+// A price grid is scanned, not read; whichever column is tallest wins the
+// eye, and here that was an accident of list length.
+//
+// So the cards show `highlights`: at most four lines, the same shape in every
+// column, each one a thing the reader can picture. The full list did not go
+// anywhere — it is the comparison matrix below, which is where someone who is
+// actually deciding between two tiers goes to look.
+export const TIER_HIGHLIGHTS = {
+  free: [
+    'A permanent listing, page and search entry',
+    'Announced in the weekly new-tools email',
+    'Rateable and reviewable like every other tool',
+    'Live 7 days after approval',
+  ],
+  analytics: [
+    'Everything in Free',
+    'Your numbers: views, clicks, CTR, saves',
+    'A report emailed to you every month',
+    'Reviewed ahead of every free submission',
+  ],
+  sponsor: [
+    'Everything in Analytics',
+    'Placed above free listings, permanently',
+    'Homepage strip, guide cards and the community rail',
+    'Live 1 day after approval, not 7',
+  ],
+  reviewed: [
+    'Everything in Fast-Track',
+    'A 300-500 word hands-on review we actually write',
+    'Screenshots, pros, cons and a scored verdict',
+    'A citable third-party URL that never expires',
+  ],
+}
+
+// ---------------------------------------------------------------------------
+// The comparison matrix
+// ---------------------------------------------------------------------------
+// One row per thing that differs, in the order a founder cares about them:
+// what everyone gets, then speed, then visibility, then proof.
+//
+// A cell is `true` (included), `false` (not), or a string (included, with the
+// detail that makes it worth the money — "1 day" beats a tick when the row
+// above it says "7 days"). Strings are what stop this being a tick-farm: four
+// columns of identical ticks tells a reader nothing about why one costs sixty
+// dollars more.
+//
+// Rows are grouped, because an ungrouped 18-row table is the same wall of
+// text the cards were, just rotated.
+export const COMPARISON_GROUPS = [
+  {
+    title: 'Every listing, at every tier',
+    rows: [
+      ['Permanent directory listing', true, true, true, true],
+      ['Your own indexed /tools/ page', true, true, true, true],
+      ['Alternatives and comparison pages', true, true, true, true],
+      ['Announced in the weekly new-tools email', true, true, true, true],
+      ['Claim and edit it yourself (domain proof)', true, true, true, true],
+      ['Ratings and reader reviews', true, true, true, true],
+    ],
+  },
+  {
+    title: 'Speed',
+    rows: [
+      ['Review order', 'After paid', 'Ahead of free', 'First, target 24h', 'First, target 24h'],
+      ['Goes live after approval', '7 days', '7 days', '1 day', '1 day'],
+      ['Pick your own launch date', false, false, true, true],
+    ],
+  },
+  {
+    title: 'Your numbers',
+    rows: [
+      ['Founder dashboard: views, clicks, CTR, saves', false, true, true, true],
+      ['14-day trend', false, true, true, true],
+      ['Monthly report emailed to you', false, true, true, true],
+      ['Category benchmark', false, false, true, true],
+      ['Rail-card delivery reporting', false, false, true, true],
+    ],
+  },
+  {
+    title: 'Visibility',
+    rows: [
+      ['Placed above free listings in category and search', false, false, 'Permanent', 'Permanent'],
+      ['Labelled "Sponsored" badge on your card', false, false, true, true],
+      ['Homepage "Featured on AI Compass" strip', false, false, true, true],
+      ['Partner card on the best-of guide for your category', false, false, true, true],
+      ['Featured card on /community', false, false, '30 days', '30 days'],
+      ['First position in the new-tools digest', false, false, true, true],
+    ],
+  },
+  {
+    title: 'Editorial',
+    rows: [
+      ['Hands-on written review on your page', false, false, false, '300-500 words'],
+      ['Screenshots from our own session', false, false, false, true],
+      ['Scored verdict, bylined and dated', false, false, false, true],
+      ['A favourable verdict', false, false, false, false],
+      ['An editorial pick, or a leaderboard rank', false, false, false, false],
+    ],
+  },
+]
+
+// Column order for COMPARISON_GROUPS rows. Kept beside the data rather than
+// derived from PRICING_TIERS so reordering the cards can never silently
+// reshuffle the matrix's cells under their headers.
+export const COMPARISON_COLUMNS = ['free', 'analytics', 'sponsor', 'reviewed']
+
 export function getTier(id) {
   return PRICING_TIERS.find((tier) => tier.id === id) || PRICING_TIERS[PRICING_TIERS.length - 1]
 }

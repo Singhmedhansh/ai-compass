@@ -32,11 +32,45 @@ const INITIAL_FORM = {
   logo_name: '',
 }
 
-// Matches app/tool_logos.py. Kept in sync deliberately: rejecting a 4MB file
-// in the browser is a better experience than uploading it and being told no,
-// but the server check is the one that counts.
+// ---------------------------------------------------------------------------
+// Logo upload
+// ---------------------------------------------------------------------------
+// The old version accepted exactly image/png and image/jpeg under 500KB and
+// refused everything else outright. In practice that refused almost every
+// logo a founder actually has: a brand PNG exported at 1024px with an alpha
+// channel is routinely 700KB-2MB, a WebP or SVG from a design tool is not on
+// the list at all, and a phone-camera screenshot is 4MB. The founder saw
+// "Logo must be under 500KB", had no way to make it smaller, and gave up —
+// which is why the field read as broken rather than as strict.
+//
+// Nothing about the SERVER's limits was wrong (app/tool_logos.py: PNG/JPEG
+// only, 512KB, magic-byte sniffed — an SVG is a scriptable document and we
+// serve these from our own origin). The mistake was making the founder meet
+// them by hand. So the browser now does the work: any image the browser can
+// decode is drawn onto a square canvas at LOGO_TARGET_PX and re-encoded as a
+// real PNG, stepping the size down until it fits. What reaches the server is
+// always a PNG within the cap, whatever was picked.
+//
+// Kept in sync with the server deliberately — the server check is still the
+// one that counts, this one just means it almost never has to fire.
 const LOGO_MAX_BYTES = 512 * 1024
-const LOGO_TYPES = ['image/png', 'image/jpeg']
+
+// Refused before we even try to decode. Not a quality limit — a guard against
+// spending ten seconds and a phone's memory on a 40MP photo that was never
+// going to be a logo.
+const LOGO_SOURCE_MAX_BYTES = 12 * 1024 * 1024
+
+// 512 square is the size the catalogue actually renders at its largest (the
+// tool page header at 2x), so anything above it is bytes nobody sees. The
+// fallbacks exist for the rare photographic logo that will not compress into
+// the cap at full size.
+const LOGO_TARGET_PX = 512
+const LOGO_FALLBACK_PX = [384, 256, 192]
+
+// Below this the logo is visibly soft on a retina card and there is nothing
+// we can do about it — better to say so up front than to publish a blurry
+// mark on the founder's own page.
+const LOGO_MIN_PX = 96
 
 function readFileAsDataUrl(file) {
   return new Promise((resolve, reject) => {
@@ -45,6 +79,49 @@ function readFileAsDataUrl(file) {
     reader.onerror = () => reject(new Error('Could not read that file.'))
     reader.readAsDataURL(file)
   })
+}
+
+function loadImage(dataUrl) {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => resolve(img)
+    // HEIC from an iPhone, a corrupt file, or an SVG in a browser that
+    // refuses to rasterise it all land here. The message says what to do
+    // rather than what failed.
+    img.onerror = () => reject(new Error('That file could not be opened as an image. Try a PNG or JPG export.'))
+    img.src = dataUrl
+  })
+}
+
+// Draws the image centred and CONTAINED inside a square of `size`, on a
+// transparent canvas, and returns a PNG data URL.
+//
+// Contained, not cropped: a wordmark is usually much wider than it is tall,
+// and cover-cropping one to a square silently cuts the brand name in half.
+// Transparent, not white: the cards render on both a cream and a near-black
+// background, and a baked-in white box is visible on the dark one.
+function squarePngDataUrl(img, size) {
+  const canvas = document.createElement('canvas')
+  canvas.width = size
+  canvas.height = size
+  const ctx = canvas.getContext('2d')
+  ctx.imageSmoothingEnabled = true
+  ctx.imageSmoothingQuality = 'high'
+
+  const scale = Math.min(size / img.width, size / img.height)
+  const w = Math.max(1, Math.round(img.width * scale))
+  const h = Math.max(1, Math.round(img.height * scale))
+  ctx.drawImage(img, Math.round((size - w) / 2), Math.round((size - h) / 2), w, h)
+  return canvas.toDataURL('image/png')
+}
+
+// Bytes a base64 data: URL actually decodes to — the string itself is ~4/3
+// larger, and comparing the string length against the server's byte cap
+// rejects files that would in fact have fit.
+function dataUrlBytes(dataUrl) {
+  const body = String(dataUrl).split(',')[1] || ''
+  const padding = body.endsWith('==') ? 2 : body.endsWith('=') ? 1 : 0
+  return Math.floor((body.length * 3) / 4) - padding
 }
 
 function TierCard({ tier, selected, onSelect }) {
@@ -107,6 +184,11 @@ export default function SubmitPage() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [logoError, setLogoError] = useState('')
+  // What we did to the file, shown after a successful upload. Separate from
+  // logoError because "we resized this for you" is not a failure and must not
+  // render in red next to a perfectly good preview.
+  const [logoNote, setLogoNote] = useState('')
+  const [logoBusy, setLogoBusy] = useState(false)
 
   // Populated from the /submit-tool response so the success panel can show
   // a working dashboard link and founder-account status immediately —
@@ -118,7 +200,12 @@ export default function SubmitPage() {
 
   // Payment states
   const [showPaymentModal, setShowPaymentModal] = useState(false)
-  const [paymentMethod, setPaymentMethod] = useState('paypal') // Stripe/Razorpay are shown as "Maintenance" (disabled) — PayPal is the only live gateway
+  // PayPal is the only gateway. The state is kept (rather than inlined) so
+  // adding a real second one later is a change to this value and the effects
+  // that read it, not a rewrite of the modal. What is gone is the picker that
+  // offered Stripe and Razorpay as permanently disabled "Maintenance" tabs —
+  // advertising two broken gateways to sell a working one.
+  const [paymentMethod, setPaymentMethod] = useState('paypal')
   const [paying, setPaying] = useState(false)
   const [paymentDone, setPaymentDone] = useState(false)
   const [paymentVerified, setPaymentVerified] = useState(false)
@@ -212,6 +299,58 @@ export default function SubmitPage() {
         }
       }
     }
+  }, [])
+
+  // /submit?tier=sponsor — the pricing page's buttons.
+  //
+  // Without this every card on /pricing dropped the buyer onto the same
+  // default tier, so someone who deliberately clicked "Get Reviewed" landed
+  // on Fast-Track with a different price in the sidebar and had to find the
+  // selector themselves. A pricing page whose buttons do not carry the choice
+  // is a pricing page that makes the reader choose twice.
+  //
+  // Runs before the sessionStorage restore below can matter because an
+  // explicit link is a fresher intent than a stale stashed selection.
+  useEffect(() => {
+    const wanted = new URLSearchParams(window.location.search).get('tier')
+    if (wanted && PRICING_TIERS.some((t) => t.id === wanted)) {
+      setSubmissionType(wanted)
+    }
+  }, [])
+
+  // Pre-filled outreach link (/submit?c=<signed token>). The cold email tells
+  // the founder their listing is already filled in and takes 30 seconds — this
+  // is the half of that promise the page has to keep. It also flips the tier
+  // selector to 'free', because the email offered a free listing: landing on a
+  // $49 tier pre-selected after being told "it's free" reads as a bait and
+  // switch, and it is the fastest way to lose someone who arrived willing.
+  //
+  // Failure here is deliberately silent. A stale or malformed token just
+  // leaves the normal empty form, which still works — showing an error for a
+  // link we sent them would be turning our problem into their problem.
+  useEffect(() => {
+    const token = new URLSearchParams(window.location.search).get('c')
+    if (!token) return
+
+    let cancelled = false
+    setSubmissionType('free')
+    fetch(`/api/v1/outreach/prefill/${encodeURIComponent(token)}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (cancelled || !data) return
+        setFormData((prev) => ({
+          ...prev,
+          // Only fill blanks. If the visitor has already typed something —
+          // or sessionStorage restored a form they were part-way through —
+          // their text wins over ours.
+          name: prev.name || data.name || '',
+          url: prev.url || data.url || '',
+          reason: prev.reason || data.reason || '',
+        }))
+      })
+      .catch(() => {})
+
+    return () => { cancelled = true }
   }, [])
 
   // Persist form state to sessionStorage on inputs, so it survives the
@@ -371,8 +510,38 @@ export default function SubmitPage() {
 
         try {
           window.paypal.Buttons({
-            createOrder: (data, actions) => {
+            // The order is created by OUR server, at OUR price.
+            //
+            // This used to call actions.order.create() with `tier.price` from
+            // this bundle, which meant the amount charged was whatever the
+            // page said it was — editable in devtools. Verification caught a
+            // short payment afterwards, but only after PayPal had taken the
+            // money, leaving the buyer out of pocket and us owing a refund on
+            // a sale we never wanted.
+            //
+            // The browser path is kept as a FALLBACK rather than deleted. If
+            // our endpoint is down, a founder who wants to pay us must still
+            // be able to: the capture-time server verification that has always
+            // been the real guard runs either way, so the fallback is no
+            // weaker than the whole flow was yesterday.
+            createOrder: async (data, actions) => {
               const tier = getTier(submissionType)
+              try {
+                const res = await fetch('/api/v1/checkout/paypal/order', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  credentials: 'include',
+                  body: JSON.stringify({ tier: submissionType, tool_name: formData.name }),
+                })
+                if (res.ok) {
+                  const order = await res.json()
+                  if (order?.id) return order.id
+                }
+                console.warn('Server-side order creation unavailable; falling back to browser-side.')
+              } catch (err) {
+                console.warn('Server-side order creation failed; falling back to browser-side.', err)
+              }
+
               return actions.order.create({
                 purchase_units: [{
                   // description shows on the buyer's PayPal receipt, so a
@@ -436,7 +605,7 @@ export default function SubmitPage() {
         }
       }
     }
-  }, [paypalLoaded, paymentMethod, paypalHostedConfig, submissionType, paypalRetry])
+  }, [paypalLoaded, paymentMethod, paypalHostedConfig, submissionType, paypalRetry, formData.name])
 
   function handleChange(event) {
     const { name, value } = event.target
@@ -446,6 +615,9 @@ export default function SubmitPage() {
     }))
   }
 
+  // Accepts whatever the founder has and turns it into what the server
+  // accepts, instead of asking them to do it. See the notes on LOGO_MAX_BYTES
+  // above for why this stopped being a plain type/size check.
   async function handleLogoChange(event) {
     const file = event.target.files && event.target.files[0]
     // Clear the input's value so picking the same file again after an error
@@ -454,25 +626,75 @@ export default function SubmitPage() {
     if (!file) return
 
     setLogoError('')
-    if (!LOGO_TYPES.includes(file.type)) {
-      setLogoError('Logo must be a PNG or JPG image.')
+    setLogoNote('')
+
+    if (!String(file.type || '').startsWith('image/')) {
+      setLogoError('That is not an image file. Pick a PNG, JPG or WebP.')
       return
     }
-    if (file.size > LOGO_MAX_BYTES) {
-      setLogoError(`Logo must be under ${Math.round(LOGO_MAX_BYTES / 1024)}KB.`)
+    if (file.size > LOGO_SOURCE_MAX_BYTES) {
+      setLogoError(
+        `That file is ${(file.size / (1024 * 1024)).toFixed(1)}MB, which is larger than we can ` +
+        'process in the browser. Export it at around 512x512 and try again.',
+      )
       return
     }
 
+    setLogoBusy(true)
     try {
-      const dataUrl = await readFileAsDataUrl(file)
+      const sourceUrl = await readFileAsDataUrl(file)
+      const img = await loadImage(sourceUrl)
+
+      if (img.width < LOGO_MIN_PX || img.height < LOGO_MIN_PX) {
+        setLogoError(
+          `That image is ${img.width}x${img.height}px. Logos below ${LOGO_MIN_PX}px look soft on ` +
+          'your listing page — use a larger export, or leave this blank and we will pull the ' +
+          'logo from your site.',
+        )
+        return
+      }
+
+      // Try full size first, then step down. The loop always terminates with
+      // an answer: the smallest fallback of a square PNG is a few KB.
+      let dataUrl = null
+      let usedPx = LOGO_TARGET_PX
+      for (const size of [LOGO_TARGET_PX, ...LOGO_FALLBACK_PX]) {
+        const candidate = squarePngDataUrl(img, size)
+        if (dataUrlBytes(candidate) <= LOGO_MAX_BYTES) {
+          dataUrl = candidate
+          usedPx = size
+          break
+        }
+      }
+      if (!dataUrl) {
+        setLogoError(
+          'We could not compress that image small enough. A flat logo on a transparent ' +
+          'background (rather than a screenshot or photo) will work.',
+        )
+        return
+      }
+
       setFormData((current) => ({ ...current, logo: dataUrl, logo_name: file.name }))
-    } catch {
-      setLogoError('Could not read that file — try a different one.')
+      // Say what we did. A founder who uploads a 1400x400 wordmark and gets
+      // back a square should be told it was fitted rather than cropped —
+      // otherwise the preview looks like a bug.
+      const resized = img.width !== img.height || img.width > usedPx
+      setLogoNote(
+        resized
+          ? `Fitted to ${usedPx}x${usedPx} PNG from your ${img.width}x${img.height} file. ` +
+            'Nothing was cropped.'
+          : `Ready: ${usedPx}x${usedPx} PNG.`,
+      )
+    } catch (err) {
+      setLogoError(err?.message || 'Could not read that file — try a different one.')
+    } finally {
+      setLogoBusy(false)
     }
   }
 
   function clearLogo() {
     setLogoError('')
+    setLogoNote('')
     setFormData((current) => ({ ...current, logo: '', logo_name: '' }))
   }
 
@@ -486,10 +708,9 @@ export default function SubmitPage() {
     setShowPaymentModal(true)
   }
 
-  // PayPal is the only live gateway (Stripe/Razorpay tabs are disabled,
-  // "Maintenance") — real payment/submission happens via the PayPal SDK
-  // callbacks and the manual transaction-ID paste flow below, not this
-  // handler. It only exists to swallow an accidental Enter-key form submit.
+  // Real payment and submission happen in the PayPal SDK callbacks
+  // (createOrder / onApprove), not here. This handler exists only to swallow
+  // an accidental Enter-key submit of the form that wraps the button.
   function handlePayment(event) {
     event.preventDefault()
   }
@@ -653,52 +874,86 @@ export default function SubmitPage() {
               </div>
 
               <div>
-                <span className="mb-1 block text-xs font-semibold text-ink-2">
-                  Logo (Optional)
-                </span>
-                <div className="flex items-center gap-3 rounded-lg border border-dashed border-line bg-bg px-3 py-3">
-                  {formData.logo ? (
-                    <img
-                      src={formData.logo}
-                      alt="Logo preview"
-                      className="h-10 w-10 shrink-0 rounded-lg bg-white object-contain p-1"
-                    />
-                  ) : (
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-bg-sunk text-muted-2">
-                      <ImageIcon className="h-4 w-4" />
-                    </div>
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <label
-                      htmlFor="logo"
-                      className="cursor-pointer text-xs font-semibold text-accent hover:underline"
-                    >
-                      {formData.logo ? 'Choose a different file' : 'Upload a logo'}
-                    </label>
-                    <input
-                      id="logo"
-                      name="logo"
-                      type="file"
-                      accept="image/png,image/jpeg"
-                      onChange={handleLogoChange}
-                      className="sr-only"
-                    />
-                    <p className="mt-0.5 truncate text-[11px] text-muted-2">
-                      {formData.logo_name || 'PNG or JPG, up to 500KB. Leave it blank and we’ll pull the logo from your site.'}
-                    </p>
-                  </div>
-                  {formData.logo && (
-                    <button
-                      type="button"
-                      onClick={clearLogo}
-                      className="shrink-0 text-[11px] font-semibold text-muted-2 hover:text-ink"
-                    >
-                      Remove
-                    </button>
-                  )}
+                <div className="mb-1 flex items-baseline justify-between gap-2">
+                  <span className="block text-xs font-semibold text-ink-2">
+                    Logo (Optional)
+                  </span>
+                  <span className="text-[10px] font-medium text-muted-2">
+                    Square PNG, 512&times;512, transparent background
+                  </span>
                 </div>
+
+                {/* The requirements, up front, in the founder's terms.
+                    They used to appear only as a red error AFTER a rejected
+                    upload ("Logo must be under 500KB"), with no guidance on
+                    what would work — so the field read as broken. Stating the
+                    target here and doing the resizing for them (see
+                    handleLogoChange) is what actually fixes it. */}
+                <div className="rounded-lg border border-dashed border-line bg-bg p-3">
+                  <div className="flex items-center gap-3">
+                    {formData.logo ? (
+                      <img
+                        src={formData.logo}
+                        alt="Logo preview"
+                        className="h-14 w-14 shrink-0 rounded-xl border border-line bg-white object-contain p-1.5"
+                      />
+                    ) : (
+                      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-line bg-bg-sunk text-muted-2">
+                        <ImageIcon className="h-5 w-5" />
+                      </div>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <label
+                        htmlFor="logo"
+                        className={`cursor-pointer text-xs font-bold ${
+                          logoBusy ? 'text-muted-2' : 'text-accent hover:underline'
+                        }`}
+                      >
+                        {logoBusy
+                          ? 'Processing…'
+                          : formData.logo
+                          ? 'Choose a different file'
+                          : 'Upload a logo'}
+                      </label>
+                      <input
+                        id="logo"
+                        name="logo"
+                        type="file"
+                        accept="image/*"
+                        disabled={logoBusy}
+                        onChange={handleLogoChange}
+                        className="sr-only"
+                      />
+                      <p className="mt-0.5 truncate text-[11px] text-muted-2">
+                        {formData.logo_name || 'PNG, JPG, WebP or GIF — any size. We resize it for you.'}
+                      </p>
+                    </div>
+                    {formData.logo && (
+                      <button
+                        type="button"
+                        onClick={clearLogo}
+                        className="shrink-0 rounded-lg border border-line px-2 py-1 text-[11px] font-semibold text-muted-2 transition hover:bg-bg-sunk hover:text-ink"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+
+                  <ul className="mt-3 grid gap-1 border-t border-line/70 pt-2.5 text-[11px] leading-relaxed text-muted-2 sm:grid-cols-2">
+                    <li>&middot; Best: 512&times;512 px, square, PNG</li>
+                    <li>&middot; Transparent background looks best in dark mode</li>
+                    <li>&middot; Minimum {LOGO_MIN_PX} px — smaller looks soft</li>
+                    <li>&middot; A wide wordmark is fitted, never cropped</li>
+                    <li>&middot; No screenshots or photos — just the mark</li>
+                    <li>&middot; Leave blank and we pull it from your site</li>
+                  </ul>
+                </div>
+
                 {logoError && (
-                  <p className="mt-1 text-[11px] font-semibold text-red-600 dark:text-red-400">{logoError}</p>
+                  <p className="mt-1.5 text-[11px] font-semibold text-red-600 dark:text-red-400">{logoError}</p>
+                )}
+                {!logoError && logoNote && (
+                  <p className="mt-1.5 text-[11px] font-semibold text-accent-ink">{logoNote}</p>
                 )}
               </div>
 
@@ -777,7 +1032,11 @@ export default function SubmitPage() {
                   {submittedTier === 'free' ? (
                     <>
                       <p>
-                        <strong>What happens next?</strong> Your tool is in the review queue. We review free submissions in the order they arrive — usually within a couple of weeks — and you&apos;ll get an email at your submitted address when it goes live.
+                        <strong>What happens next?</strong> Your tool is in the review queue. We
+                        review free submissions in the order they arrive, after paid ones, and
+                        they go live 7 days after approval. <strong>We&apos;ll email you the link
+                        to your live page the moment it is up</strong> — you don&apos;t need to
+                        check back.
                       </p>
                       <div className="bg-bg-elev/80 p-3 rounded-xl border border-line">
                         <p className="font-medium text-ink">
@@ -883,90 +1142,209 @@ export default function SubmitPage() {
         )}
       </div>
 
-      {/* Why Sponsor Your Tool Section */}
-      <section className="mt-12 rounded-3xl border border-line bg-gradient-to-b from-bg-elev to-bg p-6 sm:p-10 shadow-md">
-        <div className="text-center max-w-2xl mx-auto">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-soft text-accent px-3 py-1 text-[10px] font-bold uppercase tracking-widest mb-3">
-            <Sparkles className="h-3 w-3" /> Proven Growth Platform
-          </span>
-          <h2 className="text-2xl font-bold text-ink tracking-tight sm:text-3xl">
-            Why Sponsor Your Tool on AI Compass?
-          </h2>
-          <p className="mt-2 text-xs sm:text-sm text-ink-2 leading-relaxed font-normal">
-            Put your product directly in front of thousands of tech-savvy students, developers, and creators actively searching for AI solutions.
+      {/* -------------------------------------------------------------------
+          Why sponsor
+          -------------------------------------------------------------------
+          The old version was four stat tiles over three paragraphs of prose,
+          all at the same visual weight, and it stopped at "we have traffic".
+          Traffic is a claim every directory makes; none of it tells a founder
+          holding $49 whether this is a better use of it than an afternoon of
+          ads.
+
+          So this section now answers that question in order:
+            1. the audience, with the real figures and their source named,
+            2. what those figures cost anywhere else,
+            3. what specifically is delivered for the money,
+            4. the limits, because a page with no limits reads as a pitch.
+
+          Every number below is one we can produce a dashboard screenshot for,
+          which is the whole reason the source is printed under each: an
+          unattributed "10,000+ users" is the most common lie in this
+          category, and being the listing that says where its numbers came
+          from is cheaper than being the one that gets caught. */}
+      <section className="mt-12 overflow-hidden rounded-3xl border border-line bg-bg-elev shadow-sm">
+        <div className="border-b border-line bg-gradient-to-b from-bg-sunk/40 to-transparent px-6 py-8 sm:px-10 sm:py-10">
+          <div className="mx-auto max-w-2xl text-center">
+            <span className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-accent-soft px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-accent">
+              <Sparkles className="h-3 w-3" /> Why founders list here
+            </span>
+            <h2 className="text-2xl font-bold tracking-tight text-ink sm:text-3xl">
+              A small audience that is entirely the right one
+            </h2>
+            <p className="mx-auto mt-3 max-w-xl text-sm font-normal leading-relaxed text-ink-2">
+              AI Compass is not the biggest directory on the internet. It is a hand-curated one,
+              read by students, developers and creators who arrive already searching for a tool to
+              do a specific job. Here is exactly how big &mdash; measured in Google Search Console
+              and PostHog, not asserted.
+            </p>
+          </div>
+
+          {/* Headline numbers, each carrying its source. The source is what
+              separates these from the round figures every competitor prints. */}
+          <div className="mx-auto mt-8 grid max-w-3xl grid-cols-2 gap-3 lg:grid-cols-4">
+            {[
+              { icon: BarChart3, value: '176K', label: 'Google search impressions', source: 'Search Console' },
+              { icon: Search, value: '4.78K', label: 'Clicks from Google search', source: 'Search Console' },
+              { icon: Users, value: '8.7K', label: 'Visitors, last 4 months', source: 'PostHog' },
+              { icon: TrendingUp, value: 'Top 12', label: 'Ranking keywords on page 1', source: 'Search Console' },
+            ].map((stat) => (
+              <div
+                key={stat.label}
+                className="rounded-2xl border border-line bg-bg/80 p-4 text-center transition hover:border-accent/40 hover:shadow-sm"
+              >
+                <div className="mx-auto mb-2 flex h-8 w-8 items-center justify-center rounded-lg bg-accent-soft text-accent">
+                  <stat.icon className="h-4 w-4" />
+                </div>
+                <div className="text-2xl font-bold tracking-tight text-ink sm:text-3xl">{stat.value}</div>
+                <div className="mt-1 text-[11px] font-semibold leading-snug text-ink-2">{stat.label}</div>
+                <div className="mt-1 text-[10px] font-medium text-muted-2">{stat.source}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* The engagement row, deliberately smaller than the tiles above:
+              these say the traffic is real rather than bounced-through, which
+              matters, but it is a supporting argument, not the headline. */}
+          <div className="mx-auto mt-3 grid max-w-3xl grid-cols-2 gap-3 sm:grid-cols-4">
+            {[
+              ['11.7K', 'Page views'],
+              ['9.3K', 'Sessions'],
+              ['2m 07s', 'Average session'],
+              ['43%', 'Bounce rate'],
+            ].map(([value, label]) => (
+              <div key={label} className="rounded-xl border border-line/70 bg-bg/50 px-3 py-2.5 text-center">
+                <div className="text-sm font-bold text-ink">{value}</div>
+                <div className="text-[10px] font-medium text-muted-2">{label}</div>
+              </div>
+            ))}
+          </div>
+          <p className="mt-3 text-center text-[10px] text-muted-2">
+            4,000+ students have used AI Compass to build a toolkit. Figures current as of
+            September 2026 &mdash; we will show you the dashboards on request.
           </p>
         </div>
 
-        {/* Stats Grid */}
-        <div className="mt-8 grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="rounded-2xl border border-line bg-bg/80 p-5 text-center transition hover:border-accent/40 hover:shadow-sm">
-            <div className="mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-xl bg-accent-soft text-accent">
-              <Users className="h-5 w-5" />
-            </div>
-            <div className="text-2xl sm:text-3xl font-bold text-ink">4,000+</div>
-            <div className="text-[11px] font-medium text-ink-2 mt-1">Monthly Active Visitors</div>
+        {/* What the money buys, against what it costs elsewhere. This is the
+            comparison a founder is making in their head anyway; making it for
+            them, honestly and including the case where we lose, is more
+            persuasive than pretending it is not being made. */}
+        <div className="border-b border-line px-6 py-8 sm:px-10">
+          <h3 className="text-center text-base font-bold text-ink">What $49 buys, next to the alternatives</h3>
+          <div className="mx-auto mt-5 grid max-w-3xl gap-3 sm:grid-cols-3">
+            {[
+              {
+                title: 'Google Ads',
+                cost: '$2-4 per click',
+                body: 'Stops the moment you stop paying. $49 is roughly a dozen clicks, and then nothing.',
+                us: false,
+              },
+              {
+                title: 'A launch platform',
+                cost: 'Free, one day',
+                body: 'One spike, then your page falls off the front page and the traffic ends with it.',
+                us: false,
+              },
+              {
+                title: 'Fast-Track here',
+                cost: '$49 once',
+                body: 'A permanent indexed page, placed above free listings for as long as it stands. It does not expire.',
+                us: true,
+              },
+            ].map(({ title, cost, body, us }) => (
+              <div
+                key={title}
+                className={`rounded-2xl border p-4 ${
+                  us ? 'border-accent bg-accent-soft/15 ring-1 ring-accent/15' : 'border-line bg-bg'
+                }`}
+              >
+                <div className="text-xs font-bold uppercase tracking-wider text-ink-2">{title}</div>
+                <div className={`mt-1 text-lg font-bold ${us ? 'text-accent-ink' : 'text-ink'}`}>{cost}</div>
+                <p className="mt-1.5 text-[11px] font-normal leading-relaxed text-ink-2">{body}</p>
+              </div>
+            ))}
           </div>
-
-          <div className="rounded-2xl border border-line bg-bg/80 p-5 text-center transition hover:border-accent/40 hover:shadow-sm">
-            <div className="mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-xl bg-accent-soft text-accent">
-              <Sparkles className="h-5 w-5" />
-            </div>
-            <div className="text-2xl sm:text-3xl font-bold text-ink">4,000+</div>
-            <div className="text-[11px] font-medium text-ink-2 mt-1">Students Powered</div>
-          </div>
-
-          <div className="rounded-2xl border border-line bg-bg/80 p-5 text-center transition hover:border-accent/40 hover:shadow-sm">
-            <div className="mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-xl bg-accent-soft text-accent">
-              <BarChart3 className="h-5 w-5" />
-            </div>
-            <div className="text-2xl sm:text-3xl font-bold text-ink">110K+</div>
-            <div className="text-[11px] font-medium text-ink-2 mt-1">Google Search Impressions</div>
-          </div>
-
-          <div className="rounded-2xl border border-line bg-bg/80 p-5 text-center transition hover:border-accent/40 hover:shadow-sm">
-            <div className="mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-xl bg-accent-soft text-accent">
-              <Search className="h-5 w-5" />
-            </div>
-            <div className="text-2xl sm:text-3xl font-bold text-ink">Top 12</div>
-            <div className="text-[11px] font-medium text-ink-2 mt-1">Google Search Rankings</div>
-          </div>
+          <p className="mx-auto mt-4 max-w-2xl text-center text-[11px] leading-relaxed text-muted-2">
+            If you need thousands of visitors this week, ads are the honest answer and we will tell
+            you so. What this is good at is still being there in six months, when someone searches
+            for exactly what you built.
+          </p>
         </div>
 
-        {/* Benefits Breakdown */}
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t border-line/60">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 font-bold text-sm text-ink">
-              <TrendingUp className="h-4 w-4 text-accent" />
-              <span>Targeted High-Intent Traffic</span>
+        {/* The deliverables. Same three ideas as before, but each now names
+            the mechanism behind it &mdash; a promise you can check is worth
+            more than a promise phrased well. */}
+        <div className="grid gap-6 px-6 py-8 sm:px-10 md:grid-cols-3">
+          {[
+            {
+              icon: ArrowUpRight,
+              title: 'A permanent, indexed backlink',
+              body:
+                'Your own /tools/ page on ai-compass.in, in the sitemap and in Google. Real referral ' +
+                'traffic from people searching for tools like yours, not a link in a directory nobody reads.',
+            },
+            {
+              icon: TrendingUp,
+              title: 'Placement you can see working',
+              body:
+                'Above free listings in your category and in search, on the homepage strip, on the ' +
+                'best-of guide for your category, and on /community for 30 days. Every unit labelled.',
+            },
+            {
+              icon: BarChart3,
+              title: 'The numbers, not adjectives',
+              body:
+                'Views, clicks, CTR and a category benchmark on your own dashboard, plus a report ' +
+                'emailed monthly. Counted by the same redirect as our own analytics, so they cannot disagree.',
+            },
+          ].map((benefit) => (
+            <div key={benefit.title} className="space-y-2">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent-soft text-accent">
+                <benefit.icon className="h-4 w-4" />
+              </div>
+              <div className="text-sm font-bold text-ink">{benefit.title}</div>
+              <p className="text-xs font-normal leading-relaxed text-ink-2">{benefit.body}</p>
             </div>
-            <p className="text-xs text-ink-2 leading-relaxed font-normal">
-              Connect with over 400+ registered users and thousands of monthly visitors specifically browsing for AI tools to study, code, and automate workflows.
-            </p>
-          </div>
+          ))}
+        </div>
 
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 font-bold text-sm text-ink">
-              <ArrowUpRight className="h-4 w-4 text-accent" />
-              <span>Permanent High-Authority Backlink</span>
-            </div>
-            <p className="text-xs text-ink-2 leading-relaxed font-normal">
-              A permanent, indexable listing on ai-compass.in — real referral traffic from students and developers actively searching for tools like yours, not just a link sitting in a directory nobody reads.
-            </p>
-          </div>
+        {/* The limits. A page that only says yes is a page nobody believes,
+            and these constraints are the reason a paid unit here is worth
+            anything at all: a directory that sells its own top ten is not
+            worth reading, which makes it not worth being listed in either. */}
+        <div className="border-t border-line bg-bg-sunk/40 px-6 py-6 sm:px-10">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-accent-ink">
+            What no amount of money buys
+          </h3>
+          <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+            {[
+              'An editorial pick, or a place in our student picks.',
+              'A community leaderboard rank. Those come from votes and clicks only.',
+              'A rating, or a favourable verdict in a review you commissioned.',
+              'An unlabelled placement. Every paid unit says on its face that it is paid.',
+            ].map((line) => (
+              <li key={line} className="flex items-start gap-2 text-[11px] font-normal leading-relaxed text-ink-2">
+                <Lock className="mt-0.5 h-3 w-3 shrink-0 text-muted-2" />
+                <span>{line}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
 
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 font-bold text-sm text-ink">
-              <ShieldCheck className="h-4 w-4 text-accent" />
-              <span>Reviewed First, Live in a Day</span>
-            </div>
-            <p className="text-xs text-ink-2 leading-relaxed font-normal">
-              Skip the backlog: Fast-Track submissions are reviewed ahead of every free one (target 24 hours) and go live the day after approval instead of two weeks later. You also get the labelled &quot;Sponsored&quot; badge, first position in the weekly new-tools email, and a Featured rail card on the community page for 30 days.
-            </p>
-          </div>
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line px-6 py-5 sm:px-10">
+          <p className="text-xs font-medium text-ink-2">
+            Not sure which tier fits your launch? Ask us &mdash; we will say so when the answer is
+            &ldquo;stay free&rdquo;.
+          </p>
+          <a
+            href="mailto:help@ai-compass.in?subject=Which%20AI%20Compass%20tier%20fits%20my%20tool%3F"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-line-strong bg-bg-elev px-4 py-2 text-xs font-bold text-ink transition hover:bg-bg-sunk"
+          >
+            help@ai-compass.in <ArrowRight className="h-3.5 w-3.5" />
+          </a>
         </div>
       </section>
 
-      {/* Simulated Checkout Payment Modal */}
+      {/* Checkout modal — PayPal Smart Buttons, the one live gateway. */}
       {showPaymentModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 backdrop-blur-sm p-4 animate-fade-in">
           <div className="w-full max-w-lg bg-bg-elev border border-line rounded-3xl p-6 shadow-2xl space-y-6">
@@ -988,63 +1366,65 @@ export default function SubmitPage() {
             {!paymentDone ? (
               <div className="space-y-5">
 
-                {/* Checkout Summary Banner */}
-                <div className="bg-bg-sunk/40 rounded-xl p-3 border border-line/45 flex justify-between items-center text-xs">
-                  <span className="font-normal text-ink-2">{selectedTier.name} for <strong className="text-ink font-semibold">{formData.name || 'Your Tool'}</strong></span>
-                  <span className="font-bold text-ink">{selectedTier.priceLabel}</span>
-                </div>
+                {/* -----------------------------------------------------------
+                    The order summary.
+                    -----------------------------------------------------------
+                    This replaces a three-tab "Select Secure Payment Gateway"
+                    picker in which two of the three tabs — Stripe and Razorpay
+                    — were permanently disabled and stamped "Maintenance" in
+                    red. Neither has ever been wired up; the label described an
+                    outage that was not happening.
 
-                {/* Gateway Tab Selector */}
-                <div>
-                  <label className="mb-2 block text-[10px] font-bold text-muted uppercase tracking-wider">
-                    Select Secure Payment Gateway
-                  </label>
-                  <div className="grid grid-cols-3 gap-3">
-
-                    {/* Stripe Tab (Maintenance) */}
-                     <button
-                       type="button"
-                       disabled
-                       className="flex flex-col items-center justify-center p-3 rounded-xl border border-line bg-bg opacity-50 cursor-not-allowed"
-                     >
-                       <CreditCard className="h-5 w-5 mb-1 text-muted-2" />
-                       <span className="text-[10px] font-bold text-muted-2">Stripe</span>
-                       <span className="text-[8px] text-danger whitespace-nowrap mt-0.5">Maintenance</span>
-                     </button>
-
-                    {/* PayPal Tab */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setPaymentMethod('paypal')
-                        setError('')
-                      }}
-                      className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all ${
-                        paymentMethod === 'paypal'
-                          ? 'border-[#0070ba] bg-[#0070ba]/5 ring-2 ring-[#0070ba]/20'
-                          : 'border-line bg-bg hover:border-line-strong'
-                      }`}
-                    >
-                      <Wallet className={`h-5 w-5 mb-1 ${paymentMethod === 'paypal' ? 'text-[#0070ba]' : 'text-muted-2'}`} />
-                      <span className="text-[10px] font-bold text-ink">PayPal</span>
-                      <span className="text-[8px] text-muted-2 whitespace-nowrap mt-0.5">Wallet / Direct</span>
-                    </button>
-
-                    {/* Razorpay Tab (Maintenance) */}
-                     <button
-                       type="button"
-                       disabled
-                       className="flex flex-col items-center justify-center p-3 rounded-xl border border-line bg-bg opacity-50 cursor-not-allowed"
-                     >
-                       <QrCode className="h-5 w-5 mb-1 text-muted-2" />
-                       <span className="text-[10px] font-bold text-muted-2">Razorpay</span>
-                       <span className="text-[8px] text-danger whitespace-nowrap mt-0.5">Maintenance</span>
-                     </button>
-
+                    Two thirds of a payment screen showing a red failure state
+                    is the single most expensive thing on this page. A buyer
+                    about to hand over $49 reads it as "their payments are
+                    broken and this one probably is too", and the correct
+                    response to that impression is to leave. PayPal is the only
+                    gateway, it works, and a checkout that quietly does one
+                    thing well is worth more than one that advertises two
+                    things it cannot do. When a second gateway is genuinely
+                    live, it comes back as a tab — not before.
+                    ----------------------------------------------------------- */}
+                <div className="rounded-2xl border border-line bg-bg-sunk/30 p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-muted">Your order</p>
+                      <p className="mt-1 truncate text-sm font-bold text-ink">{selectedTier.name}</p>
+                      <p className="mt-0.5 truncate text-xs text-ink-2">
+                        for <strong className="font-semibold text-ink">{formData.name || 'your tool'}</strong>
+                      </p>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <div className="text-2xl font-bold text-ink">{selectedTier.priceLabel}</div>
+                      <div className="text-[10px] font-medium text-muted-2">USD, one-time</div>
+                    </div>
                   </div>
+
+                  <ul className="mt-3 space-y-1.5 border-t border-line/60 pt-3">
+                    {selectedTier.perks.slice(0, 4).map((perk) => (
+                      <li key={perk} className="flex items-start gap-1.5 text-[11px] leading-snug text-ink-2">
+                        <CheckCircle2 className="mt-0.5 h-3 w-3 shrink-0 text-accent" />
+                        <span>{perk}</span>
+                      </li>
+                    ))}
+                    {selectedTier.perks.length > 4 && (
+                      <li className="pl-4.5 text-[11px] font-semibold text-muted-2">
+                        + {selectedTier.perks.length - 4} more, listed in full on the right
+                      </li>
+                    )}
+                  </ul>
+
+                  <div className="mt-3 flex items-baseline justify-between border-t border-line/60 pt-3">
+                    <span className="text-xs font-bold text-ink">Total due today</span>
+                    <span className="text-base font-bold text-ink">{selectedTier.priceLabel} USD</span>
+                  </div>
+                  <p className="mt-1 text-[10px] leading-relaxed text-muted-2">
+                    Charged once. Nothing renews, nothing expires, and there is no subscription to
+                    cancel. Your invoice arrives by email the moment the payment clears.
+                  </p>
                 </div>
 
-                {/* Gateway Specific Form Renders */}
+                {/* PayPal Smart Buttons. */}
                 <form onSubmit={handlePayment} className="space-y-4">
 
                   {/* PAYPAL CHECKOUT BLOCK */}
@@ -1064,7 +1444,8 @@ export default function SubmitPage() {
                           order IDs at /v2/checkout/orders/{id}. Every payment
                           made that way was destined for unverified_review. */}
                       <p className="text-xs text-ink-2 leading-relaxed font-normal max-w-md mx-auto">
-                        Pay {selectedTier.priceLabel} securely below via PayPal.
+                        Pay {selectedTier.priceLabel} with PayPal or any card. You will not
+                        leave this page, and we never see your card details.
                       </p>
 
                       {/* Three explicit states. Previously only the third existed,

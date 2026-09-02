@@ -5,18 +5,50 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{% block title %}AI Compass{% endblock %}</title>
     <style>
+      /* ===================================================================
+         The single AI Compass email shell.
+         ===================================================================
+
+         Every message the site sends extends this file, and the look is the
+         one the founder signed off on: cream page, white card, the "AI
+         Compass" wordmark centred with "Compass" in green, a left-aligned
+         heading, one green pill button, a quiet footer.
+
+         Two things about it are load-bearing rather than cosmetic:
+
+         1. The palette is the SITE's palette (#FAFAF7 page, #168358 accent,
+            #E6E5DE hairline), not the generic grey/emerald this file used to
+            carry. A receipt that does not look like the page the buyer just
+            paid on is the moment a $49 charge starts to feel like a scam.
+
+         2. The class names are unchanged from the previous shell —
+            .heading, .paragraph, .feature-card, .cta-button,
+            .account-callout, .badge-emerald and friends. Six templates
+            already extend this file (welcome, invoice, newsletter, recap,
+            founder report, payment-under-review). Restyling the shell
+            restyles all of them; renaming the classes would have silently
+            unstyled them instead.
+
+         No emoji anywhere in this shell or in anything that extends it.
+         Emoji in a header or a signature are a bulk-mail tell that pushes
+         the message toward Gmail's Promotions tab, render as a blank box in
+         several corporate clients, and read as marketing rather than as
+         correspondence. Enforced by
+         tests/test_email_templates_have_no_emoji.py.
+      */
       body {
         margin: 0;
         padding: 0;
-        background-color: #f9fafb !important;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background-color: #fafaf7 !important;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         -webkit-font-smoothing: antialiased;
+        color: #0f1411;
       }
       table { border-spacing: 0; width: 100%; }
       td { padding: 0; }
 
       .wrapper {
-        background-color: #f9fafb;
+        background-color: #fafaf7;
         padding: 40px 20px;
       }
 
@@ -24,68 +56,77 @@
         max-width: 560px;
         margin: 0 auto;
         background-color: #ffffff !important;
-        border: 1px solid #e5e7eb !important;
+        border: 1px solid #e6e5de !important;
         border-radius: 16px !important;
         overflow: hidden;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
       }
 
+      /* Centred wordmark, "Compass" in green - the mark from the site
+         header, drawn in text rather than fetched as an image: a remote logo
+         is blocked by default in Outlook and Gmail, so a picture-based brand
+         mark shows up as a broken box on first open, which is precisely the
+         wrong first impression. */
       .header-brand {
-        padding: 32px 32px 16px 32px;
-        font-size: 18px;
+        padding: 32px 32px 8px 32px;
+        font-size: 20px;
         font-weight: 800;
-        color: #111827 !important;
+        color: #0f1411 !important;
         letter-spacing: -0.03em;
+        text-align: center;
       }
 
-      .brand-dot {
-        color: #059669;
-      }
+      .brand-dot { color: #168358; }
 
       .content-area {
-        padding: 0 32px 32px 32px;
+        padding: 32px 32px 40px 32px;
       }
 
       .heading {
-        color: #111827 !important;
+        color: #0f1411 !important;
         font-size: 24px;
-        font-weight: 800;
-        margin: 0 0 12px 0;
-        letter-spacing: -0.025em;
+        font-weight: 700;
+        margin: 0 0 16px 0;
+        letter-spacing: -0.02em;
       }
 
       .paragraph {
-        color: #4b5563 !important;
+        color: #6b716d !important;
         font-size: 15px;
-        line-height: 1.6;
-        margin: 0 0 28px 0;
+        line-height: 1.65;
+        margin: 0 0 24px 0;
       }
 
-      /* Premium Feature Block Grid */
+      .fine-print {
+        color: #7f857f !important;
+        font-size: 13px;
+        line-height: 1.6;
+        margin: 0 0 8px 0;
+      }
+
       .feature-card {
-        background-color: #f3f4f6 !important;
-        border: 1px solid #e5e7eb !important;
+        background-color: #fafaf7 !important;
+        border: 1px solid #e6e5de !important;
         border-radius: 12px !important;
         padding: 16px;
         margin-bottom: 16px;
       }
 
       .feature-title {
-        color: #111827 !important;
+        color: #0f1411 !important;
         font-size: 15px;
         font-weight: 700;
         margin-bottom: 4px;
       }
 
       .feature-desc {
-        color: #4b5563 !important;
+        color: #6b716d !important;
         font-size: 13px;
-        line-height: 1.5;
+        line-height: 1.55;
       }
 
       .badge-emerald {
-        background-color: rgba(16, 185, 129, 0.15) !important;
-        color: #065f46 !important;
+        background-color: rgba(22, 131, 88, 0.12) !important;
+        color: #0f5c3d !important;
         font-size: 11px;
         font-family: monospace;
         padding: 2px 6px;
@@ -97,7 +138,7 @@
       }
 
       .badge-teal {
-        background-color: rgba(20, 184, 166, 0.15) !important;
+        background-color: rgba(15, 118, 110, 0.12) !important;
         color: #0f766e !important;
         font-size: 11px;
         font-family: monospace;
@@ -109,74 +150,77 @@
         font-weight: 600;
       }
 
+      /* One button per message. The flat background-color is declared before
+         the gradient so a client that drops the gradient (Outlook does)
+         still paints a solid green pill rather than white-on-white text. */
+      .btn-container {
+        text-align: center;
+        margin: 32px 0 24px 0;
+      }
+
       .cta-button {
-        background-color: #10b981 !important;
+        background-color: #168358 !important;
+        background: linear-gradient(135deg, #168358 0%, #10b981 100%) !important;
         color: #ffffff !important;
-        font-size: 14px;
-        font-weight: 700;
+        font-size: 15px;
+        font-weight: 600;
         text-decoration: none !important;
-        padding: 14px 28px;
-        border-radius: 12px;
+        padding: 14px 30px;
+        border-radius: 10px;
         display: inline-block;
         text-align: center;
         letter-spacing: -0.01em;
-        margin-top: 12px;
-        box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
       }
 
       .cta-button-outline {
         background-color: #ffffff !important;
-        color: #059669 !important;
+        color: #168358 !important;
         font-size: 14px;
-        font-weight: 700;
+        font-weight: 600;
         text-decoration: none !important;
         padding: 12px 26px;
-        border-radius: 12px;
-        border: 2px solid #10b981;
+        border-radius: 10px;
+        border: 1.5px solid #168358;
         display: inline-block;
         text-align: center;
         letter-spacing: -0.01em;
-        margin-top: 12px;
       }
 
       .account-callout {
-        background-color: #f3f4f6 !important;
-        border: 1px solid #e5e7eb !important;
+        background-color: #fafaf7 !important;
+        border: 1px solid #e6e5de !important;
         border-radius: 14px !important;
         padding: 20px;
         margin: 28px 0;
         text-align: center;
       }
 
-      .account-callout p {
-        margin-bottom: 8px;
-      }
+      .account-callout p { margin-bottom: 8px; }
 
       .footer {
         padding: 28px 32px;
-        background-color: #f9fafb;
-        border-top: 1px solid #e5e7eb;
+        background-color: #f2f1eb;
+        border-top: 1px solid #e6e5de;
         text-align: center;
       }
 
       .footer-text {
-        color: #6b7280 !important;
-        font-size: 12px;
+        color: #7f857f !important;
+        font-size: 13px;
         margin: 0;
+        line-height: 1.6;
       }
 
       .footer-link {
-        color: #059669 !important;
+        color: #168358 !important;
         text-decoration: none !important;
-        font-weight: 500;
+        font-weight: 600;
       }
 
       .dev-credit {
-        color: #9ca3af !important;
-        font-size: 11px;
-        font-family: monospace;
-        margin-top: 12px;
-        letter-spacing: 0.02em;
+        color: #9aa09a !important;
+        font-size: 12px;
+        margin-top: 14px;
       }
 
       {% block extra_css %}{% endblock %}
@@ -186,7 +230,7 @@
     <center class="wrapper">
       <table class="main-card" role="presentation">
         <tr>
-          <td class="header-brand">🧭 AI Compass<span class="brand-dot">.in</span></td>
+          <td class="header-brand">AI <span class="brand-dot">Compass</span></td>
         </tr>
 
         <tr>
@@ -198,16 +242,23 @@
         <tr>
           <td class="footer">
             {% block footer_content %}
+            {#  Two addresses, and which one to use, in every footer.
+                A single "contact us" line makes a buyer whose $49 charge did
+                not land guess where to send it, and a guess that goes to the
+                wrong inbox is indistinguishable from being ignored. #}
             <p class="footer-text">
-              Questions or feedback? Reach out at
-              <a href="mailto:help@ai-compass.in" class="footer-link">help@ai-compass.in</a>
+              Questions about your listing, or which tier fits &mdash;
+              <a href="mailto:{{ support_email or 'help@ai-compass.in' }}" class="footer-link">{{ support_email or 'help@ai-compass.in' }}</a>
             </p>
-            <p class="footer-text" style="margin-top: 6px;">Curated tools for engineering and college workflows.</p>
-            <p class="dev-credit">⚡ Developed by Medhansh Pratap Singh</p>
+            <p class="footer-text" style="margin-top: 4px;">
+              Payments, billing or anything urgent &mdash;
+              <a href="mailto:{{ billing_email or 'admin@ai-compass.in' }}" class="footer-link">{{ billing_email or 'admin@ai-compass.in' }}</a>
+            </p>
+            <p class="dev-credit">AI Compass &copy; {{ current_year or 2026 }}. All rights reserved.</p>
             {% endblock %}
             {% if unsubscribe_url %}
-            <p class="dev-credit" style="margin-top: 16px;">
-              Don't want to receive these updates? <a href="{{ unsubscribe_url }}" class="footer-link" style="color: #6b7280 !important;">Unsubscribe</a>
+            <p class="dev-credit" style="margin-top: 12px;">
+              Don't want to receive these updates? <a href="{{ unsubscribe_url }}" class="footer-link" style="color: #7f857f !important;">Unsubscribe</a>
             </p>
             {% endif %}
           </td>

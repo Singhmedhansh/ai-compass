@@ -8,6 +8,7 @@ import SearchInput from '../components/ui/SearchInput'
 import EditorialReviewsPanel from '../components/admin/EditorialReviewsPanel'
 import ToolClaimsPanel from '../components/admin/ToolClaimsPanel'
 import SponsorSlotsPanel from '../components/admin/SponsorSlotsPanel'
+import ListingsPanel from '../components/admin/ListingsPanel'
 
 // ESLint no-unused-vars doesn't recognise JSX namespaced tags (<MotionDiv>)
 // as a usage of `motion`. Alias to constants to satisfy the rule — same
@@ -17,7 +18,7 @@ const MotionSpan = motion.span
 
 const ADMIN_EMAILS = ['singhmedhansh07@gmail.com']
 const TOOLS_PAGE_SIZE = 15
-const TABS = ['Overview', 'Tools', 'Sync', 'Submissions', 'Claims', 'Sponsors', 'Feedback', 'Analytics', 'Tier Breakdown', 'Email', 'Newsletter', 'Flags', 'Users', 'Reviews', 'Links', 'Outreach']
+const TABS = ['Overview', 'Tools', 'Sync', 'Submissions', 'Listings', 'Claims', 'Sponsors', 'Feedback', 'Analytics', 'Tier Breakdown', 'Email', 'Newsletter', 'Flags', 'Users', 'Reviews', 'Links', 'Outreach']
 
 const EMPTY_TOOL = {
   slug: '', name: '', tagline: '', description: '', category: '',
@@ -1419,6 +1420,21 @@ function AdminPage() {
               ))}
               {flags.length === 0 && <p className="text-sm text-muted">No flags yet.</p>}
             </div>
+          </Card>
+        )}
+
+        {activeTab === 'Listings' && (
+          <Card>
+            <h2 className="mb-1 text-xl font-semibold text-ink">Listing performance</h2>
+            <p className="mb-5 text-sm text-muted">
+              The founder dashboard, for every listing at once &mdash; free and paid. Whether a
+              listing actually earns click-throughs is the only honest answer to &ldquo;is being
+              on AI Compass worth $49&rdquo;, and it is what the next sale is argued from. Free
+              rows are here on purpose: a free listing pulling real clicks is the best case for
+              upgrading that founder, and one pulling none is a page to fix before charging
+              anyone for its twin.
+            </p>
+            <ListingsPanel api={api} />
           </Card>
         )}
 

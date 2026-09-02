@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Mail, Phone } from 'lucide-react'
+import { Mail, Phone, CreditCard, LifeBuoy } from 'lucide-react'
 import { Helmet } from 'react-helmet-async'
 
 import { WordReveal } from '../components/ui'
@@ -26,6 +26,40 @@ function LinkedinIcon(props) {
   )
 }
 
+// Two addresses, and which one to use, stated before anything else.
+//
+// This page used to list one personal Gmail for everything. That address is
+// gone: a founder deciding whether to send $49 to a directory reads a
+// personal Gmail on the contact page as evidence there is no business behind
+// it, and the same address handling both "which tier should I buy" and "I was
+// charged twice" guarantees the urgent one waits behind the browsing one.
+//
+// The split is by URGENCY, not by department. Anything about money or a
+// listing that did not appear goes to admin@ and is treated as urgent;
+// everything else, including pre-sales questions about which tier to pick,
+// goes to help@. Both are monitored, and the same split is printed in the
+// footer of every email the site sends (app/templates/emails/base.html).
+const CONTACT_CHANNELS = [
+  {
+    icon: LifeBuoy,
+    label: 'Help & pre-sales',
+    address: 'help@ai-compass.in',
+    body:
+      'Questions about your listing, the catalogue, or which pricing tier fits your launch. ' +
+      'Ask before you buy — we will tell you when the answer is "stay on the free tier".',
+    accent: false,
+  },
+  {
+    icon: CreditCard,
+    label: 'Payments & urgent issues',
+    address: 'admin@ai-compass.in',
+    body:
+      'A charge that looks wrong, a double charge, a payment we could not confirm, or a paid ' +
+      'listing that has not appeared. Include your PayPal reference and we will sort it out.',
+    accent: true,
+  },
+]
+
 export default function ContactPage() {
   return (
     <>
@@ -33,7 +67,7 @@ export default function ContactPage() {
         <title>Contact — Get in Touch | AI Compass</title>
         <meta
           name="description"
-          content="Get in touch with AI Compass. Submit a tool, report an issue, or just say hi. Email, GitHub, and LinkedIn — all in one place."
+          content="Contact AI Compass. help@ai-compass.in for listings, the catalogue and pricing questions; admin@ai-compass.in for payments, billing and anything urgent."
         />
       </Helmet>
 
@@ -43,7 +77,8 @@ export default function ContactPage() {
             <WordReveal>Get in touch</WordReveal>
           </h1>
           <p className="mx-auto mt-4 max-w-xl text-center text-base text-muted sm:text-lg">
-            Tool feedback, collaboration ideas, or just to say hi. The fastest way is email.
+            Two addresses, so the urgent things are not stuck behind the browsing things. Both are
+            read by a person, and email is the fastest way to reach us.
           </p>
         </section>
 
@@ -54,20 +89,68 @@ export default function ContactPage() {
           viewport={REVEAL_VIEWPORT}
           className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2"
         >
-          <a
-            href="mailto:medhansh.builds@gmail.com"
-            className="group flex items-start gap-4 rounded-2xl border border-line bg-bg-elev p-6 outline-none transition hover:border-line-strong focus-visible:ring-2 focus-visible:ring-accent"
-          >
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-accent-soft">
-              <Mail className="h-6 w-6 text-accent-ink" aria-hidden="true" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-xs font-medium uppercase tracking-wide text-muted">Email</p>
-              <p className="mt-1 truncate text-base font-semibold text-ink group-hover:text-accent">medhansh.builds@gmail.com</p>
-              <p className="mt-1 text-sm text-muted">Best for tool feedback or collaboration ideas.</p>
-            </div>
-          </a>
+          {CONTACT_CHANNELS.map((channel) => (
+            <a
+              key={channel.address}
+              href={`mailto:${channel.address}`}
+              className={`group flex flex-col rounded-2xl border p-6 outline-none transition focus-visible:ring-2 focus-visible:ring-accent ${
+                channel.accent
+                  ? 'border-accent/40 bg-accent-soft/10 hover:border-accent'
+                  : 'border-line bg-bg-elev hover:border-line-strong'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-accent-soft">
+                  <channel.icon className="h-5 w-5 text-accent-ink" aria-hidden="true" />
+                </div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted">{channel.label}</p>
+              </div>
+              <p className="mt-4 break-all text-base font-semibold text-ink group-hover:text-accent">
+                {channel.address}
+              </p>
+              <p className="mt-2 text-sm leading-relaxed text-muted">{channel.body}</p>
+            </a>
+          ))}
+        </MotionDiv>
 
+        {/* The response commitment. Saying nothing about timing is what turns
+            a two-day reply into "they ignored me" — and a founder who thinks
+            they were ignored after paying tells other founders so. */}
+        <MotionDiv
+          variants={sectionReveal}
+          initial="initial"
+          whileInView="animate"
+          viewport={REVEAL_VIEWPORT}
+          className="mt-4 rounded-2xl border border-line bg-bg-sunk/50 p-5"
+        >
+          <h2 className="text-sm font-bold text-ink">When you will hear back</h2>
+          <ul className="mt-2 grid gap-1.5 text-sm leading-relaxed text-ink-2 sm:grid-cols-2">
+            <li>
+              <strong className="font-semibold text-ink">Payment problems</strong> — same day,
+              usually within a few hours. Write to admin@.
+            </li>
+            <li>
+              <strong className="font-semibold text-ink">Everything else</strong> — within one
+              working day. Write to help@.
+            </li>
+            <li>
+              <strong className="font-semibold text-ink">Paid a tier?</strong> Your invoice and
+              dashboard link arrive by email immediately. If neither did, that is an admin@ email.
+            </li>
+            <li>
+              <strong className="font-semibold text-ink">Not heard back?</strong> Resend to the
+              other address. It is a mailbox problem, not a decision.
+            </li>
+          </ul>
+        </MotionDiv>
+
+        <MotionDiv
+          variants={sectionReveal}
+          initial="initial"
+          whileInView="animate"
+          viewport={REVEAL_VIEWPORT}
+          className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3"
+        >
           <a
             href="tel:+918951382530"
             className="group flex items-start gap-4 rounded-2xl border border-line bg-bg-elev p-6 outline-none transition hover:border-line-strong focus-visible:ring-2 focus-visible:ring-accent"
@@ -78,18 +161,10 @@ export default function ContactPage() {
             <div className="min-w-0 flex-1">
               <p className="text-xs font-medium uppercase tracking-wide text-muted">Phone</p>
               <p className="mt-1 truncate text-base font-semibold text-ink group-hover:text-accent">+91 89513 82530</p>
-              <p className="mt-1 text-sm text-muted">For quick questions during India business hours.</p>
+              <p className="mt-1 text-sm text-muted">Quick questions, India business hours.</p>
             </div>
           </a>
-        </MotionDiv>
 
-        <MotionDiv
-          variants={sectionReveal}
-          initial="initial"
-          whileInView="animate"
-          viewport={REVEAL_VIEWPORT}
-          className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2"
-        >
           <a
             href="https://github.com/Singhmedhansh"
             target="_blank"
@@ -102,7 +177,7 @@ export default function ContactPage() {
             <div className="min-w-0 flex-1">
               <p className="text-xs font-medium uppercase tracking-wide text-muted">GitHub</p>
               <p className="mt-1 truncate text-base font-semibold text-ink group-hover:text-accent">@Singhmedhansh</p>
-              <p className="mt-1 text-sm text-muted">Open source projects and the AI Compass codebase.</p>
+              <p className="mt-1 text-sm text-muted">The AI Compass codebase.</p>
             </div>
           </a>
 
@@ -117,11 +192,17 @@ export default function ContactPage() {
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-xs font-medium uppercase tracking-wide text-muted">LinkedIn</p>
-              <p className="mt-1 truncate text-base font-semibold text-ink group-hover:text-accent">Medhansh Pratap Singh</p>
-              <p className="mt-1 text-sm text-muted">Professional background and connections.</p>
+              <p className="mt-1 truncate text-base font-semibold text-ink group-hover:text-accent">AI Compass</p>
+              <p className="mt-1 text-sm text-muted">Company updates and background.</p>
             </div>
           </a>
         </MotionDiv>
+
+        <p className="mt-8 text-center text-xs text-muted">
+          <Mail className="mr-1 inline h-3 w-3" aria-hidden="true" />
+          Mail from AI Compass is sent from medhansh.singh@ai-compass.in. Replies to it reach a
+          person.
+        </p>
       </div>
     </>
   )

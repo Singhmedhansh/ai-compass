@@ -28,148 +28,36 @@ def get_verify_serializer():
     return URLSafeTimedSerializer(secret, salt="email-verification-salt")
 
 def get_verification_email_html(name, verification_link):
-    return f"""<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Welcome to AI Compass</title>
-    <!-- Google Fonts for Inter -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-      body {{
-        margin: 0;
-        padding: 0;
-        background-color: #FAFAF7 !important;
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        -webkit-font-smoothing: antialiased;
-        color: #0F1411;
-      }}
-      table {{ border-spacing: 0; width: 100%; }}
-      td {{ padding: 0; }}
+    """The account-verification email, rendered from the shared shell.
 
-      .wrapper {{
-        background-color: #FAFAF7;
-        padding: 40px 20px;
-      }}
+    This used to be a 170-line f-string with its own copy of the stylesheet.
+    It was the ONLY email on the site that looked the way the brand is
+    supposed to look — and because it was a private copy, every improvement
+    to it stopped there while the six templated emails kept the older grey
+    styling. The shell now carries this design (emails/base.html) and this
+    function only supplies the words, so the next change lands everywhere at
+    once instead of in one file.
 
-      .main-card {{
-        max-width: 560px;
-        margin: 0 auto;
-        background-color: #FFFFFF !important;
-        border: 1px solid #E6E5DE !important;
-        border-radius: 16px !important;
-        overflow: hidden;
-      }}
+    The footer credit line is gone with it: the site is presented as a
+    business, and a personal "Designed and Developed by" byline under a
+    payment receipt undercuts that everywhere it appears.
+    """
+    from flask import render_template
 
-      .header-brand {{
-        padding: 32px 32px 16px 32px;
-        font-size: 20px;
-        font-weight: 800;
-        color: #0F1411 !important;
-        letter-spacing: -0.03em;
-        text-align: center;
-      }}
-
-      .header-brand span {{
-        color: #168358;
-      }}
-
-      .content {{
-        padding: 40px 32px;
-        color: #0F1411;
-      }}
-
-      h1 {{
-        margin: 0 0 16px 0;
-        font-size: 24px;
-        font-weight: 700;
-        color: #0F1411 !important;
-        letter-spacing: -0.02em;
-        text-align: left;
-      }}
-
-      p {{
-        margin: 0 0 24px 0;
-        font-size: 16px;
-        line-height: 1.6;
-        color: #6B716D;
-        text-align: left;
-      }}
-
-      .btn-container {{
-        text-align: center;
-        margin: 32px 0;
-      }}
-
-      .btn {{
-        display: inline-block;
-        padding: 14px 28px;
-        background-color: #168358 !important;
-        background: linear-gradient(135deg, #168358 0%, #10b981 100%) !important;
-        color: #FFFFFF !important;
-        font-size: 16px;
-        font-weight: 600;
-        text-decoration: none;
-        border-radius: 8px;
-        box-shadow: 0 4px 14px rgba(22, 131, 88, 0.15);
-      }}
-
-      .footer {{
-        padding: 24px 32px;
-        background-color: #F2F1EB;
-        border-top: 1px solid #E6E5DE;
-        text-align: center;
-      }}
-
-      .footer p {{
-        margin: 0;
-        font-size: 13px;
-        color: #7F857F;
-        text-align: center;
-      }}
-
-      .footer a {{
-        color: #168358 !important;
-        text-decoration: none;
-      }}
-    </style>
-  </head>
-  <body>
-    <center class="wrapper">
-      <table class="main-card" role="presentation">
-        <tr>
-          <td class="header-brand">
-            AI <span>Compass</span>
-          </td>
-        </tr>
-        <tr>
-          <td class="content">
-            <h1>Verify your email address</h1>
-            <p>
-              Hi {name},<br><br>
-              Welcome to AI Compass! We're excited to help you find the best AI tools for your workflow. To get started and secure your account, please verify your email address by clicking the button below.
-            </p>
-            <div class="btn-container">
-              <a href="{verification_link}" class="btn">Verify Email</a>
-            </div>
-            <p style="font-size: 14px; margin-bottom: 0; color: #7F857F;">
-              If you didn't create an account, you can safely ignore this email.
-            </p>
-          </td>
-        </tr>
-        <tr>
-          <td class="footer">
-            <p>AI Compass &copy; 2026. All rights reserved.</p>
-            <p style="margin-top: 8px;">Designed and Developed by Medhansh Pratap Singh</p>
-          </td>
-        </tr>
-      </table>
-    </center>
-  </body>
-</html>"""
+    return render_template(
+        "emails/simple_notice.html",
+        subject_title="Welcome to AI Compass",
+        heading="Verify your email address",
+        paragraphs=[
+            f"Hi {name},",
+            "Welcome to AI Compass. We are glad to have you. To finish setting up "
+            "your account and secure it, confirm your email address using the "
+            "button below.",
+        ],
+        cta_url=verification_link,
+        cta_label="Verify Email",
+        fine_print="If you didn't create an account, you can safely ignore this email.",
+    )
 
 
 def get_reset_serializer():
@@ -294,12 +182,28 @@ def forgot_password():
             token = get_reset_serializer().dumps({"email": email, "hash_part": hash_part})
             reset_link = f"{_frontend_base_url()}/reset-password?token={token}"
             subject = "AI Compass - Password Recovery"
-            html = f"""
-            <p>Hello,</p>
-            <p>We received a request to reset your password. Click the link below to choose a new password (valid for 2 hours):</p>
-            <p><a href="{reset_link}">Reset Password</a></p>
-            <p>If you did not request this, please ignore this email.</p>
-            """
+            # Same shell as every other message. A reset link is the one email
+            # a user is most right to be suspicious of, and four unstyled <p>
+            # tags arriving from an address they have never seen styled is
+            # indistinguishable from a phishing attempt.
+            from flask import render_template
+
+            html = render_template(
+                "emails/simple_notice.html",
+                subject_title="Reset your password",
+                heading="Reset your password",
+                paragraphs=[
+                    "We received a request to reset the password on your AI Compass "
+                    "account. Choose a new one using the button below — the link is "
+                    "valid for 2 hours.",
+                ],
+                cta_url=reset_link,
+                cta_label="Reset Password",
+                fine_print=(
+                    "If you did not request this, you can ignore this email and "
+                    "your password will stay as it is."
+                ),
+            )
             send_email(email, subject, html)
         except Exception:
             current_app.logger.exception("Failed to send recovery email")

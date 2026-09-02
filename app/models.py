@@ -284,6 +284,21 @@ class Submission(db.Model):
     logo_mime = db.Column(db.String(32), nullable=True)
     logo_source = db.Column(db.String(16), nullable=True)
 
+    # Send-once stamp for the "your listing is live" email (app/listing_live.py).
+    #
+    # Until this existed, a FREE submitter heard from us exactly twice: once
+    # on submit, and never again. Their listing appeared seven days later and
+    # nobody told them. That is the single cheapest relationship in the
+    # funnel to keep and the one we were dropping — a founder who is shown
+    # their own live page, with its real URL, is a founder who has a reason
+    # to link to us, come back, and eventually buy a tier. Paid listings get
+    # the same note; they have simply also had an invoice.
+    #
+    # A stamp rather than a computed "should have gone out by now": the
+    # sweeper runs on a schedule, and a missed or double run must not mean a
+    # founder is mailed twice about one listing.
+    live_email_sent_at = db.Column(db.DateTime, nullable=True)
+
 
 class NewsletterSubscriber(db.Model):
     __tablename__ = "newsletter_subscribers"

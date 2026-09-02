@@ -25,7 +25,7 @@ export default function TermsPage() {
             <h1 className="text-3xl font-bold text-ink sm:text-4xl md:text-5xl">
               <WordReveal>Terms of Service</WordReveal>
             </h1>
-            <p className="mt-3 text-sm text-muted">Last updated: July 1, 2026</p>
+            <p className="mt-3 text-sm text-muted">Last updated: September 2, 2026</p>
             <p className="mt-6 text-base leading-relaxed text-ink-2">
               Welcome to AI Compass. These Terms of Service (&quot;Terms&quot;) govern your use of ai-compass.in (the &quot;Service&quot;). By using the Service, you agree to these Terms.
             </p>
@@ -47,18 +47,65 @@ export default function TermsPage() {
               </p>
             </section>
 
+            {/* This section used to describe monthly/annual subscriptions
+                billed through Stripe with auto-renewing cycles cancellable
+                from a dashboard. None of that has ever existed here: every
+                paid tier is a single PayPal charge, there is no renewal and
+                there is nothing to cancel. Terms that describe the wrong
+                product are unenforceable and, worse, are the first thing a
+                buyer checks before sending $49. */}
             <section className="mt-12">
               <h2 id="billing" className="text-xl font-semibold text-ink sm:text-2xl">
-                1a. Paid Subscriptions and Billing
+                1a. Paid listings and billing
               </h2>
               <p className="mt-3 leading-relaxed text-ink-2">
-                <strong>Premium Tiers:</strong> AI Compass offers paid premium features or subscription tiers (&quot;Paid Services&quot;). By signing up for a Paid Service, you agree to pay the specified monthly or annual fees.
+                <strong>What is for sale.</strong> AI Compass sells paid listing tiers to the
+                owners of the tools being listed (&quot;Paid Services&quot;): Listing + Analytics,
+                Fast-Track, Reviewed, and a standalone commissioned review. Current prices are
+                published on <a href="/pricing" className="text-accent hover:underline">/pricing</a> and
+                that page is the authoritative price at the moment you pay.
               </p>
               <p className="mt-3 leading-relaxed text-ink-2">
-                <strong>Billing:</strong> Payments are processed securely via Stripe. All billing cycles automatically renew unless cancelled before the renewal date through your user dashboard.
+                <strong>One-time, not a subscription.</strong> Every Paid Service is a single
+                charge in USD. There is no subscription, no billing cycle, no renewal and no
+                stored payment method. Nothing auto-charges you, and nothing you have bought is
+                withdrawn if you never pay again.
               </p>
               <p className="mt-3 leading-relaxed text-ink-2">
-                <strong>Price Changes:</strong> We reserve the right to change our subscription rates at any time. Any price changes will be communicated to active subscribers via email at least 30 days before taking effect.
+                <strong>How payment is taken.</strong> Payments are processed by PayPal. We do not
+                receive, handle or store your card details; your payment is governed by PayPal&apos;s
+                own terms in addition to these. A payment is only treated as complete once we have
+                independently confirmed it with PayPal, and paid benefits begin at that point.
+                If we cannot confirm a payment automatically, your submission is held for manual
+                review and you are emailed about it — it is never silently downgraded.
+              </p>
+              <p className="mt-3 leading-relaxed text-ink-2">
+                <strong>What a paid tier does and does not buy.</strong> Paid tiers buy placement,
+                reporting, speed of publication and, for the Reviewed tier, a commissioned
+                hands-on review. They never buy a favourable verdict, an editorial pick, a rating,
+                a community leaderboard rank, or an unlabelled placement. Every paid unit on the
+                site is disclosed as paid on its face.
+              </p>
+              <p className="mt-3 leading-relaxed text-ink-2">
+                <strong>Acceptance.</strong> Paying does not by itself guarantee publication. We
+                only list tools that honestly fit the catalogue, and we may decline a submission —
+                in which case the payment is refunded in full.
+              </p>
+              <p className="mt-3 leading-relaxed text-ink-2">
+                <strong>Price changes.</strong> We may change prices at any time. A change never
+                applies retroactively to a payment already made, and because nothing renews, a
+                price change cannot alter what you have already bought.
+              </p>
+              <p className="mt-3 leading-relaxed text-ink-2">
+                <strong>Refunds.</strong> Duplicate charges are refunded in full, always. Refunds
+                are available at any time before a listing is published, and not after it is,
+                because publication is the delivery. The full rules are in our{' '}
+                <a href="/refunds" className="text-accent hover:underline">Refund &amp; Cancellation Policy</a>,
+                which forms part of these Terms.
+              </p>
+              <p className="mt-3 leading-relaxed text-ink-2">
+                <strong>Taxes.</strong> Prices are in USD and exclusive of any tax, duty or bank
+                charge that may apply where you are. Any such amount is yours to settle.
               </p>
             </section>
 
@@ -111,8 +158,29 @@ export default function TermsPage() {
                 5. Tool listings and affiliate disclosure
               </h2>
               <div className="mt-3 rounded-xl border border-accent/30 bg-accent-soft p-5">
+                {/* This block used to say "visibility is not for sale",
+                    which stopped being true the day Fast-Track shipped —
+                    placement above free listings is exactly what it sells.
+                    Leaving the sentence in would have made the honest part of
+                    the promise (rankings and verdicts really are not for
+                    sale) unbelievable by association, so it now says what is
+                    sold, what is not, and how you can tell them apart. */}
                 <p className="leading-relaxed text-ink-2">
-                  Tool listings on AI Compass are curated by us. Rankings, reviews, and visibility are not for sale. Some outbound links on individual tool pages are affiliate links — when that's the case, the link is marked clearly on the page and the rating is unaffected.
+                  <strong className="text-ink">What is for sale:</strong> placement. A paid tier can
+                  put a listing above free ones in its category and in search, on the homepage
+                  strip, on a best-of guide and on the community rail. Every one of those units is
+                  labelled &quot;Sponsored&quot; or &quot;Partner&quot; where it appears.
+                </p>
+                <p className="mt-3 leading-relaxed text-ink-2">
+                  <strong className="text-ink">What is not:</strong> editorial picks, ratings,
+                  review verdicts and community leaderboard ranks. Ratings come from readers;
+                  ranks are computed from votes, comments and click-throughs; a commissioned
+                  review is written by us, states on its face that it was commissioned, and its
+                  verdict is not for sale at any price.
+                </p>
+                <p className="mt-3 leading-relaxed text-ink-2">
+                  Some outbound links on individual tool pages are affiliate links. Where that is
+                  the case the link is marked clearly on the page, and the rating is unaffected.
                 </p>
               </div>
               <p className="mt-3 leading-relaxed text-ink-2">
@@ -211,12 +279,21 @@ export default function TermsPage() {
               </h2>
               <p className="mt-3 leading-relaxed text-ink-2">Questions about these Terms?</p>
               <p className="mt-3 leading-relaxed text-ink-2">
-                <strong className="text-ink">Email:</strong>{' '}
+                <strong className="text-ink">General and listings:</strong>{' '}
                 <a
-                  href="mailto:medhansh.builds@gmail.com"
+                  href="mailto:help@ai-compass.in"
                   className="text-accent hover:underline focus-visible:underline focus-visible:outline-none"
                 >
-                  medhansh.builds@gmail.com
+                  help@ai-compass.in
+                </a>
+              </p>
+              <p className="mt-3 leading-relaxed text-ink-2">
+                <strong className="text-ink">Payments, billing and anything urgent:</strong>{' '}
+                <a
+                  href="mailto:admin@ai-compass.in"
+                  className="text-accent hover:underline focus-visible:underline focus-visible:outline-none"
+                >
+                  admin@ai-compass.in
                 </a>
               </p>
             </section>

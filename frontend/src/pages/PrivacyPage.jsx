@@ -62,7 +62,7 @@ export default function PrivacyPage() {
                 Usage data: Our hosting provider may collect standard server logs (IP address, user agent, request paths) for security and operational purposes.
               </p>
               <p className="mt-3 leading-relaxed text-ink-2">
-                Payment Data: We use Stripe to process payments and subscriptions. We never store or see your credit card or billing details on our servers. Stripe collects and processes this data securely according to their privacy policy. We only store transaction statuses (e.g., payment successful, subscription active) linked to your account to unlock premium features.
+                Payment data: Payments for paid listings are processed by <strong>PayPal</strong>. Your card or PayPal account details go to PayPal directly and never reach our servers — we cannot see them, and we do not store them. PayPal collects and processes that data under its own privacy policy. What we store is the PayPal order reference, the amount, the currency and the verification status of the payment, kept against your submission so we can confirm what was bought, issue your invoice, and refund you if we need to. There are no subscriptions, so there is no recurring billing data of any kind.
               </p>
               <p className="mt-3 leading-relaxed text-ink-2">
                 We do not collect location data beyond standard server logs, or contacts/social media data.
@@ -95,7 +95,8 @@ export default function PrivacyPage() {
               </p>
               <ul className="mt-3 list-disc space-y-2 pl-6 text-ink-2">
                 <li className="leading-relaxed">Render — hosting and database (PostgreSQL)</li>
-                <li className="leading-relaxed">Stripe — Payment processing and subscription management</li>
+                <li className="leading-relaxed">PayPal — payment processing for paid listings. Receives your payment details directly; we receive only the order reference and its status.</li>
+                <li className="leading-relaxed">Resend — delivery of transactional email (verification, invoices, listing notices, the digest). Receives your email address and the message.</li>
               </ul>
               <p className="mt-3 leading-relaxed text-ink-2">
                 These providers process data on our behalf and are bound by their own privacy commitments.
@@ -155,12 +156,12 @@ export default function PrivacyPage() {
               <p className="mt-3 leading-relaxed text-ink-2">
                 No system is perfectly secure. If you become aware of a security issue, please contact us at{' '}
                 <a
-                  href="mailto:medhansh.builds@gmail.com"
+                  href="mailto:admin@ai-compass.in"
                   className="text-accent hover:underline focus-visible:underline focus-visible:outline-none"
                 >
-                  medhansh.builds@gmail.com
+                  admin@ai-compass.in
                 </a>
-                .
+                , which is the address we monitor for urgent reports.
               </p>
             </section>
 
@@ -190,12 +191,21 @@ export default function PrivacyPage() {
                 For privacy questions, data requests, or to report a concern:
               </p>
               <p className="mt-3 leading-relaxed text-ink-2">
-                <strong className="text-ink">Email:</strong>{' '}
+                <strong className="text-ink">Privacy and data requests:</strong>{' '}
                 <a
-                  href="mailto:medhansh.builds@gmail.com"
+                  href="mailto:help@ai-compass.in"
                   className="text-accent hover:underline focus-visible:underline focus-visible:outline-none"
                 >
-                  medhansh.builds@gmail.com
+                  help@ai-compass.in
+                </a>
+              </p>
+              <p className="mt-3 leading-relaxed text-ink-2">
+                <strong className="text-ink">Payment data, or anything urgent:</strong>{' '}
+                <a
+                  href="mailto:admin@ai-compass.in"
+                  className="text-accent hover:underline focus-visible:underline focus-visible:outline-none"
+                >
+                  admin@ai-compass.in
                 </a>
               </p>
               <p className="mt-3 leading-relaxed text-ink-2">

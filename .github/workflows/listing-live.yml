@@ -1,0 +1,70 @@
+name: Listing live notices
+
+# Daily at 09:00 UTC (14:30 IST). Deliberately EARLY in the day and well
+# before the outreach cron: both draw on the same 100/day Resend cap
+# (app/send_budget.py), and a founder being told their own listing is live is
+# a promise we have already made, while outreach is speculative. The promise
+# goes first.
+#
+# The endpoint is idempotent — every Submission carries a live_email_sent_at
+# stamp written only on a confirmed send — so a retried, duplicated or
+# manually triggered run mails nobody twice.
+on:
+  schedule:
+    - cron: '0 9 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'List who would be mailed, without sending'
+        required: false
+        default: 'false'
+        type: choice
+        options: ['false', 'true']
+
+concurrency:
+  group: listing-live
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: POST to /api/v1/admin/send-live-emails
+        env:
+          DIGEST_SECRET: ${{ secrets.DIGEST_SECRET }}
+          DRY_RUN: ${{ inputs.dry_run || 'false' }}
+        run: |
+          set -euo pipefail
+          if [ -z "${DIGEST_SECRET:-}" ]; then
+            echo "::error::DIGEST_SECRET secret is not set. Add it under Settings > Secrets > Actions, matching the value in Render env."
+            exit 1
+          fi
+
+          URL="https://ai-compass.in/api/v1/admin/send-live-emails"
+          if [ "$DRY_RUN" = "true" ]; then URL="${URL}?dry_run=1"; fi
+
+          echo "POST $URL"
+          RESP=$(curl -sS -w "\nHTTP_CODE:%{http_code}\n" \
+            -X POST \
+            -H "X-Digest-Secret: ${DIGEST_SECRET}" \
+            -H "Content-Type: application/json" \
+            --max-time 90 \
+            "$URL")
+          echo "$RESP"
+
+          CODE=$(echo "$RESP" | tail -1 | sed 's/HTTP_CODE://')
+          if [ "$CODE" != "200" ]; then
+            echo "::error::send-live-emails returned HTTP $CODE"
+            exit 1
+          fi
+
+          BODY=$(echo "$RESP" | sed '$d')
+          echo "## Listing-live notices" >> "$GITHUB_STEP_SUMMARY"
+          echo '```json' >> "$GITHUB_STEP_SUMMARY"
+          echo "$BODY" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"

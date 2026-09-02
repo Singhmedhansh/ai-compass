@@ -411,7 +411,7 @@ export default function HelpPage() {
           </div>
 
           <a
-            href="mailto:medhansh.builds@gmail.com"
+            href="mailto:help@ai-compass.in"
             className="group flex items-start gap-4 rounded-2xl border border-line bg-bg-elev p-6 outline-none transition hover:border-line-strong focus-visible:ring-2 focus-visible:ring-accent"
           >
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-accent-soft">
@@ -419,7 +419,7 @@ export default function HelpPage() {
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-xs font-semibold uppercase tracking-wide text-muted">Direct Email</p>
-              <h3 className="mt-1 text-base font-semibold text-ink group-hover:text-accent">medhansh.builds@gmail.com</h3>
+              <h3 className="mt-1 text-base font-semibold text-ink group-hover:text-accent">help@ai-compass.in</h3>
               <p className="mt-1 text-xs text-muted leading-relaxed">
                 Send us an email for general inquiries, business partnerships, or manual verification requests.
               </p>

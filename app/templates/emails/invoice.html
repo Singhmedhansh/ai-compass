@@ -11,32 +11,32 @@
 }
 .invoice-table th {
   text-align: left;
-  border-bottom: 2px solid #e5e7eb;
+  border-bottom: 2px solid #e6e5de;
   padding: 8px 0;
-  color: #111827;
+  color: #0f1411;
   font-weight: 700;
 }
 .invoice-table td {
   padding: 10px 0;
-  border-bottom: 1px solid #f3f4f6;
-  color: #4b5563;
+  border-bottom: 1px solid #fafaf7;
+  color: #6b716d;
 }
 .invoice-meta {
   margin: 15px 0 25px 0;
   padding: 15px;
-  background-color: #f9fafb;
+  background-color: #fafaf7;
   border-radius: 8px;
   font-size: 13px;
-  color: #4b5563;
+  color: #6b716d;
   line-height: 1.6;
 }
 .invoice-meta strong {
-  color: #111827;
+  color: #0f1411;
 }
 .total-row td {
   font-weight: 700;
-  color: #111827 !important;
-  border-top: 2px solid #e5e7eb;
+  color: #0f1411 !important;
+  border-top: 2px solid #e6e5de;
   border-bottom: none;
   font-size: 16px;
   padding-top: 15px;
@@ -88,15 +88,15 @@
    unless they pick one. #}
 {% if launch_eligible and dashboard_url %}
 <div style="border: 1px solid #d1fae5; background: #f0fdf4; border-radius: 10px; padding: 16px 18px; margin: 26px 0;">
-  <p style="font-weight: 700; color: #111827 !important; font-size: 15px; margin: 0 0 6px 0;">
+  <p style="font-weight: 700; color: #0f1411 !important; font-size: 15px; margin: 0 0 6px 0;">
     Pick your Launch Day
   </p>
-  <p style="font-size: 13px; color: #4b5563 !important; line-height: 1.6; margin: 0;">
+  <p style="font-size: 13px; color: #6b716d !important; line-height: 1.6; margin: 0;">
     Your placement, your Featured rail card on the community page and your spot at the top of the
     new-tools digest can all start on a date you choose, instead of whenever we happen to approve
     you. We run <strong>one launch a day</strong>, so tell your own audience the same date and it
     lands together. Choose yours on
-    <a href="{{ dashboard_url }}" style="color: #059669; font-weight: 600;">your dashboard</a> —
+    <a href="{{ dashboard_url }}" style="color: #168358; font-weight: 600;">your dashboard</a> —
     you can move it right up until it runs.
   </p>
 </div>
@@ -104,25 +104,25 @@
 
 {% if founder_account_created %}
 <div class="account-callout">
-  <p style="font-weight: 700; color: #111827 !important; font-size: 15px; margin-bottom: 6px;">
+  <p style="font-weight: 700; color: #0f1411 !important; font-size: 15px; margin-bottom: 6px;">
     Your Growth Hub account is ready
   </p>
-  <p style="font-size: 13px; color: #4b5563 !important; margin-bottom: 10px;">
+  <p style="font-size: 13px; color: #6b716d !important; margin-bottom: 10px;">
     We've created an account for you so your dashboard is a normal login, not just a link to dig
     up later. Here are your temporary credentials — you'll be asked to set a new password the
     first time you sign in.
   </p>
-  <p style="font-size: 13px; color: #111827 !important; margin-bottom: 4px;">
+  <p style="font-size: 13px; color: #0f1411 !important; margin-bottom: 4px;">
     <strong>Email:</strong> {{ customer_email }}<br />
     <strong>Temporary password:</strong> {{ founder_temp_password }}
   </p>
 </div>
 {% elif founder_account_linked %}
 <div class="account-callout">
-  <p style="font-weight: 700; color: #111827 !important; font-size: 15px; margin-bottom: 6px;">
+  <p style="font-weight: 700; color: #0f1411 !important; font-size: 15px; margin-bottom: 6px;">
     Linked to your existing account
   </p>
-  <p style="font-size: 13px; color: #4b5563 !important;">
+  <p style="font-size: 13px; color: #6b716d !important;">
     {{ tool_name }} is now linked to your existing AI Compass account ({{ customer_email }}) — log
     in as usual and you'll find it in your Growth Hub.
   </p>

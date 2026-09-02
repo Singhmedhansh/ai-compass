@@ -1,0 +1,84 @@
+{% extends "emails/base.html" %}
+
+{#  "Your listing is live."
+
+    The one email a free submitter actually waits for, and until now the one
+    we never sent. Everything in it is a fact the reader can check in ten
+    seconds — the live URL, the category it sits in, what happens next —
+    because the whole value of this message is that it proves we did the
+    thing we said we would do seven days ago.
+
+    The upgrade line at the bottom is deliberately one sentence and sits
+    UNDER the fold of the good news. A founder who has just been handed a
+    working page is the most receptive they will ever be, but leading with
+    the ask would turn the only email that says "we delivered" into an
+    advert, and then it stops being the email they open next time.
+#}
+
+{% block title %}{{ tool_name }} is now live on AI Compass{% endblock %}
+
+{% block content %}
+<h1 class="heading">{{ tool_name }} is live</h1>
+
+<p class="paragraph">
+  Hi{% if founder_name %} {{ founder_name }}{% endif %},
+</p>
+
+<p class="paragraph">
+  Your listing has finished review and is now published on AI Compass. It is
+  indexed, searchable, and it appears in
+  {% if category %}the {{ category }} category{% else %}the catalogue{% endif %}
+  alongside every other tool. Here is your page:
+</p>
+
+<div class="btn-container">
+  <a href="{{ tool_url }}" class="cta-button">View your live listing</a>
+</div>
+
+<p class="fine-print" style="text-align:center; margin-bottom: 28px;">
+  {{ tool_url }}
+</p>
+
+<div class="feature-card">
+  <div class="feature-title">It is permanent</div>
+  <div class="feature-desc">
+    The page does not expire and never needs renewing. The URL above is
+    stable, so it is safe to cite from your own site, your launch post or a
+    press kit.
+  </div>
+</div>
+
+<div class="feature-card">
+  <div class="feature-title">You can edit it yourself, free</div>
+  <div class="feature-desc">
+    Claim the listing with an email on your tool's own domain and you can
+    correct the description, carry the maker badge and reply to reviews. That
+    is free at every tier and always will be.
+  </div>
+</div>
+
+{% if dashboard_url %}
+<div class="feature-card">
+  <div class="feature-title">Your dashboard</div>
+  <div class="feature-desc">
+    Track the listing from
+    <a href="{{ dashboard_url }}" style="color:#168358; font-weight:600; text-decoration:none;">your private dashboard</a>.
+    Keep this email — that link is the only way in.
+  </div>
+</div>
+{% endif %}
+
+{% if show_upgrade %}
+<p class="fine-print" style="margin-top: 24px;">
+  If you would like the numbers your listing is earning &mdash; views,
+  click-throughs and a monthly report &mdash; Listing + Analytics is $19 one
+  time at
+  <a href="{{ site_url }}/pricing" style="color:#168358; font-weight:600; text-decoration:none;">ai-compass.in/pricing</a>.
+  Nothing about the listing above changes either way.
+</p>
+{% endif %}
+
+<p class="fine-print">
+  Something wrong on the page? Reply to this email and we will fix it.
+</p>
+{% endblock %}

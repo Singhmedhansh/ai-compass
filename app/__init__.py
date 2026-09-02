@@ -1025,6 +1025,10 @@ def create_app(config: dict | None = None) -> Flask:
                         ("logo_data", "BYTEA" if is_postgres else "BLOB"),
                         ("logo_mime", "VARCHAR(32)"),
                         ("logo_source", "VARCHAR(16)"),
+                        # Send-once stamp for the "your listing is live"
+                        # email. See Submission.live_email_sent_at and
+                        # app/listing_live.py.
+                        ("live_email_sent_at", "TIMESTAMP"),
                     ]:
                         _add_column("submissions", col_name, col_type)
 
@@ -1156,8 +1160,17 @@ def create_app(config: dict | None = None) -> Flask:
 
     @app.context_processor
     def inject_global_template_vars():
+        # brand_context() carries support_email / billing_email /
+        # current_year, which every email footer reads. It is injected here
+        # rather than passed at each render_template call site because there
+        # are eleven of those and a footer that silently loses its contact
+        # addresses on the twelfth is not a failure anyone would notice
+        # until a buyer had nowhere to write.
+        from app.brand import brand_context
+
         return {
-            "category_counts": {}
+            "category_counts": {},
+            **brand_context(),
         }
 
     # WHY: minimal health endpoint for Render port-scan probes. Returns

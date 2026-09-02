@@ -1,29 +1,48 @@
 {% extends "emails/base.html" %}
 
+{#  The free-tier confirmation.
+
+    Two things changed here, and both were promises the code no longer kept:
+
+    1. "usually within about two weeks" was left over from the 14-day free
+       window. That window is 7 days (pricing_tiers.TIERS), and quoting a
+       longer wait than we actually take is not caution — it is the reason a
+       founder stops watching for us.
+
+    2. It never said we would tell them when the listing went live, because
+       until app/listing_live.py we did not. Saying it here is what turns the
+       silence of the waiting period from "nothing is happening" into "we
+       said this would take a week".
+#}
+
 {% block title %}We received your submission - AI Compass{% endblock %}
 
 {% block content %}
-<h1 class="heading">We received your submission</h1>
+<h1 class="heading">We have your submission</h1>
 <p class="paragraph">
-  Thanks for submitting <strong>{{ tool_name }}</strong> to AI Compass! Free
-  submissions are reviewed in the order they arrive — usually within about
-  two weeks.
+  Thanks for submitting <strong>{{ tool_name }}</strong> to AI Compass. Free
+  submissions are reviewed in the order they arrive, after paid ones, and go
+  live 7 days after approval. <strong>We will email you the moment your
+  listing is live</strong>, with the link to your page &mdash; you do not need
+  to check back.
 </p>
 
 {% if dashboard_url %}
-<div style="text-align: center; margin: 32px 0;">
+<div class="btn-container">
   <a href="{{ dashboard_url }}" class="cta-button">Track your submission</a>
 </div>
-<p class="paragraph" style="font-size: 13px; text-align: center;">
-  Check review status anytime — and see what click/view analytics look like
-  once your tool is live.
+<p class="fine-print" style="text-align: center;">
+  Keep this email &mdash; that link is the only way back into your dashboard.
 </p>
 {% endif %}
 
 {% include "emails/_account_callout.html" %}
 
 <p class="paragraph" style="margin-top: 30px;">
-  Want to be reviewed first, or placed above free listings instead of waiting in the queue? See our
-  <a href="https://ai-compass.in/pricing" style="color: #059669; font-weight: 600;">paid listing tiers</a>.
+  In a hurry? Fast-Track is reviewed first (target 24 hours), goes live the
+  next day and sits above free listings with a labelled &quot;Sponsored&quot;
+  badge &mdash; $49, one time. See the
+  <a href="https://ai-compass.in/pricing" style="color: #168358; font-weight: 600; text-decoration: none;">tiers</a>.
+  Your free listing is permanent either way.
 </p>
 {% endblock %}
