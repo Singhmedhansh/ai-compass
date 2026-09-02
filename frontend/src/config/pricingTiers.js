@@ -72,7 +72,7 @@ export const PRICING_TIERS = [
     badgeLabel: 'Standard',
     name: 'Free Listing',
     tagline: 'A full listing with your description and link, on the same terms as everything else in the catalog.',
-    reviewEta: 'Reviewed after paid submissions · goes live 7 days after approval.',
+    reviewEta: 'Reviewed after paid submissions · live as soon as it is approved.',
     perks: [
       'Full directory listing with description, link, category and tags',
       'Your own indexed /tools/ page, plus alternatives and comparison pages',
@@ -98,7 +98,7 @@ export const PRICING_TIERS = [
     badgeLabel: 'Analytics',
     name: 'Listing + Analytics',
     tagline: 'The same listing, plus the numbers it earns — a dashboard, and a report in your inbox every month.',
-    reviewEta: 'Reviewed ahead of free submissions · goes live 7 days after approval.',
+    reviewEta: 'Reviewed ahead of free submissions · live as soon as it is approved.',
     perks: [
       'Everything in the free listing',
       'Reviewed ahead of every free submission',
@@ -109,7 +109,7 @@ export const PRICING_TIERS = [
     notIncluded: [
       'Placement above free listings — this tier buys the numbers, not the position',
       'A "Sponsored" badge, the homepage strip or Partner cards',
-      'A faster go-live — the 7-day wait is the same as free, on purpose',
+      'A faster go-live — every tier now publishes at approval, on purpose',
       'A written review of your tool',
     ],
     // Claiming is free for everyone (app/claims.py), so it is deliberately
@@ -123,11 +123,11 @@ export const PRICING_TIERS = [
     badgeLabel: 'Fast-Track',
     name: 'Fast-Track',
     tagline: 'Reviewed first, live the next day, and placed above free listings for as long as the listing stands — every unit of it labelled.',
-    reviewEta: 'Reviewed first, target 24 hours · goes live 1 day after approval.',
+    reviewEta: 'Reviewed first, target 24 hours · live the moment it is approved.',
     perks: [
       'Everything in Listing + Analytics, including the monthly report',
       'Priority review queue — ahead of every free submission',
-      'Goes live 1 day after approval, not 7',
+      'Reviewed first, so it is live in about a day instead of waiting behind the free queue',
       'Placement above free listings in your category and in search, permanently',
       'A labelled "Sponsored" badge on your card everywhere it appears',
       'Eligible for the homepage "Featured on AI Compass" strip',
@@ -188,7 +188,7 @@ export const TIER_HIGHLIGHTS = {
     'A permanent listing, page and search entry',
     'Announced in the weekly new-tools email',
     'Rateable and reviewable like every other tool',
-    'Live 7 days after approval',
+    'Live as soon as we approve it',
   ],
   analytics: [
     'Everything in Free',
@@ -200,7 +200,7 @@ export const TIER_HIGHLIGHTS = {
     'Everything in Analytics',
     'Placed above free listings, permanently',
     'Homepage strip, guide cards and the community rail',
-    'Live 1 day after approval, not 7',
+    'Reviewed first — target 24 hours, not behind the free queue',
   ],
   reviewed: [
     'Everything in Fast-Track',
@@ -218,7 +218,7 @@ export const TIER_HIGHLIGHTS = {
 //
 // A cell is `true` (included), `false` (not), or a string (included, with the
 // detail that makes it worth the money — "1 day" beats a tick when the row
-// above it says "7 days"). Strings are what stop this being a tick-farm: four
+// above it says "After paid"). Strings are what stop this being a tick-farm: four
 // columns of identical ticks tells a reader nothing about why one costs sixty
 // dollars more.
 //
@@ -240,7 +240,7 @@ export const COMPARISON_GROUPS = [
     title: 'Speed',
     rows: [
       ['Review order', 'After paid', 'Ahead of free', 'First, target 24h', 'First, target 24h'],
-      ['Goes live after approval', '7 days', '7 days', '1 day', '1 day'],
+      ['Goes live after approval', 'Same day', 'Same day', 'Same day', 'Same day'],
       ['Pick your own launch date', false, false, true, true],
     ],
   },

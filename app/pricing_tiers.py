@@ -16,12 +16,24 @@ correction this file records:
   sale" and "cannot exist" are different statements; see LIVE_PLACEMENTS in
   sponsorship.py for the same distinction applied to placements.
 
-  The free wait dropped from 14 days to 7. Two weeks of invisibility does
-  not create urgency, it creates churn: it left most submitted tools unseen
-  for a fortnight, so the founder saw nothing happen and had no reason to
-  come back. Time-to-live is the weakest thing a directory can sell, so it
-  is no longer what the paid tiers are sold on — they are faster as a side
-  effect, not as the product.
+  The free wait went 14 days -> 7 -> 0. Each cut was the same argument
+  reaching its conclusion: time-to-live is the weakest thing a directory can
+  sell, and the wait was never what anyone was buying. It sold zero upgrades
+  in either form.
+
+  What it did cost was real. A listing that is not public is not being
+  crawled, so every day of delay is a day of indexing the site never gets
+  back — and for a directory whose whole value to a founder is an indexed
+  page that ranks, that is the most expensive thing on the ladder to give
+  away. Eleven listings sat approved and invisible at once before this was
+  measured (see the admin Listings tab), earning nothing for anybody.
+
+  So a free listing is now live at approval, and the paid tiers no longer
+  claim to be faster to publish. What Fast-Track actually sells is unchanged
+  and was always the real product: priority in the REVIEW queue (reviewed
+  first, target 24h, rather than after every paid submission), placement
+  above free listings, the labelled badge, the rail card, partner units,
+  digest position, Launch Day and the reporting.
 
   Fast-Track ($49) sells placement and reporting. Reviewed ($79) sells
   Fast-Track plus the thing that actually survives a week of attention: a
@@ -37,8 +49,8 @@ correction this file records:
   behind that wall: the numbers. The dashboard, and the monthly report
   emailed to the founder (app/founder_report.py). It buys no placement, no
   badge and no queue position beyond the ordinary paid-before-free review
-  order, which is why it keeps the free tier's 7-day release delay: a
-  directory that sells time-to-live is selling the weakest thing it has.
+  order, and it publishes at approval exactly like free does: a directory
+  that sells time-to-live is selling the weakest thing it has.
 """
 
 TIERS = {
@@ -49,26 +61,33 @@ TIERS = {
     # for_sale: whether the checkout will accept a claim of this tier. A
     # retired tier keeps its entry so existing rows still resolve to it.
     "free": {
+        # 0: live at approval. See the module docstring — the wait sold
+        # nothing and cost indexing time, which is the one thing this site
+        # cannot buy back later.
         "prefix": "free", "price": 0.0, "paid": False,
-        "visibility_delay_days": 7, "for_sale": True,
+        "visibility_delay_days": 0, "for_sale": True,
     },
     "analytics": {
-        # The $19 entry point. Same wait as free — it sells the reporting,
+        # The $19 entry point. Same speed as free — it sells the reporting,
         # not the speed, and not the claim (which is free for everyone).
         "prefix": "analytics", "price": 19.0, "paid": True,
-        "visibility_delay_days": 7, "for_sale": True,
+        "visibility_delay_days": 0, "for_sale": True,
     },
     "quick": {
         "prefix": "quick", "price": 14.99, "paid": True,
         "visibility_delay_days": 2, "for_sale": False,
     },
+    # The placement tiers publish at approval too, now that free does. A
+    # one-day delay that used to read as "faster than free" would, against a
+    # free tier that is instant, read only as "slower" — the exact opposite
+    # of what it was there to say.
     "sponsored": {
         "prefix": "sponsored", "price": 49.0, "paid": True,
-        "visibility_delay_days": 1, "for_sale": True,
+        "visibility_delay_days": 0, "for_sale": True,
     },
     "reviewed": {
         "prefix": "reviewed", "price": 79.0, "paid": True,
-        "visibility_delay_days": 1, "for_sale": True,
+        "visibility_delay_days": 0, "for_sale": True,
     },
 }
 

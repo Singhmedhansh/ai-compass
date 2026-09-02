@@ -106,10 +106,26 @@ def test_prices_are_the_ones_we_advertise():
     assert sponsorship.PLACEMENT_PRICING["rail"] == 14.99
 
 
-def test_free_listings_wait_seven_days_not_fourteen():
-    assert visibility_delay_days_for_tier("free") == 7
-    assert visibility_delay_days_for_tier("sponsored") == 1
-    assert visibility_delay_days_for_tier("reviewed") == 1
+def test_no_tier_holds_a_listing_back_after_approval():
+    """The free wait went 14 days -> 7 -> 0, and the paid tiers followed it
+    down to 0 rather than keeping a one-day gap.
+
+    Two separate reasons, and both matter:
+
+    A wait sells nothing. Nobody has ever paid to skip one, which is the same
+    verdict that retired Quick Review.
+
+    A wait costs indexing. A listing that is not public is not being crawled,
+    and an indexed page that ranks is the entire thing a founder is here for
+    — so every day of delay was spent from the only account that cannot be
+    topped up later.
+
+    The paid tiers dropping to 0 too is deliberate: against an instant free
+    tier, a one-day paid delay would read as "slower", which is the exact
+    opposite of what it was there to say. Fast-Track's speed claim is now
+    about the REVIEW queue (see is_priority), which is a real difference."""
+    for tier in ("free", "analytics", "sponsored", "reviewed"):
+        assert visibility_delay_days_for_tier(tier) == 0, tier
 
 
 def test_both_placement_tiers_grant_placement_and_no_others():
@@ -219,9 +235,11 @@ def test_reviewed_tier_gets_the_same_placement_perks_as_fast_track(client, app):
         record = json.loads(row.data or "{}")
         # Placement: the catalog row carries the paid flag.
         assert record.get("sponsored") is True
-        # Speed: one day, not the free seven.
+        # Speed: published at approval, like every tier now. visible_at is
+        # still SET (approval computes it from the delay) — it is just not in
+        # the future, which is what get_visible_tools actually tests.
         delay = row.visible_at.replace(tzinfo=timezone.utc) - datetime.now(timezone.utc)
-        assert 0 < delay.total_seconds() <= 1.5 * 24 * 3600
+        assert delay.total_seconds() <= 1
         # The complimentary rail card, from the same shared predicate the
         # renderer and the founder dashboard both read.
         assert sponsorship.complimentary_window(Submission.query.get(sub_id)) is not None
@@ -295,9 +313,13 @@ def test_the_entry_tier_buys_no_launch_day(client, app):
 def test_the_entry_tier_does_not_buy_a_shorter_wait():
     """Time-to-live is the weakest thing a directory can sell, and selling it
     here would make the ladder a toll booth again — which is what retiring
-    Quick Review was for."""
+    Quick Review was for.
+
+    Still worth asserting now that every delay is 0: the invariant is that
+    $19 buys the NUMBERS and never the queue, so the day someone reintroduces
+    a delay for free listings, this fails unless they charge nothing for
+    skipping it."""
     assert visibility_delay_days_for_tier("analytics") == visibility_delay_days_for_tier("free")
-    assert visibility_delay_days_for_tier("analytics") == 7
 
 
 def test_the_entry_tier_does_get_the_dashboard_numbers(client, app):

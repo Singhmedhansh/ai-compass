@@ -15,11 +15,14 @@ URL of their own page.
 
 Why a sweeper rather than a send at approval
 --------------------------------------------
-Approval and going live are different days on purpose. `visible_at` (see
-pricing_tiers.TIERS) holds a listing back 7 days for free, 1 day for the
-placement tiers, and CatalogTool has no cron behind it — get_visible_tools()
-simply re-evaluates the timestamp on every read. Nothing was watching for the
-moment a row crossed that line, so this is what watches.
+Approval and going live are usually the same day now — every tier's
+visibility_delay_days is 0 (see pricing_tiers.TIERS) — but they are still not
+the same EVENT, and two things keep them apart: rows approved under the older
+7-day policy still carry a future `visible_at`, and Launch Day sets one
+deliberately so a founder can pick the date. CatalogTool has no cron behind
+it; get_visible_tools() simply re-evaluates the timestamp on every read, so
+nothing was watching for the moment a row crossed that line. This is what
+watches.
 
 The stamp, not a computed window
 --------------------------------

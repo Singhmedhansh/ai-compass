@@ -303,15 +303,19 @@ def test_admin_approve_fast_track_grants_sponsored_placement(client, app):
     assert body["tool"]["sponsored"] is True
 
 
-def test_admin_approve_free_tier_delays_visibility_one_week(client, app):
-    """Free-tier approvals must not appear in the public catalog immediately
-    — they're gated behind a visible_at delay, same idea as the review
-    queue's priority ordering but for the catalog listing itself.
+def test_admin_approve_free_tier_publishes_immediately(client, app):
+    """A free approval is public the moment it is approved.
 
-    Seven days, not the original fourteen: two weeks of invisibility did not
-    create urgency to upgrade, it created churn, and it left most submitted
-    tools unseen for a fortnight after their founder had stopped checking.
-    See pricing_tiers.TIERS."""
+    The delay went 14 days -> 7 -> 0, and this test inverted with it. The
+    reasoning that removed the last of it: a listing that is not public is not
+    being crawled, and an indexed page that ranks is the whole thing a founder
+    came here for — so the wait was spending the one resource the site cannot
+    top up later, in exchange for an upgrade nobody ever bought.
+
+    visible_at is still SET rather than NULL on approval (it is computed from
+    the tier's delay, which is now 0). What matters is that it is not in the
+    future, because that is what get_visible_tools actually tests. See
+    pricing_tiers.TIERS."""
     from datetime import datetime, timezone, timedelta
     with app.app_context():
         refresh_tools_cache()
@@ -334,19 +338,28 @@ def test_admin_approve_free_tier_delays_visibility_one_week(client, app):
     assert resp.status_code == 200, resp.data
     body = resp.get_json()
     visible_at = datetime.fromisoformat(body["tool"]["visible_at"])
-    expected = datetime.now(timezone.utc) + timedelta(days=7)
-    assert abs((visible_at - expected).total_seconds()) < 60
+    assert (visible_at - datetime.now(timezone.utc)).total_seconds() <= 1
 
+    # The assertion that actually matters: it is in the public catalog now.
+    # This used to assert the opposite, and inverting it is the entire point
+    # of the policy change.
     from app.tool_cache import get_visible_tools
     with app.app_context():
         refresh_tools_cache()
         slugs = {t["slug"] for t in get_visible_tools()}
-    assert "free-tier-tool" not in slugs
+    assert "free-tier-tool" in slugs
 
 
-def test_admin_approve_sponsored_tier_short_visibility_delay(client, app):
-    """Fast-Track ($49.99) buys a 1-day delay instead of the free tier's 14,
-    matching the paid-priority-review promise."""
+def test_admin_approve_sponsored_tier_also_publishes_immediately(client, app):
+    """Fast-Track no longer buys a shorter wait, because there is no wait left
+    to shorten.
+
+    Keeping the old one-day delay against an instant free tier would have made
+    the paid tier the SLOWER one — the exact opposite of what that delay was
+    there to say. What Fast-Track sells is unchanged and was always the real
+    product: priority in the review queue (is_priority), placement above free
+    listings, the labelled badge, the rail card, partner units, digest
+    position and the reporting."""
     from datetime import datetime, timezone, timedelta
     with app.app_context():
         refresh_tools_cache()
@@ -370,8 +383,12 @@ def test_admin_approve_sponsored_tier_short_visibility_delay(client, app):
     assert resp.status_code == 200, resp.data
     body = resp.get_json()
     visible_at = datetime.fromisoformat(body["tool"]["visible_at"])
-    expected = datetime.now(timezone.utc) + timedelta(days=1)
-    assert abs((visible_at - expected).total_seconds()) < 60
+    assert (visible_at - datetime.now(timezone.utc)).total_seconds() <= 1
+
+    from app.tool_cache import get_visible_tools
+    with app.app_context():
+        refresh_tools_cache()
+        assert "paid-delay-tool" in {t["slug"] for t in get_visible_tools()}
 
 
 def test_hide_tool_delay_days_schedules_future_visibility(client, app):

@@ -2039,7 +2039,8 @@ def submit_tool():
         if is_paid_claim and not is_for_sale(tier_key):
             return jsonify({
                 "error": "That tier is no longer offered. Pick Fast-Track or Reviewed on "
-                         "/pricing — or submit for free, which now goes live in 7 days.",
+                         "/pricing — or submit for free, which now goes live as soon as "
+                         "we approve it.",
             }), 400
         payment_verified = False
         payment_note = None
@@ -2366,8 +2367,8 @@ def submit_tool():
                 tier_review_promises = {
                     "quick": "Our editorial team will review it within 48–72 hours.",
                     "analytics": (
-                        "We review it ahead of the free queue, and it goes live 7 days after "
-                        "approval. Your dashboard starts counting the day it does."
+                        "We review it ahead of the free queue, and it publishes the moment "
+                        "it is approved. Your dashboard starts counting that day."
                     ),
                     "sponsored": "We review yours first — target 24 hours — and it goes live the next day.",
                     "reviewed": (
@@ -2534,13 +2535,13 @@ def submit_tool():
                     dashboard_url=dash_link,
                     register_url=register_link,
                 )
-                # 7 days, not 2 weeks — the free window changed with the
-                # pricing restructure and this string did not. And it now
-                # promises the go-live email, which app/listing_live.py sends.
+                # No wait to quote any more: free listings publish at
+                # approval (pricing_tiers.TIERS). What is left to promise is
+                # the go-live email, which app/listing_live.py sends.
                 confirm_text = (
                     f"Thanks for submitting {name}! We review free submissions in queue order, "
-                    f"after paid ones, and they go live 7 days after approval. We'll email you "
-                    f"the link the moment yours is live. Track its status: {dash_link}"
+                    f"after paid ones, and yours goes live as soon as it is approved. We'll "
+                    f"email you the link the moment it is. Track its status: {dash_link}"
                 )
                 if register_link:
                     confirm_text += f" Create a free account for one-click access: {register_link}"
@@ -6556,8 +6557,8 @@ def admin_release_listings():
     """Publish listings that are sitting out their release delay, now.
 
     The staggered release (pricing_tiers.visibility_delay_days) holds an
-    approved free listing back 7 days. That is a defensible policy for new
-    submissions and a bad deal for a backlog: a listing nobody can see earns
+    approved listing back until its release date. The free delay is now 0, so
+    this mostly clears rows approved under the old policy: a listing nobody can see earns
     no views, cannot be announced to its founder, and is not being crawled.
     Waiting costs indexing time, which is the one thing a young directory
     cannot buy back.

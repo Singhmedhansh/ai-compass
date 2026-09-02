@@ -132,13 +132,23 @@ def test_only_one_launch_runs_per_day(app):
         assert launch_day.schedule(second, _in_days(15))[1] is None
 
 
-def test_a_launch_cannot_be_booked_before_the_tier_would_go_live(app):
-    """The release delay is what the tier is timed on; a date must not be a
-    way to buy past it."""
+def test_a_launch_can_be_booked_from_today_now_that_nothing_is_held_back(app):
+    """earliest_date() is still floored at the tier's release delay — that
+    floor is what stops a date being a way to buy past the delay. The delays
+    are all 0 now, so the floor is simply today, and a founder can launch the
+    day they are approved.
+
+    Yesterday is still refused, which is the part of the rule that was ever
+    load-bearing: a launch date is a commitment about the future."""
     with app.app_context():
-        sub = _listing()  # sponsored: 1-day delay, approved just now
-        assert launch_day.schedule(sub, date.today().isoformat())[1] == "too_early"
-        assert launch_day.schedule(sub, _in_days(2))[1] is None
+        sub = _listing()  # approved just now
+        assert launch_day.schedule(sub, date.today().isoformat())[1] is None
+
+    with app.app_context():
+        other = _listing(slug="past-tool", name="Past Tool",
+                         pricing_model="reviewed_paypal:PAST")
+        yesterday = (date.today() - timedelta(days=1)).isoformat()
+        assert launch_day.schedule(other, yesterday)[1] == "too_early"
 
 
 def test_a_date_beyond_the_horizon_is_refused(app):
@@ -158,8 +168,10 @@ def test_availability_only_offers_dates_we_can_honour(app):
         slots = {row["date"]: row["available"] for row in launch_day.availability(second)}
         assert slots[_in_days(9)] is False
         assert slots[_in_days(10)] is True
-        # Nothing before the tier could go live is even offered.
-        assert date.today().isoformat() not in slots
+        # Today is offered now that no tier is held back after approval. The
+        # rule has not changed — availability still starts at earliest_date()
+        # — the floor has just moved to today.
+        assert slots[date.today().isoformat()] is True
 
 
 # --- moving and cancelling --------------------------------------------------

@@ -1113,13 +1113,13 @@ export default function SubmitPage() {
                       <p>
                         <strong>What happens next?</strong> Your tool is in the review queue. We
                         review free submissions in the order they arrive, after paid ones, and
-                        they go live 7 days after approval. <strong>We&apos;ll email you the link
-                        to your live page the moment it is up</strong> — you don&apos;t need to
-                        check back.
+                        yours publishes as soon as it is approved. <strong>We&apos;ll email you
+                        the link to your live page the moment it is up</strong> — you don&apos;t
+                        need to check back.
                       </p>
                       <div className="bg-bg-elev/80 p-3 rounded-xl border border-line">
                         <p className="font-medium text-ink">
-                          Need it live sooner? Fast-Track is reviewed first (target 24 hours), goes live the next day, and sits above free listings with a labelled “Sponsored” badge — $49 one-time. Reviewed ($79) adds a 300–500 word hands-on review of your tool, published on your own indexed page.
+                          Need it live sooner? Fast-Track is reviewed first — target 24 hours, instead of waiting behind the whole free queue — and sits above free listings with a labelled “Sponsored” badge, $49 one-time. Reviewed ($79) adds a 300–500 word hands-on review of your tool, published on your own indexed page.
                         </p>
                         <button
                           type="button"

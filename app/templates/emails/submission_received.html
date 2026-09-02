@@ -5,9 +5,11 @@
     Two things changed here, and both were promises the code no longer kept:
 
     1. "usually within about two weeks" was left over from the 14-day free
-       window. That window is 7 days (pricing_tiers.TIERS), and quoting a
-       longer wait than we actually take is not caution — it is the reason a
-       founder stops watching for us.
+       window. There is no window at all now — every tier's
+       visibility_delay_days is 0 (pricing_tiers.TIERS), so a free listing
+       publishes the moment it is approved. Quoting a longer wait than we
+       actually take is not caution; it is the reason a founder stops
+       watching for us.
 
     2. It never said we would tell them when the listing went live, because
        until app/listing_live.py we did not. Saying it here is what turns the
@@ -21,10 +23,10 @@
 <h1 class="heading">We have your submission</h1>
 <p class="paragraph">
   Thanks for submitting <strong>{{ tool_name }}</strong> to AI Compass. Free
-  submissions are reviewed in the order they arrive, after paid ones, and go
-  live 7 days after approval. <strong>We will email you the moment your
-  listing is live</strong>, with the link to your page &mdash; you do not need
-  to check back.
+  submissions are reviewed in the order they arrive, after paid ones, and your
+  listing publishes as soon as it is approved. <strong>We will email you the
+  moment it is live</strong>, with the link to your page &mdash; you do not
+  need to check back.
 </p>
 
 {% if dashboard_url %}
@@ -39,9 +41,10 @@
 {% include "emails/_account_callout.html" %}
 
 <p class="paragraph" style="margin-top: 30px;">
-  In a hurry? Fast-Track is reviewed first (target 24 hours), goes live the
-  next day and sits above free listings with a labelled &quot;Sponsored&quot;
-  badge &mdash; $49, one time. See the
+  In a hurry? Fast-Track is reviewed first &mdash; target 24 hours, rather
+  than waiting behind the whole free queue &mdash; and sits above free
+  listings with a labelled &quot;Sponsored&quot; badge &mdash; $49, one time.
+  See the
   <a href="https://ai-compass.in/pricing" style="color: #168358; font-weight: 600; text-decoration: none;">tiers</a>.
   Your free listing is permanent either way.
 </p>
