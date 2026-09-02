@@ -88,6 +88,14 @@ def _login(client, user_id):
 _IP_SEQ = iter(range(1, 250))
 
 
+# A real (tiny) PNG. The server sniffs magic bytes rather than trusting the
+# declared MIME, so a fake payload cannot stand in here.
+_PNG_DATA_URL = (
+    "data:image/png;base64,"
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
+)
+
+
 def _claim(client, slug="claimable-tool", **payload):
     return client.post(
         f"/api/v1/claims/{slug}",
@@ -250,7 +258,16 @@ def test_an_owner_cannot_grant_themselves_placement(client, app):
         assert row.editorial_blurb is None
 
 
-def test_changing_where_the_listing_points_needs_a_human(client, app):
+def test_changing_where_the_listing_points_is_captured_not_applied(client, app):
+    """The invariant is unchanged — a maker cannot move where their listing
+    points — but the request no longer bounces.
+
+    It used to 400 with "these need a human", which was honest and threw the
+    maker's words away: they then had to retype them into an email to admin@,
+    and mostly did not. Now the edit is accepted, the link is still NOT
+    touched, and the request comes back under `requested` for an admin to
+    action. The security property (the destination of every reader and every
+    tracked click) is exactly as strong; only the dead end is gone."""
     with app.app_context():
         _tool()
     uid = _user(app, "founder@claimable.example.com")
@@ -258,13 +275,168 @@ def test_changing_where_the_listing_points_needs_a_human(client, app):
     _claim(client)
 
     resp = client.patch("/api/v1/claims/claimable-tool/listing", json={
+        "description": "A real edit, alongside the request.",
         "link": "https://somewhere-else.example.com",
     })
-    assert resp.status_code == 400
-    assert "link" in resp.get_json()["fields"]
+    assert resp.status_code == 200
+    body = resp.get_json()
+    assert body["requested"]["link"] == "https://somewhere-else.example.com"
+
     with app.app_context():
         record = json.loads(CatalogTool.query.filter_by(slug="claimable-tool").one().data)
+        # Not moved.
         assert record["link"] == "https://claimable.example.com"
+        # And the rest of the edit still went live, which is the point: a
+        # gated field must not hold the maker's other corrections hostage.
+        assert record["description"] == "A real edit, alongside the request."
+        assert "_change_requests" not in record
+
+
+def test_a_gated_request_alone_changes_nothing_but_is_still_reported(client, app):
+    """An edit that touches ONLY a gated field has nothing to publish. It must
+    still come back as a request rather than as a silent no-op, or the maker
+    has no way to tell that we heard them."""
+    with app.app_context():
+        _tool()
+    uid = _user(app, "founder@claimable.example.com")
+    _login(client, uid)
+    _claim(client)
+
+    resp = client.patch("/api/v1/claims/claimable-tool/listing", json={
+        "category": "Coding",
+    })
+    assert resp.status_code == 200
+    assert resp.get_json()["requested"] == {"category": "Coding"}
+
+    with app.app_context():
+        row = CatalogTool.query.filter_by(slug="claimable-tool").one()
+        assert row.category == "Productivity"
+        assert json.loads(row.data)["category"] == "Productivity"
+
+
+def test_a_maker_can_rename_their_own_tool_without_moving_its_url(client, app):
+    """`name` is founder-editable and `link` is not, which looks inconsistent
+    until you ask what each one can do.
+
+    A rename changes a label. The slug is the key upsert_tool writes against
+    and this path never touches it, so the URL, every inbound link and every
+    OutboundClick row stay where they were. Products rebrand, and a maker who
+    cannot fix their own product's name does not really own the listing."""
+    with app.app_context():
+        _tool()
+    uid = _user(app, "founder@claimable.example.com")
+    _login(client, uid)
+    _claim(client)
+
+    resp = client.patch("/api/v1/claims/claimable-tool/listing",
+                        json={"name": "Claimable Pro"})
+    assert resp.status_code == 200
+
+    with app.app_context():
+        row = CatalogTool.query.filter_by(slug="claimable-tool").one()
+        assert row.name == "Claimable Pro"
+        # The address did not move.
+        assert row.slug == "claimable-tool"
+        assert json.loads(row.data)["slug"] == "claimable-tool"
+        # And it is logged like any other edit, so it is reversible.
+        assert ToolEdit.query.filter_by(tool_slug="claimable-tool", field="name").count() == 1
+
+
+def test_a_logo_upload_lands_on_the_row_and_on_the_record(client, app):
+    """A claimed maker can replace the logo, and both halves have to happen:
+    the bytes on the catalog row (served from /logo/tool/<slug>) and a URL in
+    the record, which is the only thing ToolLogo ever reads. Writing one
+    without the other means an upload that succeeds and never appears."""
+    with app.app_context():
+        _tool()
+    uid = _user(app, "founder@claimable.example.com")
+    _login(client, uid)
+    _claim(client)
+
+    resp = client.patch("/api/v1/claims/claimable-tool/listing",
+                        json={"logo": _PNG_DATA_URL})
+    assert resp.status_code == 200
+
+    with app.app_context():
+        row = CatalogTool.query.filter_by(slug="claimable-tool").one()
+        assert row.logo_data is not None
+        assert row.logo_mime == "image/png"
+        record = json.loads(row.data)
+        assert record["logo_url"].startswith("/logo/tool/claimable-tool?v=")
+        # `icon` is what ToolLogo checks FIRST — a stale one here is how an
+        # upload lands in the database and still never reaches a card.
+        assert record["icon"] == record["logo_url"]
+
+    served = client.get("/logo/tool/claimable-tool")
+    assert served.status_code == 200
+    assert served.mimetype == "image/png"
+
+
+def test_a_logo_that_is_not_really_an_image_is_refused(client, app):
+    """The declared MIME in a data: URL is whatever the sender says it is, so
+    the server sniffs the magic bytes. This is the same check the submit form
+    relies on (app/tool_logos.py) reached through a different door — and this
+    door is open to anyone who has claimed a listing."""
+    with app.app_context():
+        _tool()
+    uid = _user(app, "founder@claimable.example.com")
+    _login(client, uid)
+    _claim(client)
+
+    resp = client.patch("/api/v1/claims/claimable-tool/listing", json={
+        "logo": "data:image/png;base64,bm90LWEtcG5nLWF0LWFsbA==",
+    })
+    assert resp.status_code == 400
+    assert "PNG" in resp.get_json()["error"]
+
+    with app.app_context():
+        assert CatalogTool.query.filter_by(slug="claimable-tool").one().logo_data is None
+
+
+def test_saving_without_touching_the_logo_does_not_erase_it(client, app):
+    """The editor sends `logo` only when the maker actually picked a new file.
+    Belt and braces on the server too: an empty logo field is 'unchanged', not
+    'delete it'. Getting this wrong wipes a founder's logo the first time they
+    fix a typo."""
+    with app.app_context():
+        _tool()
+    uid = _user(app, "founder@claimable.example.com")
+    _login(client, uid)
+    _claim(client)
+    assert client.patch("/api/v1/claims/claimable-tool/listing",
+                        json={"logo": _PNG_DATA_URL}).status_code == 200
+
+    assert client.patch("/api/v1/claims/claimable-tool/listing",
+                        json={"description": "Just a typo fix.", "logo": ""}).status_code == 200
+
+    with app.app_context():
+        row = CatalogTool.query.filter_by(slug="claimable-tool").one()
+        assert row.logo_data is not None
+        assert json.loads(row.data)["description"] == "Just a typo fix."
+
+
+def test_the_editor_only_opens_for_the_person_who_owns_the_listing(client, app):
+    """The editor page seeds its form from this endpoint. If it answered to
+    anyone signed in, it would hand a stranger the current copy of a listing
+    they cannot edit — and, worse, imply they can."""
+    with app.app_context():
+        _tool()
+    owner = _user(app, "founder@claimable.example.com")
+    _login(client, owner)
+    _claim(client)
+
+    resp = client.get("/api/v1/claims/claimable-tool/listing")
+    assert resp.status_code == 200
+    tool = resp.get_json()["tool"]
+    assert tool["name"] == "Claimable Tool"
+    # The gated fields are RETURNED, so the editor can show them as inputs
+    # rather than hiding them — a founder who cannot see where the URL lives
+    # assumes we are hiding it.
+    assert tool["link"] == "https://claimable.example.com"
+
+    stranger = _user(app, "someone@else.example.com")
+    _login(client, stranger)
+    assert client.get("/api/v1/claims/claimable-tool/listing").status_code == 403
 
 
 def test_every_edit_is_logged(client, app):

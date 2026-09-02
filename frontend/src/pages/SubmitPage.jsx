@@ -4,6 +4,16 @@ import { CreditCard, Sparkles, CheckCircle2, ShieldCheck, ArrowRight, User, Wall
 
 import Button from '../components/ui/Button'
 import { PRICING_TIERS, getTier } from '../config/pricingTiers'
+import {
+  LOGO_FALLBACK_PX,
+  LOGO_MAX_BYTES,
+  LOGO_MIN_PX,
+  LOGO_SOURCE_MAX_BYTES,
+  LOGO_TARGET_PX,
+  dataUrlBytes,
+  loadImage,
+  squarePngDataUrl,
+} from '../utils/logoUpload'
 
 const CATEGORIES = [
   'Writing & Chat',
@@ -35,42 +45,26 @@ const INITIAL_FORM = {
 // ---------------------------------------------------------------------------
 // Logo upload
 // ---------------------------------------------------------------------------
-// The old version accepted exactly image/png and image/jpeg under 500KB and
-// refused everything else outright. In practice that refused almost every
-// logo a founder actually has: a brand PNG exported at 1024px with an alpha
-// channel is routinely 700KB-2MB, a WebP or SVG from a design tool is not on
-// the list at all, and a phone-camera screenshot is 4MB. The founder saw
-// "Logo must be under 500KB", had no way to make it smaller, and gave up —
-// which is why the field read as broken rather than as strict.
+// Logo handling lives in utils/logoUpload.js, because there are now two
+// places a founder can upload one — this form, and the editor a maker uses
+// after claiming a listing (see app/claims.py). The constants and the canvas
+// work are imported rather than copied: one form accepting what the other
+// rejects is precisely the failure this pipeline exists to prevent.
+//
+// Why it is a pipeline and not a type/size check. The old version accepted
+// exactly image/png and image/jpeg under 500KB and refused everything else
+// outright, which in practice refused almost every logo a founder actually
+// has: a brand PNG exported at 1024px with an alpha channel is routinely
+// 700KB-2MB, a WebP or SVG from a design tool is not on the list at all, and
+// a phone screenshot is 4MB. The founder saw "Logo must be under 500KB", had
+// no way to make it smaller, and gave up — which is why the field read as
+// broken rather than as strict.
 //
 // Nothing about the SERVER's limits was wrong (app/tool_logos.py: PNG/JPEG
 // only, 512KB, magic-byte sniffed — an SVG is a scriptable document and we
 // serve these from our own origin). The mistake was making the founder meet
-// them by hand. So the browser now does the work: any image the browser can
-// decode is drawn onto a square canvas at LOGO_TARGET_PX and re-encoded as a
-// real PNG, stepping the size down until it fits. What reaches the server is
-// always a PNG within the cap, whatever was picked.
-//
-// Kept in sync with the server deliberately — the server check is still the
-// one that counts, this one just means it almost never has to fire.
-const LOGO_MAX_BYTES = 512 * 1024
-
-// Refused before we even try to decode. Not a quality limit — a guard against
-// spending ten seconds and a phone's memory on a 40MP photo that was never
-// going to be a logo.
-const LOGO_SOURCE_MAX_BYTES = 12 * 1024 * 1024
-
-// 512 square is the size the catalogue actually renders at its largest (the
-// tool page header at 2x), so anything above it is bytes nobody sees. The
-// fallbacks exist for the rare photographic logo that will not compress into
-// the cap at full size.
-const LOGO_TARGET_PX = 512
-const LOGO_FALLBACK_PX = [384, 256, 192]
-
-// Below this the logo is visibly soft on a retina card and there is nothing
-// we can do about it — better to say so up front than to publish a blurry
-// mark on the founder's own page.
-const LOGO_MIN_PX = 96
+// them by hand. The browser does that work now, and the server check is still
+// the one that counts; it just almost never has to fire.
 
 function readFileAsDataUrl(file) {
   return new Promise((resolve, reject) => {
@@ -79,49 +73,6 @@ function readFileAsDataUrl(file) {
     reader.onerror = () => reject(new Error('Could not read that file.'))
     reader.readAsDataURL(file)
   })
-}
-
-function loadImage(dataUrl) {
-  return new Promise((resolve, reject) => {
-    const img = new Image()
-    img.onload = () => resolve(img)
-    // HEIC from an iPhone, a corrupt file, or an SVG in a browser that
-    // refuses to rasterise it all land here. The message says what to do
-    // rather than what failed.
-    img.onerror = () => reject(new Error('That file could not be opened as an image. Try a PNG or JPG export.'))
-    img.src = dataUrl
-  })
-}
-
-// Draws the image centred and CONTAINED inside a square of `size`, on a
-// transparent canvas, and returns a PNG data URL.
-//
-// Contained, not cropped: a wordmark is usually much wider than it is tall,
-// and cover-cropping one to a square silently cuts the brand name in half.
-// Transparent, not white: the cards render on both a cream and a near-black
-// background, and a baked-in white box is visible on the dark one.
-function squarePngDataUrl(img, size) {
-  const canvas = document.createElement('canvas')
-  canvas.width = size
-  canvas.height = size
-  const ctx = canvas.getContext('2d')
-  ctx.imageSmoothingEnabled = true
-  ctx.imageSmoothingQuality = 'high'
-
-  const scale = Math.min(size / img.width, size / img.height)
-  const w = Math.max(1, Math.round(img.width * scale))
-  const h = Math.max(1, Math.round(img.height * scale))
-  ctx.drawImage(img, Math.round((size - w) / 2), Math.round((size - h) / 2), w, h)
-  return canvas.toDataURL('image/png')
-}
-
-// Bytes a base64 data: URL actually decodes to — the string itself is ~4/3
-// larger, and comparing the string length against the server's byte cap
-// rejects files that would in fact have fit.
-function dataUrlBytes(dataUrl) {
-  const body = String(dataUrl).split(',')[1] || ''
-  const padding = body.endsWith('==') ? 2 : body.endsWith('=') ? 1 : 0
-  return Math.floor((body.length * 3) / 4) - padding
 }
 
 function TierCard({ tier, selected, onSelect }) {

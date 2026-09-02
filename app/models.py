@@ -95,6 +95,20 @@ class CatalogTool(db.Model):
     # a lapsed/downgraded tool automatically reverts to its own description).
     # Never founder-editable — admin-only, via the /admin/tools editor.
     editorial_blurb = db.Column(db.Text, nullable=True)
+    # A logo uploaded by the maker who claimed this listing, served from
+    # /logo/tool/<slug>.
+    #
+    # Why here and not on Submission.logo_data, which already stores exactly
+    # these bytes: most of the catalog was seeded editorially and has no
+    # Submission row at all, and those listings are precisely the ones a
+    # maker is most likely to claim in order to fix (see ToolClaim). Hanging
+    # the founder's logo off a Submission would mean the only makers who
+    # could upload one are the ones who already paid to be listed.
+    #
+    # Bytes in the row rather than a file, for the same reason Submission
+    # does it: Render's disk does not survive a deploy.
+    logo_data = db.Column(db.LargeBinary, nullable=True)
+    logo_mime = db.Column(db.String(32), nullable=True)
 
 
 class FeatureFlag(db.Model):
@@ -647,6 +661,29 @@ class OutreachCandidate(db.Model):
     verified_at = db.Column(db.DateTime, nullable=True)
     fit_score = db.Column(db.Integer, nullable=True)  # likelihood-to-convert ranking signal, see compute_fit_score()
     draft_template_version = db.Column(db.Integer, nullable=True)  # copy/pricing template version stamped at draft generation, see CURRENT_DRAFT_TEMPLATE_VERSION
+
+    # ── Campaign scoping (v2 rework, 2026-09-02) ──────────────────────────
+    # Which outreach campaign this candidate belongs to. NULL means the
+    # original ungrouped v1 pool. Campaigns exist because the send budget is
+    # now per-campaign and finite (45 for q3_qualified_b2b) rather than a
+    # daily rate — "how many have we spent of the 45" is not a question the
+    # old daily-cap model could answer.
+    campaign = db.Column(db.String(50), nullable=True, index=True)
+
+    # Which pool the lead came from: 'inbound' (they submitted a tool to us
+    # first), 'traffic' (an existing listing we already send clicks to), or
+    # 'cold' (discovered, no prior contact). A queryable column rather than a
+    # key inside qualification_json because the admin console filters and
+    # groups on it, and because the three pools convert at very different
+    # rates — keeping them apart is the whole point of the rework.
+    lead_pool = db.Column(db.String(20), nullable=True, index=True)
+
+    # Serialised output of qualify_candidate(): the score, and the per-signal
+    # evidence behind it. Stored rather than recomputed so the admin console
+    # can show WHY a candidate scored what it did — a bare number nobody can
+    # audit is how the previous scoring stayed wrong for months without
+    # anyone noticing it was subtracting points for budget.
+    qualification_json = db.Column(db.Text, nullable=True)
 
 
 class OutreachEmailLog(db.Model):

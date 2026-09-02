@@ -1041,6 +1041,12 @@ def create_app(config: dict | None = None) -> Flask:
                     # authored Sponsored-tier description override).
                     _add_column("catalog_tools", "editorial_blurb", "TEXT")
 
+                    # A claimed maker's own logo upload, served from
+                    # /logo/tool/<slug>. See CatalogTool.logo_data for why the
+                    # bytes hang off the catalog row and not off Submission.
+                    _add_column("catalog_tools", "logo_data", "BYTEA" if is_postgres else "BLOB")
+                    _add_column("catalog_tools", "logo_mime", "VARCHAR(32)")
+
                     # reviews.maker_reply: a claimed maker's public answer to
                     # one review (see app/claims.py). create_all() below adds
                     # missing TABLES but never missing COLUMNS, so an existing

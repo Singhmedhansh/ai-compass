@@ -63,6 +63,15 @@ def file_claim(slug):
         return jsonify({"error": err or "Could not file that claim"}), status
 
     approved = claim.status == "approved"
+    if approved:
+        # A domain match approves instantly, so this is the ONLY notice that
+        # claimant ever gets. Sent here rather than inside create_claim so the
+        # mail stays out of the model layer and off the test path that just
+        # exercises the domain check.
+        from app.claim_emails import send_claim_decision_email
+
+        send_claim_decision_email(claim)
+
     return jsonify({
         "success": True,
         "claim": claims.claim_payload(claim),
@@ -124,26 +133,84 @@ def edit_my_listing(slug):
         }), 403
     if err == "tool_not_found":
         return jsonify({"error": "Tool not found"}), 404
-    if err and err.startswith("admin_only_fields:"):
-        fields = err.split(":", 1)[1]
-        return jsonify({
-            "error": f"These need a human: {fields}. Changing where a listing points, or what "
-                     f"it is called, moves every reader and every tracked click — email "
-                     f"admin@ai-compass.in and we'll do it.",
-            "fields": fields.split(","),
-        }), 400
+    if err and err.startswith("logo_rejected:"):
+        # The decoder writes its own messages for the person who uploaded the
+        # file ("Logo must be under 512KB", and so on), so show that rather
+        # than a generic failure. SVG is refused on purpose — see
+        # tool_logos.ALLOWED_LOGO_MIMES.
+        return jsonify({"error": err.split(":", 1)[1].strip()}), 400
     if err:
         return jsonify({"error": err}), 500
 
+    # Anything the maker asked for that only an admin can apply. The edit
+    # itself has already gone live; this carries the rest to a human instead
+    # of dropping it on the floor, which is what the old 400 did.
+    requested = (record or {}).pop("_change_requests", None)
+    if requested:
+        from app.claim_emails import notify_admin_of_change_request
+
+        notify_admin_of_change_request(
+            record.get("slug") or "",
+            requested,
+            user_email=getattr(current_user, "email", None),
+        )
+
     return jsonify({
         "success": True,
+        "requested": requested or {},
         "tool": {
             "slug": record.get("slug"),
+            "name": record.get("name"),
             "description": record.get("description"),
             "tagline": record.get("tagline"),
+            "shortDescription": record.get("shortDescription"),
+            "pricingDetail": record.get("pricingDetail"),
+            "logo_url": record.get("logo_url"),
             "features": record.get("features") or [],
             "use_cases": record.get("use_cases") or [],
             "tags": record.get("tags") or [],
+        },
+    })
+
+
+@claims_bp.get("/<slug>/listing")
+@login_required
+def my_listing(slug):
+    """The current copy of a listing you own, for the editor page.
+
+    Served from the catalog record rather than the public tool payload so the
+    editor shows exactly the fields it is about to write back — a form seeded
+    from a differently-shaped read is how an editor silently blanks a field
+    nobody meant to touch.
+    """
+    slug = str(slug or "").strip().lower()
+    if not claims.user_can_edit(current_user, slug):
+        return jsonify({"error": "You don't have an approved claim on that listing."}), 403
+
+    _row, record = claims._tool_record(slug)
+    if _row is None:
+        return jsonify({"error": "Tool not found"}), 404
+
+    return jsonify({
+        "tool": {
+            "slug": slug,
+            "name": record.get("name") or _row.name,
+            "tagline": record.get("tagline") or "",
+            "shortDescription": record.get("shortDescription") or "",
+            "description": record.get("description") or "",
+            "pricingDetail": record.get("pricingDetail") or "",
+            "features": record.get("features") or [],
+            "use_cases": record.get("use_cases") or [],
+            "tags": record.get("tags") or [],
+            "logo_url": record.get("logo_url") or record.get("icon") or "",
+            "link": record.get("link") or record.get("url") or record.get("website") or "",
+            "category": record.get("category") or "",
+            "pricing": record.get("pricing") or "",
+        },
+        "editable": {
+            "text": list(claims.FOUNDER_EDITABLE_TEXT),
+            "lists": list(claims.FOUNDER_EDITABLE_LISTS),
+            "admin_only": list(claims.ADMIN_ONLY_FIELDS),
         },
     })
 
@@ -180,7 +247,23 @@ def admin_decide(claim_id):
     if err:
         status = 500 if err == "claim_write_failed" else 400
         return jsonify({"error": err}), status
-    return jsonify({"success": True, "claim": claims.claim_payload(claim, include_admin=True)})
+
+    # The claimant is told. Approving used to change what someone was allowed
+    # to do and tell them nothing — the form had already promised them an
+    # email, so the only way to find out was to revisit the page and notice
+    # the button had changed. Best-effort: a mail outage must not fail an
+    # approval that has already committed.
+    from app.claim_emails import send_claim_decision_email
+
+    notified = send_claim_decision_email(claim)
+
+    return jsonify({
+        "success": True,
+        "claim": claims.claim_payload(claim, include_admin=True),
+        # Surfaced so the admin panel can say "approved, but we could not
+        # reach them" instead of implying the founder has been told.
+        "notified": notified,
+    })
 
 
 @claims_bp.get("/admin/<slug>/edits")

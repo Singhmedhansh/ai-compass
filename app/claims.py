@@ -35,13 +35,26 @@ from app.models import CatalogTool, Submission, ToolClaim, ToolEdit
 # `rating` and `last_verified_at` are earned or measured. A founder editing
 # their own copy must not be able to reach any of them, or "claim your
 # listing" quietly becomes "grant yourself placement".
-FOUNDER_EDITABLE_TEXT = ("description", "tagline", "shortDescription", "pricingDetail")
+FOUNDER_EDITABLE_TEXT = ("name", "description", "tagline", "shortDescription", "pricingDetail")
 FOUNDER_EDITABLE_LISTS = ("features", "use_cases", "tags")
 
-# Changing where the listing points is not a copy edit — it can redirect
-# every reader and every tracked click somewhere else — so it goes to a
-# human even for a verified maker.
-ADMIN_ONLY_FIELDS = ("link", "url", "website", "category", "pricing", "name")
+# `name` is on that list and `link` is not, which looks inconsistent until you
+# ask what each one can actually do.
+#
+# A rename changes a label. It does NOT change the slug — upsert_tool keys on
+# record["slug"], which this path never touches — so the URL, every inbound
+# link and every OutboundClick row stay exactly where they were. Products
+# rebrand, and a maker who cannot fix their own product's name on their own
+# listing does not really own it. It is logged like any other edit.
+#
+# Changing where the listing POINTS is a different act: it silently redirects
+# every reader and every tracked click to a destination we never reviewed.
+# That one still goes to a human, for a verified maker too.
+ADMIN_ONLY_FIELDS = ("link", "url", "website", "category", "pricing")
+
+# Uploaded logos: same envelope the submit form produces (see
+# app/tool_logos.py for the decoder and the type/size limits it enforces).
+LOGO_FIELD = "logo"
 
 MAX_TEXT_LEN = 2000
 MAX_LIST_ITEMS = 12
@@ -221,14 +234,59 @@ def apply_founder_edit(user, slug, payload):
     if row is None:
         return None, "tool_not_found"
 
-    rejected = [f for f in ADMIN_ONLY_FIELDS if f in (payload or {})]
-    if rejected:
-        # Named explicitly rather than ignored: a form that silently drops
-        # half a submission teaches people the product is broken.
-        return None, f"admin_only_fields:{','.join(rejected)}"
+    payload = payload or {}
+
+    # Gated fields are CAPTURED, not refused.
+    #
+    # This used to 400 with "these need a human", which was honest but threw
+    # the maker's actual words away — they then had to retype them into an
+    # email to admin@, and mostly did not. Now the rest of the edit still
+    # applies, and the gated part is forwarded to an admin as a request, so
+    # the founder's intent survives the boundary that stops them applying it
+    # themselves.
+    requested = {}
+    for field in ADMIN_ONLY_FIELDS:
+        if field not in payload:
+            continue
+        new_value = str(payload.get(field) or "").strip()[:MAX_TEXT_LEN]
+        if new_value and new_value != str(record.get(field) or ""):
+            requested[field] = new_value
 
     updated = dict(record)
     changes = []
+
+    # The logo. Bytes go on the catalog row and the record keeps a URL, so
+    # every existing reader of the record (cards, detail page, OG images)
+    # picks it up with no knowledge of where it came from.
+    if LOGO_FIELD in payload:
+        from app.tool_logos import LogoError, decode_logo_data_url
+
+        try:
+            raw, mime = decode_logo_data_url(payload.get(LOGO_FIELD))
+        except LogoError as exc:
+            # LogoError messages are written to be shown to the person who
+            # uploaded the file, so pass the real reason through rather than
+            # flattening every rejection into one unhelpful string.
+            return None, f"logo_rejected:{exc}"
+        if raw is None:
+            # Empty field. Not a failure and not a change — a maker who never
+            # touched the logo picker must not blank their own logo by saving.
+            raw = None
+        if raw is None:
+            payload = {k: v for k, v in payload.items() if k != LOGO_FIELD}
+        else:
+            row.logo_data = raw
+            row.logo_mime = mime
+            # The ?v= stamp is what actually busts a cache mid-flight: the URL
+            # is stable by design (see catalog_tool_logo), so without it a
+            # maker replacing a bad logo keeps seeing the old one for a day.
+            stamp = int(datetime.now(timezone.utc).timestamp())
+            updated["logo_url"] = f"/logo/tool/{slug}?v={stamp}"
+            # `icon` is what ToolLogo checks first; leaving a stale one set
+            # would mean the upload lands in the database and then never
+            # appears on a single card.
+            updated["icon"] = updated["logo_url"]
+            changes.append(("logo", str(record.get("logo_url") or ""), updated["logo_url"]))
 
     for field in FOUNDER_EDITABLE_TEXT:
         if field in (payload or {}):
@@ -248,8 +306,12 @@ def apply_founder_edit(user, slug, payload):
                 updated[field] = new_list
                 changes.append((field, ", ".join(map(str, old_list)), ", ".join(new_list)))
 
-    if not changes:
+    if not changes and not requested:
         return record, None
+    if not changes:
+        # Nothing to publish, but something to forward.
+        updated["_change_requests"] = requested
+        return updated, None
 
     from app.catalog_store import upsert_tool
 
@@ -274,6 +336,8 @@ def apply_founder_edit(user, slug, payload):
     from app.tool_cache import refresh_tools_cache
 
     refresh_tools_cache()
+    if requested:
+        updated["_change_requests"] = requested
     return updated, None
 
 

@@ -36,6 +36,10 @@ export default function ToolClaimsPanel() {
   const [status, setStatus] = useState('pending')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  // Whether the claimant was actually reached. Worth its own line rather
+  // than folding into a generic "saved": approving used to notify nobody at
+  // all, so an admin has no reason yet to assume the founder was told.
+  const [outcome, setOutcome] = useState('')
   const [busyId, setBusyId] = useState(null)
   const [edits, setEdits] = useState({})
 
@@ -57,12 +61,19 @@ export default function ToolClaimsPanel() {
   const decide = async (id, next) => {
     setBusyId(id)
     setError('')
+    setOutcome('')
     try {
-      await api(`/api/v1/claims/admin/${id}`, {
+      const res = await api(`/api/v1/claims/admin/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: next }),
       })
+      setOutcome(
+        res?.notified
+          ? `Marked ${next} and the claimant has been emailed.`
+          : `Marked ${next}, but we could not email the claimant — check the send budget and ` +
+            'the mail transport, then tell them by hand.',
+      )
       await load()
     } catch (err) {
       setError(err.message || 'Could not update that claim')
@@ -105,6 +116,12 @@ export default function ToolClaimsPanel() {
       {error && (
         <p role="alert" className="rounded-xl border border-danger/30 bg-danger-soft px-3 py-2 text-xs text-ink-2">
           {error}
+        </p>
+      )}
+
+      {outcome && !error && (
+        <p className="rounded-xl border border-accent/30 bg-accent-soft/10 px-3 py-2 text-xs text-ink-2">
+          {outcome}
         </p>
       )}
 

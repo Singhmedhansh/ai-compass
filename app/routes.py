@@ -1184,6 +1184,30 @@ def submission_logo(submission_id):
     return resp
 
 
+@main_bp.route('/logo/tool/<slug>')
+def catalog_tool_logo(slug):
+    """Serve a claimed maker's uploaded logo for a catalog listing.
+
+    The sibling of /logo/submission/<id> above, for the listings that never
+    came through the submission ladder — see CatalogTool.logo_data.
+
+    Same cache posture and for the same reason: a maker replaces their logo
+    on a URL that does not change, so 'immutable' would pin the old one in
+    every browser that had already seen it. The editor appends a ?v= stamp
+    on save, which is what actually busts it for people mid-cache.
+    """
+    from app.models import CatalogTool
+
+    row = CatalogTool.query.filter_by(slug=str(slug or '').strip().lower()).first()
+    if row is None or not row.logo_data:
+        return Response(status=404)
+
+    resp = Response(bytes(row.logo_data), mimetype=row.logo_mime or 'image/png')
+    resp.headers['Cache-Control'] = 'public, max-age=86400'
+    resp.headers['X-Robots-Tag'] = 'noindex'
+    return resp
+
+
 _OG_CACHE: dict[str, bytes] = {}
 
 

@@ -1,0 +1,68 @@
+{% extends "emails/base.html" %}
+
+{#  "You now own this listing."
+
+    Approving a claim changes what someone is ALLOWED to do, and until this
+    email existed that was the whole of it: the admin clicked approve, the
+    permission became real, and the person it belonged to was told nothing.
+    The claim form promised "you'll hear back by email" and nothing sent one,
+    so the only way to discover you had been approved was to happen to
+    revisit the page.
+
+    The button is the point of the message. A permission the reader has to go
+    hunting for is not much of a gift, so the email hands them the editor
+    itself rather than announcing that an editor exists.
+#}
+
+{% block title %}You now own the {{ tool_name }} listing on AI Compass{% endblock %}
+
+{% block content %}
+<h1 class="heading">{{ tool_name }} is yours</h1>
+
+<p class="paragraph">
+  We've approved your claim{% if verified_domain_match %} — your email is on
+  {{ tool_name }}'s own domain, so it went through automatically{% endif %}.
+  The listing now carries a <strong>Claimed by the maker</strong> badge, and
+  you can edit it yourself whenever you like.
+</p>
+
+<div class="btn-container">
+  <a href="{{ editor_url }}" class="cta-button">Edit your listing</a>
+</div>
+
+<p class="fine-print" style="text-align:center; margin-bottom: 28px;">
+  {{ editor_url }}
+</p>
+
+<div class="feature-card">
+  <div class="feature-title">What you can change yourself</div>
+  <div class="feature-desc">
+    Your logo, the tool's name, the one-line pitch, the full description,
+    your pricing detail, features, use cases and tags. Changes go live
+    immediately — there's no queue and no second approval.
+  </div>
+</div>
+
+<div class="feature-card">
+  <div class="feature-title">What still needs us</div>
+  <div class="feature-desc">
+    The URL your listing points at, its category and its pricing label.
+    Changing where a listing points moves every reader and every tracked
+    click, so a person checks those. Ask for them right in the editor and
+    we'll action it — or email {{ billing_email }}.
+  </div>
+</div>
+
+<div class="feature-card">
+  <div class="feature-title">What stays ours</div>
+  <div class="feature-desc">
+    Ratings, placement and any review we wrote. Owning your listing means
+    owning your own words on it, not the verdict — that's what keeps the
+    badge worth carrying.
+  </div>
+</div>
+
+<p class="paragraph">
+  Your page as readers see it: <a href="{{ tool_url }}">{{ tool_url }}</a>
+</p>
+{% endblock %}

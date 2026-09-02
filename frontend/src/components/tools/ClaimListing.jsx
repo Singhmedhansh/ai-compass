@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { BadgeCheck, Loader2, PencilLine, X } from 'lucide-react'
+import { BadgeCheck, Loader2, PencilLine } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 // Claiming a listing (see app/claims.py). Two pieces live here because they
@@ -10,11 +10,6 @@ import { Link } from 'react-router-dom'
 //                 good. A claimed listing is not a better tool, and the
 //                 wording has to keep those apart.
 //   ClaimPanel  — what a maker sees: claim it, or edit the copy they own.
-
-const EDITABLE_TEXT = [
-  ['tagline', 'One-line pitch', 'input'],
-  ['description', 'Description', 'textarea'],
-]
 
 export function ClaimBadge({ claim }) {
   if (!claim?.claimed) return null
@@ -33,27 +28,12 @@ export function ClaimBadge({ claim }) {
   )
 }
 
-function Field({ label, children }) {
-  return (
-    <label className="block">
-      <span className="text-xs font-semibold text-ink-2">{label}</span>
-      {children}
-    </label>
-  )
-}
-
 export default function ClaimPanel({ tool, isLoggedIn }) {
   const slug = tool?.slug
   const [mine, setMine] = useState(null) // this account's claim on this tool
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState(null)
   const [error, setError] = useState(null)
-  const [editing, setEditing] = useState(false)
-  const [form, setForm] = useState({
-    tagline: tool?.shortDescription || '',
-    description: tool?.description || '',
-    features: (tool?.features || []).join('\n'),
-  })
 
   useEffect(() => {
     if (!isLoggedIn || !slug) return undefined
@@ -100,34 +80,6 @@ export default function ClaimPanel({ tool, isLoggedIn }) {
     }
   }
 
-  async function saveEdit() {
-    setBusy(true)
-    setError(null)
-    try {
-      const res = await fetch(`/api/v1/claims/${encodeURIComponent(slug)}/listing`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          tagline: form.tagline,
-          description: form.description,
-          features: form.features.split('\n').map((f) => f.trim()).filter(Boolean),
-        }),
-      })
-      const data = await res.json()
-      if (res.ok) {
-        setEditing(false)
-        setMessage('Saved — your listing is updated. Reload to see it as a reader does.')
-      } else {
-        setError(data.error || 'Could not save those changes.')
-      }
-    } catch {
-      setError('Could not reach the server. Try again in a moment.')
-    } finally {
-      setBusy(false)
-    }
-  }
-
   return (
     <section className="rounded-2xl border border-line bg-bg-sunk/40 p-4">
       {!isLoggedIn && !claimed && (
@@ -165,84 +117,34 @@ export default function ClaimPanel({ tool, isLoggedIn }) {
         </p>
       )}
 
-      {iOwnIt && !editing && (
+      {iOwnIt && (
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="inline-flex items-center gap-1.5 text-xs font-semibold text-ink-2">
             <BadgeCheck className="h-4 w-4 text-accent" aria-hidden="true" />
             You own this listing
           </p>
-          <button
-            type="button"
-            onClick={() => setEditing(true)}
+          {/* The editor is a page of its own now (ListingEditorPage). It used
+              to be a form inlined right here, in a 380px sidebar column — no
+              logo field, no name, and a 2000-character description in a
+              five-row textarea. That was a usable "fix a typo" affordance and
+              the wrong thing to hand someone in an email telling them the
+              listing is theirs. */}
+          <Link
+            to={`/dashboard/listing/${slug}`}
             className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-line-strong bg-bg px-3 py-2 text-xs font-semibold text-ink-2 transition hover:border-accent hover:text-ink"
           >
-            <PencilLine className="h-3.5 w-3.5" aria-hidden="true" /> Edit your copy
-          </button>
+            <PencilLine className="h-3.5 w-3.5" aria-hidden="true" /> Edit your listing
+          </Link>
         </div>
       )}
 
-      {iOwnIt && editing && (
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-ink">Edit your listing</h3>
-            <button
-              type="button"
-              onClick={() => setEditing(false)}
-              aria-label="Cancel"
-              className="rounded-lg p-1 text-muted transition hover:bg-bg hover:text-ink"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-
-          {EDITABLE_TEXT.map(([key, label, kind]) => (
-            <Field key={key} label={label}>
-              {kind === 'textarea' ? (
-                <textarea
-                  rows={5}
-                  value={form[key]}
-                  maxLength={2000}
-                  onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
-                  className="mt-1 w-full rounded-xl border border-line bg-bg px-3 py-2 text-sm text-ink outline-none transition focus:border-accent"
-                />
-              ) : (
-                <input
-                  value={form[key]}
-                  maxLength={2000}
-                  onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
-                  className="mt-1 w-full rounded-xl border border-line bg-bg px-3 py-2 text-sm text-ink outline-none transition focus:border-accent"
-                />
-              )}
-            </Field>
-          ))}
-
-          <Field label="Features — one per line">
-            <textarea
-              rows={4}
-              value={form.features}
-              onChange={(e) => setForm((f) => ({ ...f, features: e.target.value }))}
-              className="mt-1 w-full rounded-xl border border-line bg-bg px-3 py-2 text-sm text-ink outline-none transition focus:border-accent"
-            />
-          </Field>
-
-          <p className="text-[11px] leading-relaxed text-muted-2">
-            Your name, URL, category and pricing label need a human — changing where a listing
-            points moves every reader and every tracked click. Email admin@ai-compass.in and
-            we&apos;ll do it. Ratings, placement and any review we wrote stay ours.
-          </p>
-
-          <button
-            type="button"
-            onClick={saveEdit}
-            disabled={busy}
-            className="rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-60"
-          >
-            {busy ? 'Saving…' : 'Save changes'}
-          </button>
-        </div>
+      {/* The server's reply to a click, NOT a standing state — so it is
+          suppressed once `mine` is set and the block above is already saying
+          the same thing. Rendering both put two paragraphs of identical copy
+          on the page, one grey and one green, the moment a claim was filed. */}
+      {message && !iAmWaiting && !iOwnIt && (
+        <p className="mt-2 text-[11px] leading-relaxed text-accent-ink">{message}</p>
       )}
-
-      {message && <p className="mt-2 text-[11px] leading-relaxed text-accent-ink">{message}</p>}
       {error && (
         <p role="alert" className="mt-2 text-[11px] leading-relaxed text-danger">
           {error}
