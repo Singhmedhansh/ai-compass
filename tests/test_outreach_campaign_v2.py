@@ -30,6 +30,7 @@ from datetime import date
 import pytest
 
 import app.outreach as outreach_mod
+import app.outreach_qualify as outreach_qualify
 from app import create_app, db
 from app.email_utils import html_to_plain_text
 from app.models import OutreachCandidate, OutreachEmailLog, Submission
@@ -524,4 +525,152 @@ def test_a_reply_does_not_hand_budget_back(app):
     assert campaign_sends_used() == 1, (
         "Counting statuses instead of the log would refund the budget every "
         "time somebody answered."
+    )
+
+
+# ─── Phase 2: qualified archive discovery ─────────────────────────────────────
+
+@pytest.fixture()
+def fake_archive(monkeypatch):
+    """Two launches: one qualified company, one free-only side project."""
+    launches = [
+        {"product_name": "Rowboat", "tagline": "Agent workflows",
+         "website_url": "https://rowboat.example", "founder_name": "Priya Raman",
+         "ph_launch_id": "ph_1", "launched_on": "2026-04-07"},
+        {"product_name": "Fluxnote", "tagline": "Notes app",
+         "website_url": "https://fluxnote.example", "founder_name": "",
+         "ph_launch_id": "ph_2", "launched_on": "2026-04-08"},
+    ]
+    monkeypatch.setattr(outreach_mod, "fetch_producthunt_archive",
+                        lambda *a, **k: launches)
+    monkeypatch.setattr(outreach_mod, "is_deployed_app_url", lambda u: True)
+    monkeypatch.setattr(outreach_mod, "is_student_relevant", lambda *a, **k: True)
+
+    import app.outreach_qualify as q
+
+    def _facts(url):
+        if "rowboat" in (url or ""):
+            return {"pricing_text": "Starter $29/mo Business $199/mo. Contact sales.",
+                    "pricing_url": url, "domain_age_days": 160,
+                    "company_signals": {"careers": True, "team": True,
+                                        "docs": True, "changelog": True}}
+        return {"pricing_text": "Free forever, no credit card", "pricing_url": url,
+                "domain_age_days": 40,
+                "company_signals": {"careers": False, "team": False,
+                                    "docs": False, "changelog": False}}
+
+    monkeypatch.setattr(q, "gather_facts", _facts)
+    return launches
+
+
+def test_archive_discovery_dry_run_writes_nothing(app, fake_archive):
+    from datetime import date
+
+    res = outreach_mod.run_archive_discovery(date(2026, 4, 1), date(2026, 4, 30))
+    assert res["dry_run"] is True
+    assert res["would_create"] == 1
+    assert res["would_reject"] == 1
+    assert OutreachCandidate.query.count() == 0
+
+
+def test_archive_discovery_reports_which_gate_rejected_what(app, fake_archive):
+    """Counting rejections by gate is how the bar gets corrected.
+
+    Without it there is no way to tell a bar that is correctly strict from one
+    that is simply broken.
+    """
+    from datetime import date
+
+    res = outreach_mod.run_archive_discovery(date(2026, 4, 1), date(2026, 4, 30))
+    assert sum(res["rejected_by_gate"].values()) == 1
+    assert "no_qualifying_price" in res["rejected_by_gate"]
+
+
+def test_archive_discovery_keeps_rejections_but_never_emails_them(app, fake_archive, monkeypatch):
+    from datetime import date
+
+    monkeypatch.setattr(outreach_mod, "enrich_candidate_email",
+                        lambda url, name: ("f@rowboat.example", "scraper", 90, "valid"))
+    monkeypatch.setattr(outreach_mod, "generate_draft_via_gemini",
+                        lambda c: ("About Rowboat", "<p>draft</p>"))
+
+    res = outreach_mod.run_archive_discovery(
+        date(2026, 4, 1), date(2026, 4, 30), dry_run=False)
+    assert res["created"] == 1
+
+    rejected = OutreachCandidate.query.filter_by(status="rejected").one()
+    assert rejected.product_name == "Fluxnote"
+    assert rejected.status in outreach_mod.NON_SENDABLE_STATUSES, (
+        "A rejected candidate is kept for tuning the rubric, never mailed."
+    )
+    summary = outreach_qualify.qualification_summary(rejected)
+    assert summary["failed_gate"] == "no_qualifying_price"
+
+
+def test_archive_discovery_stamps_pool_and_campaign(app, fake_archive, monkeypatch):
+    from datetime import date
+
+    monkeypatch.setattr(outreach_mod, "enrich_candidate_email",
+                        lambda url, name: ("f@rowboat.example", "scraper", 90, "valid"))
+    monkeypatch.setattr(outreach_mod, "generate_draft_via_gemini",
+                        lambda c: ("About Rowboat", "<p>draft</p>"))
+
+    outreach_mod.run_archive_discovery(date(2026, 4, 1), date(2026, 4, 30), dry_run=False)
+    c = OutreachCandidate.query.filter_by(product_name="Rowboat").one()
+    assert c.lead_pool == POOL_COLD
+    assert c.campaign == CURRENT_CAMPAIGN
+    assert c.fit_score >= outreach_qualify.MIN_SCORE
+    assert c.status == "draft_ready", (
+        "Qualified is not approved — it still needs a human before it sends."
+    )
+
+
+def test_a_qualified_candidate_still_cannot_auto_send(app, fake_archive, monkeypatch):
+    """Phase 1's guardrail must survive Phase 2's sourcing."""
+    from datetime import date
+    from app.outreach import can_send_candidate
+
+    monkeypatch.setattr(outreach_mod, "enrich_candidate_email",
+                        lambda url, name: ("f@rowboat.example", "scraper", 90, "valid"))
+    monkeypatch.setattr(outreach_mod, "generate_draft_via_gemini",
+                        lambda c: ("About Rowboat", "<p>draft</p>"))
+
+    outreach_mod.run_archive_discovery(date(2026, 4, 1), date(2026, 4, 30), dry_run=False)
+    c = OutreachCandidate.query.filter_by(product_name="Rowboat").one()
+    c.draft_template_version = outreach_mod.CURRENT_DRAFT_TEMPLATE_VERSION
+
+    ok, reason = can_send_candidate(c)
+    assert ok is False and "review" in reason.lower()
+
+
+def test_inbound_leads_are_scored_but_never_gated(app, monkeypatch):
+    """The warmest pool must not be rejected by a scraping failure.
+
+    An inbound company whose /pricing sits behind a login, or whose registrar
+    hides the registration date, has still found us and asked to be listed —
+    evidence far stronger than anything the gates measure.
+    """
+    import app.outreach_qualify as q
+
+    monkeypatch.setattr(q, "gather_facts", lambda url: {
+        "pricing_text": None, "pricing_url": None,
+        "domain_age_days": None, "company_signals": {},
+    })
+    monkeypatch.setattr(outreach_mod, "generate_draft_via_gemini",
+                        lambda c: outreach_mod.get_generic_draft(c))
+
+    s = Submission(name="SimplAI", website="https://simplai.example",
+                   category="Productivity", description="Agentic workflows",
+                   pricing_model="free", submitter_email="arjun@simplai.example",
+                   status="pending", payment_status="unpaid")
+    db.session.add(s)
+    db.session.commit()
+
+    res = import_inbound_submitters(dry_run=False)
+    assert res["imported"] == 1
+
+    c = OutreachCandidate.query.one()
+    assert c.status == "draft_ready", "Scored zero, but still imported."
+    assert outreach_qualify.qualification_summary(c)["failed_gate"] is not None, (
+        "The gate failure is recorded for ranking, not acted on."
     )

@@ -2835,6 +2835,164 @@ def refresh_stale_drafts(limit=None):
     return refreshed
 
 
+# ─── V2 CAMPAIGN: QUALIFIED ARCHIVE DISCOVERY ───────────────────────
+
+def run_archive_discovery(start_date, end_date, max_days=None, dry_run=True, limit=None):
+    """Sources the cold pool: Product Hunt launches from a past date range,
+    qualified against the v2 rubric before anything is written.
+
+    This is the sourcing half of the rework. Every v1 source returned products
+    that launched this morning, so the target profile - shipping 3-8 months,
+    real pricing tiers, budget to spend - was structurally unreachable. Here
+    the date range IS the age filter, and app/outreach_qualify.py then checks
+    the budget and company-shape evidence on each survivor.
+
+    Rejections are recorded, not discarded. A candidate that fails a gate is
+    written with status 'rejected' and its failing gate stored, because the
+    only way to tell a bar that is correctly strict from one that is broken is
+    to look at what it threw away.
+
+    dry_run=True by default. A full pass makes several network requests per
+    surviving launch, and the counts alone answer the question that matters
+    first: is the bar producing tens of candidates or hundreds?
+    """
+    from concurrent.futures import ThreadPoolExecutor
+    from app.outreach_qualify import (
+        MIN_SCORE,
+        gather_facts,
+        qualify_candidate,
+        store_qualification,
+    )
+
+    launches = fetch_producthunt_archive(start_date, end_date, max_days=max_days)
+
+    # Cheap local gates and the DB dedup check first, so no network work is
+    # spent on anything that would be thrown away regardless.
+    survivors = []
+    skipped = {"not_deployed": 0, "not_relevant": 0, "duplicate": 0}
+    for launch in launches:
+        url = launch.get("website_url", "")
+        name = launch.get("product_name", "")
+        if not is_deployed_app_url(url):
+            skipped["not_deployed"] += 1
+            continue
+        if not is_student_relevant(name, launch.get("tagline", ""), url):
+            skipped["not_relevant"] += 1
+            continue
+        if is_duplicate_candidate(name, url, launch.get("ph_launch_id", "")):
+            skipped["duplicate"] += 1
+            continue
+        survivors.append(launch)
+        if limit and len(survivors) >= limit:
+            break
+
+    # The qualification probes are network-bound and independent per launch.
+    # Three workers matches the cap already used by regenerate_all_drafts on
+    # this single-shared-vCPU instance.
+    def _facts(launch):
+        try:
+            return launch, gather_facts(launch.get("website_url", ""))
+        except Exception as exc:  # noqa: BLE001 - one bad site must not end the run
+            log.warning("Qualification probe failed for %s: %s", launch.get("product_name"), exc)
+            return launch, None
+
+    scored = []
+    with ThreadPoolExecutor(max_workers=3) as pool:
+        for launch, facts in pool.map(_facts, survivors):
+            if facts is None:
+                continue
+            probe = OutreachCandidate()
+            probe.product_name = launch.get("product_name", "")
+            probe.tagline = launch.get("tagline", "")
+            probe.website_url = launch.get("website_url", "")
+            verdict = qualify_candidate(probe, facts=facts)
+            scored.append((launch, verdict))
+
+    qualified = [(x, v) for x, v in scored if v["passed"]]
+    rejected = [(x, v) for x, v in scored if not v["passed"]]
+
+    if dry_run:
+        gates = {}
+        for _, v in rejected:
+            key = v["failed_gate"] or f"below_score_{MIN_SCORE}"
+            gates[key] = gates.get(key, 0) + 1
+        return {
+            "dry_run": True,
+            "launches_found": len(launches),
+            "reached_qualification": len(scored),
+            "would_create": len(qualified),
+            "would_reject": len(rejected),
+            "skipped": skipped,
+            "rejected_by_gate": gates,
+            "sample": [
+                {
+                    "name": x.get("product_name"),
+                    "score": v["score"],
+                    "entry_price": v["prices"].get("min_monthly"),
+                    "age_days": v.get("domain_age_days"),
+                }
+                for x, v in sorted(qualified, key=lambda p: -p[1]["score"])[:10]
+            ],
+        }
+
+    created = 0
+    for launch, verdict in scored:
+        c = OutreachCandidate()
+        c.campaign = CURRENT_CAMPAIGN
+        c.lead_pool = POOL_COLD
+        c.product_name = launch.get("product_name", "")
+        c.tagline = launch.get("tagline", "")
+        c.website_url = launch.get("website_url", "")
+        c.founder_name = launch.get("founder_name", "")
+        c.ph_launch_id = launch.get("ph_launch_id") or None
+        c.tone = infer_tone(c.tagline, "")
+        store_qualification(c, verdict)
+
+        if not verdict["passed"]:
+            # Kept, with the reason, so the rubric can be corrected from real
+            # misses rather than from guesses. Never emailed: 'rejected' is in
+            # NON_SENDABLE_STATUSES.
+            c.status = "rejected"
+            c.email_source = "none"
+            c.confidence_score = 0
+            db.session.add(c)
+            continue
+
+        email, source, score, verification = enrich_candidate_email(
+            c.website_url, c.founder_name
+        )
+        if email:
+            c.email = email
+            c.email_source = source
+            c.confidence_score = score
+            c.verification_result = verification
+            c.verified_at = datetime.now(timezone.utc) if verification else None
+            c.status = "draft_ready"
+            subject, body = generate_draft_via_gemini(c)
+            c.draft_subject = subject
+            c.draft_body = body
+            c.draft_template_version = CURRENT_DRAFT_TEMPLATE_VERSION
+        else:
+            c.email_source = "none"
+            c.confidence_score = 0
+            c.status = "no_email_found"
+
+        db.session.add(c)
+        created += 1
+
+    db.session.commit()
+    log.info(
+        "Archive discovery %s..%s: %s qualified, %s rejected.",
+        start_date, end_date, created, len(rejected),
+    )
+    return {
+        "dry_run": False,
+        "created": created,
+        "rejected": len(rejected),
+        "skipped": skipped,
+    }
+
+
 # ─── V2 CAMPAIGN: RESET + INBOUND IMPORT ─────────────────────────────────────
 
 ARCHIVED_V1_STATUS = "archived_v1"
@@ -2890,7 +3048,7 @@ FREE_EMAIL_DOMAINS = frozenset({
 })
 
 
-def import_inbound_submitters(campaign=None, dry_run=True, limit=None):
+def import_inbound_submitters(campaign=None, dry_run=True, limit=None, qualify=True):
     """Creates outreach candidates from people who submitted a tool to US.
 
     This is the warmest pool in the campaign and the pipeline has never once
@@ -2990,6 +3148,25 @@ def import_inbound_submitters(campaign=None, dry_run=True, limit=None):
         c.tone = infer_tone(sub.description, "")
         c.status = "draft_ready"
         c.ph_launch_id = f"inbound:{sub.id}"
+
+        # Warm leads are SCORED but never GATED.
+        #
+        # The gates in outreach_qualify exist to answer "is there any evidence
+        # this stranger can spend $49". That question is already answered here
+        # by something far stronger than a scraped pricing page: they found us,
+        # filled in our form, and asked to be listed. Rejecting an inbound
+        # company because its /pricing page is behind a login, or because RDAP
+        # will not disclose its registration date, would throw away the single
+        # warmest lead in the campaign over a scraping failure.
+        #
+        # The score is still recorded, because the console ranks on it and an
+        # operator picking 45 wants the best-evidenced companies first.
+        if qualify:
+            try:
+                from app.outreach_qualify import qualify_candidate, store_qualification
+                store_qualification(c, qualify_candidate(c))
+            except Exception as exc:  # noqa: BLE001 - scoring must not block the import
+                log.warning("Qualification failed for inbound %s: %s", sub.name, exc)
 
         subject, body = generate_draft_via_gemini(c)
         c.draft_subject = subject

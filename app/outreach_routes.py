@@ -43,6 +43,7 @@ from app.outreach import (
     refresh_stale_drafts,
     archive_v1_candidates,
     import_inbound_submitters,
+    run_archive_discovery,
     CURRENT_CAMPAIGN,
     CAMPAIGN_SEND_BUDGET,
 )
@@ -709,6 +710,59 @@ def campaign_archive_v1():
 
     confirm = bool((request.get_json(silent=True) or {}).get("confirm"))
     return jsonify(archive_v1_candidates(dry_run=not confirm))
+
+
+@outreach_bp.route("/api/v1/admin/outreach/campaign/archive-discovery", methods=["POST"])
+@csrf.exempt
+@login_required
+def campaign_archive_discovery():
+    """Sources and qualifies the cold pool from a past Product Hunt date range.
+
+    Body: {"start": "2026-04-01", "end": "2026-04-30", "confirm": false,
+           "max_days": 30, "limit": 200}
+
+    Dry run unless confirmed, and the dry run is the point: it reports how many
+    launches cleared each gate without writing anything or spending a Gemini
+    call. If the bar returns hundreds of qualified candidates it is too low and
+    we are back to quantity, which is the failure the rework exists to fix.
+    """
+    if not _is_admin():
+        return jsonify({"error": "Admin access required."}), 403
+
+    payload = request.get_json(silent=True) or {}
+    try:
+        start = datetime.strptime(payload["start"], "%Y-%m-%d").date()
+        end = datetime.strptime(payload["end"], "%Y-%m-%d").date()
+    except (KeyError, ValueError):
+        return jsonify({
+            "error": "Provide 'start' and 'end' as YYYY-MM-DD dates.",
+        }), 400
+
+    if end < start:
+        return jsonify({"error": "'end' must not be before 'start'."}), 400
+
+    # One HTTP request per day in the range plus several per surviving launch.
+    # An unbounded range typed by hand is how this turns into a very long
+    # request against a free-tier instance.
+    if (end - start).days > 62:
+        return jsonify({
+            "error": "Range is capped at 62 days. Run it a month at a time.",
+        }), 400
+
+    if not _outreach_job_lock.acquire(blocking=False):
+        return jsonify({"error": "Another outreach job is already running."}), 409
+    try:
+        result = run_archive_discovery(
+            start, end,
+            max_days=payload.get("max_days"),
+            dry_run=not bool(payload.get("confirm")),
+            limit=int(payload["limit"]) if payload.get("limit") else None,
+        )
+    finally:
+        _outreach_job_lock.release()
+
+    result["campaign"] = CURRENT_CAMPAIGN
+    return jsonify(result)
 
 
 @outreach_bp.route("/api/v1/admin/outreach/campaign/status", methods=["GET"])
