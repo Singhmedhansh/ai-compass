@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { CreditCard, Sparkles, CheckCircle2, ShieldCheck, ArrowRight, User, Wallet, QrCode, ArrowUpRight, Lock, TrendingUp, Users, Search, BarChart3, Image as ImageIcon } from 'lucide-react'
 
@@ -133,29 +133,35 @@ function TierCard({ tier, selected, onSelect }) {
       type="button"
       onClick={() => onSelect(tier.id)}
       aria-pressed={selected}
-      className={`text-left rounded-2xl border p-5 transition ${
+      className={`flex h-full flex-col rounded-2xl border p-5 text-left transition ${
         selected
           ? 'border-accent bg-accent-soft/20 shadow-md ring-2 ring-accent/15'
           : 'border-line bg-bg-elev hover:border-line-strong hover:bg-bg-sunk'
       }`}
     >
-      <div className="flex items-center justify-between gap-2">
-        <span
-          className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-wider ${
-            isFree
-              ? 'bg-bg-sunk text-ink-2 border border-line'
-              : 'bg-accent-soft text-accent shadow-sm'
-          }`}
-        >
-          {isSponsor && <Sparkles className="h-2.5 w-2.5" />}
-          {tier.badgeLabel}
-        </span>
-        <div className="flex items-baseline gap-1.5">
-          <span className="text-base font-bold text-ink">{tier.priceLabel}</span>
-          {tier.price > 0 && <span className="text-[10px] font-medium text-ink-2">one-time</span>}
-        </div>
+      {/* Badge above price, not beside it.
+          Side by side, these two collided: at lg:grid-cols-4 inside a
+          max-w-4xl container each card gets ~175px of content width, and the
+          badge (~85px) plus "$49 one-time" (~70px) plus the gap did not fit.
+          Both wrapped mid-word — "FAST-" / "TRACK" over "$49 one-" / "time" —
+          which is what made this row look broken rather than tight.
+          whitespace-nowrap on each half now guarantees neither can break
+          again if a longer tier name is added later. */}
+      <span
+        className={`inline-flex w-fit items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-wider ${
+          isFree
+            ? 'bg-bg-sunk text-ink-2 border border-line'
+            : 'bg-accent-soft text-accent shadow-sm'
+        }`}
+      >
+        {isSponsor && <Sparkles className="h-2.5 w-2.5 shrink-0" />}
+        {tier.badgeLabel}
+      </span>
+      <div className="mt-2.5 flex items-baseline gap-1.5 whitespace-nowrap">
+        <span className="text-lg font-bold text-ink">{tier.priceLabel}</span>
+        {tier.price > 0 && <span className="text-[10px] font-medium text-ink-2">one-time</span>}
       </div>
-      <h3 className="mt-3 text-base font-bold text-ink">{tier.name}</h3>
+      <h3 className="mt-2 text-sm font-bold text-ink">{tier.name}</h3>
       <p className="mt-1 text-xs text-ink-2 leading-relaxed font-normal">{tier.tagline}</p>
     </button>
   )
@@ -189,6 +195,10 @@ export default function SubmitPage() {
   // render in red next to a perfectly good preview.
   const [logoNote, setLogoNote] = useState('')
   const [logoBusy, setLogoBusy] = useState(false)
+  const [logoDragging, setLogoDragging] = useState(false)
+  // The dropzone is a div, not a <label>, so it opens the picker through the
+  // ref rather than by htmlFor association. See the markup for why.
+  const logoInputRef = useRef(null)
 
   // Populated from the /submit-tool response so the success panel can show
   // a working dashboard link and founder-account status immediately —
@@ -618,13 +628,23 @@ export default function SubmitPage() {
   // Accepts whatever the founder has and turns it into what the server
   // accepts, instead of asking them to do it. See the notes on LOGO_MAX_BYTES
   // above for why this stopped being a plain type/size check.
-  async function handleLogoChange(event) {
+  function openLogoPicker() {
+    if (logoBusy) return
+    logoInputRef.current?.click()
+  }
+
+  function handleLogoChange(event) {
     const file = event.target.files && event.target.files[0]
     // Clear the input's value so picking the same file again after an error
     // still fires a change event.
     event.target.value = ''
-    if (!file) return
+    if (file) processLogoFile(file)
+  }
 
+  // Shared by the file picker and by a dropped file. Split out of
+  // handleLogoChange so the dropzone is not a second, subtly different
+  // implementation of the same validation.
+  async function processLogoFile(file) {
     setLogoError('')
     setLogoNote('')
 
@@ -768,19 +788,23 @@ export default function SubmitPage() {
 
       {/* Monetization / Path Selector Banner */}
       <div className="mb-8 rounded-3xl border border-line bg-gradient-to-br from-bg-elev via-bg-elev to-bg-sunk/30 p-6 shadow-sm">
-        <div className="flex items-center justify-between gap-3 flex-wrap">
-          <span className="text-[10px] font-bold text-accent uppercase tracking-widest block mb-1">Get Listed</span>
+        {/* `block mb-1` on a flex child was doing nothing useful and pushed
+            the eyebrow off the link's baseline; the heading then sat tight
+            against it with no gap of its own. Baseline-aligned row, and the
+            spacing below it stated once. */}
+        <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-accent">Get Listed</span>
           <Link to="/pricing" className="text-xs font-semibold text-accent hover:underline">
             Compare all tiers →
           </Link>
         </div>
-        <h1 className="text-2xl font-bold text-ink tracking-tight sm:text-3xl">Submit Your AI Tool</h1>
+        <h1 className="mt-2 text-2xl font-bold tracking-tight text-ink sm:text-3xl">Submit Your AI Tool</h1>
         <p className="mt-2 text-sm text-ink-2 max-w-2xl font-normal leading-relaxed">
           Get your tool in front of students, creators, and developers. Free listings are welcome and permanent. Listing + Analytics ($19) adds a dashboard and a monthly report on what your listing is actually doing; Fast-Track ($49) is reviewed first and placed above free listings, labelled as sponsored; Reviewed ($79) adds a written hands-on review of your tool on its own page.
         </p>
 
         {/* Tier selector — free is a real, selectable path, not a decoy. */}
-        <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-6 grid grid-cols-1 items-stretch gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {PRICING_TIERS.map((tier) => (
             <TierCard
               key={tier.id}
@@ -888,8 +912,55 @@ export default function SubmitPage() {
                     upload ("Logo must be under 500KB"), with no guidance on
                     what would work — so the field read as broken. Stating the
                     target here and doing the resizing for them (see
-                    handleLogoChange) is what actually fixes it. */}
-                <div className="rounded-lg border border-dashed border-line bg-bg p-3">
+                    processLogoFile) is what actually fixes it.
+
+                    The whole box is the click target, not just the words
+                    "Upload a logo". A dashed box that LOOKS like a dropzone
+                    but only responds to a five-character text link is a
+                    dropzone that reads as broken the first time you click the
+                    obvious place and nothing happens. It also accepts a
+                    dropped file, because a box drawn like this is one people
+                    drag onto.
+
+                    role/tabIndex/onKeyDown rather than a <label> wrapping
+                    everything: a label containing the tips list would have a
+                    screen reader announce all six of them as the field's
+                    name, and the Remove button cannot live inside a label at
+                    all — clicking it would reopen the picker. */}
+                <div
+                  role="button"
+                  tabIndex={logoBusy ? -1 : 0}
+                  aria-label={formData.logo ? 'Choose a different logo file' : 'Upload a logo'}
+                  aria-disabled={logoBusy || undefined}
+                  onClick={openLogoPicker}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault()
+                      openLogoPicker()
+                    }
+                  }}
+                  onDragOver={(event) => {
+                    event.preventDefault()
+                    if (!logoBusy) setLogoDragging(true)
+                  }}
+                  onDragLeave={(event) => {
+                    // Only when the pointer actually leaves the box. Without
+                    // the containment check, dragging across a child element
+                    // fires dragleave and the highlight flickers off.
+                    if (!event.currentTarget.contains(event.relatedTarget)) setLogoDragging(false)
+                  }}
+                  onDrop={(event) => {
+                    event.preventDefault()
+                    setLogoDragging(false)
+                    const file = event.dataTransfer?.files?.[0]
+                    if (file) processLogoFile(file)
+                  }}
+                  className={`rounded-lg border border-dashed p-3 transition outline-none ${
+                    logoBusy
+                      ? 'cursor-wait border-line bg-bg'
+                      : 'cursor-pointer hover:border-accent/60 hover:bg-accent-soft/10 focus-visible:ring-2 focus-visible:ring-accent'
+                  } ${logoDragging ? 'border-accent bg-accent-soft/20' : 'border-line bg-bg'}`}
+                >
                   <div className="flex items-center gap-3">
                     {formData.logo ? (
                       <img
@@ -903,21 +974,22 @@ export default function SubmitPage() {
                       </div>
                     )}
                     <div className="min-w-0 flex-1">
-                      <label
-                        htmlFor="logo"
-                        className={`cursor-pointer text-xs font-bold ${
-                          logoBusy ? 'text-muted-2' : 'text-accent hover:underline'
-                        }`}
+                      <span
+                        className={`text-xs font-bold ${logoBusy ? 'text-muted-2' : 'text-accent'}`}
                       >
                         {logoBusy
                           ? 'Processing…'
                           : formData.logo
                           ? 'Choose a different file'
                           : 'Upload a logo'}
-                      </label>
+                      </span>
+                      <span className="ml-1 hidden text-[11px] text-muted-2 sm:inline">
+                        or drop it here
+                      </span>
                       <input
                         id="logo"
                         name="logo"
+                        ref={logoInputRef}
                         type="file"
                         accept="image/*"
                         disabled={logoBusy}
@@ -931,7 +1003,14 @@ export default function SubmitPage() {
                     {formData.logo && (
                       <button
                         type="button"
-                        onClick={clearLogo}
+                        // Stops the click reaching the dropzone behind it —
+                        // otherwise removing the logo immediately reopens the
+                        // file picker, which reads as the Remove button being
+                        // broken.
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          clearLogo()
+                        }}
                         className="shrink-0 rounded-lg border border-line px-2 py-1 text-[11px] font-semibold text-muted-2 transition hover:bg-bg-sunk hover:text-ink"
                       >
                         Remove
@@ -1408,7 +1487,7 @@ export default function SubmitPage() {
                       </li>
                     ))}
                     {selectedTier.perks.length > 4 && (
-                      <li className="pl-4.5 text-[11px] font-semibold text-muted-2">
+                      <li className="pl-[18px] text-[11px] font-semibold text-muted-2">
                         + {selectedTier.perks.length - 4} more, listed in full on the right
                       </li>
                     )}

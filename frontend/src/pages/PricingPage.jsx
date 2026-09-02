@@ -34,10 +34,16 @@ function TierCard({ tier }) {
     >
       {/* One recommendation, stated plainly. A grid with no recommended
           column makes the reader do the ranking, and most of them resolve
-          that by choosing the cheapest thing or nothing at all. */}
+          that by choosing the cheapest thing or nothing at all.
+
+          whitespace-nowrap because the pill is absolutely positioned and
+          sits half outside the card: if its text ever wrapped it would grow
+          UPWARD into the card above it in the grid rather than pushing
+          anything down. max-w guards the same failure at the narrowest
+          column width by clipping instead. */}
       {isSponsor && (
-        <span className="absolute -top-3 left-6 inline-flex items-center gap-1 rounded-full bg-accent px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-white shadow-sm">
-          <Sparkles className="h-2.5 w-2.5" /> Most founders pick this
+        <span className="absolute -top-3 left-6 inline-flex max-w-[calc(100%-3rem)] items-center gap-1 overflow-hidden whitespace-nowrap rounded-full bg-accent px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-white shadow-sm">
+          <Sparkles className="h-2.5 w-2.5 shrink-0" /> Most founders pick this
         </span>
       )}
 
@@ -151,7 +157,7 @@ export default function PricingPage() {
 
           {/* items-stretch + h-full on the card: four equal columns, whatever
               is in them. This is the fix for the ragged single-column look. */}
-          <div className="mt-12 grid grid-cols-1 items-stretch gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-14 grid grid-cols-1 items-stretch gap-x-5 gap-y-8 sm:grid-cols-2 lg:grid-cols-4">
             {PRICING_TIERS.map((tier) => (
               <TierCard key={tier.id} tier={tier} />
             ))}
