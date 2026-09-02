@@ -10,7 +10,12 @@ from bs4 import BeautifulSoup
 
 from app import db
 from app.models import OutreachCandidate, OutreachEmailLog, CatalogTool
-from app.email_utils import send_email, send_email_with_details, make_unsubscribe_token
+from app.email_utils import (
+    send_email,
+    send_email_with_details,
+    make_unsubscribe_token,
+    make_prefill_token,
+)
 from app.send_budget import reserve_send_slots, release_send_slots
 
 log = logging.getLogger(__name__)
@@ -23,6 +28,160 @@ log = logging.getLogger(__name__)
 # inbox is ever something other than the signature address.
 OUTREACH_REPLY_TO = os.environ.get("OUTREACH_REPLY_TO", "medhansh.singh@ai-compass.in")
 
+# The From line, not just Reply-To. Everything else this app sends is
+# transactional and correctly goes out as no-reply@ — but cold outreach is a
+# personal note, and Gmail sorts on what it can see. A one-to-one email whose
+# From line says "no-reply" is read as bulk mail by the classifier before a
+# human ever judges the copy, which is most of how these were landing in
+# Promotions instead of the inbox. Sending as the same person who signs the
+# email is the single largest deliverability lever available here.
+#
+# Requires the address to exist on the verified sending domain (it is the same
+# ai-compass.in domain already verified in Resend, so no new DNS is needed) and
+# to be a mailbox someone actually reads — it is now both the From and the
+# Reply-To, so replies land there.
+OUTREACH_FROM = os.environ.get(
+    "OUTREACH_FROM", f"Medhansh Pratap Singh <{OUTREACH_REPLY_TO}>"
+)
+
+
+# ─── CAMPAIGN SCOPING (v2 rework) ────────────────────────────────────────────
+# The v1 pipeline sent at a daily RATE. This campaign has a finite LIFETIME
+# budget instead: 45 emails, hand-reviewed, aimed at qualified B2B SaaS
+# companies with visible budget rather than at whatever launched this morning.
+# See the rework brief; the short version is that quality here is a function of
+# how few we send, so the cap has to be a total, not a per-day allowance.
+CURRENT_CAMPAIGN = os.environ.get("OUTREACH_CAMPAIGN", "q3_qualified_b2b")
+CAMPAIGN_SEND_BUDGET = int(os.environ.get("OUTREACH_CAMPAIGN_SEND_BUDGET", "45"))
+
+# The three lead pools, ordered by how much the recipient already knows us.
+# They convert at very different rates, so they are tracked separately rather
+# than being flattened into one undifferentiated list of "candidates".
+POOL_INBOUND = "inbound"   # submitted a tool to us first — warmest
+POOL_TRAFFIC = "traffic"   # already listed, and we send them real clicks
+POOL_COLD = "cold"         # discovered; no prior contact
+
+VALID_LEAD_POOLS = frozenset({POOL_INBOUND, POOL_TRAFFIC, POOL_COLD})
+
+
+def _campaign_copy(candidate) -> dict:
+    """The pool-specific FACTS inside the one shared email template.
+
+    Every outreach email — cold pitch, both follow-up stages, and the
+    traffic-report upsell — uses one template: same plain shell, same voice,
+    same structure, same sign-off. This function supplies the four slots in
+    that template whose facts genuinely differ by pool, and exists precisely
+    so the template itself stays shared.
+
+    Without it there is no honest way to send one template to three pools:
+
+      * The cold copy says "I would like to list {name} there. It is free" and
+        "your listing is already pre-filled, so it takes about 30 seconds".
+        Both are false sent to a founder who submitted their tool last week,
+        and getting that wrong on the warmest leads in the campaign tells them
+        we did not notice they were already a user.
+      * The cold copy's closing aside offers the paid tier as an afterthought,
+        which is right when the ask was a free listing. For someone already
+        listed, the paid tier IS the ask — so leaving the aside in place made
+        the email pitch the upgrade twice in consecutive paragraphs, and made
+        the follow-up promise "nothing to pay" directly beneath a link to a
+        $49 purchase.
+
+    Slots: `offer` (what we are proposing), `cta` (the sentence above the one
+    link), `link`, `aside` (the closing qualifier), and `followup_note` (the
+    reassurance line the follow-ups close on).
+
+    One skeleton, four variables, three factual variants. If a fourth pool
+    appears, add it here — do not fork the template.
+    """
+    pool = getattr(candidate, "lead_pool", None)
+    name = getattr(candidate, "product_name", "your tool") or "your tool"
+
+    # Already listed (or queued): the free listing is done, so the proposal is
+    # the placement, and the reassurance is that free stays free.
+    if pool in (POOL_INBOUND, POOL_TRAFFIC):
+        if pool == POOL_INBOUND:
+            offer = (
+                f"You submitted {name} to AI Compass, which I appreciated - it is exactly "
+                "the kind of tool the directory is for. It is in the queue for a free "
+                "listing either way, and here is what that gets you:"
+            )
+        else:
+            offer = (
+                f"{name} is already listed on AI Compass, and the listing is doing real "
+                "work. Here is what it is already getting you:"
+            )
+        return {
+            "offer": offer,
+            "cta": (
+                f"If you want {name} placed above the free listings in its category - a "
+                "Sponsored badge and a 30-day featured card with impressions and clicks "
+                "reported back - that is $49 one-time, or $79 with a written hands-on "
+                "review on its own indexed page:"
+            ),
+            "link": "https://ai-compass.in/submit",
+            "aside": (
+                "The free listing is not going anywhere either way. This is only if you "
+                "want the placement."
+            ),
+            "followup_recap": (
+                f"Quick recap: {name} is already listed, so this is only about the "
+                "placement - above the free listings in its category, with a Sponsored "
+                "badge and the impressions and clicks reported back. That is $49 one-time, "
+                "or $79 with a written hands-on review:"
+            ),
+            "followup_note": (
+                "And the free listing stays exactly as it is if you would rather leave it."
+            ),
+        }
+
+    return {
+        "offer": (
+            "I run AI Compass - a hand-tested directory of AI tools (500+ listed, every one "
+            f"manually tested rather than scraped) that students and developers search when "
+            f"they are comparing options. I would like to list {name} there. It is free, and "
+            "here is what that gets you:"
+        ),
+        "cta": "Your listing is already pre-filled, so it takes about 30 seconds:",
+        "link": _prefill_url(candidate),
+        "aside": (
+            "There is also a paid option if you want placement above the free listings in "
+            "your category - $49 one-time for a Sponsored badge and a 30-day featured card "
+            f"with impressions and clicks reported back, or $79 which adds a written "
+            f"hands-on review of {name} on its own indexed page."
+        ),
+        "followup_recap": (
+            f"The offer is just the free listing: {name} on ai-compass.in, permanently, in "
+            "front of students and developers searching for tools in your category. It is "
+            "pre-filled already, so it is about 30 seconds:"
+        ),
+        "followup_note": "Nothing to pay and nothing to sign up for.",
+    }
+
+
+def _prefill_url(candidate) -> str:
+    """The pre-filled submit link for one candidate.
+
+    A cold email that asks a founder to go fill in a form converts far worse
+    than one that has already filled it in for them — discovery has their
+    product name, URL and tagline on file, so making them retype it is asking
+    for effort we don't need. The token carries the candidate id; /submit
+    resolves it and renders the form populated, defaulted to the free tier.
+
+    Falls back to the bare /submit URL for an unsaved candidate (no id yet),
+    so a draft generated before the row is flushed still contains a link that
+    works.
+    """
+    base = "https://ai-compass.in/submit"
+    cid = getattr(candidate, "id", None)
+    if not cid:
+        return base
+    try:
+        return f"{base}?c={make_prefill_token(cid)}"
+    except Exception:  # noqa: BLE001 — a signing failure must not lose the draft
+        log.warning("Could not mint prefill token for candidate %s", cid)
+        return base
+
 # Bump this whenever the cold-pitch template (generate_draft_via_gemini's
 # prompt or get_generic_draft's copy) changes in a way that makes existing
 # stored drafts outdated — e.g. a pricing change, a rewritten offer, banned
@@ -32,14 +191,22 @@ OUTREACH_REPLY_TO = os.environ.get("OUTREACH_REPLY_TO", "medhansh.singh@ai-compa
 # OutreachCandidate.draft_template_version and get_stale_draft_candidates()
 # below. History: 1 = pre-founding-sponsor rework ($49.99, MAU/impressions
 # claims); 2 = founding-sponsor $29.99 rework (2026-08-24/25); 3 = discount
-# retired, quotes the $49 list price (2026-08-31).
+# retired, quotes the $49 list price (2026-08-31); 4 = free-listing-first
+# rewrite with a pre-filled submit link and the promotional styling stripped
+# out (2026-09-02).
 #
 # Why 3 exists: the $29.99 "founding-sponsor rate" was quoted to ~264
 # founders against a list price that had never sold once - negotiating
 # against ourselves in public, on a product whose perks did not yet work.
 # The list price is the price. Bumping this marks every stored draft still
 # carrying the discount as stale so it is regenerated rather than sent.
-CURRENT_DRAFT_TEMPLATE_VERSION = 3
+# Why 4 exists: every stored draft below it is a paid-first pitch wrapped in
+# newsletter styling, sent from no-reply@. That combination is what put these
+# in Promotions instead of the inbox, and asking a stranger for $49 in the
+# first email is what kept the reply rate near zero. Bumping this marks all of
+# them stale so they are regenerated against the free-first template rather
+# than sent as they stand.
+CURRENT_DRAFT_TEMPLATE_VERSION = 4
 
 
 def _outreach_send_headers(email: str) -> dict[str, str]:
@@ -59,46 +226,65 @@ def _outreach_send_headers(email: str) -> dict[str, str]:
 
 
 def _append_unsubscribe_footer(html_body: str, email: str | None) -> str:
+    """One plain opt-out line, styled like the rest of the message.
+
+    This used to be 11px grey text set apart from the body — which is exactly
+    what the footer of a marketing blast looks like, and Gmail reads that
+    visual signature as well as any human does. The opt-out itself stays (it
+    is a legal requirement and the right thing to offer), but it now reads as
+    a sentence a person typed rather than as a mailing-list boilerplate block.
+    """
     if not email:
         return html_body
     token = make_unsubscribe_token(email)
     url = f"https://ai-compass.in/unsubscribe?token={token}"
     footer = (
-        '<p style="margin-top:16px;font-size:11px;color:#94a3b8;">'
-        f'Don\'t want emails like this? <a href="{url}" style="color:#94a3b8;">Unsubscribe</a>.'
+        '<p style="margin:0 0 14px 0;">'
+        f"Don't want to hear from me again? <a href=\"{url}\">Unsubscribe</a>."
         '</p>'
     )
     return f"{html_body}\n{footer}"
 
-# Shared shell for every outreach email (initial pitch, traffic-report,
-# and both follow-up stages) so a recipient sees one consistent visual
-# identity across every touch instead of a polished first email followed
-# by a bare-looking bump. Content producers (Gemini prompts + generic
-# fallbacks) only need to write semantic paragraphs/bullets/links — the
-# wrapper and signature are applied here in one place, so the visual
-# quality bar doesn't depend on an LLM reproducing styling correctly
-# every single call.
-_OUTREACH_FONT_STACK = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+
+# Shared shell for every outreach email (initial pitch, traffic-report, and
+# both follow-up stages) so a recipient sees one consistent voice across every
+# touch.
+#
+# It used to be a branded card: a 560px centred container, a custom font
+# stack, a rule-separated signature block, a green emoji wordmark and a
+# button-styled CTA. That is a newsletter, and Gmail files newsletters under
+# Promotions — which is where these were landing. The rewrite deliberately
+# keeps almost no styling at all: default font, default link colour, plain
+# paragraphs. The goal is that the HTML part and the plain-text part are
+# nearly indistinguishable, because a real person writing one email to one
+# other person does not send a designed document.
+#
+# Keep it that way. Every visual flourish added back here is paid for in
+# inbox placement.
 
 def _outreach_signature_html() -> str:
+    """A typed sign-off, not a signature block.
+
+    No logo, no emoji, no colour, no horizontal rule — all of which are
+    promotional-mail tells. The address is written out in full because a real
+    person's sign-off usually is, and because it gives the reader somewhere to
+    reply that is visibly a human mailbox.
+    """
     return (
-        f'<div style="margin-top:22px;padding-top:16px;border-top:1px solid #e2e8f0;font-family:{_OUTREACH_FONT_STACK};">'
-        '<div style="font-weight:700;color:#0f172a;font-size:14px;">Medhansh Pratap Singh</div>'
-        '<div style="color:#64748b;font-size:12.5px;margin-top:3px;">Founder, '
-        '<a href="https://ai-compass.in" style="color:#059669;text-decoration:none;font-weight:600;">🧭 AI Compass</a></div>'
-        '<div style="color:#94a3b8;font-size:11px;margin-top:4px;">medhansh.singh@ai-compass.in &middot; '
-        '<a href="https://ai-compass.in" style="color:#94a3b8;text-decoration:underline;">ai-compass.in</a></div>'
-        '</div>'
+        '<p style="margin:0 0 14px 0;">Thanks,<br>'
+        'Medhansh<br>'
+        'Founder, AI Compass - ai-compass.in</p>'
     )
 
+
 def _outreach_wrap(inner_html: str) -> str:
-    return (
-        f'<div style="max-width:560px;margin:0 auto;font-family:{_OUTREACH_FONT_STACK};'
-        'font-size:14px;color:#334155;line-height:1.65;">'
-        f'{inner_html}'
-        f'{_outreach_signature_html()}'
-        '</div>'
-    )
+    """Wraps body paragraphs with the sign-off. Intentionally minimal.
+
+    No container div, no width constraint, no font override: the client's own
+    default rendering is what a hand-written email looks like.
+    """
+    return f"{inner_html}\n{_outreach_signature_html()}"
+
 
 # Fallback email blacklist filter
 COMMON_PLACEHOLDERS = {
@@ -325,12 +511,31 @@ def guess_product_domain(product_name):
     return None
 
 
-def scrape_producthunt_ranked_posts():
-    """Scrapes PH homepage HTML once and extracts ALL needed fields (website, votes, twitter)
-    from the embedded JSON — zero additional HTTP requests, no rate-limiting risk.
-    Only returns products with 10+ votes that have a real resolved website URL."""
+def scrape_producthunt_ranked_posts(on_date=None):
+    """Scrapes a PH leaderboard page once and extracts ALL needed fields (website,
+    votes, twitter) from the embedded JSON — zero additional HTTP requests, no
+    rate-limiting risk. Only returns products with 10+ votes that have a real
+    resolved website URL.
 
-    home_url = "https://www.producthunt.com/"
+    `on_date` (a datetime.date) fetches that day's ARCHIVED leaderboard instead
+    of today's homepage. This is the whole sourcing change behind the v2
+    campaign: every previous discovery source returned products that launched
+    this morning, so a company that launched in April and has spent five months
+    building revenue was structurally invisible to the pipeline. The target
+    profile — shipping for 3-8 months, real pricing tiers, budget to spend — only
+    exists in the archive.
+
+    Same page shape, same embedded JSON, different URL. PH serves the dated
+    leaderboard at /leaderboard/daily/YYYY/M/D with no zero-padding on the month
+    or day.
+    """
+    if on_date is not None:
+        home_url = (
+            f"https://www.producthunt.com/leaderboard/daily/"
+            f"{on_date.year}/{on_date.month}/{on_date.day}"
+        )
+    else:
+        home_url = "https://www.producthunt.com/"
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
@@ -342,11 +547,11 @@ def scrape_producthunt_ranked_posts():
     try:
         r = requests.get(home_url, headers=headers, timeout=8)
         if not r.ok:
-            log.warning("PH homepage returned %s", r.status_code)
+            log.warning("PH page %s returned %s", home_url, r.status_code)
             return []
         text = r.text
     except Exception as e:
-        log.warning("PH homepage fetch error: %s", e)
+        log.warning("PH fetch error for %s: %s", home_url, e)
         return []
 
     # ── Extract name/slug/tagline/votes as the base set
@@ -515,13 +720,20 @@ def scrape_producthunt_ranked_posts():
     return candidates
 
 
-def fetch_producthunt_launches():
-    """Fetches PH launches via GraphQL API token (if available) and ranked public HTML scraper."""
+def fetch_producthunt_launches(on_date=None):
+    """Fetches PH launches via GraphQL API token (if available) and ranked public HTML scraper.
+
+    `on_date` fetches an archived day's leaderboard instead of today's. The
+    GraphQL branch is skipped entirely for a dated fetch: the query above asks
+    for `posts(first: 50)` with no date filter, which returns TODAY's posts
+    regardless of what was asked for — silently mixing today's launches into an
+    archive fetch and defeating the point of asking for a date.
+    """
     candidates = []
     seen_slugs = set()
 
-    # 1. API GraphQL fetch if token is configured
-    token = os.environ.get("PRODUCTHUNT_API_TOKEN")
+    # 1. API GraphQL fetch if token is configured (live/today only — see above)
+    token = os.environ.get("PRODUCTHUNT_API_TOKEN") if on_date is None else None
     if token:
         api_url = "https://api.producthunt.com/v2/api/graphql"
         headers = {
@@ -586,14 +798,65 @@ def fetch_producthunt_launches():
             log.warning("PH GraphQL fetch failed: %s", e)
 
     # 2. Public ranked HTML scraper — captures Zinley, Capptivo, YourSitee, Zen Whisper, Finamie, etc.
-    for wc in scrape_producthunt_ranked_posts():
+    for wc in scrape_producthunt_ranked_posts(on_date=on_date):
         slug_key = wc["product_name"].lower().replace(" ", "-")
         if slug_key not in seen_slugs:
             seen_slugs.add(slug_key)
             candidates.append(wc)
 
-    log.info("Total PH candidates after combined fetch: %s", len(candidates))
+    log.info(
+        "Total PH candidates after combined fetch (%s): %s",
+        on_date.isoformat() if on_date else "today", len(candidates),
+    )
     return candidates
+
+
+def fetch_producthunt_archive(start_date, end_date, max_days=None):
+    """Walks the PH daily leaderboard across a date range, oldest day first.
+
+    This is the cold pool for the v2 campaign: products that launched 3-8
+    months ago, survived, and have had time to build the pricing page and the
+    revenue that make them worth pitching. One HTTP request per day in the
+    range, so the range is what bounds the cost — a month is ~30 requests.
+
+    Deduplicated by product name across days, because a product that ranks on
+    consecutive days appears on both leaderboards.
+    """
+    from datetime import timedelta
+
+    launches = []
+    seen = set()
+    day = start_date
+    days_fetched = 0
+
+    while day <= end_date:
+        if max_days is not None and days_fetched >= max_days:
+            break
+        try:
+            for wc in fetch_producthunt_launches(on_date=day):
+                key = wc["product_name"].lower().replace(" ", "-")
+                if key in seen:
+                    continue
+                seen.add(key)
+                # Stamp the real launch date. Candidate age is a scored signal
+                # in the v2 rubric, and it cannot be recovered later — the
+                # leaderboard URL is the only place this date exists.
+                wc["launched_on"] = day.isoformat()
+                launches.append(wc)
+        except Exception as e:  # noqa: BLE001 — one bad day must not end the walk
+            log.warning("PH archive fetch failed for %s: %s", day, e)
+
+        days_fetched += 1
+        day = day + timedelta(days=1)
+        # Courtesy pause; this is a public HTML page and we are walking a month
+        # of it in one run.
+        time.sleep(1.0)
+
+    log.info(
+        "PH archive %s..%s: %s unique launches across %s day(s).",
+        start_date, end_date, len(launches), days_fetched,
+    )
+    return launches
 
 MIN_HN_POINTS = 5  # Skip HN posts with fewer points — low signal = hobby project
 HN_SKIP_TITLE_PATTERNS = [
@@ -1521,56 +1784,51 @@ def generate_draft_via_gemini(candidate):
         return get_generic_draft(candidate)
 
     system_prompt = """
-You are Medhansh Pratap Singh, Founder of AI Compass (https://ai-compass.in) - a curated directory for tech-savvy students, developers, and creators.
-Write a short, high-converting cold outreach email pitching a paid AI Compass listing to the founder of a SaaS product. The reader gets dozens
-of cold emails a week and decides whether to keep reading within the first line. Your only job is to get them to click the link or reply — write
-like a founder personally reaching out to another founder, not like a marketing blast. Quote list prices only: there is no discount to offer,
-and inventing one anchors a price nobody has paid yet.
+You are Medhansh, founder of AI Compass (https://ai-compass.in) - a hand-tested directory of AI tools for students, developers and creators.
+Write a short cold email to the founder of another product offering them a FREE listing. This is not a sales email. The free listing is the
+offer; the paid tiers are mentioned once, near the end, as an aside the reader is free to skip.
 
-CONVERSION STRUCTURE (follow this order, this is what makes it work):
-1. Opening line (1 sentence): reference ONE concrete, specific detail about their product — its exact tagline, a feature, or the specific problem it
-   solves for students/developers. Prove in the first sentence that this isn't a template. Never open with "I came across X" or "I hope this finds
-   you well" — those are the two biggest tells of a mass-blasted email and cause instant deletion.
-2. Bridge (1 sentence): connect that specific detail to why AI Compass's audience (students/developers actively searching for tools like theirs) is
-   exactly who they want finding them.
-3. Proof point to use (only this — do not invent or round up any other numbers): "AI Compass tracks real outbound click-throughs to listed
-   tools — 1,689 in the last 30 days alone — from students actively comparing options, not just browsing." Anchor it to THEIR situation
-   (students looking for a tool like theirs).
-4. The curation angle, briefly: 500+ hand-tested tools, not scraped — this is why placement here means something.
-5. The offer: "{name} can take the Fast-Track listing for $49 one-time — placement above free listings in its category, a labelled Sponsored
-   badge, and a 30-day Featured card with impressions and clicks reported back — or the Reviewed tier at $79, which adds a hands-on written
-   review of the tool on its own indexed page." Quote the list price. Never invent a discount, a founding rate, or a limited-time price.
-6. One honest scarcity line, and only if it is true of the tier being pitched: the Reviewed tier is capped at four written reviews a month,
-   because one person writes them. Never invent a countdown, a discount deadline, a slot count, or any other urgency.
-7. A single, unambiguous call to action: one sentence + the link https://ai-compass.in/submit — but make it low-friction by also naming the
-   alternative of just replying (e.g. "get [Product] listed here [link] — or just reply if you've got questions first"). Most recipients who are
-   interested but not ready to pay on the spot will never click a payment link cold; giving them "reply" as a zero-commitment option is what turns
-   interest into an actual email back, which a link click alone can't do. Still only one link — replying is a fallback, not a second competing CTA.
-8. Sign-off, then a P.S. in one short sentence: the free listing is permanent and takes two minutes, so nobody has to pay to be listed. P.S.
-   lines get read even by skimmers and are proven to lift reply rates.
+Why free-first: a paid pitch to a stranger who has never heard of us converts at almost nothing, and it makes the email read as a solicitation
+- which is what gets it deleted or filed away as an ad. A free listing is a genuinely useful thing to be handed, it costs the reader nothing to
+accept, and it is what actually gets tools into the directory. Upgrades are sold later, to founders who are already listed and can see what the
+placement does for them. Your job is to get a listing accepted, NOT to sell anything today.
+
+STRUCTURE - follow this order exactly:
+1. Greeting on its own line: "Hey {first name}," or "Hey there," if no name is known.
+2. One sentence of genuine, specific credit: name a concrete detail about their product - its actual tagline, the specific problem it solves,
+   or a real feature. This must prove a person looked at the product. Never "I came across X" and never "I hope this finds you well".
+3. One sentence: you run AI Compass, what it is (a hand-tested directory - 500+ tools, manually tested, not scraped - that students and
+   developers search when comparing options), and that you would like to list their product there. Say plainly that it is free.
+4. The line "here's what that gets you:" followed by exactly two bullet paragraphs, each starting with the character "* " :
+   * a permanent listing on ai-compass.in, indexed by Google and cited by AI assistants when people ask for tools in their category
+   * the traffic proof point, stated exactly once and never rounded or embellished: AI Compass sent 1,689 outbound click-throughs to listed
+     tools in the last 30 days - people clicking through to actually try them, not just browsing
+5. One sentence saying the listing is already pre-filled so it takes about 30 seconds, then the link on its OWN paragraph, as a bare visible URL.
+   Use the exact placeholder PREFILL_URL for it - it is substituted later. The link text must BE the URL, not a word linking to it.
+6. Exactly one short paragraph for the paid option, framed as optional and secondary. Wording to follow closely: there is also a paid option
+   if they want placement above the free listings in their category - $49 one-time for a Sponsored badge and a 30-day featured card with
+   impressions and clicks reported back, or $79 which adds a written hands-on review of the tool on its own indexed page. Never pressure it,
+   never put a deadline on it, never invent a discount or a founding rate. It is one paragraph and it is never the last thing before the sign-off.
+7. The closing line, near-verbatim: "No pressure either way - if it's not useful, just ignore this."
 
 HARD CONSTRAINTS:
-- Body text (excluding the bullet list and signature) must be under 130 words total. Cold emails that take longer than 20 seconds to read get archived
-  unread. Cut every sentence that doesn't directly serve steps 1-8 above.
-- No emojis anywhere. No exclamation points except at most one, and only if it reads natural, not salesy.
-- No spam-trigger phrasing: avoid "FREE", "ACT NOW", "$$$", ALL CAPS words, or more than one "!!!"-style emphasis.
-- Never fabricate claims not in the metrics/perks below (no fake testimonials, no fake urgency, no invented statistics).
-- Never use the phrase "monthly active visitors", "impressions", or any specific visitor-count claim anywhere in the email. The only number you
-  may use is the 1,689-clicks-in-30-days proof point above.
-- Output valid JSON with exactly two fields: "subject" and "body". Do NOT include a signature — that is appended separately.
-- Subject line: under 50 characters, reads like a real 1:1 email a person would send (e.g. mentioning the product by name), never generic corporate
-  phrasing like "Exciting Partnership Opportunity" or "Featured Placement Offer".
-- The "body" must be clean HTML using ONLY <p>, <b>, <ul>, <li>, and <a> tags — no <br>, no <style> blocks, no tables, no images, no signature block.
-- Every <p> must carry style="margin:0 0 14px 0;" and the <ul> must carry style="margin:0 0 16px 0;padding-left:20px;color:#475569;" — this keeps
-  spacing consistent across every email client instead of relying on each client's own default paragraph spacing. Example paragraph:
-  <p style="margin:0 0 14px 0;">Hey Jane, ...</p>
-- The CTA paragraph must look like this pattern (adjust the wording, keep the styling): <p style="margin:0 0 4px 0;font-size:14.5px;"><a
-  href="https://ai-compass.in/submit" style="color:#059669;font-weight:700;text-decoration:none;border-bottom:1.5px solid #059669;">[short CTA verb
-  phrase, e.g. "Get [Product] listed →"]</a> <span style="color:#64748b;font-size:13.5px;">$49 one-time — or just reply if you've
-  got questions first.</span></p>
-- The P.S. paragraph must use style="margin:16px 0 0 0;font-size:12px;color:#64748b;".
+- Under 150 words total excluding the sign-off. Every sentence must earn its place.
+- Write like one founder emailing another. Plain sentences. No marketing register, no "excited to", no "reach out", no "circle back".
+- No emojis. At most one exclamation point, and only if genuinely natural.
+- Exactly ONE link in the whole email: the PREFILL_URL placeholder. Do not link the words "AI Compass", do not link ai-compass.in anywhere else,
+  do not add a second call to action. Multiple links are a bulk-mail signal and split the reader's attention.
+- Never fabricate anything. The only metric you may cite is the 1,689 click-throughs in 30 days. Never say "monthly active visitors",
+  never cite an impressions or visitor count, never invent testimonials, urgency, or slot counts.
+- Do NOT write a sign-off, signature, or "Thanks," line - that is appended separately. End at the "no pressure" line.
+- Subject line: under 50 characters, lowercase-ish and specific, the way a real person titles a one-to-one email. Good: "About {Product}",
+  "{Product} on AI Compass", "quick one about {Product}". Never corporate phrasing like "Partnership Opportunity" or "Featured Placement".
 
-Return ONLY the raw JSON block. Do not wrap in ```json or markdown codeblocks, just return the raw JSON object.
+FORMATTING - this email must look like plain text, because a designed email gets filed as an advertisement:
+- The "body" is HTML using ONLY <p> and <a> tags. No <ul>, no <li>, no <b>, no <br>, no <div>, no <style>, no tables, no images, no buttons.
+- Every single <p> must carry exactly style="margin:0 0 14px 0;" and nothing else. No colours, no font sizes, no font families, no borders.
+- The bullets in step 4 are ordinary <p> paragraphs whose text begins with "* ". They are not a list element.
+- The link paragraph is exactly: <p style="margin:0 0 14px 0;"><a href="PREFILL_URL">PREFILL_URL</a></p>
+- Output valid JSON with exactly two fields: "subject" and "body". Return ONLY the raw JSON object - no markdown fences, no commentary.
 """
 
     # A raw HN/PH/GitHub username (e.g. "geekamongus") is not a name to greet
@@ -1579,18 +1837,7 @@ Return ONLY the raw JSON block. Do not wrap in ```json or markdown codeblocks, j
     # greeting instead of parroting a handle back at someone.
     display_name = candidate.founder_name if _looks_like_real_name(candidate.founder_name) else ""
 
-    prompt = f"""
-{system_prompt}
-
-Write an outreach email for this candidate:
-- Product Name: {candidate.product_name}
-- Tagline: {candidate.tagline}
-- Website: {candidate.website_url}
-- Founder/Maker: {display_name or 'not known — use a neutral greeting'}
-- Tone to use: {candidate.tone}
-
-If a founder name is given, greet them by first name only (e.g. "Hey Jane," not "Hey Jane Doe,"). If not known, use "Hey there,".
-"""
+    prompt = f"""\n{system_prompt}\n\nWrite an outreach email for this candidate:\n- Product Name: {candidate.product_name}\n- Tagline: {candidate.tagline}\n- Website: {candidate.website_url}\n- Founder/Maker: {display_name or 'not known — use a neutral greeting'}\n- Tone to use: {candidate.tone}\n\nIf a founder name is given, greet them by first name only (e.g. "Hey Jane," not "Hey Jane Doe,"). If not known, use "Hey there,".\n"""
 
     payload = {
         "contents": [{"parts": [{"text": prompt}]}],
@@ -1628,6 +1875,13 @@ If a founder name is given, greet them by first name only (e.g. "Hey Jane," not 
             result = json.loads(text)
             subject, body = result.get("subject"), result.get("body")
             if subject and body:
+                # The model writes the literal token PREFILL_URL rather than a
+                # real link. Two reasons: the candidate may not have an id yet
+                # when the draft is generated, and a signed token pasted into
+                # a prompt is something an LLM will happily "tidy up" or
+                # truncate. Substituting here means the URL in the sent email
+                # is always one this process minted.
+                body = body.replace("PREFILL_URL", _prefill_url(candidate))
                 return subject, _append_unsubscribe_footer(_outreach_wrap(body), candidate.email)
         except Exception as e:
             log.warning("Gemini (%s) draft generation failed: %s", model, e)
@@ -1636,22 +1890,35 @@ If a founder name is given, greet them by first name only (e.g. "Hey Jane," not 
 
 
 def get_generic_draft(candidate):
-    """Fallback template used when Gemini fails or is unconfigured. Mirrors the
-    same conversion structure as the Gemini prompt: specific opening, tight
-    offer bullets, one real urgency line, single CTA, P.S. reinforcement.
+    """Fallback template used when Gemini fails or is unconfigured.
+
+    One skeleton for every lead pool: specific credit, the offer, two proof
+    bullets, a single link, the paid tiers once as an aside, and an explicit
+    permission to ignore the email. The two slots whose facts change by pool
+    come from _campaign_copy(); everything else is identical for everyone we
+    write to, deliberately. Plain paragraphs only - see the note on
+    _outreach_wrap for why nothing here is styled.
     """
     name = candidate.product_name
     first_name = candidate.founder_name.split(" ")[0] if _looks_like_real_name(candidate.founder_name) else "there"
-    submit_url = "https://ai-compass.in/submit"
-    subject = f"Quick one about {name}"[:50]
-    inner = f"""<p style="margin:0 0 14px 0;">Hi {first_name},</p>
-<p style="margin:0 0 14px 0;">I came across {name} and thought it'd be a strong fit for AI Compass — a hand-curated directory where every listed tool is manually tested, not scraped, aimed at students actively looking for tools like yours.</p>
-<p style="margin:0 0 14px 0;">Real number, not a vanity metric: we've tracked <b>1,689 outbound click-throughs</b> to listed tools in just the last 30 days — students clicking through to actually try what's listed, not just browsing a homepage.</p>
-<p style="margin:0 0 20px 0;">If you want {name} placed above the free listings in its category — labelled Sponsored, with a 30-day Featured card and the impressions and clicks reported back to you — that is <b>$49 one-time</b>. For <b>$79</b> we also write a hands-on review of it: 300-500 words after actually using it, screenshots, pros, cons and a verdict, on its own indexed page you can link from anywhere.</p>
-<p style="margin:0 0 4px 0;font-size:14.5px;"><a href="{submit_url}" style="color:#059669;font-weight:700;text-decoration:none;border-bottom:1.5px solid #059669;">Get {name} listed &rarr;</a> <span style="color:#64748b;font-size:13.5px;">or just reply if you've got questions first.</span></p>
-<p style="margin:0 0 4px 0;font-size:13.5px;">Either way, happy to add {name} to the free tier — <a href="{submit_url}" style="color:#059669;font-weight:600;">takes 2 minutes</a>, and it stays listed permanently.</p>
-<p style="margin:16px 0 0 0;font-size:12px;color:#64748b;">P.S. The free listing is permanent and costs nothing — the paid tiers buy placement and the written review, never the listing itself.</p>"""
+    copy = _campaign_copy(candidate)
+    link = copy["link"]
+    tagline = (candidate.tagline or "").strip().rstrip(".")
+
+    # The tagline is quoted rather than spliced into the sentence. Taglines
+    # come in every grammatical shape there is ("Build X without Y", "The
+    # fastest Z", "For teams who..."), and inlining them produced sentences
+    # that read as machine-assembled - the exact impression this email exists
+    # to avoid. Quoting is grammatical whatever the shape.
+    credit = (
+        f'Nice work on {name} - "{tagline}" is a genuinely useful thing to have built.'
+        if tagline else f"Nice work on {name}."
+    )
+
+    subject = f"About {name}"[:50]
+    inner = f"""<p style="margin:0 0 14px 0;">Hey {first_name},</p>\n<p style="margin:0 0 14px 0;">{credit}</p>\n<p style="margin:0 0 14px 0;">{copy['offer']}</p>\n<p style="margin:0 0 14px 0;">* A permanent listing on ai-compass.in, indexed by Google and cited by AI assistants when people ask for tools in your category.</p>\n<p style="margin:0 0 14px 0;">* Real traffic, not a vanity number: AI Compass sent 1,689 outbound click-throughs to listed tools in the last 30 days - people clicking through to actually try them, not just browsing.</p>\n<p style="margin:0 0 14px 0;">{copy['cta']}</p>\n<p style="margin:0 0 14px 0;"><a href="{link}">{link}</a></p>\n<p style="margin:0 0 14px 0;">{copy['aside']}</p>\n<p style="margin:0 0 14px 0;">No pressure either way - if it is not useful, just ignore this.</p>"""
     return subject, _append_unsubscribe_footer(_outreach_wrap(inner), candidate.email)
+
 
 def infer_tone(tagline, description):
     """Infers tone based on keywords in company info. Defaults to 'peer'."""
@@ -1827,6 +2094,8 @@ def run_discovery_pipeline():
             contact_twitter = find_twitter_handle_for_product(product_name, website_url)
 
         c = OutreachCandidate()
+        c.campaign = CURRENT_CAMPAIGN
+        c.lead_pool = POOL_COLD
         c.ph_launch_id = ph_id
         c.product_name = product_name
         c.tagline = tagline
@@ -2123,6 +2392,30 @@ ALLOW_UNVERIFIED_SEND = str(
 ).strip().lower() in ("1", "true", "yes")
 
 
+STATUS_APPROVED = "approved"
+
+
+def campaign_sends_used(campaign=None):
+    """How many of the campaign's finite budget have actually left the building.
+
+    Counted from the email log, not from candidate status: a candidate that was
+    emailed and has since moved to 'replied' or 'bounced' still spent one of
+    the 45. Counting statuses would quietly hand the budget back every time
+    someone answered.
+    """
+    campaign = campaign or CURRENT_CAMPAIGN
+    return db.session.query(db.func.count(OutreachEmailLog.id)).join(
+        OutreachCandidate, OutreachEmailLog.candidate_id == OutreachCandidate.id
+    ).filter(
+        OutreachCandidate.campaign == campaign,
+        OutreachEmailLog.status == "success",
+    ).scalar() or 0
+
+
+def campaign_sends_remaining(campaign=None):
+    return max(0, CAMPAIGN_SEND_BUDGET - campaign_sends_used(campaign))
+
+
 def can_send_candidate(c) -> tuple[bool, str | None]:
     """Single source of truth for 'is this candidate allowed to be emailed
     right now'. Returns (ok, reason_if_not). Used by BOTH the manual send
@@ -2131,8 +2424,51 @@ def can_send_candidate(c) -> tuple[bool, str | None]:
         return False, "Email is missing for candidate"
     if not c.draft_subject or not c.draft_body:
         return False, "Draft subject and body are required to send"
+
+    # A stored draft written against an older template is not sendable. Drafts
+    # are generated once and kept, so bumping CURRENT_DRAFT_TEMPLATE_VERSION on
+    # its own changes nothing about what actually goes out — every candidate
+    # drafted before the bump would still be sent carrying the old copy. That
+    # is not a cosmetic problem: version 3 and below open by asking a stranger
+    # for $49 in newsletter styling, which is the exact email this rewrite
+    # exists to stop sending.
+    #
+    # refresh_stale_drafts() (run in the cron's discovery phase) regenerates
+    # these, so the block clears itself without anyone clicking anything.
+    version = c.draft_template_version or 0
+    if version < CURRENT_DRAFT_TEMPLATE_VERSION:
+        return False, (
+            f"Draft was written against template v{version or 'pre-versioning'}, "
+            f"current is v{CURRENT_DRAFT_TEMPLATE_VERSION}. It will be regenerated "
+            "on the next discovery run — or use Regenerate Drafts to do it now."
+        )
     if c.status in NON_SENDABLE_STATUSES:
         return False, f"Candidate status is '{c.status}' — not eligible to send."
+
+    # ── Campaign candidates are hand-reviewed, and the budget is finite ──
+    #
+    # The v1 pipeline sent at a daily rate and auto-dispatched anything that
+    # reached 'draft_ready'. This campaign is 45 emails to companies chosen
+    # one at a time, so an automated run must never be able to spend that
+    # budget on its own: a discovery pass over the Product Hunt archive can
+    # produce hundreds of drafts, and under the v1 rules the next cron tick
+    # would start emailing them unreviewed. That is the exact failure the
+    # rework exists to prevent, and it is worth far more than the sends it
+    # costs to block it.
+    #
+    # 'approved' is set by a human in the admin console. Everything else in
+    # the campaign stays put no matter how good its score looks.
+    if c.campaign:
+        if c.status != STATUS_APPROVED:
+            return False, (
+                f"Campaign '{c.campaign}' candidates are sent only after review. "
+                f"Status is '{c.status}' — approve it in the Outreach console first."
+            )
+        if campaign_sends_remaining(c.campaign) <= 0:
+            return False, (
+                f"Campaign '{c.campaign}' has spent its full budget of "
+                f"{CAMPAIGN_SEND_BUDGET} emails. Nothing further sends under it."
+            )
 
     if (c.confidence_score or 0) < CONFIDENCE_SEND_THRESHOLD:
         return False, (
@@ -2199,40 +2535,41 @@ def _followup_content(c: OutreachCandidate, stage: int) -> tuple[str, str, str]:
     """Returns (subject, html, text) for follow-up `stage` (1 or 2).
 
     Most cold-outreach replies come from the 2nd/3rd touch, not the first
-    email — a single follow-up leaves a lot of that on the table. Stage 2
-    is a short, low-pressure bump that explicitly asks for *any* reply
-    (yes/no/not now), since an easy-to-answer question converts to a reply
-    far better than silently re-pitching the same offer again.
+    email. Both stages stay free-first for the same reason the opening email
+    does: the ask is a 30-second free listing, and re-pitching a $49 upgrade
+    to someone who has not replied once is how a follow-up becomes spam.
+    Stage 2 says plainly that it is the final message, which is both honest
+    and the thing most likely to get a yes/no out of someone.
+
+    Same template as the opening email, and the same _campaign_copy() slot for
+    the one line whose facts differ by pool - so a founder who already
+    submitted their tool is never chased to "get listed".
+
+    The plain-text half is written by hand rather than derived, because these
+    are the messages most likely to be read on a phone in a text-only preview.
     """
     first_name = c.founder_name.split(" ")[0] if _looks_like_real_name(c.founder_name) else "there"
-    submit_url = "https://ai-compass.in/submit"
+    copy = _campaign_copy(c)
+    link = copy["link"]
+    sign_off = "Thanks,\nMedhansh\nFounder, AI Compass - ai-compass.in"
+
     if stage == 1:
         subject = f"Re: {c.draft_subject}"
-        inner = f"""<p style="margin:0 0 14px 0;">Hi {first_name},</p>
-<p style="margin:0 0 14px 0;">Following up in case this got buried — no worries if now isn't the right time.</p>
-<p style="margin:0 0 14px 0;">Quick recap: AI Compass is a hand-tested directory of AI tools for students (500+ listed so far). A permanent sponsored listing is <b>$49 one-time</b>, or <b>$79</b> with a written hands-on review of the tool on its own page.</p>
-<p style="margin:0 0 4px 0;">If it's easier, the free tier takes about 2 minutes and gets <b>{c.product_name}</b> listed either way: <a href="{submit_url}" style="color:#059669;font-weight:700;text-decoration:none;border-bottom:1.5px solid #059669;">{submit_url.replace('https://', '')}</a></p>"""
+        inner = f"""<p style="margin:0 0 14px 0;">Hey {first_name},</p>\n<p style="margin:0 0 14px 0;">Following up once in case this got buried - no worries at all if now is not the right time.</p>\n<p style="margin:0 0 14px 0;">{copy['followup_recap']}</p>\n<p style="margin:0 0 14px 0;"><a href="{link}">{link}</a></p>\n<p style="margin:0 0 14px 0;">{copy['followup_note']}</p>"""
         text = (
-            f"Hi {first_name},\n\nFollowing up in case this got buried — no worries if now isn't the right time.\n\n"
-            f"Quick recap: AI Compass is a hand-tested directory of AI tools for students (500+ listed so far), and we're currently "
-            f"A permanent sponsored listing is $49 one-time, or $79 with a written hands-on review on its own page.\n\n"
-            f"If it's easier, the free tier takes about 2 minutes and gets {c.product_name} listed either way: {submit_url}\n\n"
-            f"Medhansh Pratap Singh\nFounder, AI Compass — ai-compass.in"
+            f"Hey {first_name},\n\n"
+            f"Following up once in case this got buried - no worries at all if now is not the right time.\n\n"
+            f"{copy['followup_recap']}\n\n{link}\n\n"
+            f"{copy['followup_note']}\n\n{sign_off}"
         )
     else:
         subject = f"Re: {c.draft_subject}"
-        inner = f"""<p style="margin:0 0 14px 0;">Hi {first_name},</p>
-<p style="margin:0 0 14px 0;">Last note from me on this so I don't clutter your inbox further.</p>
-<p style="margin:0 0 14px 0;">The $49 sponsored listing (or $79 with a written review) is there if <b>{c.product_name}</b> wants it: <a href="{submit_url}" style="color:#059669;font-weight:700;text-decoration:none;border-bottom:1.5px solid #059669;">{submit_url.replace('https://', '')}</a></p>
-<p style="margin:0 0 4px 0;">If a paid listing isn't the right fit, the free tier is genuinely just as easy and still gets you in front of students searching for tools like yours: <a href="{submit_url}" style="color:#059669;font-weight:600;">{submit_url.replace('https://', '')}</a></p>
-<p style="margin:0 0 4px 0;">Either way — nice work on {c.product_name}, and good luck with it.</p>"""
+        inner = f"""<p style="margin:0 0 14px 0;">Hey {first_name},</p>\n<p style="margin:0 0 14px 0;">Last email from me on this, so I am not cluttering your inbox.</p>\n<p style="margin:0 0 14px 0;">If you ever want to pick this up, nothing expires. {copy['cta']}</p>\n<p style="margin:0 0 14px 0;"><a href="{link}">{link}</a></p>\n<p style="margin:0 0 14px 0;">Either way - nice work on {c.product_name}, and good luck with it.</p>"""
         text = (
-            f"Hi {first_name},\n\nLast note from me on this so I don't clutter your inbox further.\n\n"
-            f"The $49 sponsored listing (or $79 with a written review) is there if {c.product_name} wants it: {submit_url}\n\n"
-            f"If a paid listing isn't the right fit, the free tier is genuinely just as easy and still gets you in front of students "
-            f"searching for tools like yours: {submit_url}\n\n"
-            f"Either way — nice work on {c.product_name}, and good luck with it.\n\n"
-            f"Medhansh Pratap Singh\nFounder, AI Compass — ai-compass.in"
+            f"Hey {first_name},\n\n"
+            f"Last email from me on this, so I am not cluttering your inbox.\n\n"
+            f"If you ever want to pick this up, nothing expires. {copy['cta']}\n\n{link}\n\n"
+            f"Either way - nice work on {c.product_name}, and good luck with it.\n\n{sign_off}"
         )
     return subject, _outreach_wrap(inner), text
 
@@ -2247,6 +2584,7 @@ def _send_followup(c: OutreachCandidate, stage: int, next_status: str) -> bool:
         success = send_email(
             to=c.email, subject=subject, html=html, text=text,
             reply_to=OUTREACH_REPLY_TO, headers=_outreach_send_headers(c.email),
+            sender=OUTREACH_FROM,
         )
     except Exception as exc:
         err_msg = str(exc)
@@ -2344,7 +2682,11 @@ def run_automated_initial_sends():
     # anything missed rolls to the next run.
     scan_limit = max(remaining * 8, 60)
     candidates = OutreachCandidate.query.filter(
-        OutreachCandidate.status == "draft_ready",
+        # 'approved' is the campaign path (human-reviewed); 'draft_ready' is
+        # the legacy uncampaigned path. can_send_candidate() decides which of
+        # these is actually eligible — this filter only has to not exclude
+        # them before it gets the chance.
+        OutreachCandidate.status.in_(["draft_ready", STATUS_APPROVED]),
         OutreachCandidate.email.isnot(None),
         OutreachCandidate.draft_subject.isnot(None),
         OutreachCandidate.draft_body.isnot(None),
@@ -2379,6 +2721,7 @@ def run_automated_initial_sends():
             success, err_msg = send_email_with_details(
                 to=c.email, subject=c.draft_subject, html=c.draft_body,
                 reply_to=OUTREACH_REPLY_TO, headers=_outreach_send_headers(c.email),
+                sender=OUTREACH_FROM,
             )
         except Exception as exc:
             err_msg = str(exc)
@@ -2449,6 +2792,219 @@ def regenerate_all_drafts():
         log.info("Regenerated %s draft(s).", regenerated)
 
     return regenerated
+
+def refresh_stale_drafts(limit=None):
+    """Regenerates a bounded batch of drafts stranded on an older template.
+
+    The counterpart to the staleness check in can_send_candidate(): that
+    refuses to send old copy, this is what makes the refusal temporary. Run
+    from the cron's DISCOVERY phase rather than the send phase, because each
+    regeneration is a Gemini call — that is the slow, best-effort lane with the
+    long timeout, and sends must stay fast.
+
+    Bounded per run (default 40 — comfortably ahead of the 30/day send cap,
+    so the backlog never becomes the thing throttling sends) for the same
+    reason discovery is bounded:
+    this is a free-tier instance with one shared vCPU, and the full backlog is
+    a few hundred rows. Whatever is not reached rolls to tomorrow, oldest
+    first, so the queue drains steadily instead of one run trying to redraft
+    everything and timing out.
+    """
+    if limit is None:
+        limit = int(os.environ.get("OUTREACH_STALE_DRAFT_REFRESH_LIMIT", "40"))
+
+    stale = [c for c in get_stale_draft_candidates() if c.email][:limit]
+    if not stale:
+        return 0
+
+    refreshed = 0
+    for c in stale:
+        try:
+            subject, body = generate_draft_via_gemini(c)
+            c.draft_subject = subject
+            c.draft_body = body
+            c.draft_template_version = CURRENT_DRAFT_TEMPLATE_VERSION
+            c.updated_at = datetime.now(timezone.utc)
+            refreshed += 1
+        except Exception as e:  # noqa: BLE001 — one bad row must not stop the batch
+            log.warning("Stale draft refresh failed for candidate %s: %s", c.id, e)
+
+    if refreshed:
+        db.session.commit()
+        log.info("Refreshed %s stale draft(s) onto template v%s.", refreshed, CURRENT_DRAFT_TEMPLATE_VERSION)
+    return refreshed
+
+
+# ─── V2 CAMPAIGN: RESET + INBOUND IMPORT ─────────────────────────────────────
+
+ARCHIVED_V1_STATUS = "archived_v1"
+
+
+def archive_v1_candidates(dry_run=True):
+    """Moves the pre-rework candidate pool aside so the campaign starts clean.
+
+    Not a delete, and not done by the migration. Every archived row keeps its
+    email log, its reply history and its verification verdict — that history is
+    the only record of who we have already contacted, and re-emailing someone
+    who told us no six weeks ago is the single fastest way to earn a spam
+    complaint. Discovery's dedup check (is_duplicate_candidate) reads these
+    rows too, so deleting them would let the new pipeline rediscover and
+    re-mail people the old one already burned.
+
+    Only touches candidates that were never actually emailed. A row in 'sent',
+    'followed_up', 'replied' or 'bounced' describes a real conversation and is
+    left exactly where it is.
+
+    dry_run=True by default: this is a bulk state change on production data, so
+    it reports what it WOULD do and changes nothing until called explicitly.
+    """
+    archivable = OutreachCandidate.query.filter(
+        OutreachCandidate.status.in_(["draft_ready", "no_email_found", "rejected"]),
+        OutreachCandidate.campaign.is_(None),
+    )
+    rows = archivable.all()
+
+    if dry_run:
+        by_status = {}
+        for c in rows:
+            by_status[c.status] = by_status.get(c.status, 0) + 1
+        return {"dry_run": True, "would_archive": len(rows), "by_status": by_status}
+
+    now = datetime.now(timezone.utc)
+    for c in rows:
+        c.status = ARCHIVED_V1_STATUS
+        c.last_status_change_at = now
+    db.session.commit()
+    log.info("Archived %s v1 outreach candidate(s).", len(rows))
+    return {"dry_run": False, "archived": len(rows)}
+
+
+# A submitter address that is obviously a personal mailbox tells us nothing
+# about a company having budget, and the whole point of this campaign is
+# companies. Not a hard reject on its own — a real founder may well have used
+# their Gmail — but it is scored, and it is why the domain is recorded.
+FREE_EMAIL_DOMAINS = frozenset({
+    "gmail.com", "googlemail.com", "yahoo.com", "yahoo.co.in", "outlook.com",
+    "hotmail.com", "live.com", "icloud.com", "me.com", "proton.me",
+    "protonmail.com", "aol.com", "gmx.com", "mail.com", "zoho.com",
+})
+
+
+def import_inbound_submitters(campaign=None, dry_run=True, limit=None):
+    """Creates outreach candidates from people who submitted a tool to US.
+
+    This is the warmest pool in the campaign and the pipeline has never once
+    emailed it. A company that found AI Compass, filled in the form and asked
+    to be listed has already done the hardest part of the sale — they chose
+    us. SimplAI is the case that made this obvious: a real B2B company
+    submitting for free, sitting in /admin/submissions with nobody following
+    up.
+
+    Deliberately NOT filtered to approved listings only. A submission still
+    pending review is an equally warm lead — arguably warmer, since they are
+    actively waiting to hear from us.
+
+    Excluded, because emailing them would be wrong rather than merely
+    ineffective:
+      * anyone who already paid (they are a customer; the upsell path is the
+        founder report, not a cold-shaped pitch)
+      * rejected submissions (we told them no; re-pitching is insulting)
+      * addresses already in the outreach table under any campaign
+      * unsubscribes and bounces, via the same address check
+    """
+    from app.models import Submission
+
+    campaign = campaign or CURRENT_CAMPAIGN
+
+    subs = Submission.query.filter(
+        Submission.submitter_email.isnot(None),
+        Submission.submitter_email != "",
+        Submission.status != "rejected",
+        # 'verified' means a real payment cleared — they are a customer.
+        Submission.payment_status != "verified",
+        Submission.is_test.is_(False),
+    ).order_by(Submission.submitted_at.desc()).all()
+
+    # One candidate per company, not per submission: a founder who submitted
+    # three tools is one person with one inbox.
+    seen_emails = set()
+    picked = []
+    skipped = {"duplicate_submitter": 0, "already_in_outreach": 0, "invalid_email": 0}
+
+    for sub in subs:
+        email = (sub.submitter_email or "").strip().lower()
+        if not is_valid_email(email):
+            skipped["invalid_email"] += 1
+            continue
+        if email in seen_emails:
+            skipped["duplicate_submitter"] += 1
+            continue
+        seen_emails.add(email)
+
+        if OutreachCandidate.query.filter(
+            db.func.lower(OutreachCandidate.email) == email
+        ).first():
+            skipped["already_in_outreach"] += 1
+            continue
+
+        picked.append(sub)
+        if limit and len(picked) >= limit:
+            break
+
+    def _domain_of(addr):
+        return addr.split("@", 1)[-1].lower() if "@" in (addr or "") else ""
+
+    company_domained = [
+        s for s in picked if _domain_of(s.submitter_email) not in FREE_EMAIL_DOMAINS
+    ]
+
+    if dry_run:
+        return {
+            "dry_run": True,
+            "would_import": len(picked),
+            "on_company_domain": len(company_domained),
+            "on_free_email": len(picked) - len(company_domained),
+            "skipped": skipped,
+            "sample": [
+                {"name": s.name, "domain": _domain_of(s.submitter_email), "status": s.status}
+                for s in picked[:10]
+            ],
+        }
+
+    created = 0
+    for sub in picked:
+        c = OutreachCandidate()
+        c.campaign = campaign
+        c.lead_pool = POOL_INBOUND
+        c.product_name = sub.name
+        c.tagline = (sub.description or "")[:500]
+        c.website_url = sub.website
+        c.founder_name = ""
+        c.email = sub.submitter_email.strip()
+        # They typed this address into our own form, so it is self-attested
+        # rather than guessed. That is a stronger signal than any scraper
+        # heuristic, but it still goes through the same SMTP verifier as
+        # everything else before it can be sent to.
+        c.email_source = "inbound_submission"
+        c.confidence_score = 95
+        c.tone = infer_tone(sub.description, "")
+        c.status = "draft_ready"
+        c.ph_launch_id = f"inbound:{sub.id}"
+
+        subject, body = generate_draft_via_gemini(c)
+        c.draft_subject = subject
+        c.draft_body = body
+        c.draft_template_version = CURRENT_DRAFT_TEMPLATE_VERSION
+
+        db.session.add(c)
+        created += 1
+
+    if created:
+        db.session.commit()
+        log.info("Imported %s inbound submitter(s) into campaign %s.", created, campaign)
+
+    return {"dry_run": False, "imported": created, "skipped": skipped}
+
 
 def get_stale_draft_candidates():
     """Candidates whose stored draft was generated against an older copy/
@@ -2613,11 +3169,7 @@ def generate_traffic_report_draft(candidate, clicks, days=30):
 
     display_name = candidate.founder_name if _looks_like_real_name(candidate.founder_name) else ""
 
-    prompt = f"""
-You are Medhansh Pratap Singh, Founder of AI Compass (https://ai-compass.in) - a curated directory of AI tools for students, developers and
-creators. You are writing to the maker of a product that is ALREADY LISTED on AI Compass and is ALREADY receiving real referral traffic from it.
-
-This is not a cold pitch. It is a short traffic report with an offer attached. The reader's first reaction should be "oh, this is a real number
+    prompt = f"""\nYou are Medhansh Pratap Singh, Founder of AI Compass (https://ai-compass.in) - a curated directory of AI tools for students, developers and\ncreators. You are writing to the maker of a product that is ALREADY LISTED on AI Compass and is ALREADY receiving real referral traffic from it.\n\nThis is not a cold pitch. It is a short traffic report with an offer attached. The reader's first reaction should be "oh, this is a real number
 about my product", not "this is a sales email". Write like one founder sending another a useful stat they did not know.
 
 FACTS YOU MUST USE (all true, do not alter or embellish):
@@ -2646,13 +3198,14 @@ HARD CONSTRAINTS:
 - Output valid JSON with exactly two fields: "subject" and "body". Do NOT include a signature — that is appended separately.
 - Subject line: under 50 characters, references the real number or the product by name, reads like a 1:1 email. Good shape:
   "{candidate.product_name}: {clicks} clicks from AI Compass". Never generic corporate phrasing.
-- "body" must be clean HTML using ONLY <p>, <b>, <ul>, <li>, <a> tags — no <br>, no style blocks, no tables, no images, no signature block.
-- Every <p> must carry style="margin:0 0 14px 0;" and the <ul> must carry style="margin:0 0 16px 0;padding-left:20px;color:#475569;" — this keeps
-  spacing consistent across every email client instead of relying on each client's own default paragraph spacing.
-- The CTA paragraph must look like this pattern (adjust the wording, keep the styling): <p style="margin:0 0 4px 0;font-size:14.5px;"><a
-  href="https://ai-compass.in/submit" style="color:#059669;font-weight:700;text-decoration:none;border-bottom:1.5px solid #059669;">[short CTA verb
-  phrase]</a> <span style="color:#64748b;font-size:13.5px;">or just reply if you'd like the numbers for a specific month first.</span></p>
-- The P.S. paragraph must use style="margin:16px 0 0 0;font-size:12px;color:#64748b;".
+- FORMATTING - this email must look like plain text. A designed email gets filed as an advertisement, and this one is going to a founder we
+  already have a relationship with, so it should look like a note from a person who knows them:
+  - "body" is HTML using ONLY <p> and <a> tags. No <ul>, no <li>, no <b>, no <br>, no <div>, no style blocks, no tables, no images, no buttons.
+  - Every single <p> carries exactly style="margin:0 0 14px 0;" and nothing else. No colours, no font sizes, no font families, no borders.
+  - The bullets in step 3 are ordinary <p> paragraphs whose text begins with "* ". They are not a list element.
+  - Exactly ONE link in the entire email, written as a bare visible URL: <p style="margin:0 0 14px 0;"><a
+    href="https://ai-compass.in/submit">https://ai-compass.in/submit</a></p>
+  - The P.S. is an ordinary <p style="margin:0 0 14px 0;"> paragraph beginning "P.S.".
 
 Greet them by first name only if a name is given, otherwise "Hey there,".
 - Founder/Maker: {display_name or 'not known - use a neutral greeting'}
@@ -2694,20 +3247,17 @@ Return ONLY the raw JSON object, with no markdown code fences around it.
 def get_generic_traffic_report_draft(candidate, clicks, days=30):
     """Template fallback for when Gemini is unavailable. Same shape as the
     prompted version: number first, offer second, reply invited.
+
+    This is the upgrade half of the funnel — it goes to founders who are
+    already listed for free and can see what the placement is doing for them,
+    which is the only point at which asking for $49 is a reasonable thing to
+    do. Styled exactly as plainly as the cold email, for the same reason: see
+    the note on _outreach_wrap.
     """
     name = candidate.product_name
     first_name = candidate.founder_name.split(" ")[0] if _looks_like_real_name(candidate.founder_name) else "there"
     subject = f"{name}: {clicks} clicks from AI Compass"[:50]
-    inner = f"""<p style="margin:0 0 14px 0;">Hey {first_name},</p>
-<p style="margin:0 0 14px 0;">Your <a href="https://ai-compass.in" style="color:#059669;font-weight:600;">AI Compass</a> listing sent <b>{clicks} click-throughs</b> to {name} in the last {days} days — students and developers who searched for a tool like yours and chose to click through.</p>
-<p style="margin:0 0 14px 0;">That listing stays free permanently. If you want more of the people already browsing your category to see {name} first, the Fast-Track upgrade ($49 one-time) adds:</p>
-<ul style="margin:0 0 16px 0;padding-left:20px;color:#475569;font-size:13.5px;">
-  <li style="margin-bottom:5px;">Placement above free listings in your category</li>
-  <li style="margin-bottom:5px;">A labelled &ldquo;Sponsored&rdquo; badge on your listing</li>
-  <li>First position in the weekly Student AI Digest</li>
-</ul>
-<p style="margin:0 0 4px 0;font-size:14.5px;"><a href="https://ai-compass.in/submit" style="color:#059669;font-weight:700;text-decoration:none;border-bottom:1.5px solid #059669;">Upgrade {name} &rarr;</a> <span style="color:#64748b;font-size:13.5px;">or just reply if you'd like the numbers for a specific month first.</span></p>
-<p style="margin:16px 0 0 0;font-size:12px;color:#64748b;">P.S. Those {clicks} clicks came from the free listing alone — nothing changes if you'd rather leave it as is.</p>"""
+    inner = f"""<p style="margin:0 0 14px 0;">Hey {first_name},</p>\n<p style="margin:0 0 14px 0;">Your AI Compass listing sent {clicks} click-throughs to {name} in the last {days} days - students and developers who searched for a tool like yours and chose to click through.</p>\n<p style="margin:0 0 14px 0;">That listing stays free permanently. If you want more of the people already browsing your category to see {name} first, the Fast-Track upgrade ($49 one-time) adds:</p>\n<p style="margin:0 0 14px 0;">* Placement above the free listings in your category.</p>\n<p style="margin:0 0 14px 0;">* A labelled "Sponsored" badge on your listing.</p>\n<p style="margin:0 0 14px 0;">* First position in the weekly Student AI Digest.</p>\n<p style="margin:0 0 14px 0;">If you want it, it is here - or just reply if you would like the numbers for a specific month first:</p>\n<p style="margin:0 0 14px 0;"><a href="https://ai-compass.in/submit">https://ai-compass.in/submit</a></p>\n<p style="margin:0 0 14px 0;">P.S. Those {clicks} clicks came from the free listing alone - nothing changes if you would rather leave it as it is.</p>"""
     return subject, _append_unsubscribe_footer(_outreach_wrap(inner), candidate.email)
 
 
@@ -2761,6 +3311,8 @@ def run_catalog_traffic_campaign(min_clicks=None, days=30, limit=None):
         email, source, score, verification_result = enrich_candidate_email(website_url, "")
 
         c = OutreachCandidate()
+        c.campaign = CURRENT_CAMPAIGN
+        c.lead_pool = POOL_TRAFFIC
         c.ph_launch_id = catalog_id
         c.product_name = product_name
         c.tagline = tagline

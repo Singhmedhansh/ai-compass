@@ -1,16 +1,22 @@
 name: Outreach discovery & follow-ups
 
-# Schedule: every day at 09:00 UTC (14:30 IST). Runs lead discovery (Product
-# Hunt / Hacker News scan) and the 5-day automated follow-up sweep. Both are
+# Schedule: daily. Runs the send phase (initial cold emails + the 5/10-day
+# follow-up sweep), then lead discovery, then the SMTP verifier. Everything is
 # capped server-side at OUTREACH_DAILY_SEND_CAP sends/day, so running this
 # daily is safe from a deliverability standpoint.
+#
+# 09:37 rather than 09:00: GitHub queues scheduled workflows across all of
+# GitHub, and jobs scheduled on the hour sit in the longest queue. This one was
+# routinely starting hours late (13:44, 16:26, 14:01 UTC on consecutive days)
+# against a 09:00 schedule. An odd minute measurably shortens that wait - it
+# does not eliminate it, so nothing here may assume a precise run time.
 on:
   schedule:
-    - cron: '0 9 * * *'
+    - cron: '37 9 * * *'
   workflow_dispatch:
     inputs:
       mode:
-        description: 'full = discovery+followups+verify (default). verify_only = just the SMTP verifier, for the admin panel "Re-Enrich" button to trigger on demand without also running discovery/follow-ups.'
+        description: 'full = send+discovery+verify (default). verify_only = just the SMTP verifier, for the admin panel "Re-Enrich" button to trigger on demand without also sending email or running discovery.'
         required: false
         default: 'full'
         type: choice
@@ -18,7 +24,7 @@ on:
           - full
           - verify_only
 
-# Only one run at a time — avoids double-discovery or double-follow-up if a
+# Only one run at a time - avoids double-discovery or double-follow-up if a
 # manual trigger overlaps the scheduled one.
 concurrency:
   group: outreach-cron
@@ -30,67 +36,150 @@ permissions:
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
+
+    env:
+      OUTREACH_SECRET: ${{ secrets.OUTREACH_SECRET }}
+      BASE_URL: https://ai-compass.in
+      RUN_MODE: ${{ github.event.inputs.mode || 'full' }}
 
     steps:
-      - name: POST to /api/v1/admin/outreach/cron
-        # Skipped when manually dispatched with mode=verify_only (the admin
-        # panel's "Re-Enrich" button uses this) — that click means "verify
-        # existing candidates now," not "also run discovery and send more
-        # follow-up emails." github.event.inputs is unset for the schedule
-        # trigger, so this still runs for the daily automatic run.
-        if: github.event.inputs.mode != 'verify_only'
-        # Auth is the X-Outreach-Secret header — must match OUTREACH_SECRET
-        # on Render. The endpoint runs run_discovery_pipeline() +
-        # run_automated_followups() and returns counts.
-        env:
-          OUTREACH_SECRET: ${{ secrets.OUTREACH_SECRET }}
+      - name: Check the shared secret is present
         run: |
-          set -euo pipefail
           if [ -z "${OUTREACH_SECRET:-}" ]; then
             echo "::error::OUTREACH_SECRET secret is not set. Add it under Settings > Secrets > Actions, matching the value in Render env."
             exit 1
           fi
 
-          URL="https://ai-compass.in/api/v1/admin/outreach/cron"
-          echo "POST $URL"
-          RESP=$(curl -sS -w "\nHTTP_CODE:%{http_code}\n" \
+      # Sends run in their own request, first and separately from discovery.
+      # This is the step that actually earns something, it is fast, and it must
+      # not be able to fail because a scrape of Product Hunt was slow.
+      #
+      # continue-on-error, because a red X here previously SKIPPED every step
+      # below it - which is how one slow night (2026-09-01: the single combined
+      # request ran 306s against a 300s curl timeout) turned into a pipeline
+      # that looked switched off. The job's real verdict is set by the summary
+      # step at the end.
+      - name: Send phase (initial emails + follow-ups)
+        id: send
+        if: env.RUN_MODE != 'verify_only'
+        continue-on-error: true
+        run: |
+          set -uo pipefail
+          CODE="000"
+          # Three attempts: Render's free tier cold-starts, and the first
+          # request of the day frequently pays for that wake-up alone.
+          for attempt in 1 2 3; do
+            echo "Attempt $attempt - POST $BASE_URL/api/v1/admin/outreach/cron?phase=send"
+            CODE=$(curl -sS -o /tmp/send.json -w '%{http_code}' \
+              -X POST \
+              -H "X-Outreach-Secret: ${OUTREACH_SECRET}" \
+              -H "Content-Type: application/json" \
+              --connect-timeout 30 --max-time 240 \
+              "$BASE_URL/api/v1/admin/outreach/cron?phase=send") || CODE="000"
+            cat /tmp/send.json 2>/dev/null || true
+            echo
+            # 409 = another run holds the job lock. That is the concurrency
+            # guard working as designed, not an error, and retrying it would
+            # only fight the run that already holds the lock.
+            if [ "$CODE" = "200" ] || [ "$CODE" = "409" ]; then
+              echo "send_status=$CODE" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            echo "::warning::Send phase returned HTTP $CODE (attempt $attempt)"
+            sleep 20
+          done
+          echo "send_status=$CODE" >> "$GITHUB_OUTPUT"
+          echo "::error::Send phase failed after 3 attempts (last HTTP $CODE)"
+          exit 1
+
+      # Discovery is slow, network-heavy and best-effort. It gets the long
+      # timeout and is explicitly allowed to fail: missing a day of new leads
+      # costs one day of leads, and nothing downstream depends on it.
+      - name: Discovery phase (new candidates)
+        id: discover
+        if: env.RUN_MODE != 'verify_only'
+        continue-on-error: true
+        run: |
+          set -uo pipefail
+          echo "POST $BASE_URL/api/v1/admin/outreach/cron?phase=discover"
+          CODE=$(curl -sS -o /tmp/discover.json -w '%{http_code}' \
             -X POST \
             -H "X-Outreach-Secret: ${OUTREACH_SECRET}" \
             -H "Content-Type: application/json" \
-            --max-time 300 \
-            "$URL")
-          echo "$RESP"
-
-          CODE=$(echo "$RESP" | tail -1 | sed 's/HTTP_CODE://')
-          if [ "$CODE" != "200" ]; then
-            echo "::error::Outreach cron endpoint returned HTTP $CODE"
+            --connect-timeout 30 --max-time 540 \
+            "$BASE_URL/api/v1/admin/outreach/cron?phase=discover") || CODE="000"
+          cat /tmp/discover.json 2>/dev/null || true
+          echo
+          echo "discover_status=$CODE" >> "$GITHUB_OUTPUT"
+          if [ "$CODE" != "200" ] && [ "$CODE" != "409" ]; then
+            echo "::warning::Discovery phase returned HTTP $CODE - new leads for today may be missing."
             exit 1
           fi
 
-          BODY=$(echo "$RESP" | sed '$d')
-          echo "## Outreach cron run complete" >> "$GITHUB_STEP_SUMMARY"
-          echo '```json' >> "$GITHUB_STEP_SUMMARY"
-          echo "$BODY" >> "$GITHUB_STEP_SUMMARY"
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
-
       # Real mailbox verification (RCPT-TO, no email sent) for any candidate
-      # discovery just found or that's never been checked. Runs from here,
-      # not Render, because Render's free/hobby tier blocks outbound SMTP
-      # (see app/email_utils.py's docstring) — GitHub-hosted runners don't
+      # discovery just found or that has never been checked. Runs from here,
+      # not Render, because Render's free/hobby tier blocks outbound SMTP (see
+      # app/email_utils.py's module docstring) - GitHub-hosted runners do not
       # (confirmed via a live connectivity test on 2026-08-10).
+      #
+      # if: always() is the other half of the 2026-09-01 fix: these steps were
+      # skipped outright because the single POST step above had exited
+      # non-zero. Verification does not depend on that request having
+      # succeeded, so it should never have been coupled to it.
       - name: Checkout repo
+        if: always()
         uses: actions/checkout@v4
 
       - name: Set up Python
+        if: always()
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
       - name: Install verifier dependencies
+        if: always()
         run: pip install --quiet requests dnspython
 
       - name: Verify candidate emails via SMTP
-        env:
-          OUTREACH_SECRET: ${{ secrets.OUTREACH_SECRET }}
+        id: verify
+        if: always()
+        continue-on-error: true
         run: python3 scripts/verify_outreach_emails_smtp.py
+
+      # One place that decides whether the run counts as healthy, and one place
+      # that reports what each phase actually did. The job fails only if the
+      # SEND phase failed - that is the part whose silence looks like "the
+      # outreach pipeline is switched off".
+      - name: Summarise and set job status
+        if: always()
+        run: |
+          set -uo pipefail
+          {
+            echo "## Outreach cron"
+            echo ""
+            echo "| Phase | Outcome | HTTP |"
+            echo "| --- | --- | --- |"
+            echo "| Send | ${{ steps.send.outcome }} | ${{ steps.send.outputs.send_status || 'n/a' }} |"
+            echo "| Discovery | ${{ steps.discover.outcome }} | ${{ steps.discover.outputs.discover_status || 'n/a' }} |"
+            echo "| SMTP verify | ${{ steps.verify.outcome }} | - |"
+            echo ""
+            echo "### Send response"
+            echo '```json'
+            cat /tmp/send.json 2>/dev/null || echo "(no response captured)"
+            echo '```'
+            echo "### Discovery response"
+            echo '```json'
+            cat /tmp/discover.json 2>/dev/null || echo "(no response captured)"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "$RUN_MODE" = "verify_only" ]; then
+            echo "verify_only run - send and discovery were skipped by design."
+            exit 0
+          fi
+          if [ "${{ steps.send.outcome }}" != "success" ]; then
+            echo "::error::Send phase failed - no outreach email went out this run."
+            exit 1
+          fi
+          echo "Send phase OK. Discovery and verification are best-effort and do not gate this job."

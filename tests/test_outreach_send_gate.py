@@ -12,7 +12,11 @@ import pytest
 import app.outreach as outreach_mod
 from app import create_app, db
 from app.models import OutreachCandidate, OutreachEmailLog
-from app.outreach import can_send_candidate, run_automated_initial_sends
+from app.outreach import (
+    CURRENT_DRAFT_TEMPLATE_VERSION,
+    can_send_candidate,
+    run_automated_initial_sends,
+)
 
 
 @pytest.fixture()
@@ -46,6 +50,12 @@ def _candidate(**over):
         draft_body="<p>Hi</p>",
         confidence_score=60,
         verification_result="catchall",
+        # Stamped current on purpose. These tests exercise the VERIFICATION
+        # gate; can_send_candidate() separately refuses a draft written
+        # against an older copy template (see test_outreach_free_first.py),
+        # and an unstamped fixture would trip that instead — testing the
+        # wrong gate and hiding this one.
+        draft_template_version=CURRENT_DRAFT_TEMPLATE_VERSION,
     )
     base.update(over)
     return OutreachCandidate(**base)

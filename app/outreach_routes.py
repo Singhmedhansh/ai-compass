@@ -7,7 +7,7 @@ from flask_login import login_required, current_user
 
 from app import db, csrf
 from app.models import OutreachCandidate, OutreachEmailLog
-from app.email_utils import send_email_with_details
+from app.email_utils import send_email_with_details, read_prefill_token
 from app.send_budget import reserve_send_slots, release_send_slots
 from app.outreach import (
     run_discovery_pipeline,
@@ -31,6 +31,7 @@ from app.outreach import (
     VERIFICATION_RESULT_CONFIDENCE,
     _status_for_email_confidence,
     OUTREACH_REPLY_TO,
+    OUTREACH_FROM,
     _outreach_send_headers,
     run_catalog_traffic_campaign,
     get_catalog_click_counts,
@@ -39,6 +40,11 @@ from app.outreach import (
     CATALOG_CANDIDATE_ID_PREFIX,
     CURRENT_DRAFT_TEMPLATE_VERSION,
     get_stale_draft_candidates,
+    refresh_stale_drafts,
+    archive_v1_candidates,
+    import_inbound_submitters,
+    CURRENT_CAMPAIGN,
+    CAMPAIGN_SEND_BUDGET,
 )
 
 outreach_bp = Blueprint("outreach", __name__)
@@ -253,6 +259,7 @@ def send_candidate_email(cid):
         success, err_msg = send_email_with_details(
             to=c.email, subject=c.draft_subject, html=c.draft_body,
             reply_to=OUTREACH_REPLY_TO, headers=_outreach_send_headers(c.email),
+            sender=OUTREACH_FROM,
         )
     except Exception as exc:
         err_msg = str(exc)
@@ -318,6 +325,7 @@ def bulk_send_candidates():
             success, err_msg = send_email_with_details(
                 to=c.email, subject=c.draft_subject, html=c.draft_body,
                 reply_to=OUTREACH_REPLY_TO, headers=_outreach_send_headers(c.email),
+                sender=OUTREACH_FROM,
             )
         except Exception as exc:
             err_msg = str(exc)
@@ -657,48 +665,202 @@ def _verify_outreach_secret():
         return jsonify({"error": "Unauthorized"}), 401
     return None
 
+# ─── V2 CAMPAIGN CONTROLS ─────────────────────────────────────────────────────
+# Both of these default to a DRY RUN and require an explicit {"confirm": true}
+# to change anything. They are bulk writes against the live candidate table
+# driven by a button in an admin panel, which is exactly the shape of thing
+# that gets clicked once to "see what it does".
+
+@outreach_bp.route("/api/v1/admin/outreach/campaign/inbound-import", methods=["POST"])
+@csrf.exempt
+@login_required
+def campaign_inbound_import():
+    """Counts (or imports) the inbound-submitter pool.
+
+    Answer the counting question BEFORE building anything else on top of this
+    pool: the campaign plan assumes roughly a dozen qualified free submitters
+    exist. If the real queue holds four, the warm allocation collapses and the
+    revenue forecast with it — better to find that out from a dry run than
+    from a send.
+    """
+    if not _is_admin():
+        return jsonify({"error": "Admin access required."}), 403
+
+    payload = request.get_json(silent=True) or {}
+    confirm = bool(payload.get("confirm"))
+    limit = payload.get("limit")
+
+    result = import_inbound_submitters(
+        campaign=CURRENT_CAMPAIGN,
+        dry_run=not confirm,
+        limit=int(limit) if limit else None,
+    )
+    result["campaign"] = CURRENT_CAMPAIGN
+    return jsonify(result)
+
+
+@outreach_bp.route("/api/v1/admin/outreach/campaign/archive-v1", methods=["POST"])
+@csrf.exempt
+@login_required
+def campaign_archive_v1():
+    """Moves the pre-rework candidate pool aside. Dry run unless confirmed."""
+    if not _is_admin():
+        return jsonify({"error": "Admin access required."}), 403
+
+    confirm = bool((request.get_json(silent=True) or {}).get("confirm"))
+    return jsonify(archive_v1_candidates(dry_run=not confirm))
+
+
+@outreach_bp.route("/api/v1/admin/outreach/campaign/status", methods=["GET"])
+@login_required
+def campaign_status():
+    """The four numbers the campaign console header shows.
+
+    Sends are counted from OutreachEmailLog rather than from candidate status,
+    because the budget is spent by an email leaving the building — a candidate
+    that was emailed and later moved to 'replied' still consumed one of the 45.
+    """
+    if not _is_admin():
+        return jsonify({"error": "Admin access required."}), 403
+
+    sent = db.session.query(db.func.count(OutreachEmailLog.id)).join(
+        OutreachCandidate, OutreachEmailLog.candidate_id == OutreachCandidate.id
+    ).filter(
+        OutreachCandidate.campaign == CURRENT_CAMPAIGN,
+        OutreachEmailLog.status == "success",
+    ).scalar() or 0
+
+    by_pool = dict(
+        db.session.query(OutreachCandidate.lead_pool, db.func.count(OutreachCandidate.id))
+        .filter(OutreachCandidate.campaign == CURRENT_CAMPAIGN)
+        .group_by(OutreachCandidate.lead_pool).all()
+    )
+    by_status = dict(
+        db.session.query(OutreachCandidate.status, db.func.count(OutreachCandidate.id))
+        .filter(OutreachCandidate.campaign == CURRENT_CAMPAIGN)
+        .group_by(OutreachCandidate.status).all()
+    )
+
+    return jsonify({
+        "campaign": CURRENT_CAMPAIGN,
+        "send_budget": CAMPAIGN_SEND_BUDGET,
+        "emails_sent": sent,
+        "budget_remaining": max(0, CAMPAIGN_SEND_BUDGET - sent),
+        "candidates_by_pool": by_pool,
+        "candidates_by_status": by_status,
+        "replied": by_status.get("replied", 0),
+    })
+
+
+# ─── PUBLIC: PRE-FILLED SUBMIT LINK ───────────────────────────────────────────
+# The one endpoint in this module that is deliberately unauthenticated. The
+# outreach email hands a founder a link like /submit?c=<token>; this is what
+# that page calls to fill the form in for them. The token is signed (see
+# email_utils.make_prefill_token), so it cannot be guessed or incremented to
+# walk the candidate table.
+#
+# It returns ONLY what the founder already knows about their own product —
+# name, URL, tagline — and never the email address we found for them, the
+# confidence score, the fit score, or anything else operational. A directory
+# quietly showing a stranger the contact-discovery record it keeps on them is
+# a very different thing from filling in a form.
+
+@outreach_bp.route("/api/v1/outreach/prefill/<token>", methods=["GET"])
+def outreach_prefill(token):
+    candidate_id = read_prefill_token(token)
+    if not candidate_id:
+        # Deliberately vague and 404, not 403: a forged token and an expired
+        # one are the same non-event to the person holding the link, and
+        # distinguishing them would confirm which ids exist.
+        return jsonify({"error": "That link is no longer valid."}), 404
+
+    c = db.session.get(OutreachCandidate, candidate_id)
+    if not c:
+        return jsonify({"error": "That link is no longer valid."}), 404
+
+    # An unsubscribed or bounced candidate keeps a working link on purpose:
+    # opting out of email is not the same as declining a listing, and someone
+    # who unsubscribed then changed their mind should still be able to submit.
+    return jsonify({
+        "name": c.product_name or "",
+        "url": c.website_url or "",
+        # The tagline is what discovery recorded as the product's own
+        # one-liner, so it is a far better starting point for "why should this
+        # be listed" than an empty box — the founder can edit it.
+        "reason": c.tagline or "",
+    })
+
+
 @outreach_bp.route("/api/v1/admin/outreach/cron", methods=["POST"])
 @csrf.exempt
 def run_cron():
-    """Endpoint for Render Cron or query token check."""
+    """Daily automation tick. Accepts ?phase=send | discover | full.
+
+    Why phases exist: this used to do everything in one request, and the
+    GitHub Actions caller gave up at 300s. On 2026-09-01 that is exactly what
+    happened — the run took 306s, curl aborted, and because the workflow step
+    died there, the SMTP verification steps after it were skipped too. One
+    slow scrape took down the whole night's automation.
+
+    Sending is fast and bounded (a capped number of emails). Discovery is slow
+    and unbounded — it scrapes four external sites on a free-tier instance
+    with one worker. Bundling them meant the cheap, revenue-carrying half was
+    hostage to the expensive, best-effort half. They are now separately
+    callable, so the workflow can give each its own timeout and let discovery
+    fail without taking sends with it.
+
+    'full' is retained as the default so any existing caller (or a manual
+    curl) behaves exactly as before.
+    """
     auth_error = _verify_outreach_secret()
     if auth_error:
         return auth_error
 
+    phase = (request.args.get("phase") or "full").strip().lower()
+    if phase not in {"send", "discover", "full"}:
+        return jsonify({"error": f"Unknown phase '{phase}'. Use send, discover, or full."}), 400
+
     if not _outreach_job_lock.acquire(blocking=False):
         return jsonify({"error": "Another discovery/re-enrich job is already running — skipping this cron tick."}), 409
 
-    out = {"status": "success"}
+    out = {"status": "success", "phase": phase}
     try:
-        # Sends run FIRST and each phase is isolated. Discovery is slow and
-        # network-heavy (minutes), and the GitHub Actions caller gives up after
-        # ~300s — if discovery ran first and overran, the connection dropped
-        # and the sends never happened, which is exactly "outreach emails are
-        # not getting sent". Sends only ever dispatch drafts from PRIOR runs
-        # (a freshly-discovered candidate still needs async SMTP verification
-        # before it's eligible), so nothing is lost by doing them up front.
         # Each phase's failure is logged and swallowed so it can't block the
-        # others.
-        try:
-            out["followup_emails_sent"] = run_automated_followups()
-        except Exception:
-            current_app.logger.exception("cron: automated follow-ups failed")
-            out["followup_emails_sent"] = 0
-            out["followups_error"] = True
+        # others, and so a partial run still reports what it did manage.
+        if phase in ("send", "full"):
+            try:
+                out["followup_emails_sent"] = run_automated_followups()
+            except Exception:
+                current_app.logger.exception("cron: automated follow-ups failed")
+                out["followup_emails_sent"] = 0
+                out["followups_error"] = True
 
-        try:
-            out["initial_emails_sent"] = run_automated_initial_sends()
-        except Exception:
-            current_app.logger.exception("cron: automated initial sends failed")
-            out["initial_emails_sent"] = 0
-            out["initial_sends_error"] = True
+            try:
+                out["initial_emails_sent"] = run_automated_initial_sends()
+            except Exception:
+                current_app.logger.exception("cron: automated initial sends failed")
+                out["initial_emails_sent"] = 0
+                out["initial_sends_error"] = True
 
-        try:
-            out["new_candidates_discovered"] = run_discovery_pipeline()
-        except Exception:
-            current_app.logger.exception("cron: discovery pipeline failed")
-            out["new_candidates_discovered"] = 0
-            out["discovery_error"] = True
+        if phase in ("discover", "full"):
+            # Before looking for new leads, bring a batch of existing drafts
+            # onto the current template. can_send_candidate() refuses to send
+            # a stale one, so without this the send phase would quietly go to
+            # zero after every copy change — the block has to drain somewhere,
+            # and this is the lane that can afford the Gemini calls.
+            try:
+                out["stale_drafts_refreshed"] = refresh_stale_drafts()
+            except Exception:
+                current_app.logger.exception("cron: stale draft refresh failed")
+                out["stale_drafts_refreshed"] = 0
+                out["stale_refresh_error"] = True
+
+            try:
+                out["new_candidates_discovered"] = run_discovery_pipeline()
+            except Exception:
+                current_app.logger.exception("cron: discovery pipeline failed")
+                out["new_candidates_discovered"] = 0
+                out["discovery_error"] = True
 
         return jsonify(out)
     except Exception as e:
