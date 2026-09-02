@@ -6434,6 +6434,34 @@ def admin_listings():
         .all()
     )
 
+    # Second pass: catalog rows whose submission_id was never set.
+    #
+    # CatalogTool.submission_id is a soft back-reference added later, and
+    # admin_approve_submission only started setting it after that. Every
+    # approval before then produced a perfectly good, LIVE catalog row with a
+    # NULL submission_id — invisible to the join above.
+    #
+    # Joining on submission_id alone therefore reported those listings as
+    # "approved but never published", which is the most alarming label in this
+    # table and was simply false: the tools are live and serving. The founder
+    # dashboard has always fallen back to the slug for exactly this reason
+    # (see submission_dashboard); this is that same fallback, in bulk.
+    #
+    # One extra query for the whole page rather than one per orphan.
+    unmatched = {
+        _slugify(sub.name): i
+        for i, (sub, tool) in enumerate(rows)
+        if tool is None and sub.status == "approved" and _slugify(sub.name)
+    }
+    if unmatched:
+        rows = list(rows)
+        for recovered in CatalogTool.query.filter(
+            CatalogTool.slug.in_(list(unmatched.keys()))
+        ).all():
+            idx = unmatched.get(recovered.slug)
+            if idx is not None:
+                rows[idx] = (rows[idx][0], recovered)
+
     slugs = [tool.slug for _sub, tool in rows if tool is not None]
 
     def _counts(model, only_recent=False):
@@ -6483,6 +6511,10 @@ def admin_listings():
             elif sub.status != "approved":
                 blocker = "awaiting_review"
             elif tool is None:
+                # Genuinely unpublished: no catalog row under the submission
+                # link OR the slug. The founder was told yes and nothing was
+                # ever created. Re-running the approval is the fix, which is
+                # what the row's Publish button does.
                 blocker = "approved_but_no_catalog_row"
             elif tool.hidden:
                 blocker = "hidden"
@@ -6591,6 +6623,28 @@ def admin_release_listings():
     if slug:
         q = q.filter(CatalogTool.slug == slug)
 
+    # Repair the back-reference while we are here. Recomputing the slug
+    # fallback on every admin page load works but leaves the data wrong
+    # forever; a listing whose submission_id is set resolves correctly in
+    # every other consumer too (the founder dashboard, listing_live's join,
+    # sponsorship's complimentary window).
+    relinked = []
+    if not slug:
+        orphans = {
+            _slugify(sub.name): sub.id
+            for sub in Submission.query.filter(Submission.status == "approved").all()
+            if _slugify(sub.name)
+        }
+        if orphans:
+            for tool in CatalogTool.query.filter(
+                CatalogTool.submission_id.is_(None),
+                CatalogTool.slug.in_(list(orphans.keys())),
+            ).all():
+                tool.submission_id = orphans[tool.slug]
+                relinked.append(tool.slug)
+            if relinked:
+                db.session.commit()
+
     released = []
     for tool in q.all():
         visible_at = tool.visible_at
@@ -6612,13 +6666,20 @@ def admin_release_listings():
 
     if released:
         db.session.commit()
+    if released or relinked:
         _refresh_catalog()
 
     current_app.logger.info(
-        "Released %s listing(s) from their release delay: %s",
+        "Released %s listing(s) from their release delay: %s | relinked %s: %s",
         len(released), ", ".join(released) or "none",
+        len(relinked), ", ".join(relinked) or "none",
     )
-    return jsonify({"released": released, "count": len(released)})
+    return jsonify({
+        "released": released,
+        "count": len(released),
+        "relinked": relinked,
+        "relinked_count": len(relinked),
+    })
 
 
 @api_bp.get("/submissions/dashboard")

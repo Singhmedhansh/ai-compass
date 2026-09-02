@@ -66,6 +66,7 @@ export default function ListingsPanel({ api }) {
   const [sendResult, setSendResult] = useState('')
   const [releasing, setReleasing] = useState(false)
   const [releaseResult, setReleaseResult] = useState('')
+  const [rowBusy, setRowBusy] = useState(null)
 
   const load = useCallback(() => {
     setLoading(true)
@@ -117,16 +118,46 @@ export default function ListingsPanel({ api }) {
     setReleaseResult('')
     try {
       const res = await api('/api/v1/admin/listings/release', { method: 'POST' })
-      setReleaseResult(
-        res.count === 0
-          ? 'Nothing was waiting.'
-          : `Published ${res.count}: ${res.released.join(', ')}`,
-      )
+      const parts = []
+      if (res.count) parts.push(`Published ${res.count}: ${res.released.join(', ')}`)
+      // Worth reporting separately: relinking does not publish anything, it
+      // repairs listings that were already live but showing as unpublished.
+      if (res.relinked_count) {
+        parts.push(`Repaired ${res.relinked_count} missing submission link(s): ${res.relinked.join(', ')}`)
+      }
+      setReleaseResult(parts.join(' · ') || 'Nothing was waiting.')
       load()
     } catch (err) {
       setReleaseResult(err.message || 'Release failed.')
     } finally {
       setReleasing(false)
+    }
+  }
+
+  // Unblocking one listing rather than all of them.
+  //
+  // Two different repairs behind one button, because from the admin's side it
+  // is one intention ("publish this"):
+  //   waiting_for_release        -> clear its release date
+  //   approved_but_no_catalog_row -> re-run the approval, which is what
+  //                                 never completed the first time
+  async function publishRow(row) {
+    setRowBusy(row.submission_id)
+    setSendResult('')
+    try {
+      if (row.live_blocker === 'approved_but_no_catalog_row') {
+        await api(`/api/v1/admin/submissions/${row.submission_id}/approve`, { method: 'POST' })
+      } else {
+        await api(
+          `/api/v1/admin/listings/release?slug=${encodeURIComponent(row.slug || '')}`,
+          { method: 'POST' },
+        )
+      }
+      load()
+    } catch (err) {
+      setSendResult(`${row.name}: ${err.message || 'Could not publish.'}`)
+    } finally {
+      setRowBusy(null)
     }
   }
 
@@ -177,12 +208,14 @@ export default function ListingsPanel({ api }) {
         />
       </div>
 
-      {waiting > 0 && (
+      {(waiting > 0 || stuck > 0) && (
         <div className="rounded-xl border border-accent/40 bg-accent-soft/10 p-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="max-w-xl">
               <p className="text-sm font-semibold text-ink">
-                {waiting} listing{waiting === 1 ? '' : 's'} waiting out the release delay
+                {waiting > 0
+                  ? `${waiting} listing${waiting === 1 ? '' : 's'} waiting out the release delay`
+                  : `${stuck} listing${stuck === 1 ? '' : 's'} not published`}
               </p>
               <p className="mt-0.5 text-xs text-ink-2">
                 Approved, but held back until their release date. Publishing them now starts the
@@ -317,6 +350,18 @@ export default function ListingsPanel({ api }) {
                   )}
                   {row.is_live && !row.live_email_sent_at && (
                     <div className="text-[11px] font-semibold text-amber-600 dark:text-amber-400">not announced</div>
+                  )}
+                  {['waiting_for_release', 'approved_but_no_catalog_row', 'unknown'].includes(
+                    row.live_blocker,
+                  ) && (
+                    <button
+                      type="button"
+                      onClick={() => publishRow(row)}
+                      disabled={rowBusy === row.submission_id}
+                      className="mt-1 rounded-md border border-accent/50 px-1.5 py-0.5 text-[10px] font-bold text-accent transition hover:bg-accent-soft disabled:opacity-60"
+                    >
+                      {rowBusy === row.submission_id ? 'Publishing…' : 'Publish now'}
+                    </button>
                   )}
                 </td>
                 <td className="py-2.5 pr-3 text-right tabular-nums text-ink-2">{row.views}</td>
