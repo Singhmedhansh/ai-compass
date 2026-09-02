@@ -4,57 +4,25 @@ import { ArrowUp } from 'lucide-react'
 
 import CompassMark from './ui/CompassMark'
 
-const PEERLIST_PROJECT_URL = 'https://peerlist.io/medhansh_builds/project/ai-compass'
-const PEERLIST_EMBED_ID = 'PRJHP6L7BMB7E6OK6C69OE89MNAREK'
+const LAUNCHBUFF_PROJECT_URL = 'https://launchbuff.com/products/ai-compass-zw1wr2'
 
-function useIsDarkTheme() {
-  const read = () =>
-    typeof document !== 'undefined' &&
-    document.documentElement.getAttribute('data-theme') === 'dark'
-
-  const [isDark, setIsDark] = useState(read)
-
-  useEffect(() => {
-    const sync = () => setIsDark(read())
-    // Navbar toggles the theme by setting data-theme on <html>; ProfilePage
-    // also fires a themeChanged event. Watch the attribute to cover both.
-    const observer = new MutationObserver(sync)
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['data-theme'],
-    })
-    window.addEventListener('themeChanged', sync)
-    window.addEventListener('storage', sync)
-    return () => {
-      observer.disconnect()
-      window.removeEventListener('themeChanged', sync)
-      window.removeEventListener('storage', sync)
-    }
-  }, [])
-
-  return isDark
-}
-
-function PeerlistBadge() {
-  const isDark = useIsDarkTheme()
-  const theme = isDark ? 'dark' : 'light'
-
+function LaunchBuffBadge() {
   return (
     <a
-      href={PEERLIST_PROJECT_URL}
+      href={LAUNCHBUFF_PROJECT_URL}
       target="_blank"
-      rel="noreferrer"
-      aria-label="AI Compass on Peerlist Launchpad"
+      rel="noopener noreferrer"
+      title="Featured on LaunchBuff"
+      aria-label="AI Compass featured on LaunchBuff"
     >
       <img
-        src={`https://peerlist.io/api/v1/projects/embed/${PEERLIST_EMBED_ID}?showUpvote=true&theme=${theme}`}
-        alt="Live on Peerlist Launchpad"
-        /* Width is set explicitly so the browser reserves the slot
-         * before the image loads — without it Lighthouse flags this
-         * as a CLS source (~0.05 layout shift on slow connections).
-         * 200×48 matches what Peerlist's embed serves at @1x. */
-        width="200"
-        height="48"
+        src="https://launchbuff.com/badge-featured-light.svg"
+        alt="Featured on LaunchBuff"
+        /* Intrinsic size is the 256x80 LaunchBuff serves, declared so the
+         * browser reserves the slot before the SVG loads (same CLS reason as
+         * the badge this replaced). Rendered at the footer's 48px line. */
+        width="256"
+        height="80"
         style={{ width: 'auto', height: '48px' }}
         loading="lazy"
         decoding="async"
@@ -258,7 +226,7 @@ export default function Footer() {
               <LinkedinIcon className="h-4 w-4" />
             </a>
           </div>
-          <PeerlistBadge />
+          <LaunchBuffBadge />
           <span className="font-mono text-xs">Made with care, not scrapers.</span>
         </div>
       </div>
