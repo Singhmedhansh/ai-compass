@@ -6178,6 +6178,66 @@ def admin_analytics():
     })
 
 
+# How many times a free listing may open its own dashboard before we ask for
+# the upgrade. Two: enough to see it work and come back once, few enough that
+# the third visit is a decision.
+FREE_DASHBOARD_VIEW_LIMIT = 2
+
+# A view is a SITTING, not an HTTP request. Requests inside this window after
+# the first one are the same visit — a refresh, a back button, a double render
+# — and must not spend an allowance of two. Anchored to when the sitting
+# started rather than to the latest request, so a tab reloading on a timer
+# cannot hold one sitting open indefinitely.
+FREE_DASHBOARD_VIEW_WINDOW = timedelta(minutes=30)
+
+
+def _consume_free_dashboard_view(submission):
+    """Spend one of a free listing's dashboard views. Returns the meter.
+
+    Never raises: a counter failure must not cost a founder the dashboard
+    they were invited to open. It fails OPEN — if the write breaks, they see
+    their data. The alternative is a bug that reads to the person on the
+    other end as us taking away what we just gave them, in exchange for
+    protecting a $19 upsell.
+    """
+    used = submission.dashboard_views or 0
+    now = datetime.now(timezone.utc)
+
+    last = submission.dashboard_last_view_at
+    if last is not None and last.tzinfo is None:
+        # SQLite hands back naive datetimes; comparing one to an aware now()
+        # raises, and this sits in front of the whole free dashboard.
+        last = last.replace(tzinfo=timezone.utc)
+
+    same_sitting = last is not None and (now - last) < FREE_DASHBOARD_VIEW_WINDOW
+
+    if not same_sitting:
+        if used >= FREE_DASHBOARD_VIEW_LIMIT:
+            return {
+                "used": used,
+                "limit": FREE_DASHBOARD_VIEW_LIMIT,
+                "remaining": 0,
+                "locked": True,
+            }
+        used += 1
+        try:
+            submission.dashboard_views = used
+            submission.dashboard_last_view_at = now.replace(tzinfo=None)
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            current_app.logger.exception(
+                "could not record dashboard view for submission_id=%s", submission.id
+            )
+
+    return {
+        "used": used,
+        "limit": FREE_DASHBOARD_VIEW_LIMIT,
+        "remaining": max(0, FREE_DASHBOARD_VIEW_LIMIT - used),
+        "locked": False,
+    }
+
+
 def _submission_dashboard_daily_trend(slug, days=14):
     """[{"date": "YYYY-MM-DD", "clicks": N, "views": N}, ...] for the last
     `days` days (oldest first), zero-filled for days with no activity."""
@@ -6694,7 +6754,11 @@ def submission_dashboard():
     from itsdangerous import BadSignature, SignatureExpired
 
     from app.models import CatalogTool, OutboundClick, Submission, ToolPageView
-    from app.pricing_tiers import includes_sponsored_perks, tier_for_pricing_model
+    from app.pricing_tiers import (
+        includes_sponsored_perks,
+        price_for_tier,
+        tier_for_pricing_model,
+    )
     from app.submission_dashboard import verify_dashboard_token
 
     # Additive, not a replacement (Constraint 2 of the founder-accounts
@@ -6774,6 +6838,46 @@ def submission_dashboard():
         resp["submission"]["is_live"] = bool(
             visible_at is None or visible_at <= datetime.now(timezone.utc)
         )
+
+    # The free-tier view allowance.
+    #
+    # A free listing is permanent and the "your listing is live" email links
+    # here, so a founder gets a real look at their own dashboard — twice —
+    # and is then asked to upgrade. Reporting is exactly what the $19 tier
+    # sells (see pricing_tiers.TIERS: "it sells the reporting, not the
+    # speed"), so this is the one gate on the ladder that withholds the thing
+    # the price is actually for.
+    #
+    # Counted server-side. A paywall the reader can clear in devtools is a
+    # suggestion, not a gate.
+    # An admin opening a founder's dashboard, and the owner's own QA rows,
+    # do not spend the allowance. Without this, checking that the gate works
+    # is itself how a real founder gets locked out of their two views.
+    viewer_is_admin = bool(
+        current_user.is_authenticated and getattr(current_user, "is_admin", False)
+    )
+    if tier_key == "free" and not viewer_is_admin and not s.is_test:
+        gate = _consume_free_dashboard_view(s)
+        resp["views"] = gate
+        if gate["locked"]:
+            resp["locked"] = True
+            resp["upgrade"] = {
+                "tier": "analytics",
+                "price": price_for_tier("analytics"),
+                "url": "/submit?tier=analytics",
+                "unlocks": [
+                    "Clicks and views on your listing, updated daily",
+                    "Your views-to-clicks rate — whether the page is convincing",
+                    "A 14-day trend, so you can see what a launch post actually did",
+                    "Saves and ratings from readers",
+                ],
+            }
+            # Deliberately still returned: the listing's own status and live
+            # URL. Those are facts about a founder's own tool, and taking
+            # them hostage would make the upsell feel like a lock on
+            # something we gave them. What the gate withholds is the
+            # reporting, which is the thing being sold.
+            return jsonify(resp)
 
     if tier_key == "free" or not catalog_row:
         return jsonify(resp)

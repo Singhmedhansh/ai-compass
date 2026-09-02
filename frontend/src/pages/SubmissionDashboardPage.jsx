@@ -1,5 +1,5 @@
 import { Helmet } from 'react-helmet-async'
-import { CheckCircle2, Clock, ExternalLink, Heart, MousePointerClick, Pencil, Percent, Rocket, Sparkles, Star, Trophy, TrendingUp, XCircle } from 'lucide-react'
+import { Check, CheckCircle2, Clock, ExternalLink, Heart, Lock, MousePointerClick, Pencil, Percent, Rocket, Sparkles, Star, Trophy, TrendingUp, XCircle } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 
@@ -284,6 +284,80 @@ function UpsellCard() {
         </div>
       </div>
     </Card>
+  )
+}
+
+// What a free listing sees on its third open.
+//
+// Deliberately NOT a blank wall. The listing's own status and live URL are
+// still above this — they are facts about the founder's own tool, and taking
+// those hostage would make the upsell read as a lock on something we gave
+// them for free. What is withheld is the reporting, which is the thing the
+// $19 tier is actually for.
+//
+// It also names the numbers rather than showing them. Teasing a real figure
+// would convert better on a busy listing and worse than nothing on a quiet
+// one — "unlock to see your 0 clicks" argues against the purchase — and most
+// free listings here are quiet.
+function LockedCard({ upgrade, views }) {
+  if (!upgrade) return null
+  return (
+    <Card className="border-accent/30 bg-accent-soft/15">
+      <div className="flex items-start gap-3">
+        <Lock className="mt-0.5 h-5 w-5 shrink-0 text-accent" />
+        <div className="min-w-0">
+          <h2 className="font-semibold text-ink">
+            You&apos;ve used your {views?.limit ?? 2} free dashboard views
+          </h2>
+          <p className="mt-1 text-sm text-ink-2">
+            Your listing stays live and permanent — nothing about it changes. The reporting is
+            what Listing + Analytics (${upgrade.price}) pays for, and it&apos;s a one-time charge,
+            not a subscription.
+          </p>
+          <ul className="mt-3 space-y-1.5">
+            {(upgrade.unlocks || []).map((line) => (
+              <li key={line} className="flex items-start gap-2 text-sm text-ink-2">
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-accent" aria-hidden="true" />
+                {line}
+              </li>
+            ))}
+          </ul>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Link
+              to={upgrade.url || '/pricing'}
+              className="inline-flex items-center justify-center rounded-xl bg-accent px-4 py-2 text-sm font-bold text-white transition hover:bg-accent/90"
+            >
+              Upgrade for ${upgrade.price}
+            </Link>
+            <Link
+              to="/pricing"
+              className="inline-flex items-center justify-center rounded-xl border border-line-strong px-4 py-2 text-sm font-semibold text-ink-2 transition hover:border-accent hover:text-ink"
+            >
+              Compare tiers
+            </Link>
+          </div>
+        </div>
+      </div>
+    </Card>
+  )
+}
+
+// Shown while a free listing still has views left. Saying so before the wall
+// arrives is the difference between an upsell and an ambush — and it is the
+// moment the upgrade is most persuasive, because they are looking at the
+// page they are about to lose.
+function ViewMeter({ views }) {
+  if (!views || views.locked || views.remaining == null) return null
+  return (
+    <p className="text-xs text-muted">
+      {views.remaining === 0
+        ? 'This is your last free view of this dashboard.'
+        : `${views.remaining} free dashboard view${views.remaining === 1 ? '' : 's'} left after this one.`}{' '}
+      <Link to="/pricing" className="font-semibold text-accent hover:underline">
+        Unlock it permanently
+      </Link>
+      .
+    </p>
   )
 }
 
@@ -747,7 +821,16 @@ export default function SubmissionDashboardPage() {
 
                 <LaunchDayCard query={query} />
 
-                {data.tier === 'free' && <UpsellCard />}
+                {data.locked ? (
+                  <LockedCard upgrade={data.upgrade} views={data.views} />
+                ) : (
+                  data.tier === 'free' && (
+                    <>
+                      <UpsellCard />
+                      <ViewMeter views={data.views} />
+                    </>
+                  )
+                )}
 
                 {data.analytics && (
                   <>

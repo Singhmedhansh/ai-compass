@@ -313,6 +313,23 @@ class Submission(db.Model):
     # founder is mailed twice about one listing.
     live_email_sent_at = db.Column(db.DateTime, nullable=True)
 
+    # Free-tier dashboard opens (see FREE_DASHBOARD_VIEW_LIMIT in
+    # app/api_routes.py). A free listing gets a couple of looks at its own
+    # dashboard and is then asked to upgrade.
+    #
+    # Counted on the server, not in the browser, because a paywall a reader
+    # can clear with devtools is a suggestion. Counted per SUBMISSION rather
+    # than per token or per device for the same reason: a new magic link is
+    # one "resend link" click away, so anything keyed to the token would
+    # reset itself.
+    #
+    # dashboard_last_view_at exists so a refresh, a back button or a double
+    # render does not spend one of two. A view is a SITTING, not an HTTP
+    # request — without this, the realistic way a founder burns their whole
+    # allowance is opening the email, glancing, and reloading once.
+    dashboard_views = db.Column(db.Integer, nullable=False, default=0)
+    dashboard_last_view_at = db.Column(db.DateTime, nullable=True)
+
 
 class NewsletterSubscriber(db.Model):
     __tablename__ = "newsletter_subscribers"

@@ -1029,6 +1029,10 @@ def create_app(config: dict | None = None) -> Flask:
                         # email. See Submission.live_email_sent_at and
                         # app/listing_live.py.
                         ("live_email_sent_at", "TIMESTAMP"),
+                        # Free-tier dashboard view allowance. See
+                        # Submission.dashboard_views.
+                        ("dashboard_views", "INTEGER DEFAULT 0"),
+                        ("dashboard_last_view_at", "TIMESTAMP"),
                     ]:
                         _add_column("submissions", col_name, col_type)
 
