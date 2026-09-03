@@ -987,8 +987,83 @@ def create_app(config: dict | None = None) -> Flask:
                         ("verified_at", "TIMESTAMP"),
                         ("fit_score", "INTEGER"),
                         ("draft_template_version", "INTEGER"),
+                        # Campaign scoping (migration a2f7c4e91b58). These are
+                        # NOT optional extras: outreach.py filters on campaign
+                        # and lead_pool in every candidate query, so without
+                        # them the whole Outreach tab raises UndefinedColumn.
+                        ("campaign", "VARCHAR(50)"),
+                        ("lead_pool", "VARCHAR(20)"),
+                        ("qualification_json", "TEXT"),
                     ]:
                         _add_column("outreach_candidates", col_name, col_type)
+
+                    def _add_index(name, table, col, unique=False):
+                        """Idempotent CREATE INDEX. Both Postgres and SQLite
+                        accept IF NOT EXISTS here.
+
+                        Usually a performance concern only, so a failure is
+                        logged and stepped over rather than counted as a schema
+                        failure that withholds the once-per-deploy marker. The
+                        exception is a UNIQUE index that a code path relies on
+                        as a guard — see ix_sponsor_slots_payment_ref below.
+                        """
+                        from sqlalchemy import text
+                        try:
+                            db.session.execute(text(
+                                f"CREATE {'UNIQUE ' if unique else ''}INDEX IF NOT EXISTS "
+                                f"{name} ON {table} ({col});"
+                            ))
+                            db.session.commit()
+                            return True
+                        except Exception as exc:
+                            db.session.rollback()
+                            print(f"[WARMUP] index {name} skipped: {exc}", flush=True)
+                            return False
+
+                    _add_index("ix_outreach_candidates_campaign", "outreach_candidates", "campaign")
+                    _add_index("ix_outreach_candidates_lead_pool", "outreach_candidates", "lead_pool")
+
+                    # catalog_tools.submission_id (migration e7a2c4b8f105). The
+                    # soft back-reference from a catalog row to the submission
+                    # that produced it. api_routes.py JOINs on it in the founder
+                    # dashboard and the admin listing queries, so if it is
+                    # absent those endpoints raise UndefinedColumn rather than
+                    # degrading — the table long predates the column here.
+                    _add_column("catalog_tools", "submission_id", "INTEGER")
+                    _add_index("ix_catalog_tools_submission_id", "catalog_tools", "submission_id")
+
+                    # sponsor_slots payment fields (migration d4b82e1a7c93).
+                    # sponsor_slots was created by an earlier migration and
+                    # these two were added afterwards, so a database whose
+                    # table came from db.create_all() before that point does
+                    # not have them. Both are written on every sponsored
+                    # purchase (api_routes.py, community_routes.py) — without
+                    # them no sponsored listing can be recorded at all.
+                    for col_name, col_type in [
+                        ("payment_ref", "VARCHAR(64)"),
+                        ("contact_email", "VARCHAR(255)"),
+                    ]:
+                        _add_column("sponsor_slots", col_name, col_type)
+
+                    # UNIQUE deliberately: this index is not an optimisation,
+                    # it is the replay guard that stops one captured PayPal
+                    # payment from being redeemed for two slots. Creating it
+                    # can only fail here if duplicates already exist, which is
+                    # itself worth seeing in the log. (NULLs do not collide in
+                    # either engine, so a freshly added column is always safe.)
+                    _add_index("ix_sponsor_slots_payment_ref", "sponsor_slots",
+                               "payment_ref", unique=True)
+
+                    # tools.academic_* (migration b7f4257123f2). Nothing reads
+                    # these today — they are carried so that the invariant
+                    # "every migrated column has a raw-SQL fallback" holds
+                    # without exceptions, because an invariant with a
+                    # remembered exception list is one nobody can check.
+                    for col_name, col_type in [
+                        ("academic_integrity_rating", "VARCHAR(50)"),
+                        ("academic_warning", "TEXT"),
+                    ]:
+                        _add_column("tools", col_name, col_type)
 
                     # Same fallback for submissions: the payment-verification
                     # migration (a4e91c2b7d3f) never applied here either, for
