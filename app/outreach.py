@@ -15,6 +15,7 @@ from app.email_utils import (
     send_email_with_details,
     make_unsubscribe_token,
     make_prefill_token,
+    read_prefill_token,
 )
 from app.send_budget import reserve_send_slots, release_send_slots
 
@@ -87,6 +88,17 @@ def _inbound_listing_url(candidate):
     return f"https://ai-compass.in/tools/{tool.slug}"
 
 
+def _slugify(value):
+    """Same rule as api_routes._slugify, duplicated deliberately.
+
+    app.api_routes already imports from app.outreach, so importing it back
+    here is a circular import. Six characters of regex is the cheaper of the
+    two problems - but the two MUST agree, so tests/test_outreach_redraft_scope
+    asserts they produce identical output.
+    """
+    return re.sub(r"[^a-z0-9]+", "-", str(value or "").strip().lower()).strip("-")
+
+
 def _aware(value):
     if value is None:
         return None
@@ -139,6 +151,29 @@ def _candidate_listing(candidate):
 
         submission = db.session.get(Submission, submission_id)
         tool = CatalogTool.query.filter_by(submission_id=submission_id).first()
+
+        # Fall back to the slug when the back-reference was never written.
+        #
+        # catalog_tools.submission_id is a soft link added long after the
+        # first approvals, and admin_approve_submission only started setting
+        # it from that point on. Every listing approved before then is live
+        # and serving with a NULL submission_id, and the one job that repairs
+        # them sits behind a button that only renders when some OTHER listing
+        # is stuck - so on a healthy catalogue it can never run.
+        #
+        # Everything else already compensates: the founder dashboard and the
+        # admin listings table both fall back to the slug. Outreach did not,
+        # and it failed in the worst possible direction - _inbound_listing_url
+        # returned None, the draft took the "not listed yet" branch, and the
+        # email told a founder whose page has been live for weeks that it was
+        # "in the queue for a free listing". Being the only consumer without
+        # the fallback is what turned a missing integer into a wrong claim in
+        # front of a customer.
+        if tool is None and submission is not None:
+            slug = _slugify(getattr(submission, "name", "") or "")
+            if slug:
+                tool = CatalogTool.query.filter_by(slug=slug).first()
+
         return submission, tool
     except Exception:
         log.exception("Could not resolve listing for %s", ref)
@@ -245,6 +280,8 @@ def _campaign_copy(candidate) -> dict:
             ),
         }
 
+    prefill_link, prefilled = _prefill_url(candidate)
+
     return {
         "offer": (
             "I run AI Compass - a hand-tested directory of AI tools (500+ listed, every one "
@@ -252,25 +289,37 @@ def _campaign_copy(candidate) -> dict:
             f"they are comparing options. I would like to list {name} there. It is free, and "
             "here is what that gets you:"
         ),
-        "cta": "Your listing is already pre-filled, so it takes about 30 seconds:",
-        "link": _prefill_url(candidate),
+        "cta": (
+            "Your listing is already pre-filled, so it takes about 30 seconds:"
+            if prefilled
+            else "It takes about a minute:"
+        ),
+        "link": prefill_link,
+        # Deliberately no price, no tiers, no "there is also a paid option".
+        #
+        # This email's whole ask is a free listing. Naming $49 here asks a
+        # stranger to consider paying before the free listing has shown them a
+        # single click, and it makes the free offer read as the opening move in
+        # a sale rather than the offer it actually is. The paid conversation
+        # has its own email, sent 15 days after their listing is live, when the
+        # impressions and clicks are real and the founder can judge it - which
+        # is the whole point of UPGRADE_MIN_DAYS_LIVE.
         "aside": (
-            "There is also a paid option if you want placement above the free listings in "
-            "your category - $49 one-time for a Sponsored badge and a 30-day featured card "
-            f"with impressions and clicks reported back, or $79 which adds a written "
-            f"hands-on review of {name} on its own indexed page."
+            "Nothing to pay and nothing to sign up for - the listing is free and stays "
+            "free."
         ),
         "followup_recap": (
             f"The offer is just the free listing: {name} on ai-compass.in, permanently, in "
-            "front of students and developers searching for tools in your category. It is "
-            "pre-filled already, so it is about 30 seconds:"
+            "front of students and developers searching for tools in your category. "
+            + ("It is pre-filled already, so it is about 30 seconds:"
+               if prefilled else "It takes about a minute:")
         ),
         "followup_note": "Nothing to pay and nothing to sign up for.",
     }
 
 
-def _prefill_url(candidate) -> str:
-    """The pre-filled submit link for one candidate.
+def _prefill_url(candidate) -> tuple[str, bool]:
+    """(url, is_actually_prefilled) for one candidate.
 
     A cold email that asks a founder to go fill in a form converts far worse
     than one that has already filled it in for them — discovery has their
@@ -280,17 +329,28 @@ def _prefill_url(candidate) -> str:
 
     Falls back to the bare /submit URL for an unsaved candidate (no id yet),
     so a draft generated before the row is flushed still contains a link that
-    works.
+    works. The second value is what the copy keys off: it is False for every
+    fallback, so no email ever claims a form is filled in when it is not.
     """
     base = "https://ai-compass.in/submit"
     cid = getattr(candidate, "id", None)
     if not cid:
-        return base
+        return base, False
     try:
-        return f"{base}?c={make_prefill_token(cid)}"
+        token = make_prefill_token(cid)
+        # Verify the token survives the trip back before promising anything.
+        # /submit fails silently on a bad token (deliberately - see
+        # SubmitPage.jsx), so a broken link does not look broken: the founder
+        # gets an empty form and an email that told them it would be full.
+        # That is worse than never claiming it, because it is the first thing
+        # they check.
+        if read_prefill_token(token) != int(cid):
+            log.warning("Prefill token for candidate %s does not round-trip", cid)
+            return base, False
+        return f"{base}?c={token}", True
     except Exception:  # noqa: BLE001 — a signing failure must not lose the draft
         log.warning("Could not mint prefill token for candidate %s", cid)
-        return base
+        return base, False
 
 # Bump this whenever the cold-pitch template (generate_draft_via_gemini's
 # prompt or get_generic_draft's copy) changes in a way that makes existing
@@ -322,7 +382,7 @@ def _prefill_url(candidate) -> str:
 # version 4 have to be regenerated rather than sent. can_send_candidate()
 # refuses a stale draft and the cron's discovery phase refreshes them, so
 # bumping this is what actually stops the wrong copy going out.
-CURRENT_DRAFT_TEMPLATE_VERSION = 5
+CURRENT_DRAFT_TEMPLATE_VERSION = 6
 
 
 def _outreach_send_headers(email: str) -> dict[str, str]:
@@ -1921,10 +1981,11 @@ STRUCTURE - follow this order exactly:
      tools in the last 30 days - people clicking through to actually try them, not just browsing
 5. One sentence saying the listing is already pre-filled so it takes about 30 seconds, then the link on its OWN paragraph, as a bare visible URL.
    Use the exact placeholder PREFILL_URL for it - it is substituted later. The link text must BE the URL, not a word linking to it.
-6. Exactly one short paragraph for the paid option, framed as optional and secondary. Wording to follow closely: there is also a paid option
-   if they want placement above the free listings in their category - $49 one-time for a Sponsored badge and a 30-day featured card with
-   impressions and clicks reported back, or $79 which adds a written hands-on review of the tool on its own indexed page. Never pressure it,
-   never put a deadline on it, never invent a discount or a founding rate. It is one paragraph and it is never the last thing before the sign-off.
+6. One short line making clear there is nothing to pay and nothing to sign up for - the listing is free and stays free.
+   NEVER mention a price, a paid tier, a Sponsored badge, a featured card, an upgrade, or any amount of money. This email asks for one
+   thing only: a free listing. The paid conversation is a SEPARATE email sent 15 days after their listing is live, when there are real
+   impressions and clicks to show them. Putting a price in this email asks a stranger to consider paying before the free listing has
+   earned them a single click, and it turns the free offer into the opening move of a sale.
 7. The closing line, near-verbatim: "No pressure either way - if it's not useful, just ignore this."
 
 HARD CONSTRAINTS:
@@ -1935,6 +1996,8 @@ HARD CONSTRAINTS:
   do not add a second call to action. Multiple links are a bulk-mail signal and split the reader's attention.
 - Never fabricate anything. The only metric you may cite is the 1,689 click-throughs in 30 days. Never say "monthly active visitors",
   never cite an impressions or visitor count, never invent testimonials, urgency, or slot counts.
+- Never state or imply a price, a discount, a paid tier or an upgrade anywhere in this email. Not in the bullets, not as an aside, not
+  in the closing line.
 - Do NOT write a sign-off, signature, or "Thanks," line - that is appended separately. End at the "no pressure" line.
 - Subject line: under 50 characters, lowercase-ish and specific, the way a real person titles a one-to-one email. Good: "About {Product}",
   "{Product} on AI Compass", "quick one about {Product}". Never corporate phrasing like "Partnership Opportunity" or "Featured Placement".
@@ -1997,7 +2060,21 @@ FORMATTING - this email must look like plain text, because a designed email gets
                 # a prompt is something an LLM will happily "tidy up" or
                 # truncate. Substituting here means the URL in the sent email
                 # is always one this process minted.
-                body = body.replace("PREFILL_URL", _prefill_url(candidate))
+                link, prefilled = _prefill_url(candidate)
+                if not prefilled:
+                    # The prompt instructs the model to write "your listing is
+                    # already pre-filled". When the token will not round-trip
+                    # that sentence is false, and there is no reliable way to
+                    # edit a claim back out of prose an LLM wrote. The template
+                    # below already phrases both cases correctly, so use it
+                    # rather than send a promise the link cannot keep.
+                    log.info(
+                        "Candidate %s has no working prefill link — using the "
+                        "template draft so the copy matches the link.",
+                        getattr(candidate, "id", None),
+                    )
+                    return get_generic_draft(candidate)
+                body = body.replace("PREFILL_URL", link)
                 return subject, _append_unsubscribe_footer(_outreach_wrap(body), candidate.email)
         except Exception as e:
             log.warning("Gemini (%s) draft generation failed: %s", model, e)
@@ -2009,8 +2086,9 @@ def get_generic_draft(candidate):
     """Fallback template used when Gemini fails or is unconfigured.
 
     One skeleton for every lead pool: specific credit, the offer, two proof
-    bullets, a single link, the paid tiers once as an aside, and an explicit
-    permission to ignore the email. The two slots whose facts change by pool
+    bullets, a single link, and an explicit permission to ignore the email.
+    Pricing appears only for pools that are already listed — the cold pitch
+    names no price at all. The two slots whose facts change by pool
     come from _campaign_copy(); everything else is identical for everyone we
     write to, deliberately. Plain paragraphs only - see the note on
     _outreach_wrap for why nothing here is styled.
@@ -2509,6 +2587,20 @@ ALLOW_UNVERIFIED_SEND = str(
 
 
 STATUS_APPROVED = "approved"
+
+# Statuses whose stored draft may still be rewritten.
+#
+# 'approved' belongs here and its absence was a deadlock. Both redraft paths
+# used to scope to draft_ready, while can_send_candidate() refuses to send a
+# draft below CURRENT_DRAFT_TEMPLATE_VERSION - so an approved candidate
+# holding stale copy could neither be refreshed nor sent, and no cron tick
+# would ever free it. Approving before the bump landed was enough to strand a
+# row for good.
+#
+# The statuses deliberately NOT here are the terminal ones (sent, replied,
+# bounced, rejected, unsubscribed): those already went out, or never will, and
+# rewriting them edits history rather than a pending send.
+REDRAFTABLE_STATUSES = ("draft_ready", "no_email_found", STATUS_APPROVED)
 
 # ─── CAMPAIGN CADENCE AND PACING ─────────────────────────────────────────────
 #
@@ -3026,6 +3118,35 @@ def run_automated_initial_sends():
 
 # ─── 6. BULK DRAFT REGENERATION ─────────────────────────────────────────────
 
+def apply_regenerated_draft(c, subject, body):
+    """Writes a freshly generated draft onto a candidate.
+
+    Approval is consent to send a *specific* message, so when regeneration
+    changes the text that consent does not carry over - the row returns to
+    draft_ready and is reviewed again. This is not hypothetical: template v5
+    exists because v4 told founders whose listing was already live that it was
+    "in the queue for a free listing", and an approval of that sentence must
+    not silently become an approval of whatever replaced it.
+
+    Copy that comes back identical keeps its approval, so a no-op regeneration
+    can never quietly empty the send queue.
+    """
+    changed = (c.draft_subject != subject) or (c.draft_body != body)
+    c.draft_subject = subject
+    c.draft_body = body
+    c.draft_template_version = CURRENT_DRAFT_TEMPLATE_VERSION
+    c.updated_at = datetime.now(timezone.utc)
+    if changed and c.status == STATUS_APPROVED:
+        c.status = "draft_ready"
+        c.last_status_change_at = datetime.now(timezone.utc)
+        log.info(
+            "Candidate %s returned to review: an approved draft was rewritten "
+            "onto template v%s, so the approval no longer matches what would send.",
+            c.id, CURRENT_DRAFT_TEMPLATE_VERSION,
+        )
+    return changed
+
+
 def regenerate_all_drafts():
     """Regenerates draft_subject/draft_body for every draft_ready candidate
     with an email. Drafts are only generated once and stored — a later
@@ -3036,7 +3157,7 @@ def regenerate_all_drafts():
     from concurrent.futures import ThreadPoolExecutor, as_completed
 
     candidates = OutreachCandidate.query.filter(
-        OutreachCandidate.status == "draft_ready",
+        OutreachCandidate.status.in_(REDRAFTABLE_STATUSES),
         OutreachCandidate.email.isnot(None),
     ).all()
     if not candidates:
@@ -3056,11 +3177,7 @@ def regenerate_all_drafts():
         for f in as_completed(futures):
             try:
                 cid, (subject, body) = f.result()
-                c = cand_dict[cid]
-                c.draft_subject = subject
-                c.draft_body = body
-                c.draft_template_version = CURRENT_DRAFT_TEMPLATE_VERSION
-                c.updated_at = datetime.now(timezone.utc)
+                apply_regenerated_draft(cand_dict[cid], subject, body)
                 regenerated += 1
             except Exception as e:
                 log.warning("Draft regeneration failed: %s", e)
@@ -3099,10 +3216,7 @@ def refresh_stale_drafts(limit=None):
     for c in stale:
         try:
             subject, body = generate_draft_via_gemini(c)
-            c.draft_subject = subject
-            c.draft_body = body
-            c.draft_template_version = CURRENT_DRAFT_TEMPLATE_VERSION
-            c.updated_at = datetime.now(timezone.utc)
+            apply_regenerated_draft(c, subject, body)
             refreshed += 1
         except Exception as e:  # noqa: BLE001 — one bad row must not stop the batch
             log.warning("Stale draft refresh failed for candidate %s: %s", c.id, e)
@@ -3469,13 +3583,18 @@ def get_stale_draft_candidates():
     NULL, which counts as stale (NULL is not "less than" anything in SQL,
     so it needs its own explicit check rather than a plain `< CURRENT`).
 
-    Scoped to draft_ready and no_email_found only: sent/followed_up/replied/
-    bounced/rejected/unsubscribed rows already went out (or never will) with
-    whatever content they had — regenerating those changes history, not a
-    pending send, so they're deliberately excluded here.
+    Scoped to REDRAFTABLE_STATUSES: sent/followed_up/replied/bounced/
+    rejected/unsubscribed rows already went out (or never will) with whatever
+    content they had — regenerating those changes history, not a pending send,
+    so they're deliberately excluded there.
+
+    'approved' IS included. It is the most important status here, not an edge
+    case: an approved row is a pending send by definition, and leaving it out
+    meant the one queue that was about to email someone was the one queue this
+    never repaired.
     """
     return OutreachCandidate.query.filter(
-        OutreachCandidate.status.in_(["draft_ready", "no_email_found"]),
+        OutreachCandidate.status.in_(REDRAFTABLE_STATUSES),
         db.or_(
             OutreachCandidate.draft_template_version.is_(None),
             OutreachCandidate.draft_template_version < CURRENT_DRAFT_TEMPLATE_VERSION,

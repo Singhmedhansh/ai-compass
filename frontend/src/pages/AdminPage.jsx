@@ -440,6 +440,46 @@ function AdminPage() {
     }
   }, [])
 
+  // Wait for a background outreach job and report what it actually did.
+  //
+  // Every one of these buttons used to fire its POST, toast "running in the
+  // background", and then guess with two or three setTimeout reloads. Each
+  // job is minutes of LLM and network calls, so the guesses expired long
+  // before the work finished: the toast looked identical whether the job
+  // rewrote nineteen drafts, rewrote none, or crashed. A button whose only
+  // feedback is that it was clicked cannot be told apart from a broken one -
+  // and for an afternoon, one of them was.
+  //
+  // The server already tracks this (_job_start/_job_finish behind
+  // /job-status); nothing here needed building, only using.
+  const pollOutreachJob = useCallback(async (kind, { toastId, describe }) => {
+    const deadline = Date.now() + 10 * 60 * 1000
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      if (Date.now() > deadline) {
+        toast.error('This is taking longer than 10 minutes. It may still be '
+          + 'running — reload to see what has landed.', { id: toastId })
+        break
+      }
+      await new Promise((r) => setTimeout(r, 3000))
+      let job = null
+      try {
+        job = await api('/api/v1/admin/outreach/job-status')
+      } catch {
+        continue  // transient; keep polling rather than reporting a failure
+      }
+      if (job && job.kind === kind && !job.running) {
+        if (job.error) toast.error(`Failed: ${job.error}`, { id: toastId })
+        else toast.success(describe(job.result || {}), { id: toastId })
+        break
+      }
+      // Rows land as they are processed, so refresh while waiting - the list
+      // filling up is the honest progress indicator.
+      await loadOutreachData()
+    }
+    await loadOutreachData()
+  }, [api, loadOutreachData])
+
   // Discovery/re-enrich/etc. chain per-candidate network calls sequentially
   // and can run for several minutes — polling job-status until it actually
   // finishes (rather than guessing with fixed timeouts) is what tells us
@@ -1991,19 +2031,19 @@ function AdminPage() {
                   onClick={async () => {
                     setOutreachBusy('re_enrich')
                     try {
-                      const res = await api('/api/v1/admin/outreach/re-enrich', { method: 'POST' })
-                      toast.success(res.message || 'Email discovery running in background! Refreshing candidates list...')
-                      // Local re-discovery lands in seconds; the real SMTP
-                      // verifier runs on GitHub Actions and takes ~1-2 min,
-                      // so keep polling out further to actually catch it.
-                      setTimeout(() => loadOutreachData(), 3000)
-                      setTimeout(() => loadOutreachData(), 6000)
-                      setTimeout(() => loadOutreachData(), 12000)
-                      if (res.github_verification_triggered) {
-                        setTimeout(() => loadOutreachData(), 60000)
-                        setTimeout(() => loadOutreachData(), 90000)
-                        setTimeout(() => loadOutreachData(), 120000)
-                      }
+                      await api('/api/v1/admin/outreach/re-enrich', { method: 'POST' })
+                      toast.loading('Finding missing emails…', { id: 'reenrich' })
+                      await pollOutreachJob('re-enrich', {
+                        toastId: 'reenrich',
+                        describe: (r) => {
+                          const e = r.emails_fixed ?? 0
+                          const n = r.names_fixed ?? 0
+                          const d = r.drafts_regenerated ?? 0
+                          return (e || n || d)
+                            ? `Found ${e} email${e === 1 ? '' : 's'}, fixed ${n} name${n === 1 ? '' : 's'}, redrafted ${d}.`
+                            : 'Nothing left to enrich — every candidate already has an address.'
+                        },
+                      })
                     } catch (e) {
                       toast.error(e.message)
                     } finally {
@@ -2040,13 +2080,17 @@ function AdminPage() {
                         `This only creates drafts for review — nothing is sent.`
                       )) return
 
-                      const res = await api('/api/v1/admin/outreach/catalog-campaign', { method: 'POST' })
-                      toast.success(res.message || 'Building traffic-report drafts in the background…')
-                      // Email enrichment is network-bound per candidate, so
-                      // results trickle in over tens of seconds.
-                      setTimeout(() => loadOutreachData(), 5000)
-                      setTimeout(() => loadOutreachData(), 20000)
-                      setTimeout(() => loadOutreachData(), 45000)
+                      await api('/api/v1/admin/outreach/catalog-campaign', { method: 'POST' })
+                      toast.loading('Building traffic-report drafts…', { id: 'catcamp' })
+                      await pollOutreachJob('catalog-campaign', {
+                        toastId: 'catcamp',
+                        describe: (r) => {
+                          const n = r.created ?? r.candidates_created ?? 0
+                          return n
+                            ? `Built ${n} traffic-report draft${n === 1 ? '' : 's'} for review.`
+                            : 'No new traffic-report drafts were created.'
+                        },
+                      })
                     } catch (e) {
                       toast.error(e.message)
                     } finally {
@@ -2060,16 +2104,30 @@ function AdminPage() {
                 <button
                   disabled={outreachBusy === 'regenerate_all'}
                   onClick={async () => {
-                    if (!window.confirm('Regenerate the draft for every draft_ready candidate? This overwrites any manual edits to subject/body.')) return
+                    if (!window.confirm(
+                      'Regenerate every draft that has not been sent? This overwrites any '
+                      + 'manual edits to subject/body, and any candidate you have already '
+                      + 'approved goes back to Needs review — the approval was given to the '
+                      + 'old copy, so it does not carry over to the new copy.'
+                    )) return
                     setOutreachBusy('regenerate_all')
                     try {
                       await api('/api/v1/admin/outreach/regenerate-all-drafts', { method: 'POST' })
-                      toast.success('Regenerating all drafts in background! Refreshing candidates list...')
-                      setTimeout(() => loadOutreachData(), 5000)
-                      setTimeout(() => loadOutreachData(), 15000)
-                      setTimeout(() => loadOutreachData(), 30000)
+                      toast.loading('Regenerating drafts…', { id: 'regen' })
+                      await pollOutreachJob('regenerate-drafts', {
+                        toastId: 'regen',
+                        describe: (r) => {
+                          const n = r.drafts_regenerated ?? 0
+                          const v = r.template_version
+                          return n === 0
+                            ? 'Nothing to regenerate — every draft is already current.'
+                            : `Regenerated ${n} draft${n === 1 ? '' : 's'}`
+                              + (v ? ` onto template v${v}` : '') + '.'
+                        },
+                      })
+                      await loadOutreachData()
                     } catch (e) {
-                      toast.error(e.message)
+                      toast.error(e.message, { id: 'regen' })
                     } finally {
                       setOutreachBusy(null)
                     }

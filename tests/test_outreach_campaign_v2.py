@@ -160,10 +160,21 @@ def test_the_paid_tier_is_pitched_once_not_twice(app):
 
     Regression: reusing the cold aside meant the email asked for $49 in the
     call to action and then asked again in the very next paragraph.
+
+    The cold pool is now excluded rather than expected to say $49 once: its
+    email names no price at all, because the upgrade ask belongs in a separate
+    email sent 15 days after the listing goes live. Asserting "exactly once"
+    across every pool would quietly restore pricing to first contact.
     """
     for pool in ALL_POOLS:
         _, html = get_generic_draft(_cand(pool))
         text = html_to_plain_text(html)
+        if pool == POOL_COLD:
+            assert "$" not in text, (
+                "the acquisition email must not name a price — see "
+                "test_outreach_cold_copy.py"
+            )
+            continue
         assert text.count("$49") == 1, f"{pool} pitched $49 {text.count('$49')} times"
         assert text.count("$79") == 1
 

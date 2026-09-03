@@ -161,6 +161,18 @@ function CandidateRow({ c, onApprove, busy }) {
             </div>
             <div className="text-[10px] font-bold uppercase tracking-wider text-muted-2">score</div>
           </div>
+          {c.draft_template_version != null
+            && c.current_template_version != null
+            && c.draft_template_version < c.current_template_version && (
+            <span
+              title={`This draft was written against template v${c.draft_template_version}. `
+                + `Current is v${c.current_template_version}, and it cannot be sent until it `
+                + `is regenerated.`}
+              className="rounded-md border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700 dark:text-amber-400"
+            >
+              v{c.draft_template_version} · stale
+            </span>
+          )}
           {(c.status === 'draft_ready' || isApproved) && (
             <button
               type="button"

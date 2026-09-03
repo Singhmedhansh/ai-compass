@@ -73,30 +73,62 @@ def _candidate(app, **over):
 
 # ─── The offer ────────────────────────────────────────────────────────────────
 
-def test_the_cold_email_leads_with_the_free_listing(app):
+def test_the_cold_email_names_no_price_at_all(app):
+    """Superseded the old "free is mentioned before $49" rule.
+
+    That rule was the right fix for the version that OPENED with a price, but
+    it still left a $49 ask in a first email to a stranger. The campaign runs
+    two tracks and they are different conversations: acquisition asks for a
+    free listing, and the upgrade ask goes out 15 days after that listing is
+    live and has impressions behind it (UPGRADE_MIN_DAYS_LIVE). Pricing here
+    collapses the two and makes the free offer read as the opening move of a
+    sale.
+    """
     c = _candidate(app)
     _, html = get_generic_draft(c)
     text = html_to_plain_text(html)
 
-    free_at = text.lower().index("it is free")
-    paid_at = text.index("$49")
-    assert free_at < paid_at, (
-        "The free listing must be offered before the paid tiers are mentioned. "
-        "Leading with the price is the version that nobody replied to."
+    assert "it is free" in text.lower()
+    assert "$" not in text, "the acquisition email must not name a price"
+    for banned in ("49", "79", "Sponsored badge", "featured card",
+                   "paid option", "upgrade"):
+        assert banned.lower() not in text.lower(), banned
+
+
+def test_the_cold_email_says_plainly_there_is_nothing_to_pay(app):
+    """Silence about money is not the same as saying there is none.
+
+    Removing the price without replacing it leaves the question open, which
+    is worse than the old paragraph: the founder assumes a bill is coming and
+    the "free" claim reads as a hook.
+    """
+    c = _candidate(app)
+    _, html = get_generic_draft(c)
+    text = html_to_plain_text(html).lower()
+
+    assert "nothing to pay" in text
+    assert "no pressure either way" in text, (
+        "The explicit permission to ignore the email is what keeps this a "
+        "genuine offer rather than a solicitation."
     )
 
 
-def test_the_paid_option_is_mentioned_once_and_without_pressure(app):
+def test_an_already_listed_pool_still_quotes_the_price(app):
+    """The other half of the invariant, and the half that earns.
+
+    Dropping pricing from the cold email is only correct because the upgrade
+    email carries it. If both went silent there would be no ask anywhere and
+    the campaign could not make a sale.
+    """
     c = _candidate(app)
+    c.lead_pool = "traffic"
+    db.session.commit()
+
     _, html = get_generic_draft(c)
     text = html_to_plain_text(html)
 
     assert text.count("$49") == 1
     assert text.count("$79") == 1
-    assert "no pressure either way" in text.lower(), (
-        "The explicit permission to ignore the email is what keeps this a "
-        "genuine offer rather than a solicitation."
-    )
     # Invented urgency was banned from the prompt; it must not creep into the
     # fallback template either.
     for banned in ("limited time", "act now", "expires", "founding rate", "discount"):
@@ -126,7 +158,8 @@ def test_the_email_carries_a_prefilled_link_for_this_candidate(app):
     c = _candidate(app)
     _, html = get_generic_draft(c)
 
-    link = _prefill_url(c)
+    link, prefilled = _prefill_url(c)
+    assert prefilled is True
     assert "?c=" in link
     assert link in html
     assert read_prefill_token(link.split("?c=")[1]) == c.id
@@ -164,7 +197,12 @@ def test_a_candidate_with_no_id_still_gets_a_working_link(app):
     # A draft generated before the row is flushed must not produce a link
     # containing the word "None".
     unsaved = OutreachCandidate(product_name="Unsaved", email="a@b.com")
-    assert _prefill_url(unsaved) == "https://ai-compass.in/submit"
+    link, prefilled = _prefill_url(unsaved)
+    assert link == "https://ai-compass.in/submit"
+    # And the copy must not then claim the form is filled in — an email that
+    # promises a pre-filled form and links to an empty one is a broken promise
+    # in the first thing the founder checks.
+    assert prefilled is False
 
 
 # ─── Deliverability: it must not look like a newsletter ───────────────────────
@@ -205,7 +243,7 @@ def test_the_link_text_is_the_url_itself(app):
     # and every text-only preview actually show.
     c = _candidate(app)
     _, html = get_generic_draft(c)
-    link = _prefill_url(c)
+    link, _ = _prefill_url(c)
     assert f'<a href="{link}">{link}</a>' in html
     assert link in html_to_plain_text(html)
 
@@ -255,9 +293,12 @@ def test_the_two_halves_of_the_email_say_the_same_thing(app):
     text = html_to_plain_text(html)
 
     # A text alternative that omits the offer or the link is worse than none.
-    for essential in ("Widget AI", "$49", "No pressure either way"):
-        assert essential in text
-    assert _prefill_url(c) in text
+    # "$49" is deliberately not in this list any more — the cold email names
+    # no price, so requiring one here would be requiring the bug back.
+    for essential in ("Widget AI", "nothing to pay", "No pressure either way"):
+        assert essential.lower() in text.lower()
+    link, _ = _prefill_url(c)
+    assert link in text
 
 
 # ─── Stale drafts must not outlive a copy change ──────────────────────────────

@@ -15,6 +15,7 @@ from app.outreach import (
     re_enrich_missing_candidate_emails,
     run_automated_followups,
     run_automated_initial_sends,
+    apply_regenerated_draft,
     regenerate_all_drafts,
     trigger_github_verification_workflow,
     generate_draft_via_gemini,
@@ -164,7 +165,13 @@ def get_candidates():
             "ph_launch_id": c.ph_launch_id,
             "created_at": c.created_at.isoformat() if c.created_at else None,
             "updated_at": c.updated_at.isoformat() if c.updated_at else None,
-            "last_status_change_at": c.last_status_change_at.isoformat() if c.last_status_change_at else None
+            "last_status_change_at": c.last_status_change_at.isoformat() if c.last_status_change_at else None,
+            # Which copy template this stored draft was written against, and
+            # what current is. Without both, "did Regenerate actually do
+            # anything?" can only be answered by reading the prose and
+            # guessing - which is exactly how a whole afternoon went.
+            "draft_template_version": c.draft_template_version,
+            "current_template_version": CURRENT_DRAFT_TEMPLATE_VERSION,
         })
     return jsonify(res)
 
@@ -247,9 +254,9 @@ def update_candidate(cid):
     # Regenerate draft option
     if data.get("regenerate_draft"):
         subject, body = generate_draft_via_gemini(c)
-        c.draft_subject = subject
-        c.draft_body = body
-        c.draft_template_version = CURRENT_DRAFT_TEMPLATE_VERSION
+        # Same rule as the bulk paths: rewriting an approved draft returns it
+        # to review, because the approval was given to the old text.
+        apply_regenerated_draft(c, subject, body)
 
 
     if "status" in data:
@@ -663,7 +670,14 @@ def trigger_regenerate_all_drafts():
                     try:
                         count = regenerate_all_drafts()
                         app_obj.logger.info("Background draft regeneration completed: %s drafts regenerated.", count)
-                        _job_finish(result={"drafts_regenerated": count})
+                        _job_finish(result={
+                            "drafts_regenerated": count,
+                            # The version is the whole point of the run. The
+                            # caller cannot otherwise tell a regeneration that
+                            # landed on new copy from one that rewrote every
+                            # draft onto the same template it already had.
+                            "template_version": CURRENT_DRAFT_TEMPLATE_VERSION,
+                        })
                     except Exception as ex:
                         app_obj.logger.exception("Background draft regeneration failed: %s", ex)
                         _job_finish(error=str(ex))
