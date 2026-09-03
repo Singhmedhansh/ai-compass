@@ -1173,11 +1173,66 @@ def create_app(config: dict | None = None) -> Flask:
                     # when it did, the ALTERs below it never ran at all and
                     # the schema stayed broken through every retry. The thing
                     # that actually fixes the database now goes first.
+                    def _stamped_revision_is_unknown():
+                        """True when alembic_version names a revision we do not have.
+
+                        Production is stamped at bd2d0a27bbb8 - a coupon
+                        migration added in ad1fb327 and later deleted from the
+                        repo. Alembic cannot resolve it, so upgrade() raises
+                        "Can't locate revision identified by ..." on every
+                        single boot and can never succeed.
+
+                        It is caught below either way, but it is not free:
+                        alembic opens a connection, builds the revision map
+                        and takes locks before it fails, and this runs on
+                        every cold start of a free instance that spins down
+                        when idle. Skipping a step that cannot possibly work
+                        shortens the wake window and stops an ERROR that means
+                        nothing from being the loudest line in the log.
+
+                        Any doubt returns False, so the upgrade still runs -
+                        this decides whether to SKIP work, and a broken check
+                        must not skip a migration that would have applied.
+                        """
+                        try:
+                            import re as _re
+                            from alembic.migration import MigrationContext
+
+                            with db.engine.connect() as conn:
+                                current = MigrationContext.configure(conn).get_current_revision()
+                            if not current:
+                                return False  # unstamped: let alembic decide
+
+                            versions_dir = os.path.join(project_root, "migrations", "versions")
+                            for fn in os.listdir(versions_dir):
+                                if not fn.endswith(".py"):
+                                    continue
+                                with open(os.path.join(versions_dir, fn), encoding="utf-8") as fh:
+                                    m = _re.search(
+                                        r"^revision\s*=\s*['\"]([^'\"]+)['\"]",
+                                        fh.read(), _re.M,
+                                    )
+                                if m and m.group(1) == current:
+                                    return False  # we have it; upgrade normally
+                            print(
+                                f"[WARMUP] alembic_version is {current}, which is not in "
+                                "migrations/versions — skipping upgrade. The raw-SQL "
+                                "column fallback above is what defines this schema.",
+                                flush=True,
+                            )
+                            return True
+                        except Exception as exc:  # noqa: BLE001
+                            print(f"[WARMUP] revision check inconclusive: {exc}", flush=True)
+                            return False
+
                     try:
-                        from flask_migrate import upgrade as db_upgrade
-                        db_upgrade()
-                        print("[WARMUP] flask db upgrade done", flush=True)
-                        app.warmup_status["migrate"] = "success"
+                        if _stamped_revision_is_unknown():
+                            app.warmup_status["migrate"] = "skipped: stamped revision not in repo"
+                        else:
+                            from flask_migrate import upgrade as db_upgrade
+                            db_upgrade()
+                            print("[WARMUP] flask db upgrade done", flush=True)
+                            app.warmup_status["migrate"] = "success"
                     except Exception as e:
                         print(f"[WARMUP] migrate skipped: {e}", flush=True)
                         app.warmup_status["migrate"] = f"skipped: {e}"
