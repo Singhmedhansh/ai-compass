@@ -231,3 +231,53 @@ def test_the_campaign_columns_specifically_are_covered():
     fallback = _columns_in_warmup_fallback("outreach_candidates")
     for col in ("campaign", "lead_pool", "qualification_json"):
         assert col in fallback, f"{col} missing from the warmup fallback"
+
+
+# ─── The health check Render actually calls ──────────────────────────────────
+
+def test_healthz_is_a_real_route_that_touches_nothing():
+    """render.yaml sets healthCheckPath: /healthz.
+
+    With no such route the check fell through to the SPA catch-all and into
+    the SEO shell builder, which on a cold container can prime the entire tool
+    cache inside the request thread - the one request that must always answer
+    instantly was the most expensive the app served. A slow answer reads to
+    Render as "No open HTTP ports detected" even when gunicorn bound the
+    socket immediately.
+    """
+    import os
+    import tempfile
+
+    from app import create_app, db
+
+    fd, path = tempfile.mkstemp(suffix=".db")
+    os.close(fd)
+    app = create_app({
+        "TESTING": True, "SECRET_KEY": "x",
+        "SQLALCHEMY_DATABASE_URI": f"sqlite:///{path}",
+        "WTF_CSRF_ENABLED": False,
+    })
+    with app.app_context():
+        db.create_all()
+
+    # Matched by a real rule, not by the <path:path> catch-all.
+    rules = {r.rule for r in app.url_map.iter_rules()}
+    assert "/healthz" in rules, (
+        "render.yaml health-checks /healthz; without its own rule the check "
+        "runs the SPA + SEO path instead."
+    )
+
+    resp = app.test_client().get("/healthz")
+    assert resp.status_code == 200
+    assert resp.get_json() == {"status": "ok"}
+
+    # It must answer even with the database unreachable: a health check that
+    # needs the DB cannot tell a wedged process from a slow one.
+    with app.app_context():
+        db.engine.dispose()
+    assert app.test_client().get("/healthz").status_code == 200
+
+    try:
+        os.remove(path)
+    except OSError:
+        pass

@@ -821,6 +821,30 @@ def _meta_for_request_path(path: str):
     return _not_found_html(base, path), 404
 
 
+@main_bp.route('/healthz', strict_slashes=False)
+def healthz():
+    """Render's configured healthCheckPath. Deliberately does NOTHING.
+
+    Until this existed there was no /healthz route at all, so Render's check
+    fell through to the SPA catch-all and into _meta_for_request_path - the
+    SEO shell builder. On a cold container that can prime the whole tool cache
+    inside the request thread, at the exact moment the warmup thread is doing
+    the same work and the database is still waking. The one request that must
+    always be answered instantly was the most expensive one the app served.
+
+    Two consequences, both bad. A slow or blocked answer reads to Render as
+    "No open HTTP ports detected" even though gunicorn bound the socket
+    immediately, and a health check that walks the catalog cannot distinguish
+    a wedged process from a busy one.
+
+    No database, no cache, no template, no imports - if this cannot answer,
+    the process is genuinely gone, which is the only thing a health check
+    should be measuring. /health (below) remains the DIAGNOSTIC endpoint that
+    actually probes the database.
+    """
+    return {"status": "ok"}, 200
+
+
 @main_bp.route('/health', strict_slashes=False)
 def health_check():
     database_status = 'ok'
