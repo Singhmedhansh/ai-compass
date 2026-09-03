@@ -388,3 +388,45 @@ def test_the_send_endpoints_need_the_shared_secret(app, monkeypatch):
 
 def test_the_runbook_endpoint_is_admin_only(app):
     assert app.test_client().get("/api/v1/admin/post-sale/runbook").status_code in (301, 302, 401, 403)
+
+
+def test_schema_status_reports_the_columns_the_fallback_owns(app, monkeypatch):
+    """The endpoint that makes a failed schema repair visible.
+
+    Its whole value is being trustworthy when the news is bad, so the check
+    is that it reports honestly against a real database rather than that it
+    returns 200.
+    """
+    client = app.test_client()
+    monkeypatch.setenv("DIGEST_SECRET", "s3cret")
+
+    assert client.get("/api/v1/admin/schema-status").status_code == 401
+
+    resp = client.get("/api/v1/admin/schema-status",
+                      headers={"X-Digest-Secret": "s3cret"})
+    assert resp.status_code == 200
+    body = resp.get_json()
+    # create_all() built these tables complete from the models, so a fresh
+    # database is the "everything present" case.
+    assert body["schema_ok"] is True, body["missing_columns"]
+    assert body["missing_columns"] == {}
+    assert body["remedy"] is None
+    assert body["checked"]["outreach_candidates"] >= 3
+
+
+def test_schema_status_names_a_column_that_is_actually_missing(app, monkeypatch):
+    """A reporter that cannot report a problem is worse than none."""
+    client = app.test_client()
+    monkeypatch.setenv("DIGEST_SECRET", "s3cret")
+
+    # The index has to go first: SQLite refuses to drop a column one depends
+    # on, and Postgres would silently drop the index with it.
+    db.session.execute(db.text("DROP INDEX IF EXISTS ix_sponsor_slots_payment_ref"))
+    db.session.execute(db.text("ALTER TABLE sponsor_slots DROP COLUMN payment_ref"))
+    db.session.commit()
+
+    body = client.get("/api/v1/admin/schema-status",
+                      headers={"X-Digest-Secret": "s3cret"}).get_json()
+    assert body["schema_ok"] is False
+    assert "payment_ref" in body["missing_columns"]["sponsor_slots"]
+    assert body["remedy"]

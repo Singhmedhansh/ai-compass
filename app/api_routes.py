@@ -6524,6 +6524,100 @@ def _post_sale_authorized():
     return bool(secret and hmac.compare_digest(secret, provided)) or _is_admin()
 
 
+@api_bp.get("/admin/schema-status")
+@csrf.exempt
+def admin_schema_status():
+    """Did the boot-time schema repair actually run, and did it work?
+
+    create_app() writes its warmup status to a file on every phase change so
+    any worker can answer for the whole container (a recycled worker reports
+    "skipped" for itself, which is why a half-applied schema used to be
+    invisible). Nothing ever read that file - the /healthz-detailed the
+    comment there promises was never built - so the only way to find out
+    whether the raw-SQL ADD COLUMN fallback succeeded was to read Render's
+    logs and hope the lines had not rotated away.
+
+    That matters more here than it would elsewhere, because `flask db upgrade`
+    does not progress on this database: those ALTERs are the only thing that
+    adds a column, and when one fails the app serves 500s on every query that
+    touches it with nothing pointing at the cause.
+
+    Also checks the columns directly rather than trusting the status line. The
+    status says what this deployment's warmup believed; the live catalog says
+    what is actually there, and the two disagreeing is exactly the situation
+    worth seeing.
+
+    Same auth as the other sweepers: scheduler secret or an admin session.
+    """
+    import json as _json
+    import tempfile
+
+    if not _post_sale_authorized():
+        return jsonify({"error": "unauthorized"}), 401
+
+    status_file = os.path.join(tempfile.gettempdir(), "ai_compass_warmup.json")
+    warmup = None
+    try:
+        with open(status_file) as fh:
+            warmup = _json.load(fh)
+    except Exception as exc:  # noqa: BLE001
+        warmup = {"error": f"no status file: {exc}"}
+
+    # Columns that exist ONLY because of the raw-SQL fallback, and whose
+    # absence takes a whole feature down. Kept explicit rather than derived
+    # from the models so this endpoint keeps working when the models are the
+    # thing that is wrong.
+    expected = {
+        "outreach_candidates": [
+            "campaign", "lead_pool", "qualification_json",
+            "verification_result", "fit_score", "draft_template_version",
+        ],
+        "submissions": [
+            "payment_status", "approved_at", "dashboard_views",
+            "post_sale_confirmed_at", "numbers_sent_at",
+        ],
+        "sponsor_slots": ["payment_ref", "contact_email"],
+        "catalog_tools": ["submission_id", "visible_at", "editorial_blurb"],
+    }
+
+    from sqlalchemy import inspect as _inspect
+
+    missing = {}
+    present_counts = {}
+    try:
+        insp = _inspect(db.engine)
+        live_tables = set(insp.get_table_names())
+        for table, cols in expected.items():
+            if table not in live_tables:
+                missing[table] = ["<table absent>"]
+                continue
+            have = {c["name"] for c in insp.get_columns(table)}
+            gap = [c for c in cols if c not in have]
+            present_counts[table] = len(cols) - len(gap)
+            if gap:
+                missing[table] = gap
+    except Exception as exc:  # noqa: BLE001
+        current_app.logger.exception("schema-status inspection failed")
+        return jsonify({"error": "inspect_failed", "detail": str(exc)}), 500
+
+    return jsonify({
+        "warmup": warmup,
+        "schema_ok": not missing,
+        "missing_columns": missing,
+        "checked": present_counts,
+        # The fix is always the same, and it is never a hand-written ALTER on
+        # production: that repairs one database and leaves the next fresh
+        # instance to drift again.
+        "remedy": (
+            None if not missing else
+            "Add the missing columns to the _add_column(...) block in "
+            "app/__init__.py and redeploy. If they are already there, the "
+            "warmup schema phase failed - check the [WARMUP] lines in the "
+            "Render logs for the ALTER that errored."
+        ),
+    })
+
+
 @api_bp.get("/admin/post-sale/runbook")
 @login_required
 def admin_post_sale_runbook():
