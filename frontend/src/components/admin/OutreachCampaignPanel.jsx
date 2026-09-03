@@ -193,6 +193,10 @@ export default function OutreachCampaignPanel({ api }) {
   const [error, setError] = useState('')
   const [importBusy, setImportBusy] = useState('')
   const [importResult, setImportResult] = useState(null)
+  // Proof the refresh actually happened. Without it a successful reload that
+  // returns identical data is pixel-identical to a dead button, which is
+  // exactly how this one read.
+  const [loadedAt, setLoadedAt] = useState(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -206,8 +210,14 @@ export default function OutreachCampaignPanel({ api }) {
       setStatus(s)
       setCandidates(Array.isArray(c) ? c : [])
       setGates(g)
-    } catch {
-      setError('Could not load the campaign. The outreach API did not respond.')
+      setLoadedAt(new Date())
+    } catch (e) {
+      // Keep the server's own message. Swallowing it turned "your session
+      // expired" and "the database is down" into the same sentence, which is
+      // the difference between knowing what to do and guessing.
+      setError(e?.message
+        ? `Could not load the campaign: ${e.message}`
+        : 'Could not load the campaign. The outreach API did not respond.')
     } finally {
       setLoading(false)
     }
@@ -334,13 +344,22 @@ export default function OutreachCampaignPanel({ api }) {
             {status?.campaign} · budget is a lifetime total, not a daily rate
           </p>
         </div>
-        <button
-          type="button"
-          onClick={load}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-bg-elev px-3 py-1.5 text-xs font-semibold text-ink-2 hover:bg-bg-sunk"
-        >
-          <RefreshCw className="h-3.5 w-3.5" /> Refresh
-        </button>
+        <div className="flex items-center gap-2">
+          {loadedAt && (
+            <span className="text-[11px] text-ink-2">
+              Updated {loadedAt.toLocaleTimeString()}
+            </span>
+          )}
+          <button
+            type="button"
+            onClick={() => load()}
+            disabled={loading}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-bg-elev px-3 py-1.5 text-xs font-semibold text-ink-2 hover:bg-bg-sunk disabled:opacity-60"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
+            {loading ? 'Refreshing…' : 'Refresh'}
+          </button>
+        </div>
       </div>
 
       {error && (
