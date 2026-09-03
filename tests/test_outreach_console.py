@@ -487,3 +487,81 @@ def test_score_still_breaks_ties_inside_a_pool(app, monkeypatch):
 
     outreach_mod.run_automated_initial_sends()
     assert sent == ["strong@x.example", "weak@x.example"]
+
+
+# ─── The import endpoint's confirm flag ───────────────────────────────────────
+
+def test_inbound_import_writes_only_when_confirm_is_actually_received(
+    app, admin_client, monkeypatch
+):
+    """The endpoint defaults to a dry run, and that default has to be exact.
+
+    A client that posts a JSON body WITHOUT the application/json content type
+    gets request.get_json(silent=True) == None, so the payload reads as {} and
+    confirm falls back to False. That is what the admin panel did for every
+    POST: "Import into campaign" ran a count and reported 0 imported - correct
+    for the request that arrived, and nothing like the one intended.
+
+    Defaulting to the safe branch is right. The failure was that the safe
+    branch is indistinguishable from success unless you read the numbers, so
+    this pins both directions.
+    """
+    from app.models import Submission
+
+    monkeypatch.setattr(
+        outreach_mod, "generate_draft_via_gemini",
+        lambda c: ("About " + (c.product_name or ""), "<p>draft</p>"),
+    )
+
+    db.session.add(Submission(
+        name="SimplAI", website="https://simplai.example", category="AI",
+        description="d", pricing_model="free", submitter_email="ceo@simplai.example",
+        status="pending", payment_status="unpaid", is_test=False,
+    ))
+    db.session.commit()
+
+    url = "/api/v1/admin/outreach/campaign/inbound-import"
+
+    # A JSON body sent without the content type - the browser bug, reproduced.
+    resp = admin_client.post(url, data='{"confirm": true}')
+    body = resp.get_json()
+    assert body["dry_run"] is True, (
+        "Unparseable payload must fall back to the DRY RUN, never to a write."
+    )
+    assert OutreachCandidate.query.count() == 0
+
+    # Properly declared, it writes.
+    resp = admin_client.post(url, json={"confirm": True})
+    body = resp.get_json()
+    assert body.get("dry_run") is False
+    assert body["imported"] == 1
+    assert OutreachCandidate.query.count() == 1
+
+    c = OutreachCandidate.query.one()
+    assert c.lead_pool == outreach_mod.POOL_INBOUND
+    assert c.campaign == outreach_mod.CURRENT_CAMPAIGN
+
+
+def test_inbound_import_dry_run_reports_the_company_domain_split(app, admin_client):
+    """The console renders would_import and on_company_domain from this.
+
+    Renaming either key silently shows the operator a zero on the number the
+    whole campaign plan is sized from.
+    """
+    from app.models import Submission
+
+    for email in ("ceo@simplai.example", "someone@gmail.com"):
+        db.session.add(Submission(
+            name=f"T{email}", website="https://x.example", category="AI",
+            description="d", pricing_model="free", submitter_email=email,
+            status="pending", payment_status="unpaid", is_test=False,
+        ))
+    db.session.commit()
+
+    body = admin_client.post(
+        "/api/v1/admin/outreach/campaign/inbound-import", json={}
+    ).get_json()
+    assert body["would_import"] == 2
+    assert body["on_company_domain"] == 1
+    assert body["on_free_email"] == 1
+    assert isinstance(body["skipped"], dict)

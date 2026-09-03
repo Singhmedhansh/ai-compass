@@ -46,9 +46,39 @@ async function api(url, options = {}) {
   const { timeoutMs = 60000, ...fetchOpts } = options
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), timeoutMs)
+
+  // Declare the body as JSON. Without this header Flask's
+  // request.get_json(silent=True) returns None no matter what was actually
+  // sent, so every POST body from this panel was silently discarded and each
+  // endpoint fell back to its defaults.
+  //
+  // That failed quietly rather than loudly, which is why it survived: an
+  // endpoint whose flag defaults to the harmless value (approve, which
+  // defaults to approved=true) looks like it works, while one whose flag
+  // defaults to the SAFE value does the safe thing forever. The inbound
+  // import defaults to a dry run, so "Import into campaign" ran a count and
+  // reported 0 imported - correct behaviour for the request it actually
+  // received, and nothing like the request that was intended.
+  //
+  // Only for string bodies: FormData must be left alone so the browser can
+  // set its own multipart boundary, and an explicit Content-Type from a
+  // caller always wins.
+  const headers = { ...(fetchOpts.headers || {}) }
+  const hasContentType = Object.keys(headers).some(
+    (k) => k.toLowerCase() === 'content-type',
+  )
+  if (typeof fetchOpts.body === 'string' && !hasContentType) {
+    headers['Content-Type'] = 'application/json'
+  }
+
   let res
   try {
-    res = await fetch(url, { credentials: 'include', signal: controller.signal, ...fetchOpts })
+    res = await fetch(url, {
+      credentials: 'include',
+      signal: controller.signal,
+      ...fetchOpts,
+      headers,
+    })
   } catch (err) {
     if (err.name === 'AbortError') {
       throw new Error(`Request timed out after ${Math.round(timeoutMs / 1000)}s — the server may be busy. Try again in a moment.`)
