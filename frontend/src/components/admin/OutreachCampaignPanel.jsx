@@ -191,6 +191,8 @@ export default function OutreachCampaignPanel({ api }) {
   const [loading, setLoading] = useState(true)
   const [busyId, setBusyId] = useState(null)
   const [error, setError] = useState('')
+  const [importBusy, setImportBusy] = useState('')
+  const [importResult, setImportResult] = useState(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -230,6 +232,28 @@ export default function OutreachCampaignPanel({ api }) {
       setError(e?.message || 'Could not approve that candidate.')
     } finally {
       setBusyId(null)
+    }
+  }, [api, load])
+
+  // Counting and importing are the same endpoint, separated only by
+  // `confirm`. Keeping them one button with a checkbox would put the write
+  // one mis-click from the count; keeping them two buttons, where the
+  // destructive one is only reachable AFTER a count has been seen, is the
+  // shape the step actually has.
+  const runImport = useCallback(async (confirm) => {
+    setImportBusy(confirm ? 'import' : 'count')
+    setError('')
+    try {
+      const res = await api('/api/v1/admin/outreach/campaign/inbound-import', {
+        method: 'POST',
+        body: JSON.stringify(confirm ? { confirm: true } : {}),
+      })
+      setImportResult({ ...res, confirmed: confirm })
+      if (confirm) await load()
+    } catch (e) {
+      setError(e?.message || 'The inbound import did not run.')
+    } finally {
+      setImportBusy('')
     }
   }, [api, load])
 
@@ -287,6 +311,94 @@ export default function OutreachCampaignPanel({ api }) {
           <span>{error}</span>
         </div>
       )}
+
+      {/* Lead sourcing. The warm pool is people who already submitted a tool
+          for free - they know the site, and they are the likeliest first
+          sale. The count has to be answered before anything is built on top
+          of it: the plan assumes roughly a dozen, and if the real queue holds
+          four then the warm allocation collapses and the forecast with it. */}
+      <div className="rounded-lg border border-line bg-bg-elev p-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <div className="text-sm font-bold text-ink">Inbound submitters</div>
+            <div className="text-xs text-ink-2">
+              Founders who already submitted a tool for free. Count first, then import.
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              disabled={!!importBusy}
+              onClick={() => runImport(false)}
+              className="rounded-lg border border-line bg-bg px-3 py-1.5 text-xs font-semibold text-ink-2 hover:bg-bg-sunk disabled:opacity-50"
+            >
+              {importBusy === 'count' ? 'Counting…' : 'Count (writes nothing)'}
+            </button>
+            <button
+              type="button"
+              /* Only enabled once a count has actually been seen. Importing
+                 blind is how a pool nobody has looked at ends up in a queue
+                 that is one approval away from being emailed. */
+              disabled={!!importBusy || !importResult || importResult.confirmed}
+              onClick={() => runImport(true)}
+              className="rounded-lg bg-accent px-3 py-1.5 text-xs font-bold text-white hover:opacity-90 disabled:opacity-40"
+            >
+              {importBusy === 'import' ? 'Importing…' : 'Import into campaign'}
+            </button>
+          </div>
+        </div>
+
+        {importResult && (
+          <div className="mt-2 rounded border border-line bg-bg-sunk p-2 text-xs text-ink-2">
+            <div>
+              <span className="font-semibold text-ink">
+                {importResult.confirmed ? 'Imported' : 'Dry run'}:
+              </span>{' '}
+              {/* The dry run counts what it WOULD do (would_import); the
+                  confirmed run reports what it did (imported). Reading one
+                  key for both would silently show zero on whichever branch
+                  it did not match. */}
+              {importResult.confirmed
+                ? `${importResult.imported ?? 0} imported`
+                : `${importResult.would_import ?? 0} would be imported`}
+              {importResult.confirmed ? '.' : ' — nothing was written.'}
+            </div>
+
+            {/* The number that actually decides whether this pool is worth
+                the campaign. A founder writing from their own domain is a
+                company; a gmail address is usually a side project, and the
+                tiers are priced for companies. */}
+            {typeof importResult.on_company_domain === 'number' && (
+              <div className="mt-1">
+                <span className="font-semibold text-ink">
+                  {importResult.on_company_domain}
+                </span>{' '}
+                on a company domain
+                {typeof importResult.on_free_email === 'number'
+                  ? `, ${importResult.on_free_email} on free email (gmail and the like)`
+                  : null}
+              </div>
+            )}
+
+            {importResult.skipped && typeof importResult.skipped === 'object' && (
+              <div className="mt-1 opacity-80">
+                Skipped:{' '}
+                {Object.entries(importResult.skipped)
+                  .filter(([, n]) => n > 0)
+                  .map(([k, n]) => `${n} ${k.replace(/_/g, ' ')}`)
+                  .join(', ') || 'none'}
+              </div>
+            )}
+
+            {/* Scoring never rejects a warm lead; it only orders them. Saying
+                so here stops a low score reading as a disqualification. */}
+            <div className="mt-1 opacity-80">
+              Inbound leads are scored for ordering only — a low score never
+              excludes one.
+            </div>
+          </div>
+        )}
+      </div>
 
       {status && (
         <>
