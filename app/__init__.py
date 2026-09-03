@@ -106,9 +106,10 @@ def _load_local_dotenv(project_root: str) -> None:
 @login_manager.user_loader
 def load_user(user_id):
     from app.models import User
-    user = User.query.get(int(user_id))
-    print(f"[DEBUG USER LOADER] user_id: {user_id}, loaded user: {user}")
-    return user
+    # No print here: this runs on every request from every signed-in user,
+    # and with PYTHONUNBUFFERED=1 each one is an unbuffered write into
+    # Render's log pipe. Use logger.debug if you need it back.
+    return User.query.get(int(user_id))
 
 
 

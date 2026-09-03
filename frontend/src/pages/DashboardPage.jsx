@@ -37,6 +37,21 @@ function readRecentlyViewedSlugs() {
   }
 }
 
+// Cheapest paid tier for a tool, in that tool's own currency.
+// `min_paid_price` is what /api/v1/tools?fields=card sends; the
+// pricing_tiers branch is the fallback for any full tool record.
+function resolveMinPaidPrice(rawTool) {
+  if (typeof rawTool?.min_paid_price === 'number') {
+    return rawTool.min_paid_price
+  }
+  const tiers = rawTool?.pricing_tiers?.tiers
+  if (!Array.isArray(tiers)) return null
+  const paid = tiers
+    .map((tier) => tier?.price_amount)
+    .filter((amount) => typeof amount === 'number' && amount > 0)
+  return paid.length > 0 ? Math.min(...paid) : null
+}
+
 function normalizeTool(rawTool) {
   const resolvedUrl = rawTool?.affiliate_url || rawTool?.url || rawTool?.website || rawTool?.link || rawTool?.homepage || ''
 
@@ -48,7 +63,11 @@ function normalizeTool(rawTool) {
     category: rawTool?.category || 'General',
     rating: Number(rawTool?.rating || rawTool?.averageRating || rawTool?.average_rating || 0),
     pricing: rawTool?.pricing || rawTool?.price || rawTool?.pricingType || rawTool?.pricing_type || 'Free',
-    pricing_tiers: rawTool?.pricing_tiers || null,
+    // The server derives the cheapest paid tier for us (?fields=card), so
+    // the 400 KB pricing_tiers blob never has to cross the wire. Falling
+    // back to a local scan keeps this working for any caller still handed
+    // a full tool record.
+    minPaidPrice: resolveMinPaidPrice(rawTool),
     url: resolvedUrl,
     website: rawTool?.website || resolvedUrl,
     link: rawTool?.link || resolvedUrl,
@@ -215,7 +234,7 @@ function DashboardPage() {
           fetch('/api/v1/dashboard/recommendations', { signal: controller.signal }),
           fetch('/api/v1/favorites', { signal: controller.signal }),
           fetch(`/api/v1/stack?user_id=${encodeURIComponent(userIdForStack)}`, { signal: controller.signal }),
-          fetch('/api/v1/tools', { signal: controller.signal }),
+          fetch('/api/v1/tools?fields=card', { signal: controller.signal }),
           fetch('/api/v1/profile/favorites/folders', { signal: controller.signal })
         ])
 
@@ -459,11 +478,8 @@ function DashboardPage() {
     let total = 0
     for (const toolName of savedStack.tools) {
       const tool = allTools.find((t) => String(t.name).toLowerCase() === String(toolName).toLowerCase())
-      if (tool && tool.pricing_tiers && tool.pricing_tiers.tiers) {
-        const paidTiers = tool.pricing_tiers.tiers.filter((t) => typeof t.price_amount === 'number' && t.price_amount > 0)
-        if (paidTiers.length > 0) {
-          total += Math.min(...paidTiers.map((t) => t.price_amount))
-        }
+      if (tool && typeof tool.minPaidPrice === 'number') {
+        total += tool.minPaidPrice
       }
     }
     return total

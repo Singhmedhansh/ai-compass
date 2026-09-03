@@ -47,7 +47,7 @@ export default function SponsorCheckout({ placement, availability, onClose }) {
   // that already exists, which the backend enforces too.
   useEffect(() => {
     const controller = new AbortController()
-    fetch('/api/v1/tools?fields=card&limit=500', { signal: controller.signal })
+    fetch('/api/v1/tools?fields=card', { signal: controller.signal })
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
         const list = d?.results || d?.tools || []

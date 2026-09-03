@@ -1062,10 +1062,14 @@ def _rank_finder_tools(tools: list[dict], goal, budget: str, platform, level: st
 # Fields the directory/list cards actually render (mirrors mapTool in
 # frontend/src/pages/DirectoryPage.jsx). Requesting ?fields=card drops the
 # heavy per-tool payload — pricing_tiers, features, use_cases, strengths,
-# tags, platforms, long description — which the list view never shows. This
-# cuts /api/v1/tools from ~1MB to a few hundred KB (faster transfer, parse,
-# and server serialize/compress). The full payload stays the default for
-# the admin panel and dashboard.
+# tags, long description — which the list view never shows. Measured on the
+# 473-tool catalog: the full payload is 1.53 MB (272 KB gzipped), the card
+# projection 454 KB (89 KB) — 71% smaller. pricing_tiers alone is 402 KB of
+# the full payload, because every tier carries its own feature list.
+#
+# Every list-shaped caller now asks for ?fields=card. The full payload is
+# still the default because /api/v1/tools is a public endpoint with
+# unknown consumers, and because the single-tool detail route needs it.
 _CARD_FIELDS = (
     "slug", "name", "shortDescription", "summary", "category", "subCategory",
     "rating", "averageRating", "average_rating",
@@ -1080,6 +1084,10 @@ _CARD_FIELDS = (
     # YYYY>" chip shown when a tool has no real user reviews — a claim we can
     # actually back, unlike the synthetic student count it replaced.
     "last_verified_at",
+    # The admin Tools table shows whether a tool has a referral link yet.
+    # Present on 4 of 473 records (~1 KB total), so it costs the card
+    # projection nothing and saves /admin a 1.5 MB download.
+    "affiliate_url",
 )
 
 
@@ -1102,6 +1110,31 @@ def _placement_rank(tool: dict) -> tuple:
     )
 
 
+def _min_paid_price(tool: dict):
+    """Cheapest tier with a real (> 0) price, or None when the tool is free
+    or has no priced tiers.
+
+    Mirrors exactly what DashboardPage/ShareStackPage used to compute
+    client-side, including its blind spot: `currency` is per-tool (USD, INR
+    and EUR all appear in the catalog) and the callers sum these numbers
+    without converting. Emitting `min_paid_currency` alongside so a caller
+    *can* convert; the existing total stays as wrong as it was rather than
+    silently changing a number people may have screenshotted.
+    """
+    tiers = (tool.get("pricing_tiers") or {}).get("tiers")
+    if not isinstance(tiers, list):
+        return None
+    prices = [
+        tier["price_amount"]
+        for tier in tiers
+        if isinstance(tier, dict)
+        and isinstance(tier.get("price_amount"), (int, float))
+        and not isinstance(tier.get("price_amount"), bool)
+        and tier["price_amount"] > 0
+    ]
+    return min(prices) if prices else None
+
+
 def _card_projection(tool: dict) -> dict:
     # Sponsored-tier editorial blurb (if set and currently active) replaces
     # description/tagline before anything below reads them — see
@@ -1112,6 +1145,17 @@ def _card_projection(tool: dict) -> dict:
     # Send the *effective* flag so the client never has to reason about
     # subscription expiry dates.
     out["sponsored"] = _sponsored_active(tool)
+    # Dashboard/ShareStack price a saved toolkit by summing each tool's
+    # cheapest paid tier. That was the only thing they read pricing_tiers
+    # for, and pricing_tiers is the single heaviest field in the catalog
+    # (402 KB of 1.53 MB) because every tier carries its feature list.
+    # Deriving the one number here lets those pages use ?fields=card.
+    min_paid = _min_paid_price(tool)
+    if min_paid is not None:
+        out["min_paid_price"] = min_paid
+        currency = (tool.get("pricing_tiers") or {}).get("currency")
+        if currency:
+            out["min_paid_currency"] = currency
     desc = tool.get("description")
     if isinstance(desc, str) and len(desc) > 240:
         desc = desc[:237].rstrip() + "…"
@@ -1223,9 +1267,29 @@ def list_tools():
     fields = request.args.get("fields")
     if fields == "summary":
         return jsonify(_directory_summary_payload(tools))
+
+    # `total` counts what matched the filters, not what we return, so a
+    # client that passes ?limit= can still tell it is seeing a slice.
+    matched_total = len(tools)
+
+    # ?limit= was accepted-and-ignored until now: two checkout components
+    # ask for limit=500 and were served all 473 records with every field.
+    # Honoured here so the parameter means what a caller reasonably reads
+    # it to mean. Out-of-range and non-numeric values fall back to "no
+    # limit" rather than erroring — this endpoint is public and a bad
+    # query string should not turn a page blank.
+    raw_limit = request.args.get("limit")
+    if raw_limit is not None:
+        try:
+            parsed_limit = int(raw_limit)
+        except (TypeError, ValueError):
+            parsed_limit = None
+        if parsed_limit is not None and parsed_limit >= 0:
+            tools = tools[:parsed_limit]
+
     if fields == "card":
         tools = [_card_projection(t) for t in tools]
-    response = make_response(jsonify({"results": tools, "total": len(tools), "fallback": not bool(tools)}))
+    response = make_response(jsonify({"results": tools, "total": matched_total, "fallback": not matched_total}))
     # 60 seconds is enough to absorb back-to-back navigations on a single
     # session without making editorial edits invisible for an hour, which
     # is what the old max-age=3600 caused (a /admin save would land in the
@@ -1377,13 +1441,11 @@ def get_public_stats():
 def get_tool(slug: str):
     slug_value = str(slug or "").strip().lower()
     t0 = time.time()
-    current_app.logger.info(f"[PERF] tool detail start: {slug_value}")
 
     # Trigger mtime check so TOOL_CACHE picks up tools.json edits without a Flask restart.
     # Direct dict access below would otherwise serve stale records on cache hits.
     get_cached_tools(DATA_PATH)
     tool = TOOL_CACHE.get(slug_value)
-    current_app.logger.info(f"[PERF] after cache lookup: {time.time() - t0:.2f}s")
 
     if tool is None:
         tools = _load_tools() or []
@@ -1391,7 +1453,6 @@ def get_tool(slug: str):
             if _tool_slug(candidate) == slug_value:
                 tool = candidate
                 break
-        current_app.logger.info(f"[PERF] after fallback scan: {time.time() - t0:.2f}s")
 
     if tool is not None:
         # Sponsored-tier editorial blurb replaces description/tagline on the
@@ -1401,7 +1462,6 @@ def get_tool(slug: str):
         tool_payload["similar_tools"] = [
             apply_editorial_blurb(t) for t in get_similar_tools(slug_value, limit=4)
         ]
-        current_app.logger.info(f"[PERF] after related tools: {time.time() - t0:.2f}s")
 
         # Aggregate live user ratings into the payload so the tool detail page
         # and its SoftwareApplication JSON-LD render real numbers instead of
@@ -1429,7 +1489,6 @@ def get_tool(slug: str):
         except Exception:
             # Ratings table missing or unreachable — fall back to static fields.
             db.session.rollback()
-        current_app.logger.info(f"[PERF] after rating aggregate: {time.time() - t0:.2f}s")
 
         # "Claimed by the maker" badge, when someone has proven they own the
         # tool. Says the copy has an owner answerable for it — never that the
@@ -1459,7 +1518,7 @@ def get_tool(slug: str):
             # A missing table or unreachable DB must never take the tool page
             # down — same stance as the rating aggregate above.
             db.session.rollback()
-        current_app.logger.info(f"[PERF] total: {time.time() - t0:.2f}s")
+        current_app.logger.debug("[PERF] tool detail %s: %.2fs", slug_value, time.time() - t0)
         from flask import make_response
         response = make_response(jsonify(tool_payload))
         # Tool detail pages are the surface most likely to be edited
@@ -1521,7 +1580,6 @@ def tool_alternatives(slug):
 def get_tool_reviews(slug: str):
     try:
         t0 = time.time()
-        current_app.logger.info(f"[PERF] reviews start: {slug}")
         reviews = (
             Review.query.options(joinedload(Review.user), joinedload(Review.votes))
             .filter_by(tool_slug=slug, is_hidden=False)
@@ -1550,7 +1608,7 @@ def get_tool_reviews(slug: str):
             "count": len(reviews),
             "message": "No reviews yet. Be the first!" if not reviews else None
         }
-        current_app.logger.info(f"[PERF] total reviews: {time.time() - t0:.2f}s")
+        current_app.logger.debug("[PERF] reviews %s: %.2fs", slug, time.time() - t0)
         return jsonify(payload)
     except Exception:
         current_app.logger.exception("reviews endpoint failed")
@@ -1598,16 +1656,14 @@ def _combined_rating_summary(slug_value: str):
 def get_tool_ratings(slug: str):
     slug_value = str(slug or "").strip().lower()
     t0 = time.time()
-    current_app.logger.info(f"[PERF] ratings start: {slug_value}")
     combined_avg, combined_count = _combined_rating_summary(slug_value)
-    current_app.logger.info(f"[PERF] after ratings query: {time.time() - t0:.2f}s")
 
     user_rating = None
     if current_user.is_authenticated:
         rating = Rating.query.filter_by(user_id=current_user.id, tool_slug=slug_value).first()
         user_rating = rating.value if rating else None
 
-    current_app.logger.info(f"[PERF] total ratings: {time.time() - t0:.2f}s")
+    current_app.logger.debug("[PERF] ratings %s: %.2fs", slug_value, time.time() - t0)
 
     return jsonify({
         "average": combined_avg,

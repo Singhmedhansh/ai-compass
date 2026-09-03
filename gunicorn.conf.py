@@ -13,13 +13,23 @@ bind = f"0.0.0.0:{_port}"
 
 # ---------------------------------------------------------------------------
 # Workers
-# 1 worker + 4 threads — gthread lets the single process handle multiple
+# 1 worker + N threads — gthread lets the single process handle multiple
 # concurrent requests (health checks, API calls) without needing extra RAM.
 # Render free tier gives 512 MB; 1 gthread worker sits at ~120-150 MB.
+#
+# 8 threads, not 4. A single page load fires ~12 hashed asset requests plus
+# several API calls, and with nothing cached at the edge they all land here.
+# At 4 threads the page queues against itself: measured against production,
+# 8 concurrent requests for the 2-byte /healthz response went from 0.51s
+# solo to a 1.39s tail. These threads are almost entirely blocked on socket
+# writes and Postgres round-trips rather than holding the GIL, so the extra
+# four cost stack space and little else. Raise further only alongside
+# SQLALCHEMY_ENGINE_OPTIONS pool_size/max_overflow (currently 3+5 = 8) —
+# more threads than pool slots just moves the queue into pool_timeout.
 # ---------------------------------------------------------------------------
 workers = 1
 worker_class = "gthread"
-threads = 4
+threads = 8
 
 # ---------------------------------------------------------------------------
 # Timeouts

@@ -376,7 +376,7 @@ function ProfilePage() {
 
     async function loadAllTools() {
       try {
-        const response = await fetch('/api/v1/tools', { signal: controller.signal })
+        const response = await fetch('/api/v1/tools?fields=card', { signal: controller.signal })
         if (response.ok) {
           const data = await response.json()
           const rawTools = Array.isArray(data)
@@ -392,7 +392,6 @@ function ProfilePage() {
               category: rawTool?.category || 'General',
               rating: Number(rawTool?.rating || rawTool?.averageRating || rawTool?.average_rating || 0),
               pricing: rawTool?.pricing || rawTool?.price || rawTool?.pricingType || rawTool?.pricing_type || 'Free',
-              pricing_tiers: rawTool?.pricing_tiers || null,
               url: resolvedUrl,
               website: rawTool?.website || resolvedUrl,
               link: rawTool?.link || resolvedUrl,
