@@ -168,3 +168,84 @@ def test_claim_and_link_never_disagree(app, monkeypatch):
         assert claims == has_token, (
             f"claim={claims} but token_in_link={has_token} (round_trip={works})"
         )
+
+
+# ── A listed-pool pitch whose listing will not resolve must not send ────────
+
+def test_a_live_listing_with_no_visible_at_is_still_live(app):
+    """visible_at IS NULL means published at creation, not "not published".
+
+    Reading it as "unknown" made a live listing take the "in the queue for a
+    free listing" branch — telling a founder whose page has been public for
+    weeks that we had not listed them yet.
+    """
+    from datetime import datetime, timezone
+
+    from app.models import CatalogTool, Submission
+    from app.outreach import _listing_is_live
+
+    sub = Submission(
+        name="Execlave", submitter_email="rrm@execlave.com",
+        website="https://execlave.com", category="Coding",
+        description="Agent governance.", pricing_model="paid",
+        status="approved",
+    )
+    tool = CatalogTool(slug="execlave", name="Execlave",
+                       data=json.dumps({"name": "Execlave"}),
+                       hidden=False, visible_at=None, submission_id=None)
+    db.session.add_all([sub, tool])
+    db.session.commit()
+
+    assert _listing_is_live(sub, tool) is True
+
+    tool.visible_at = datetime(2099, 1, 1, tzinfo=timezone.utc)
+    assert _listing_is_live(sub, tool) is False, "a future release date is not live"
+
+    tool.visible_at = None
+    tool.hidden = True
+    assert _listing_is_live(sub, tool) is False
+
+
+def test_send_is_refused_when_a_listed_pool_listing_will_not_resolve(app):
+    """The fail-safe. An unresolved listing must block the send, not guess.
+
+    The copy has two branches and the lookup picks one. When the lookup fails
+    it silently picks "not listed yet", which is checkable and wrong. Refusing
+    to send is the only safe reading of "we do not know".
+    """
+    from app.outreach import CURRENT_DRAFT_TEMPLATE_VERSION, can_send_candidate
+
+    c = _cold(
+        lead_pool="inbound",
+        status="approved",
+        ph_launch_id="inbound:999999",      # no such submission
+        draft_subject="About ConvoData",
+        draft_body="<p>It is in the queue for a free listing either way.</p>",
+        draft_template_version=CURRENT_DRAFT_TEMPLATE_VERSION,
+        confidence_score=95,
+        verification_result="catchall",
+    )
+
+    ok, reason = can_send_candidate(c)
+    assert ok is False
+    assert "could not be resolved" in reason
+
+    # Approval stays possible so the review queue remains usable.
+    ok_approve, _ = can_send_candidate(c, for_approval=True)
+    assert ok_approve is True
+
+
+def test_the_cold_pool_is_not_held_by_that_gate(app):
+    """A cold candidate has no listing to resolve, so it must not be blocked."""
+    from app.outreach import CURRENT_DRAFT_TEMPLATE_VERSION, can_send_candidate
+
+    c = _cold(
+        status="approved",
+        draft_subject="About ConvoData",
+        draft_body="<p>Nothing to pay.</p>",
+        draft_template_version=CURRENT_DRAFT_TEMPLATE_VERSION,
+        confidence_score=95,
+        verification_result="catchall",
+    )
+    ok, reason = can_send_candidate(c)
+    assert ok is True, reason

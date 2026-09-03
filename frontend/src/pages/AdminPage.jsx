@@ -428,6 +428,21 @@ function AdminPage() {
   // panels with their own state reload too rather than showing pre-job data.
   const [outreachRefreshKey, setOutreachRefreshKey] = useState(0)
 
+  // Approved first, then the rest by newest.
+  //
+  // 'approved' means a human has reviewed the draft and it is cleared to
+  // send, so it is the only status with an action pending on it. Leaving it
+  // in id order buried it among sent/bounced/rejected rows and made the
+  // send step a hunt.
+  const sortApprovedFirst = useCallback((rows) => (
+    [...rows].sort((a, b) => {
+      const aa = a.status === 'approved' ? 0 : 1
+      const bb = b.status === 'approved' ? 0 : 1
+      if (aa !== bb) return aa - bb
+      return (b.id || 0) - (a.id || 0)
+    })
+  ), [])
+
   const loadOutreachData = useCallback(async () => {
     setLoading(true)
     try {
@@ -2260,9 +2275,10 @@ function AdminPage() {
             {outreachSubTab === 'candidates' && (
               <div className="space-y-4">
                 {/* Filters Row */}
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-8">
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-9">
                   {[
                     ['all', 'All', candidates.length],
+                    ['approved', 'Approved', candidates.filter(c => c.status === 'approved').length],
                     ['draft_ready', 'Draft Ready', candidates.filter(c => c.status === 'draft_ready').length],
                     ['no_email_found', 'No Email', candidates.filter(c => c.status === 'no_email_found').length],
                     ['sent', 'Sent', candidates.filter(c => c.status === 'sent').length],
@@ -2388,7 +2404,7 @@ function AdminPage() {
                         </tr>
                       </thead>
                       <tbody>
-                        {candidates
+                        {sortApprovedFirst(candidates)
                           .filter(c => outreachFilter === 'all' || c.status === outreachFilter)
                           .map((c) => (
                             <tr key={c.id} className="border-b border-line/60 transition hover:bg-bg-sunk/35">

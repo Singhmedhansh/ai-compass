@@ -493,7 +493,11 @@ def test_an_uncampaigned_candidate_keeps_the_old_behaviour(app):
 def test_the_campaign_stops_dead_at_its_budget(app, monkeypatch):
     from app.outreach import can_send_candidate
 
-    c = _cand(POOL_INBOUND, status=outreach_mod.STATUS_APPROVED, confidence_score=95,
+    # Cold pool deliberately: the budget is pool-independent, and an inbound
+    # candidate additionally has to resolve its listing before it may send.
+    # Using one here would make this test fail for a reason that has nothing
+    # to do with the budget it exists to check.
+    c = _cand(POOL_COLD, status=outreach_mod.STATUS_APPROVED, confidence_score=95,
               verification_result="valid",
               draft_template_version=outreach_mod.CURRENT_DRAFT_TEMPLATE_VERSION)
     assert can_send_candidate(c)[0] is True
@@ -853,12 +857,55 @@ def test_ripeness_never_blocks_an_approval(app):
     assert ok is True, reason
 
 
-def test_an_unresolvable_listing_does_not_hold_a_candidate_back(app):
-    """A failed lookup must not silently mute a candidate forever."""
+def test_an_unresolvable_listing_does_not_hold_the_TIMING_gate(app):
+    """A failed lookup must not silently mute a candidate forever.
+
+    Still true of the 15-day ripeness gate: a lookup that fails must not
+    postpone a send indefinitely on the strength of its own failure.
+
+    It is NOT true of the send itself any more. The copy has two branches -
+    "your listing has been live since ..." and "it is in the queue for a free
+    listing" - and the lookup is what picks between them. When the lookup
+    fails on a candidate whose submission we cannot even find, we cannot tell
+    which sentence is true, and the draft asserts the second one to a founder
+    whose page may well be public. Sending an unverifiable factual claim is
+    worse than holding it: the hold is visible in the console and clears on a
+    regenerate, the wrong email does not come back.
+    """
     c = _sendable(POOL_INBOUND, status="approved", ph_launch_id="inbound:999999")
-    assert outreach_mod.upgrade_ready_at(c) is None
-    ok, _ = outreach_mod.can_send_candidate(c)
-    assert ok is True
+    assert outreach_mod.upgrade_ready_at(c) is None, (
+        "the ripeness gate must not hold a candidate on a failed lookup"
+    )
+
+    ok, reason = outreach_mod.can_send_candidate(c)
+    assert ok is False and "could not be resolved" in reason
+
+    # And it must stay approvable, so the queue does not become unusable.
+    ok_approve, _ = outreach_mod.can_send_candidate(c, for_approval=True)
+    assert ok_approve is True
+
+
+def test_a_genuinely_pending_submission_may_still_be_told_it_is_queued(app):
+    """The "in the queue" sentence is TRUE for an unapproved submission.
+
+    import_inbound_submitters deliberately includes submissions that are not
+    approved yet. Blocking those would refuse to send the one email whose copy
+    is accurate.
+    """
+    from app.models import Submission
+
+    sub = Submission(
+        name="Pending Co", submitter_email="p@pending.example",
+        website="https://pending.example", category="Coding",
+        description="Not approved yet.", pricing_model="free",
+        status="pending",
+    )
+    db.session.add(sub)
+    db.session.commit()
+
+    c = _sendable(POOL_INBOUND, status="approved", ph_launch_id=f"inbound:{sub.id}")
+    ok, reason = outreach_mod.can_send_candidate(c)
+    assert ok is True, reason
 
 
 def test_the_clock_runs_from_going_live_not_from_the_last_catalog_sync(app):

@@ -204,10 +204,14 @@ def test_an_approved_stale_row_always_has_a_way_out(app, monkeypatch):
     ok, reason = can_send_candidate(c)
     assert ok is False and "approve" in reason.lower()
 
+    # Cold pool for this assertion: an inbound candidate additionally has to
+    # resolve its listing before it may send (see test_outreach_cold_copy),
+    # and this test is about the template deadlock, not that gate.
     c.status = STATUS_APPROVED
+    c.lead_pool = "cold"
     db.session.commit()
-    ok, _ = can_send_candidate(c)
-    assert ok is True
+    ok, reason = can_send_candidate(c)
+    assert ok is True, reason
 
 
 # ── The listing lookup must not depend on a back-reference nobody wrote ─────

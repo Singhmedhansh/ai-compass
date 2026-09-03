@@ -80,10 +80,8 @@ def _inbound_listing_url(candidate):
     the queue wording is true.
     """
     submission, tool = _candidate_listing(candidate)
-    if tool is None or not tool.slug:
-        return None
-    if _listing_live_at(submission, tool) is None:
-        return None  # hidden, or still inside its release delay
+    if not _listing_is_live(submission, tool):
+        return None  # not listed, hidden, or still inside its release delay
 
     return f"https://ai-compass.in/tools/{tool.slug}"
 
@@ -135,6 +133,24 @@ def _listing_live_at(submission, tool):
     if visible_at and approved_at:
         return max(visible_at, approved_at)
     return visible_at or approved_at
+
+
+def _listing_is_live(submission, tool):
+    """Whether the page is reachable now — a different question from when.
+
+    _listing_live_at answers "when", and returns None both for a listing that
+    is not live AND for one that is live but undateable. Using it to choose
+    the COPY conflated the two: a live listing we could not put a date on was
+    described as "in the queue for a free listing", to a founder whose page
+    has been public for weeks.
+
+    visible_at IS NULL is the ordinary case for a row published at creation.
+    It means live, not unknown.
+    """
+    if tool is None or getattr(tool, "hidden", False) or not getattr(tool, "slug", ""):
+        return False
+    visible_at = _aware(getattr(tool, "visible_at", None))
+    return visible_at is None or visible_at <= datetime.now(timezone.utc)
 
 
 def _candidate_listing(candidate):
@@ -241,7 +257,7 @@ def _campaign_copy(candidate) -> dict:
                 # and what is being offered is the placement on top of it.
                 offer = (
                     f"You submitted {name} to AI Compass a while back, and it has been "
-                    f"live since - here is the page: {listing_url}. That listing is "
+                    f"live ever since - here is the page: {listing_url}. That listing is "
                     "yours, it stays free, and nothing below changes it. What I am "
                     "writing about is the placement it sits in:"
                 )
@@ -2776,6 +2792,42 @@ def can_send_candidate(c, for_approval=False) -> tuple[bool, str | None]:
                 "sending history, and pushing the whole batch through it in one "
                 "burst is the shape of a spam run — the rest go tomorrow."
             )
+
+        # ── An unresolved listing is a refusal, not a guess ──────────────
+        #
+        # The already-listed pools have two possible openings: "your listing
+        # has been live since ..." and "it is in the queue for a free
+        # listing". Which one goes out is decided by a lookup, and when that
+        # lookup fails the copy silently takes the second branch - telling a
+        # founder whose page has been public for weeks that we have not
+        # listed them yet. That is the single worst sentence this campaign
+        # can send: it is checkable, it is wrong, and it is the first thing
+        # they will check.
+        #
+        # Approval is still allowed (for_approval skips this) so the queue
+        # stays reviewable; only the send is held. Regenerating the draft
+        # after the listing resolves clears it.
+        if not for_approval and c.lead_pool in ALREADY_LISTED_POOLS:
+            submission, tool = _candidate_listing(c)
+            # "In the queue for a free listing" is TRUE for a submission that
+            # is genuinely still pending — the inbound import deliberately
+            # includes those. So an unresolved listing is only a problem when
+            # the queue story cannot be the explanation: either the submission
+            # is already approved (so a live page should exist and something is
+            # wrong with the link), or we cannot find the submission at all and
+            # therefore cannot tell which sentence is true.
+            sub_status = getattr(submission, "status", None)
+            unverifiable = submission is None or sub_status == "approved"
+            if unverifiable and not _listing_is_live(submission, tool):
+                return False, (
+                    f"{c.product_name} is in the '{c.lead_pool}' pool, which pitches an "
+                    "upgrade to an existing listing, but its listing could not be "
+                    "resolved. The draft therefore says the tool is still 'in the queue "
+                    "for a free listing' — which is wrong if the page is already live, "
+                    "and is the first thing the founder will check. Fix the listing link "
+                    "(Admin > Listings > Publish all now relinks orphaned rows), then "
+                    "regenerate this draft."
+                )
 
         # ── An upgrade pitch waits until the listing has something to show ──
         #
