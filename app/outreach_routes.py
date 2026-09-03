@@ -48,6 +48,9 @@ from app.outreach import (
     STATUS_APPROVED,
     CURRENT_CAMPAIGN,
     CAMPAIGN_SEND_BUDGET,
+    CAMPAIGN_DAILY_SEND_MAX,
+    campaign_sends_today,
+    campaign_daily_remaining,
 )
 
 outreach_bp = Blueprint("outreach", __name__)
@@ -828,9 +831,9 @@ def approve_candidate(candidate_id):
             "error": f"Only a draft can be approved — this one is '{c.status}'.",
         }), 400
 
-    # Eligibility as the SENDER will see it, asked without mutating the row —
-    # see the note on ignore_review_gate in can_send_candidate.
-    ok, reason = can_send_candidate(c, ignore_review_gate=True)
+    # Eligibility as the SENDER will see it, asked without mutating the row and
+    # without today's pacing counting against it — see can_send_candidate.
+    ok, reason = can_send_candidate(c, for_approval=True)
     if not ok:
         db.session.rollback()
         return jsonify({"error": reason}), 400
@@ -998,6 +1001,11 @@ def campaign_status():
         "candidates_by_status": by_status,
         "replied": by_status.get("replied", 0),
         "awaiting_review": by_status.get("draft_ready", 0),
+        # Today's pacing, so the operator can see why an approved queue is
+        # not draining: it is not stuck, it is spread on purpose.
+        "sent_today": campaign_sends_today(),
+        "daily_send_max": CAMPAIGN_DAILY_SEND_MAX,
+        "daily_remaining": campaign_daily_remaining(),
         "approved": by_status.get(STATUS_APPROVED, 0),
         "revenue": round(revenue, 2),
         "revenue_target": CAMPAIGN_REVENUE_TARGET,

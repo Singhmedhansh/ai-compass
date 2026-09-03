@@ -290,7 +290,7 @@ export default function OutreachCampaignPanel({ api }) {
 
       {status && (
         <>
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
             <Meter
               label="Send budget"
               value={status.emails_sent}
@@ -309,6 +309,12 @@ export default function OutreachCampaignPanel({ api }) {
               sub={`/ $${status.revenue_target}`}
               pct={revenuePct}
               tone={revenuePct >= 100 ? 'accent' : 'warn'}
+            />
+            <Meter
+              label="Sent today"
+              value={status.sent_today ?? 0}
+              sub={`/ ${status.daily_send_max} max`}
+              pct={status.daily_send_max ? ((status.sent_today ?? 0) / status.daily_send_max) * 100 : 0}
             />
             <Meter
               label="Days to deadline"
@@ -337,6 +343,17 @@ export default function OutreachCampaignPanel({ api }) {
             </div>
           )}
         </>
+      )}
+
+      {status && status.daily_remaining === 0 && counts.approved > 0 && (
+        <div className="rounded-lg border border-line bg-bg-sunk px-3 py-2 text-xs text-ink-2">
+          <span className="font-semibold text-ink">
+            Today&apos;s {status.daily_send_max} are sent.
+          </span>{' '}
+          {counts.approved} approved {counts.approved === 1 ? 'email goes' : 'emails go'} out
+          tomorrow. Outreach sends from an address with no sending history, so the batch is
+          spread deliberately rather than burst.
+        </div>
       )}
 
       <div className="flex flex-wrap items-center gap-2">

@@ -289,3 +289,201 @@ def test_revenue_ignores_sales_from_before_the_campaign_started(admin_client, ap
 
     assert admin_client.get(
         "/api/v1/admin/outreach/campaign/status").get_json()["revenue"] == 0
+
+
+# ─── Phase 4: cadence and pacing ──────────────────────────────────────────────
+
+def test_the_campaign_bumps_faster_than_the_legacy_schedule(app):
+    """5+5 does not fit a fixed deadline.
+
+    Anything sent after the 5th never receives its second follow-up before the
+    15th, and the second touch is where most cold replies come from. 3+4 means
+    a candidate emailed on the 6th still completes its sequence on the 13th.
+    """
+    campaign = _cand()
+    legacy = _cand(campaign=None, email="legacy@x.example")
+
+    assert outreach_mod._followup_delay_days(campaign, 1) == 3
+    assert outreach_mod._followup_delay_days(campaign, 2) == 4
+    assert outreach_mod._followup_delay_days(legacy, 1) == 5
+    assert outreach_mod._followup_delay_days(legacy, 2) == 5
+
+    total = (outreach_mod._followup_delay_days(campaign, 1)
+             + outreach_mod._followup_delay_days(campaign, 2))
+    assert total == 7, "The whole sequence must fit inside the campaign window."
+
+
+def _sent_days_ago(days, **over):
+    c = _cand(status="sent", **over)
+    c.last_status_change_at = datetime.now(timezone.utc) - timedelta(days=days)
+    db.session.commit()
+    return c
+
+
+def test_a_campaign_candidate_is_bumped_at_three_days(app, monkeypatch):
+    sent = []
+    monkeypatch.setattr(outreach_mod, "_send_followup",
+                        lambda c, stage, nxt: sent.append((c.id, stage)) or True)
+    monkeypatch.setattr(outreach_mod, "reserve_send_slots",
+                        lambda n, requester=None: {"granted": n})
+
+    _sent_days_ago(3)
+    outreach_mod.run_automated_followups()
+    assert len(sent) == 1 and sent[0][1] == 1
+
+
+def test_a_legacy_candidate_is_not_dragged_onto_the_faster_cadence(app, monkeypatch):
+    """The v1 cutoff was a single 5-day filter in SQL.
+
+    Querying on the shortest cadence and filtering per candidate is what keeps
+    the two schedules separate — without the per-candidate check, a legacy row
+    would be bumped two days early.
+    """
+    sent = []
+    monkeypatch.setattr(outreach_mod, "_send_followup",
+                        lambda c, stage, nxt: sent.append((c.id, stage)) or True)
+    monkeypatch.setattr(outreach_mod, "reserve_send_slots",
+                        lambda n, requester=None: {"granted": n})
+
+    _sent_days_ago(3, campaign=None, email="legacy@x.example")
+    outreach_mod.run_automated_followups()
+    assert sent == [], "A legacy candidate waits its full five days."
+
+
+def test_nothing_is_bumped_before_it_is_due(app, monkeypatch):
+    sent = []
+    monkeypatch.setattr(outreach_mod, "_send_followup",
+                        lambda c, stage, nxt: sent.append(c.id) or True)
+    monkeypatch.setattr(outreach_mod, "reserve_send_slots",
+                        lambda n, requester=None: {"granted": n})
+
+    _sent_days_ago(1)
+    outreach_mod.run_automated_followups()
+    assert sent == []
+
+
+def test_a_naive_timestamp_does_not_break_the_sweep(app, monkeypatch):
+    """SQLite returns naive datetimes, Postgres returns aware ones.
+
+    The v1 code never noticed because its cutoff was applied in SQL. Comparing
+    in Python does, and one TypeError mid-sweep would stop every remaining
+    follow-up that run.
+    """
+    sent = []
+    monkeypatch.setattr(outreach_mod, "_send_followup",
+                        lambda c, stage, nxt: sent.append(c.id) or True)
+    monkeypatch.setattr(outreach_mod, "reserve_send_slots",
+                        lambda n, requester=None: {"granted": n})
+
+    c = _cand(status="sent")
+    c.last_status_change_at = (datetime.now(timezone.utc) - timedelta(days=5)).replace(tzinfo=None)
+    db.session.commit()
+
+    outreach_mod.run_automated_followups()  # must not raise
+    assert sent == [c.id]
+
+
+def test_the_campaign_paces_itself_across_days(app, monkeypatch):
+    """45 cold emails in one burst from a From address with no sending history
+    is the shape of a spam run."""
+    monkeypatch.setattr(outreach_mod, "CAMPAIGN_DAILY_SEND_MAX", 2)
+    c = _cand(status=outreach_mod.STATUS_APPROVED)
+
+    assert outreach_mod.can_send_candidate(c)[0] is True
+
+    for _ in range(2):
+        db.session.add(OutreachEmailLog(
+            candidate_id=c.id, email=c.email, subject="s", body="b", status="success",
+            sent_at=datetime.now(timezone.utc)))
+    db.session.commit()
+
+    ok, reason = outreach_mod.can_send_candidate(c)
+    assert ok is False
+    assert "today" in reason.lower()
+
+
+def test_todays_pacing_never_blocks_an_approval(admin_client, app, monkeypatch):
+    """Approving twenty and letting them go out over two days is how this runs.
+
+    Blocking the eleventh approval because ten have already sent would make the
+    queue unusable after lunch.
+    """
+    monkeypatch.setattr(outreach_mod, "CAMPAIGN_DAILY_SEND_MAX", 1)
+    other = _cand(status="sent", email="other@x.example", product_name="Other")
+    db.session.add(OutreachEmailLog(
+        candidate_id=other.id, email=other.email, subject="s", body="b",
+        status="success", sent_at=datetime.now(timezone.utc)))
+    db.session.commit()
+
+    c = _cand()
+    res = admin_client.post(f"/api/v1/admin/outreach/candidates/{c.id}/approve", json={})
+    assert res.status_code == 200, res.get_json()
+
+
+def test_the_lifetime_budget_still_blocks_approval(app, monkeypatch):
+    """Pacing is about timing; the budget is about the candidate never sending.
+
+    Only the second is a reason to refuse an approval.
+    """
+    monkeypatch.setattr(outreach_mod, "CAMPAIGN_SEND_BUDGET", 1)
+    c = _cand(status="sent")
+    db.session.add(OutreachEmailLog(
+        candidate_id=c.id, email=c.email, subject="s", body="b", status="success"))
+    db.session.commit()
+
+    other = _cand(email="n@x.example", product_name="Next")
+    ok, reason = outreach_mod.can_send_candidate(other, for_approval=True)
+    assert ok is False and "budget" in reason.lower()
+
+
+def test_campaign_status_reports_todays_pacing(admin_client, app):
+    body = admin_client.get("/api/v1/admin/outreach/campaign/status").get_json()
+    assert body["daily_send_max"] == outreach_mod.CAMPAIGN_DAILY_SEND_MAX
+    assert body["sent_today"] == 0
+    assert body["daily_remaining"] == outreach_mod.CAMPAIGN_DAILY_SEND_MAX
+
+
+def test_the_warm_pools_send_before_the_cold_one(app, monkeypatch):
+    """Warm leads are scored but never gated, so their scores run low.
+
+    An inbound company whose pricing page sits behind a login scores near zero
+    while a cold lead with a tidy public /pricing scores 13. Ranking on score
+    alone would send the cold pool first and leave the warmest leads in the
+    campaign until last — inverting the plan by way of a sort order.
+    """
+    sent = []
+    monkeypatch.setattr(outreach_mod, "send_email_with_details",
+                        lambda **kw: sent.append(kw["to"]) or (True, None))
+    monkeypatch.setattr(outreach_mod, "reserve_send_slots",
+                        lambda n, requester=None: {"granted": n})
+    monkeypatch.setattr(outreach_mod.time, "sleep", lambda *_: None)
+
+    _cand(product_name="Cold Co", email="cold@x.example", fit_score=13,
+          lead_pool=outreach_mod.POOL_COLD, status=outreach_mod.STATUS_APPROVED)
+    _cand(product_name="Inbound Co", email="inbound@x.example", fit_score=0,
+          lead_pool=outreach_mod.POOL_INBOUND, status=outreach_mod.STATUS_APPROVED)
+    _cand(product_name="Traffic Co", email="traffic@x.example", fit_score=5,
+          lead_pool=outreach_mod.POOL_TRAFFIC, status=outreach_mod.STATUS_APPROVED)
+
+    outreach_mod.run_automated_initial_sends()
+
+    assert sent == ["inbound@x.example", "traffic@x.example", "cold@x.example"], (
+        f"Expected warm pools first, got {sent}"
+    )
+
+
+def test_score_still_breaks_ties_inside_a_pool(app, monkeypatch):
+    sent = []
+    monkeypatch.setattr(outreach_mod, "send_email_with_details",
+                        lambda **kw: sent.append(kw["to"]) or (True, None))
+    monkeypatch.setattr(outreach_mod, "reserve_send_slots",
+                        lambda n, requester=None: {"granted": n})
+    monkeypatch.setattr(outreach_mod.time, "sleep", lambda *_: None)
+
+    _cand(product_name="Weak Cold", email="weak@x.example", fit_score=7,
+          lead_pool=outreach_mod.POOL_COLD, status=outreach_mod.STATUS_APPROVED)
+    _cand(product_name="Strong Cold", email="strong@x.example", fit_score=14,
+          lead_pool=outreach_mod.POOL_COLD, status=outreach_mod.STATUS_APPROVED)
+
+    outreach_mod.run_automated_initial_sends()
+    assert sent == ["strong@x.example", "weak@x.example"]

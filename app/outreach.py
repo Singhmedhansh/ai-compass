@@ -2394,6 +2394,60 @@ ALLOW_UNVERIFIED_SEND = str(
 
 STATUS_APPROVED = "approved"
 
+# ─── CAMPAIGN CADENCE AND PACING ─────────────────────────────────────────────
+#
+# The v1 cadence is 5 days to the first bump and 5 more to the second. Against
+# a fixed deadline that does not fit: anything sent after the 5th never
+# receives its second follow-up before the 15th, and the second touch is where
+# most cold replies come from. The campaign compresses to 3 days and 4 more —
+# 7 days end to end — so a candidate emailed on the 6th still completes its
+# whole sequence on the 13th, inside the deadline.
+#
+# Not compressed further. Two emails three days apart is a follow-up; two
+# emails one day apart is pestering someone who has already decided.
+CAMPAIGN_FOLLOWUP_STAGE1_DAYS = int(os.environ.get("OUTREACH_CAMPAIGN_FOLLOWUP_1_DAYS", "3"))
+CAMPAIGN_FOLLOWUP_STAGE2_DAYS = int(os.environ.get("OUTREACH_CAMPAIGN_FOLLOWUP_2_DAYS", "4"))
+
+LEGACY_FOLLOWUP_STAGE1_DAYS = 5
+LEGACY_FOLLOWUP_STAGE2_DAYS = 5
+
+# How many campaign emails may leave in one day, separate from the lifetime 45
+# and from the account-wide DAILY_SEND_CAP.
+#
+# This is a deliverability limit, not a budget one. Outreach now sends as
+# medhansh.singh@ — a From identity with no sending history at all — and
+# putting 45 cold emails through a cold identity in one or two bursts is the
+# shape of a spam run. A steady 10 a day builds the reputation that gets the
+# later ones delivered, and 45 at 10/day still fits comfortably inside the
+# campaign window.
+CAMPAIGN_DAILY_SEND_MAX = int(os.environ.get("OUTREACH_CAMPAIGN_DAILY_MAX", "10"))
+
+
+def _followup_delay_days(candidate, stage):
+    """How long to wait before this candidate's stage-N bump."""
+    if getattr(candidate, "campaign", None):
+        return (CAMPAIGN_FOLLOWUP_STAGE1_DAYS if stage == 1
+                else CAMPAIGN_FOLLOWUP_STAGE2_DAYS)
+    return (LEGACY_FOLLOWUP_STAGE1_DAYS if stage == 1
+            else LEGACY_FOLLOWUP_STAGE2_DAYS)
+
+
+def campaign_sends_today(campaign=None):
+    """Campaign emails successfully sent inside the current send window."""
+    campaign = campaign or CURRENT_CAMPAIGN
+    return db.session.query(db.func.count(OutreachEmailLog.id)).join(
+        OutreachCandidate, OutreachEmailLog.candidate_id == OutreachCandidate.id
+    ).filter(
+        OutreachCandidate.campaign == campaign,
+        OutreachEmailLog.status == "success",
+        OutreachEmailLog.sent_at >= _current_send_window_start(),
+    ).scalar() or 0
+
+
+def campaign_daily_remaining(campaign=None):
+    return max(0, CAMPAIGN_DAILY_SEND_MAX - campaign_sends_today(campaign))
+
+
 
 def campaign_sends_used(campaign=None):
     """How many of the campaign's finite budget have actually left the building.
@@ -2416,7 +2470,7 @@ def campaign_sends_remaining(campaign=None):
     return max(0, CAMPAIGN_SEND_BUDGET - campaign_sends_used(campaign))
 
 
-def can_send_candidate(c, ignore_review_gate=False) -> tuple[bool, str | None]:
+def can_send_candidate(c, for_approval=False) -> tuple[bool, str | None]:
     """Single source of truth for 'is this candidate allowed to be emailed
     right now'. Returns (ok, reason_if_not). Used by BOTH the manual send
     routes and run_automated_initial_sends()."""
@@ -2459,14 +2513,16 @@ def can_send_candidate(c, ignore_review_gate=False) -> tuple[bool, str | None]:
     # 'approved' is set by a human in the admin console. Everything else in
     # the campaign stays put no matter how good its score looks.
     if c.campaign:
-        # `ignore_review_gate` is for the approval endpoint, which needs to ask
-        # "would this send if I approved it?" without first mutating the row.
-        # Setting the status to approved and restoring it on failure looked
-        # equivalent and was not: the checks below run their own queries, and
-        # SQLAlchemy's autoflush wrote the optimistic 'approved' to the
-        # database mid-check. A REFUSED approval could leave the row sitting in
-        # the approved queue.
-        if not ignore_review_gate and c.status != STATUS_APPROVED:
+        # `for_approval` is the approval endpoint asking "would this send once
+        # approved?" — so it skips the two conditions that are about TIMING
+        # rather than about this candidate being sendable at all.
+        #
+        # It must not mutate the row to ask. Setting the status to approved and
+        # restoring it on failure looked equivalent and was not: the checks
+        # below run their own queries, and SQLAlchemy's autoflush wrote the
+        # optimistic 'approved' to the database mid-check, so a REFUSED
+        # approval could leave the row sitting in the approved queue.
+        if not for_approval and c.status != STATUS_APPROVED:
             return False, (
                 f"Campaign '{c.campaign}' candidates are sent only after review. "
                 f"Status is '{c.status}' — approve it in the Outreach console first."
@@ -2475,6 +2531,18 @@ def can_send_candidate(c, ignore_review_gate=False) -> tuple[bool, str | None]:
             return False, (
                 f"Campaign '{c.campaign}' has spent its full budget of "
                 f"{CAMPAIGN_SEND_BUDGET} emails. Nothing further sends under it."
+            )
+        # Today's pacing is not a reason to refuse an APPROVAL. Approving
+        # twenty candidates and letting them go out over two days is exactly
+        # how the campaign is meant to run; blocking the eleventh approval
+        # because ten have already sent would make the queue unusable after
+        # lunch.
+        if not for_approval and campaign_daily_remaining(c.campaign) <= 0:
+            return False, (
+                f"Campaign '{c.campaign}' has sent its {CAMPAIGN_DAILY_SEND_MAX} "
+                "for today. Outreach goes out from a From address with no "
+                "sending history, and pushing the whole batch through it in one "
+                "burst is the shape of a spam run — the rest go tomorrow."
             )
 
     if (c.confidence_score or 0) < CONFIDENCE_SEND_THRESHOLD:
@@ -2614,16 +2682,40 @@ def run_automated_followups():
     away from 'sent'/'followed_up' for any other reason (replied, bounced,
     rejected, unsubscribed), so nothing here ever emails someone who opted out.
     """
-    five_days_ago = datetime.now(timezone.utc) - timedelta(days=5)
+    # Query on the SHORTEST cadence in play, then filter each candidate against
+    # its own. A single 5-day cutoff would silently hold campaign candidates to
+    # the legacy schedule and push their last touch past the deadline.
+    now = datetime.now(timezone.utc)
+    shortest = min(
+        CAMPAIGN_FOLLOWUP_STAGE1_DAYS, CAMPAIGN_FOLLOWUP_STAGE2_DAYS,
+        LEGACY_FOLLOWUP_STAGE1_DAYS, LEGACY_FOLLOWUP_STAGE2_DAYS,
+    )
+    earliest = now - timedelta(days=shortest)
 
-    stage1_candidates = OutreachCandidate.query.filter(
-        OutreachCandidate.status == "sent",
-        OutreachCandidate.last_status_change_at <= five_days_ago
-    ).all()
-    stage2_candidates = OutreachCandidate.query.filter(
-        OutreachCandidate.status == "followed_up",
-        OutreachCandidate.last_status_change_at <= five_days_ago
-    ).all()
+    def _due(candidate, stage):
+        # last_status_change_at comes back NAIVE from SQLite and tz-aware from
+        # Postgres. The v1 code never noticed because its cutoff was applied in
+        # SQL; comparing in Python does, and a naive/aware comparison raises
+        # TypeError mid-sweep — which would stop every remaining follow-up.
+        stamp = candidate.last_status_change_at
+        if stamp is None:
+            return False
+        if stamp.tzinfo is None:
+            stamp = stamp.replace(tzinfo=timezone.utc)
+        return stamp <= now - timedelta(days=_followup_delay_days(candidate, stage))
+
+    stage1_candidates = [
+        c for c in OutreachCandidate.query.filter(
+            OutreachCandidate.status == "sent",
+            OutreachCandidate.last_status_change_at <= earliest,
+        ).all() if _due(c, 1)
+    ]
+    stage2_candidates = [
+        c for c in OutreachCandidate.query.filter(
+            OutreachCandidate.status == "followed_up",
+            OutreachCandidate.last_status_change_at <= earliest,
+        ).all() if _due(c, 2)
+    ]
 
     remaining = sends_remaining_today()
     sent_count = 0
@@ -2698,6 +2790,25 @@ def run_automated_initial_sends():
         OutreachCandidate.draft_subject.isnot(None),
         OutreachCandidate.draft_body.isnot(None),
     ).order_by(
+        # Pool BEFORE score, and the ordering matters more than it looks.
+        #
+        # Warm leads are scored but never gated (see import_inbound_submitters),
+        # so an inbound company whose pricing page sits behind a login scores
+        # near zero while a cold lead with a tidy public /pricing scores 13.
+        # Ranking on score alone would therefore send the cold pool FIRST and
+        # leave the warmest leads in the campaign until last — the exact
+        # inversion of the plan, arrived at by a sort order rather than a
+        # decision.
+        #
+        # Inbound first, then traffic, then cold; score only breaks ties within
+        # a pool. Uncampaigned v1 rows have no pool and sort last, which is
+        # correct: they are not part of this campaign.
+        db.case(
+            (OutreachCandidate.lead_pool == POOL_INBOUND, 0),
+            (OutreachCandidate.lead_pool == POOL_TRAFFIC, 1),
+            (OutreachCandidate.lead_pool == POOL_COLD, 2),
+            else_=3,
+        ).asc(),
         OutreachCandidate.fit_score.desc().nullslast(),
         OutreachCandidate.created_at.asc(),
     ).limit(scan_limit).all()
