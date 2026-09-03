@@ -239,21 +239,7 @@ def create_app(config: dict | None = None) -> Flask:
         # active. 2 persistent + 2 overflow is plenty for a single-worker app
         # and lets auto-suspend kick in during quiet periods.
         engine_options["pool_size"] = 3
-        # 6, not 5, so the ceiling is 9 rather than 8.
-        #
-        # gunicorn runs 8 gthread workers, so at 3+5 the pool held exactly as
-        # many slots as there are request threads - and the warmup thread is a
-        # NINTH consumer. Whenever it holds a connection (the whole schema
-        # phase, which is ALTER TABLE and CREATE INDEX against a possibly cold
-        # database), one request thread had nowhere to go and blocked until
-        # the 30s pool_timeout, surfacing as
-        # "QueuePool limit of size 3 overflow 5 reached" and a worker that
-        # stops answering during a deploy.
-        #
-        # One extra connection, only ever opened under that exact contention,
-        # against a free-tier limit near 100. The pool still collapses back to
-        # 3 when idle, so auto-suspend is unaffected.
-        engine_options["max_overflow"] = 6
+        engine_options["max_overflow"] = 5
         engine_options["pool_timeout"] = 30
 
     if database_uri.startswith("postgres://") or database_uri.startswith("postgresql://"):
@@ -1023,31 +1009,6 @@ def create_app(config: dict | None = None) -> Flask:
                         """
                         from sqlalchemy import text
                         try:
-                            if is_postgres:
-                                # The same bounded wait _add_column uses, and
-                                # for the same reason. CREATE INDEX takes a
-                                # lock on the table, and a redeploy overlaps
-                                # containers by design: the old one is still
-                                # serving while the new one runs this. Without
-                                # a timeout the build waits behind that
-                                # forever, holding its pooled connection.
-                                #
-                                # That is how this wedged the whole service.
-                                # The pool is 3 + 5 overflow against 8 gthread
-                                # workers, so one connection parked
-                                # indefinitely leaves requests queueing on
-                                # pool checkout until they hit the 30s
-                                # pool_timeout and raise
-                                # "QueuePool limit ... reached" - the worker
-                                # stops answering, and Render reports "no open
-                                # ports detected" for what is really a
-                                # database lock.
-                                #
-                                # Failing fast is strictly better: the marker
-                                # is not written unless the phase completed,
-                                # so the next boot simply retries.
-                                db.session.execute(text("SET LOCAL lock_timeout = '10s'"))
-                                db.session.execute(text("SET LOCAL statement_timeout = '30s'"))
                             db.session.execute(text(
                                 f"CREATE {'UNIQUE ' if unique else ''}INDEX IF NOT EXISTS "
                                 f"{name} ON {table} ({col});"
@@ -1202,21 +1163,6 @@ def create_app(config: dict | None = None) -> Flask:
                         except OSError as exc:
                             print(f"[WARMUP] could not write marker {_warmup_marker}: {exc}", flush=True)
                     _publish_warmup_status()
-
-                    # Give the connection back before the slow phases below.
-                    #
-                    # db.session is scoped per thread, so this thread has held
-                    # one pooled connection for the whole schema phase.
-                    # Committing does not release it - only closing the
-                    # session does. The pool is 3 + 5 overflow = 8 against 8
-                    # gthread workers, so a warmup thread sitting on one leaves
-                    # requests competing for seven and, under a cold-start
-                    # burst, queueing until they hit the 30s pool_timeout.
-                    # Nothing below needs the connection this one was holding.
-                    try:
-                        db.session.remove()
-                    except Exception as exc:  # noqa: BLE001
-                        print(f"[WARMUP] could not release schema session: {exc}", flush=True)
 
                     # Migrate runs LAST, not first. flask_migrate.upgrade()
                     # has never progressed on this database (alembic_version
