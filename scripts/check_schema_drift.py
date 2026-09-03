@@ -30,10 +30,18 @@ entries to add to the fallback list in app/__init__.py.
 
 Usage
 -----
-    DATABASE_URL=postgres://... python scripts/check_schema_drift.py
+    python scripts/check_schema_drift.py
+
+Reads DATABASE_URL from the environment, falling back to the project .env, so
+no production credential has to be pasted into a shell. To point it somewhere
+else for one run:
+
+    PowerShell:  $env:DATABASE_URL = "postgres://..."
+    bash:        export DATABASE_URL=postgres://...
 
 Exits 1 if drift is found, so it can be wired into a deploy check.
 """
+import io
 import os
 import sys
 
@@ -69,11 +77,54 @@ def _ddl_for(column):
         return "TEXT"
 
 
-def main():
+def _database_url():
+    """DATABASE_URL from the environment, falling back to the project .env.
+
+    The fallback exists so the usual invocation is a bare
+    `python scripts/check_schema_drift.py` with no argument. Requiring the URL
+    on the command line means pasting a production credential into shell
+    history to run a read-only check, which is a bad trade - and the syntax
+    for doing it differs between PowerShell and bash, which is one more way
+    to get a confusing error instead of an answer.
+    """
     url = os.environ.get("DATABASE_URL") or os.environ.get("SQLALCHEMY_DATABASE_URI")
+    if url:
+        return url, "environment"
+
+    env_path = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env"
+    )
+    if not os.path.exists(env_path):
+        return None, None
+    try:
+        with io.open(env_path, encoding="utf-8") as fh:
+            for raw in fh:
+                line = raw.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                key, _, value = line.partition("=")
+                if key.strip() in ("DATABASE_URL", "SQLALCHEMY_DATABASE_URI"):
+                    return value.strip().strip('"').strip("'"), ".env"
+    except OSError as exc:
+        print(f"Could not read .env: {exc}", file=sys.stderr)
+    return None, None
+
+
+def main():
+    url, source = _database_url()
     if not url:
-        print("Set DATABASE_URL (or SQLALCHEMY_DATABASE_URI) first.", file=sys.stderr)
+        print(
+            "No DATABASE_URL found in the environment or in .env.\n"
+            "Either add it to .env, or set it for one command:\n"
+            '  PowerShell:  $env:DATABASE_URL = "postgres://..."\n'
+            "  bash:        export DATABASE_URL=postgres://...",
+            file=sys.stderr,
+        )
         return 2
+
+    # Never print the URL itself - it carries the password.
+    print(f"Reading schema from the database in {source}.")
+    print()
 
     # Render hands out the legacy postgres:// scheme, which SQLAlchemy 2 no
     # longer registers.

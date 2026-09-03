@@ -330,6 +330,17 @@ class Submission(db.Model):
     dashboard_views = db.Column(db.Integer, nullable=False, default=0)
     dashboard_last_view_at = db.Column(db.DateTime, nullable=True)
 
+    # Post-sale delivery stamps. See app/post_sale.py for what is owed on
+    # each tier and when.
+    #
+    # Stamps rather than computed state, for the same reason
+    # live_email_sent_at is one: both sweepers run on a schedule, and a
+    # missed or doubled run must not mean a paying founder is mailed twice
+    # about the same thing. The runbook reads these to decide what is still
+    # outstanding, so a NULL here is a real obligation, not a gap in logging.
+    post_sale_confirmed_at = db.Column(db.DateTime, nullable=True)
+    numbers_sent_at = db.Column(db.DateTime, nullable=True)
+
 
 class NewsletterSubscriber(db.Model):
     __tablename__ = "newsletter_subscribers"

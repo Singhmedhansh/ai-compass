@@ -1109,6 +1109,9 @@ def create_app(config: dict | None = None) -> Flask:
                         # Submission.dashboard_views.
                         ("dashboard_views", "INTEGER DEFAULT 0"),
                         ("dashboard_last_view_at", "TIMESTAMP"),
+                        # Post-sale delivery stamps. See app/post_sale.py.
+                        ("post_sale_confirmed_at", "TIMESTAMP"),
+                        ("numbers_sent_at", "TIMESTAMP"),
                     ]:
                         _add_column("submissions", col_name, col_type)
 

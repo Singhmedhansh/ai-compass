@@ -1,0 +1,71 @@
+{% extends "emails/base.html" %}
+
+{#  The first numbers back, a week after the listing went live.
+
+    The monthly report (emails/founder_report.html) can be up to 30 days
+    away, which is far too long to leave a first-time customer wondering
+    whether they bought anything at all. This is deliberately the smaller
+    message: two numbers, honestly framed, and no dashboard tour.
+
+    A week of data is a week of data, and the copy says so. Quoting a
+    click-through rate off nine views would be a fabricated precision that
+    the founder will notice the moment the monthly report disagrees with it.
+#}
+
+{% block title %}{{ report.name }}: your first {{ days }} days{% endblock %}
+
+{% block content %}
+<h1 class="heading">{{ report.name }} — first {{ days }} days</h1>
+
+<p class="paragraph">
+  Your listing has been live a week. These are the numbers so far, sent
+  because the report you are owed is monthly and a month is a long time to
+  wait to find out whether any of this is working.
+</p>
+
+<table role="presentation" style="width:100%; border-collapse:collapse; margin:18px 0 8px 0;">
+  <tr>
+    <td style="padding:14px 16px; border:1px solid #e6e5de; border-radius:8px; width:50%;">
+      <div style="color:#7f857f; font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;">
+        Views
+      </div>
+      <div style="color:#0f1411; font-size:26px; font-weight:800; line-height:1.2;">{{ report.views }}</div>
+    </td>
+    <td style="width:12px;"></td>
+    <td style="padding:14px 16px; border:1px solid #e6e5de; border-radius:8px; width:50%;">
+      <div style="color:#7f857f; font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;">
+        Clicks to your site
+      </div>
+      <div style="color:#168358; font-size:26px; font-weight:800; line-height:1.2;">{{ report.clicks }}</div>
+    </td>
+  </tr>
+</table>
+
+<p class="paragraph" style="margin-top:14px;">
+  {% if report.views %}
+    {% if report.clicks %}
+      That is {{ report.clicks }} {{ 'person who' if report.clicks == 1 else 'people who' }}
+      went from the listing through to your site.
+    {% else %}
+      Nobody has clicked through to your site yet. A week is a short window,
+      and the listing is still being indexed.
+    {% endif %}
+  {% else %}
+    Nobody has opened the listing yet. That is not unusual in the first week
+    while the page is still being indexed, and it is the number I would
+    expect to move first.
+  {% endif %}
+</p>
+
+{% if report.dashboard_url %}
+<div class="btn-container">
+  <a href="{{ report.dashboard_url }}" class="cta-button">Open your dashboard</a>
+</div>
+{% endif %}
+
+<p class="paragraph">
+  Your full report lands monthly with the comparison against your category.
+  If these numbers look wrong, reply and tell me — I would rather hear it
+  than have you quietly conclude the listing does nothing.
+</p>
+{% endblock %}

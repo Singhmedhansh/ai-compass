@@ -6511,6 +6511,84 @@ def founder_tools():
     return jsonify({"tools": tools})
 
 
+def _post_sale_authorized():
+    """Same auth as the other sweepers: scheduler secret or an admin session.
+
+    One external scheduler drives digest, live-emails and these, and the
+    admin panel fires them by hand from the same buttons.
+    """
+    import hmac
+
+    secret = os.environ.get("DIGEST_SECRET")
+    provided = request.headers.get("X-Digest-Secret", "")
+    return bool(secret and hmac.compare_digest(secret, provided)) or _is_admin()
+
+
+@api_bp.get("/admin/post-sale/runbook")
+@login_required
+def admin_post_sale_runbook():
+    """What every paying customer is still owed.
+
+    The delivery of a sale was spread across launch_day, editorial,
+    sponsorship and founder_report, each running on its own schedule with no
+    shared answer to "is this customer owed anything right now". This is that
+    answer, sorted worst-first: overdue before merely due, because the point
+    of the view is to be opened when there is little time left.
+
+    Read-only. It computes state from what actually happened rather than
+    from a status column, so it cannot drift from reality.
+    """
+    from app.post_sale import runbook
+
+    try:
+        return jsonify(runbook())
+    except Exception as exc:  # noqa: BLE001
+        current_app.logger.exception("post-sale runbook failed")
+        return jsonify({"error": "runbook_failed", "detail": str(exc)}), 500
+
+
+@api_bp.post("/admin/post-sale/confirmations")
+@csrf.exempt
+def admin_post_sale_confirmations():
+    """Acknowledge paid listings that have not been acknowledged yet.
+
+    ?dry_run=1 lists who would be mailed without sending or stamping.
+    Idempotent: Submission.post_sale_confirmed_at is written only on a
+    confirmed send, so running this twice mails nobody twice.
+    """
+    if not _post_sale_authorized():
+        return jsonify({"error": "unauthorized"}), 401
+
+    from app.post_sale import send_confirmations
+
+    dry_run = request.args.get("dry_run") in ("1", "true", "yes")
+    try:
+        return jsonify(send_confirmations(dry_run=dry_run))
+    except Exception as exc:  # noqa: BLE001
+        current_app.logger.exception("post-sale confirmations failed")
+        return jsonify({"error": "confirmations_failed", "detail": str(exc)}), 500
+
+
+@api_bp.post("/admin/post-sale/numbers")
+@csrf.exempt
+def admin_post_sale_numbers():
+    """Send the day-7 numbers to listings that have been live a week.
+
+    Same idempotency guarantee via Submission.numbers_sent_at.
+    """
+    if not _post_sale_authorized():
+        return jsonify({"error": "unauthorized"}), 401
+
+    from app.post_sale import send_day7_numbers
+
+    dry_run = request.args.get("dry_run") in ("1", "true", "yes")
+    try:
+        return jsonify(send_day7_numbers(dry_run=dry_run))
+    except Exception as exc:  # noqa: BLE001
+        current_app.logger.exception("post-sale numbers failed")
+        return jsonify({"error": "numbers_failed", "detail": str(exc)}), 500
+
+
 @api_bp.get("/admin/listings")
 @login_required
 def admin_listings():

@@ -1,0 +1,54 @@
+{% extends "emails/base.html" %}
+
+{#  "Here is exactly what you bought, and when each piece lands."
+
+    Sent within 24 hours of payment. Its whole job is to convert a PayPal
+    receipt into a set of dated commitments, because the moment of maximum
+    doubt for a first-time customer is the hour after paying a directory they
+    have never bought from before.
+
+    The list is generated from post_sale.obligations() rather than written
+    per tier. One skeleton, factual slots — the same rule the outreach
+    templates follow. A $19 customer and a $79 customer get the same voice
+    and a different set of true lines, and neither is ever told they bought
+    something they did not: the lines ARE the entitlement check.
+
+    Deliberately no upsell. This is the one message whose only job is to
+    reassure, and an ask here would read as the first move of a machine that
+    has already stopped listening.
+#}
+
+{% block title %}Your {{ tool_name }} listing on AI Compass{% endblock %}
+
+{% block content %}
+<h1 class="heading">Thank you — here is what happens next</h1>
+
+<p class="paragraph">
+  Your payment for <strong>{{ tool_name }}</strong> came through, and the
+  listing is booked in. Rather than leave you guessing, here is everything
+  that purchase covers and when each part lands.
+</p>
+
+{% for line in lines %}
+<div class="feature-card">
+  <div class="feature-title">{{ line.label }}</div>
+  <div class="feature-desc">{{ line.promise }}</div>
+</div>
+{% endfor %}
+
+{% if tool_url %}
+<div class="btn-container">
+  <a href="{{ tool_url }}" class="cta-button">View your listing</a>
+</div>
+{% endif %}
+
+<p class="paragraph">
+  You do not need to chase any of it. If something above has not happened by
+  the time it says, reply to this email and tell me — that is a mistake on my
+  side, not something for you to manage.
+</p>
+
+<p class="fine-print">
+  Replies come straight to me, not to a ticket queue.
+</p>
+{% endblock %}

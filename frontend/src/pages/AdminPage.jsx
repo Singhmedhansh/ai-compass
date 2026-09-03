@@ -10,6 +10,7 @@ import ToolClaimsPanel from '../components/admin/ToolClaimsPanel'
 import SponsorSlotsPanel from '../components/admin/SponsorSlotsPanel'
 import ListingsPanel from '../components/admin/ListingsPanel'
 import OutreachCampaignPanel from '../components/admin/OutreachCampaignPanel'
+import PostSalePanel from '../components/admin/PostSalePanel'
 
 // ESLint no-unused-vars doesn't recognise JSX namespaced tags (<MotionDiv>)
 // as a usage of `motion`. Alias to constants to satisfy the rule — same
@@ -19,7 +20,7 @@ const MotionSpan = motion.span
 
 const ADMIN_EMAILS = ['singhmedhansh07@gmail.com']
 const TOOLS_PAGE_SIZE = 15
-const TABS = ['Overview', 'Tools', 'Sync', 'Submissions', 'Listings', 'Claims', 'Sponsors', 'Feedback', 'Analytics', 'Tier Breakdown', 'Email', 'Newsletter', 'Flags', 'Users', 'Reviews', 'Links', 'Outreach']
+const TABS = ['Overview', 'Tools', 'Sync', 'Submissions', 'Listings', 'Post-sale', 'Claims', 'Sponsors', 'Feedback', 'Analytics', 'Tier Breakdown', 'Email', 'Newsletter', 'Flags', 'Users', 'Reviews', 'Links', 'Outreach']
 
 const EMPTY_TOOL = {
   slug: '', name: '', tagline: '', description: '', category: '',
@@ -1436,6 +1437,12 @@ function AdminPage() {
               anyone for its twin.
             </p>
             <ListingsPanel api={api} />
+          </Card>
+        )}
+
+        {activeTab === 'Post-sale' && (
+          <Card>
+            <PostSalePanel api={api} />
           </Card>
         )}
 

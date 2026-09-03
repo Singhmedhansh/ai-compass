@@ -1,0 +1,138 @@
+name: Post-sale delivery
+
+# Daily at 08:30 UTC (14:00 IST). Deliberately the FIRST mail job of the day.
+#
+# Four jobs draw on the same 100/day Resend cap (app/send_budget.py), and the
+# order between them is a priority decision, not a scheduling accident:
+#
+#   08:30  post-sale     a customer who has PAID, on a 24h clock
+#   09:00  listing-live  a promise already made, to a founder who has not paid
+#   ~10:00 digest        subscribers who asked for it
+#   09:37  outreach      speculative, to people who never asked
+#
+# A paid confirmation that loses its slot to a cold email is the single worst
+# trade this system can make, so it goes first and by a clear margin.
+#
+# Both endpoints are idempotent: post_sale_confirmed_at and numbers_sent_at
+# are stamped only on a confirmed send, so a retried, duplicated or manually
+# triggered run mails nobody twice.
+on:
+  schedule:
+    - cron: '30 8 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'List who would be mailed, without sending'
+        required: false
+        default: 'false'
+        type: choice
+        options: ['false', 'true']
+
+concurrency:
+  group: post-sale
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  deliver:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      # The two phases are separate steps with continue-on-error, so a
+      # failure in the numbers sweep cannot stop confirmations from having
+      # run - and, more importantly, cannot hide that they did. A single
+      # combined step would report one status for two unrelated promises.
+      - name: Confirmations (within 24h of payment)
+        id: confirmations
+        continue-on-error: true
+        env:
+          DIGEST_SECRET: ${{ secrets.DIGEST_SECRET }}
+          DRY_RUN: ${{ inputs.dry_run || 'false' }}
+        run: |
+          set -uo pipefail
+          if [ -z "${DIGEST_SECRET:-}" ]; then
+            echo "::error::DIGEST_SECRET secret is not set. Add it under Settings > Secrets > Actions, matching the value in Render env."
+            exit 1
+          fi
+
+          URL="https://ai-compass.in/api/v1/admin/post-sale/confirmations"
+          if [ "$DRY_RUN" = "true" ]; then URL="${URL}?dry_run=1"; fi
+
+          echo "POST $URL"
+          RESP=$(curl -sS -w "\nHTTP_CODE:%{http_code}\n" \
+            -X POST \
+            -H "X-Digest-Secret: ${DIGEST_SECRET}" \
+            -H "Content-Type: application/json" \
+            --max-time 120 \
+            "$URL")
+          echo "$RESP"
+
+          CODE=$(echo "$RESP" | tail -1 | sed 's/HTTP_CODE://')
+          BODY=$(echo "$RESP" | sed '$d')
+          {
+            echo "## Post-sale confirmations"
+            echo '```json'
+            echo "$BODY"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "$CODE" != "200" ]; then
+            echo "::error::confirmations returned HTTP $CODE"
+            exit 1
+          fi
+
+      - name: Day-7 numbers
+        id: numbers
+        continue-on-error: true
+        env:
+          DIGEST_SECRET: ${{ secrets.DIGEST_SECRET }}
+          DRY_RUN: ${{ inputs.dry_run || 'false' }}
+        run: |
+          set -uo pipefail
+          URL="https://ai-compass.in/api/v1/admin/post-sale/numbers"
+          if [ "$DRY_RUN" = "true" ]; then URL="${URL}?dry_run=1"; fi
+
+          echo "POST $URL"
+          RESP=$(curl -sS -w "\nHTTP_CODE:%{http_code}\n" \
+            -X POST \
+            -H "X-Digest-Secret: ${DIGEST_SECRET}" \
+            -H "Content-Type: application/json" \
+            --max-time 120 \
+            "$URL")
+          echo "$RESP"
+
+          CODE=$(echo "$RESP" | tail -1 | sed 's/HTTP_CODE://')
+          BODY=$(echo "$RESP" | sed '$d')
+          {
+            echo "## Day-7 numbers"
+            echo '```json'
+            echo "$BODY"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "$CODE" != "200" ]; then
+            echo "::error::numbers returned HTTP $CODE"
+            exit 1
+          fi
+
+      # Decides the job's status, since both steps above swallow their own.
+      # Confirmations failing is louder than numbers failing: one is a 24h
+      # commitment to someone who has paid, the other is a courtesy a day
+      # either side of which nobody notices.
+      - name: Report outcome
+        if: always()
+        run: |
+          set -uo pipefail
+          C="${{ steps.confirmations.outcome }}"
+          N="${{ steps.numbers.outcome }}"
+          echo "confirmations=$C numbers=$N"
+          if [ "$C" != "success" ]; then
+            echo "::error::Post-sale confirmations did not run cleanly ($C). A paying customer may be waiting on a 24h promise."
+            exit 1
+          fi
+          if [ "$N" != "success" ]; then
+            echo "::warning::Day-7 numbers did not run cleanly ($N). It will retry tomorrow; nothing is lost because the stamp is only written on a confirmed send."
+          fi
