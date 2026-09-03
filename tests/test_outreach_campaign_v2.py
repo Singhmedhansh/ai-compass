@@ -25,7 +25,7 @@ inbound importer's exclusion rules.
 """
 import os
 import tempfile
-from datetime import date, datetime
+from datetime import date, datetime, timedelta, timezone
 
 import pytest
 
@@ -754,3 +754,116 @@ def test_the_cold_pool_copy_is_untouched(app):
     copy = _campaign_copy(_cand(POOL_COLD))
     assert "It is free" in copy["offer"]
     assert "has been live" not in copy["offer"]
+
+
+# ─── Two tracks: acquisition sends now, upgrade waits for evidence ───────────
+
+def _sendable(pool, **over):
+    """A candidate that clears every gate EXCEPT the one under test.
+
+    Without the current template version and a verified mailbox the
+    stale-draft and confidence gates fire first, and the test would pass or
+    fail for the wrong reason.
+    """
+    over.setdefault('draft_template_version', outreach_mod.CURRENT_DRAFT_TEMPLATE_VERSION)
+    over.setdefault('confidence_score', 95)
+    over.setdefault('verification_result', 'valid')
+    return _cand(pool, **over)
+
+
+def _live_days_ago(candidate, days, slug="ripe"):
+    """Give the candidate a listing that went live `days` ago."""
+    import json as _json
+
+    from app.models import CatalogTool, Submission
+
+    when = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(days=days)
+    sub = Submission(
+        name=candidate.product_name, website="https://simplai.example",
+        category="Productivity", description="d", pricing_model="free",
+        submitter_email=candidate.email, status="approved",
+        payment_status="unpaid", is_test=False,
+        submitted_at=when, approved_at=when,
+    )
+    db.session.add(sub)
+    db.session.flush()
+    db.session.add(CatalogTool(
+        slug=slug, name=candidate.product_name,
+        data=_json.dumps({"slug": slug}), submission_id=sub.id,
+        hidden=False, visible_at=when,
+    ))
+    candidate.ph_launch_id = f"inbound:{sub.id}"
+    db.session.commit()
+    return sub
+
+
+def test_an_upgrade_pitch_waits_until_the_listing_has_numbers(app):
+    """The rule the two-track split rests on.
+
+    An upgrade email the day after a listing goes live has no impressions to
+    report and no clicks to point at, so it asks the founder to pay for more
+    of something they cannot yet judge. That is also the difference between a
+    directory following up and a directory upselling on contact.
+    """
+    c = _sendable(POOL_INBOUND, status="approved")
+    _live_days_ago(c, 2)
+
+    ok, reason = outreach_mod.can_send_candidate(c)
+    assert ok is False
+    assert str(outreach_mod.UPGRADE_MIN_DAYS_LIVE) in reason
+    assert "Eligible" in reason, "The operator needs the date, not just a refusal."
+
+
+def test_a_ripe_listing_is_allowed_through(app):
+    c = _sendable(POOL_INBOUND, status="approved")
+    _live_days_ago(c, outreach_mod.UPGRADE_MIN_DAYS_LIVE + 1)
+
+    ok, reason = outreach_mod.can_send_candidate(c)
+    assert ok is True, reason
+
+
+def test_the_acquisition_track_never_waits(app):
+    """A cold candidate has no listing to ripen - the ask is the listing."""
+    c = _sendable(POOL_COLD, status="approved")
+    assert outreach_mod.upgrade_ready_at(c) is None
+    ok, reason = outreach_mod.can_send_candidate(c)
+    assert ok is True, reason
+
+
+def test_ripeness_never_blocks_an_approval(app):
+    """Timing, not eligibility - same treatment as the daily pacing gate.
+
+    Blocking approval instead would leave every inbound candidate
+    un-approvable for a fortnight, which makes the review queue useless.
+    """
+    c = _sendable(POOL_INBOUND, status="draft_ready")
+    _live_days_ago(c, 1)
+    ok, reason = outreach_mod.can_send_candidate(c, for_approval=True)
+    assert ok is True, reason
+
+
+def test_an_unresolvable_listing_does_not_hold_a_candidate_back(app):
+    """A failed lookup must not silently mute a candidate forever."""
+    c = _sendable(POOL_INBOUND, status="approved", ph_launch_id="inbound:999999")
+    assert outreach_mod.upgrade_ready_at(c) is None
+    ok, _ = outreach_mod.can_send_candidate(c)
+    assert ok is True
+
+
+def test_the_clock_runs_from_going_live_not_from_the_last_catalog_sync(app):
+    """CatalogTool.updated_at moves on every re-sync from JSON.
+
+    Measuring from it would report a listing published in July as having gone
+    live this morning, resetting the upgrade clock on every sweep and making
+    the window unreachable.
+    """
+    c = _sendable(POOL_INBOUND, status="approved")
+    sub = _live_days_ago(c, outreach_mod.UPGRADE_MIN_DAYS_LIVE + 5)
+
+    from app.models import CatalogTool
+    tool = CatalogTool.query.filter_by(submission_id=sub.id).one()
+    tool.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
+    db.session.commit()
+
+    ok, reason = outreach_mod.can_send_candidate(c)
+    assert ok is True, reason

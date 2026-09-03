@@ -78,34 +78,86 @@ def _inbound_listing_url(candidate):
     hidden, or still inside its release delay), which is the only case where
     the queue wording is true.
     """
+    submission, tool = _candidate_listing(candidate)
+    if tool is None or not tool.slug:
+        return None
+    if _listing_live_at(submission, tool) is None:
+        return None  # hidden, or still inside its release delay
+
+    return f"https://ai-compass.in/tools/{tool.slug}"
+
+
+def _aware(value):
+    if value is None:
+        return None
+    return value if value.tzinfo else value.replace(tzinfo=timezone.utc)
+
+
+def _listing_live_at(submission, tool):
+    """When this listing actually became public, or None if it has not.
+
+    Deliberately NOT CatalogTool.updated_at: that moves every time the catalog
+    re-syncs from JSON, so it would report a listing published in July as
+    having gone live this morning and reset the upgrade clock on every sweep.
+    The table has no created_at, so the honest stamp is the submission's
+    approved_at - the same one sponsorship and post_sale measure paid windows
+    from, for the same reason.
+
+    A future visible_at means the page is not reachable yet: nothing to
+    upgrade, and nothing to report on.
+    """
+    if tool is None or getattr(tool, "hidden", False):
+        return None
+
+    now = datetime.now(timezone.utc)
+    visible_at = _aware(getattr(tool, "visible_at", None))
+    if visible_at is not None and visible_at > now:
+        return None
+
+    approved_at = None
+    if submission is not None:
+        approved_at = _aware(getattr(submission, "approved_at", None)) or _aware(
+            getattr(submission, "submitted_at", None)
+        )
+
+    if visible_at and approved_at:
+        return max(visible_at, approved_at)
+    return visible_at or approved_at
+
+
+def _candidate_listing(candidate):
+    """(submission, catalog_row) behind this candidate, or (None, None)."""
     ref = getattr(candidate, "ph_launch_id", "") or ""
     if not ref.startswith("inbound:"):
-        return None
+        return None, None
     try:
         submission_id = int(ref.split(":", 1)[1])
     except (ValueError, IndexError):
-        return None
-
+        return None, None
     try:
-        from app.models import CatalogTool
+        from app.models import CatalogTool, Submission
 
+        submission = db.session.get(Submission, submission_id)
         tool = CatalogTool.query.filter_by(submission_id=submission_id).first()
+        return submission, tool
     except Exception:
-        log.exception("Could not resolve inbound listing for %s", ref)
+        log.exception("Could not resolve listing for %s", ref)
+        return None, None
+
+
+def upgrade_ready_at(candidate):
+    """When this candidate becomes eligible for an upgrade pitch, or None.
+
+    None means the question does not apply - an acquisition (cold) candidate
+    has no listing to ripen, and a candidate whose listing cannot be resolved
+    is not held back on the strength of a lookup that failed.
+    """
+    if getattr(candidate, "lead_pool", None) not in ALREADY_LISTED_POOLS:
         return None
-
-    if tool is None or getattr(tool, "hidden", False) or not tool.slug:
+    live_at = _listing_live_at(*_candidate_listing(candidate))
+    if live_at is None:
         return None
-
-    visible_at = getattr(tool, "visible_at", None)
-    if visible_at is not None:
-        now = datetime.now(timezone.utc)
-        if visible_at.tzinfo is None:
-            visible_at = visible_at.replace(tzinfo=timezone.utc)
-        if visible_at > now:
-            return None  # still inside its release delay
-
-    return f"https://ai-compass.in/tools/{tool.slug}"
+    return live_at + timedelta(days=UPGRADE_MIN_DAYS_LIVE)
 
 
 def _campaign_copy(candidate) -> dict:
@@ -2484,6 +2536,30 @@ LEGACY_FOLLOWUP_STAGE2_DAYS = 5
 # shape of a spam run. A steady 10 a day builds the reputation that gets the
 # later ones delivered, and 45 at 10/day still fits comfortably inside the
 # campaign window.
+# Days a listing must have been LIVE before we ask its founder to upgrade.
+#
+# The campaign runs two tracks and they are not the same conversation:
+#
+#   ACQUISITION (cold)  - the tool is not listed. The ask is "let me list it",
+#                         it is free, and there is nothing to wait for.
+#   UPGRADE (inbound /   - the tool is already live. The ask is placement ON
+#   traffic)              TOP of a listing they already have.
+#
+# An upgrade pitch sent the day after a listing goes live has nothing behind
+# it. There are no impressions to report, no clicks to point at, and the
+# founder has had no chance to see whether the listing does anything for them
+# - so the email is asking them to pay for more of something they cannot yet
+# judge. Fifteen days in, the numbers exist and the ask is evidenced.
+#
+# It is also the difference between a directory following up and a directory
+# upselling on contact. The first is a relationship; the second is why most
+# directory email gets ignored.
+UPGRADE_MIN_DAYS_LIVE = int(os.environ.get("OUTREACH_UPGRADE_MIN_DAYS_LIVE", "15"))
+
+# The pools whose ask is an upgrade rather than a listing. Both are already
+# published, so both wait out the window above.
+ALREADY_LISTED_POOLS = (POOL_INBOUND, POOL_TRAFFIC)
+
 CAMPAIGN_DAILY_SEND_MAX = int(os.environ.get("OUTREACH_CAMPAIGN_DAILY_MAX", "10"))
 
 
@@ -2608,6 +2684,26 @@ def can_send_candidate(c, for_approval=False) -> tuple[bool, str | None]:
                 "sending history, and pushing the whole batch through it in one "
                 "burst is the shape of a spam run — the rest go tomorrow."
             )
+
+        # ── An upgrade pitch waits until the listing has something to show ──
+        #
+        # Like the pacing gate above this is about TIMING, not about whether
+        # the candidate is sendable, so approving is still allowed - the
+        # operator queues them up and each goes out on the day it ripens.
+        # Blocking the approval instead would make the review queue unusable:
+        # every inbound candidate would sit un-approvable for a fortnight.
+        if not for_approval:
+            ready_at = upgrade_ready_at(c)
+            if ready_at is not None and ready_at > datetime.now(timezone.utc):
+                days = max(0, (ready_at - datetime.now(timezone.utc)).days)
+                return False, (
+                    f"{c.product_name}'s listing has not been live for "
+                    f"{UPGRADE_MIN_DAYS_LIVE} days yet — an upgrade pitch sent now "
+                    "has no impressions or clicks behind it, so it is asking them "
+                    "to pay for more of something they cannot judge yet. Eligible "
+                    f"{ready_at.date().isoformat()} (about {days} day"
+                    f"{'' if days == 1 else 's'} away)."
+                )
 
     if (c.confidence_score or 0) < CONFIDENCE_SEND_THRESHOLD:
         return False, (
