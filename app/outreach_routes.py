@@ -1,13 +1,14 @@
 import os
 import time
 import threading
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from flask import Blueprint, jsonify, request, current_app
 from flask_login import login_required, current_user
 
 from app import db, csrf
-from app.models import OutreachCandidate, OutreachEmailLog
+from app.models import OutreachCandidate, OutreachEmailLog, Submission
 from app.email_utils import send_email_with_details, read_prefill_token
+from app.outreach_qualify import qualification_summary
 from app.send_budget import reserve_send_slots, release_send_slots
 from app.outreach import (
     run_discovery_pipeline,
@@ -44,6 +45,7 @@ from app.outreach import (
     archive_v1_candidates,
     import_inbound_submitters,
     run_archive_discovery,
+    STATUS_APPROVED,
     CURRENT_CAMPAIGN,
     CAMPAIGN_SEND_BUDGET,
 )
@@ -113,13 +115,37 @@ def get_candidates():
     query = OutreachCandidate.query
     if status_filter:
         query = query.filter_by(status=status_filter)
-    
-    candidates = query.order_by(OutreachCandidate.created_at.desc()).all()
-    
+
+    # Campaign console filters. Absent, the endpoint behaves exactly as before
+    # so the legacy list keeps working.
+    campaign = request.args.get("campaign")
+    if campaign:
+        query = query.filter_by(campaign=campaign)
+    pool = request.args.get("pool")
+    if pool:
+        query = query.filter_by(lead_pool=pool)
+
+    # Best-evidenced candidates first. The console exists to spend a budget of
+    # 45 carefully, so the ones most likely to convert have to be the ones an
+    # operator reads first — created_at order buries them under whatever was
+    # scraped most recently.
+    candidates = query.order_by(
+        OutreachCandidate.fit_score.desc().nullslast(),
+        OutreachCandidate.created_at.desc(),
+    ).all()
+
     # Return formatted list
     res = []
     for c in candidates:
+        qualification = qualification_summary(c)
         res.append({
+            "campaign": c.campaign,
+            "lead_pool": c.lead_pool,
+            "fit_score": c.fit_score,
+            # Evidence behind the score, so approving a send is a judgement
+            # made on facts rather than on a bare number.
+            "qualification": qualification,
+            "failed_gate": (qualification or {}).get("failed_gate"),
             "id": c.id,
             "product_name": c.product_name,
             "tagline": c.tagline,
@@ -765,6 +791,150 @@ def campaign_archive_discovery():
     return jsonify(result)
 
 
+@outreach_bp.route("/api/v1/admin/outreach/candidates/<int:candidate_id>/approve", methods=["POST"])
+@csrf.exempt
+@login_required
+def approve_candidate(candidate_id):
+    """Marks one candidate approved to send, or takes that approval back.
+
+    This is the human step the whole campaign is built around: nothing under a
+    campaign sends until someone has read the draft and the evidence behind the
+    score. Body {"approved": false} reverses it while the email is still
+    unsent.
+
+    Approving deliberately runs the same can_send_candidate() checks the sender
+    will run, and refuses if they fail. Letting a candidate sit in 'approved'
+    with a dead mailbox or a stale draft would mean the queue says ready and
+    the sender silently disagrees.
+    """
+    if not _is_admin():
+        return jsonify({"error": "Admin access required."}), 403
+
+    c = db.session.get(OutreachCandidate, candidate_id)
+    if not c:
+        return jsonify({"error": "Candidate not found."}), 404
+
+    approved = bool((request.get_json(silent=True) or {}).get("approved", True))
+
+    if not approved:
+        if c.status == STATUS_APPROVED:
+            c.status = "draft_ready"
+            c.last_status_change_at = datetime.now(timezone.utc)
+            db.session.commit()
+        return jsonify({"id": c.id, "status": c.status})
+
+    if c.status not in ("draft_ready", STATUS_APPROVED):
+        return jsonify({
+            "error": f"Only a draft can be approved — this one is '{c.status}'.",
+        }), 400
+
+    # Eligibility as the SENDER will see it, asked without mutating the row —
+    # see the note on ignore_review_gate in can_send_candidate.
+    ok, reason = can_send_candidate(c, ignore_review_gate=True)
+    if not ok:
+        db.session.rollback()
+        return jsonify({"error": reason}), 400
+
+    c.status = STATUS_APPROVED
+    c.last_status_change_at = datetime.now(timezone.utc)
+    db.session.commit()
+    return jsonify({"id": c.id, "status": c.status})
+
+
+@outreach_bp.route("/api/v1/admin/outreach/campaign/gates", methods=["GET"])
+@login_required
+def campaign_gate_breakdown():
+    """What the qualification bar threw away, grouped by the gate that did it.
+
+    Invisible in the old console, which only listed candidates that survived.
+    Without this there is no way to tell a bar that is correctly strict from
+    one that is broken — if nearly everything dies at no_qualifying_price, the
+    price extractor is failing on real pricing pages rather than the market
+    being poor.
+    """
+    if not _is_admin():
+        return jsonify({"error": "Admin access required."}), 403
+
+    campaign = request.args.get("campaign") or CURRENT_CAMPAIGN
+    rejected = OutreachCandidate.query.filter(
+        OutreachCandidate.campaign == campaign,
+        OutreachCandidate.status == "rejected",
+    ).order_by(OutreachCandidate.created_at.desc()).all()
+
+    gates = {}
+    rows = []
+    for c in rejected:
+        q = qualification_summary(c) or {}
+        gate = q.get("failed_gate") or "below_score"
+        gates[gate] = gates.get(gate, 0) + 1
+        rows.append({
+            "id": c.id,
+            "product_name": c.product_name,
+            "website_url": c.website_url,
+            "failed_gate": gate,
+            "score": c.fit_score,
+            "evidence": (q.get("evidence") or [])[:6],
+        })
+
+    return jsonify({"campaign": campaign, "by_gate": gates, "total": len(rows), "rejected": rows})
+
+
+# The revenue target and its deadline. Both are campaign facts rather than
+# product config, which is why they live here beside the send budget.
+CAMPAIGN_REVENUE_TARGET = float(os.environ.get("OUTREACH_REVENUE_TARGET", "100"))
+CAMPAIGN_DEADLINE = date.fromisoformat(os.environ.get("OUTREACH_DEADLINE", "2026-09-15"))
+
+
+def _campaign_revenue_window_start():
+    """Revenue counts from the campaign's first send, not from an arbitrary date."""
+    first = db.session.query(db.func.min(OutreachEmailLog.sent_at)).join(
+        OutreachCandidate, OutreachEmailLog.candidate_id == OutreachCandidate.id
+    ).filter(
+        OutreachCandidate.campaign == CURRENT_CAMPAIGN,
+        OutreachEmailLog.status == "success",
+    ).scalar()
+    if first:
+        return first
+    # Nothing sent yet: count from today so an unrelated older sale cannot
+    # make the campaign look like it has already worked.
+    return datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+
+
+def _closing_combinations(remaining):
+    """Tier combinations that actually reach the remaining amount.
+
+    Exists because the obvious answer is wrong: two Fast-Track sales are $98
+    against a $100 target. Left unsaid, that is discovered after two closes,
+    at the point where it is too late to have pitched Reviewed to the
+    best-qualified leads instead.
+    """
+    from app.pricing_tiers import price_for_tier
+
+    if remaining <= 0:
+        return []
+
+    fast = price_for_tier("sponsored")   # 49
+    reviewed = price_for_tier("reviewed")  # 79
+
+    options = []
+    for n_reviewed in range(0, 4):
+        for n_fast in range(0, 5):
+            if n_reviewed == 0 and n_fast == 0:
+                continue
+            total = n_reviewed * reviewed + n_fast * fast
+            if total >= remaining:
+                options.append({
+                    "reviewed": n_reviewed,
+                    "fast_track": n_fast,
+                    "total": round(total, 2),
+                    "sales": n_reviewed + n_fast,
+                })
+    # Fewest sales first, then the smallest total that still clears it — the
+    # easiest real path, not the largest number.
+    options.sort(key=lambda o: (o["sales"], o["total"]))
+    return options[:3]
+
+
 @outreach_bp.route("/api/v1/admin/outreach/campaign/status", methods=["GET"])
 @login_required
 def campaign_status():
@@ -795,6 +965,30 @@ def campaign_status():
         .group_by(OutreachCandidate.status).all()
     )
 
+    # ── Revenue, and the honest arithmetic behind the target ────────────
+    #
+    # Counted from verified payments only. payment_status 'verified' is the one
+    # value that means the server independently confirmed a real payment (see
+    # Submission's own docstring); anything else is a claim.
+    #
+    # Deliberately counts ALL revenue in the window rather than only sales
+    # attributable to an outreach email. Attribution here would be a guess —
+    # a founder who got the email, sat on it, and later arrived through search
+    # is not distinguishable from one who never read it — and a made-up
+    # attribution number is worse than an honest total for deciding whether to
+    # keep sending.
+    from app.pricing_tiers import price_for_tier, tier_for_pricing_model
+
+    since = _campaign_revenue_window_start()
+    paid = Submission.query.filter(
+        Submission.payment_status == "verified",
+        Submission.submitted_at >= since,
+    ).all()
+    revenue = sum(price_for_tier(tier_for_pricing_model(p.pricing_model)) for p in paid)
+
+    remaining_needed = max(0.0, CAMPAIGN_REVENUE_TARGET - revenue)
+    days_left = (CAMPAIGN_DEADLINE - datetime.now(timezone.utc).date()).days
+
     return jsonify({
         "campaign": CURRENT_CAMPAIGN,
         "send_budget": CAMPAIGN_SEND_BUDGET,
@@ -803,6 +997,18 @@ def campaign_status():
         "candidates_by_pool": by_pool,
         "candidates_by_status": by_status,
         "replied": by_status.get("replied", 0),
+        "awaiting_review": by_status.get("draft_ready", 0),
+        "approved": by_status.get(STATUS_APPROVED, 0),
+        "revenue": round(revenue, 2),
+        "revenue_target": CAMPAIGN_REVENUE_TARGET,
+        "revenue_remaining": round(remaining_needed, 2),
+        "sales_count": len(paid),
+        "deadline": CAMPAIGN_DEADLINE.isoformat(),
+        "days_to_deadline": days_left,
+        # The arithmetic that is easy to get wrong: two Fast-Track sales are
+        # $98, which misses $100. Surfaced so the console can say what actually
+        # closes the gap instead of leaving it to be rediscovered at $98.
+        "closes_the_gap": _closing_combinations(remaining_needed),
     })
 
 

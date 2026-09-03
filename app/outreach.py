@@ -2416,7 +2416,7 @@ def campaign_sends_remaining(campaign=None):
     return max(0, CAMPAIGN_SEND_BUDGET - campaign_sends_used(campaign))
 
 
-def can_send_candidate(c) -> tuple[bool, str | None]:
+def can_send_candidate(c, ignore_review_gate=False) -> tuple[bool, str | None]:
     """Single source of truth for 'is this candidate allowed to be emailed
     right now'. Returns (ok, reason_if_not). Used by BOTH the manual send
     routes and run_automated_initial_sends()."""
@@ -2459,7 +2459,14 @@ def can_send_candidate(c) -> tuple[bool, str | None]:
     # 'approved' is set by a human in the admin console. Everything else in
     # the campaign stays put no matter how good its score looks.
     if c.campaign:
-        if c.status != STATUS_APPROVED:
+        # `ignore_review_gate` is for the approval endpoint, which needs to ask
+        # "would this send if I approved it?" without first mutating the row.
+        # Setting the status to approved and restoring it on failure looked
+        # equivalent and was not: the checks below run their own queries, and
+        # SQLAlchemy's autoflush wrote the optimistic 'approved' to the
+        # database mid-check. A REFUSED approval could leave the row sitting in
+        # the approved queue.
+        if not ignore_review_gate and c.status != STATUS_APPROVED:
             return False, (
                 f"Campaign '{c.campaign}' candidates are sent only after review. "
                 f"Status is '{c.status}' — approve it in the Outreach console first."

@@ -9,6 +9,7 @@ import EditorialReviewsPanel from '../components/admin/EditorialReviewsPanel'
 import ToolClaimsPanel from '../components/admin/ToolClaimsPanel'
 import SponsorSlotsPanel from '../components/admin/SponsorSlotsPanel'
 import ListingsPanel from '../components/admin/ListingsPanel'
+import OutreachCampaignPanel from '../components/admin/OutreachCampaignPanel'
 
 // ESLint no-unused-vars doesn't recognise JSX namespaced tags (<MotionDiv>)
 // as a usage of `motion`. Alias to constants to satisfy the rule — same
@@ -243,7 +244,7 @@ function AdminPage() {
   // Outreach pipeline states
   const [candidates, setCandidates] = useState([])
   const [outreachLogs, setOutreachLogs] = useState([])
-  const [outreachSubTab, setOutreachSubTab] = useState('candidates')
+  const [outreachSubTab, setOutreachSubTab] = useState('campaign')
   const [outreachFilter, setOutreachFilter] = useState('all')
   const [selectedCandidateIds, setSelectedCandidateIds] = useState([])
   const [editingCandidate, setEditingCandidate] = useState(null)
@@ -288,7 +289,7 @@ function AdminPage() {
   }, [navigate])
 
   const reloadTools = useCallback(async () => {
-    const data = await api('/api/v1/tools')
+    const data = await api('/api/v1/tools?fields=card')
     setTools(Array.isArray(data) ? data : data.results || [])
   }, [])
 
@@ -299,7 +300,7 @@ function AdminPage() {
       try {
         const [s, t, u, r] = await Promise.all([
           api('/api/v1/admin/stats').catch(() => ({})),
-          api('/api/v1/tools').catch(() => []),
+          api('/api/v1/tools?fields=card').catch(() => []),
           api('/api/v1/admin/users').catch(() => []),
           api('/api/v1/admin/reviews').catch(() => ({ reviews: [] })),
         ])
@@ -1893,6 +1894,14 @@ function AdminPage() {
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex gap-2">
                 <button
+                  onClick={() => setOutreachSubTab('campaign')}
+                  className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+                    outreachSubTab === 'campaign' ? 'bg-accent text-bg' : 'bg-bg-elev border border-line text-ink-2 hover:bg-bg-sunk'
+                  }`}
+                >
+                  Campaign
+                </button>
+                <button
                   onClick={() => setOutreachSubTab('candidates')}
                   className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
                     outreachSubTab === 'candidates' ? 'bg-accent text-bg' : 'bg-bg-elev border border-line text-ink-2 hover:bg-bg-sunk'
@@ -2141,6 +2150,11 @@ function AdminPage() {
                 </div>
               </Card>
             )}
+
+            {/* Campaign Sub-Tab — the console for spending the 45. The flat
+                candidate list below it still exists for the uncampaigned v1
+                pool and for ad-hoc lookups. */}
+            {outreachSubTab === 'campaign' && <OutreachCampaignPanel api={api} />}
 
             {/* Candidates Sub-Tab */}
             {outreachSubTab === 'candidates' && (
