@@ -25,7 +25,7 @@ inbound importer's exclusion rules.
 """
 import os
 import tempfile
-from datetime import date
+from datetime import date, datetime
 
 import pytest
 
@@ -674,3 +674,83 @@ def test_inbound_leads_are_scored_but_never_gated(app, monkeypatch):
     assert outreach_qualify.qualification_summary(c)["failed_gate"] is not None, (
         "The gate failure is recorded for ranking, not acted on."
     )
+
+
+# ─── The inbound copy has to match what is actually published ────────────────
+
+def _listed(candidate, slug="simplai", hidden=False, visible_at=None):
+    """Give this inbound candidate a real catalog row, the way the import does."""
+    import json as _json
+
+    from app.models import CatalogTool, Submission
+
+    sub = Submission(
+        name=candidate.product_name, website="https://simplai.example",
+        category="Productivity", description="d", pricing_model="free",
+        submitter_email=candidate.email, status="approved",
+        payment_status="unpaid", is_test=False,
+    )
+    db.session.add(sub)
+    db.session.flush()
+    db.session.add(CatalogTool(
+        slug=slug, name=candidate.product_name,
+        data=_json.dumps({"slug": slug}), submission_id=sub.id,
+        hidden=hidden, visible_at=visible_at,
+    ))
+    candidate.ph_launch_id = f"inbound:{sub.id}"
+    db.session.commit()
+    return sub
+
+
+def test_a_live_inbound_listing_is_never_called_queued(app):
+    """The error that cost the most credibility for the least reason.
+
+    Every inbound candidate in the first real import was already live - one
+    had claimed their listing the day before - and the copy told all of them
+    their tool was "in the queue for a free listing". To a founder whose page
+    has been public for weeks that reads as not knowing our own site, and it
+    said it to the warmest leads in the campaign.
+    """
+    c = _cand(POOL_INBOUND)
+    _listed(c)
+
+    copy = _campaign_copy(c)
+    assert "in the queue" not in copy["offer"].lower()
+    assert "has been live" in copy["offer"]
+    assert "https://ai-compass.in/tools/simplai" in copy["offer"], (
+        "Naming the page is what makes the rest of the email credible - the "
+        "founder can check it in one click."
+    )
+
+
+def test_the_live_copy_says_the_listing_is_free_and_unchanged(app):
+    """Answers the question the founder actually has: I am already listed,
+    so what am I being asked to buy?"""
+    c = _cand(POOL_INBOUND)
+    _listed(c)
+    copy = _campaign_copy(c)
+    assert "stays free" in copy["offer"]
+    assert "placement" in copy["offer"].lower()
+
+
+def test_a_genuinely_queued_listing_still_says_queued(app):
+    """The old wording is not wrong, it was just applied to everyone."""
+    c = _cand(POOL_INBOUND)  # no catalog row at all
+    assert "in the queue" in _campaign_copy(c)["offer"]
+
+
+@pytest.mark.parametrize("kwargs,why", [
+    ({"hidden": True}, "a hidden row is not a published page"),
+    ({"visible_at": datetime(2099, 1, 1)}, "still inside its release delay"),
+])
+def test_a_listing_that_is_not_actually_public_is_not_claimed_as_live(app, kwargs, why):
+    c = _cand(POOL_INBOUND)
+    _listed(c, **kwargs)
+    assert "has been live" not in _campaign_copy(c)["offer"], why
+
+
+def test_the_cold_pool_copy_is_untouched(app):
+    """The cold pitch must keep offering the free listing it is actually for."""
+    copy = _campaign_copy(_cand(POOL_COLD))
+    assert "It is free" in copy["offer"]
+    assert "has been live" not in copy["offer"]

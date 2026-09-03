@@ -278,3 +278,46 @@ def test_qualification_never_raises_on_a_junk_candidate(app):
     # discovery run that is part-way through a batch.
     v = qualify_candidate(_cand(website_url=None), facts=_facts(pricing=None))
     assert v["passed"] is False and v["score"] == 0
+
+
+# ─── The ceiling clears the gate too ──────────────────────────────────────────
+
+@pytest.mark.parametrize("pricing,why", [
+    ("Starter $5/mo · Growth $99/mo · Scale $499/mo",
+     "a $499 tier is budget, whatever the entry point costs"),
+    ("Free $0 · Pro $9/mo · Business $108/mo",
+     "same shape, smaller ceiling, still well past $49"),
+])
+def test_a_high_ceiling_clears_a_low_entry_tier(app, pricing, why):
+    """Reading only the cheapest plan mistakes freemium for poverty.
+
+    This is a real inbound lead: priced $5-$499/mo, it scored zero and ranked
+    last in a pool of eleven, because the gate asked "is the cheapest thing
+    they sell over $19" rather than "can they spend $49".
+    """
+    v = qualify_candidate(_cand(), facts=_facts(pricing=pricing))
+    assert v["failed_gate"] is None, why
+    hit = [e for e in v["evidence"] if e["signal"] == "qualifying_price"][0]
+    assert hit["hit"] is True
+    assert "sells up to" in hit["detail"], (
+        "The operator has to see WHY a $5/mo product cleared a $19 bar."
+    )
+
+
+@pytest.mark.parametrize("pricing", [
+    "Pro $9.90/mo",                    # one cheap tier, no ceiling
+    "Basic $4.90/mo · Plus $19.90/mo",  # a ladder that never reaches $49
+    "Free forever",
+])
+def test_a_low_ceiling_still_fails(app, pricing):
+    """The bar still has to reject something, or it is not a bar."""
+    v = qualify_candidate(_cand(), facts=_facts(pricing=pricing))
+    assert v["failed_gate"] == GATE_NO_QUALIFYING_PRICE
+
+
+def test_the_rejection_says_both_ways_it_could_have_passed(app):
+    v = qualify_candidate(_cand(), facts=_facts(pricing="Basic $4.90/mo · Plus $19.90/mo"))
+    detail = [e for e in v["evidence"] if e["signal"] == "qualifying_price"][0]["detail"]
+    assert "19" in detail and "49" in detail and "19.9" in detail, (
+        f"A rejection has to name the bar AND the figure that missed it: {detail}"
+    )

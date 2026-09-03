@@ -64,6 +64,50 @@ POOL_COLD = "cold"         # discovered; no prior contact
 VALID_LEAD_POOLS = frozenset({POOL_INBOUND, POOL_TRAFFIC, POOL_COLD})
 
 
+def _inbound_listing_url(candidate):
+    """Public URL of an inbound candidate's OWN listing, if it is already live.
+
+    Every inbound candidate is someone who submitted a tool to us, and in
+    practice they are all already listed - the import filters out rejected and
+    paid rows, not published ones. So the warm copy cannot assume the listing
+    is still pending: telling a founder whose page has been live for weeks
+    that it is "in the queue" says we do not know our own site, and it says it
+    to the warmest leads in the campaign.
+
+    Returns None when the listing genuinely is not live yet (no catalog row,
+    hidden, or still inside its release delay), which is the only case where
+    the queue wording is true.
+    """
+    ref = getattr(candidate, "ph_launch_id", "") or ""
+    if not ref.startswith("inbound:"):
+        return None
+    try:
+        submission_id = int(ref.split(":", 1)[1])
+    except (ValueError, IndexError):
+        return None
+
+    try:
+        from app.models import CatalogTool
+
+        tool = CatalogTool.query.filter_by(submission_id=submission_id).first()
+    except Exception:
+        log.exception("Could not resolve inbound listing for %s", ref)
+        return None
+
+    if tool is None or getattr(tool, "hidden", False) or not tool.slug:
+        return None
+
+    visible_at = getattr(tool, "visible_at", None)
+    if visible_at is not None:
+        now = datetime.now(timezone.utc)
+        if visible_at.tzinfo is None:
+            visible_at = visible_at.replace(tzinfo=timezone.utc)
+        if visible_at > now:
+            return None  # still inside its release delay
+
+    return f"https://ai-compass.in/tools/{tool.slug}"
+
+
 def _campaign_copy(candidate) -> dict:
     """The pool-specific FACTS inside the one shared email template.
 
@@ -101,11 +145,25 @@ def _campaign_copy(candidate) -> dict:
     # the placement, and the reassurance is that free stays free.
     if pool in (POOL_INBOUND, POOL_TRAFFIC):
         if pool == POOL_INBOUND:
-            offer = (
-                f"You submitted {name} to AI Compass, which I appreciated - it is exactly "
-                "the kind of tool the directory is for. It is in the queue for a free "
-                "listing either way, and here is what that gets you:"
-            )
+            listing_url = _inbound_listing_url(candidate)
+            if listing_url:
+                # The line that makes the rest of the email credible: it names
+                # the page, so the founder can check it in one click and see
+                # that we know what we already published for them. It also
+                # makes the ask unambiguous - the listing is theirs and free,
+                # and what is being offered is the placement on top of it.
+                offer = (
+                    f"You submitted {name} to AI Compass a while back, and it has been "
+                    f"live since - here is the page: {listing_url}. That listing is "
+                    "yours, it stays free, and nothing below changes it. What I am "
+                    "writing about is the placement it sits in:"
+                )
+            else:
+                offer = (
+                    f"You submitted {name} to AI Compass, which I appreciated - it is "
+                    "exactly the kind of tool the directory is for. It is in the queue "
+                    "for a free listing either way, and here is what that gets you:"
+                )
         else:
             offer = (
                 f"{name} is already listed on AI Compass, and the listing is doing real "
@@ -206,7 +264,13 @@ def _prefill_url(candidate) -> str:
 # first email is what kept the reply rate near zero. Bumping this marks all of
 # them stale so they are regenerated against the free-first template rather
 # than sent as they stand.
-CURRENT_DRAFT_TEMPLATE_VERSION = 4
+# 5: inbound copy no longer claims a live listing is "in the queue". Every
+# inbound candidate imported so far was ALREADY listed and live - one of them
+# had claimed their listing the day before - so the drafts generated under
+# version 4 have to be regenerated rather than sent. can_send_candidate()
+# refuses a stale draft and the cron's discovery phase refreshes them, so
+# bumping this is what actually stops the wrong copy going out.
+CURRENT_DRAFT_TEMPLATE_VERSION = 5
 
 
 def _outreach_send_headers(email: str) -> dict[str, str]:

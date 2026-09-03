@@ -43,6 +43,23 @@ log = logging.getLogger(__name__)
 # already paying for its own software monthly can expense $49 once.
 MIN_MONTHLY_PRICE = float(os.environ.get("OUTREACH_QUALIFY_MIN_PRICE", "19"))
 
+# A ceiling that clears the gate on its own, even when the entry tier does not.
+#
+# The gate originally read only the LOWEST monthly price, which asks "is the
+# cheapest thing they sell more than $19" - not the question that matters. A
+# company selling $5/mo at the bottom and $499/mo at the top is obviously able
+# to spend $49, and reading the floor alone scored it zero. That is exactly
+# what happened to a real inbound lead priced $5-$499/mo: the strongest budget
+# signal in the pool was the reason it ranked last.
+#
+# A freemium ladder is evidence of a business, not of poverty. 49 rather than
+# 19 because a single tier at this level is the claim being tested - that
+# someone here signs off on a $49 one-time spend without a procurement
+# conversation.
+QUALIFYING_TOP_TIER_PRICE = float(
+    os.environ.get("OUTREACH_QUALIFY_TOP_TIER_PRICE", "49")
+)
+
 # 3-8 months. Below 90 days they are still in launch noise with no revenue to
 # spend; past ~9 months the "recently launched, looking for distribution"
 # framing stops being true and the email reads as untargeted.
@@ -317,13 +334,31 @@ def qualify_candidate(candidate, facts=None):
 
     # ── Gate 2: a real, self-serve price we can actually read ────────────
     lowest = prices["min_monthly"]
-    if lowest is None or lowest < MIN_MONTHLY_PRICE:
+    highest = prices["max_monthly"]
+
+    # Either end of the ladder can clear this. See QUALIFYING_TOP_TIER_PRICE:
+    # judging a company by its cheapest plan mistakes a freemium entry point
+    # for an absence of budget.
+    entry_ok = lowest is not None and lowest >= MIN_MONTHLY_PRICE
+    ceiling_ok = highest is not None and highest >= QUALIFYING_TOP_TIER_PRICE
+
+    if not entry_ok and not ceiling_ok:
         shown = f"${lowest:g}/mo" if lowest is not None else "none found"
-        note("qualifying_price", False,
-             f"Entry price {shown} (need ${MIN_MONTHLY_PRICE:g}+/mo)")
+        detail = f"Entry price {shown} (need ${MIN_MONTHLY_PRICE:g}+/mo"
+        if highest is not None:
+            detail += f", or a ${QUALIFYING_TOP_TIER_PRICE:g}+/mo tier; top is ${highest:g}/mo)"
+        else:
+            detail += f", or a ${QUALIFYING_TOP_TIER_PRICE:g}+/mo tier)"
+        note("qualifying_price", False, detail)
         return verdict(0, GATE_NO_QUALIFYING_PRICE)
 
-    note("qualifying_price", True, f"Entry tier ${lowest:g}/mo")
+    if entry_ok:
+        note("qualifying_price", True, f"Entry tier ${lowest:g}/mo")
+    else:
+        # Worth spelling out in the evidence: the operator scanning the console
+        # should see WHY a $5/mo product cleared a $19 bar.
+        note("qualifying_price", True,
+             f"Entry tier ${lowest:g}/mo, but sells up to ${highest:g}/mo")
 
     # ── Gate 3: shipping for 3-8 months ──────────────────────────────────
     #
