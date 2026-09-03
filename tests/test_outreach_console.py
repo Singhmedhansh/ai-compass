@@ -491,6 +491,29 @@ def test_score_still_breaks_ties_inside_a_pool(app, monkeypatch):
 
 # ─── The import endpoint's confirm flag ───────────────────────────────────────
 
+def _wait_for_outreach_job(kind, timeout=30.0):
+    """Block until the background outreach job of `kind` reports finished.
+
+    The endpoint returns 202 and the work happens on a daemon thread, so
+    asserting on the database immediately would race it.
+    """
+    import time
+
+    from app.outreach_routes import _outreach_job_state
+
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        if (_outreach_job_state.get("kind") == kind
+                and not _outreach_job_state.get("running")):
+            return _outreach_job_state
+        time.sleep(0.05)
+    raise AssertionError(
+        f"background job {kind!r} did not finish within {timeout}s: "
+        f"{_outreach_job_state}"
+    )
+
+
+
 def test_inbound_import_writes_only_when_confirm_is_actually_received(
     app, admin_client, monkeypatch
 ):
@@ -530,13 +553,19 @@ def test_inbound_import_writes_only_when_confirm_is_actually_received(
     )
     assert OutreachCandidate.query.count() == 0
 
-    # Properly declared, it writes.
+    # Properly declared, it accepts the write and hands it to a background
+    # worker. Synchronously it would chain a pricing fetch, an RDAP lookup and
+    # an LLM draft per candidate - minutes for a real pool, which is exactly
+    # how it came back as a 60s browser timeout while the server was still
+    # working and holding a gthread worker.
     resp = admin_client.post(url, json={"confirm": True})
+    assert resp.status_code == 202
     body = resp.get_json()
-    assert body.get("dry_run") is False
-    assert body["imported"] == 1
-    assert OutreachCandidate.query.count() == 1
+    assert body["started"] is True
 
+    _wait_for_outreach_job("inbound-import")
+
+    assert OutreachCandidate.query.count() == 1
     c = OutreachCandidate.query.one()
     assert c.lead_pool == outreach_mod.POOL_INBOUND
     assert c.campaign == outreach_mod.CURRENT_CAMPAIGN

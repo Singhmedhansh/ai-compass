@@ -248,8 +248,46 @@ export default function OutreachCampaignPanel({ api }) {
         method: 'POST',
         body: JSON.stringify(confirm ? { confirm: true } : {}),
       })
-      setImportResult({ ...res, confirmed: confirm })
-      if (confirm) await load()
+
+      // The count answers inline. The write returns 202 and runs in the
+      // background: every candidate is scored (a pricing-page fetch plus an
+      // RDAP lookup) and then drafted through an LLM, which is seconds each
+      // and minutes in total - far past any request timeout. Poll job-status
+      // for the real finish instead of guessing, the same way discovery and
+      // re-enrich already do.
+      if (confirm && res?.started) {
+        const deadline = Date.now() + 10 * 60 * 1000
+        // eslint-disable-next-line no-constant-condition
+        while (true) {
+          if (Date.now() > deadline) {
+            setError('The import is taking longer than 10 minutes. It may still '
+              + 'be running — press Refresh to see what has landed.')
+            break
+          }
+          await new Promise((r) => setTimeout(r, 3000))
+          let job = null
+          try {
+            job = await api('/api/v1/admin/outreach/job-status')
+          } catch {
+            continue  // transient; keep polling
+          }
+          if (job && job.kind === 'inbound-import' && !job.running) {
+            if (job.error) {
+              setError(`The import failed: ${job.error}`)
+            } else {
+              setImportResult({ ...(job.result || {}), confirmed: true })
+            }
+            break
+          }
+          // Candidates land as they are drafted, so refresh while waiting -
+          // the queue filling up is the honest progress indicator.
+          await load()
+        }
+        await load()
+      } else {
+        setImportResult({ ...res, confirmed: confirm })
+        if (confirm) await load()
+      }
     } catch (e) {
       setError(e?.message || 'The inbound import did not run.')
     } finally {
@@ -343,7 +381,7 @@ export default function OutreachCampaignPanel({ api }) {
               onClick={() => runImport(true)}
               className="rounded-lg bg-accent px-3 py-1.5 text-xs font-bold text-white hover:opacity-90 disabled:opacity-40"
             >
-              {importBusy === 'import' ? 'Importing…' : 'Import into campaign'}
+              {importBusy === 'import' ? 'Importing… (a few minutes)' : 'Import into campaign'}
             </button>
           </div>
         </div>

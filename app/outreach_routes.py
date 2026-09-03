@@ -719,14 +719,71 @@ def campaign_inbound_import():
     payload = request.get_json(silent=True) or {}
     confirm = bool(payload.get("confirm"))
     limit = payload.get("limit")
+    limit = int(limit) if limit else None
 
-    result = import_inbound_submitters(
-        campaign=CURRENT_CAMPAIGN,
-        dry_run=not confirm,
-        limit=int(limit) if limit else None,
-    )
-    result["campaign"] = CURRENT_CAMPAIGN
-    return jsonify(result)
+    # The dry run is pure database reads - no network, no LLM - so it answers
+    # in milliseconds and stays synchronous. That matters: the count is the
+    # number the campaign is sized from and it should come back instantly.
+    if not confirm:
+        result = import_inbound_submitters(
+            campaign=CURRENT_CAMPAIGN, dry_run=True, limit=limit,
+        )
+        result["campaign"] = CURRENT_CAMPAIGN
+        return jsonify(result)
+
+    # The write is a different animal entirely, and running it in the request
+    # thread was wrong. Per candidate it calls qualify_candidate() - which
+    # fetches a pricing page and does an RDAP lookup - and then
+    # generate_draft_via_gemini(), an LLM round-trip. Eleven of those is
+    # minutes, not seconds: the browser gave up at 60s while the server was
+    # still working, holding a gthread worker and a pooled connection the
+    # whole time on a single-shared-vCPU instance.
+    #
+    # Same background pattern as /trigger-discovery and /re-enrich, including
+    # the shared job lock - two of these running at once is what previously
+    # starved this instance badly enough to stop answering /healthz.
+    if not _outreach_job_lock.acquire(blocking=False):
+        return jsonify({
+            "error": "Another outreach job is already running — wait for it to "
+                     "finish before starting the import."
+        }), 409
+
+    try:
+        app_obj = current_app._get_current_object()
+        app_ctx = app_obj.app_context()
+        _job_start("inbound-import")
+
+        def _bg():
+            try:
+                with app_ctx:
+                    try:
+                        res = import_inbound_submitters(
+                            campaign=CURRENT_CAMPAIGN, dry_run=False, limit=limit,
+                        )
+                        app_obj.logger.info(
+                            "Inbound import completed: %s imported.", res.get("imported"),
+                        )
+                        _job_finish(result=res)
+                    except Exception as ex:
+                        app_obj.logger.exception("Inbound import failed: %s", ex)
+                        _job_finish(error=str(ex))
+            finally:
+                _outreach_job_lock.release()
+
+        threading.Thread(target=_bg, name="inbound-import-bg", daemon=True).start()
+
+        return jsonify({
+            "success": True,
+            "started": True,
+            "campaign": CURRENT_CAMPAIGN,
+            "message": "Importing in the background. Each candidate is scored and "
+                       "drafted, which takes a few seconds each — they appear in "
+                       "Needs review as they land.",
+        }), 202
+    except Exception as e:  # noqa: BLE001
+        _outreach_job_lock.release()
+        current_app.logger.exception("Could not start inbound import")
+        return jsonify({"error": str(e)}), 500
 
 
 @outreach_bp.route("/api/v1/admin/outreach/campaign/archive-v1", methods=["POST"])
