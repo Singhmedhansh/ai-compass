@@ -424,6 +424,10 @@ function AdminPage() {
     }
   }, [])
 
+  // Bumped whenever a background outreach job finishes, so self-contained
+  // panels with their own state reload too rather than showing pre-job data.
+  const [outreachRefreshKey, setOutreachRefreshKey] = useState(0)
+
   const loadOutreachData = useCallback(async () => {
     setLoading(true)
     try {
@@ -471,6 +475,7 @@ function AdminPage() {
       if (job && job.kind === kind && !job.running) {
         if (job.error) toast.error(`Failed: ${job.error}`, { id: toastId })
         else toast.success(describe(job.result || {}), { id: toastId })
+        setOutreachRefreshKey((k) => k + 1)
         break
       }
       // Rows land as they are processed, so refresh while waiting - the list
@@ -2249,7 +2254,7 @@ function AdminPage() {
             {/* Campaign Sub-Tab — the console for spending the 45. The flat
                 candidate list below it still exists for the uncampaigned v1
                 pool and for ad-hoc lookups. */}
-            {outreachSubTab === 'campaign' && <OutreachCampaignPanel api={api} />}
+            {outreachSubTab === 'campaign' && <OutreachCampaignPanel api={api} refreshKey={outreachRefreshKey} />}
 
             {/* Candidates Sub-Tab */}
             {outreachSubTab === 'candidates' && (

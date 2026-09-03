@@ -194,7 +194,7 @@ function CandidateRow({ c, onApprove, busy }) {
   )
 }
 
-export default function OutreachCampaignPanel({ api }) {
+export default function OutreachCampaignPanel({ api, refreshKey = 0 }) {
   const [status, setStatus] = useState(null)
   const [candidates, setCandidates] = useState([])
   const [gates, setGates] = useState(null)
@@ -235,7 +235,14 @@ export default function OutreachCampaignPanel({ api }) {
     }
   }, [api])
 
-  useEffect(() => { load() }, [load])
+  // refreshKey is bumped by AdminPage when a background outreach job finishes.
+  //
+  // This panel owns its own candidate list, so the job poller reloading
+  // AdminPage's state left this view showing pre-job data: Regenerate would
+  // report "Regenerated 20 drafts onto template v6" while the tabs still read
+  // Approved (19) / Needs review (0). The numbers the operator acts on were
+  // stale in exactly the moment they mattered most.
+  useEffect(() => { load() }, [load, refreshKey])
 
   const approve = useCallback(async (c, approved) => {
     setBusyId(c.id)
