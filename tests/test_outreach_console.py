@@ -443,6 +443,32 @@ def test_campaign_status_reports_todays_pacing(admin_client, app):
     assert body["daily_remaining"] == outreach_mod.CAMPAIGN_DAILY_SEND_MAX
 
 
+def _give_live_listing(candidate, slug):
+    """Attach an approved submission and a live catalog row to a candidate."""
+    import json as _json
+
+    from app.models import CatalogTool
+
+    when = (datetime.now(timezone.utc)
+            - timedelta(days=outreach_mod.UPGRADE_MIN_DAYS_LIVE + 5)).replace(tzinfo=None)
+    sub = Submission(
+        name=candidate.product_name, website=f"https://{slug}.example",
+        category="Productivity", description="d", pricing_model="free",
+        submitter_email=candidate.email, status="approved",
+        submitted_at=when, approved_at=when,
+    )
+    db.session.add(sub)
+    db.session.flush()
+    db.session.add(CatalogTool(
+        slug=slug, name=candidate.product_name,
+        data=_json.dumps({"name": candidate.product_name}),
+        hidden=False, visible_at=when, submission_id=sub.id,
+    ))
+    candidate.ph_launch_id = f"inbound:{sub.id}"
+    db.session.commit()
+    return sub
+
+
 def test_the_warm_pools_send_before_the_cold_one(app, monkeypatch):
     """Warm leads are scored but never gated, so their scores run low.
 
@@ -460,10 +486,17 @@ def test_the_warm_pools_send_before_the_cold_one(app, monkeypatch):
 
     _cand(product_name="Cold Co", email="cold@x.example", fit_score=13,
           lead_pool=outreach_mod.POOL_COLD, status=outreach_mod.STATUS_APPROVED)
-    _cand(product_name="Inbound Co", email="inbound@x.example", fit_score=0,
-          lead_pool=outreach_mod.POOL_INBOUND, status=outreach_mod.STATUS_APPROVED)
-    _cand(product_name="Traffic Co", email="traffic@x.example", fit_score=5,
-          lead_pool=outreach_mod.POOL_TRAFFIC, status=outreach_mod.STATUS_APPROVED)
+    inbound = _cand(product_name="Inbound Co", email="inbound@x.example", fit_score=0,
+                    lead_pool=outreach_mod.POOL_INBOUND, status=outreach_mod.STATUS_APPROVED)
+    traffic = _cand(product_name="Traffic Co", email="traffic@x.example", fit_score=5,
+                    lead_pool=outreach_mod.POOL_TRAFFIC, status=outreach_mod.STATUS_APPROVED)
+
+    # An already-listed pool must resolve its listing before it may send, and
+    # the listing must be past the ripeness window. Without these the two warm
+    # candidates are held back and this test passes or fails on the gate
+    # rather than on the sort order it exists to check.
+    _give_live_listing(inbound, "inbound-co")
+    _give_live_listing(traffic, "traffic-co")
 
     outreach_mod.run_automated_initial_sends()
 
