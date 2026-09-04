@@ -17,6 +17,7 @@ copy should stay editable, but a future rewrite that reintroduces a button, a
 second link, a paid-first pitch or the no-reply sender should fail here.
 """
 import os
+import re
 import tempfile
 
 import pytest
@@ -73,6 +74,18 @@ def _candidate(app, **over):
 
 # ─── The offer ────────────────────────────────────────────────────────────────
 
+def _price_scannable(text):
+    """The email's prose, with URLs removed.
+
+    The prefill link carries a random signed token, and a random base64
+    string eventually contains any two digits you care to look for — so
+    scanning the raw text for "49" is a test that fails on a dice roll rather
+    than on a regression. Strip the URLs and check what a reader actually
+    reads.
+    """
+    return re.sub(r"https?://\S+", " ", text)
+
+
 def test_the_cold_email_names_no_price_at_all(app):
     """Superseded the old "free is mentioned before $49" rule.
 
@@ -88,11 +101,12 @@ def test_the_cold_email_names_no_price_at_all(app):
     _, html = get_generic_draft(c)
     text = html_to_plain_text(html)
 
-    assert "it is free" in text.lower()
-    assert "$" not in text, "the acquisition email must not name a price"
+    prose = _price_scannable(text)
+    assert "it is free" in prose.lower()
+    assert "$" not in prose, "the acquisition email must not name a price"
     for banned in ("49", "79", "Sponsored badge", "featured card",
                    "paid option", "upgrade"):
-        assert banned.lower() not in text.lower(), banned
+        assert banned.lower() not in prose.lower(), banned
 
 
 def test_the_cold_email_says_plainly_there_is_nothing_to_pay(app):

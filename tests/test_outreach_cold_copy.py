@@ -74,7 +74,9 @@ def _text(body):
 
 def test_cold_draft_contains_no_price(app):
     _, body = get_generic_draft(_cold())
-    text = _text(body)
+    # URLs stripped: the prefill token is random, and a random base64 string
+    # eventually contains "49" — scanning it would fail on a dice roll.
+    text = re.sub(r"https?://\S+", " ", _text(body))
 
     assert "$" not in text, "the acquisition email must not name a price"
     for banned in ("49", "79", "Sponsored badge", "featured card",
