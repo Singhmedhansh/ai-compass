@@ -41,6 +41,7 @@ from app.outreach import (
     CATALOG_CAMPAIGN_MAX_PER_RUN,
     CATALOG_CANDIDATE_ID_PREFIX,
     CURRENT_DRAFT_TEMPLATE_VERSION,
+    outreach_email_html,
     get_stale_draft_candidates,
     refresh_stale_drafts,
     archive_v1_candidates,
@@ -294,7 +295,7 @@ def send_candidate_email(cid):
     try:
         # Send html email with fallback text description
         success, err_msg = send_email_with_details(
-            to=c.email, subject=c.draft_subject, html=c.draft_body,
+            to=c.email, subject=c.draft_subject, html=outreach_email_html(c),
             reply_to=OUTREACH_REPLY_TO, headers=_outreach_send_headers(c.email),
             sender=OUTREACH_FROM,
         )
@@ -360,7 +361,7 @@ def bulk_send_candidates():
         err_msg = None
         try:
             success, err_msg = send_email_with_details(
-                to=c.email, subject=c.draft_subject, html=c.draft_body,
+                to=c.email, subject=c.draft_subject, html=outreach_email_html(c),
                 reply_to=OUTREACH_REPLY_TO, headers=_outreach_send_headers(c.email),
                 sender=OUTREACH_FROM,
             )

@@ -249,3 +249,78 @@ def test_the_cold_pool_is_not_held_by_that_gate(app):
     )
     ok, reason = can_send_candidate(c)
     assert ok is True, reason
+
+
+# ── The brand shell is applied at send, not baked into the draft ────────────
+
+def test_the_sent_email_wears_the_brand_shell(app):
+    from app.outreach import get_generic_draft, outreach_email_html
+
+    c = _cold()
+    c.draft_subject, c.draft_body = get_generic_draft(c)
+    db.session.commit()
+
+    html = outreach_email_html(c)
+
+    assert "main-card" in html                    # the shell
+    assert "help@ai-compass.in" in html           # and its footer
+    assert "admin@ai-compass.in" in html
+    assert "Nice work on ConvoData" in html       # content survives verbatim
+    assert "?c=" in html                          # so does the prefill link
+    assert "unsubscribe" in html.lower()
+
+
+def test_the_shell_is_not_stored_on_the_draft(app):
+    """Presentation must stay out of the reviewed content.
+
+    Baking the shell into draft_body would mean every future change to the
+    brand template invalidated every approved draft and forced a regenerate,
+    which un-approves the whole queue.
+    """
+    from app.outreach import get_generic_draft
+
+    c = _cold()
+    _, body = get_generic_draft(c)
+    assert "main-card" not in body
+    assert "<table" not in body
+
+
+def test_no_developer_commentary_reaches_the_recipient(app):
+    """CSS /* */ comments are transmitted; Jinja {# #} comments are not.
+
+    The shell carried an explanatory CSS comment containing the phrase "a $49
+    charge starts to feel like a scam". Invisible when rendered, present in
+    the raw source of every email the site sends — including a cold pitch we
+    had just finished stripping every price out of.
+    """
+    from app.outreach import get_generic_draft, outreach_email_html
+
+    c = _cold()
+    c.draft_subject, c.draft_body = get_generic_draft(c)
+    db.session.commit()
+
+    html = outreach_email_html(c)
+    assert "$" not in html, "a price reached the wire, even if only in a comment"
+    assert "scam" not in html.lower()
+    assert "/* ===" not in html
+
+
+def test_a_broken_shell_still_sends_the_email(app, monkeypatch):
+    """The shell is decoration; the approved email is not.
+
+    Losing a send — one of 45 in a lifetime budget — because a template
+    failed to render would be the expensive half of that trade.
+    """
+    import app.outreach as outreach_mod
+
+    c = _cold()
+    c.draft_subject, c.draft_body = get_generic_draft(c)
+    db.session.commit()
+
+    import flask
+    monkeypatch.setattr(
+        flask, "render_template",
+        lambda *a, **k: (_ for _ in ()).throw(RuntimeError("template blew up")),
+    )
+    html = outreach_mod.outreach_email_html(c)
+    assert "Nice work on ConvoData" in html

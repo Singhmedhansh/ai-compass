@@ -207,13 +207,25 @@ def test_a_candidate_with_no_id_still_gets_a_working_link(app):
 
 # ─── Deliverability: it must not look like a newsletter ───────────────────────
 
-def test_the_email_carries_no_promotional_styling(app):
+def test_the_stored_draft_carries_no_styling_of_its_own(app):
+    """The stored draft is CONTENT; the brand shell is applied at send.
+
+    This used to be a deliverability rule — the sent email carried no styling
+    at all, because plain HTML keeps cold mail out of Gmail's Promotions tab.
+    That is no longer what happens: outreach_email_html() wraps the draft in
+    the AI Compass shell on the way out, a deliberate choice to look like a
+    real business even at some cost to placement.
+
+    The rule still earns its place for a different reason. Keeping the stored
+    draft free of presentation is what lets the shell change without
+    invalidating a single approved draft — style lives in one template, and
+    restyling never sends nineteen reviewed emails back for re-approval.
+    """
     c = _candidate(app)
     _, html = get_generic_draft(c)
 
-    # Every one of these was in the previous template and every one is a
-    # bulk-mail tell. Margins on <p> are allowed — they are spacing, not
-    # decoration, and without them some clients render one solid block.
+    # Margins on <p> are allowed — they are spacing, not decoration, and
+    # without them some clients render one solid block.
     for promo in ("color:#", "font-weight:700", "border-bottom", "font-family",
                   "max-width", "<ul", "<table", "<img", "background"):
         assert promo not in html, f"{promo!r} is a Promotions-tab signal; keep the email plain."

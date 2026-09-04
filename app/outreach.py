@@ -469,6 +469,36 @@ def _outreach_signature_html() -> str:
     )
 
 
+def outreach_email_html(candidate) -> str:
+    """The stored draft, wrapped in the AI Compass shell, for sending.
+
+    Applied at SEND time rather than at generation on purpose. The stored
+    draft_body is the CONTENT — what a human reviewed and approved — and the
+    shell is presentation. Baking the shell into the stored draft would mean
+    every future change to the brand template invalidated every approved
+    draft and forced a regenerate, which un-approves the queue. Kept apart,
+    the shell can change freely and nothing needs re-reviewing.
+
+    A rendering failure returns the bare body rather than raising: the email
+    is already approved and the shell is decoration. Losing the send over a
+    template error would be the expensive half of that trade.
+    """
+    if not candidate.draft_body:
+        return candidate.draft_body
+    try:
+        from flask import render_template
+
+        return render_template(
+            "emails/outreach.html",
+            body_html=candidate.draft_body,
+            subject_title=candidate.draft_subject or "AI Compass",
+        )
+    except Exception:  # noqa: BLE001
+        log.exception("Outreach shell failed for candidate %s — sending plain.",
+                      getattr(candidate, "id", None))
+        return candidate.draft_body
+
+
 def _outreach_wrap(inner_html: str) -> str:
     """Wraps body paragraphs with the sign-off. Intentionally minimal.
 
@@ -3141,7 +3171,7 @@ def run_automated_initial_sends():
         err_msg = None
         try:
             success, err_msg = send_email_with_details(
-                to=c.email, subject=c.draft_subject, html=c.draft_body,
+                to=c.email, subject=c.draft_subject, html=outreach_email_html(c),
                 reply_to=OUTREACH_REPLY_TO, headers=_outreach_send_headers(c.email),
                 sender=OUTREACH_FROM,
             )
