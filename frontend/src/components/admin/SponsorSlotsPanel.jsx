@@ -114,7 +114,7 @@ export default function SponsorSlotsPanel() {
   return (
     <div className="space-y-5">
       {/* Inventory at a glance — what's sellable right now. */}
-      <div className="grid gap-3 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {inventory.map((row) => (
           <div key={row.placement} className="rounded-2xl border border-line bg-bg-elev p-4">
             <div className="text-xs font-semibold text-muted">{row.label}</div>
@@ -132,7 +132,7 @@ export default function SponsorSlotsPanel() {
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h3 className="text-sm font-bold text-ink">Sponsor slots</h3>
         <button type="button" onClick={() => setShowForm((v) => !v)} className={BTN_PRIMARY}>
           <span className="inline-flex items-center gap-1.5">

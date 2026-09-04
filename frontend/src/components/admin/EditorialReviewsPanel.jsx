@@ -109,7 +109,7 @@ function Editor({ review, onSaved, onError }) {
 
   return (
     <div className="mt-4 space-y-3 border-t border-line pt-4">
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         <label className="sm:col-span-2 block">
           <span className="text-xs font-semibold text-ink-2">Headline</span>
           <input className={INPUT} value={form.headline} onChange={set('headline')}
@@ -244,7 +244,7 @@ export default function EditorialReviewsPanel() {
 
   return (
     <div className="space-y-5">
-      <div className="grid gap-3 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
           ['Owed', open.length, 'reviews not yet published'],
           ['Slots left', availability?.slots_left ?? '—', 'this month'],
@@ -265,7 +265,7 @@ export default function EditorialReviewsPanel() {
         </p>
       )}
 
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-2">
           Commissions ({reviews.length})
         </h3>

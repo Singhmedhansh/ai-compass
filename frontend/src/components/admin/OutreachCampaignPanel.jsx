@@ -286,7 +286,6 @@ export default function OutreachCampaignPanel({ api, refreshKey = 0 }) {
       // re-enrich already do.
       if (confirm && res?.started) {
         const deadline = Date.now() + 10 * 60 * 1000
-        // eslint-disable-next-line no-constant-condition
         while (true) {
           if (Date.now() > deadline) {
             setError('The import is taking longer than 10 minutes. It may still '
@@ -478,7 +477,7 @@ export default function OutreachCampaignPanel({ api, refreshKey = 0 }) {
 
       {status && (
         <>
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
             <Meter
               label="Send budget"
               value={status.emails_sent}

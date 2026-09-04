@@ -17,17 +17,17 @@ const STATE = {
   overdue: {
     label: 'Overdue',
     icon: AlertTriangle,
-    cls: 'text-red-700 bg-red-50 border-red-200',
+    cls: 'text-red-700 dark:text-red-300 bg-red-500/10 border-red-500/30',
   },
   due: {
     label: 'Due',
     icon: Clock,
-    cls: 'text-amber-700 bg-amber-50 border-amber-200',
+    cls: 'text-amber-700 dark:text-amber-300 bg-amber-500/10 border-amber-500/30',
   },
   done: {
     label: 'Delivered',
     icon: Check,
-    cls: 'text-emerald-700 bg-emerald-50 border-emerald-200',
+    cls: 'text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 border-emerald-500/30',
   },
   // Distinct from "due" on purpose: a review cannot be late before the
   // listing it reviews is live. Showing these as pending work would send you
@@ -36,7 +36,7 @@ const STATE = {
   waiting: {
     label: 'Not yet started',
     icon: Clock,
-    cls: 'text-slate-500 bg-slate-50 border-slate-200',
+    cls: 'text-muted-2 bg-bg-sunk border-line',
   },
 }
 
@@ -142,16 +142,16 @@ export default function PostSalePanel({ api }) {
     return onlyOutstanding ? all.filter((c) => c.outstanding > 0) : all
   }, [data, onlyOutstanding])
 
-  if (loading) return <div className="p-4 text-sm text-slate-500">Loading the runbook…</div>
-  if (error) return <div className="p-4 text-sm text-red-600">{error}</div>
+  if (loading) return <div className="p-4 text-sm text-muted-2">Loading the runbook…</div>
+  if (error) return <div className="p-4 text-sm text-danger">{error}</div>
 
   const counts = data?.counts || {}
 
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-lg font-extrabold text-slate-900">Post-sale runbook</h2>
-        <p className="mt-1 text-sm text-slate-600">
+        <h2 className="text-lg font-extrabold text-ink">Post-sale runbook</h2>
+        <p className="mt-1 text-sm text-muted">
           Everything a paying customer was promised, and whether it has been
           delivered. Marked done by reading what actually happened — a
           published review, a live listing, an open placement window — so this
@@ -163,24 +163,24 @@ export default function PostSalePanel({ api }) {
         <Meter
           label="Paying customers"
           value={data?.paying_customers ?? 0}
-          tone="border-slate-200 bg-white text-slate-900"
+          tone="border-line bg-bg-elev text-ink"
         />
         <Meter
           label="Overdue items"
           value={counts.overdue ?? 0}
           tone={counts.overdue
-            ? 'border-red-200 bg-red-50 text-red-700'
-            : 'border-slate-200 bg-white text-slate-900'}
+            ? 'border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300'
+            : 'border-line bg-bg-elev text-ink'}
         />
         <Meter
           label="Due soon"
           value={counts.due ?? 0}
-          tone="border-amber-200 bg-amber-50 text-amber-700"
+          tone="border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300"
         />
         <Meter
           label="Delivered"
           value={counts.done ?? 0}
-          tone="border-emerald-200 bg-emerald-50 text-emerald-700"
+          tone="border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
         />
       </div>
 
@@ -188,7 +188,7 @@ export default function PostSalePanel({ api }) {
         <button
           type="button"
           onClick={load}
-          className="inline-flex items-center gap-1.5 rounded-md border border-slate-300 px-3 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+          className="inline-flex items-center gap-1.5 rounded-md border border-line-strong px-3 py-1.5 text-sm font-semibold text-ink-2 hover:bg-bg-sunk"
         >
           <RefreshCw size={14} /> Refresh
         </button>
@@ -196,7 +196,7 @@ export default function PostSalePanel({ api }) {
           type="button"
           disabled={!!busy}
           onClick={() => run('confirmations', 'Confirmations', true)}
-          className="rounded-md border border-slate-300 px-3 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+          className="rounded-md border border-line-strong px-3 py-1.5 text-sm font-semibold text-ink-2 hover:bg-bg-sunk disabled:opacity-50"
         >
           Preview confirmations
         </button>
@@ -212,11 +212,11 @@ export default function PostSalePanel({ api }) {
           type="button"
           disabled={!!busy}
           onClick={() => run('numbers', 'Day-7 numbers', false)}
-          className="rounded-md border border-slate-300 px-3 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+          className="rounded-md border border-line-strong px-3 py-1.5 text-sm font-semibold text-ink-2 hover:bg-bg-sunk disabled:opacity-50"
         >
           Send day-7 numbers
         </button>
-        <label className="ml-auto inline-flex items-center gap-1.5 text-sm text-slate-600">
+        <label className="inline-flex items-center gap-1.5 text-sm text-muted sm:ml-auto">
           <input
             type="checkbox"
             checked={onlyOutstanding}
@@ -227,13 +227,13 @@ export default function PostSalePanel({ api }) {
       </div>
 
       {result ? (
-        <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+        <div className="rounded-md border border-line bg-bg-sunk px-3 py-2 text-sm text-ink-2">
           {result}
         </div>
       ) : null}
 
       {customers.length === 0 ? (
-        <div className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-4 text-sm text-emerald-800">
+        <div className="rounded-md border border-emerald-500/30 bg-emerald-500/10 px-3 py-4 text-sm text-emerald-700 dark:text-emerald-300">
           {data?.paying_customers
             ? 'Nothing outstanding. Every paying customer has had what they bought.'
             : 'No paying customers yet.'}
@@ -241,17 +241,17 @@ export default function PostSalePanel({ api }) {
       ) : (
         <div className="space-y-3">
           {customers.map((c) => (
-            <div key={c.submission_id} className="rounded-lg border border-slate-200 bg-white p-3">
+            <div key={c.submission_id} className="rounded-lg border border-line bg-bg-elev p-3">
               <div className="flex flex-wrap items-baseline gap-2">
-                <span className="text-sm font-extrabold text-slate-900">{c.name}</span>
-                <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[11px] font-semibold text-slate-600">
+                <span className="text-sm font-extrabold text-ink">{c.name}</span>
+                <span className="rounded bg-bg-sunk px-1.5 py-0.5 text-[11px] font-semibold text-muted">
                   {TIER_LABEL[c.tier] || c.tier}
                 </span>
                 {c.email ? (
-                  <span className="text-[11px] text-slate-500">{c.email}</span>
+                  <span className="text-[11px] text-muted-2">{c.email}</span>
                 ) : null}
                 {c.overdue ? (
-                  <span className="ml-auto rounded bg-red-100 px-1.5 py-0.5 text-[11px] font-bold text-red-700">
+                  <span className="ml-auto rounded bg-red-500/15 px-1.5 py-0.5 text-[11px] font-bold text-red-700 dark:text-red-300">
                     {c.overdue} overdue
                   </span>
                 ) : null}

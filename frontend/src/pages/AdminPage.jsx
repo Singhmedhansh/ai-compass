@@ -101,7 +101,7 @@ const ICON_BTN = 'rounded-md border border-line-strong p-1.5 text-ink-2 transiti
 
 function Card({ children, className = '' }) {
   return (
-    <section className={`rounded-2xl border border-line bg-bg-elev p-5 shadow-sm ${className}`}>
+    <section className={`rounded-2xl border border-line bg-bg-elev p-4 shadow-sm sm:p-5 ${className}`}>
       {children}
     </section>
   )
@@ -111,6 +111,11 @@ function Card({ children, className = '' }) {
 function ToolForm({ initial, isNew, onClose, onSaved }) {
   const [form, setForm] = useState({
     ...EMPTY_TOOL, ...initial,
+    // <input type="date"> silently renders blank for anything that is not
+    // exactly YYYY-MM-DD, and the API hands back a full ISO timestamp — so
+    // the field looked empty on every tool that HAD been verified, and
+    // saving the form then cleared the real date.
+    last_verified_at: String(initial?.last_verified_at || '').slice(0, 10),
     features: listToText(initial?.features),
     tags: listToText(initial?.tags),
     use_cases: listToText(initial?.use_cases ?? initial?.useCases),
@@ -145,14 +150,15 @@ function ToolForm({ initial, isNew, onClose, onSaved }) {
             value={form[key]}
             onChange={set(key)}
             placeholder={opts.placeholder}
-            className={INPUT}
+            readOnly={!!opts.readOnly}
+            className={`${INPUT} ${opts.readOnly ? 'cursor-not-allowed opacity-60' : ''}`}
           />}
     </label>
   )
 
   return (
     <MotionDiv
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-2 sm:p-4"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -163,12 +169,12 @@ function ToolForm({ initial, isNew, onClose, onSaved }) {
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.98, y: 10 }}
         transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-        className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-line bg-bg-elev p-6 shadow-2xl"
+        className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-line bg-bg-elev p-4 shadow-2xl sm:p-6"
       >
         <h3 className="text-xl font-semibold text-ink">{isNew ? 'Add New Tool' : `Edit: ${form.name}`}</h3>
         <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
           {field('Name *', 'name')}
-          {field(isNew ? 'Slug (auto if blank)' : 'Slug (locked)', 'slug', { placeholder: 'auto-generated' })}
+          {field(isNew ? 'Slug (auto if blank)' : 'Slug (locked)', 'slug', { placeholder: 'auto-generated', readOnly: !isNew })}
           {field('Tagline', 'tagline')}
           {field('Category', 'category')}
           {field('Sub-category', 'subCategory')}
@@ -214,7 +220,7 @@ function ToolForm({ initial, isNew, onClose, onSaved }) {
             Editorial blurb is only available for Sponsored-tier tools — this tool isn't currently sponsored.
           </p>
         )}
-        <div className="mt-4 flex gap-6 text-sm text-ink-2">
+        <div className="mt-4 flex flex-wrap gap-4 text-sm text-ink-2 sm:gap-6">
           <label className="flex items-center gap-2"><input type="checkbox" checked={!!form.studentPerk} onChange={set('studentPerk')} /> Student-friendly</label>
           <label className="flex items-center gap-2"><input type="checkbox" checked={!!form.hidden} onChange={set('hidden')} /> Hidden</label>
         </div>
@@ -280,6 +286,7 @@ function AdminPage() {
   const [selectedCandidateIds, setSelectedCandidateIds] = useState([])
   const [editingCandidate, setEditingCandidate] = useState(null)
   const [outreachBusy, setOutreachBusy] = useState(null)
+  const [outreachLoading, setOutreachLoading] = useState(false)
   const [manualCandidate, setManualCandidate] = useState({ product_name: '', website_url: '', founder_name: '', email: '', tone: 'peer', tagline: '' })
   const [showManualAdd, setShowManualAdd] = useState(false)
 
@@ -373,6 +380,14 @@ function AdminPage() {
       loadPaypalHealth()
     }
     if (activeTab === 'Flags') api('/api/v1/admin/flags').then(setFlags).catch(() => setFlags([]))
+    if (activeTab === 'Users') {
+      api('/api/v1/admin/users').then((d) => setUsers(Array.isArray(d) ? d : [])).catch(() => {})
+    }
+    if (activeTab === 'Reviews') {
+      api('/api/v1/admin/reviews')
+        .then((r) => setReviews(Array.isArray(r.reviews) ? r.reviews : []))
+        .catch(() => {})
+    }
     if (activeTab === 'Newsletter') {
       api('/api/v1/admin/newsletter')
         .then((d) => {
@@ -444,18 +459,20 @@ function AdminPage() {
   ), [])
 
   const loadOutreachData = useCallback(async () => {
-    setLoading(true)
+    // Its own flag, not the page-wide one: the shared `loading` also drives
+    // the Overview counters, so opening Outreach blanked them to "…".
+    setOutreachLoading(true)
     try {
       const [candData, logData] = await Promise.all([
         api('/api/v1/admin/outreach/candidates'),
         api('/api/v1/admin/outreach/logs')
       ])
-      setCandidates(candData)
-      setOutreachLogs(logData)
+      setCandidates(Array.isArray(candData) ? candData : [])
+      setOutreachLogs(Array.isArray(logData) ? logData : [])
     } catch (e) {
-      toast.error('Failed to load outreach pipeline data')
+      toast.error(e.message || 'Failed to load outreach pipeline data')
     } finally {
-      setLoading(false)
+      setOutreachLoading(false)
     }
   }, [])
 
@@ -473,7 +490,6 @@ function AdminPage() {
   // /job-status); nothing here needed building, only using.
   const pollOutreachJob = useCallback(async (kind, { toastId, describe }) => {
     const deadline = Date.now() + 10 * 60 * 1000
-    // eslint-disable-next-line no-constant-condition
     while (true) {
       if (Date.now() > deadline) {
         toast.error('This is taking longer than 10 minutes. It may still be '
@@ -498,7 +514,7 @@ function AdminPage() {
       await loadOutreachData()
     }
     await loadOutreachData()
-  }, [api, loadOutreachData])
+  }, [loadOutreachData])
 
   // Discovery/re-enrich/etc. chain per-candidate network calls sequentially
   // and can run for several minutes — polling job-status until it actually
@@ -750,8 +766,12 @@ function AdminPage() {
   const reviewSubmission = async (id, action) => {
     try {
       await api(`/api/v1/admin/submissions/${id}/${action}`, { method: 'POST' })
-      setSubmissions((s) => s.filter((x) => x.id !== id))
       toast.success(action === 'approve' ? 'Approved & added to catalog' : 'Rejected')
+      // Re-read rather than drop the row: under the "approved" and "all"
+      // filters it should stay on screen carrying its new status, and
+      // filtering it out made a successful approval look like a deletion.
+      const d = await api(`/api/v1/admin/submissions?status=${submissionStatus}`)
+      setSubmissions(Array.isArray(d) ? d : [])
     } catch (e) { toast.error(e.message) }
   }
   const markFeedbackRead = async (id) => {
@@ -785,16 +805,27 @@ function AdminPage() {
   const tabKey = activeTab
 
   return (
-    <div className="mx-auto w-full max-w-[1400px] px-4 py-8 sm:px-6 lg:px-8">
-      <header className="mb-6 rounded-2xl border border-line bg-bg-elev p-6 shadow-sm">
-        <h1 className="text-3xl font-bold tracking-tight text-ink">Admin Dashboard</h1>
+    <div className="mx-auto w-full max-w-[1400px] px-3 py-6 sm:px-6 sm:py-8 lg:px-8">
+      <header className="mb-5 rounded-2xl border border-line bg-bg-elev p-5 shadow-sm sm:mb-6 sm:p-6">
+        <h1 className="text-2xl font-bold tracking-tight text-ink sm:text-3xl">Admin Dashboard</h1>
         <p className="mt-1 text-sm text-muted">Catalog, monetisation, email, analytics — all changes persist in the database.</p>
       </header>
 
-      <nav className="mb-6 flex flex-wrap gap-5 border-b border-line">
+      <label className="mb-5 block md:hidden">
+        <span className="text-xs font-semibold uppercase tracking-wide text-muted">Section</span>
+        <select
+          value={activeTab}
+          onChange={(e) => setActiveTab(e.target.value)}
+          className="mt-1 w-full rounded-lg border border-line bg-bg-elev px-3 py-2.5 text-sm font-semibold text-ink focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+        >
+          {TABS.map((t) => <option key={t} value={t}>{t}</option>)}
+        </select>
+      </label>
+
+      <nav className="mb-6 hidden gap-5 overflow-x-auto border-b border-line pb-px md:flex">
         {TABS.map((t) => (
           <button key={t} onClick={() => setActiveTab(t)}
-            className={`relative pb-3 text-sm font-semibold transition-colors ${activeTab === t ? 'text-accent-ink' : 'text-muted hover:text-ink'}`}>
+            className={`relative shrink-0 whitespace-nowrap pb-3 text-sm font-semibold transition-colors ${activeTab === t ? 'text-accent-ink' : 'text-muted hover:text-ink'}`}>
             {t}
             {activeTab === t && <MotionSpan layoutId="admintab" className="absolute inset-x-0 -bottom-px h-0.5 bg-accent" />}
           </button>
@@ -817,15 +848,15 @@ function AdminPage() {
           <Card>
             <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <h2 className="text-xl font-semibold text-ink">Tools ({filteredTools.length})</h2>
-              <div className="flex gap-2">
-                <div className="w-64"><SearchInput value={toolsQuery} onChange={setToolsQuery} onClear={() => setToolsQuery('')} placeholder="Search name/category" /></div>
-                <button onClick={() => setEditing({ tool: { ...EMPTY_TOOL }, isNew: true })} className={`flex items-center gap-1.5 ${BTN_PRIMARY}`}>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <div className="w-full sm:w-64"><SearchInput value={toolsQuery} onChange={setToolsQuery} onClear={() => setToolsQuery('')} placeholder="Search name/category" /></div>
+                <button onClick={() => setEditing({ tool: { ...EMPTY_TOOL }, isNew: true })} className={`flex shrink-0 items-center justify-center gap-1.5 ${BTN_PRIMARY}`}>
                   <Plus className="h-4 w-4" /> Add Tool
                 </button>
               </div>
             </div>
             <div className="overflow-x-auto">
-              <table className="min-w-full text-left text-sm">
+              <table className="w-full min-w-[720px] text-left text-sm">
                 <thead><tr className="border-b border-line text-muted">
                   <th className="px-3 py-2 font-semibold">Name</th><th className="px-3 py-2 font-semibold">Category</th>
                   <th className="px-3 py-2 font-semibold">Pricing</th><th className="px-3 py-2 font-semibold">Affiliate</th>
@@ -892,7 +923,7 @@ function AdminPage() {
                     ? 'border-orange-500/70 bg-orange-500/5'
                     : s.is_priority ? 'border-amber-400/60 bg-amber-500/5' : 'border-line'
                 }`}>
-                  <div className="flex items-start justify-between gap-3">
+                  <div className="flex flex-wrap items-start gap-3">
                     {/* The logo that will ship with the listing — the
                         founder's upload, or the favicon we fetched from
                         their domain at approval. Seeing it before approving
@@ -906,7 +937,7 @@ function AdminPage() {
                         title={s.logo_source === 'upload' ? 'Uploaded by the founder' : 'Fetched from their domain'}
                       />
                     )}
-                    <div className="min-w-0 flex-1">
+                    <div className="min-w-[13rem] flex-1">
                       <p className="font-medium text-ink">
                         {s.is_priority && <span className="mr-2 rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-600 dark:text-amber-400">⚡ Priority · Paid</span>}
                         {s.payment_status === 'needs_manual_review' && <span className="mr-2 rounded-full bg-orange-500/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-orange-700 dark:text-orange-300">⚠ Check PayPal — may have paid</span>}
@@ -957,7 +988,7 @@ function AdminPage() {
                         </p>
                       )}
                     </div>
-                    <div className="flex shrink-0 gap-2">
+                    <div className="flex shrink-0 gap-2 sm:ml-auto">
                       {s.status === 'pending' ? (
                         <>
                           <button onClick={() => reviewSubmission(s.id, 'approve')} className={`${BTN_PRIMARY} px-3 py-1.5 text-xs`}>Approve</button>
@@ -988,7 +1019,7 @@ function AdminPage() {
 
         {activeTab === 'Feedback' && (
           <Card>
-            <div className="mb-4 flex items-center justify-between">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
               <h2 className="text-xl font-semibold text-ink">
                 User Feedback
                 <span className="ml-2 text-sm font-normal text-muted">
@@ -1002,8 +1033,8 @@ function AdminPage() {
                   key={f.id}
                   className={`rounded-xl border p-4 ${f.is_read ? 'border-line bg-bg-elev' : 'border-accent/50 bg-accent-soft/30'}`}
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-start gap-3">
+                    <div className="min-w-[13rem] flex-1">
                       <p className="whitespace-pre-wrap break-words text-sm text-ink">{f.message}</p>
                       <div className="mt-2 flex flex-wrap gap-3 text-xs text-muted">
                         <span>{new Date(f.created_at).toLocaleString()}</span>
@@ -1023,7 +1054,7 @@ function AdminPage() {
                         <p className="mt-1 truncate text-[11px] text-muted-2" title={f.user_agent}>{f.user_agent}</p>
                       )}
                     </div>
-                    <div className="flex shrink-0 gap-2">
+                    <div className="flex shrink-0 gap-2 sm:ml-auto">
                       {!f.is_read && (
                         <button onClick={() => markFeedbackRead(f.id)} className={`${BTN_GHOST} px-3 py-1.5 text-xs`}>
                           Mark read
@@ -1063,9 +1094,9 @@ function AdminPage() {
                       High-traffic tools with no affiliate link yet — these clicks earn nothing. Sign up for these programs first, then paste the referral URL via each tool&apos;s “Affiliate” action in the Tools tab.
                     </p>
                     {(analytics.outbound?.monetization_gaps || []).map((r) => (
-                      <div key={r.slug} className="flex items-center justify-between border-b border-line/60 py-1.5 text-sm">
-                        <span className="text-ink-2">{r.name || r.slug}</span>
-                        <span className="flex items-center gap-3">
+                      <div key={r.slug} className="flex items-center justify-between gap-3 border-b border-line/60 py-1.5 text-sm">
+                        <span className="min-w-0 truncate text-ink-2" title={r.name || r.slug}>{r.name || r.slug}</span>
+                        <span className="flex shrink-0 items-center gap-3">
                           <span className="text-xs text-muted">{r.clicks} clicks</span>
                           <span className="rounded-full bg-danger-soft px-2 py-0.5 text-[11px] font-semibold text-danger">no affiliate</span>
                         </span>
@@ -1076,9 +1107,9 @@ function AdminPage() {
                 <Card>
                   <h3 className="mb-3 font-semibold text-ink">Top clicked tools</h3>
                   {(analytics.outbound?.top || []).map((r) => (
-                    <div key={r.slug} className="flex items-center justify-between border-b border-line/60 py-1.5 text-sm">
-                      <span className="text-ink-2">{r.name || r.slug}</span>
-                      <span className="flex items-center gap-3">
+                    <div key={r.slug} className="flex items-center justify-between gap-3 border-b border-line/60 py-1.5 text-sm">
+                      <span className="min-w-0 truncate text-ink-2" title={r.name || r.slug}>{r.name || r.slug}</span>
+                      <span className="flex shrink-0 items-center gap-3">
                         {r.has_affiliate ? (
                           <span className="rounded-full bg-accent-soft px-2 py-0.5 text-[11px] font-semibold text-accent-ink">✓ affiliate</span>
                         ) : (
@@ -1290,7 +1321,7 @@ function AdminPage() {
                         const top = tierStats.failure_reasons[0]?.count || 1
                         return (
                           <div key={reason} className="flex items-center gap-3">
-                            <span className="w-64 shrink-0 truncate font-mono text-[11px] text-ink-2" title={reason}>
+                            <span className="w-28 shrink-0 truncate font-mono text-[11px] text-ink-2 sm:w-64" title={reason}>
                               {reason}
                             </span>
                             <span className="h-2 flex-1 overflow-hidden rounded-full bg-bg-sunk">
@@ -1318,7 +1349,7 @@ function AdminPage() {
               <p className="mt-1 text-sm text-muted">
                 Dry run previews new tools &amp; recipient count without sending anything. Send digest emails all opted-in users (each with an unsubscribe link). Sends automatically once a day when there are new tools — this is for a manual run. Requires <code className="rounded bg-bg-sunk px-1 py-0.5 text-xs">RESEND_API_KEY</code> on the server.
               </p>
-              <div className="mt-4 flex gap-2">
+              <div className="mt-4 flex flex-wrap gap-2">
                 <button disabled={!!digestBusy} onClick={() => runDigest(true)} className={BTN_GHOST}>{digestBusy === 'dry' ? 'Checking…' : 'Dry run'}</button>
                 <button disabled={!!digestBusy} onClick={sendTestEmail} className={BTN_GHOST}>{digestBusy === 'test' ? 'Sending…' : 'Send test to me'}</button>
                 <button disabled={!!digestBusy} onClick={() => { if (window.confirm('Send the digest email to ALL opted-in users now? This is real — use “Send test to me” first to verify delivery.')) runDigest(false) }} className={BTN_PRIMARY}>{digestBusy === 'send' ? 'Sending…' : 'Send digest'}</button>
@@ -1334,7 +1365,7 @@ function AdminPage() {
                 entirely in a week with no activity. Dry run shows the audience and content without
                 sending.
               </p>
-              <div className="mt-4 flex gap-2">
+              <div className="mt-4 flex flex-wrap gap-2">
                 <button disabled={!!recapBusy} onClick={() => runRecap(true)} className={BTN_GHOST}>{recapBusy === 'dry' ? 'Checking…' : 'Dry run'}</button>
                 <button disabled={!!recapBusy} onClick={sendTestRecap} className={BTN_GHOST}>{recapBusy === 'test' ? 'Sending…' : 'Send test to me'}</button>
                 <button disabled={!!recapBusy} onClick={() => { if (window.confirm('Send the recap to every active community member now? This is real — use “Send test to me” first.')) runRecap(false) }} className={BTN_PRIMARY}>{recapBusy === 'send' ? 'Sending…' : 'Send recap'}</button>
@@ -1349,7 +1380,7 @@ function AdminPage() {
                 Sends itself monthly and skips a listing with nothing at all to report. Dry run
                 shows who would get one and what it would say.
               </p>
-              <div className="mt-4 flex gap-2">
+              <div className="mt-4 flex flex-wrap gap-2">
                 <button disabled={!!reportBusy} onClick={() => runFounderReports(true)} className={BTN_GHOST}>{reportBusy === 'dry' ? 'Checking…' : 'Dry run'}</button>
                 <button disabled={!!reportBusy} onClick={() => { if (window.confirm("Email this month's report to every paid founder now? This is real.")) runFounderReports(false) }} className={BTN_PRIMARY}>{reportBusy === 'send' ? 'Sending…' : 'Send reports'}</button>
               </div>
@@ -1373,7 +1404,7 @@ function AdminPage() {
                   </p>
 
                   <div>
-                    <div className="mb-1.5 flex items-center justify-between">
+                    <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
                       <h3 className="text-sm font-semibold text-ink">Roundup post (all 5)</h3>
                       <button onClick={() => copyText(liDrafts.roundup, 'Roundup post')} className={BTN_GHOST}>Copy</button>
                     </div>
@@ -1386,7 +1417,7 @@ function AdminPage() {
                   </div>
 
                   <div>
-                    <div className="mb-1.5 flex items-center justify-between">
+                    <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
                       <h3 className="text-sm font-semibold text-ink">Spotlight post (newest tool)</h3>
                       <button onClick={() => copyText(liDrafts.spotlight, 'Spotlight post')} className={BTN_GHOST}>Copy</button>
                     </div>
@@ -1461,14 +1492,14 @@ function AdminPage() {
                   onChange={(e) => {
                     try {
                       setNlDraft(JSON.parse(e.target.value))
-                    } catch(err) {
+                    } catch {
                       // ignore parse errors while typing
                     }
                   }}
                   rows={15}
                   className="w-full resize-y rounded-lg border border-line bg-bg-sunk p-3 font-mono text-xs text-ink-2"
                 />
-                <div className="mt-4 flex gap-2">
+                <div className="mt-4 flex flex-wrap gap-2">
                   <button disabled={!!nlBusy} onClick={previewNewsletter} className={BTN_GHOST}>
                     {nlBusy === 'previewing' ? 'Rendering...' : 'Render Preview'}
                   </button>
@@ -1482,21 +1513,91 @@ function AdminPage() {
             {nlPreviewHtml && (
               <Card>
                 <h3 className="mb-4 text-lg font-semibold text-ink">Live Preview</h3>
-                <div className="w-full overflow-hidden rounded-xl border border-line bg-bg-sunk p-4 flex justify-center">
+                <div className="flex w-full justify-center overflow-hidden rounded-xl border border-line bg-bg-sunk p-2 sm:p-4">
                   <iframe 
                     srcDoc={nlPreviewHtml} 
                     title="Email Preview"
-                    className="h-[800px] w-full max-w-[600px] rounded-lg bg-bg-elev shadow-sm"
+                    className="h-[520px] w-full max-w-[600px] rounded-lg bg-bg-elev shadow-sm sm:h-[800px]"
                   />
                 </div>
               </Card>
             )}
+            <Card>
+              <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+                <div>
+                  <h2 className="text-xl font-semibold text-ink">Newsletter subscribers</h2>
+                  <p className="mt-1 text-sm text-muted">
+                    Public homepage signups (no account required). Same recipient pool as the digest send — these addresses get every &quot;new tools&quot; email, with a one-click unsubscribe link in each one.
+                  </p>
+                </div>
+                <div className="flex gap-4 text-sm">
+                  <div>
+                    <div className="text-2xl font-semibold tabular-nums text-ink">{newsletterStats.count}</div>
+                    <div className="text-xs uppercase tracking-wider text-muted-2">Total</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-semibold tabular-nums text-ink">{newsletterStats.new_this_week}</div>
+                    <div className="text-xs uppercase tracking-wider text-muted-2">Last 7d</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-semibold tabular-nums text-ink">{newsletterStats.new_today}</div>
+                    <div className="text-xs uppercase tracking-wider text-muted-2">Today</div>
+                  </div>
+                </div>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[560px] text-left text-sm">
+                  <thead><tr className="border-b border-line text-muted">
+                    <th className="px-3 py-2 font-semibold">Email</th>
+                    <th className="px-3 py-2 font-semibold">Joined</th>
+                    <th className="px-3 py-2 font-semibold w-12"></th>
+                  </tr></thead>
+                  <tbody>
+                    {newsletterSubs.map((s) => (
+                      <tr key={s.id} className="border-b border-line/60">
+                        <td className="px-3 py-2 text-ink-2">{s.email}</td>
+                        <td className="px-3 py-2 text-muted tabular-nums">
+                          {s.created_at ? new Date(s.created_at).toLocaleString() : '—'}
+                        </td>
+                        <td className="px-3 py-2 text-right">
+                          <button
+                            onClick={async () => {
+                              if (!window.confirm(`Remove ${s.email} from the newsletter?`)) return
+                              try {
+                                await api(`/api/v1/admin/newsletter/${s.id}`, { method: 'DELETE' })
+                                setNewsletterSubs((prev) => prev.filter((x) => x.id !== s.id))
+                                setNewsletterStats((prev) => ({
+                                  ...prev,
+                                  count: Math.max(0, (prev.count || 0) - 1),
+                                }))
+                                toast.success('Subscriber removed')
+                              } catch (e) {
+                                toast.error(e.message)
+                              }
+                            }}
+                            className="rounded-md border border-danger/40 p-1.5 text-danger transition hover:bg-danger-soft"
+                            title="Remove subscriber"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {newsletterSubs.length === 0 && (
+                  <p className="mt-4 text-sm text-muted">
+                    No newsletter subscribers yet. Signups land here from the homepage form.
+                  </p>
+                )}
+              </div>
+            </Card>
           </div>
         )}
 
         {activeTab === 'Flags' && (
           <Card>
-            <div className="mb-4 flex items-center justify-between">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
               <h2 className="text-xl font-semibold text-ink">Feature Flags</h2>
               <button onClick={() => { const k = window.prompt('New flag key (e.g. pro_tier):'); if (k) setFlag(k.trim(), { enabled: false }) }} className={BTN_PRIMARY}>+ New flag</button>
             </div>
@@ -1572,7 +1673,7 @@ function AdminPage() {
           <Card>
             <h2 className="mb-4 text-xl font-semibold text-ink">Users ({users.length})</h2>
             <div className="overflow-x-auto">
-              <table className="min-w-full text-left text-sm">
+              <table className="w-full min-w-[560px] text-left text-sm">
                 <thead><tr className="border-b border-line text-muted">
                   <th className="px-3 py-2 font-semibold">Email</th><th className="px-3 py-2 font-semibold">Name</th><th className="px-3 py-2 font-semibold">Joined</th><th className="px-3 py-2 font-semibold">Admin</th>
                 </tr></thead>
@@ -1654,7 +1755,7 @@ function AdminPage() {
                 <p className="mt-3 text-sm text-muted">No drift in this direction.</p>
               ) : (
                 <div className="mt-3 overflow-x-auto">
-                  <table className="min-w-full text-left text-sm">
+                  <table className="w-full min-w-[720px] text-left text-sm">
                     <thead><tr className="border-b border-line text-muted">
                       <th className="px-3 py-2 font-semibold">Slug</th>
                       <th className="px-3 py-2 font-semibold">Name</th>
@@ -1725,7 +1826,7 @@ function AdminPage() {
                 <p className="mt-3 text-sm text-muted">No drift in this direction.</p>
               ) : (
                 <div className="mt-3 overflow-x-auto">
-                  <table className="min-w-full text-left text-sm">
+                  <table className="w-full min-w-[540px] text-left text-sm">
                     <thead><tr className="border-b border-line text-muted">
                       <th className="px-3 py-2 font-semibold">Slug</th>
                       <th className="px-3 py-2 font-semibold">Name</th>
@@ -1762,91 +1863,19 @@ function AdminPage() {
           </Card>
         )}
 
-        {activeTab === 'Newsletter' && (
-          <Card>
-            <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
-              <div>
-                <h2 className="text-xl font-semibold text-ink">Newsletter subscribers</h2>
-                <p className="mt-1 text-sm text-muted">
-                  Public homepage signups (no account required). Same recipient pool as the digest send — these addresses get every &quot;new tools&quot; email, with a one-click unsubscribe link in each one.
-                </p>
-              </div>
-              <div className="flex gap-4 text-sm">
-                <div>
-                  <div className="text-2xl font-semibold tabular-nums text-ink">{newsletterStats.count}</div>
-                  <div className="text-xs uppercase tracking-wider text-muted-2">Total</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-semibold tabular-nums text-ink">{newsletterStats.new_this_week}</div>
-                  <div className="text-xs uppercase tracking-wider text-muted-2">Last 7d</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-semibold tabular-nums text-ink">{newsletterStats.new_today}</div>
-                  <div className="text-xs uppercase tracking-wider text-muted-2">Today</div>
-                </div>
-              </div>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-left text-sm">
-                <thead><tr className="border-b border-line text-muted">
-                  <th className="px-3 py-2 font-semibold">Email</th>
-                  <th className="px-3 py-2 font-semibold">Joined</th>
-                  <th className="px-3 py-2 font-semibold w-12"></th>
-                </tr></thead>
-                <tbody>
-                  {newsletterSubs.map((s) => (
-                    <tr key={s.id} className="border-b border-line/60">
-                      <td className="px-3 py-2 text-ink-2">{s.email}</td>
-                      <td className="px-3 py-2 text-muted tabular-nums">
-                        {s.created_at ? new Date(s.created_at).toLocaleString() : '—'}
-                      </td>
-                      <td className="px-3 py-2 text-right">
-                        <button
-                          onClick={async () => {
-                            if (!window.confirm(`Remove ${s.email} from the newsletter?`)) return
-                            try {
-                              await api(`/api/v1/admin/newsletter/${s.id}`, { method: 'DELETE' })
-                              setNewsletterSubs((prev) => prev.filter((x) => x.id !== s.id))
-                              setNewsletterStats((prev) => ({
-                                ...prev,
-                                count: Math.max(0, (prev.count || 0) - 1),
-                              }))
-                              toast.success('Subscriber removed')
-                            } catch (e) {
-                              toast.error(e.message)
-                            }
-                          }}
-                          className="rounded-md border border-danger/40 p-1.5 text-danger transition hover:bg-danger-soft"
-                          title="Remove subscriber"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              {newsletterSubs.length === 0 && (
-                <p className="mt-4 text-sm text-muted">
-                  No newsletter subscribers yet. Signups land here from the homepage form.
-                </p>
-              )}
-            </div>
-          </Card>
-        )}
 
         {activeTab === 'Reviews' && (
           <Card>
             <h2 className="mb-4 text-xl font-semibold text-ink">Reviews ({reviews.length})</h2>
             <div className="space-y-3">
               {reviews.map((r) => (
-                <div key={r.id} className="flex items-start justify-between rounded-xl border border-line p-4">
-                  <div><p className="font-medium text-ink">{r.user} · <span className="text-xs text-muted">{r.tool_slug}</span></p><p className="mt-1 text-sm text-muted">{r.body}</p></div>
+                <div key={r.id} className="flex items-start justify-between gap-3 rounded-xl border border-line p-4">
+                  <div className="min-w-0"><p className="break-words font-medium text-ink">{r.user} · <span className="text-xs text-muted">{r.tool_slug}</span></p><p className="mt-1 text-sm text-muted">{r.body}</p></div>
                   <button onClick={async () => {
                     if (!window.confirm('Delete this review?')) return
                     try { await api(`/api/v1/admin/reviews/${r.id}`, { method: 'DELETE' }); setReviews((p) => p.filter((x) => x.id !== r.id)); toast.success('Deleted') }
                     catch (e) { toast.error(e.message) }
-                  }} className="rounded-md border border-danger/40 p-2 text-danger transition hover:bg-danger-soft"><Trash2 className="h-4 w-4" /></button>
+                  }} className="shrink-0 rounded-md border border-danger/40 p-2 text-danger transition hover:bg-danger-soft"><Trash2 className="h-4 w-4" /></button>
                 </div>
               ))}
               {reviews.length === 0 && <p className="text-sm text-muted">No reviews.</p>}
@@ -1898,31 +1927,40 @@ function AdminPage() {
             </div>
 
             {/* Audit Status / Progress */}
-            {linkAudit.is_running && (
-              <div className="mb-6 p-4 rounded-xl border border-line bg-bg-sunk/30">
-                <div className="flex justify-between text-xs font-bold text-muted-2 uppercase tracking-wide mb-1">
-                  <span>Auditing Catalog Tools...</span>
-                  <span>{linkAudit.current_index} / {linkAudit.total_count} ({Math.round((linkAudit.current_index / linkAudit.total_count) * 100)}%)</span>
+            {linkAudit.is_running && (() => {
+              const pct = linkAudit.total_count > 0
+                ? Math.min(100, Math.max(0, (linkAudit.current_index / linkAudit.total_count) * 100))
+                : 0
+              return (
+                <div className="mb-6 rounded-xl border border-line bg-bg-sunk/30 p-4">
+                  <div className="mb-1 flex flex-wrap justify-between gap-2 text-xs font-bold uppercase tracking-wide text-muted-2">
+                    <span>Auditing catalog tools…</span>
+                    <span className="tabular-nums">
+                      {linkAudit.total_count > 0
+                        ? `${linkAudit.current_index} / ${linkAudit.total_count} (${Math.round(pct)}%)`
+                        : 'counting the catalog…'}
+                    </span>
+                  </div>
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-bg-sunk">
+                    <div
+                      className="h-full rounded-full bg-accent transition-all duration-300"
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
                 </div>
-                <div className="h-2 w-full bg-bg-sunk rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-accent rounded-full transition-all duration-300"
-                    style={{ width: `${(linkAudit.current_index / linkAudit.total_count) * 100}%` }}
-                  />
-                </div>
-              </div>
-            )}
+              )
+            })()}
 
             {!linkAudit.is_running && linkAudit.last_completed && (
               <p className="text-xs text-muted mb-4">
-                Last audit completed: <strong>{new Date(linkAudit.last_completed).toLocaleString()}</strong>. Detected <strong>{linkAudit.broken_links.length}</strong> broken links.
+                Last audit completed: <strong>{new Date(linkAudit.last_completed).toLocaleString()}</strong>. Detected <strong>{(linkAudit.broken_links || []).length}</strong> broken links.
               </p>
             )}
 
             {/* Broken Links Table */}
             <div className="overflow-x-auto">
               <h3 className="text-lg font-semibold text-ink mb-3">Broken Links Flagged ({linkAudit.broken_links.length})</h3>
-              <table className="min-w-full text-left text-sm">
+              <table className="w-full min-w-[720px] text-left text-sm">
                 <thead>
                   <tr className="border-b border-line text-muted">
                     <th className="px-3 py-2 font-semibold">Tool Name</th>
@@ -1963,7 +2001,7 @@ function AdminPage() {
                               // response as `tool`, leaving every ToolForm
                               // field blank when opened from this row.
                               setEditing({ tool: { ...detail.tool, _sponsoredActive: detail.sponsored_active }, isNew: false })
-                            } catch (e) {
+                            } catch {
                               toast.error('Failed to load tool details')
                             }
                           }}
@@ -1989,7 +2027,7 @@ function AdminPage() {
           <div className="space-y-6">
             {/* Outreach Header Buttons */}
             <div className="flex flex-wrap items-center justify-between gap-4">
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => setOutreachSubTab('campaign')}
                   className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
@@ -2016,7 +2054,7 @@ function AdminPage() {
                 </button>
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <button
                   disabled={outreachBusy === 'discovery'}
                   onClick={async () => {
@@ -2275,7 +2313,7 @@ function AdminPage() {
             {outreachSubTab === 'candidates' && (
               <div className="space-y-4">
                 {/* Filters Row */}
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-9">
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-10">
                   {[
                     ['all', 'All', candidates.length],
                     ['approved', 'Approved', candidates.filter(c => c.status === 'approved').length],
@@ -2305,7 +2343,7 @@ function AdminPage() {
 
                 {/* Bulk Actions Header */}
                 {selectedCandidateIds.length > 0 && (
-                  <div className="flex items-center justify-between rounded-xl border border-accent/20 bg-accent/5 p-4 animate-fade-in">
+                  <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-accent/20 bg-accent/5 p-4 animate-fade-in">
                     <span className="text-sm font-semibold text-accent-ink">
                       {selectedCandidateIds.length} candidate(s) selected
                     </span>
@@ -2365,18 +2403,19 @@ function AdminPage() {
                 {/* Candidates List/Table */}
                 <Card>
                   <div className="overflow-x-auto">
-                    <table className="min-w-full text-left text-sm">
+                    <table className="w-full min-w-[900px] text-left text-sm">
                       <thead>
                         <tr className="border-b border-line text-muted">
                           <th className="px-3 py-2 text-center w-10">
                             <input
                               type="checkbox"
-                              checked={
-                                candidates.length > 0 &&
-                                candidates
-                                  .filter(c => outreachFilter === 'all' || c.status === outreachFilter)
-                                  .every(c => selectedCandidateIds.includes(c.id))
-                              }
+                              checked={(() => {
+                                const visible = candidates.filter(
+                                  c => outreachFilter === 'all' || c.status === outreachFilter,
+                                )
+                                return visible.length > 0
+                                  && visible.every(c => selectedCandidateIds.includes(c.id))
+                              })()}
                               onChange={(e) => {
                                 const visible = candidates.filter(
                                   c => outreachFilter === 'all' || c.status === outreachFilter
@@ -2525,8 +2564,8 @@ function AdminPage() {
                           ))}
                         {candidates.filter(c => outreachFilter === 'all' || c.status === outreachFilter).length === 0 && (
                           <tr>
-                            <td colSpan={7} className="text-center py-6 text-sm text-muted">
-                              No candidates in this status filter.
+                            <td colSpan={7} className="py-6 text-center text-sm text-muted">
+                              {outreachLoading ? 'Loading candidates…' : 'No candidates in this status filter.'}
                             </td>
                           </tr>
                         )}
@@ -2541,7 +2580,7 @@ function AdminPage() {
             {outreachSubTab === 'logs' && (
               <Card>
                 <div className="overflow-x-auto">
-                  <table className="min-w-full text-left text-sm">
+                  <table className="w-full min-w-[780px] text-left text-sm">
                     <thead>
                       <tr className="border-b border-line text-muted">
                         <th className="px-3 py-2 font-semibold">Sent to</th>
@@ -2578,8 +2617,8 @@ function AdminPage() {
                       ))}
                       {outreachLogs.length === 0 && (
                         <tr>
-                          <td colSpan={5} className="text-center py-6 text-sm text-muted">
-                            No logs found.
+                          <td colSpan={5} className="py-6 text-center text-sm text-muted">
+                            {outreachLoading ? 'Loading logs…' : 'No logs found.'}
                           </td>
                         </tr>
                       )}
@@ -2596,27 +2635,28 @@ function AdminPage() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+                  className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-2 sm:p-4"
                 >
                   <MotionDiv
                     initial={{ opacity: 0, scale: 0.96, y: 12 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.98, y: 10 }}
-                    className="max-h-[95vh] w-full max-w-4xl overflow-y-auto rounded-2xl border border-line bg-bg-elev p-6 shadow-2xl flex flex-col"
+                    className="flex max-h-[95vh] w-full max-w-4xl flex-col overflow-y-auto rounded-2xl border border-line bg-bg-elev p-4 shadow-2xl sm:p-6"
                   >
-                    <div className="flex items-center justify-between border-b border-line pb-4">
-                      <div>
-                        <h3 className="text-xl font-semibold text-ink">
+                    <div className="flex items-start justify-between gap-3 border-b border-line pb-4">
+                      <div className="min-w-0">
+                        <h3 className="break-words text-lg font-semibold text-ink sm:text-xl">
                           Review Proposal: {editingCandidate.product_name}
                         </h3>
-                        <p className="text-xs text-muted mt-0.5">
+                        <p className="mt-0.5 break-words text-xs text-muted">
                           Domain: <a href={editingCandidate.website_url} target="_blank" rel="noopener noreferrer" className="text-accent-ink underline">{editingCandidate.website_url}</a>
                           {editingCandidate.founder_name && ` • Founder: ${editingCandidate.founder_name}`}
                         </p>
                       </div>
                       <button
                         onClick={() => setEditingCandidate(null)}
-                        className="rounded-full bg-bg-sunk hover:bg-line text-ink-2 p-1.5 transition"
+                        aria-label="Close"
+                        className="shrink-0 rounded-full bg-bg-sunk p-1.5 text-ink-2 transition hover:bg-line"
                       >
                         <X className="h-4 w-4" />
                       </button>
@@ -2697,7 +2737,7 @@ function AdminPage() {
                             onClick={async () => {
                               setOutreachBusy('regenerate')
                               try {
-                                const d = await api(`/api/v1/admin/outreach/candidates/${editingCandidate.id}`, {
+                                await api(`/api/v1/admin/outreach/candidates/${editingCandidate.id}`, {
                                   method: 'PUT',
                                   headers: { 'Content-Type': 'application/json' },
                                   body: JSON.stringify({
@@ -2748,7 +2788,7 @@ function AdminPage() {
                       </div>
                     </div>
 
-                    <div className="mt-6 flex justify-between border-t border-line pt-4">
+                    <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
                       <div>
                         {editingCandidate.status !== 'rejected' && (
                           <button
@@ -2773,7 +2813,7 @@ function AdminPage() {
                           </button>
                         )}
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex flex-wrap gap-2">
                         <button
                           onClick={async () => {
                             try {
