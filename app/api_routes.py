@@ -3664,6 +3664,51 @@ def set_tool_affiliate(slug):
     return jsonify({"success": True, "affiliate_url": url})
 
 
+@api_bp.route("/admin/tools/<slug>/pricing-backfill", methods=["GET", "POST"])
+@csrf.exempt
+@login_required
+def tool_pricing_backfill(slug):
+    """Write a hand-transcribed pricing payload into a live catalog row.
+
+    Exists for the same reason paypal_diagnostics() does: the equivalent
+    script needs a shell with production DATABASE_URL, and Render's free plan
+    has no Shell. Without this route the Screenpipe payload could not be
+    applied at all, so /go/screenpipe kept sending commissionable traffic to
+    a listing that showed no pricing.
+
+    GET previews (writes nothing); POST commits. The split is the whole point
+    of the endpoint — the payload is hand-transcribed from a vendor's pricing
+    page, so the diff wants reading before it lands on a public listing.
+
+    Only slugs registered in app/pricing_backfill.BACKFILLS are accepted.
+    This is deliberately not a general "PUT arbitrary JSON into the data
+    blob" route: the payloads are reviewed in code, and an endpoint that
+    takes them from the request body would be a way to write anything into
+    any row from a browser.
+    """
+    if not _is_admin():
+        return jsonify({"error": "Forbidden"}), 403
+
+    from app.pricing_backfill import BACKFILLS, apply_pricing_backfill
+
+    commit = request.method == "POST"
+    result = apply_pricing_backfill(slug, commit=commit)
+
+    if not result["known"]:
+        return jsonify({
+            "error": "No pricing backfill is registered for that tool.",
+            "available": sorted(BACKFILLS),
+        }), 404
+    if not result["found"]:
+        return jsonify({"error": "Tool not found in the catalog."}), 404
+
+    if result["committed"]:
+        _refresh_catalog()
+
+    result["preview"] = not commit
+    return jsonify(result)
+
+
 @api_bp.delete("/admin/tools/<slug>")
 @csrf.exempt
 @login_required
