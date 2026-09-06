@@ -98,3 +98,49 @@ def test_google_login_on_www_never_reaches_google(monkeypatch):
     assert response.status_code in (301, 302, 307, 308)
     assert response.headers["Location"] == "https://ai-compass.in/auth/google"
     assert "accounts.google.com" not in response.headers["Location"]
+
+
+def test_canonical_host_login_is_unchanged_and_still_reaches_google(monkeypatch):
+    """The guard must be INERT on the canonical host.
+
+    Cloudflare already 301s www -> apex with the path preserved, so in
+    production every request that reaches Flask arrives on the apex. This is
+    the path real users take, and it has to behave exactly as it did before
+    _canonical_host_redirect() existed: hand off to Google and save the state
+    in the session on the way.
+    """
+    app = _prod_app(monkeypatch)
+    client = app.test_client()
+
+    response = client.get(
+        "/auth/google",
+        base_url="https://ai-compass.in",
+        follow_redirects=False,
+    )
+
+    assert response.status_code == 302
+    location = response.headers["Location"]
+    assert location.startswith("https://accounts.google.com/o/oauth2/v2/auth")
+    # The callback it tells Google to use is the same host that just saved
+    # the state — the invariant the whole guard exists to protect.
+    assert "redirect_uri=https%3A%2F%2Fai-compass.in%2Fauth%2Fgoogle%2Fcallback" in location
+
+    # Sessions are server-side (flask_session/cachelib), so the state itself
+    # lives on disk and only the sid reaches the browser. The observable proof
+    # that authorize_redirect persisted it is that sid cookie — scoped to the
+    # host that will read it back, exactly as production issues it today.
+    set_cookie = response.headers.get("Set-Cookie") or ""
+    assert "ai_compass_session=" in set_cookie
+    assert "SameSite=Lax" in set_cookie, "Lax is required: Google's callback is a top-level GET"
+
+
+def test_guard_is_inert_for_every_host_that_reaches_flask_in_production(monkeypatch):
+    """Belt and braces: the only host Cloudflare lets through is the apex, and
+    for it the guard returns None — so the guard cannot change the outcome of
+    a login that works today."""
+    from app.oauth import _canonical_host_redirect
+
+    app = _prod_app(monkeypatch)
+    for base in ("https://ai-compass.in", "https://ai-compass.in:443"):
+        with app.test_request_context("/auth/google", base_url=base):
+            assert _canonical_host_redirect() is None, base
