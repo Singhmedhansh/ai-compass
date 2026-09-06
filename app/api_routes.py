@@ -11,7 +11,7 @@ from collections import Counter
 from datetime import datetime, timedelta, timezone
 
 import requests
-from flask import Blueprint, current_app, jsonify, request
+from flask import Blueprint, current_app, jsonify, request, session
 from flask_login import current_user, login_required, login_user, logout_user
 from sqlalchemy import func, inspect as sa_inspect
 from sqlalchemy.exc import SQLAlchemyError
@@ -4664,6 +4664,16 @@ def auth_login():
             return jsonify({"error": "Invalid credentials"}), 401
 
 
+        # Drop any device-session uuid left in the cookie by a previous
+        # sign-in. enforce_user_sessions (app/__init__.py) resolves this uuid
+        # against the UserSession table on the NEXT request; if it was minted
+        # for a different account it used to look like a revoked session and
+        # logged the user straight back out one request after a successful
+        # login. Popping it here means every login mints its own row, and it
+        # rotates the session identifier away from whatever the browser
+        # carried in.
+        session.pop('user_uuid', None)
+
         login_user(user, remember=True)
         # Attach Sentry user context if available
         try:
@@ -4695,10 +4705,26 @@ def auth_logout():
     except Exception:
         pass
 
+    # Delete the device-session row and the uuid that points at it. Leaving
+    # them behind orphaned a row per logout and, more importantly, left a
+    # stale uuid in the cookie for the next account signed in on this
+    # browser (see the crossed-uuid branch in enforce_user_sessions).
+    session_uuid = session.get('user_uuid')
+    if session_uuid:
+        try:
+            from app.models import UserSession
+            stale = UserSession.query.filter_by(session_uuid=session_uuid).first()
+            if stale:
+                db.session.delete(stale)
+                db.session.commit()
+        except Exception:
+            db.session.rollback()
+
     try:
         logout_user()
     except Exception:
         pass
+    session.pop('user_uuid', None)
     return jsonify({"success": True})
 
 
@@ -4743,30 +4769,68 @@ def auth_register():
 
         existing = User.query.filter_by(email=email).first()
         if existing is not None:
-            return jsonify({"error": "Email already exists"}), 400
+            # 409, and a message that says what to do next. A bare "Email
+            # already exists" is a dead end for the most common way to reach
+            # it: a registration whose verification email failed to send used
+            # to 500 *after* committing the account, so the user retried and
+            # was told their address was taken by an account they were never
+            # told they had.
+            return jsonify({
+                "error": "An account already uses this email. Sign in instead, or reset your password if you've forgotten it.",
+                "code": "email_exists",
+            }), 409
 
         password_hash = bcrypt.generate_password_hash(password).decode("utf-8")
         user = User(email=email, password_hash=password_hash, display_name=name, is_verified=False)
         db.session.add(user)
         db.session.commit()
 
-        # Send verification email via Resend
+        # Send verification email via Resend.
+        #
+        # Non-fatal on purpose. This used to return 500 with "Unable to send
+        # verification email" and a db.session.rollback() that undid nothing —
+        # the account was committed on the line above, so the rollback had no
+        # insert left to discard. The user was told registration had failed
+        # while holding a real, working account: retrying gave "Email already
+        # exists", and the only remaining door that looked open was a password
+        # reset for a password that was never wrong. The account exists, so
+        # say so; a missing verification email is recoverable from
+        # /verify-email-pending, an invisible account is not.
+        verification_email_sent = False
         try:
             from itsdangerous import URLSafeTimedSerializer
             from app.email_utils import send_email
             from app.auth import get_verification_email_html
+            from app.oauth import _frontend_base_url
             serializer = URLSafeTimedSerializer(current_app.config["SECRET_KEY"], salt="email-verification-salt")
             token = serializer.dumps(email)
-            verification_link = f"{request.url_root}api/auth/verify-email/{token}"
+            # Built from the canonical base, not request.url_root. Nothing
+            # applies ProxyFix, so behind Render/Cloudflare url_root reports
+            # the un-forwarded scheme and whatever host the signup came in on
+            # — which minted http:// links, and www ones for anybody who
+            # registered on www.ai-compass.in.
+            verification_link = f"{_frontend_base_url()}/api/auth/verify-email/{token}"
             subject = "AI Compass - Verify Email"
             html = get_verification_email_html(name, verification_link)
-            send_email(email, subject, html)
+            verification_email_sent = bool(send_email(email, subject, html))
         except Exception:
             current_app.logger.exception("Failed to send verification email")
-            db.session.rollback()
-            return jsonify({"error": "Unable to send verification email. Please try again later."}), 500
 
-        return jsonify({"message": "Registration successful! Please check your email to verify your account."}), 201
+        if not verification_email_sent:
+            current_app.logger.warning(
+                "Registered %s but the verification email did not go out; "
+                "they can resend from /verify-email-pending.", email,
+            )
+
+        return jsonify({
+            "message": (
+                "Registration successful! Please check your email to verify your account."
+                if verification_email_sent
+                else "Account created. We couldn't send the verification email just now — "
+                     "sign in and use “Resend verification link” to try again."
+            ),
+            "verification_email_sent": verification_email_sent,
+        }), 201
     except Exception as exc:
         db.session.rollback()
         current_app.logger.exception("Registration failed due to server error: %s", exc)

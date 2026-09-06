@@ -103,6 +103,37 @@ def _google_redirect_uri():
     return url_for("oauth.google_callback", _external=True, _scheme="http")
 
 
+def _canonical_host_redirect():
+    """Bounce the browser to the canonical host BEFORE any OAuth state is saved.
+
+    Authlib keeps the CSRF `state` in the Flask session, and our session
+    cookie is host-only (SESSION_COOKIE_DOMAIN is None). www.ai-compass.in
+    serves the whole app — enforce_canonical_host() in app/__init__.py
+    deliberately exempts `www.` and `*.onrender.com` from the 308 to the
+    apex — but every provider callback URI below is built against the
+    canonical apex host. So a login begun on www wrote its state under the
+    www cookie and Google returned the user to the apex, which had never
+    seen that cookie: "mismatching_state" for every www visitor, on every
+    provider. Redirecting here, before authorize_redirect(), guarantees the
+    host that writes the state is the host that reads it back.
+
+    Returns a redirect response to send, or None when already canonical.
+    """
+    if not _is_production_env():
+        return None
+
+    host = _canonical_host()
+    if not host or host in {"localhost", "127.0.0.1"}:
+        return None
+
+    request_host = request.host.split(":", 1)[0].strip().lower()
+    if not request_host or request_host == host:
+        return None
+
+    query = f"?{request.query_string.decode('utf-8')}" if request.query_string else ""
+    return redirect(f"https://{host}{request.path}{query}")
+
+
 def _provider_redirect_uri(callback_endpoint: str, prod_path: str) -> str:
     """Build the OAuth callback URL for any provider, honouring the
     canonical host in production and a normal external URL locally.
@@ -232,10 +263,30 @@ def _get_or_create_oauth_user(email, display_name, provider):
             user.oauth_provider = provider
         if bool(user.is_admin) != is_admin:
             user.is_admin = is_admin
-            db.session.commit()
+        # The provider has just proved this person controls this mailbox, so
+        # the local email-verification step is already satisfied.
+        #
+        # WHY this is not cosmetic: OAuth accounts were created with the
+        # model default is_verified=False and nothing ever flipped it. They
+        # have no password and are never sent a verification mail, yet
+        # AnimatedRoutes in frontend/src/App.jsx bounces every unverified
+        # user off /profile, /submit and /admin to /verify-email-pending.
+        # AuthCallbackPage optimistically wrote is_verified: true into
+        # localStorage, but the Navbar's /api/v1/auth/me refresh merges the
+        # server's false back over it seconds later — so signing in with
+        # Google worked and then dead-ended on the next page load.
+        if not user.is_verified:
+            user.is_verified = True
+        db.session.commit()
         return user
 
-    user = User(email=email, display_name=display_name, oauth_provider=provider, is_admin=is_admin)
+    user = User(
+        email=email,
+        display_name=display_name,
+        oauth_provider=provider,
+        is_admin=is_admin,
+        is_verified=True,
+    )
     db.session.add(user)
     db.session.commit()
     return user
@@ -283,6 +334,10 @@ def _handle_link_oauth_user(email, provider, picture_url=None):
 @oauth_bp.route("/login/google")
 @oauth_bp.route("/auth/google")
 def login_google():
+    canonical_redirect = _canonical_host_redirect()
+    if canonical_redirect is not None:
+        return canonical_redirect
+
     frontend_url = _frontend_base_url()
     if current_user.is_authenticated and request.args.get('link') == '1':
         session['oauth_link_user_id'] = current_user.id
@@ -345,6 +400,10 @@ def google_callback():
 @oauth_bp.route("/login/github")
 @oauth_bp.route("/auth/github")
 def login_github():
+    canonical_redirect = _canonical_host_redirect()
+    if canonical_redirect is not None:
+        return canonical_redirect
+
     frontend_url = _frontend_base_url()
     if current_user.is_authenticated and request.args.get('link') == '1':
         session['oauth_link_user_id'] = current_user.id
@@ -402,6 +461,10 @@ def github_callback():
 @oauth_bp.route("/login/linkedin")
 @oauth_bp.route("/auth/linkedin")
 def login_linkedin():
+    canonical_redirect = _canonical_host_redirect()
+    if canonical_redirect is not None:
+        return canonical_redirect
+
     frontend_url = _frontend_base_url()
     if current_user.is_authenticated and request.args.get('link') == '1':
         session['oauth_link_user_id'] = current_user.id

@@ -31,10 +31,16 @@ export default function AuthCallbackPage() {
       return
     }
 
-    if (params.name && params.email && params.id) {
+    // Only email + id are required. Keying off `name` too used to strand a
+    // successfully-signed-in user at /login?error=missing_params whenever the
+    // provider had no name to give (a GitHub account with no profile name,
+    // a Google account with only an email) — the backend had already created
+    // the account and set the session cookie by then.
+    if (params.email && params.id) {
       const onboardingCompleted = params.onboarding_completed !== 'false'
+      const displayName = params.name || params.email.split('@')[0]
       const user = {
-        name: params.name,
+        name: displayName,
         email: params.email,
         id: params.id,
         picture: params.picture || '',
@@ -50,7 +56,7 @@ export default function AuthCallbackPage() {
         });
       }
       window.dispatchEvent(new Event('userLoggedIn'))
-      const firstName = params.name.split(' ')[0]
+      const firstName = displayName.split(' ')[0]
       toast.success(
         onboardingCompleted
           ? `Welcome back, ${firstName}!`

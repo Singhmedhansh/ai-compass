@@ -298,7 +298,8 @@ def resend_verification():
 
     try:
         token = get_verify_serializer().dumps(email)
-        verification_link = f"{request.url_root}api/auth/verify-email/{token}"
+        # Canonical base rather than request.url_root — see auth_register().
+        verification_link = f"{_frontend_base_url()}/api/auth/verify-email/{token}"
         subject = "AI Compass - Verify Email"
         name = user.display_name or "User"
         html = get_verification_email_html(name, verification_link)

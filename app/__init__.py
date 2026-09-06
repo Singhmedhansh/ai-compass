@@ -631,14 +631,28 @@ def create_app(config: dict | None = None) -> Flask:
             # ── Existing session: verify still valid ─────────────────────────
             try:
                 db_session = UserSession.query.filter_by(
-                    session_uuid=session_uuid, user_id=current_user.id
+                    session_uuid=session_uuid
                 ).first()
             except Exception:
                 db.session.rollback()
                 return None
 
+            if db_session is not None and db_session.user_id != current_user.id:
+                # The cookie carries a session uuid minted for a DIFFERENT
+                # account. This lookup used to filter on user_id too, so a
+                # crossed uuid was indistinguishable from a revoked one: the
+                # user signed in successfully and was then logged straight
+                # back out on their very next request. From the browser that
+                # reads as "my own password doesn't work", and the usual next
+                # move is a password reset that cannot fix it. Drop the stale
+                # uuid and let the branch above mint a fresh session for
+                # whoever is actually signed in now.
+                session.pop('user_uuid', None)
+                return None
+
             if not db_session:
-                # Session revoked — log out.
+                # No row for this uuid at all — the session was genuinely
+                # revoked (see revoke_session), so log out.
                 logout_user()
                 session.pop('user_uuid', None)
                 if request.path.startswith('/api/'):

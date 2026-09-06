@@ -89,3 +89,36 @@ def test_spa_success_redirect_contract(app):
         refreshed = db.session.get(User, user.id)
         assert refreshed.first_login is False
         assert refreshed.onboarding_completed is False
+
+
+def test_oauth_signup_is_verified(app):
+    """Regression: OAuth accounts were created with the model default
+    is_verified=False and nothing ever flipped it. They have no password and
+    are never sent a verification mail, but AnimatedRoutes (frontend/src/App.jsx)
+    bounces every unverified user off /profile, /submit and /admin to
+    /verify-email-pending — so signing in with Google dead-ended one page load
+    later, once the Navbar's /api/v1/auth/me refresh merged the server's
+    `false` over AuthCallbackPage's optimistic `true`."""
+    from app.oauth import _get_or_create_oauth_user
+
+    with app.test_request_context("/auth/google/callback"):
+        user = _get_or_create_oauth_user("newbie@example.com", "Newbie", "google")
+
+    assert user.is_verified is True
+
+
+def test_oauth_login_verifies_an_existing_unverified_account(app):
+    """The provider has just proved control of the mailbox, so an account
+    stranded at is_verified=False — including every one created before this
+    fix — heals on its next OAuth sign-in rather than needing a migration."""
+    from app.oauth import _get_or_create_oauth_user
+
+    with app.app_context():
+        db.session.add(User(email="stranded@example.com", display_name="Stranded", is_verified=False))
+        db.session.commit()
+
+    with app.test_request_context("/auth/google/callback"):
+        user = _get_or_create_oauth_user("stranded@example.com", "Stranded", "google")
+
+    assert user.is_verified is True
+    assert user.oauth_provider == "google"

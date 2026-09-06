@@ -59,7 +59,12 @@ function LoginPage() {
       } else if (errorMsg === 'google_not_configured') {
         friendlyMsg = 'Google login is not configured on the server.'
       } else if (errorMsg === 'google_state_mismatch') {
-        friendlyMsg = 'Google authentication state mismatch. Please ensure you do not have strict cookie blockers enabled and try again.'
+        // Was: "ensure you do not have strict cookie blockers enabled" — which
+        // blamed the user for a server bug. The real cause was starting the
+        // sign-in on www.ai-compass.in and returning to the apex, where the
+        // state cookie did not exist; the OAuth entry points now redirect to
+        // the canonical host first. Anything left is a genuinely stale tab.
+        friendlyMsg = 'That Google sign-in link expired. Please tap “Continue with Google” again.'
       } else if (errorMsg === 'google_failed') {
         friendlyMsg = 'Google authentication failed. Please try again.'
       } else if (errorMsg === 'github_not_configured') {
