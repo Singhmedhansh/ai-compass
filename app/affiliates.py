@@ -17,6 +17,14 @@ AFFILIATES: dict[str, str] = {
     # belt-and-braces fallback, but the registry is the authoritative
     # source — outbound() checks it first.
     "elevenlabs": "https://try.elevenlabs.io/2f10b9jmqa4g",
+    # Screenpipe affiliate program (Dub), applied via
+    # https://partners.dub.co/screenpipe/apply and approved 2026-09-06.
+    # 25% of a referred customer's first paid subscription transaction;
+    # free signups generate $0 commission. Same URL is also mirrored onto
+    # the catalog row's `affiliate_url` field as a belt-and-braces
+    # fallback, but this registry is authoritative — outbound() checks
+    # it first.
+    "screenpipe": "https://go.screenpi.pe/ai-compass",
 }
 
 
