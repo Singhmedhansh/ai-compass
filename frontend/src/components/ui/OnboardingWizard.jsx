@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   X, Check, Code, MessageSquare, Search, Briefcase, Image,
   Video, Mic, Sparkles, Loader2, ChevronLeft, ChevronRight,
-  BookOpen, Compass, Zap, Users, ArrowRight
+  BookOpen, Compass, ArrowRight
 } from 'lucide-react'
 
 const MotionDiv = motion.div
@@ -84,7 +84,12 @@ function StepLabel({ step }) {
 
 export default function OnboardingWizard() {
   const [active, setActive]               = useState(false)
-  const [userName, setUserName]           = useState('')
+  // The name the account is actually filed under. Captured on the welcome
+  // step and saved to display_name, which _serialize_user() hands to every
+  // screen and every transactional email — so it really is used everywhere.
+  const [preferredName, setPreferredName] = useState('')
+  const [nameSaving, setNameSaving]       = useState(false)
+  const [nameError, setNameError]         = useState('')
   const [step, setStep]                   = useState(0)   // 0 = welcome
   const [direction, setDirection]         = useState(1)   // 1 = forward, -1 = back
   const [saving, setSaving]               = useState(false)
@@ -97,6 +102,12 @@ export default function OnboardingWizard() {
   const [selectedPricing, setSelectedPricing]     = useState('freemium')
 
   // ── Trigger logic ────────────────────────────────────────────────────────
+  // Mirrors `active` synchronously. Saving the preferred name fires
+  // 'userLoggedIn' so the navbar picks it up, and that event lands right back
+  // here — reading `active` from state would be a stale closure, and setStep(0)
+  // would rewind the wizard the user is halfway through.
+  const activeRef = useRef(false)
+
   const checkOnboarding = () => {
     try {
       // Don't show if user already skipped this browser session
@@ -104,13 +115,21 @@ export default function OnboardingWizard() {
 
       const storedUser = JSON.parse(localStorage.getItem('user'))
       if (storedUser && storedUser.onboarding_completed === false) {
-        setUserName((storedUser.name || '').split(' ')[0] || '')
-        setActive(true)
-        setStep(0)
+        if (!activeRef.current) {
+          // Opening: seed the field with whatever the provider or the signup
+          // form gave us, so most people just confirm and move on.
+          setPreferredName(storedUser.name || '')
+          setNameError('')
+          setStep(0)
+          activeRef.current = true
+          setActive(true)
+        }
       } else {
+        activeRef.current = false
         setActive(false)
       }
     } catch {
+      activeRef.current = false
       setActive(false)
     }
   }
@@ -134,6 +153,50 @@ export default function OnboardingWizard() {
   const handleNext = () => {
     if (step < 3) goTo(step + 1)
     else handleSubmit()
+  }
+
+  // Saved on leaving the welcome step rather than batched into handleSubmit,
+  // so a user who answers this and then closes the wizard still keeps the name
+  // they chose. `handleSkip` deliberately does not save — skipping means
+  // keeping whatever the provider supplied.
+  const handleNameContinue = async () => {
+    const trimmed = preferredName.trim()
+    if (!trimmed) {
+      setNameError('Please enter a name.')
+      return
+    }
+    if (trimmed.length > 60) {
+      setNameError('Please use a name of 60 characters or fewer.')
+      return
+    }
+
+    setNameSaving(true)
+    setNameError('')
+    try {
+      const res = await fetch('/api/v1/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ preferred_name: trimmed }),
+      })
+      if (!res.ok) throw new Error('Failed to save name')
+
+      const updatedUser = await res.json()
+      const localUser   = JSON.parse(localStorage.getItem('user')) || {}
+      localStorage.setItem('user', JSON.stringify({ ...localUser, ...updatedUser }))
+
+      if (window.posthog) window.posthog.capture('onboarding_name_set')
+      // Repaints the navbar/avatar with the chosen name immediately. Safe to
+      // fire mid-wizard because of the activeRef guard in checkOnboarding.
+      window.dispatchEvent(new Event('userLoggedIn'))
+
+      goTo(1)
+    } catch (err) {
+      console.error('[OnboardingWizard] Name save error:', err)
+      setNameError('Could not save that just now. Please try again.')
+    } finally {
+      setNameSaving(false)
+    }
   }
   const handleBack = () => {
     if (step > 0) goTo(step - 1)
@@ -172,6 +235,7 @@ export default function OnboardingWizard() {
 
       window.dispatchEvent(new Event('userLoggedIn'))
       window.dispatchEvent(new Event('onboardingCompleted'))
+      activeRef.current = false
       setActive(false)
     } catch (err) {
       console.error('[OnboardingWizard] Submission error:', err)
@@ -185,6 +249,7 @@ export default function OnboardingWizard() {
     // Mark skip for this browser session only — wizard will re-appear on next login
     sessionStorage.setItem(SESSION_SKIP_KEY, '1')
     if (window.posthog) window.posthog.capture('onboarding_skipped', { at_step: step })
+    activeRef.current = false
     setActive(false)
   }
 
@@ -259,34 +324,56 @@ export default function OnboardingWizard() {
 
                 <div>
                   <h2 className="text-2xl font-bold tracking-tight text-ink">
-                    {userName ? `Welcome, ${userName}!` : 'Welcome to AI Compass!'}
+                    Welcome to AI Compass!
                   </h2>
                   <p className="text-sm text-muted mt-2 max-w-sm mx-auto leading-relaxed">
-                    AI Compass has <span className="font-semibold text-ink">400+ hand-tested AI tools</span>. 
-                    Answer 3 quick questions and we&apos;ll personalize your entire experience.
+                    First — what should we call you? This is the name you&apos;ll
+                    see across your account.
                   </p>
                 </div>
 
-                {/* Feature pills */}
-                <div className="flex flex-wrap gap-2 justify-center">
-                  {[
-                    { icon: Zap,     text: 'Personalized recommendations' },
-                    { icon: BookOpen, text: 'Curated for students' },
-                    { icon: Users,   text: 'Free to use forever' },
-                  ].map(({ icon: Icon, text }) => (
-                    <span key={text} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-bg-sunk border border-line text-xs text-ink-2">
-                      <Icon className="h-3 w-3 text-accent" />
-                      {text}
-                    </span>
-                  ))}
+                {/* Preferred name */}
+                <div className="w-full max-w-sm text-left">
+                  <label htmlFor="onboarding-preferred-name" className="block text-xs font-semibold uppercase tracking-wider text-muted mb-1.5">
+                    Preferred name
+                  </label>
+                  <input
+                    id="onboarding-preferred-name"
+                    type="text"
+                    autoFocus
+                    autoComplete="given-name"
+                    maxLength={60}
+                    value={preferredName}
+                    onChange={(e) => { setPreferredName(e.target.value); if (nameError) setNameError('') }}
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleNameContinue() } }}
+                    placeholder="e.g. Medhansh"
+                    aria-invalid={nameError ? 'true' : undefined}
+                    aria-describedby={nameError ? 'onboarding-preferred-name-error' : undefined}
+                    className={`w-full rounded-xl border bg-bg-sunk px-3.5 py-2.5 text-sm text-ink placeholder:text-muted outline-none transition-colors focus:border-accent ${
+                      nameError ? 'border-red-500' : 'border-line'
+                    }`}
+                  />
+                  {nameError && (
+                    <p id="onboarding-preferred-name-error" role="alert" className="mt-1.5 text-xs text-red-500">
+                      {nameError}
+                    </p>
+                  )}
+                  <p className="mt-1.5 text-xs text-muted">
+                    You can change this any time from your profile.
+                  </p>
                 </div>
 
                 <button
                   type="button"
-                  onClick={handleNext}
-                  className="mt-2 inline-flex items-center gap-2 rounded-full bg-accent px-6 py-2.5 text-sm font-semibold text-white hover:opacity-90 shadow-lg shadow-accent/20 transition-all"
+                  onClick={handleNameContinue}
+                  disabled={nameSaving || !preferredName.trim()}
+                  className="mt-1 inline-flex items-center gap-2 rounded-full bg-accent px-6 py-2.5 text-sm font-semibold text-white hover:opacity-90 shadow-lg shadow-accent/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Get Started <ArrowRight className="h-4 w-4" />
+                  {nameSaving ? (
+                    <>Saving <Loader2 className="h-4 w-4 animate-spin" /></>
+                  ) : (
+                    <>Get Started <ArrowRight className="h-4 w-4" /></>
+                  )}
                 </button>
 
                 <button

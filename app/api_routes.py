@@ -3821,10 +3821,20 @@ def update_profile():
         return jsonify({"error": "Unauthorized"}), 401
 
     payload = request.get_json(silent=True) or {}
-    name = str(payload.get("name") or "").strip()
+    # "preferred_name" is what the onboarding wizard sends; "name" is what the
+    # profile editor has always sent. One column behind both, because
+    # display_name is the single name _serialize_user() hands to every screen
+    # and every transactional email.
+    name = str(payload.get("preferred_name") or payload.get("name") or "").strip()
 
     if not name:
         return jsonify({"error": "Display name is required."}), 400
+
+    # display_name is String(255); Postgres errors rather than truncates, and
+    # the wizard now writes here for every new account, so cap it at something
+    # a person would plausibly be called.
+    if len(name) > 60:
+        return jsonify({"error": "Please use a name of 60 characters or fewer."}), 400
 
     current_user.display_name = name
     db.session.commit()

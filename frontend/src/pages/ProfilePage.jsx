@@ -1120,7 +1120,7 @@ function ProfilePage() {
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent-ink">Profile &amp; Settings</p>
         <h1 className="mt-2 text-3xl font-bold tracking-tight text-ink">Manage your AI Compass account</h1>
         <p className="mt-2 max-w-2xl text-sm text-muted">
-          Update your display name, keep your preferences in sync, and manage your personal data from one place.
+          Update your preferred name, keep your preferences in sync, and manage your personal data from one place.
         </p>
       </div>
 
@@ -1201,19 +1201,19 @@ function ProfilePage() {
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-ink">Account Settings</h3>
-                <p className="text-sm text-muted">Update your display name and review your account email.</p>
+                <p className="text-sm text-muted">Update your preferred name and review your account email.</p>
               </div>
             </div>
 
             <div className="mt-6 grid gap-4 md:grid-cols-2">
               <label className="block">
-                <span className="mb-2 block text-sm font-medium text-ink-2">Display Name</span>
+                <span className="mb-2 block text-sm font-medium text-ink-2">Preferred name</span>
                 <input
                   value={displayName}
                   onChange={(event) => setDisplayName(event.target.value)}
                   disabled={!isEditing}
                   className="w-full rounded-2xl border border-line bg-bg-elev px-4 py-3 text-ink transition placeholder:text-muted-2 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 disabled:cursor-not-allowed disabled:bg-bg-sunk disabled:text-muted"
-                  placeholder="Your display name"
+                  placeholder="What should we call you?"
                 />
               </label>
 
