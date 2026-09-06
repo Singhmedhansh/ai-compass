@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { Helmet } from 'react-helmet-async'
-import { useSearchParams, Link } from 'react-router-dom'
+import { useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ArrowRight, ChevronDown, GraduationCap, SearchX, Sparkles } from 'lucide-react'
 import { Button, Dropdown, SearchInput, SEO, SkeletonCard, WordReveal, GridBackground, ToolLogo } from '../components/ui'
@@ -232,6 +232,7 @@ function buildDirectorySummary(tools) {
 
 function DirectoryPage() {
   const [searchParams, setSearchParams] = useSearchParams()
+  const navigate = useNavigate()
   const initialCategory = searchParams.get('category') || 'All'
   const queryFromParams = searchParams.get('q') || ''
   const semanticFromParams = searchParams.get('semantic') === 'true'
