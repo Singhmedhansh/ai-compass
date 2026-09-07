@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ShieldCheck } from 'lucide-react'
 
+import { readStorage } from '../../utils/safeStorage'
+
 const MotionDiv = motion.div
 
 const bannerVariants = {
@@ -27,7 +29,7 @@ export default function CookieConsent() {
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
-    const consent = localStorage.getItem('ai_compass_cookie_consent')
+    const consent = readStorage('ai_compass_cookie_consent')
     if (consent !== 'granted' && consent !== 'declined') {
       // Delaying for 4s so it doesn't intercept the user's first meaningful click
       const timer = setTimeout(() => {
