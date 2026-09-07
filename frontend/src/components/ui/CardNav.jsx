@@ -22,6 +22,7 @@ import CompassMark from './CompassMark'
 import SearchInput from './SearchInput'
 import useClickOutside from '../../hooks/useClickOutside'
 import { useCurrency } from '../../context/CurrencyContext'
+import { readStorage, writeStorage } from '../../utils/safeStorage'
 import './CardNav.css'
 
 const MotionDiv = motion.div
@@ -30,9 +31,7 @@ const ADMIN_EMAILS = ['singhmedhansh07@gmail.com']
 const dropdownTransition = { duration: 0.2, ease: [0.22, 1, 0.36, 1] }
 
 function getInitialTheme() {
-  if (typeof window === 'undefined') return false
-  const storedTheme = window.localStorage.getItem(STORAGE_KEY)
-  return storedTheme === 'dark'
+  return readStorage(STORAGE_KEY) === 'dark'
 }
 
 const CardNav = ({ className = '', ease = 'power3.out' }) => {
@@ -127,9 +126,7 @@ const CardNav = ({ className = '', ease = 'power3.out' }) => {
 
   // Theme synchronization logic
   const syncThemeFromStorage = () => {
-    if (typeof window === 'undefined') return
-    const storedTheme = window.localStorage.getItem(STORAGE_KEY)
-    setIsDark(storedTheme === 'dark')
+    setIsDark(readStorage(STORAGE_KEY) === 'dark')
   }
 
   useEffect(() => {
@@ -138,7 +135,7 @@ const CardNav = ({ className = '', ease = 'power3.out' }) => {
     } else {
       document.documentElement.removeAttribute('data-theme')
     }
-    window.localStorage.setItem(STORAGE_KEY, isDark ? 'dark' : 'light')
+    writeStorage(STORAGE_KEY, isDark ? 'dark' : 'light')
   }, [isDark])
 
   useEffect(() => {

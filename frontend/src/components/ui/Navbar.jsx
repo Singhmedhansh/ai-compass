@@ -8,6 +8,7 @@ import CompassMark from './CompassMark'
 import SearchInput from './SearchInput'
 import useClickOutside from '../../hooks/useClickOutside'
 import { useCurrency } from '../../context/CurrencyContext'
+import { readStorage, writeStorage } from '../../utils/safeStorage'
 
 const MotionDiv = motion.div
 
@@ -16,17 +17,7 @@ const ADMIN_EMAILS = ['singhmedhansh07@gmail.com']
 const dropdownTransition = { duration: 0.2, ease: [0.22, 1, 0.36, 1] }
 
 function getInitialTheme() {
-  if (typeof window === 'undefined') {
-    return false
-  }
-
-  const storedTheme = window.localStorage.getItem(STORAGE_KEY)
-
-  if (storedTheme) {
-    return storedTheme === 'dark'
-  }
-
-  return false
+  return readStorage(STORAGE_KEY) === 'dark'
 }
 
 function Navbar() {
@@ -96,7 +87,7 @@ function Navbar() {
     } else {
       document.documentElement.removeAttribute('data-theme')
     }
-    window.localStorage.setItem(STORAGE_KEY, isDark ? 'dark' : 'light')
+    writeStorage(STORAGE_KEY, isDark ? 'dark' : 'light')
   }, [isDark])
 
   useEffect(() => {
