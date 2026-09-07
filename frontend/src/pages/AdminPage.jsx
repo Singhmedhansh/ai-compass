@@ -1574,7 +1574,7 @@ function AdminPage() {
             <div className="overflow-x-auto">
               <table className="min-w-full text-left text-sm">
                 <thead><tr className="border-b border-line text-muted">
-                  <th className="px-3 py-2 font-semibold">Email</th><th className="px-3 py-2 font-semibold">Name</th><th className="px-3 py-2 font-semibold">Joined</th><th className="px-3 py-2 font-semibold">Admin</th>
+                  <th className="px-3 py-2 font-semibold">Email</th><th className="px-3 py-2 font-semibold">Name</th><th className="px-3 py-2 font-semibold">Joined</th><th className="px-3 py-2 font-semibold">Active minutes</th><th className="px-3 py-2 font-semibold">Admin</th>
                 </tr></thead>
                 <tbody>
                   {users.map((u) => (
@@ -1582,6 +1582,7 @@ function AdminPage() {
                       <td className="px-3 py-2 text-ink-2">{u.email}</td>
                       <td className="px-3 py-2 text-ink">{u.name || '—'}</td>
                       <td className="px-3 py-2 text-muted">{u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}</td>
+                      <td className="px-3 py-2 tabular-nums text-ink-2">{Number.isFinite(u.active_minutes) ? u.active_minutes.toLocaleString() : '—'}</td>
                       <td className="px-3 py-2 text-accent-ink">{u.is_admin ? '✓' : ''}</td>
                     </tr>
                   ))}

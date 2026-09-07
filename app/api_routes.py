@@ -3212,7 +3212,28 @@ def admin_cancel_audit_links():
 
 @api_bp.get("/admin/users")
 def admin_users():
+    from app.models import UserSession
+
     users = User.query.all()
+
+    # Approximate "active minutes" per user: for every session row, the span
+    # between when it was minted (created_at) and its last recorded heartbeat
+    # (last_active_at, bumped at most once/minute while the user is browsing).
+    # Summed across all of a user's sessions. Computed in Python so it works
+    # on Postgres (prod) as well as SQLite — no DB-specific date maths.
+    active_seconds = {}
+    for sess in UserSession.query.all():
+        started, seen = sess.created_at, sess.last_active_at
+        if not started or not seen:
+            continue
+        if started.tzinfo is None:
+            started = started.replace(tzinfo=timezone.utc)
+        if seen.tzinfo is None:
+            seen = seen.replace(tzinfo=timezone.utc)
+        span = (seen - started).total_seconds()
+        if span > 0:
+            active_seconds[sess.user_id] = active_seconds.get(sess.user_id, 0) + span
+
     payload = [
         {
             "id": user.id,
@@ -3220,6 +3241,7 @@ def admin_users():
             "name": user.display_name,
             "created_at": user.created_at.isoformat() if user.created_at else None,
             "is_admin": bool(getattr(user, 'is_admin', False)),
+            "active_minutes": int(round(active_seconds.get(user.id, 0) / 60)),
         }
         for user in users
     ]
