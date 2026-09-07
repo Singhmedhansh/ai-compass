@@ -152,6 +152,50 @@ def test_approving_a_missing_candidate_is_a_404(admin_client, app):
         "/api/v1/admin/outreach/candidates/999999/approve", json={}).status_code == 404
 
 
+# ─── The gate is not a dead end ───────────────────────────────────────────────
+
+def test_a_gate_rejected_candidate_can_be_moved_back_to_review(admin_client, app):
+    c = _cand(status="rejected")
+    res = admin_client.post(f"/api/v1/admin/outreach/candidates/{c.id}/reinstate", json={})
+    assert res.status_code == 200
+    assert res.get_json()["status"] == "draft_ready"
+    db.session.refresh(c)
+    assert c.status == "draft_ready"
+
+
+def test_reinstate_only_touches_a_rejected_candidate(admin_client, app):
+    c = _cand(status="draft_ready")
+    res = admin_client.post(f"/api/v1/admin/outreach/candidates/{c.id}/reinstate", json={})
+    assert res.status_code == 400
+    assert "rejected" in res.get_json()["error"].lower()
+
+
+def test_reinstate_requires_admin(app):
+    c = _cand(status="rejected")
+    res = app.test_client().post(
+        f"/api/v1/admin/outreach/candidates/{c.id}/reinstate", json={})
+    assert res.status_code in (401, 403)
+    db.session.refresh(c)
+    assert c.status == "rejected"
+
+
+def test_a_gate_rejected_candidate_can_be_approved_directly(admin_client, app):
+    """The override path: reinstate and approve in one click."""
+    c = _cand(status="rejected")
+    res = admin_client.post(f"/api/v1/admin/outreach/candidates/{c.id}/approve", json={})
+    assert res.status_code == 200
+    assert res.get_json()["status"] == outreach_mod.STATUS_APPROVED
+
+
+def test_directly_approving_a_rejected_candidate_still_hits_the_send_gate(admin_client, app):
+    """Overriding the score bar does not override the deliverability gate."""
+    c = _cand(status="rejected", verification_result="invalid")
+    res = admin_client.post(f"/api/v1/admin/outreach/candidates/{c.id}/approve", json={})
+    assert res.status_code == 400
+    db.session.refresh(c)
+    assert c.status == "rejected", "A refused override must leave it rejected."
+
+
 # ─── Evidence reaches the console ─────────────────────────────────────────────
 
 def test_the_candidate_list_carries_the_scoring_evidence(admin_client, app):

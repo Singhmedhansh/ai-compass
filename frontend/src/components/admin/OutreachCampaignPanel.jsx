@@ -75,12 +75,13 @@ function Evidence({ item }) {
   )
 }
 
-function CandidateRow({ c, onApprove, busy }) {
+function CandidateRow({ c, onApprove, onReinstate, busy }) {
   const [open, setOpen] = useState(false)
   const pool = POOL_LABEL[c.lead_pool] || { label: c.lead_pool || 'Unpooled', hint: '' }
   const evidence = c.qualification?.evidence || []
   const prices = c.qualification?.prices
   const isApproved = c.status === 'approved'
+  const isRejected = c.status === 'rejected'
 
   return (
     <div className="border-t border-line py-3">
@@ -188,6 +189,33 @@ function CandidateRow({ c, onApprove, busy }) {
               {isApproved ? 'Undo' : 'Approve'}
             </button>
           )}
+
+          {/* A gate-rejected row is not a dead end: the bar can be wrong, or
+              the operator can simply disagree. "Move to review" puts it back
+              in Needs review untouched; "Approve anyway" reinstates it and
+              approves in one step, still subject to the send checks. */}
+          {isRejected && (
+            <>
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => onReinstate(c)}
+                className="inline-flex items-center gap-1 rounded-lg border border-line bg-bg px-2.5 py-1.5 text-xs font-semibold text-ink-2 transition hover:bg-bg-sunk disabled:opacity-50"
+              >
+                <Undo2 className="h-3.5 w-3.5" />
+                Move to review
+              </button>
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => onApprove(c, true)}
+                className="inline-flex items-center gap-1 rounded-lg bg-accent px-2.5 py-1.5 text-xs font-semibold text-bg transition hover:opacity-90 disabled:opacity-50"
+              >
+                <Check className="h-3.5 w-3.5" />
+                Approve anyway
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>
@@ -259,6 +287,19 @@ export default function OutreachCampaignPanel({ api, refreshKey = 0 }) {
       // reason is the whole point; a silent failure would leave the operator
       // clicking a button that does nothing.
       setError(e?.message || 'Could not approve that candidate.')
+    } finally {
+      setBusyId(null)
+    }
+  }, [api, load])
+
+  const reinstate = useCallback(async (c) => {
+    setBusyId(c.id)
+    setError('')
+    try {
+      await api(`/api/v1/admin/outreach/candidates/${c.id}/reinstate`, { method: 'POST' })
+      await load()
+    } catch (e) {
+      setError(e?.message || 'Could not move that candidate back to review.')
     } finally {
       setBusyId(null)
     }
@@ -596,7 +637,13 @@ export default function OutreachCampaignPanel({ api, refreshKey = 0 }) {
           </p>
         ) : (
           visible.map((c) => (
-            <CandidateRow key={c.id} c={c} onApprove={approve} busy={busyId === c.id} />
+            <CandidateRow
+              key={c.id}
+              c={c}
+              onApprove={approve}
+              onReinstate={reinstate}
+              busy={busyId === c.id}
+            />
           ))
         )}
       </div>

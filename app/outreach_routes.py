@@ -877,6 +877,11 @@ def approve_candidate(candidate_id):
     score. Body {"approved": false} reverses it while the email is still
     unsent.
 
+    A gate-rejected candidate can be approved here too — it is pulled back to
+    draft_ready first, then run through the same checks. That is the deliberate
+    override for an admin who has looked at the company and disagrees with the
+    bar; use /reinstate instead to send it to Needs review without approving.
+
     Approving deliberately runs the same can_send_candidate() checks the sender
     will run, and refuses if they fail. Letting a candidate sit in 'approved'
     with a dead mailbox or a stale draft would mean the queue says ready and
@@ -898,19 +903,57 @@ def approve_candidate(candidate_id):
             db.session.commit()
         return jsonify({"id": c.id, "status": c.status})
 
+    # A gate-rejected row is a terminal state that NON_SENDABLE_STATUSES would
+    # refuse outright, so reinstate it to draft_ready before the eligibility
+    # check runs. A failed check rolls this back, leaving it rejected.
+    if c.status == "rejected":
+        c.status = "draft_ready"
+        c.last_status_change_at = datetime.now(timezone.utc)
+
     if c.status not in ("draft_ready", STATUS_APPROVED):
         return jsonify({
             "error": f"Only a draft can be approved — this one is '{c.status}'.",
         }), 400
 
-    # Eligibility as the SENDER will see it, asked without mutating the row and
-    # without today's pacing counting against it — see can_send_candidate.
+    # Eligibility as the SENDER will see it, asked without today's pacing
+    # counting against it — see can_send_candidate.
     ok, reason = can_send_candidate(c, for_approval=True)
     if not ok:
         db.session.rollback()
         return jsonify({"error": reason}), 400
 
     c.status = STATUS_APPROVED
+    c.last_status_change_at = datetime.now(timezone.utc)
+    db.session.commit()
+    return jsonify({"id": c.id, "status": c.status})
+
+
+@outreach_bp.route("/api/v1/admin/outreach/candidates/<int:candidate_id>/reinstate", methods=["POST"])
+@csrf.exempt
+@login_required
+def reinstate_candidate(candidate_id):
+    """Pulls a gate-rejected candidate back into the Needs review queue.
+
+    The qualification bar auto-rejects (below score, no pricing page, domain
+    age, unreachable site). This is the manual override for an admin who has
+    looked at the company and disagrees: the row moves back to 'draft_ready'
+    and sits in Needs review like any other draft — to be read, regenerated if
+    the copy is stale, and approved or left alone. It sends nothing and runs
+    no gate; approval stays a separate, checked step.
+    """
+    if not _is_admin():
+        return jsonify({"error": "Admin access required."}), 403
+
+    c = db.session.get(OutreachCandidate, candidate_id)
+    if not c:
+        return jsonify({"error": "Candidate not found."}), 404
+
+    if c.status != "rejected":
+        return jsonify({
+            "error": f"Only a gate-rejected candidate can be reinstated — this one is '{c.status}'.",
+        }), 400
+
+    c.status = "draft_ready"
     c.last_status_change_at = datetime.now(timezone.utc)
     db.session.commit()
     return jsonify({"id": c.id, "status": c.status})
