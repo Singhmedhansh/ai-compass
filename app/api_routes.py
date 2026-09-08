@@ -2283,6 +2283,29 @@ def submit_tool():
                 "persisted": False,
             }), 500
 
+        # Ownership link for EVERY tier, not just the paid path below. That
+        # path may MINT an account because a payer is owed a login; this one
+        # never does — it links only to an account that already exists (the
+        # logged-in submitter, or a User matching the email they typed).
+        # founder_user_id is what is_founder, and therefore the Growth Hub
+        # entry in the navbar, is computed from, so leaving it NULL on free
+        # submissions hid a dashboard /founder/tools already serves free
+        # tiers. Best-effort: a failure here must not fail the submission.
+        if sub is not None:
+            try:
+                from app.founder_accounts import link_existing_founder_account
+                link_existing_founder_account(
+                    sub.id,
+                    email=submitter_email,
+                    user=current_user if current_user.is_authenticated else None,
+                )
+            except Exception:
+                db.session.rollback()
+                current_app.logger.exception(
+                    "Failed to link founder account for submission_id=%s",
+                    getattr(sub, "id", None),
+                )
+
         # The Reviewed tier's price includes a commissioned hands-on review,
         # so the commission is queued here rather than waiting for someone to
         # notice the tier on the invoice. An owed deliverable that exists only

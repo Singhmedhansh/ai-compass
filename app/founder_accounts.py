@@ -86,3 +86,43 @@ def get_or_create_founder_account(email: str, submission_id: int) -> FounderAcco
     db.session.commit()
 
     return FounderAccountResult(user=user, created=created, temp_password=temp_password)
+
+
+def link_existing_founder_account(submission_id: int, email: str = None, user: User = None) -> Optional[User]:
+    """Link `submission_id` to an account that already exists — never create one.
+
+    The paid path above may mint an account (and a temp password) because the
+    founder has paid and is owed a login. Every other submission must not:
+    a free listing silently creating a User with a password nobody was told
+    about is not a signup. So this links only when there is already a real
+    account to link to — the logged-in submitter, or a User whose email
+    matches what they typed into the form.
+
+    Without this, `founder_user_id` stayed NULL for every free submission,
+    which is the flag `is_founder` is computed from — so free founders never
+    saw the Growth Hub entry that /founder/tools was already built to serve.
+
+    Returns the linked User, or None when there was no account to link.
+    Idempotent, and never steals a submission that is already linked.
+    """
+    submission = Submission.query.get(submission_id)
+    if submission is None or submission.founder_user_id is not None:
+        return None
+
+    # Email first, session second. The submitter_email on the form is the
+    # address the paid path keys everything off (welcome mail, magic-link
+    # dashboard, monthly report), so when a logged-in user types someone
+    # else's address they are submitting on that founder's behalf and the
+    # dashboard belongs to them, not to whoever happened to be signed in.
+    # The session is only the fallback for an address with no account yet.
+    normalized_email = str(email or "").strip().lower()
+    if normalized_email:
+        matched = User.query.filter_by(email=normalized_email).first()
+        if matched is not None:
+            user = matched
+    if user is None:
+        return None
+
+    submission.founder_user_id = user.id
+    db.session.commit()
+    return user
