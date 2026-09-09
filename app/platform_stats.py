@@ -271,13 +271,21 @@ def get_platform_stats():
             _start_refresh()
         return stats
 
-    # No cache at all (first boot on a fresh Render disk): fetch inline, since
-    # there is nothing stale to serve in the meantime.
-    stats = _fetch_from_posthog()
-    if stats:
-        _write_cache(stats, now)
-        return stats
-
+    # No cache at all — which is EVERY boot, because Render's disk is
+    # ephemeral and the cache file does not survive a deploy.
+    #
+    # This used to fetch inline "since there is nothing stale to serve in the
+    # meantime". That made the first homepage visitor after each deploy block
+    # on five sequential HogQL queries, inside the request thread, on a
+    # 1-worker free instance that is simultaneously running warmup. A cold
+    # container answering that slowly is what Render reports as "No open HTTP
+    # ports detected on 0.0.0.0" even though gunicorn bound the socket
+    # immediately — see the healthz docstring in app/routes.py.
+    #
+    # The snapshot is a few days stale at worst; a stalled boot costs the
+    # whole site. Serve the fallback now and let the refresh land in the
+    # background, exactly as the expired-cache path above does.
+    _start_refresh()
     return FALLBACK_STATS
 
 

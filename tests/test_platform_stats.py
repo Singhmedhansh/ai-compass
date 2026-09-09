@@ -20,6 +20,18 @@ def isolated_cache(tmp_path, monkeypatch):
     monkeypatch.setattr(platform_stats, "_refreshing", False)
 
 
+@pytest.fixture
+def refresh_inline(monkeypatch):
+    """Run the background refresh synchronously.
+
+    get_platform_stats never fetches on the request thread any more, so a test
+    that wants live values has to let the refresh land first.
+    """
+    monkeypatch.setattr(
+        platform_stats, "_start_refresh", platform_stats._refresh_in_background
+    )
+
+
 def _fake_posthog(monkeypatch, totals, series, paths, monthly=None, daily=None):
     """Stub _run_query, dispatching on which of the five queries came in."""
     def fake(hogql, key, project_id, timeout=10):
@@ -45,7 +57,7 @@ def test_unconfigured_falls_back_instead_of_erroring(client):
     assert stats["totals"]["visitors"] > 0
 
 
-def test_live_values_replace_the_snapshot(monkeypatch):
+def test_live_values_replace_the_snapshot(monkeypatch, refresh_inline):
     _fake_posthog(
         monkeypatch,
         totals=[[10300, 14100, 11000]],
@@ -54,7 +66,8 @@ def test_live_values_replace_the_snapshot(monkeypatch):
         monthly=[[4200]],
         daily=[["2026-09-08", 200], ["2026-09-09", 220], ["2026-09-10", 240]],
     )
-    stats = platform_stats.get_platform_stats()
+    platform_stats.get_platform_stats()   # cold: serves the snapshot, refreshes
+    stats = platform_stats.get_platform_stats()  # now reads the warm cache
 
     assert stats["source"] == "posthog"
     assert stats["totals"] == {
@@ -89,11 +102,15 @@ def test_second_call_is_served_from_cache(monkeypatch):
     monkeypatch.setenv("POSTHOG_PERSONAL_API_KEY", "phx_test")
     monkeypatch.setenv("POSTHOG_PROJECT_ID", "12345")
     monkeypatch.setattr(platform_stats, "_run_query", counting)
+    monkeypatch.setattr(
+        platform_stats, "_start_refresh", platform_stats._refresh_in_background
+    )
 
+    platform_stats.get_platform_stats()  # cold: snapshot + one refresh
     platform_stats.get_platform_stats()
     platform_stats.get_platform_stats()
 
-    # Five queries for the first call, none for the second.
+    # Five queries for the single refresh, none for the calls that followed.
     assert len(calls) == 5
 
 
@@ -159,7 +176,7 @@ def test_expired_cache_is_served_stale_while_it_refreshes(monkeypatch):
     assert started == [1]  # and a refresh was kicked off
 
 
-def test_avg_daily_ignores_days_posthog_has_no_data_for(monkeypatch):
+def test_avg_daily_ignores_days_posthog_has_no_data_for(monkeypatch, refresh_inline):
     """The average is over days that actually happened, not a hardcoded 30.
 
     Dividing a 12-day-old project's traffic by 30 would halve its average for
@@ -173,6 +190,7 @@ def test_avg_daily_ignores_days_posthog_has_no_data_for(monkeypatch):
         monthly=[[900]],
         daily=[["2026-09-09", 300], ["2026-09-10", 100]],
     )
+    platform_stats.get_platform_stats()
     stats = platform_stats.get_platform_stats()
 
     assert stats["totals"]["avg_daily_visitors"] == 200  # (300+100)/2, not /30
@@ -221,3 +239,31 @@ def test_endpoint_merges_site_counts_into_totals(client, monkeypatch):
     assert body["totals"]["total_tools"] == 513
     # The PostHog half must survive the merge.
     assert "visitors" in body["totals"]
+
+
+def test_cold_boot_never_queries_posthog_on_the_request_thread(monkeypatch):
+    """Render's disk is ephemeral, so EVERY deploy boots with no cache file.
+
+    Fetching inline there made the first visitor after a deploy wait on five
+    sequential HogQL queries, on a 1-worker instance that was still warming
+    up. Render reports a cold container answering that slowly as "No open HTTP
+    ports detected" even though gunicorn bound the socket immediately. The
+    request thread must hand back the snapshot and let the refresh happen
+    behind it.
+    """
+    calls = []
+    monkeypatch.setattr(
+        platform_stats,
+        "_run_query",
+        lambda *a, **k: calls.append(1) or [[1, 1, 1]],
+    )
+    started = []
+    monkeypatch.setattr(platform_stats, "_start_refresh", lambda: started.append(1))
+    monkeypatch.setenv("POSTHOG_PERSONAL_API_KEY", "phx_test")
+    monkeypatch.setenv("POSTHOG_PROJECT_ID", "12345")
+
+    stats = platform_stats.get_platform_stats()
+
+    assert calls == []            # nothing blocked the request
+    assert started == [1]         # but the refresh was kicked off
+    assert stats["totals"]["visitors"] > 0  # and the section still renders
