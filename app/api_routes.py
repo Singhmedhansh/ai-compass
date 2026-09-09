@@ -4545,6 +4545,25 @@ def get_exchange_rates_route():
     }), 200
 
 
+@api_bp.route("/platform-stats", methods=["GET"])
+@cache.cached(timeout=300)
+def get_platform_stats_route():
+    """Public PostHog metrics for the homepage growth section.
+
+    app.platform_stats does its own 24h disk caching, so this route is cheap
+    to hit; the short flask-caching window just absorbs bursts.
+
+    Registered accounts and the live tool count are merged in from our own
+    database alongside the PostHog audience numbers, so the homepage trust bar
+    is one fetch rather than three.
+    """
+    from app.platform_stats import get_platform_stats, get_site_counts
+
+    stats = dict(get_platform_stats())
+    stats["totals"] = {**stats.get("totals", {}), **get_site_counts()}
+    return jsonify(stats), 200
+
+
 @api_bp.route("/profile/submissions", methods=["GET"])
 @login_required
 def get_profile_submissions():

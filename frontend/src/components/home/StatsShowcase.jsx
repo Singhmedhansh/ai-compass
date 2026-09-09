@@ -1,34 +1,200 @@
-import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Users, MousePointerClick, Eye, Activity, BarChart3 } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { motion, AnimatePresence, useTransform } from 'framer-motion'
+import {
+  Users, MousePointerClick, Eye, Activity, BarChart3,
+  UserPlus, Sparkles, CalendarDays, TrendingUp
+} from 'lucide-react'
 
+import { useCatalogStats } from '../../hooks/useCatalogStats'
+import { useCountUp, useScrollReveal } from '../../lib/motion'
 import SectionHeader from './SectionHeader'
+
+// Chart geometry. The SVG is a fixed 500x200 viewBox; points are spread
+// evenly across PLOT_X and scaled into PLOT_Y against the largest month, so
+// the line redraws itself whenever PostHog returns a new series.
+const PLOT_X = { start: 50, end: 450 }
+const PLOT_Y = { top: 28, bottom: 186 }
+
+function compactNumber(n) {
+  if (n === null || n === undefined) return '—'
+  if (n >= 1000) return `${(n / 1000).toFixed(2).replace(/\.?0+$/, '')}K`
+  return String(n)
+}
+
+// Growth badge: first month of the series vs. the running total.
+function growthLabel(series) {
+  if (!series || series.length < 2) return 'Growth'
+  const first = series[0].visitors
+  const last = series[series.length - 1].visitors
+  if (!first || last <= first) return 'Growth'
+  const pct = ((last - first) / first) * 100
+  return pct >= 1000 ? `+${(pct / 1000).toFixed(1)}k%` : `+${Math.round(pct)}%`
+}
+
+function toChartPoints(series) {
+  if (!series || series.length === 0) return []
+  const peak = Math.max(...series.map((s) => s.visitors), 1)
+  const span = series.length > 1 ? series.length - 1 : 1
+  return series.map((point, idx) => ({
+    x: PLOT_X.start + ((PLOT_X.end - PLOT_X.start) * idx) / span,
+    y: PLOT_Y.bottom - (PLOT_Y.top < PLOT_Y.bottom
+      ? (PLOT_Y.bottom - PLOT_Y.top) * (point.visitors / peak)
+      : 0),
+    label: point.label,
+    value: `${point.visitors.toLocaleString()} visitors`
+  }))
+}
+
+// One trust-bar tile. Each tile owns its own count-up, so the number ticks
+// gradually into place the way the catalog figure in CurationDiscipline does —
+// and re-animates from wherever it is when the live fetch replaces the
+// fallback, rather than snapping.
+// Icon is rendered as <Icon /> below; eslint-plugin-react is missing from the
+// config, so the JSX usage isn't seen and the param reads as unused.
+// eslint-disable-next-line no-unused-vars
+function CountStat({ label, value, suffix = '', hint, icon: Icon, inView }) {
+  const count = useCountUp(value, { enabled: inView, duration: 1.8 })
+  const formatted = useTransform(count, (v) => Math.round(v).toLocaleString())
+
+  return (
+    <div className="bg-bg p-4 md:p-5">
+      <div className="mb-2 flex items-center justify-between">
+        <span className="text-[11px] font-normal uppercase tracking-wider text-muted-2">{label}</span>
+        <Icon className="h-4 w-4 shrink-0 text-muted-2" />
+      </div>
+      <div className="text-[26px] font-semibold leading-none tracking-tight tabular-nums text-ink md:text-[32px]">
+        <motion.span aria-label={`${value.toLocaleString()}${suffix}`}>{formatted}</motion.span>
+        {suffix}
+      </div>
+      <div className="mt-1.5 text-[12px] leading-[1.45] text-muted">{hint}</div>
+    </div>
+  )
+}
+
+// Last hand-recorded snapshot. Rendered for the instant before the fetch
+// resolves, and kept if the API is unreachable, so the section is never blank.
+const FALLBACK_STATS = {
+  totals: {
+    visitors: 7120,
+    views: 9520,
+    sessions: 7560,
+    monthly_visitors: 3822,
+    avg_daily_visitors: 230
+  },
+  series: [
+    { label: 'May', visitors: 300 },
+    { label: 'June', visitors: 1000 },
+    { label: 'July', visitors: 2000 },
+    { label: 'August', visitors: 3822 }
+  ],
+  paths: [
+    { path: '/', visitors: 1919, views: 2257 },
+    { path: '/alternatives/chatgpt', visitors: 1043, views: 1095 },
+    { path: '/ai-tool-finder', visitors: 743, views: 1108 },
+    { path: '/best-free-ai-tools', visitors: 401, views: 438 },
+    { path: '/tools', visitors: 350, views: 422 }
+  ]
+}
 
 export default function StatsShowcase() {
   const [activeTab, setActiveTab] = useState('posthog') // 'posthog' | 'gsc'
   const [hoveredPoint, setHoveredPoint] = useState(null)
+  const [stats, setStats] = useState(FALLBACK_STATS)
 
-  // PostHog Data (Session Duration & Bounce Rate removed)
+  useEffect(() => {
+    const API = import.meta.env.VITE_API_URL || ''
+    let cancelled = false
+    async function fetchStats() {
+      try {
+        const response = await fetch(`${API}/api/v1/platform-stats`)
+        if (!response.ok) return
+        const data = await response.json()
+        if (!cancelled && data && data.totals) setStats(data)
+      } catch {
+        // Keep the fallback snapshot on any network failure.
+      }
+    }
+    fetchStats()
+    return () => { cancelled = true }
+  }, [])
+
+  const growth = useMemo(() => growthLabel(stats.series), [stats.series])
+
+  // Trust bar: the four numbers a first-time visitor actually weighs — how
+  // many people signed up, how big the catalog is, and how much traffic the
+  // site carries. Users and tools come from our own database via the same
+  // payload; the two audience figures are PostHog's rolling 30 days.
+  const [trustRef, trustInView] = useScrollReveal({ threshold: 0.25 })
+  const { totalTools: catalogTools } = useCatalogStats()
+
+  const trustStats = useMemo(() => {
+    const t = stats.totals || {}
+    const tools = t.total_tools ?? catalogTools
+    return [
+      t.registered_users
+        ? {
+            key: 'users',
+            label: 'Registered members',
+            value: t.registered_users,
+            hint: 'accounts with saved stacks & favourites',
+            icon: UserPlus
+          }
+        : null,
+      tools
+        ? {
+            key: 'tools',
+            label: 'Tools live',
+            value: tools,
+            hint: 'hand-tested, none pay to rank',
+            icon: Sparkles
+          }
+        : null,
+      t.monthly_visitors
+        ? {
+            key: 'monthly',
+            label: 'Monthly visitors',
+            value: t.monthly_visitors,
+            hint: 'unique people · rolling 30 days',
+            icon: TrendingUp
+          }
+        : null,
+      t.avg_daily_visitors
+        ? {
+            key: 'daily',
+            label: 'Avg. daily readers',
+            value: t.avg_daily_visitors,
+            hint: 'average of the last 30 days',
+            icon: CalendarDays
+          }
+        : null
+    ].filter(Boolean)
+  }, [stats.totals, catalogTools])
+
   const posthogMetrics = [
-    { label: 'Unique Visitors', value: '7.12K', change: '+402.2k%', icon: Users },
-    { label: 'Page Views', value: '9.52K', change: '+85.2k%', icon: Eye },
-    { label: 'Sessions', value: '7.56K', change: '+419.9k%', icon: Activity }
+    { label: 'Unique Visitors', value: compactNumber(stats.totals.visitors), change: growth, icon: Users },
+    { label: 'Page Views', value: compactNumber(stats.totals.views), change: growth, icon: Eye },
+    { label: 'Sessions', value: compactNumber(stats.totals.sessions), change: growth, icon: Activity }
   ]
 
-  const posthogPaths = [
-    { path: '/', visitors: 1919, views: 2257, pct: 100 },
-    { path: '/alternatives/chatgpt', visitors: 1043, views: 1095, pct: 54 },
-    { path: '/ai-tool-finder', visitors: 743, views: 1108, pct: 39 },
-    { path: '/best-free-ai-tools', visitors: 401, views: 438, pct: 21 },
-    { path: '/tools', visitors: 350, views: 422, pct: 18 }
-  ]
+  const posthogPaths = useMemo(() => {
+    const paths = stats.paths || []
+    const peak = Math.max(...paths.map((p) => p.visitors), 1)
+    return paths.map((p) => ({ ...p, pct: Math.round((p.visitors / peak) * 100) }))
+  }, [stats.paths])
 
-  const posthogChartPoints = [
-    { x: 50, y: 186, label: 'May', value: '300 visitors' },
-    { x: 180, y: 155, label: 'June', value: '1,000 visitors' },
-    { x: 310, y: 110, label: 'July', value: '2,000 visitors' },
-    { x: 450, y: 28, label: 'August', value: '3,822 visitors' }
-  ]
+  const posthogChartPoints = useMemo(() => toChartPoints(stats.series), [stats.series])
+
+  const posthogLinePath = useMemo(
+    () => posthogChartPoints.map((pt, idx) => `${idx === 0 ? 'M' : 'L'} ${pt.x.toFixed(1)} ${pt.y.toFixed(1)}`).join(' '),
+    [posthogChartPoints]
+  )
+
+  const posthogAreaPath = useMemo(() => {
+    if (posthogChartPoints.length === 0) return ''
+    const first = posthogChartPoints[0]
+    const last = posthogChartPoints[posthogChartPoints.length - 1]
+    return `M ${first.x.toFixed(1)} 200 ${posthogLinePath.replace(/^M/, 'L')} L ${last.x.toFixed(1)} 200 Z`
+  }, [posthogChartPoints, posthogLinePath])
 
   // Google Search Console Data
   const gscMetrics = [
@@ -96,6 +262,19 @@ export default function StatsShowcase() {
             </button>
           </div>
         </div>
+
+        {/* Trust bar — headline counters, counted up on scroll */}
+        {trustStats.length > 0 && (
+          <div
+            ref={trustRef}
+            aria-label="Platform totals"
+            className="mb-8 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-line bg-line sm:grid-cols-4"
+          >
+            {trustStats.map((stat) => (
+              <CountStat key={stat.key} {...stat} inView={trustInView} />
+            ))}
+          </div>
+        )}
 
         {/* Dashboard wrapper */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -165,9 +344,9 @@ export default function StatsShowcase() {
 
                   {activeTab === 'posthog' ? (
                     <>
-                      {/* PostHog Line Path */}
+                      {/* PostHog Line Path — derived from the live series */}
                       <path
-                        d="M 50 186 L 180 155 L 310 110 L 450 28"
+                        d={posthogLinePath}
                         fill="none"
                         stroke="var(--accent)"
                         strokeWidth="3"
@@ -176,7 +355,7 @@ export default function StatsShowcase() {
                       />
                       {/* Gradient Fill under line */}
                       <path
-                        d="M 50 200 L 50 186 L 180 155 L 310 110 L 450 28 L 450 200 Z"
+                        d={posthogAreaPath}
                         fill="url(#posthog-grad)"
                         opacity="0.1"
                       />

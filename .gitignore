@@ -68,3 +68,7 @@ peerlist-assets/
 
 # Local PR draft files
 PR_DESCRIPTION*.md
+
+# PostHog platform-stats cache: regenerated from the query API, like
+# rates_cache.json it holds no source of truth.
+app/platform_stats_cache.json
