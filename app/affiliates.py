@@ -41,6 +41,32 @@ AFFILIATES: dict[str, str] = {
     # Taskade affiliate partnership program (FirstPromoter), joined 2026-09.
     # 20% recurring commission.
     "taskade": "https://www.taskade.com/?via=medhansh",
+    # Paperpal affiliate program (LinkMink), joined 2026-09. 30% commission
+    # on every sale through the link. The dashboard also issues a reader
+    # discount code, PAP20 — see COUPONS below.
+    "paperpal": "https://paperpal.com/?linkId=lp_726731&sourceId=medhansh&tenantId=paperpal",
+}
+
+
+# Reader-facing discount codes that come WITH an affiliate program.
+#
+# Two things must stay true about anything in here:
+#   1. The code is a genuine saving the reader gets for using our link. It is
+#      never a reason a tool ranks higher — ranking never sees this table.
+#   2. We only list a code the program actually issued us. A made-up or
+#      expired code costs a reader their trust at the checkout page, which is
+#      the worst possible place to lose it, so remove an entry the moment the
+#      program retires it.
+#
+# `expires` is an ISO date (YYYY-MM-DD) or None for open-ended. An expired
+# code stops being served — see coupon_for().
+COUPONS: dict[str, dict] = {
+    "paperpal": {
+        "code": "PAP20",
+        "discount": "20% off",
+        "detail": "20% off all Paperpal plans",
+        "expires": None,
+    },
 }
 
 
@@ -54,3 +80,50 @@ def affiliate_for(slug: str | None) -> str | None:
 
 def has_affiliate(slug: str | None) -> bool:
     return affiliate_for(slug) is not None
+
+
+def coupon_for(slug: str | None) -> dict | None:
+    """Return the live discount code for a tool slug, or None.
+
+    Returns None for an expired code rather than the expired code itself: a
+    reader who types a dead code at checkout blames us, not the vendor, so
+    lapsing quietly is the only acceptable failure mode.
+    """
+    if not slug:
+        return None
+    entry = COUPONS.get(slug.strip().lower())
+    if not entry:
+        return None
+    expires = entry.get("expires")
+    if expires:
+        from datetime import date
+
+        try:
+            if date.fromisoformat(str(expires)) < date.today():
+                return None
+        except ValueError:
+            # Unparseable date — serve it rather than silently dropping a
+            # live code over a typo, but it will show up in the admin count.
+            pass
+    return {
+        "code": entry["code"],
+        "discount": entry.get("discount") or "",
+        "detail": entry.get("detail") or "",
+        "expires": expires,
+    }
+
+
+def enrolled_slugs() -> list[str]:
+    """Every tool slug with a registry affiliate link, sorted."""
+    return sorted(AFFILIATES)
+
+
+def program_count() -> int:
+    """Number of distinct affiliate PROGRAMS, not enrolled slugs.
+
+    Two slugs can point at one program — `scispace` and `typeset` are the
+    same company under two names — and counting slugs would overstate how
+    many applications have actually been approved, which is the number this
+    exists to report.
+    """
+    return len({url.split("?", 1)[0].rstrip("/") for url in AFFILIATES.values()})

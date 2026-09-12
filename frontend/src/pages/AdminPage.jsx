@@ -1063,6 +1063,7 @@ function AdminPage() {
                   {[
                     ['Outbound clicks', analytics.outbound?.total, analytics.outbound?.human_total],
                     ['Affiliate clicks', analytics.outbound?.affiliate, null],
+                    ['Affiliate programs', analytics.affiliate_programs?.programs, null],
                     ['Clicks (30d)', analytics.outbound?.last_30d, analytics.outbound?.human_last_30d],
                     ['Helped (30d)', analytics.helped_last_30d, null],
                     ['Favorites', analytics.favorites_total, null],
@@ -1076,6 +1077,62 @@ function AdminPage() {
                     </Card>
                   ))}
                 </div>
+                {/* Which programs we are actually live on. Applications get
+                    approved days apart and in bursts, so without this the only
+                    way to answer "how many am I enrolled in now" was to read
+                    affiliates.py. Sits above the gaps card because "what I
+                    have" is the context for "what is still missing". */}
+                {analytics.affiliate_programs && (
+                  <Card>
+                    <div className="flex flex-wrap items-baseline justify-between gap-2">
+                      <h3 className="flex items-center gap-1.5 font-semibold text-ink">
+                        <Link2 className="h-4 w-4 text-accent" /> Affiliate programs
+                      </h3>
+                      <p className="text-xs text-muted">
+                        {analytics.affiliate_programs.programs} approved ·{' '}
+                        {analytics.affiliate_programs.linked_tools} of{' '}
+                        {analytics.affiliate_programs.catalog_total} catalog tools monetised (
+                        {analytics.affiliate_programs.coverage_pct}%) ·{' '}
+                        {analytics.affiliate_programs.coupons} coupon
+                        {analytics.affiliate_programs.coupons === 1 ? '' : 's'}
+                      </p>
+                    </div>
+                    <div className="mt-3 space-y-1">
+                      {(analytics.affiliate_programs.items || []).map((p) => (
+                        <div key={p.slug} className="flex items-center justify-between gap-3 border-b border-line/60 py-1.5 text-sm">
+                          <span className="flex min-w-0 items-center gap-2">
+                            <a
+                              href={`/tools/${p.slug}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="truncate text-ink-2 hover:text-accent-ink hover:underline"
+                            >
+                              {p.name}
+                            </a>
+                            {p.coupon && (
+                              <span className="shrink-0 rounded-full bg-accent-soft px-2 py-0.5 font-mono text-[11px] font-semibold text-accent-ink">
+                                {p.coupon}
+                              </span>
+                            )}
+                            {/* A link that lives only on the catalog row works,
+                                but is invisible to anyone reading the code —
+                                worth flagging so it can be moved into the
+                                registry. */}
+                            {p.source === 'catalog' && (
+                              <span className="shrink-0 rounded-full bg-bg-sunk px-2 py-0.5 text-[11px] font-semibold text-muted" title="Set via the admin panel only — not in affiliates.py">
+                                catalog-only
+                              </span>
+                            )}
+                          </span>
+                          <span className="shrink-0 text-xs text-muted">{p.clicks} clicks</span>
+                        </div>
+                      ))}
+                      {(analytics.affiliate_programs.items || []).length === 0 && (
+                        <p className="text-sm text-muted">Not enrolled in any affiliate program yet.</p>
+                      )}
+                    </div>
+                  </Card>
+                )}
                 {(analytics.outbound?.monetization_gaps || []).length > 0 && (
                   <Card>
                     <h3 className="font-semibold text-ink flex items-center gap-1.5"><Link2 className="h-4 w-4 text-accent" /> Monetization gaps</h3>

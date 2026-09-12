@@ -102,3 +102,75 @@ def test_analytics_flags_monetization_gaps(app, client):
     top_by_slug = {t["slug"]: t for t in body["outbound"]["top"]}
     assert top_by_slug["gaptool"]["has_affiliate"] is False
     assert top_by_slug["gaptool"]["name"] == "Gap Tool"
+
+
+def test_analytics_reports_enrolled_programs(app, client):
+    """The Analytics tab must answer "how many programs am I live on".
+
+    Applications get approved days apart and in bursts, so the enrolment
+    roster has to come from the API rather than from reading affiliates.py.
+    A slug whose link exists ONLY on the catalog row must be listed too, and
+    marked as such — a link invisible to the code is the one that gets
+    forgotten.
+    """
+    with app.app_context():
+        _seed_tool(
+            "catalogonly",
+            "Catalog Only",
+            affiliate_url="https://catalogonly.com/?ref=medhansh",
+        )
+        from app.tool_cache import refresh_tools_cache
+        refresh_tools_cache()
+
+        admin = User(email="roster@aicompass.test", is_admin=True)
+        db.session.add(admin)
+        db.session.commit()
+        admin_id = admin.id
+
+    with client.session_transaction() as sess:
+        sess["_user_id"] = str(admin_id)
+        sess["_fresh"] = True
+
+    body = client.get("/api/v1/admin/analytics").get_json()
+    block = body["affiliate_programs"]
+
+    from app.affiliates import AFFILIATES, program_count
+
+    # Programs, not slugs: scispace and typeset are one approved program.
+    assert block["programs"] == program_count()
+    assert block["programs"] < len(AFFILIATES)
+
+    by_slug = {p["slug"]: p for p in block["items"]}
+    assert by_slug["paperpal"]["source"] == "registry"
+    assert by_slug["paperpal"]["coupon"] == "PAP20"
+    assert by_slug["catalogonly"]["source"] == "catalog"
+    assert by_slug["catalogonly"]["coupon"] is None
+    assert block["catalog_only_slugs"] >= 1
+    assert block["coupons"] >= 1
+
+
+def test_paperpal_detail_payload_carries_its_coupon(client):
+    """The discount code reaches the tool page from the server registry.
+
+    The page must never invent a code: a dead code typed at a checkout costs
+    the reader's trust at the worst possible moment, so the only source is
+    COUPONS, and a tool without one gets no `deal` key at all.
+    """
+    body = client.get("/api/v1/tools/paperpal").get_json()
+    assert body["deal"]["code"] == "PAP20"
+    assert "20%" in body["deal"]["detail"]
+
+    plain = client.get("/api/v1/tools/notion").get_json()
+    assert "deal" not in plain
+
+
+def test_expired_coupon_is_not_served(monkeypatch):
+    """An expired code lapses quietly rather than being handed to a reader."""
+    from app import affiliates
+
+    monkeypatch.setitem(
+        affiliates.COUPONS,
+        "paperpal",
+        {"code": "PAP20", "discount": "20% off", "detail": "", "expires": "2020-01-01"},
+    )
+    assert affiliates.coupon_for("paperpal") is None

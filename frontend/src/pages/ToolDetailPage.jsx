@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import { AnimatePresence, motion } from 'framer-motion'
-import { BadgeCheck, Check, Folder, Heart, Star, Shield, X, Zap, Gift, GraduationCap } from 'lucide-react'
+import { BadgeCheck, Check, Copy, Folder, Heart, Star, Shield, X, Zap, Gift, GraduationCap } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
@@ -191,6 +191,9 @@ function normalizeTool(rawTool) {
     url: rawTool?.affiliate_url || rawTool?.url || rawTool?.website || rawTool?.link || '#',
     website: rawTool?.website || rawTool?.url || rawTool?.link,
     isAffiliateLink: Boolean(rawTool?.affiliate_url),
+    // Reader discount that ships with our affiliate link, when the program
+    // issued one. Server-side registry only — the page never invents a code.
+    deal: rawTool?.deal || null,
     platform: rawTool?.platform || (Array.isArray(rawTool?.platforms) ? rawTool.platforms.join(', ') : null),
     lastUpdated: rawTool?.last_updated || rawTool?.updatedAt || rawTool?.updated_at || rawTool?.lastUpdated,
     // ISO date string of the most recent hand-test pass. Drives the
@@ -297,6 +300,7 @@ function ToolDetailPage() {
   const [error, setError] = useState(null)
   const [retryNonce, setRetryNonce] = useState(0)
   const [activeTab, setActiveTab] = useState('info')
+  const [dealCopied, setDealCopied] = useState(false)
   const tabs = [
     { id: 'info', label: 'Information' },
     { id: 'pricing', label: 'Pricing' },
@@ -825,6 +829,52 @@ function ToolDetailPage() {
                     {isFavorite ? 'Saved' : 'Save'}
                   </Button>
                 </div>
+
+                {/* Discount code, shown only when the affiliate program
+                    actually issued us one. Deliberately sits BELOW the CTA,
+                    not above it: the code is a reason to buy through our link
+                    once you have already decided on the tool, never a reason
+                    the tool is on this page. The disclosure line is not
+                    optional — a discount we earn a commission on has to say
+                    so. */}
+                {tool.deal?.code && (
+                  <div className="mt-3 rounded-xl border border-dashed border-accent/50 bg-accent-soft/50 p-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-sm font-semibold text-accent-ink">
+                        <Gift className="mr-1.5 inline h-4 w-4" aria-hidden="true" />
+                        {tool.deal.detail || tool.deal.discount || 'Reader discount'}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          // Clipboard can reject (insecure origin, denied
+                          // permission). The code is visible as text either
+                          // way, so a failed copy must not look like a broken
+                          // button — it just doesn't flip to "Copied".
+                          navigator.clipboard?.writeText(tool.deal.code)
+                            .then(() => {
+                              setDealCopied(true)
+                              setTimeout(() => setDealCopied(false), 2000)
+                            })
+                            .catch(() => {})
+                        }}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-accent/50 bg-bg px-2.5 py-1 font-mono text-sm font-bold tracking-wide text-accent-ink transition hover:bg-accent-soft"
+                        title="Copy discount code"
+                      >
+                        {tool.deal.code}
+                        {dealCopied
+                          ? <Check className="h-3.5 w-3.5" aria-hidden="true" />
+                          : <Copy className="h-3.5 w-3.5" aria-hidden="true" />}
+                      </button>
+                    </div>
+                    <p className="mt-1.5 text-xs text-muted">
+                      Buy through AI Compass and use this code at checkout.
+                      {tool.deal.expires ? ` Expires ${tool.deal.expires}.` : ''}
+                      {' '}We may earn a commission — it never changes how we rank tools.
+                    </p>
+                    <span aria-live="polite" className="sr-only">{dealCopied ? 'Code copied' : ''}</span>
+                  </div>
+                )}
 
                 <p className="mt-5 text-sm leading-relaxed text-ink-2">{tool.shortDescription}</p>
 

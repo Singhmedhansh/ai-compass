@@ -1503,6 +1503,20 @@ def get_tool(slug: str):
         except Exception:
             db.session.rollback()
 
+        # Reader discount that comes with our affiliate link, when the
+        # program issued one. Attached from the code registry rather than a
+        # catalog field so adding a code is a one-line change with no
+        # migration, and so a code can never be set on a tool we are not
+        # actually enrolled with. Ranking never sees this.
+        try:
+            from app.affiliates import coupon_for
+
+            deal = coupon_for(slug_value)
+            if deal:
+                tool_payload["deal"] = deal
+        except Exception:
+            pass
+
         # Commissioned hands-on review, if one is published for this tool.
         # Attached here rather than fetched separately by the client so the
         # review is part of the same payload the page already waits on — a
@@ -6434,6 +6448,56 @@ def admin_analytics():
         row for row in top if not row["has_affiliate"]
     ]
 
+    # Affiliate enrolment roster. Applications go out in bursts and get
+    # approved days apart, so "which ones am I actually live on right now"
+    # was a question only answerable by reading affiliates.py — this puts it
+    # on the Analytics tab beside the clicks those programs earn from.
+    #
+    # Registry and admin-set affiliate_url are counted as separate sources on
+    # purpose: a link that exists ONLY on the catalog row is invisible to
+    # anyone reading the code, and that gap is worth seeing.
+    from app.affiliates import AFFILIATES, COUPONS, coupon_for, program_count
+
+    registry_slugs = set(AFFILIATES)
+    db_only_slugs = {
+        sl for sl, url in aff_url_by_slug.items() if url and sl not in registry_slugs
+    }
+    clicks_by_slug = dict(
+        db.session.query(OutboundClick.slug, _f.count())
+        .group_by(OutboundClick.slug)
+        .all()
+    )
+    programs = sorted(
+        (
+            {
+                "slug": sl,
+                "name": name_by_slug.get(sl) or sl,
+                "url": AFFILIATES.get(sl) or aff_url_by_slug.get(sl),
+                "source": "registry" if sl in registry_slugs else "catalog",
+                "coupon": (coupon_for(sl) or {}).get("code"),
+                "clicks": int(clicks_by_slug.get(sl) or 0),
+            }
+            for sl in registry_slugs | db_only_slugs
+        ),
+        key=lambda r: (-r["clicks"], r["name"].lower()),
+    )
+    catalog_total = len(cached)
+    affiliate_programs = {
+        # Distinct programs approved — scispace/typeset are one program under
+        # two slugs, so this is deliberately lower than `linked_tools`.
+        "programs": program_count(),
+        "linked_tools": len(registry_slugs | db_only_slugs),
+        "registry_slugs": len(registry_slugs),
+        "catalog_only_slugs": len(db_only_slugs),
+        "coupons": sum(1 for sl in COUPONS if coupon_for(sl)),
+        "catalog_total": catalog_total,
+        "coverage_pct": (
+            round(100.0 * len(registry_slugs | db_only_slugs) / catalog_total, 1)
+            if catalog_total else 0.0
+        ),
+        "items": programs,
+    }
+
     return jsonify({
         "outbound": {
             "total": total_clicks,
@@ -6449,6 +6513,9 @@ def admin_analytics():
             # for these programs first for the biggest revenue lift.
             "monetization_gaps": monetization_gaps,
         },
+        # Which affiliate programs we are live on right now, and how much
+        # of the catalog they cover.
+        "affiliate_programs": affiliate_programs,
         "tool_views_top": [{"tool": t, "views": n} for t, n in top_viewed],
         # Distinct clients that clicked through to a tool in the last 30 days:
         # the behavioural answer to "how many people did this actually help",
