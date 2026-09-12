@@ -478,9 +478,16 @@ def _numbers_content(submission, tool):
     return subject, html, html_to_plain_text(html)
 
 
-def send_confirmations(dry_run=False, limit=MAX_PER_RUN):
-    """Acknowledge every paid listing that has not been acknowledged yet."""
-    now = datetime.now(timezone.utc)
+def send_confirmations(dry_run=False, limit=MAX_PER_RUN, now=None):
+    """Acknowledge every paid listing that has not been acknowledged yet.
+
+    `now` defaults to the wall clock. It exists so a test can state which day
+    it is talking about: every threshold in here is relative to today, and a
+    test that fixes its fixtures to a date but lets this read the real clock
+    passes until the calendar walks past the threshold, then fails forever
+    with nothing having changed.
+    """
+    now = now or datetime.now(timezone.utc)
     pairs = _due_for_confirmation(now, limit)
     return _send_batch(
         pairs, "post_sale_confirmation", _confirmation_content,
@@ -488,9 +495,12 @@ def send_confirmations(dry_run=False, limit=MAX_PER_RUN):
     )
 
 
-def send_day7_numbers(dry_run=False, limit=MAX_PER_RUN):
-    """First numbers back, a week after the listing went live."""
-    now = datetime.now(timezone.utc)
+def send_day7_numbers(dry_run=False, limit=MAX_PER_RUN, now=None):
+    """First numbers back, a week after the listing went live.
+
+    See send_confirmations for why `now` is injectable.
+    """
+    now = now or datetime.now(timezone.utc)
     pairs = _due_for_numbers(now, limit)
     return _send_batch(
         pairs, "post_sale_numbers", _numbers_content,

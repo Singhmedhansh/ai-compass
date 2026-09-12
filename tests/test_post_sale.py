@@ -311,7 +311,7 @@ def test_one_broken_customer_does_not_empty_the_runbook(app, monkeypatch):
 def test_a_dry_run_sends_and_stamps_nothing(app):
     s = _sub(tier="sponsored", days_ago=2)
     db.session.commit()
-    out = send_confirmations(dry_run=True)
+    out = send_confirmations(dry_run=True, now=NOW)
     assert out["candidates"] == 1 and out["sent"] == 0
     assert s.post_sale_confirmed_at is None
 
@@ -321,7 +321,7 @@ def test_no_transport_defers_rather_than_stamping(app, monkeypatch):
     s = _sub(tier="sponsored", days_ago=2)
     db.session.commit()
     monkeypatch.setattr("app.email_utils.email_enabled", lambda: False)
-    out = send_confirmations()
+    out = send_confirmations(now=NOW)
     assert out["deferred"] == 1 and out["sent"] == 0
     assert s.post_sale_confirmed_at is None, (
         "The backlog has to survive a misconfigured transport."
@@ -332,21 +332,21 @@ def test_a_confirmed_customer_is_not_mailed_twice(app):
     _sub(tier="sponsored", days_ago=2,
          post_sale_confirmed_at=_naive(NOW - timedelta(days=1)))
     db.session.commit()
-    assert send_confirmations(dry_run=True)["candidates"] == 0
+    assert send_confirmations(dry_run=True, now=NOW)["candidates"] == 0
 
 
 def test_day7_numbers_wait_for_the_seventh_day(app):
     s = _sub(tier="analytics", days_ago=3)
     _tool(s, visible_days_ago=3)
     db.session.commit()
-    assert send_day7_numbers(dry_run=True)["candidates"] == 0
+    assert send_day7_numbers(dry_run=True, now=NOW)["candidates"] == 0
 
 
 def test_day7_numbers_go_out_once_the_week_is_up(app):
     s = _sub(tier="analytics", days_ago=12)
     _tool(s, visible_days_ago=12)
     db.session.commit()
-    assert send_day7_numbers(dry_run=True)["candidates"] == 1
+    assert send_day7_numbers(dry_run=True, now=NOW)["candidates"] == 1
 
 
 def test_a_listing_that_never_went_live_gets_no_numbers_email(app):
@@ -354,14 +354,14 @@ def test_a_listing_that_never_went_live_gets_no_numbers_email(app):
     s = _sub(tier="analytics", days_ago=20)
     _tool(s, visible_days_ago=20, hidden=True)
     db.session.commit()
-    assert send_day7_numbers(dry_run=True)["candidates"] == 0
+    assert send_day7_numbers(dry_run=True, now=NOW)["candidates"] == 0
 
 
 def test_a_row_with_no_email_is_skipped(app):
     s = _sub(tier="sponsored", days_ago=2)
     s.submitter_email = None
     db.session.commit()
-    assert send_confirmations(dry_run=True)["candidates"] == 0
+    assert send_confirmations(dry_run=True, now=NOW)["candidates"] == 0
 
 
 # ─── The admin endpoints ──────────────────────────────────────────────────────
