@@ -249,6 +249,85 @@ def _send_via_resend(
         log.warning("Resend send failed to %s: %s", to, err)
         return False, err
 
+# Marker emitted by emails/base.html on every branded render. Detecting the
+# shell by its own markup (rather than by a flag each caller has to remember
+# to pass) is what makes the guarantee hold for call sites nobody has looked
+# at in months.
+_SHELL_MARKER = 'class="main-card"'
+
+
+def _fallback_shell(body_html: str, subject: str | None) -> str:
+    """The shell, hand-rolled, for when Jinja is not available.
+
+    send_email() is also called from scheduler jobs and CLI scripts that may
+    run outside an app context, where render_template() raises. Falling back
+    to the raw body there would reopen the exact hole this module closes, so
+    the shell is repeated once in Python — same palette, same wordmark, same
+    footer as emails/base.html. Keep the two in step.
+    """
+    from app.brand import BILLING_EMAIL, SITE_NAME, SUPPORT_EMAIL
+
+    year = __import__("datetime").datetime.now(__import__("datetime").timezone.utc).year
+    title = (subject or SITE_NAME).replace("<", "&lt;").replace(">", "&gt;")
+    return f"""<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>{title}</title></head>
+<body style="margin:0;padding:0;background-color:#fafaf7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#0f1411;">
+  <center style="background-color:#fafaf7;padding:40px 20px;">
+    <table class="main-card" role="presentation" style="border-spacing:0;width:100%;max-width:560px;margin:0 auto;background-color:#ffffff;border:1px solid #e6e5de;border-radius:16px;">
+      <tr><td style="padding:32px 32px 8px 32px;font-size:20px;font-weight:800;color:#0f1411;letter-spacing:-0.03em;text-align:center;">AI <span style="color:#168358;">Compass</span></td></tr>
+      <tr><td style="padding:16px 32px 32px 32px;font-size:15px;line-height:1.65;color:#0f1411;">{body_html}</td></tr>
+      <tr><td style="padding:24px 32px 32px 32px;border-top:1px solid #e6e5de;">
+        <p style="margin:0;font-size:12px;line-height:1.6;color:#7f857f;">Questions about your listing, or which tier fits &mdash; <a href="mailto:{SUPPORT_EMAIL}" style="color:#7f857f;">{SUPPORT_EMAIL}</a></p>
+        <p style="margin:4px 0 0 0;font-size:12px;line-height:1.6;color:#7f857f;">Payments, billing or anything urgent &mdash; <a href="mailto:{BILLING_EMAIL}" style="color:#7f857f;">{BILLING_EMAIL}</a></p>
+        <p style="margin:12px 0 0 0;font-size:11px;color:#9aa09a;">{SITE_NAME} &copy; {year}. All rights reserved.</p>
+      </td></tr>
+    </table>
+  </center>
+</body></html>"""
+
+
+def ensure_branded_html(html: str, subject: str | None = None) -> str:
+    """Guarantees the brand shell around every outbound message.
+
+    The rule is that nothing leaves via Resend or SMTP without the AI Compass
+    wordmark, card and footer around it. It is enforced here, at the one
+    chokepoint every send passes through, rather than at each call site:
+    roughly two dozen places call send_email(), several of them build their
+    HTML inline, and the outreach follow-ups deliberately shipped as bare <p>
+    tags — so per-caller discipline had already failed in practice.
+
+    Already-branded HTML is passed through untouched, detected by the shell's
+    own marker, so a template that extends emails/base.html is never wrapped
+    twice.
+
+    NOTE, because it is a real trade and it was made on purpose: the outreach
+    follow-up copy was previously kept deliberately unstyled to read as
+    person-to-person mail and stay out of Gmail's Promotions tab (see the
+    comments around _outreach_signature_html in app/outreach.py). Branding
+    those sends is a deliberate consistency-over-placement choice; watch cold
+    outreach reply rates after this ships.
+    """
+    if not html or not html.strip():
+        return html
+    if _SHELL_MARKER in html:
+        return html
+    try:
+        from flask import render_template
+
+        return render_template(
+            "emails/shell.html",
+            body_html=html,
+            subject_title=subject or "AI Compass",
+        )
+    except Exception:  # noqa: BLE001 — never lose a send over presentation
+        try:
+            return _fallback_shell(html, subject)
+        except Exception:  # noqa: BLE001
+            log.exception("Email shell failed entirely — sending unwrapped.")
+            return html
+
 
 def send_email_with_details(
     to: str, subject: str, html: str, text: str | None = None,
@@ -273,6 +352,13 @@ def send_email_with_details(
     if suppressed:
         log.info("Email suppressed (%s) — would have sent to %s (%s)", reason, to, subject)
         return False, reason
+
+    # Every transport below sends `html`, so the shell is applied once, here.
+    # The plain-text alternative is derived FIRST, from the unwrapped body:
+    # flattening the shell instead would put the wordmark and the two footer
+    # addresses into the text part of every message.
+    text = text or html_to_plain_text(html)
+    html = ensure_branded_html(html, subject)
 
     if os.environ.get("RESEND_API_KEY"):
         return _send_via_resend(to, subject, html, text, reply_to, headers, sender)

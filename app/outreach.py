@@ -442,17 +442,21 @@ def _append_unsubscribe_footer(html_body: str, email: str | None) -> str:
 # both follow-up stages) so a recipient sees one consistent voice across every
 # touch.
 #
-# It used to be a branded card: a 560px centred container, a custom font
-# stack, a rule-separated signature block, a green emoji wordmark and a
-# button-styled CTA. That is a newsletter, and Gmail files newsletters under
-# Promotions — which is where these were landing. The rewrite deliberately
-# keeps almost no styling at all: default font, default link colour, plain
-# paragraphs. The goal is that the HTML part and the plain-text part are
-# nearly indistinguishable, because a real person writing one email to one
-# other person does not send a designed document.
+# These helpers build the BODY only — paragraphs and a typed sign-off, no
+# container, no font stack, no CTA button. The AI Compass card around them is
+# applied at the transport (email_utils.ensure_branded_html), which is now the
+# standing rule: nothing goes out via Resend without the brand shell.
 #
-# Keep it that way. Every visual flourish added back here is paid for in
-# inbox placement.
+# That rule reversed an earlier deliberate choice here. The body was stripped
+# of styling because Gmail files designed mail under Promotions, and these
+# were landing there; the aim was an HTML part nearly indistinguishable from
+# the plain-text one, since a person writing to one other person does not send
+# a designed document. Brand consistency won that argument — but the cost is
+# real, so watch cold-outreach reply rates after this ships.
+#
+# Do not add a second container or a CTA button inside these helpers: the
+# shell already supplies one card, and nesting a second is how outreach starts
+# looking like a campaign announcement again.
 
 def _outreach_signature_html() -> str:
     """A typed sign-off, not a signature block.

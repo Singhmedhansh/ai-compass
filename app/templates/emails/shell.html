@@ -1,0 +1,36 @@
+{% extends "emails/base.html" %}
+
+{#  The catch-all brand shell.
+
+    Applied automatically by app/email_utils.ensure_branded_html() to any
+    message that reaches the transport WITHOUT already having been rendered
+    through emails/base.html — hand-built HTML in a route, an outreach
+    follow-up assembled from bare <p> tags, an admin one-off.
+
+    It is the safety net, not the preferred route: a message with a real
+    subject-matter template (invoice, welcome, tool_live...) should still
+    extend emails/base.html directly so it can use .heading, .cta-button and
+    the rest. This one only guarantees that nothing ever leaves the building
+    without the wordmark, the card and the footer around it.
+
+    Like emails/outreach.html it emits the body verbatim: the content is our
+    own HTML, composed by our own code, not anything a stranger supplied.
+
+    Context:
+      body_html      the message body, already composed
+      subject_title  used for the <title> tag
+#}
+
+{% block title %}{{ subject_title or "AI Compass" }}{% endblock %}
+
+{% block extra_css %}
+  /* Bodies arriving here carry bare <p> tags with their own inline margins.
+     Give them the shell's sizing and the shell's ink (#0f1411) rather than
+     .paragraph's muted grey, which reads as a mailshot on correspondence. */
+  .main-card p { color: #0f1411; font-size: 15px; line-height: 1.65; }
+  .main-card a { color: #168358; }
+{% endblock %}
+
+{% block content %}
+{{ body_html|safe }}
+{% endblock %}
