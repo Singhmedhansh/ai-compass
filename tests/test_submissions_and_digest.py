@@ -714,7 +714,10 @@ def test_free_tier_confirmation_email_includes_register_link(client, app, monkey
         "category": "Productivity",
         "reason": "Testing the register CTA.",
         "submitter_email": "founder@registerctafree.example.com",
-    })
+    # Same reason as the paid variant below: /submit-tool allows 5 posts per
+    # IP per hour and the test client always presents the same address, so
+    # without an IP of its own this passes alone and 429s in a full run.
+    }, headers={"X-Forwarded-For": "10.9.0.12"})
     assert resp.status_code == 201, resp.data
 
     confirmation = next(
