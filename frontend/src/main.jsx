@@ -8,6 +8,7 @@ import App from './App.jsx'
 import { toApiUrl } from './config/api.js'
 import { CurrencyProvider } from './context/CurrencyContext.jsx'
 import { ToolCountProvider } from './context/ToolCountContext.jsx'
+import { installToolClickTracking } from './utils/toolClickTracking.js'
 
 
 // --- Stale-deploy recovery -------------------------------------------------
@@ -112,6 +113,10 @@ const applyAspectRatioFlag = () => {
 
 applyAspectRatioFlag()
 window.addEventListener('resize', applyAspectRatioFlag)
+
+// Named event for every /go/ click — see utils/toolClickTracking for why
+// this is delegated rather than wired into each link.
+installToolClickTracking()
 
 // Kill the rotating boot-screen messages the moment React takes over
 try { if (typeof window.__stopBootMsg === 'function') window.__stopBootMsg() } catch {}
