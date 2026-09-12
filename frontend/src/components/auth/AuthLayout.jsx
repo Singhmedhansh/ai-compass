@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 
 import { useCatalogStats } from '../../hooks/useCatalogStats'
+import SEO from '../ui/SEO'
 import AnimatedCompass from '../ui/AnimatedCompass'
 import CompassMark from '../ui/CompassMark'
 
@@ -21,12 +22,30 @@ function buildValuePoints(count) {
  * and reinforce the product. Right: the form, passed as children.
  * Below lg the brand panel is hidden and a compact logo header is shown
  * instead, so mobile stays a clean single column.
+ *
+ * Every page built on this shell is a private one, so the layout also owns
+ * their document title and a noindex directive. Without it each auth screen
+ * inherited the homepage <title>, which is what the browser tab, the
+ * bookmark and any pasted link all read from. `metaTitle` overrides the
+ * visible <h1> for the tab when the two should differ.
  */
-export default function AuthLayout({ children, eyebrow, title, subtitle }) {
+export default function AuthLayout({
+  children,
+  eyebrow,
+  title,
+  subtitle,
+  metaTitle,
+  metaDescription,
+}) {
   const { totalTools } = useCatalogStats()
   const valuePoints = buildValuePoints(totalTools ?? FALLBACK_TOOL_COUNT)
   return (
     <div className="grid min-h-[calc(100vh-4rem)] w-full grid-cols-1 lg:grid-cols-2">
+      <SEO
+        noindex
+        title={metaTitle || title}
+        description={metaDescription || subtitle || undefined}
+      />
       {/* Brand panel — desktop only */}
       <aside className="relative hidden overflow-hidden border-r border-line bg-bg-sunk lg:flex lg:flex-col lg:justify-between lg:p-12">
         <div

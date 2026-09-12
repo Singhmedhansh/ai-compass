@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { CreditCard, Sparkles, CheckCircle2, ShieldCheck, ArrowRight, User, Wallet, QrCode, ArrowUpRight, Lock, TrendingUp, Users, Search, BarChart3, Image as ImageIcon } from 'lucide-react'
 
 import Button from '../components/ui/Button'
+import SEO from '../components/ui/SEO'
 import { PRICING_TIERS, getTier } from '../config/pricingTiers'
 import {
   LOGO_FALLBACK_PX,
@@ -736,6 +737,11 @@ export default function SubmitPage() {
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
+      <SEO
+        title="Submit Your AI Tool"
+        description="List your AI tool on AI Compass. A permanent free listing, or a paid tier that adds analytics, labelled placement, or a written hands-on review. One-time payments, no subscription."
+        path="/submit"
+      />
 
       {/* Monetization / Path Selector Banner */}
       <div className="mb-8 rounded-3xl border border-line bg-gradient-to-br from-bg-elev via-bg-elev to-bg-sunk/30 p-6 shadow-sm">

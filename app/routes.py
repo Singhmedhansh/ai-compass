@@ -59,6 +59,23 @@ _ROUTE_META = {
     'syllabus-parser': ('Course Syllabus Parser — AI Semester Toolkit | AI Compass', 'Upload your course syllabus PDF or Docx. Automatically scan your assignments, grading criteria, and tech requirements to build a personalized AI toolpack.'),
     'community': ('AI Tool Leaderboard & Community — AI Compass', 'A weekly AI tool leaderboard scored from real community votes, discussion and click-throughs — plus a builder reputation board. Ranks are never for sale.'),
     'sponsor': ('Sponsor the AI Compass Community — Placements from $39/week', 'Capped, clearly labelled sponsored placements beside the AI Compass community leaderboard. Impressions, clicks and CTR reported. Leaderboard ranks are never for sale.'),
+    # These routes render their own <Helmet>/<SEO> client-side, but were in
+    # _KNOWN_SPA_ROUTES with no entry here — so the pre-JS shell handed every
+    # one of them the homepage title, description AND canonical. Google
+    # re-renders and recovers; the social scrapers (Facebook, LinkedIn,
+    # Slack, X) do not run JS, so every shared link previewed as the
+    # homepage. Keep each title/description in sync with the page's own.
+    'pricing': ('Pricing — List Your AI Tool | AI Compass', 'Four ways to list your AI tool on AI Compass: a permanent free listing, $19 Listing + Analytics, $49 Fast-Track for labelled placement, or $79 Reviewed, which adds a written hands-on review. One-time payments, no subscription. Editorial picks and leaderboard ranks are never for sale.'),
+    'submit': ('Submit Your AI Tool — AI Compass', 'List your AI tool on AI Compass. A permanent free listing, or a paid tier that adds analytics, labelled placement, or a written hands-on review. One-time payments, no subscription.'),
+    'privacy': ('Privacy Policy | AI Compass', 'How AI Compass handles your data: account info, cookies, server logs, third-party services. Hosted on Render, data stored in India.'),
+    'terms': ('Terms of Service | AI Compass', 'Terms of using AI Compass. Acceptable use, content ownership, tool listings, and governing law. Last updated 2026.'),
+    'refunds': ('Refund & Cancellation Policy | AI Compass', 'AI Compass refund policy: every listing tier is a one-time payment, not a subscription. Duplicate charges are refunded in full. Refunds are available before your listing is published; once it is live, the work has been delivered.'),
+    'contact': ('Contact — Get in Touch | AI Compass', 'Contact AI Compass. help@ai-compass.in for listings, the catalogue and pricing questions; admin@ai-compass.in for payments, billing and anything urgent.'),
+    'support': ('Support AI Compass — Help Keep it Free & Ad-Free', 'Support AI Compass to keep the platform free, ad-free, and hand-tested for students. Donate via PayPal or UPI / GPay QR code.'),
+    'team': ('About — Built by Medhansh | AI Compass', 'AI Compass is built by Medhansh, a CS AI/ML student at RVCE Bengaluru. Curated AI tools directory for students, hand-tested weekly.'),
+    'model-comparison': ('LLM API Cost Calculator & Pricing Comparison 2026 | AI Compass', 'Calculate and estimate your LLM API billing costs. Compare token pricing, context windows, and latency across GPT-4o, Claude 3.7, Gemini 2.0, DeepSeek R1, and Llama 3.3.'),
+    'stacks': ('Community AI Toolkits & Stacks | AI Compass', 'Browse public AI toolkits, workflows, and custom stacks shared by developers and students on AI Compass. Upvote and clone to your dashboard.'),
+    'trending': ('Trending Today — Top AI Tools of 2026 | AI Compass', 'Discover the most popular and fastest-growing AI tools of 2026. Hand-tested and ranked by workflow for students and developers.'),
 }
 
 # Routes the React SPA actually renders. Anything not in this set (and
@@ -610,6 +627,38 @@ def _seo_alternatives(tool: dict, alts: list[dict]) -> str:
         f'<p><a href="/tools/{slug}">See {name} details</a> · '
         f'<a href="/tools">Browse all {_rounded_tools_text()} curated AI tools</a></p>'
     )
+
+
+def _boot_state_script(html: str) -> str:
+    """Seed the SPA with state it would otherwise spend a round trip fetching.
+
+    /api/v1/stats returns a single integer — the visible tool count — but the
+    browser cannot ask for it until the JS bundle has downloaded, parsed and
+    mounted React, so it costs a full extra round trip after everything else.
+    The origin is a single US region with no edge cache in front of it, so
+    that round trip measures ~300ms from India regardless of how small the
+    response is. The server already knows the number while it is building
+    this shell (_rounded_tools_text() reads it for the SEO meta), so it is
+    handed over inline instead.
+
+    Nulled out rather than omitted if the count can't be read, so the client
+    can tell "server said nothing" from "server said zero" and fall back to
+    its own fetch. The closing-tag escape stops a pathological value from
+    ending the script element early.
+    """
+    try:
+        total = _total_tools() or None
+    except Exception:  # never let a boot-state failure take the page down
+        current_app.logger.exception('boot state: tool count unavailable')
+        total = None
+
+    payload = json.dumps({'total_tools': total}).replace('</', '<\/')
+    tag = f'<script>window.__AIC_BOOT__={payload};</script>'
+    # Before </head> so it runs ahead of the module bundle. The nonce is
+    # applied to it by the same pass that nonces every other inline script.
+    if '</head>' in html:
+        return html.replace('</head>', f'{tag}</head>', 1)
+    return tag + html
 
 
 def _not_found_html(base: str, path: str) -> str:
@@ -1478,6 +1527,7 @@ def serve_react(path):
     result = _meta_for_request_path(path)
     if result is not None:
         html, status = result
+        html = _boot_state_script(html)
         from flask import g
         nonce = g.get('csp_nonce', '')
         if nonce:

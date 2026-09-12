@@ -1,5 +1,7 @@
 import { ClerkProvider, SignIn, useUser } from '@clerk/clerk-react'
 
+import SEO from '../components/ui/SEO'
+
 const PUBLISHABLE_KEY = "pk_test_aG9uZXN0LW1vbGx5LTM0LmNsZXJrLmFjY291bnRzLmRldiQ"
 
 function ClerkTestContent() {
@@ -32,6 +34,7 @@ function ClerkTestContent() {
 export default function ClerkTestPage() {
   return (
     <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
+      <SEO noindex title="Clerk Test" description="Internal authentication test page." />
       <ClerkTestContent />
     </ClerkProvider>
   )

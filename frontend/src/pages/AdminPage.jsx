@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import SearchInput from '../components/ui/SearchInput'
+import SEO from '../components/ui/SEO'
 import EditorialReviewsPanel from '../components/admin/EditorialReviewsPanel'
 import ToolClaimsPanel from '../components/admin/ToolClaimsPanel'
 import SponsorSlotsPanel from '../components/admin/SponsorSlotsPanel'
@@ -786,6 +787,7 @@ function AdminPage() {
 
   return (
     <div className="mx-auto w-full max-w-[1400px] px-4 py-8 sm:px-6 lg:px-8">
+      <SEO noindex title="Admin Dashboard" description="Internal AI Compass admin console." />
       <header className="mb-6 rounded-2xl border border-line bg-bg-elev p-6 shadow-sm">
         <h1 className="text-3xl font-bold tracking-tight text-ink">Admin Dashboard</h1>
         <p className="mt-1 text-sm text-muted">Catalog, monetisation, email, analytics — all changes persist in the database.</p>

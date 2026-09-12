@@ -1,6 +1,11 @@
 import { Helmet } from 'react-helmet-async'
 
-export default function SEO({ title, description, path, image }) {
+// `noindex` marks a page as private (auth, dashboard, admin). Those pages
+// still need a real <title> — without one the browser tab and any shared
+// link inherit the homepage title — but they must never be indexed, and
+// there is no point emitting OG/Twitter/JSON-LD for a page a crawler is
+// told to skip.
+export default function SEO({ title, description, path, image, noindex = false }) {
   const baseDomain = 'https://ai-compass.in'
   const defaultTitle = 'AI Compass - Find the Best AI Tools for Students'
   const defaultDescription = 'Discover, compare, and choose the most effective AI tools to supercharge your academic and creative workflows.'
@@ -20,6 +25,16 @@ export default function SEO({ title, description, path, image }) {
     'description': seoDescription,
     'url': seoUrl,
     'image': seoImage
+  }
+
+  if (noindex) {
+    return (
+      <Helmet>
+        <title>{seoTitle}</title>
+        <meta name="description" content={seoDescription} />
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
+    )
   }
 
   return (

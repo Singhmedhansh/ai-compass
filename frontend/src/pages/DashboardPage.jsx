@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { toast } from 'sonner'
 
-import { Button, Card, CompassLoader, CountUp, ToolLogo, ChromaGrid } from '../components/ui'
+import { Button, Card, CompassLoader, CountUp, ToolLogo, ChromaGrid, SEO } from '../components/ui'
 
 const fadeUp = {
   hidden: { opacity: 0, y: 16 },
@@ -564,6 +564,7 @@ function DashboardPage() {
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <SEO noindex title="Your Dashboard" description="Your saved AI tools, collections and stacks on AI Compass." />
       {user && user.is_verified === false && (
         <div className="mb-6 rounded-2xl border border-amber-500/20 bg-amber-500/10 p-4 text-amber-800 dark:text-amber-300 animate-fade-in flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-start gap-3">

@@ -2,7 +2,7 @@ import { Bell, Check, CheckCircle2, Download, GraduationCap, Loader2, ShieldAler
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { Button, ToolLogo, ConfirmModal } from '../components/ui'
+import { Button, ToolLogo, ConfirmModal, SEO } from '../components/ui'
 
 const THEME_STORAGE_KEY = 'ai-compass-theme'
 const NOTIFICATIONS_STORAGE_KEY = 'ai-compass-email-notifications'
@@ -1116,6 +1116,7 @@ function ProfilePage() {
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <SEO noindex title="Profile &amp; Settings" description="Manage your AI Compass account, preferences and public profile." />
       <div className="mb-6 rounded-3xl border border-line bg-gradient-to-r from-bg-elev to-accent-soft p-6 shadow-sm">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent-ink">Profile &amp; Settings</p>
         <h1 className="mt-2 text-3xl font-bold tracking-tight text-ink">Manage your AI Compass account</h1>

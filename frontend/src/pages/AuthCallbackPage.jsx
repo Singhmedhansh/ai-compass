@@ -2,6 +2,8 @@ import { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
+import SEO from '../components/ui/SEO'
+
 export default function AuthCallbackPage() {
   const navigate = useNavigate()
   const ran = useRef(false)
@@ -71,6 +73,7 @@ export default function AuthCallbackPage() {
 
   return (
     <div className="flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center">
+      <SEO noindex title="Signing you in" description="Completing your AI Compass sign-in." />
       <div className="mb-4 h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
       <p className="text-lg font-medium text-ink">Signing you in...</p>
       <p className="mt-2 text-sm text-muted">Please wait</p>

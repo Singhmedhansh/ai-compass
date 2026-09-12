@@ -103,10 +103,18 @@
 
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!-- .ico fallback: browsers and crawlers that ignore the SVG still
+         request /favicon.ico by name, and without a real file that request
+         fell through to the SPA catch-all and 404'd. -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" sizes="any" />
     <!-- iOS home-screen icon: Apple does not render SVG here, so a 180x180
          PNG is required. Generated from the same compass-mark geometry as
          the SVG favicon. -->
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <!-- Web manifest: names the 192/512 icons Android uses for
+         "Add to home screen", and the theme/background colours the
+         splash screen is painted with. -->
+    <link rel="manifest" href="/site.webmanifest" />
 
     <!-- Resource hints — kick off the TCP+TLS handshake for third-party
          origins we KNOW we'll hit, before the parser gets to the actual
