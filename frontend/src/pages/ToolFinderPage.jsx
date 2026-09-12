@@ -1501,6 +1501,50 @@ function LivePreview({ answers, results, loading, error, canSeeResults, onSeeRes
   )
 }
 
+/**
+ * The same live results, condensed, for viewports where <LivePreview> isn't
+ * reachable.
+ *
+ * LivePreview sits in the second column of a md:grid-cols-2 layout, so on a
+ * phone it renders *below* all three questions — off-screen for the entire
+ * wizard. Mobile users therefore answered question 1 and saw nothing happen,
+ * which makes question 2 a toll booth with no visible payoff on the other
+ * side. This teaser sits directly under the questions instead, so the first
+ * answer immediately produces real tool names.
+ */
+function MobilePreviewTeaser({ results, loading, canSeeResults, onSeeResults }) {
+  const top = results[0]
+  const remaining = Math.max(0, results.length - 1)
+
+  if (!loading && !top) return null
+
+  return (
+    <div className="md:hidden rounded-2xl border border-accent/40 bg-accent-soft/30 p-4">
+      <span className="text-xs font-semibold uppercase tracking-wide text-muted">Your top match so far</span>
+      {loading && !top ? (
+        <div className="mt-3 h-4 w-2/3 animate-pulse rounded bg-bg-sunk" />
+      ) : (
+        <>
+          <p className="mt-2 text-sm font-bold text-ink">{top.name}</p>
+          <p className="mt-0.5 text-xs text-muted line-clamp-2">{top.description}</p>
+          {remaining > 0 ? (
+            <p className="mt-2 text-xs text-muted">+ {remaining} more {remaining === 1 ? 'match' : 'matches'} — keep going to narrow them down</p>
+          ) : null}
+          <Button
+            variant="primary"
+            size="sm"
+            className="mt-3 w-full"
+            disabled={!canSeeResults}
+            onClick={onSeeResults}
+          >
+            See my matches →
+          </Button>
+        </>
+      )}
+    </div>
+  )
+}
+
 function ToolFinderPage() {
   const navigate = useNavigate()
   // Read once, on mount. A later URL change shouldn't yank answers out from
@@ -1690,6 +1734,50 @@ function ToolFinderPage() {
   }, [answers])
 
   // Proactive help event removed; passive microcopy used instead
+
+  // --- Abandonment telemetry -------------------------------------------
+  // wizard_step_completed tells us who got *through* a step; nothing told us
+  // where the 57% who don't finish actually stop. This reports the last step
+  // reached when someone leaves without completing, so the Step 2 drop-off
+  // becomes a measured number per question rather than an inference.
+  const abandonRef = useRef({ activeQuestion: null, answers: null, stepEnteredAt: Date.now(), startedAt: Date.now() })
+  abandonRef.current.activeQuestion = activeQuestion
+  abandonRef.current.answers = answers
+
+  useEffect(() => {
+    abandonRef.current.stepEnteredAt = Date.now()
+  }, [activeQuestion])
+
+  useEffect(() => {
+    const reportAbandon = () => {
+      const state = abandonRef.current
+      if (!wizardStartedRef.current || wizardCompletedRef.current || state.reported) return
+      state.reported = true
+
+      const answered = QUESTION_FLOW.filter((id) => {
+        const answer = state.answers?.[id]
+        return Array.isArray(answer) ? answer.length > 0 : Boolean(answer)
+      })
+
+      captureWizardEvent('wizard_abandoned', {
+        last_step_number: state.activeQuestion ? QUESTION_FLOW.indexOf(state.activeQuestion) + 1 : null,
+        last_question_id: state.activeQuestion,
+        answered_count: answered.length,
+        answered_questions: answered,
+        total_steps: TOTAL_QUESTIONS,
+        seconds_on_step: Math.round((Date.now() - state.stepEnteredAt) / 1000),
+        seconds_in_wizard: Math.round((Date.now() - state.startedAt) / 1000),
+      })
+    }
+
+    // pagehide covers tab close / back-navigation, where unmount never runs.
+    window.addEventListener('pagehide', reportAbandon)
+    return () => {
+      window.removeEventListener('pagehide', reportAbandon)
+      reportAbandon()
+    }
+    // Mount-only: everything it reads lives in abandonRef.
+  }, [])
 
   // A deep-linked arrival is already a wizard start — the visitor answered
   // question 1 (and sometimes all three) back on the SEO page. Reported with
@@ -1893,8 +1981,15 @@ function ToolFinderPage() {
       setActiveQuestion(null)
       setPendingStackSwitch(true)
       captureWizardEvent('wizard_template_selected', { template: stackId })
+      // Deliberately no timer here: the card stays in its loading state until
+      // the fetch actually settles (cleared by the pendingStackSwitch effect
+      // below). It used to clear after 300ms while the request was still in
+      // flight, so on a cold start the user got a card that looked idle and
+      // a page that did nothing for several seconds — then clicked it again,
+      // and again. That is the rage-click pattern in the session data.
+      return
     }
-    setTimeout(() => setLoadingStackId(null), 300)
+    setLoadingStackId(null)
   }
 
   useEffect(() => {
@@ -1917,10 +2012,16 @@ function ToolFinderPage() {
   useEffect(() => {
     if (!pendingStackSwitch || loadingResults) return
     setPendingStackSwitch(false)
+    setLoadingStackId(null)
     if (results.length > 0) {
       setViewMode('results')
     } else {
+      // Don't strand the user on the "You're all set" panel with a disabled
+      // button — that was a dead end. Drop them back at question 1 so the
+      // toast is actionable.
       toast.error('No tools matched this stack — try adjusting the answers.')
+      setActiveQuestion('goal')
+      setViewMode('wizard')
     }
   }, [pendingStackSwitch, loadingResults, results.length])
 
@@ -2260,6 +2361,13 @@ function ToolFinderPage() {
               </div>
             ) : null}
           </div>
+
+          <MobilePreviewTeaser
+            results={results}
+            loading={loadingResults}
+            canSeeResults={canSeeResults}
+            onSeeResults={() => setViewMode('results')}
+          />
 
           <LivePreview
             answers={answers}
