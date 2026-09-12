@@ -25,7 +25,21 @@ AFFILIATES: dict[str, str] = {
     # fallback, but this registry is authoritative — outbound() checks
     # it first.
     "screenpipe": "https://go.screenpi.pe/ai-compass",
+    # Jenni AI affiliate program (Rewardful), joined 2026-09. 30% of every
+    # payment in a referred customer's first 6 months. First commission
+    # landed 2026-09 and confirmed the /go/ hop attributes correctly.
+    #
+    # This link already worked before it was listed here, via the catalog
+    # row's affiliate_url fallback in outbound() — which is exactly why it
+    # is being added: a program that only lives in the database is invisible
+    # to anyone reading this file to find out what we are enrolled in.
+    "jenni-ai": "https://jenni.ai/?via=medhansh",
+    # SciSpace ambassador program (Rewardful), joined 2026-09.
+    # 10% commission on the first payment within the first 1 month.
+    "scispace": "https://scispace.com/?via=medhansh",
+    "typeset": "https://scispace.com/?via=medhansh",
 }
+
 
 
 def affiliate_for(slug: str | None) -> str | None:
