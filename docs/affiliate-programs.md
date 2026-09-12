@@ -6,6 +6,12 @@ directories keep dead programs listed for years, which is how Notion — closed 
 new applicants — ends up recommended everywhere. Re-verify before a batch of
 applications; a quarter is long enough for a program to close quietly.
 
+**Interactive board:** <https://claude.ai/code/artifact/9d049683-9638-448b-b1d7-9eb2f796e66c>
+— the same shortlist grouped by which affiliate network we already hold a
+login on, with a per-program applied/approved tick that the page remembers.
+Use the board to work through applications; keep this file as the record of
+what actually landed.
+
 Two rules this whole file sits under:
 
 1. **An affiliate link never changes a ranking.** The registry is read at
