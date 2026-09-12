@@ -14,12 +14,13 @@ import chatgptIcon from "../assets/brand/chatgpt.svg";
 import claudeIcon from "../assets/brand/claude.svg";
 import githubCopilotIcon from "../assets/brand/github-copilot.svg";
 
-import { MagneticWrapper, WordReveal, ConversionCTA, WizardFunnelCTA } from "../components/ui";
+import { MagneticWrapper, WordReveal, ConversionCTA, WizardFunnelCTA, InlineWizardPicker } from "../components/ui";
 
-const FINDER_PARAMS = { goal: "learning" };
 import { useCatalogStats } from "../hooks/useCatalogStats";
 import { sectionReveal, staggerParent, staggerChild } from "../lib/motion";
 import { toolHoverHandlers, alternativesHoverHandlers } from "../lib/prefetch";
+
+const FINDER_PARAMS = { goal: "learning" };
 
 const MotionDiv = motion.div;
 // Static fallback covers the ~100ms before /api/v1/stats responds.
@@ -366,6 +367,16 @@ export default function BestAIToolsForStudents() {
               Published: {LAST_REVIEWED}
             </span>
           </p>
+        </div>
+
+        {/* Question 1, asked in place rather than behind a click-through. */}
+        <div className="mx-auto max-w-[860px] px-6 font-sans">
+          <InlineWizardPicker
+            goal={FINDER_PARAMS.goal}
+            source="best-ai-tools-for-students"
+            title="What do you need help with?"
+            subtitle="Pick one and we'll match tools to it. No account, about 30 seconds."
+          />
         </div>
 
         {/* How we picked — criteria block inserted between hero and Quick nav */}

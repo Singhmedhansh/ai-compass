@@ -4,13 +4,14 @@ import { ArrowUpRight, Sparkles, Code2, Terminal, Cpu, Database, Check, X, Shiel
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 
-import { MagneticWrapper, WordReveal, ConversionCTA } from "../components/ui";
+import { MagneticWrapper, WordReveal, ConversionCTA, InlineWizardPicker } from "../components/ui";
 
-const FINDER_PARAMS = { goal: "coding" };
 import { useCatalogStats } from "../hooks/useCatalogStats";
 import { sectionReveal, staggerParent, staggerChild } from "../lib/motion";
 import { toolHoverHandlers, alternativesHoverHandlers } from "../lib/prefetch";
 import PartnerUnits from "../components/tools/PartnerUnits";
+
+const FINDER_PARAMS = { goal: "coding" };
 
 const MotionDiv = motion.div;
 const FALLBACK_TOOL_COUNT = 400;
@@ -247,6 +248,18 @@ export default function BestCodingTools() {
               Verified: {LAST_REVIEWED}
             </span>
           </p>
+        </div>
+
+        {/* Question 1, asked here instead of behind a click-through to the
+            wizard. The page already establishes the goal, so a chip answers
+            two of the three questions at once. */}
+        <div className="mx-auto max-w-[960px] px-6 font-sans">
+          <InlineWizardPicker
+            goal={FINDER_PARAMS.goal}
+            source="best-coding-tools"
+            title="What are you building?"
+            subtitle="Pick one and we'll match coding tools to it. No account, about 30 seconds."
+          />
         </div>
 
         {/* COMPARATIVE ANALYSIS SECTION: EDITORS */}

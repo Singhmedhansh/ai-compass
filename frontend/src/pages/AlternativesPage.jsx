@@ -5,7 +5,7 @@ import { motion } from 'framer-motion'
 import { ArrowUpRight, Shield } from 'lucide-react'
 import clsx from 'clsx'
 
-import { SEO, WordReveal, ConversionCTA, WizardFunnelCTA, StickyEscapeBar } from '../components/ui'
+import { SEO, WordReveal, ConversionCTA, WizardFunnelCTA, StickyEscapeBar, InlineWizardPicker } from '../components/ui'
 import { goalForCategory } from '../utils/finderLink'
 import ErrorState from '../components/ErrorState'
 import PartnerUnits from '../components/tools/PartnerUnits'
@@ -395,9 +395,17 @@ export default function AlternativesPage() {
           </MotionDiv>
         )}
 
-        {/* Mid-page Wizard CTA */}
+        {/* Question 1, asked in place. When the tool's category maps onto a
+            wizard goal the chips are that goal's specific tasks, so one click
+            answers two questions; otherwise the picker falls back to the six
+            top-level goals. */}
         <div className="mx-auto max-w-3xl px-4">
-          <WizardFunnelCTA variant="inline" params={finderParams} />
+          <InlineWizardPicker
+            goal={finderParams.goal}
+            source="alternatives"
+            title={`Looking for a ${tool.name} alternative for something specific?`}
+            subtitle="Pick what you need it for and we'll match tools to it. No account, about 30 seconds."
+          />
         </div>
 
         <MotionDiv

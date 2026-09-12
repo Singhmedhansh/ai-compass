@@ -17,11 +17,12 @@ import {
   ChevronRight,
   GraduationCap
 } from "lucide-react";
-import { ConversionCTA, WizardFunnelCTA, WordReveal } from "../components/ui";
+import { ConversionCTA, WizardFunnelCTA, WordReveal, InlineWizardPicker } from "../components/ui";
 
-const FINDER_PARAMS = { goal: "productivity" };
 import PartnerUnits from "../components/tools/PartnerUnits";
 import { sectionReveal, staggerParent, staggerChild } from "../lib/motion";
+
+const FINDER_PARAMS = { goal: "productivity" };
 
 const MotionDiv = motion.div;
 
@@ -131,6 +132,16 @@ export default function BestAIToolsForTeachers() {
             A comprehensive, research-backed guide on AI plagiarism detection, bypass tactics, 
             false positive risks, and actionable pedagogy strategies.
           </p>
+        </div>
+
+        {/* Question 1, asked in place rather than behind a click-through. */}
+        <div className="mx-auto max-w-[860px] px-6 font-sans">
+          <InlineWizardPicker
+            goal={FINDER_PARAMS.goal}
+            source="best-ai-tools-for-teachers"
+            title="What would you like to hand off?"
+            subtitle="Pick one and we'll match tools to it. No account, about 30 seconds."
+          />
         </div>
 
         {/* SECTION 1: THE REALITY OF AI IN ACCADEMICS */}

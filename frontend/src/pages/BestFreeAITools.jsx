@@ -5,15 +5,14 @@ import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import PartnerUnits from "../components/tools/PartnerUnits";
 
-import { MagneticWrapper, WordReveal, ConversionCTA, WizardFunnelCTA } from "../components/ui";
-import { finderPath } from "../utils/finderLink";
+import { MagneticWrapper, WordReveal, ConversionCTA, WizardFunnelCTA, InlineWizardPicker } from "../components/ui";
+import { useCatalogStats } from "../hooks/useCatalogStats";
+import { sectionReveal, staggerParent, staggerChild } from "../lib/motion";
+import { toolHoverHandlers, alternativesHoverHandlers } from "../lib/prefetch";
 
 // Everything on this page is about free tools, so every route into the
 // wizard carries that answer instead of asking for it again.
 const FINDER_PARAMS = { budget: "free" };
-import { useCatalogStats } from "../hooks/useCatalogStats";
-import { sectionReveal, staggerParent, staggerChild } from "../lib/motion";
-import { toolHoverHandlers, alternativesHoverHandlers } from "../lib/prefetch";
 
 const MotionDiv = motion.div;
 const FALLBACK_TOOL_COUNT = 400;
@@ -395,23 +394,20 @@ export default function BestFreeAITools() {
           </MotionDiv>
         </div>
 
-        {/* Wizard Banner */}
+        {/* Question 1, asked here rather than behind a click-through. */}
         <MotionDiv
           variants={sectionReveal}
           initial="initial"
           whileInView="animate"
           viewport={{ once: true, margin: '-10% 0px' }}
-          className="mx-auto max-w-[860px] px-6 mb-12"
+          className="mx-auto max-w-[860px] px-6 mb-12 font-sans"
         >
-          <div className="rounded-2xl bg-accent-soft/30 border border-accent/20 p-6 flex flex-col sm:flex-row items-center justify-between gap-4 font-sans">
-             <div>
-                <h2 className="text-lg font-semibold text-ink">Not sure which free tool is right for you?</h2>
-                <p className="text-sm text-muted mt-1">Answer 4 quick questions to get custom free recommendations.</p>
-             </div>
-             <Link to={finderPath(FINDER_PARAMS)} className="whitespace-nowrap rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-bg transition hover:opacity-90">
-                Find the right free tool for you →
-             </Link>
-          </div>
+          <InlineWizardPicker
+            budget="free"
+            source="best-free-ai-tools"
+            title="Not sure which free tool is right for you?"
+            subtitle="Pick what you're working on — we'll match free tools to it. No account, about 30 seconds."
+          />
         </MotionDiv>
 
         {/* Quick Comparison Table */}
