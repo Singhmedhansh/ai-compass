@@ -21,7 +21,7 @@ Two rules this whole file sits under:
    code typed at a checkout costs the reader's trust at the worst possible
    moment. Remove an entry the day the program retires it.
 
-## Enrolled now — 7 programs, 8 slugs
+## Enrolled now — 8 programs, 9 slugs
 
 | Tool | Network | Terms | Coupon |
 |---|---|---|---|
@@ -32,6 +32,7 @@ Two rules this whole file sits under:
 | SciSpace / Typeset | Rewardful | 10% of first payment (1 month window) | — |
 | Taskade | FirstPromoter | 20% recurring | — |
 | Paperpal | LinkMink | 30% of every sale | `PAP20` — 20% off |
+| beehiiv | Dub | 50% of payments for 12 months | link carries 14-day trial + 20% off 3 mo |
 
 Source of truth is `app/affiliates.py`. The count and the live roster also
 render on **Admin → Analytics → Affiliate programs**, which flags any link
@@ -45,6 +46,10 @@ clicks it earns today are being given away for free.
 
 ### Tier 1 — verified open, and the same audience our best pages already serve
 
+beehiiv moved to Enrolled on 2026-09-12: it turned out to have **no application
+at all** — creating a free beehiiv account enrols you and issues the partner link
+immediately. Worth checking for the others before writing a pitch.
+
 | Tool | Network | Terms (as published) | Why it's an easy yes |
 |---|---|---|---|
 | [QuillBot](https://quillbot.com/affiliates) | PartnerStack | 10% monthly / 15% semi-annual / 20% annual, 30-day cookie | Self-serve signup; paraphrasing is the exact Jenni/Paperpal audience |
@@ -52,7 +57,6 @@ clicks it earns today are being given away for free.
 | [Gamma](https://help.gamma.app/en/articles/11048092-how-do-i-join-the-gamma-affiliate-program) | PartnerStack | **30% recurring for 12 months, 90-day cookie** | Actively recruiting; the 90-day cookie is the best on this list |
 | [Otter.ai](https://openaffiliate.dev/programs/otter-ai) | Impact | 15–20% of first year, 30-day cookie | Same Impact account; needs a productivity/education presence, which we are |
 | [Synthesia](https://synthesia.getrewardful.com/signup) | Rewardful | 25% for 12 months (Starter/Creator), 60-day cookie | Same network as Jenni and SciSpace — one existing login |
-| [beehiiv](https://partners.dub.co/beehiiv) | **Dub** | 50% for 12 months, tiering to 60%, 60-day cookie | Same network as Screenpipe, so the account already exists. Highest rate on this list |
 
 ### Tier 2 — verified open, softer fit or smaller payout
 

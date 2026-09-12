@@ -45,6 +45,15 @@ AFFILIATES: dict[str, str] = {
     # on every sale through the link. The dashboard also issues a reader
     # discount code, PAP20 — see COUPONS below.
     "paperpal": "https://paperpal.com/?linkId=lp_726731&sourceId=medhansh&tenantId=paperpal",
+    # beehiiv partner program (Dub — the same network as Screenpipe), joined
+    # 2026-09. 50% of a referred customer's payments for 12 months. There is
+    # no application: holding a beehiiv account enrols you, which is why this
+    # landed the same hour it was applied for.
+    #
+    # The reader benefit (14-day trial + 20% off for 3 months) rides on the
+    # link itself, so there is deliberately no COUPONS entry — inventing a
+    # code for it would send people hunting for something to type.
+    "beehiiv": "https://www.beehiiv.com/?via=medhansh-singh",
 }
 
 
