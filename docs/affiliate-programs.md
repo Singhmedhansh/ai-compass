@@ -21,7 +21,7 @@ Two rules this whole file sits under:
    code typed at a checkout costs the reader's trust at the worst possible
    moment. Remove an entry the day the program retires it.
 
-## Enrolled now — 8 programs, 9 slugs
+## Enrolled now — 9 programs, 10 slugs
 
 | Tool | Network | Terms | Coupon |
 |---|---|---|---|
@@ -33,6 +33,7 @@ Two rules this whole file sits under:
 | Taskade | FirstPromoter | 20% recurring | — |
 | Paperpal | LinkMink | 30% of every sale | `PAP20` — 20% off |
 | beehiiv | Dub | 50% of payments for 12 months | link carries 14-day trial + 20% off 3 mo |
+| Synthesia | Rewardful | 25% of all payments for 12 months | — |
 
 Source of truth is `app/affiliates.py`. The count and the live roster also
 render on **Admin → Analytics → Affiliate programs**, which flags any link
@@ -56,7 +57,6 @@ immediately. Worth checking for the others before writing a pitch.
 | [Grammarly](https://www.grammarly.com/affiliates) | Impact | $20 per premium sale, $0.20 per free reg, 90-day cookie | Our Impact account is already verified (the meta tag is landed); 1–5 business day review |
 | [Gamma](https://help.gamma.app/en/articles/11048092-how-do-i-join-the-gamma-affiliate-program) | PartnerStack | **30% recurring for 12 months, 90-day cookie** | Actively recruiting; the 90-day cookie is the best on this list |
 | [Otter.ai](https://openaffiliate.dev/programs/otter-ai) | Impact | 15–20% of first year, 30-day cookie | Same Impact account; needs a productivity/education presence, which we are |
-| [Synthesia](https://synthesia.getrewardful.com/signup) | Rewardful | 25% for 12 months (Starter/Creator), 60-day cookie | Same network as Jenni and SciSpace — one existing login |
 
 ### Tier 2 — verified open, softer fit or smaller payout
 

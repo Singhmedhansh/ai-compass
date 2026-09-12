@@ -54,6 +54,14 @@ AFFILIATES: dict[str, str] = {
     # link itself, so there is deliberately no COUPONS entry — inventing a
     # code for it would send people hunting for something to type.
     "beehiiv": "https://www.beehiiv.com/?via=medhansh-singh",
+    # Synthesia affiliate program (Rewardful — the same network as Jenni AI
+    # and SciSpace), joined 2026-09-12. 25% of all payments within a referred
+    # customer's first 12 months, on the Personal Plan program.
+    #
+    # Rewardful appends ?via= to any synthesia.io URL, so a deep link to a
+    # pricing or feature page tracks just as well as the homepage if we ever
+    # want one.
+    "synthesia": "https://www.synthesia.io?via=medhansh",
 }
 
 
