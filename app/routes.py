@@ -1101,12 +1101,36 @@ def outbound(slug):
     # as non-affiliate and silently missing from revenue analytics.
     is_aff = bool(aff or db_aff)
 
+    # Bot-flag at write time. /go/ is Disallow-ed in robots.txt, which only
+    # deters well-behaved crawlers, so the raw row count overstates human
+    # traffic — and this table is the number quoted to vendors in outreach.
+    # Recording the verdict beside the row means no reader has to remember
+    # the filter. See app/click_quality.py for how conservative it is.
+    from app.click_quality import client_ip, hash_ip, is_bot_user_agent
+
+    ua = (str(request.headers.get('User-Agent') or '').strip() or None)
+    if ua and len(ua) > 500:
+        ua = ua[:500]
+    bot = is_bot_user_agent(ua)
+    # SECRET_KEY is the salt: already secret, already per-deployment, and
+    # rotating it only breaks grouping of old rows against new ones — it
+    # never exposes an address.
+    ip_hash = hash_ip(
+        client_ip(request), current_app.config.get('SECRET_KEY') or 'ai-compass'
+    )
+
     try:
         current_app.logger.info(
-            'outbound_click slug=%s affiliate=%s', slug_l, is_aff
+            'outbound_click slug=%s affiliate=%s bot=%s', slug_l, is_aff, bot
         )
         from app.models import OutboundClick
-        db.session.add(OutboundClick(slug=slug_l, is_affiliate=is_aff))
+        db.session.add(OutboundClick(
+            slug=slug_l,
+            is_affiliate=is_aff,
+            user_agent=ua,
+            ip_hash=ip_hash,
+            is_bot=bot,
+        ))
         db.session.commit()
     except Exception:
         try:

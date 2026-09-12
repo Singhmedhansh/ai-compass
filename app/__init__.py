@@ -963,6 +963,43 @@ def create_app(config: dict | None = None) -> Flask:
                             print(f"[WARMUP] ADD COLUMN {table}.{col_name} failed: {exc}", flush=True)
                             return False
 
+                    def _add_index(index_name, table, col_name):
+                        """Idempotent CREATE INDEX for a column added above.
+
+                        _add_column brings the column but never the model's
+                        index=True, and create_all() only builds indexes for
+                        tables it creates from scratch — so on an existing
+                        table a declared index is silently never built.
+
+                        Unlike a missing column, a missing index degrades
+                        performance rather than breaking every query, so a
+                        failure here is logged and NOT added to
+                        _schema_failures: it must not withhold the
+                        once-per-deploy marker and send workers into a
+                        permanent retry loop over a non-fatal problem.
+                        """
+                        from sqlalchemy import text
+                        try:
+                            if is_postgres:
+                                db.session.execute(text("SET LOCAL lock_timeout = '10s'"))
+                                db.session.execute(text("SET LOCAL statement_timeout = '30s'"))
+                            db.session.execute(text(
+                                f"CREATE INDEX {if_not_exists}{index_name} "
+                                f"ON {table} ({col_name});"
+                            ))
+                            db.session.commit()
+                            return True
+                        except Exception as exc:
+                            db.session.rollback()
+                            if "already exists" in str(exc).lower():
+                                return True
+                            print(
+                                f"[WARMUP] CREATE INDEX {index_name} failed "
+                                f"(non-fatal): {exc}",
+                                flush=True,
+                            )
+                            return False
+
                     try:
                         from sqlalchemy import text
                         db.session.execute(text(f"ALTER TABLE users ADD COLUMN {if_not_exists}is_verified BOOLEAN NOT NULL DEFAULT FALSE;"))
@@ -1155,6 +1192,32 @@ def create_app(config: dict | None = None) -> Flask:
                         ("maker_reply_at", "TIMESTAMP"),
                     ]:
                         _add_column("reviews", col_name, col_type)
+
+                    # outbound_clicks bot-filtering columns. This table backs
+                    # the one traffic figure quoted to vendors, so an
+                    # unfiltered count is a claim we cannot defend — see
+                    # app/click_quality.py. is_bot stays NULL on every row
+                    # written before this deploy, which is "unknown", not
+                    # "human": readers filter on `is_bot IS FALSE`.
+                    for col_name, col_type in [
+                        ("user_agent", "VARCHAR(500)"),
+                        ("ip_hash", "VARCHAR(64)"),
+                        ("is_bot", "BOOLEAN"),
+                    ]:
+                        _add_column("outbound_clicks", col_name, col_type)
+
+                    # ADD COLUMN does not bring the model's index=True with
+                    # it, and create_all() only builds indexes for tables it
+                    # creates outright — so on this database (where the table
+                    # already exists) a declared index would silently never
+                    # be built. The analytics reads filter is_bot alongside
+                    # created_at on a table that grows with every click.
+                    _add_index(
+                        "ix_outbound_clicks_is_bot", "outbound_clicks", "is_bot"
+                    )
+                    _add_index(
+                        "ix_outbound_clicks_ip_hash", "outbound_clicks", "ip_hash"
+                    )
 
                     # The schema phase is the part that must not be left half
                     # done. Claim the once-per-deploy marker only now, and

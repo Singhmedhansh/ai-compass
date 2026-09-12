@@ -130,13 +130,34 @@ class FeatureFlag(db.Model):
 
 class OutboundClick(db.Model):
     """One row per /go/<slug> click — powers the admin analytics view
-    (revenue signal: which tools people actually click through to)."""
+    (revenue signal: which tools people actually click through to).
+
+    This table is also the one traffic number we quote to vendors in
+    outreach, so it has to survive being checked. /go/ is Disallow-ed in
+    robots.txt, which only stops well-behaved crawlers; everything else
+    lands here and silently inflates the count. `user_agent` and `is_bot`
+    make that filterable.
+
+    `is_bot` is deliberately NULLABLE and means three things, not two:
+    True (flagged), False (not obviously a bot), NULL (written before
+    this column existed — unknown). Any count offered to an outsider must
+    therefore filter on `is_bot IS FALSE`, never on `is_bot IS NOT TRUE`,
+    or every legacy row is silently promoted to "human".
+
+    `ip_hash` is a salted digest, never a raw address — enough to spot one
+    client generating hundreds of clicks (the signature a spoofed
+    user-agent hides) without storing an identifier that carries PII
+    obligations for our EU readers.
+    """
 
     __tablename__ = "outbound_clicks"
 
     id = db.Column(db.Integer, primary_key=True)
     slug = db.Column(db.String(255), nullable=False, index=True)
     is_affiliate = db.Column(db.Boolean, nullable=False, default=False)
+    user_agent = db.Column(db.String(500), nullable=True)
+    ip_hash = db.Column(db.String(64), nullable=True, index=True)
+    is_bot = db.Column(db.Boolean, nullable=True, index=True)
     created_at = db.Column(
         db.DateTime, nullable=False, index=True,
         default=lambda: datetime.now(timezone.utc),
