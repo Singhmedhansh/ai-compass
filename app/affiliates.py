@@ -38,6 +38,9 @@ AFFILIATES: dict[str, str] = {
     # 10% commission on the first payment within the first 1 month.
     "scispace": "https://scispace.com/?via=medhansh",
     "typeset": "https://scispace.com/?via=medhansh",
+    # Taskade affiliate partnership program (FirstPromoter), joined 2026-09.
+    # 20% recurring commission.
+    "taskade": "https://www.taskade.com/?via=medhansh",
 }
 
 
