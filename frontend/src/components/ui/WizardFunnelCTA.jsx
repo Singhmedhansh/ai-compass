@@ -1,12 +1,18 @@
 import { Link } from 'react-router-dom'
 import { Sparkles, ArrowRight, Compass } from 'lucide-react'
+import { finderPath } from '../../utils/finderLink'
 
 export default function WizardFunnelCTA({ 
   variant = 'inline', 
   title = "Not sure which tool is right for you?",
   subtitle = "Answer 3 quick questions to get personalized recommendations tailored to your goals.",
-  className = ""
+  className = "",
+  // Answers this page already knows ({ goal, use_case, budget }). Carried into
+  // the wizard so the visitor doesn't restate what the page they just read
+  // already established.
+  params = null,
 }) {
+  const to = finderPath(params)
   if (variant === 'inline') {
     return (
       <div className={`my-8 rounded-2xl border border-accent/30 bg-gradient-to-r from-accent-soft/40 via-bg-elev to-accent-soft/20 p-5 shadow-sm transition-all hover:border-accent/60 ${className}`}>
@@ -25,7 +31,7 @@ export default function WizardFunnelCTA({
             </div>
           </div>
           <Link
-            to="/ai-tool-finder"
+            to={to}
             className="group shrink-0 inline-flex items-center justify-center gap-2 rounded-full bg-accent px-5 py-2.5 text-xs font-bold text-accent-ink transition-all hover:bg-accent-hover hover:scale-105 shadow-sm"
           >
             <span>Take 60s Match Wizard</span>
@@ -54,7 +60,7 @@ export default function WizardFunnelCTA({
 
         <div className="pt-2 flex justify-center">
           <Link
-            to="/ai-tool-finder"
+            to={to}
             className="group inline-flex items-center justify-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-bold text-accent-ink transition-all hover:scale-105 shadow-md hover:shadow-accent/20"
           >
             <span>Find your match in 60 seconds</span>

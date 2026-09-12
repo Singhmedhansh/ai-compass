@@ -1,10 +1,13 @@
 import { Link } from 'react-router-dom'
 import { ArrowRight, Compass } from 'lucide-react'
+import { finderPath } from '../../utils/finderLink'
 
 export default function ConversionCTA({ 
   title = "Ready to build your AI stack?", 
   subtitle = "Tell us what you're working on. We'll hand-pick the perfect tools for your exact needs—no account required.",
-  eyebrow = "Next Steps"
+  eyebrow = "Next Steps",
+  // Answers this page already knows ({ goal, use_case, budget }).
+  params = null,
 }) {
   return (
     <section className="py-12 md:py-20 border-t border-line mt-12">
@@ -25,7 +28,7 @@ export default function ConversionCTA({
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
           <Link
-            to="/ai-tool-finder"
+            to={finderPath(params)}
             className="group w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full bg-ink px-[24px] py-3.5 text-sm font-medium text-bg transition-all hover:-translate-y-px hover:shadow-md"
           >
             <Compass className="h-4 w-4" />

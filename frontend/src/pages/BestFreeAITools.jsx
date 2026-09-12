@@ -6,6 +6,11 @@ import { Helmet } from "react-helmet-async";
 import PartnerUnits from "../components/tools/PartnerUnits";
 
 import { MagneticWrapper, WordReveal, ConversionCTA, WizardFunnelCTA } from "../components/ui";
+import { finderPath } from "../utils/finderLink";
+
+// Everything on this page is about free tools, so every route into the
+// wizard carries that answer instead of asking for it again.
+const FINDER_PARAMS = { budget: "free" };
 import { useCatalogStats } from "../hooks/useCatalogStats";
 import { sectionReveal, staggerParent, staggerChild } from "../lib/motion";
 import { toolHoverHandlers, alternativesHoverHandlers } from "../lib/prefetch";
@@ -403,7 +408,7 @@ export default function BestFreeAITools() {
                 <h2 className="text-lg font-semibold text-ink">Not sure which free tool is right for you?</h2>
                 <p className="text-sm text-muted mt-1">Answer 4 quick questions to get custom free recommendations.</p>
              </div>
-             <Link to="/ai-tool-finder" className="whitespace-nowrap rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-bg transition hover:opacity-90">
+             <Link to={finderPath(FINDER_PARAMS)} className="whitespace-nowrap rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-bg transition hover:opacity-90">
                 Find the right free tool for you →
              </Link>
           </div>
@@ -708,10 +713,10 @@ export default function BestFreeAITools() {
         </MotionDiv>
 
         <div className="mx-auto max-w-[860px] px-6">
-          <WizardFunnelCTA variant="banner" />
+          <WizardFunnelCTA variant="banner" params={FINDER_PARAMS} />
         </div>
 
-        <ConversionCTA />
+        <ConversionCTA params={FINDER_PARAMS} />
       </div>
     </>
   );

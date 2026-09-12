@@ -18,6 +18,8 @@ import {
   GraduationCap
 } from "lucide-react";
 import { ConversionCTA, WizardFunnelCTA, WordReveal } from "../components/ui";
+
+const FINDER_PARAMS = { goal: "productivity" };
 import PartnerUnits from "../components/tools/PartnerUnits";
 import { sectionReveal, staggerParent, staggerChild } from "../lib/motion";
 
@@ -352,10 +354,10 @@ export default function BestAIToolsForTeachers() {
         </div>
 
         <div className="mx-auto max-w-[860px] px-6">
-          <WizardFunnelCTA variant="banner" />
+          <WizardFunnelCTA variant="banner" params={FINDER_PARAMS} />
         </div>
 
-        <ConversionCTA />
+        <ConversionCTA params={FINDER_PARAMS} />
       </div>
     </>
   );

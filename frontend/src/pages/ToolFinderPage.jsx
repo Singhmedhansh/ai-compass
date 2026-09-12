@@ -337,6 +337,73 @@ const QUESTIONS = [
 const TOTAL_QUESTIONS = QUESTIONS.length
 const QUESTION_FLOW = QUESTIONS.map((q) => q.id)
 
+// --- Deep-link prefill -------------------------------------------------
+// The SEO pages (/best-free-ai-tools, /best-coding-tools, /alternatives/*)
+// already know a great deal about why the visitor is here. Until now every
+// one of those CTAs dropped the user onto a blank Q1 and threw that context
+// away, which is the single largest leak between SEO traffic and a finished
+// wizard. They can now hand it over as ?goal=&use_case=&budget=.
+//
+// Everything here is validated against the option lists below. A query string
+// is attacker-controllable, so an unvalidated value would end up rendered as
+// the user's "answer" and posted to /api/v1/finder verbatim.
+function firstUnansweredQuestionId(answers) {
+  const question = QUESTIONS.find((q) => {
+    const answer = answers[q.id]
+    return Array.isArray(answer) ? answer.length === 0 : !answer
+  })
+  return question ? question.id : null
+}
+
+function matchSubCategoryLabel(goalId, raw) {
+  const needle = raw.toLowerCase()
+  const hit = (SUB_CATEGORIES[goalId] || []).find(
+    (option) => option.id === needle || option.label.toLowerCase() === needle,
+  )
+  return hit ? hit.label : ''
+}
+
+function readWizardPrefill(search) {
+  const empty = { answers: {}, matched: [] }
+  if (!search) return empty
+
+  let params
+  try {
+    params = new URLSearchParams(search)
+  } catch {
+    return empty
+  }
+
+  const answers = {}
+  const matched = []
+
+  const rawGoal = normalizeOptionalText(params.get('goal')).toLowerCase()
+  if (rawGoal && GOAL_OPTIONS.some((option) => option.id === rawGoal)) {
+    answers.goal = rawGoal
+    matched.push('goal')
+  }
+
+  const rawBudget = normalizeOptionalText(params.get('budget')).toLowerCase()
+  if (rawBudget && BUDGET_OPTIONS.some((option) => option.id === rawBudget)) {
+    answers.budget = rawBudget
+    matched.push('budget')
+  }
+
+  // use_case is the one free-text answer, so we only accept a value that
+  // resolves to a known sub-category of the (already validated) goal rather
+  // than letting a link write arbitrary text into the flow.
+  const rawUseCase = normalizeOptionalText(params.get('use_case'))
+  if (rawUseCase && answers.goal) {
+    const label = matchSubCategoryLabel(answers.goal, rawUseCase)
+    if (label) {
+      answers.use_case = label
+      matched.push('use_case')
+    }
+  }
+
+  return { answers, matched }
+}
+
 const PRICING_PILL_CLASS = {
   free: 'bg-accent-soft text-accent-ink',
   freemium: 'bg-bg-sunk text-ink-2 ring-1 ring-inset ring-line',
@@ -1436,14 +1503,30 @@ function LivePreview({ answers, results, loading, error, canSeeResults, onSeeRes
 
 function ToolFinderPage() {
   const navigate = useNavigate()
-  const [hasStarted, setHasStarted] = useState(false)
-  const [activeQuestion, setActiveQuestion] = useState(null)
+  // Read once, on mount. A later URL change shouldn't yank answers out from
+  // under someone who is already part-way through the flow.
+  const [prefill] = useState(() =>
+    readWizardPrefill(typeof window !== 'undefined' ? window.location.search : ''),
+  )
+  const [initialAnswers] = useState(() => {
+    const isFromAlts = typeof document !== 'undefined' && document.referrer.includes('/alternatives')
+    return {
+      goal: [],
+      use_case: isFromAlts ? 'Find alternatives' : '',
+      budget: '',
+      platform: [],
+      level: '',
+      ...prefill.answers,
+    }
+  })
+  const isPrefilled = prefill.matched.length > 0
+  const [hasStarted, setHasStarted] = useState(isPrefilled)
+  const [activeQuestion, setActiveQuestion] = useState(() =>
+    isPrefilled ? firstUnansweredQuestionId(initialAnswers) : null,
+  )
   const [viewMode, setViewMode] = useState('wizard')
   const [selectedStackId, setSelectedStackId] = useState('custom')
-  const [answers, setAnswers] = useState(() => {
-    const isFromAlts = typeof document !== 'undefined' && document.referrer.includes('/alternatives')
-    return { goal: [], use_case: isFromAlts ? 'Find alternatives' : '', budget: '', platform: [], level: '' }
-  })
+  const [answers, setAnswers] = useState(initialAnswers)
   const [results, setResults] = useState([])
   const [loadingResults, setLoadingResults] = useState(false)
   const [loadingStackId, setLoadingStackId] = useState(null)
@@ -1607,6 +1690,26 @@ function ToolFinderPage() {
   }, [answers])
 
   // Proactive help event removed; passive microcopy used instead
+
+  // A deep-linked arrival is already a wizard start — the visitor answered
+  // question 1 (and sometimes all three) back on the SEO page. Reported with
+  // source: 'deeplink' so these stay separable from organic starts and can't
+  // quietly flatter the funnel.
+  useEffect(() => {
+    if (!isPrefilled || wizardStartedRef.current) return
+    wizardStartedRef.current = true
+    captureWizardEvent('wizard_started', {
+      source: 'deeplink',
+      prefilled: prefill.matched,
+      prefilled_count: prefill.matched.length,
+    })
+    if (firstUnansweredQuestionId(initialAnswers) === null) {
+      setViewMode('results')
+      setPendingCompletion({ answers: snapshotAnswers(initialAnswers), source: 'deeplink' })
+    }
+    // Mount-only: prefill is frozen for the lifetime of the page.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const handleStartWizard = () => {
     if (wizardStartedRef.current) return
@@ -1803,6 +1906,7 @@ function ToolFinderPage() {
     captureWizardEvent('wizard_completed', {
       total_steps: TOTAL_QUESTIONS,
       answers: pendingCompletion.answers,
+      source: pendingCompletion.source || 'wizard',
     })
     setPendingCompletion(null)
   }, [loadingResults, pendingCompletion, results.length])

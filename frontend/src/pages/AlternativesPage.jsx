@@ -6,6 +6,7 @@ import { ArrowUpRight, Shield } from 'lucide-react'
 import clsx from 'clsx'
 
 import { SEO, WordReveal, ConversionCTA, WizardFunnelCTA, StickyEscapeBar } from '../components/ui'
+import { goalForCategory } from '../utils/finderLink'
 import ErrorState from '../components/ErrorState'
 import PartnerUnits from '../components/tools/PartnerUnits'
 import { useCatalogStats } from '../hooks/useCatalogStats'
@@ -158,6 +159,9 @@ export default function AlternativesPage() {
 
   const { tool, alternatives } = data
   const count = alternatives.length
+  // This page knows which category the visitor is shopping in, so hand that
+  // to the wizard as a goal rather than opening it on a blank question 1.
+  const finderParams = { goal: goalForCategory(tool.category) }
 
   const pageTitle = `${count} Best ${tool.name} Alternatives 2026 (Free Options) | AI Compass`
   const pageDescription = `${count} hand-tested alternatives to ${tool.name}, ranked by similarity. Free tiers, pricing, and use cases compared. Curated by AI Compass. No login to compare.`
@@ -296,6 +300,7 @@ export default function AlternativesPage() {
         >
           <WizardFunnelCTA
             variant="inline"
+            params={finderParams}
             title={`Not sure if ${tool.name} is right for you?`}
             subtitle="Answer 3 quick questions and get a personalized recommendation in 60 seconds."
           />
@@ -392,7 +397,7 @@ export default function AlternativesPage() {
 
         {/* Mid-page Wizard CTA */}
         <div className="mx-auto max-w-3xl px-4">
-          <WizardFunnelCTA variant="inline" />
+          <WizardFunnelCTA variant="inline" params={finderParams} />
         </div>
 
         <MotionDiv
@@ -570,11 +575,12 @@ export default function AlternativesPage() {
         </MotionDiv>
 
         <div className="mx-auto max-w-3xl px-4">
-          <WizardFunnelCTA variant="banner" />
+          <WizardFunnelCTA variant="banner" params={finderParams} />
         </div>
 
-        <ConversionCTA />
+        <ConversionCTA params={finderParams} />
         <StickyEscapeBar
+          params={finderParams}
           storageKey="aic-escape-alternatives"
           title={`Still browsing ${tool.name} alternatives? Find your perfect match in 60 seconds.`}
         />

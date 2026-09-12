@@ -5,6 +5,8 @@ import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 
 import { MagneticWrapper, WordReveal, ConversionCTA } from "../components/ui";
+
+const FINDER_PARAMS = { goal: "coding" };
 import { useCatalogStats } from "../hooks/useCatalogStats";
 import { sectionReveal, staggerParent, staggerChild } from "../lib/motion";
 import { toolHoverHandlers, alternativesHoverHandlers } from "../lib/prefetch";
@@ -495,7 +497,7 @@ export default function BestCodingTools() {
             ))}
           </div>
         </div>
-        <ConversionCTA />
+        <ConversionCTA params={FINDER_PARAMS} />
       </div>
     </>
   );

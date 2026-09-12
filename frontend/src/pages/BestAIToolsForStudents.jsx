@@ -15,6 +15,8 @@ import claudeIcon from "../assets/brand/claude.svg";
 import githubCopilotIcon from "../assets/brand/github-copilot.svg";
 
 import { MagneticWrapper, WordReveal, ConversionCTA, WizardFunnelCTA } from "../components/ui";
+
+const FINDER_PARAMS = { goal: "learning" };
 import { useCatalogStats } from "../hooks/useCatalogStats";
 import { sectionReveal, staggerParent, staggerChild } from "../lib/motion";
 import { toolHoverHandlers, alternativesHoverHandlers } from "../lib/prefetch";
@@ -639,10 +641,10 @@ export default function BestAIToolsForStudents() {
         </MotionDiv>
 
         <div className="mx-auto max-w-[860px] px-6">
-          <WizardFunnelCTA variant="banner" />
+          <WizardFunnelCTA variant="banner" params={FINDER_PARAMS} />
         </div>
 
-        <ConversionCTA />
+        <ConversionCTA params={FINDER_PARAMS} />
       </div>
     </>
   );

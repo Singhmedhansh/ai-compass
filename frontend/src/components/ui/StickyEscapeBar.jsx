@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { finderPath } from '../../utils/finderLink'
 import { ArrowRight, X, Sparkles } from 'lucide-react'
 
 const SESSION_KEY = 'aic-escape-bar-dismissed'
@@ -19,9 +20,13 @@ const SESSION_KEY = 'aic-escape-bar-dismissed'
 export default function StickyEscapeBar({
   scrollThreshold = 0.4,
   title = 'Still deciding? Find the perfect tool for you in 60 seconds',
-  to = '/ai-tool-finder',
+  to,
+  // Answers this page already knows ({ goal, use_case, budget }). Ignored when
+  // an explicit `to` is passed.
+  params = null,
   storageKey = SESSION_KEY,
 }) {
+  const href = to || finderPath(params)
   const [visible, setVisible] = useState(false)
   const [dismissed, setDismissed] = useState(() => {
     try {
@@ -77,7 +82,7 @@ export default function StickyEscapeBar({
 
           <div className="flex shrink-0 items-center gap-2">
             <Link
-              to={to}
+              to={href}
               className="group inline-flex items-center gap-1.5 rounded-full bg-accent px-4 py-2 text-xs font-bold text-bg transition-all hover:scale-105 hover:opacity-90"
             >
               Find my match
