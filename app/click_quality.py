@@ -90,35 +90,43 @@ def client_ip(request):
     return request.remote_addr or None
 
 
-def human_click_condition(model, counted_before=None):
-    """SQLAlchemy condition restricting a click query to defensible humans.
+def human_click_condition(model):
+    """Strict condition: only clicks explicitly judged not-a-bot.
 
-    `is_bot` is NULL on every row written before the column existed, and NULL
-    means "unknown", not "human" — so a number put in front of an outsider
-    filters on `is_bot IS FALSE` and nothing else. That is the default here.
+    `is_bot` is NULL on every row written before flagging existed, and NULL
+    means "unknown", not "human". Use this for any figure quoted to someone
+    outside the project, where unknown must never round up to human.
 
-    Applied bare, though, the same filter also erases history: every legacy
-    row disappears at once, so a founder's 30-day chart collapses on deploy
-    day and creeps back over the following month as unjudged rows age out of
-    the window. Nothing about their listing changed; only our bookkeeping did.
+    For a chart a person reads as their own history, use
+    `trend_click_condition` instead — applied there, this would erase every
+    pre-flagging row at once.
+    """
+    return model.is_bot.is_(False)
 
-    `counted_before` avoids that cliff. Pass the moment bot-flagging started
-    and unjudged rows *older* than it are kept, because "we counted every
-    click" is the honest description of what that older number always was.
-    Unjudged rows newer than the cutover stay excluded — after flagging began
-    a NULL is a write that failed, not a historical artefact.
 
-    Use the cutover for anything a person reads as a trend over time; leave it
-    None for any figure quoted as human traffic.
+def trend_click_condition(model, flagging_started_at):
+    """Cutover-aware condition, for a trend someone reads as their own history.
+
+    Unjudged rows *older* than the moment flagging began are counted, because
+    "we counted every click" is what that number honestly was at the time.
+    Unjudged rows newer than the cutover are excluded: once flagging is
+    running, a NULL is a failed write, not a historical artefact.
+
+    `flagging_started_at` is None when nothing has been judged at all, which
+    means flagging has not started yet — so every row is historical and every
+    row counts. Falling back to the strict condition here would report zero
+    clicks for every founder until the first flagged click arrived, which is
+    precisely the deploy-day cliff this function exists to prevent.
     """
     from sqlalchemy import and_, or_
 
-    if counted_before is None:
-        return model.is_bot.is_(False)
+    if flagging_started_at is None:
+        # NULL or False; excludes only rows positively identified as bots.
+        return model.is_bot.isnot(True)
 
     return or_(
         model.is_bot.is_(False),
-        and_(model.is_bot.is_(None), model.created_at < counted_before),
+        and_(model.is_bot.is_(None), model.created_at < flagging_started_at),
     )
 
 

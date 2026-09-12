@@ -6525,7 +6525,7 @@ def _submission_dashboard_daily_trend(slug, days=14):
     `days` days (oldest first), zero-filled for days with no activity."""
     from sqlalchemy import func as _f
 
-    from app.click_quality import bot_flagging_started_at, human_click_condition
+    from app.click_quality import bot_flagging_started_at, trend_click_condition
     from app.models import OutboundClick, ToolPageView
 
     since = datetime.now(timezone.utc) - timedelta(days=days)
@@ -6539,7 +6539,7 @@ def _submission_dashboard_daily_trend(slug, days=14):
         .filter(
             OutboundClick.slug == slug,
             OutboundClick.created_at >= since,
-            human_click_condition(OutboundClick, cutover),
+            trend_click_condition(OutboundClick, cutover),
         )
         .group_by(_f.date(OutboundClick.created_at))
         .all()
@@ -6570,13 +6570,13 @@ def _submission_dashboard_category_benchmark(catalog_row, since_30d):
     to the average for other approved tools in the same category."""
     from sqlalchemy import func as _f
 
-    from app.click_quality import bot_flagging_started_at, human_click_condition
+    from app.click_quality import bot_flagging_started_at, trend_click_condition
     from app.models import CatalogTool, OutboundClick
 
     # Both sides of this comparison must be filtered the same way, or the
     # tool's own figure is measured against peers counted by another rule.
     cutover = bot_flagging_started_at(OutboundClick, db.session)
-    human_only = human_click_condition(OutboundClick, cutover)
+    human_only = trend_click_condition(OutboundClick, cutover)
 
     this_clicks = OutboundClick.query.filter(
         OutboundClick.slug == catalog_row.slug,

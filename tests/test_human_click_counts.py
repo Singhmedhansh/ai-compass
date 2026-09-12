@@ -9,7 +9,11 @@ founder's own trend must not lose its history the day bot-flagging shipped.
 from datetime import datetime, timedelta, timezone
 
 from app import db
-from app.click_quality import bot_flagging_started_at, human_click_condition
+from app.click_quality import (
+    bot_flagging_started_at,
+    human_click_condition,
+    trend_click_condition,
+)
 from app.models import OutboundClick
 
 
@@ -60,7 +64,7 @@ def test_cutover_keeps_history_but_not_new_unjudged_rows(app):
 
         counted = OutboundClick.query.filter(
             OutboundClick.slug == "c",
-            human_click_condition(OutboundClick, cutover),
+            trend_click_condition(OutboundClick, cutover),
         ).count()
         assert counted == 2, "legacy row + human row, not the bot or the failed write"
 
@@ -83,8 +87,14 @@ def test_cutover_is_derived_from_the_data(app):
         assert abs((found.replace(tzinfo=None) - first_judged.replace(tzinfo=None)).total_seconds()) < 2
 
 
-def test_cutover_is_none_before_anything_is_judged(app):
-    """No verdicts yet -> None, and the strict filter then counts nothing.
+def test_a_trend_still_reports_before_any_click_is_judged(app):
+    """Nothing judged yet means flagging has not started, so everything counts.
+
+    This is the regression that broke the founder dashboard: with no flagged
+    click in the table, bot_flagging_started_at returns None, and treating
+    that as "be strict" excluded every unjudged row — so a paying founder's
+    chart read zero until the first flagged click arrived. Nothing about
+    their traffic had changed.
 
     bot_flagging_started_at asks about the table as a whole, so this needs a
     table with nothing judged in it. The `app` fixture is session-scoped and
@@ -97,15 +107,48 @@ def test_cutover_is_none_before_anything_is_judged(app):
         nested = db.session.begin_nested()
         try:
             OutboundClick.query.delete()
-            db.session.add(_click("e", None, now - timedelta(days=2)))
+            db.session.add_all([
+                _click("e", None, now - timedelta(days=2)),
+                _click("e", None, now - timedelta(days=1)),
+            ])
             db.session.flush()
 
             assert bot_flagging_started_at(OutboundClick, db.session) is None
             counted = OutboundClick.query.filter(
                 OutboundClick.slug == "e",
-                human_click_condition(OutboundClick, None),
+                trend_click_condition(OutboundClick, None),
             ).count()
-            assert counted == 0
+            assert counted == 2, "pre-flagging rows are history, not suspects"
+
+            # The strict condition is still strict — it is what gets quoted
+            # outside, where unknown must never round up to human.
+            quoted = OutboundClick.query.filter(
+                OutboundClick.slug == "e",
+                human_click_condition(OutboundClick),
+            ).count()
+            assert quoted == 0
+        finally:
+            nested.rollback()
+
+
+def test_a_trend_still_drops_flagged_bots_before_any_cutover(app):
+    """Counting unjudged rows must not also let through a known bot."""
+    now = datetime.now(timezone.utc)
+    with app.app_context():
+        nested = db.session.begin_nested()
+        try:
+            OutboundClick.query.delete()
+            db.session.add_all([
+                _click("f", None, now - timedelta(days=2)),
+                _click("f", True, now - timedelta(days=1)),
+            ])
+            db.session.flush()
+
+            counted = OutboundClick.query.filter(
+                OutboundClick.slug == "f",
+                trend_click_condition(OutboundClick, None),
+            ).count()
+            assert counted == 1
         finally:
             nested.rollback()
 
