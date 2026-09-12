@@ -1051,9 +1051,29 @@ function AdminPage() {
               <Card><p className="text-sm text-muted">Loading analytics…</p></Card>
             ) : (
               <>
+                {/* Each raw count is paired with its bot-filtered counterpart
+                    rather than replaced by it: the gap between the two is how
+                    much crawler traffic /go/ is absorbing, and hiding it would
+                    make a regression in bot filtering invisible. Quote the
+                    "human" figures, never the raw ones, to anyone outside the
+                    project. "Helped (30d)" is distinct clients that clicked
+                    through to a tool — the behavioural replacement for a
+                    feedback survey that drew 5 responses from 7,081 visitors. */}
                 <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-                  {[['Outbound clicks', analytics.outbound?.total], ['Affiliate clicks', analytics.outbound?.affiliate], ['Clicks (30d)', analytics.outbound?.last_30d], ['Favorites', analytics.favorites_total]].map(([k, v]) => (
-                    <Card key={k}><p className="text-xs uppercase text-muted">{k}</p><p className="mt-2 text-2xl font-bold text-ink">{v ?? 0}</p></Card>
+                  {[
+                    ['Outbound clicks', analytics.outbound?.total, analytics.outbound?.human_total],
+                    ['Affiliate clicks', analytics.outbound?.affiliate, null],
+                    ['Clicks (30d)', analytics.outbound?.last_30d, analytics.outbound?.human_last_30d],
+                    ['Helped (30d)', analytics.helped_last_30d, null],
+                    ['Favorites', analytics.favorites_total, null],
+                  ].map(([k, v, human]) => (
+                    <Card key={k}>
+                      <p className="text-xs uppercase text-muted">{k}</p>
+                      <p className="mt-2 text-2xl font-bold text-ink">{v ?? 0}</p>
+                      {human != null && (
+                        <p className="mt-1 text-xs text-muted">{human} human</p>
+                      )}
+                    </Card>
                   ))}
                 </div>
                 {(analytics.outbound?.monetization_gaps || []).length > 0 && (

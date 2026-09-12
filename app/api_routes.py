@@ -6342,6 +6342,7 @@ def admin_analytics():
         return jsonify({"error": "Forbidden"}), 403
     from sqlalchemy import func as _f
 
+    from app.click_quality import human_click_condition
     from app.models import Favorite, OutboundClick, Submission, ToolView
 
     from datetime import timedelta
@@ -6350,6 +6351,38 @@ def admin_analytics():
     total_clicks = OutboundClick.query.count()
     affiliate_clicks = OutboundClick.query.filter_by(is_affiliate=True).count()
     clicks_30d = OutboundClick.query.filter(OutboundClick.created_at >= since).count()
+
+    # The defensible versions of the same figures, reported alongside rather
+    # than instead of the raw ones: the gap between them is itself the signal
+    # for how much crawler traffic /go/ is absorbing, and hiding it would make
+    # a future regression in bot filtering invisible.
+    #
+    # No cutover here. This is the number quoted to vendors, so unjudged rows
+    # are excluded outright — "unknown" must never round up to "human".
+    human_only = human_click_condition(OutboundClick)
+    human_clicks = OutboundClick.query.filter(human_only).count()
+    human_clicks_30d = OutboundClick.query.filter(
+        OutboundClick.created_at >= since, human_only
+    ).count()
+
+    # "Helped" — the behavioural replacement for the feedback survey.
+    #
+    # The survey returned 5 responses from 7,081 visitors last month, which is
+    # not a weak signal but a broken instrument, and tuning the product on it
+    # would be tuning on noise. A distinct client that clicked through to a
+    # tool is the closest thing to an honest statement that someone found
+    # something worth leaving for. ip_hash is a salted digest, so this counts
+    # clients without identifying them, and rows predating it are skipped
+    # rather than lumped into one bucket.
+    helped_30d = (
+        db.session.query(_f.count(_f.distinct(OutboundClick.ip_hash)))
+        .filter(
+            OutboundClick.created_at >= since,
+            OutboundClick.ip_hash.isnot(None),
+            human_only,
+        )
+        .scalar()
+    ) or 0
     top_clicked = (
         db.session.query(OutboundClick.slug, _f.count().label("n"))
         .group_by(OutboundClick.slug)
@@ -6406,12 +6439,22 @@ def admin_analytics():
             "total": total_clicks,
             "affiliate": affiliate_clicks,
             "last_30d": clicks_30d,
+            # Bot-filtered counterparts. Quote these, not the raw numbers,
+            # to anyone outside the project; the gap between the pair shows
+            # how much crawler traffic /go/ is absorbing.
+            "human_total": human_clicks,
+            "human_last_30d": human_clicks_30d,
             "top": top,
             # High-traffic tools with no affiliate link yet — sign up
             # for these programs first for the biggest revenue lift.
             "monetization_gaps": monetization_gaps,
         },
         "tool_views_top": [{"tool": t, "views": n} for t, n in top_viewed],
+        # Distinct clients that clicked through to a tool in the last 30 days:
+        # the behavioural answer to "how many people did this actually help",
+        # replacing a feedback survey that returned 5 responses from 7,081
+        # visitors and cannot carry that weight.
+        "helped_last_30d": helped_30d,
         "favorites_total": Favorite.query.count(),
         "submissions_pending": Submission.query.filter_by(status="pending").count(),
     })
@@ -6482,12 +6525,22 @@ def _submission_dashboard_daily_trend(slug, days=14):
     `days` days (oldest first), zero-filled for days with no activity."""
     from sqlalchemy import func as _f
 
+    from app.click_quality import bot_flagging_started_at, human_click_condition
     from app.models import OutboundClick, ToolPageView
 
     since = datetime.now(timezone.utc) - timedelta(days=days)
+    # This chart is shown to the founder who paid for the listing, so it must
+    # not count crawlers as interest. The cutover keeps rows written before
+    # bot-flagging existed, so the trend doesn't collapse on deploy day over a
+    # change in our bookkeeping rather than in their traffic.
+    cutover = bot_flagging_started_at(OutboundClick, db.session)
     clicks = dict(
         db.session.query(_f.date(OutboundClick.created_at), _f.count())
-        .filter(OutboundClick.slug == slug, OutboundClick.created_at >= since)
+        .filter(
+            OutboundClick.slug == slug,
+            OutboundClick.created_at >= since,
+            human_click_condition(OutboundClick, cutover),
+        )
         .group_by(_f.date(OutboundClick.created_at))
         .all()
     )
@@ -6517,11 +6570,18 @@ def _submission_dashboard_category_benchmark(catalog_row, since_30d):
     to the average for other approved tools in the same category."""
     from sqlalchemy import func as _f
 
+    from app.click_quality import bot_flagging_started_at, human_click_condition
     from app.models import CatalogTool, OutboundClick
+
+    # Both sides of this comparison must be filtered the same way, or the
+    # tool's own figure is measured against peers counted by another rule.
+    cutover = bot_flagging_started_at(OutboundClick, db.session)
+    human_only = human_click_condition(OutboundClick, cutover)
 
     this_clicks = OutboundClick.query.filter(
         OutboundClick.slug == catalog_row.slug,
         OutboundClick.created_at >= since_30d,
+        human_only,
     ).count()
 
     peers = CatalogTool.query.filter(
@@ -6535,7 +6595,11 @@ def _submission_dashboard_category_benchmark(catalog_row, since_30d):
     peer_slugs = [p.slug for p in peers]
     peer_counts = dict(
         db.session.query(OutboundClick.slug, _f.count())
-        .filter(OutboundClick.slug.in_(peer_slugs), OutboundClick.created_at >= since_30d)
+        .filter(
+            OutboundClick.slug.in_(peer_slugs),
+            OutboundClick.created_at >= since_30d,
+            human_only,
+        )
         .group_by(OutboundClick.slug)
         .all()
     )

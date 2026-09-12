@@ -88,3 +88,53 @@ def client_ip(request):
         if first:
             return first
     return request.remote_addr or None
+
+
+def human_click_condition(model, counted_before=None):
+    """SQLAlchemy condition restricting a click query to defensible humans.
+
+    `is_bot` is NULL on every row written before the column existed, and NULL
+    means "unknown", not "human" — so a number put in front of an outsider
+    filters on `is_bot IS FALSE` and nothing else. That is the default here.
+
+    Applied bare, though, the same filter also erases history: every legacy
+    row disappears at once, so a founder's 30-day chart collapses on deploy
+    day and creeps back over the following month as unjudged rows age out of
+    the window. Nothing about their listing changed; only our bookkeeping did.
+
+    `counted_before` avoids that cliff. Pass the moment bot-flagging started
+    and unjudged rows *older* than it are kept, because "we counted every
+    click" is the honest description of what that older number always was.
+    Unjudged rows newer than the cutover stay excluded — after flagging began
+    a NULL is a write that failed, not a historical artefact.
+
+    Use the cutover for anything a person reads as a trend over time; leave it
+    None for any figure quoted as human traffic.
+    """
+    from sqlalchemy import and_, or_
+
+    if counted_before is None:
+        return model.is_bot.is_(False)
+
+    return or_(
+        model.is_bot.is_(False),
+        and_(model.is_bot.is_(None), model.created_at < counted_before),
+    )
+
+
+def bot_flagging_started_at(model, session):
+    """When this deployment began recording a bot verdict, or None.
+
+    Derived from the data (the oldest row carrying any verdict) rather than
+    hard-coded, so it stays correct across environments that deployed at
+    different times, and in tests. Returns None when no row has been judged
+    yet, which makes `human_click_condition` fall back to counting nothing as
+    unjudged-but-historical — the conservative direction.
+    """
+    return (
+        session.query(model.created_at)
+        .filter(model.is_bot.isnot(None))
+        .order_by(model.created_at.asc())
+        .limit(1)
+        .scalar()
+    )
