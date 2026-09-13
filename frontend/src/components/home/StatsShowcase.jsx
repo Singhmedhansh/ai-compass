@@ -31,17 +31,37 @@ function growthLabel(series) {
   return pct >= 1000 ? `+${(pct / 1000).toFixed(1)}k%` : `+${Math.round(pct)}%`
 }
 
-function toChartPoints(series) {
+// Spread a series evenly across PLOT_X and scale `pick` into PLOT_Y against
+// the series' own peak, so each line fills the box regardless of its units.
+function toScaledPoints(series, pick) {
   if (!series || series.length === 0) return []
-  const peak = Math.max(...series.map((s) => s.visitors), 1)
+  const peak = Math.max(...series.map(pick), 1)
   const span = series.length > 1 ? series.length - 1 : 1
   return series.map((point, idx) => ({
     x: PLOT_X.start + ((PLOT_X.end - PLOT_X.start) * idx) / span,
     y: PLOT_Y.bottom - (PLOT_Y.top < PLOT_Y.bottom
-      ? (PLOT_Y.bottom - PLOT_Y.top) * (point.visitors / peak)
-      : 0),
-    label: point.label,
-    value: `${point.visitors.toLocaleString()} visitors`
+      ? (PLOT_Y.bottom - PLOT_Y.top) * (pick(point) / peak)
+      : 0)
+  }))
+}
+
+function linePath(points) {
+  return points.map((pt, idx) => `${idx === 0 ? 'M' : 'L'} ${pt.x.toFixed(1)} ${pt.y.toFixed(1)}`).join(' ')
+}
+
+function areaPath(points, path) {
+  if (points.length === 0) return ''
+  const first = points[0]
+  const last = points[points.length - 1]
+  return `M ${first.x.toFixed(1)} 200 ${path.replace(/^M/, 'L')} L ${last.x.toFixed(1)} 200 Z`
+}
+
+function toChartPoints(series) {
+  if (!series || series.length === 0) return []
+  return toScaledPoints(series, (s) => s.visitors).map((pt, idx) => ({
+    ...pt,
+    label: series[idx].label,
+    value: `${series[idx].visitors.toLocaleString()} visitors`
   }))
 }
 
@@ -75,17 +95,18 @@ function CountStat({ label, value, suffix = '', hint, icon: Icon, inView }) {
 // resolves, and kept if the API is unreachable, so the section is never blank.
 const FALLBACK_STATS = {
   totals: {
-    visitors: 7120,
-    views: 9520,
-    sessions: 7560,
-    monthly_visitors: 3822,
-    avg_daily_visitors: 230
+    visitors: 11800,
+    views: 16600,
+    sessions: 12700,
+    monthly_visitors: 5088,
+    avg_daily_visitors: 269
   },
   series: [
     { label: 'May', visitors: 300 },
-    { label: 'June', visitors: 1000 },
+    { label: 'June', visitors: 900 },
     { label: 'July', visitors: 2000 },
-    { label: 'August', visitors: 3822 }
+    { label: 'August', visitors: 5088 },
+    { label: 'September', visitors: 3497 }
   ],
   paths: [
     { path: '/', visitors: 1919, views: 2257 },
@@ -95,6 +116,19 @@ const FALLBACK_STATS = {
     { path: '/tools', visitors: 350, views: 422 }
   ]
 }
+
+// Google Search Console, the same 3-month window the Performance report shows
+// (11 Jun - 10 Sep 2026). Each point is the average day of a ~15-day slice, so
+// the six of them add back up to the 6.87K clicks / 225K impressions in the
+// headline tiles. Hand-recorded; GSC has no live feed here the way PostHog does.
+const GSC_SERIES = [
+  { label: 'Jun', clicks: 25, impressions: 800 },
+  { label: 'Late Jun', clicks: 30, impressions: 1000 },
+  { label: 'Mid Jul', clicks: 50, impressions: 1800 },
+  { label: 'Late Jul', clicks: 70, impressions: 2400 },
+  { label: 'Mid Aug', clicks: 85, impressions: 2900 },
+  { label: 'Sep', clicks: 175, impressions: 5400 }
+]
 
 export default function StatsShowcase() {
   const [activeTab, setActiveTab] = useState('posthog') // 'posthog' | 'gsc'
@@ -184,24 +218,19 @@ export default function StatsShowcase() {
 
   const posthogChartPoints = useMemo(() => toChartPoints(stats.series), [stats.series])
 
-  const posthogLinePath = useMemo(
-    () => posthogChartPoints.map((pt, idx) => `${idx === 0 ? 'M' : 'L'} ${pt.x.toFixed(1)} ${pt.y.toFixed(1)}`).join(' '),
-    [posthogChartPoints]
-  )
+  const posthogLinePath = useMemo(() => linePath(posthogChartPoints), [posthogChartPoints])
 
-  const posthogAreaPath = useMemo(() => {
-    if (posthogChartPoints.length === 0) return ''
-    const first = posthogChartPoints[0]
-    const last = posthogChartPoints[posthogChartPoints.length - 1]
-    return `M ${first.x.toFixed(1)} 200 ${posthogLinePath.replace(/^M/, 'L')} L ${last.x.toFixed(1)} 200 Z`
-  }, [posthogChartPoints, posthogLinePath])
+  const posthogAreaPath = useMemo(
+    () => areaPath(posthogChartPoints, posthogLinePath),
+    [posthogChartPoints, posthogLinePath]
+  )
 
   // Google Search Console Data
   const gscMetrics = [
-    { label: 'Total Clicks', value: '4.24K', change: 'Growth', icon: MousePointerClick },
-    { label: 'Total Impressions', value: '163K', change: 'High', icon: Eye },
-    { label: 'Average CTR', value: '2.6%', change: 'Healthy', icon: Users },
-    { label: 'Average Position', value: '12', change: 'Top 12', icon: BarChart3 }
+    { label: 'Total Clicks', value: '6.87K', change: 'Growth', icon: MousePointerClick },
+    { label: 'Total Impressions', value: '225K', change: 'High', icon: Eye },
+    { label: 'Average CTR', value: '3.1%', change: 'Healthy', icon: Users },
+    { label: 'Average Position', value: '12.2', change: 'Top 12', icon: BarChart3 }
   ]
 
   const gscQueries = [
@@ -212,14 +241,21 @@ export default function StatsShowcase() {
     { query: 'compass like chatgpt', clicks: 75, impressions: 419, pct: 14 }
   ]
 
-  const gscChartPoints = [
-    { x: 50, y: 185, label: 'May', clicks: 10, impressions: 200 },
-    { x: 130, y: 170, label: 'Early Jun', clicks: 20, impressions: 1000 },
-    { x: 210, y: 140, label: 'Late Jun', clicks: 40, impressions: 1500 },
-    { x: 290, y: 125, label: 'Early Jul', clicks: 50, impressions: 2500 },
-    { x: 370, y: 50, label: 'Late Jul', clicks: 100, impressions: 3500 },
-    { x: 450, y: 65, label: 'August', clicks: 90, impressions: 4000 }
-  ]
+  // Clicks drive the solid line and the hover nodes; impressions get their own
+  // scale, so the dashed line stays readable next to a much smaller number.
+  const gscChartPoints = useMemo(
+    () => toScaledPoints(GSC_SERIES, (p) => p.clicks).map((pt, idx) => ({ ...pt, ...GSC_SERIES[idx] })),
+    []
+  )
+
+  const gscLinePath = useMemo(() => linePath(gscChartPoints), [gscChartPoints])
+
+  const gscAreaPath = useMemo(() => areaPath(gscChartPoints, gscLinePath), [gscChartPoints, gscLinePath])
+
+  const gscImpressionPath = useMemo(
+    () => linePath(toScaledPoints(GSC_SERIES, (p) => p.impressions)),
+    []
+  )
 
   return (
     <section id="stats-showcase" className="py-16 md:py-24 bg-bg-sunk/15 border-t border-b border-line/45">
@@ -362,18 +398,18 @@ export default function StatsShowcase() {
                     </>
                   ) : (
                     <>
-                      {/* GSC Line Path */}
+                      {/* GSC clicks */}
                       <path
-                        d="M 50 185 L 130 170 L 210 140 L 290 125 L 370 50 L 450 65"
+                        d={gscLinePath}
                         fill="none"
                         stroke="var(--accent)"
                         strokeWidth="3"
                         strokeLinecap="round"
                         strokeLinejoin="round"
                       />
-                      {/* GSC Impressions Path */}
+                      {/* GSC impressions, on their own scale */}
                       <path
-                        d="M 50 192 L 130 160 L 210 140 L 290 100 L 370 60 L 450 40"
+                        d={gscImpressionPath}
                         fill="none"
                         stroke="purple"
                         strokeWidth="1.5"
@@ -382,7 +418,7 @@ export default function StatsShowcase() {
                       />
                       {/* Gradient Fill under line */}
                       <path
-                        d="M 50 200 L 50 185 L 130 170 L 210 140 L 290 125 L 370 50 L 450 65 L 450 200 Z"
+                        d={gscAreaPath}
                         fill="url(#posthog-grad)"
                         opacity="0.08"
                       />
@@ -421,7 +457,7 @@ export default function StatsShowcase() {
                     <span className="text-[10px] opacity-90">
                       {activeTab === 'posthog' 
                         ? hoveredPoint.value 
-                        : `${hoveredPoint.clicks} clicks / ${hoveredPoint.impressions} imps`}
+                        : `${hoveredPoint.clicks} clicks / ${hoveredPoint.impressions.toLocaleString()} imps · avg day`}
                     </span>
                   </div>
                 )}
