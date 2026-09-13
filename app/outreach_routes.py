@@ -1,3 +1,4 @@
+import hmac
 import os
 import time
 import threading
@@ -703,10 +704,23 @@ def _verify_outreach_secret():
     """
     secret = os.environ.get("OUTREACH_SECRET")
     if not secret:
-        return jsonify({"error": "OUTREACH_SECRET env var is not set on the server"}), 500
-    auth_header = request.headers.get("X-Outreach-Secret")
-    token_arg = request.args.get("token")
-    if auth_header != secret and token_arg != secret:
+        # Fail closed and say nothing useful. This used to answer a 500
+        # naming the missing environment variable, which told an anonymous
+        # caller both that the endpoint is secret-gated and that the secret
+        # is currently unset on this instance.
+        current_app.logger.error(
+            "OUTREACH_SECRET is not set; refusing automation request to %s", request.path
+        )
+        return jsonify({"error": "Unauthorized"}), 401
+
+    # compare_digest, not ==, so a wrong guess cannot be narrowed down by
+    # timing the reply. Both candidates are compared so the work is the same
+    # either way.
+    supplied_header = str(request.headers.get("X-Outreach-Secret") or "")
+    supplied_arg = str(request.args.get("token") or "")
+    header_ok = hmac.compare_digest(supplied_header, secret)
+    arg_ok = hmac.compare_digest(supplied_arg, secret)
+    if not (header_ok or arg_ok):
         return jsonify({"error": "Unauthorized"}), 401
     return None
 

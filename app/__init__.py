@@ -134,9 +134,19 @@ def _build_database_uri(project_root: str) -> str:
     return f"sqlite:///{normalized_path}"
 
 
+_DEV_FALLBACK_SECRET_KEY = "ai-compass-fixed-key-2024"
+
+
 def _validate_runtime_config(app: Flask, is_production: bool) -> None:
-    if not str(app.config.get("SECRET_KEY") or "").strip():
+    secret = str(app.config.get("SECRET_KEY") or "").strip()
+    if not secret:
         raise RuntimeError("Missing required SECRET_KEY.")
+    if is_production and secret == _DEV_FALLBACK_SECRET_KEY:
+        raise RuntimeError(
+            "SECRET_KEY is still the development fallback. Set a real SECRET_KEY "
+            "before serving production traffic — the fallback is public in the "
+            "source tree and lets anyone forge a signed session cookie."
+        )
 
 
 def create_app(config: dict | None = None) -> Flask:
@@ -169,7 +179,22 @@ def create_app(config: dict | None = None) -> Flask:
     is_production = app_env == "production"
 
     # FIXED SECRET KEY (no setdefault)
-    app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "ai-compass-fixed-key-2024")
+    #
+    # The development fallback is a literal in a source file: anyone holding a
+    # copy of this repo can sign a session cookie with it, and Flask-Login
+    # will accept that cookie as any user — including an admin. It is fine on
+    # a laptop and unacceptable on a public host, so production refuses to
+    # start on it rather than silently serving forgeable sessions. Render
+    # supplies a real one (render.yaml: SECRET_KEY generateValue: true), and
+    # the warmup path below persists a generated key when it does not.
+    # A SECRET_KEY handed to create_app() explicitly wins over the environment
+    # and over the fallback; previously this line overwrote it unconditionally,
+    # so the config argument was silently ignored.
+    app.config["SECRET_KEY"] = (
+        str(app.config.get("SECRET_KEY") or "").strip()
+        or os.environ.get("SECRET_KEY")
+        or _DEV_FALLBACK_SECRET_KEY
+    )
     # Stay logged in across browser restarts and server deploys until the
     # user explicitly logs out. The Flask-Login "remember" cookie is signed
     # with SECRET_KEY (stable), so it survives Render's ephemeral session
@@ -208,6 +233,11 @@ def create_app(config: dict | None = None) -> Flask:
     app.config["REMEMBER_COOKIE_SECURE"] = True
     app.config["SESSION_COOKIE_DOMAIN"] = None
     app.config["SESSION_COOKIE_NAME"] = "ai_compass_session"
+    # Hard ceiling on request bodies. Nothing the app accepts is larger than
+    # the 5MB syllabus upload, and without a cap a single unauthenticated POST
+    # can push a 512MB instance into the OOM killer — the failure mode this
+    # deployment has already hit for other reasons.
+    app.config["MAX_CONTENT_LENGTH"] = 8 * 1024 * 1024
 
     if USE_SERVER_SESSION and FileSystemCache is not None:
         session_dir = os.path.join(project_root, 'instance', 'flask_session')

@@ -1,5 +1,26 @@
 import app.api_routes as api_routes
 
+import pytest
+
+from app import db
+from app.models import User
+
+
+@pytest.fixture
+def admin_client(app):
+    """A signed-in admin. /api/v1/admin/stats is admin-only: it used to answer
+    anonymous callers, which is what this fixture's absence was quietly
+    documenting."""
+    user = User(email="stats-admin@ai-compass.in", is_admin=True)
+    db.session.add(user)
+    db.session.commit()
+
+    client = app.test_client()
+    with client.session_transaction() as sess:
+        sess["_user_id"] = str(user.id)
+        sess["_fresh"] = True
+    return client
+
 
 def test_finder_varies_with_platform(client, monkeypatch):
     sample_tools = [
@@ -62,8 +83,14 @@ def test_finder_varies_with_platform(client, monkeypatch):
     assert api_tools[0]["slug"] == "api-coder"
 
 
-def test_admin_stats_has_model_status_keys(client):
+def test_admin_stats_refuses_an_anonymous_caller(client):
+    """It answered 200 to anyone before - see SECURITY_AUDIT.md, M1."""
     resp = client.get("/api/v1/admin/stats")
+    assert resp.status_code in (401, 403)
+
+
+def test_admin_stats_has_model_status_keys(admin_client):
+    resp = admin_client.get("/api/v1/admin/stats")
     assert resp.status_code == 200
 
     payload = resp.get_json()

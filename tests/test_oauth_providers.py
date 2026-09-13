@@ -68,9 +68,21 @@ def test_oauth_callback_routes_registered(app):
     assert "oauth.login_linkedin" in rules
 
 
-def test_spa_success_redirect_contract(app):
-    """Success funnels through /auth/callback with the params the React
-    app reads into localStorage, and marks the user onboarded."""
+def test_spa_success_redirect_carries_no_personal_data(app):
+    """Success funnels through /auth/callback carrying nothing personal.
+
+    This test used to assert the opposite — that the email address and user
+    id appear in the redirect URL, which is what the React app read into
+    localStorage. That contract was the bug: /auth/callback is an ordinary
+    pageview, so PostHog (capture_pageview) and GA4 recorded the full URL,
+    writing every OAuth user's email address into two third-party analytics
+    products, plus browser history and any Referer header.
+
+    login_user() has already set the session cookie by this point, so the
+    callback page reads the account from GET /api/v1/auth/me instead. Only
+    onboarding_completed stays in the URL: it steers the redirect and is not
+    personal data.
+    """
     from app.oauth import _spa_success_redirect
 
     with app.test_request_context("/login/github/callback"):
@@ -83,8 +95,15 @@ def test_spa_success_redirect_contract(app):
         assert resp.status_code in (302, 303)
         loc = resp.headers["Location"]
         assert loc.startswith("https://ai-compass.in/auth/callback?")
-        assert "email=dev%40example.com" in loc
-        assert f"id={user.id}" in loc
+
+        # The whole point of the change: no identity in the query string.
+        assert "dev@example.com" not in loc
+        assert "email=dev%40example.com" not in loc
+        assert "email=" not in loc
+        assert "Dev" not in loc
+        assert "avatar.test" not in loc
+
+        assert "onboarding_completed=false" in loc
 
         refreshed = db.session.get(User, user.id)
         assert refreshed.first_login is False

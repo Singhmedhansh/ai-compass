@@ -15,7 +15,8 @@ oauth = OAuth()
 # TEMP: last LinkedIn callback outcome for diagnosis (no secrets — only
 # which branch ran + field presence + exception class). Persisted to the
 # DB (AppSetting) so it's readable across Render's multiple workers and
-# survives dyno restarts. Read via GET /debug/linkedin-last. Removed once
+# survives dyno restarts. Read from the application logs; the public
+# /debug/linkedin-last reader was removed. Removed once
 # LinkedIn login is confirmed working.
 _LINKEDIN_DBG_KEY = "linkedin_debug_last"
 
@@ -175,7 +176,8 @@ def _spa_success_redirect(user, provider_name: str, name: str | None = None, pic
         import sentry_sdk
 
         try:
-            sentry_sdk.set_user({"id": str(user.id), "email": user.email})
+            # Id only — see the matching note in api_routes.auth_login().
+            sentry_sdk.set_user({"id": str(user.id)})
             sentry_sdk.set_tag("auth_method", "oauth")
             sentry_sdk.set_tag("oauth_provider", provider_name)
         except Exception:
@@ -184,11 +186,17 @@ def _spa_success_redirect(user, provider_name: str, name: str | None = None, pic
     except Exception:
         pass
 
+    # Identity is NOT put in the query string. login_user() above has already
+    # set the session cookie, so the callback page reads the account from
+    # GET /api/v1/auth/me instead. The old version sent name, email, id and
+    # picture as URL parameters, and the callback page is a normal pageview:
+    # PostHog (capture_pageview) and GA4 both record the full URL, so every
+    # OAuth sign-in wrote that user's email address into two third-party
+    # analytics products — and into browser history and any Referer header.
+    #
+    # onboarding_completed stays because it steers the redirect and is not
+    # personal data.
     params = urlencode({
-        "name": user.display_name or (name or "") or "",
-        "email": user.email,
-        "id": user.id,
-        "picture": user.oauth_picture_url or (picture or "") or "",
         "onboarding_completed": "true" if onboarding_done else "false",
     })
     return redirect(f"{_frontend_base_url()}/auth/callback?{params}")
@@ -544,18 +552,7 @@ def linkedin_callback():
         return redirect(f"{frontend_url}/login?error=linkedin_failed&detail={detail}")
 
 
-@oauth_bp.route("/debug/linkedin-last")
-def debug_linkedin_last():
-    """TEMP: last LinkedIn callback outcome (no secrets — branch +
-    field presence + exception class only). Removed once login works."""
-    try:
-        import json as _json
-
-        from app import db
-        from app.models import AppSetting
-        row = db.session.query(AppSetting).filter_by(key=_LINKEDIN_DBG_KEY).one_or_none()
-        if row and row.value:
-            return jsonify(_json.loads(row.value))
-    except Exception as exc:  # noqa: BLE001
-        return jsonify({"stage": "debug read failed", "exc": str(exc)})
-    return jsonify({"stage": "no attempt recorded yet"})
+# The temporary /debug/linkedin-last endpoint was removed. It served the
+# last OAuth callback outcome — exception class and message — to anonymous
+# callers, which is internal diagnostic detail about the running service.
+# Read the same information from the application logs instead.

@@ -12,6 +12,7 @@ except Exception:
 
 from app import bcrypt, db, csrf
 from app.models import User
+from app.rate_limit import is_rate_limited
 from app.oauth import _frontend_base_url
 from app.email_utils import send_email
 
@@ -170,6 +171,15 @@ def forgot_password():
     if not email:
         return jsonify({"error": "Email is required."}), 400
 
+    # This endpoint sends mail to an address a stranger supplies. Uncapped it
+    # is both a way to flood one person's inbox with reset links and a way to
+    # drain the shared daily send budget so real transactional mail stops
+    # going out. Capped per IP and per target address; the response stays the
+    # same either way so it still reveals nothing about who has an account.
+    ip = _client_ip()
+    if is_rate_limited(f"forgot_pw_ip:{ip}", limit=5, window_seconds=3600) or        is_rate_limited(f"forgot_pw_addr:{email}", limit=3, window_seconds=3600):
+        return jsonify({"message": "If the account exists, a recovery email has been sent."}), 200
+
     try:
         user = User.query.filter_by(email=email).first()
     except Exception as db_err:
@@ -225,6 +235,12 @@ def reset_password():
     if len(new_password) < 8:
         return jsonify({"error": "Password must be at least 8 characters."}), 400
 
+    # Cap token guessing. The token is a signed blob so forging one is not
+    # realistic, but an unlimited endpoint that takes a token and sets a
+    # password should not be left free-running.
+    if is_rate_limited(f"reset_pw_ip:{_client_ip()}", limit=10, window_seconds=3600):
+        return jsonify({"error": "Too many attempts. Please try again later."}), 429
+
     try:
         data = get_reset_serializer().loads(token, max_age=7200) # 2 hours
     except Exception:
@@ -249,9 +265,13 @@ def reset_password():
     try:
         user.password_hash = bcrypt.generate_password_hash(new_password).decode("utf-8")
         db.session.commit()
-    except Exception as e:
+    except Exception:
         db.session.rollback()
-        return jsonify({"error": str(e)}), 500
+        # The raw exception text went to the caller here. On an anonymous
+        # endpoint that hands a stranger database and schema detail whenever
+        # something goes wrong; the specifics belong in the log.
+        current_app.logger.exception("password reset failed to commit")
+        return jsonify({"error": "Could not update the password. Please try again."}), 500
 
     return jsonify({"message": "Password updated successfully."}), 200
 
@@ -289,12 +309,16 @@ def resend_verification():
     if not email:
         return jsonify({"error": "Email is required."}), 400
 
-    user = User.query.filter_by(email=email).first()
-    if not user:
-        return jsonify({"error": "User not found."}), 404
+    # Same reasoning as forgot_password(): an open mail trigger.
+    if is_rate_limited(f"resend_verify_ip:{_client_ip()}", limit=5, window_seconds=3600) or        is_rate_limited(f"resend_verify_addr:{email}", limit=3, window_seconds=3600):
+        return jsonify({"message": "If that account needs verification, a link has been sent."}), 200
 
-    if user.is_verified:
-        return jsonify({"message": "Account is already verified."}), 200
+    user = User.query.filter_by(email=email).first()
+    # Deliberately uniform: a 404 here told an anonymous caller exactly which
+    # addresses are registered, which is the enumeration leak forgot_password()
+    # already avoids.
+    if not user or user.is_verified:
+        return jsonify({"message": "If that account needs verification, a link has been sent."}), 200
 
     try:
         token = get_verify_serializer().dumps(email)
@@ -308,4 +332,4 @@ def resend_verification():
         current_app.logger.exception("Failed to resend verification email")
         return jsonify({"error": "Failed to send email. Please try again later."}), 500
 
-    return jsonify({"message": "Verification link has been resent."}), 200
+    return jsonify({"message": "If that account needs verification, a link has been sent."}), 200

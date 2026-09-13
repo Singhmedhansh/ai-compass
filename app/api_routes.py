@@ -3248,7 +3248,14 @@ def admin_cancel_audit_links():
 
 
 @api_bp.get("/admin/users")
+@login_required
 def admin_users():
+    # Gated: this returns the email address of every registered account.
+    # It was previously reachable anonymously, which published the entire
+    # user table to the public internet.
+    if not _is_admin():
+        return jsonify({"error": "Forbidden"}), 403
+
     from app.models import UserSession
 
     users = User.query.all()
@@ -3286,7 +3293,13 @@ def admin_users():
 
 
 @api_bp.get("/admin/stats")
+@login_required
 def admin_stats():
+    # Only the admin console reads this; it is internal catalog/business
+    # telemetry, not something the public site renders.
+    if not _is_admin():
+        return jsonify({"error": "Forbidden"}), 403
+
     from app.tool_cache import SEARCH_INDEX, get_cached_tools
 
     tools = get_cached_tools()
@@ -3800,6 +3813,76 @@ def admin_delete_rating(rating_id):
     db.session.delete(r)
     db.session.commit()
     return jsonify({"success": True})
+
+@api_bp.get("/admin/posthog-health")
+@login_required
+def admin_posthog_health():
+    """Why the homepage growth panel is (or is not) showing live numbers.
+
+    /api/v1/platform-stats reports source="fallback" for every possible
+    reason — unset credentials, a 403 on scope, a slow query, a dead refresh
+    thread — which makes a misconfiguration indistinguishable from a healthy
+    cache. This reports what the RUNNING PROCESS actually sees, which is the
+    only view that settles "but it's set in Render": a dashboard env var that
+    a blueprint sync has since pruned is set in the UI and absent here.
+
+    Never returns the key itself, only its shape.
+    """
+    if not _is_admin():
+        return jsonify({"error": "Forbidden"}), 403
+
+    import os as _os
+    import time as _time
+
+    from app import platform_stats as ps
+
+    key = _os.environ.get("POSTHOG_PERSONAL_API_KEY") or ""
+    project = (_os.environ.get("POSTHOG_PROJECT_ID") or "").strip()
+
+    cache_age = None
+    if _os.path.exists(ps.CACHE_FILE):
+        try:
+            with open(ps.CACHE_FILE) as f:
+                cache_age = round(_time.time() - json.load(f).get("last_fetched", 0))
+        except Exception:
+            cache_age = -1
+
+    payload = {
+        "key_present": bool(key),
+        "key_length": len(key),
+        "key_prefix": key[:4] if key else None,
+        "key_looks_like_personal_token": key.startswith("phx_"),
+        "project_id": project or None,
+        "project_id_is_numeric": project.isdigit(),
+        "query_host": ps.POSTHOG_QUERY_HOST,
+        "cache_file_exists": _os.path.exists(ps.CACHE_FILE),
+        "cache_age_seconds": cache_age,
+        "cache_ttl_seconds": ps.CACHE_DURATION,
+        "last_error": ps.get_last_error(),
+    }
+
+    # ?probe=1 runs one cheap authenticated call so a scope/region problem
+    # surfaces here instead of only in the logs. Kept opt-in because it is a
+    # live network round-trip on a request thread.
+    if request.args.get("probe"):
+        if not key or not project:
+            payload["probe"] = {"skipped": "credentials missing in this process"}
+        else:
+            try:
+                r = requests.get(
+                    f"{ps.POSTHOG_QUERY_HOST}/api/projects/{project}/",
+                    headers={"Authorization": f"Bearer {key}"},
+                    timeout=15,
+                )
+                payload["probe"] = {
+                    "status": r.status_code,
+                    "body": r.text[:400] if r.status_code != 200 else "ok",
+                }
+            except Exception as exc:
+                payload["probe"] = {"error": f"{type(exc).__name__}: {exc}"}
+
+    return jsonify(payload)
+
 
 @api_bp.get("/admin/reviews")
 @login_required
@@ -4754,21 +4837,77 @@ def get_public_profile(username):
 @api_bp.route("/profile", methods=["DELETE"])
 @login_required
 def delete_account():
+    """Erase the signed-in account and everything attached to it.
+
+    Two things were wrong here before, both of which made the "delete your
+    account" right in the privacy policy undeliverable in practice:
+
+    1. The password check rejected anyone without a local password, so every
+       Google/GitHub/LinkedIn account was permanently undeletable through the
+       product. Those users now confirm by typing their email address, which
+       is the same standard of intent and is the only thing they can prove.
+
+    2. Only tool_ratings and favorites were cleared. Every other table that
+       points at users.id with a NOT NULL foreign key — ratings, reviews,
+       review votes, saved stacks, post votes, comment votes — was left
+       behind, so the delete raised an IntegrityError for any user who had
+       ever rated, reviewed, saved a stack or voted. That is most active
+       accounts.
+
+    Rows that are business records rather than personal ones (a paid
+    submission, an approved tool edit) are kept and unlinked instead of
+    deleted, so invoices and catalog history survive the erasure.
+    """
+    from app.models import (
+        CommentVote, CommunityComment, CommunityPost, Feedback, LinkedAccount,
+        PostVote, SavedStack, StackVote, Submission, ToolClaim, ToolEdit,
+        ToolView, TrendingVote, UserSession,
+    )
+
     payload = request.get_json(silent=True) or {}
     password = str(payload.get("password") or "")
+    confirm_email = str(payload.get("confirm_email") or "").strip().lower()
 
     user = current_user._get_current_object()
-    if not user.password_hash or not bcrypt.check_password_hash(user.password_hash, password):
-        return jsonify({"error": "Incorrect password"}), 401
+
+    if user.password_hash:
+        if not bcrypt.check_password_hash(user.password_hash, password):
+            return jsonify({"error": "Incorrect password"}), 401
+    else:
+        if confirm_email != str(user.email or "").strip().lower():
+            return jsonify({
+                "error": "Type your email address to confirm deletion.",
+                "requires": "confirm_email",
+            }), 401
 
     user_id = user.id
-    ToolRating.query.filter_by(user_id=user_id).delete()
-    Favorite.query.filter_by(user_id=user_id).delete()
+
+    # Personal rows: removed outright.
+    for model in (
+        CommentVote, PostVote, StackVote, TrendingVote, ReviewVote,
+        CommunityComment, CommunityPost, Review, Rating, ToolRating,
+        SavedStack, Favorite, ToolClaim, LinkedAccount, UserSession, ToolView,
+    ):
+        model.query.filter_by(user_id=user_id).delete(synchronize_session=False)
+
+    # Business rows: kept, but no longer point at a person.
+    Submission.query.filter_by(founder_user_id=user_id).update(
+        {"founder_user_id": None}, synchronize_session=False
+    )
+    for model in (Feedback, ToolEdit):
+        model.query.filter_by(user_id=user_id).update(
+            {"user_id": None}, synchronize_session=False
+        )
 
     logout_user()
 
-    db.session.delete(user)
-    db.session.commit()
+    try:
+        db.session.delete(user)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        current_app.logger.exception("account deletion failed for user_id=%s", user_id)
+        return jsonify({"error": "Could not delete the account. Please contact support."}), 500
 
     return jsonify({"success": True, "message": "Account deleted"})
 
@@ -4780,6 +4919,17 @@ def auth_login():
         payload = request.get_json(silent=True) or {}
         email = str(payload.get("email") or "").strip().lower()
         password = str(payload.get("password") or "")
+
+        # Brute-force / credential-stuffing brake. Two buckets on purpose:
+        # per-IP stops one machine working through a password list, and
+        # per-account stops a distributed attempt against one known mailbox.
+        # Without these an attacker could try passwords against every
+        # registered account at whatever rate the instance would serve.
+        ip = _feedback_client_ip()
+        if is_rate_limited(f"login_ip:{ip}", limit=10, window_seconds=900):
+            return jsonify({"error": "Too many sign-in attempts. Try again in a few minutes."}), 429
+        if email and is_rate_limited(f"login_acct:{email}", limit=10, window_seconds=900):
+            return jsonify({"error": "Too many sign-in attempts. Try again in a few minutes."}), 429
 
         if not email or not password:
             return jsonify({"error": "Invalid credentials"}), 401
@@ -4812,7 +4962,12 @@ def auth_login():
         try:
             import sentry_sdk as _sentry
             try:
-                _sentry.set_user({"id": str(user.id), "email": user.email, "username": user.display_name})
+                # Id only. set_user payloads are transmitted even with
+                # send_default_pii disabled, so passing the address here
+                # exported every signing-in user's email to Sentry — a
+                # processor the privacy policy does not name. The id is
+                # enough to find the account in our own database.
+                _sentry.set_user({"id": str(user.id)})
             except Exception:
                 pass
         except Exception:
@@ -4874,9 +5029,26 @@ def auth_change_password():
     """
     payload = request.get_json(silent=True) or {}
     new_password = str(payload.get("new_password") or "")
+    current_password = str(payload.get("current_password") or "")
 
     if len(new_password) < 8:
         return jsonify({"error": "Password must be at least 8 characters."}), 400
+
+    # Re-authenticate before rotating the password. Without this, anyone who
+    # gets momentary use of a session (a borrowed laptop, a stolen cookie, an
+    # XSS payload) converts it into permanent ownership of the account by
+    # setting a password the real owner does not know. delete_account already
+    # asks for the password for exactly this reason.
+    #
+    # Exception: an account under the must_change_password gate that has no
+    # usable password of its own yet (founder handoff) has nothing to prove.
+    if current_user.password_hash and not current_user.must_change_password:
+        try:
+            ok = bool(bcrypt.check_password_hash(current_user.password_hash, current_password))
+        except (TypeError, ValueError):
+            ok = False
+        if not ok:
+            return jsonify({"error": "Your current password is incorrect."}), 403
 
     current_user.password_hash = bcrypt.generate_password_hash(new_password).decode("utf-8")
     current_user.must_change_password = False
@@ -4889,6 +5061,14 @@ def auth_change_password():
 @api_bp.route("/auth/register", methods=["POST"])
 def auth_register():
     try:
+        # Registration sends a verification email, so an unlimited signup
+        # endpoint is also an unlimited outbound-mail endpoint — it can burn
+        # the shared daily Resend budget (see app/send_budget.py) and get the
+        # sending domain flagged. Capped per IP.
+        ip = _feedback_client_ip()
+        if is_rate_limited(f"register_ip:{ip}", limit=5, window_seconds=3600):
+            return jsonify({"error": "Too many sign-up attempts. Please try again later."}), 429
+
         payload = request.get_json(silent=True) or {}
         name = str(payload.get("name") or "").strip()
         email = str(payload.get("email") or "").strip().lower()
@@ -7629,9 +7809,9 @@ def parse_syllabus():
                 if "error" in toolkit:
                     return jsonify(toolkit), 400
                 return jsonify(toolkit), 200
-            except Exception as e:
+            except Exception:
                 current_app.logger.exception("Syllabus image parsing failed")
-                return jsonify({"error": f"Syllabus image analysis failed: {str(e)}"}), 500
+                return jsonify({"error": "Syllabus image analysis failed."}), 500
         else:
             from app.services.syllabus_parser import extract_text_from_file
             syllabus_text = extract_text_from_file(file, filename)
@@ -7640,18 +7820,18 @@ def parse_syllabus():
             try:
                 toolkit = process_syllabus_and_build_toolkit(syllabus_text)
                 return jsonify(toolkit), 200
-            except Exception as e:
+            except Exception:
                 current_app.logger.exception("Syllabus parsing failed")
-                return jsonify({"error": f"Syllabus analysis failed: {str(e)}"}), 500
+                return jsonify({"error": "Syllabus analysis failed."}), 500
     else:
         if not text:
             return jsonify({"error": "No syllabus text provided."}), 400
         try:
             toolkit = process_syllabus_and_build_toolkit(text)
             return jsonify(toolkit), 200
-        except Exception as e:
+        except Exception:
             current_app.logger.exception("Syllabus parsing failed")
-            return jsonify({"error": f"Syllabus analysis failed: {str(e)}"}), 500
+            return jsonify({"error": "Syllabus analysis failed."}), 500
 
 
 @api_bp.get("/shared-toolkit/<share_id>")

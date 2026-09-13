@@ -89,3 +89,25 @@ def _clear_active_g():
     if has_app_context():
         for key in list(g.__dict__.keys()):
             g.__dict__.pop(key, None)
+
+
+@pytest.fixture(autouse=True)
+def _reset_rate_limit_buckets():
+    """Give every test a clean rate-limit bucket.
+
+    The limiter's in-memory store is a module-level dict that lives for the
+    whole pytest process, so without this the login brake added in
+    SECURITY_AUDIT.md (H1) counts attempts across unrelated tests: any file
+    that signs in more than ten times starts getting 429s, the session cookie
+    is never set, and every later assertion fails with a confusing 401.
+
+    Clearing the store is deliberately preferred over disabling the limiter
+    under TESTING. A brake that is switched off in the test suite is a brake
+    nothing verifies - see test_login_rate_limit.py, which depends on it
+    being live here.
+    """
+    from app.rate_limit import _RATE_LIMIT_STORE
+
+    _RATE_LIMIT_STORE.clear()
+    yield
+    _RATE_LIMIT_STORE.clear()

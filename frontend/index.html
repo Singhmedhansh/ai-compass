@@ -162,8 +162,12 @@
             capture_pageview: true,
             capture_pageleave: true,
             capture_exceptions: true,
+            // Session replay records what users type. With masking off it
+            // captured the contents of every text field — email addresses on
+            // sign-in and sign-up, the newsletter box, search and feedback
+            // text — and shipped them to a third party. Masked.
             session_recording: {
-              maskAllInputs: false,
+              maskAllInputs: true,
             },
           });
         }
@@ -200,7 +204,7 @@
                     capture_pageview: true,
                     capture_pageleave: true,
                     capture_exceptions: true,
-                    session_recording: { maskAllInputs: false },
+                    session_recording: { maskAllInputs: true },
                   })
                   console.info('PostHog fallback init attempted')
                 } catch (err) {
