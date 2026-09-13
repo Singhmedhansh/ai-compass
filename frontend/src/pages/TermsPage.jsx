@@ -66,10 +66,18 @@ export default function TermsPage() {
                 that page is the authoritative price at the moment you pay.
               </p>
               <p className="mt-3 leading-relaxed text-ink-2">
+                <strong>Sponsored placements.</strong> We also sell sponsored placements in the
+                sponsor rail, priced per week and paid for in advance for a fixed number of weeks.
+                A placement does not renew: when the weeks you paid for have run, it ends and
+                nothing further is charged. Sponsored units are labelled as sponsored wherever
+                they appear.
+              </p>
+              <p>
                 <strong>One-time, not a subscription.</strong> Every Paid Service is a single
-                charge in USD. There is no subscription, no billing cycle, no renewal and no
-                stored payment method. Nothing auto-charges you, and nothing you have bought is
-                withdrawn if you never pay again.
+                charge in USD — including a sponsored placement, which is one charge for the block
+                of weeks rather than a recurring one. There is no subscription, no billing cycle,
+                no renewal and no stored payment method. Nothing auto-charges you, and nothing you
+                have bought is withdrawn if you never pay again.
               </p>
               <p className="mt-3 leading-relaxed text-ink-2">
                 <strong>How payment is taken.</strong> Payments are processed by PayPal. We do not

@@ -18,6 +18,7 @@ from app import csrf, editorial
 from app.models import CatalogTool, EditorialReview
 from app.payments import sponsor_credentials, verify_paypal_order
 from app.rate_limit import is_rate_limited
+from app.client_ip import client_ip
 
 editorial_bp = Blueprint("editorial", __name__)
 
@@ -98,7 +99,7 @@ def review_checkout():
                      "if you think that's wrong — we won't take money for the same piece twice.",
         }), 409
 
-    ip = request.remote_addr or "unknown"
+    ip = client_ip(request)
     if is_rate_limited(f"review_checkout:{ip}", limit=8, window_seconds=3600):
         return jsonify({"error": "Too many checkout attempts. Please try again later."}), 429
 

@@ -67,7 +67,7 @@ _ROUTE_META = {
     # homepage. Keep each title/description in sync with the page's own.
     'pricing': ('Pricing — List Your AI Tool | AI Compass', 'Four ways to list your AI tool on AI Compass: a permanent free listing, $19 Listing + Analytics, $49 Fast-Track for labelled placement, or $79 Reviewed, which adds a written hands-on review. One-time payments, no subscription. Editorial picks and leaderboard ranks are never for sale.'),
     'submit': ('Submit Your AI Tool — AI Compass', 'List your AI tool on AI Compass. A permanent free listing, or a paid tier that adds analytics, labelled placement, or a written hands-on review. One-time payments, no subscription.'),
-    'privacy': ('Privacy Policy | AI Compass', 'How AI Compass handles your data: account info, cookies, server logs, third-party services. Hosted on Render, data stored in India.'),
+    'privacy': ('Privacy Policy | AI Compass', 'How AI Compass handles your data: account info, cookies, server logs, third-party services. Operated from India; data stored in the United States.'),
     'terms': ('Terms of Service | AI Compass', 'Terms of using AI Compass. Acceptable use, content ownership, tool listings, and governing law. Last updated 2026.'),
     'refunds': ('Refund & Cancellation Policy | AI Compass', 'AI Compass refund policy: every listing tier is a one-time payment, not a subscription. Duplicate charges are refunded in full. Refunds are available before your listing is published; once it is live, the work has been delivered.'),
     'contact': ('Contact — Get in Touch | AI Compass', 'Contact AI Compass. help@ai-compass.in for listings, the catalogue and pricing questions; admin@ai-compass.in for payments, billing and anything urgent.'),

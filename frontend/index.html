@@ -2,20 +2,73 @@
 <html lang="en">
   <head>
     <script>
-      var isBot = /bot|googlebot|crawler|spider|robot|crawling|lighthouse/i.test(navigator.userAgent);
-      if (!isBot) {
-        var script = document.createElement('script');
-        script.async = true;
-        script.src = "https://www.googletagmanager.com/gtag/js?id=G-TCNMKMXKEM";
-        document.head.appendChild(script);
+      // Consent gate for every analytics product on the site.
+      //
+      // The cookie banner used to be decorative: "Decline" wrote
+      // localStorage.ai_compass_cookie_consent = 'declined' and NOTHING read
+      // it back, while GA4 and PostHog loaded unconditionally in this file
+      // before React had even mounted. Scrolling 100px also silently counted
+      // as "granted". Offering a choice and ignoring it is worse than not
+      // offering one, so the choice is now real: nothing analytics-related
+      // loads until consent is explicitly granted.
+      //
+      // window.__aicConsent is the single source of truth. CookieConsent.jsx
+      // calls grant()/revoke() and this decides what may run.
+      (function () {
+        var KEY = 'ai_compass_cookie_consent';
+        var GA_ID = 'G-TCNMKMXKEM';
+        var isBot = /bot|googlebot|crawler|spider|robot|crawling|lighthouse/i.test(navigator.userAgent);
 
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-TCNMKMXKEM', {
-          'cookie_flags': 'SameSite=None;Secure'
-        });
-      }
+        function stored() {
+          try { return localStorage.getItem(KEY); } catch (e) { return null; }
+        }
+
+        function startGA() {
+          if (isBot || window.__aicGAStarted) return;
+          window.__aicGAStarted = true;
+          var s = document.createElement('script');
+          s.async = true;
+          s.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID;
+          document.head.appendChild(s);
+          window.dataLayer = window.dataLayer || [];
+          window.gtag = function () { window.dataLayer.push(arguments); };
+          window.gtag('js', new Date());
+          window.gtag('config', GA_ID, { 'cookie_flags': 'SameSite=None;Secure' });
+        }
+
+        window.__aicConsent = {
+          granted: function () { return stored() === 'granted'; },
+          grant: function () {
+            try { localStorage.setItem(KEY, 'granted'); } catch (e) {}
+            startGA();
+            if (window.__aicStartPostHog) window.__aicStartPostHog();
+            try {
+              if (window.posthog && window.posthog.opt_in_capturing) {
+                window.posthog.opt_in_capturing();
+              }
+            } catch (e) {}
+          },
+          revoke: function () {
+            try { localStorage.setItem(KEY, 'declined'); } catch (e) {}
+            // GA4 has no unload; deny it consent and stop it setting cookies.
+            try {
+              if (window.gtag) {
+                window.gtag('consent', 'update', {
+                  analytics_storage: 'denied',
+                  ad_storage: 'denied'
+                });
+              }
+            } catch (e) {}
+            try {
+              if (window.posthog && window.posthog.opt_out_capturing) {
+                window.posthog.opt_out_capturing();
+              }
+            } catch (e) {}
+          }
+        };
+
+        if (window.__aicConsent.granted()) startGA();
+      })();
     </script>
 
     <meta charset="UTF-8" />
@@ -146,11 +199,17 @@
           blockers are less likely to interfere. Load asynchronously so
           the shell and app scripts stay unblocked.) -->
     <script>
+      // Wrapped in __aicStartPostHog so it runs on consent, not on page load.
+      // See the consent gate at the top of this file: nothing analytics-
+      // related may start before the visitor has actually agreed to it.
+      window.__aicStartPostHog = function () {
+      if (window.__aicPostHogStarted) return;
       try {
         var host = window.location.hostname;
         var isProd = host.endsWith('ai-compass.in') || host.endsWith('onrender.com');
         var isBot = /bot|googlebot|crawler|spider|robot|crawling|lighthouse/i.test(navigator.userAgent);
         if (isProd && !isBot) {
+          window.__aicPostHogStarted = true;
           !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="Ei Ni init zi Gi Nr Ui Xi Vi capture calculateEventProperties tn register register_once register_for_session unregister unregister_for_session an getFeatureFlag getFeatureFlagPayload getFeatureFlagResult isFeatureEnabled reloadFeatureFlags updateFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSurveysLoaded onSessionId getSurveys getActiveMatchingSurveys renderSurvey displaySurvey cancelPendingSurvey canRenderSurvey canRenderSurveyAsync ln identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset setIdentity clearIdentity get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException addExceptionStep captureLog startExceptionAutocapture stopExceptionAutocapture loadToolbar get_property getSessionProperty nn Qi createPersonProfile setInternalOrTestUser sn qi cn opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing get_explicit_consent_status is_capturing clear_opt_in_out_capturing Ji debug Fr rn getPageViewId captureTraceFeedback captureTraceMetric Bi".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
 
           posthog.init('phc_kMaYwCVYoqvo2DdSSYeJa9TqYFyarnSSLwJn4NhpCGmU', {
@@ -174,6 +233,11 @@
       } catch (e) {
         console.warn('PostHog init skipped:', e && e.message);
       }
+      };
+
+      if (window.__aicConsent && window.__aicConsent.granted()) {
+        window.__aicStartPostHog();
+      }
     </script>
 
     <!-- PostHog fallback: if the proxied /ingest asset fails to load
@@ -185,6 +249,10 @@
       (function(){
         try {
           setTimeout(function(){
+            // Consent applies to the fallback path too. Without this check the
+            // gate above would be trivially defeated 1.5s after load, which is
+            // exactly the kind of hole that makes a consent banner a lie.
+            if (!(window.__aicConsent && window.__aicConsent.granted())) return;
             if (typeof window.posthog === 'undefined' || !window.posthog.__SV) {
               console.info('PostHog probe: attempting fallback asset load')
               var s = document.createElement('script')

@@ -74,20 +74,21 @@ def hash_ip(ip, salt):
 
 
 def client_ip(request):
-    """Best-effort client address behind Render's proxy.
+    """Best-effort client address behind the proxies.
 
-    Render terminates TLS upstream, so `remote_addr` is the proxy for
-    every request and is useless for distinguishing clients. The real
-    address is the FIRST entry of X-Forwarded-For; later entries are the
-    proxy chain. Anything after the first hop is attacker-controlled, but
-    the first is set by infrastructure we trust.
+    This used to read the FIRST entry of X-Forwarded-For, on the stated
+    belief that "the first is set by infrastructure we trust". That belief
+    was wrong — proxies APPEND, so the first entry is whatever the caller
+    sent — and it was confirmed wrong against production. Since affiliate
+    click scoring uses this to spot repeat clicks from one source, the old
+    reading let a click farm present a fresh address per click by setting
+    one header. Delegates to the single implementation now.
     """
-    forwarded = (request.headers.get("X-Forwarded-For") or "").strip()
-    if forwarded:
-        first = forwarded.split(",")[0].strip()
-        if first:
-            return first
-    return request.remote_addr or None
+    from app.client_ip import UNKNOWN
+    from app.client_ip import client_ip as _resolve
+
+    resolved = _resolve(request)
+    return None if resolved == UNKNOWN else resolved
 
 
 def human_click_condition(model):

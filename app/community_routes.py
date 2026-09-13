@@ -18,6 +18,7 @@ from app.models import (
 from app.payments import sponsor_credentials, verify_paypal_order
 from app.pricing_tiers import tier_for_pricing_model
 from app.rate_limit import is_rate_limited
+from app.client_ip import client_ip
 from app import community_leaderboard as lb
 from app import sponsorship
 
@@ -232,7 +233,7 @@ def get_post(post_id: int):
 @login_required
 def create_post():
     try:
-        ip = request.remote_addr or "unknown"
+        ip = client_ip(request)
         if is_rate_limited(f"community_post:{current_user.id}", limit=5, window_seconds=3600) or \
            is_rate_limited(f"community_post_ip:{ip}", limit=10, window_seconds=3600):
             return jsonify({"error": "You're posting too fast. Try again later."}), 429
@@ -305,7 +306,7 @@ def vote_post(post_id: int):
         if post.user_id == current_user.id:
             return jsonify({"error": "You can't vote on your own post"}), 403
 
-        ip = request.remote_addr or "unknown"
+        ip = client_ip(request)
         if is_rate_limited(f"community_vote:{current_user.id}", limit=60, window_seconds=3600) or \
            is_rate_limited(f"community_vote_ip:{ip}", limit=120, window_seconds=3600):
             return jsonify({"error": "You're voting too fast. Try again later."}), 429
@@ -339,7 +340,7 @@ def vote_post(post_id: int):
 def create_comment(post_id: int):
     try:
         CommunityPost.query.get_or_404(post_id)
-        ip = request.remote_addr or "unknown"
+        ip = client_ip(request)
         if is_rate_limited(f"community_comment:{current_user.id}", limit=20, window_seconds=3600) or \
            is_rate_limited(f"community_comment_ip:{ip}", limit=40, window_seconds=3600):
             return jsonify({"error": "You're commenting too fast. Try again later."}), 429
@@ -385,7 +386,7 @@ def vote_comment(comment_id: int):
         if comment.user_id == current_user.id:
             return jsonify({"error": "You can't vote on your own comment"}), 403
 
-        ip = request.remote_addr or "unknown"
+        ip = client_ip(request)
         if is_rate_limited(f"community_vote:{current_user.id}", limit=60, window_seconds=3600) or \
            is_rate_limited(f"community_vote_ip:{ip}", limit=120, window_seconds=3600):
             return jsonify({"error": "You're voting too fast. Try again later."}), 429
@@ -620,7 +621,7 @@ def sponsor_impression():
     if not slug:
         return jsonify({"recorded": False}), 200
 
-    ip = request.remote_addr or "unknown"
+    ip = client_ip(request)
     if is_rate_limited(f"sponsor_impr:{ip}:{slug}:{placement}", limit=6, window_seconds=3600):
         return jsonify({"recorded": False, "throttled": True}), 200
 
@@ -674,7 +675,7 @@ def sponsor_checkout():
             "error": "That tool isn't in the catalog yet. Submit it first, then book a placement.",
         }), 400
 
-    ip = request.remote_addr or "unknown"
+    ip = client_ip(request)
     if is_rate_limited(f"sponsor_checkout:{ip}", limit=8, window_seconds=3600):
         return jsonify({"error": "Too many checkout attempts. Please try again later."}), 429
 

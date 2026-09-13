@@ -76,7 +76,7 @@ export default function RefundsPage() {
                 </li>
                 <li>
                   <strong className="font-semibold text-ink">Rejected by us? Refunded in
-                  full,</strong> automatically. You do not have to ask.
+                  full,</strong> within 5 business days. We start it; you do not have to chase us.
                 </li>
                 <li>
                   <strong className="font-semibold text-ink">Nothing is a subscription.</strong>{' '}
@@ -98,6 +98,14 @@ export default function RefundsPage() {
                 <Link to="/pricing" className="text-accent hover:underline">/pricing</Link> — Listing
                 + Analytics ($19), Fast-Track ($49), Reviewed ($79) and a standalone commissioned
                 review ($39) — is a <strong>one-time payment in USD</strong>, taken through PayPal.
+              </p>
+              <p>
+                Sponsored placements are the one thing sold by the week rather than outright: a
+                slot in the sponsor rail is $14.99 per week for the number of weeks you choose,
+                paid once, up front, through PayPal. It still does not renew and there is still
+                nothing to cancel — when the weeks you paid for are up, the placement simply ends.
+                If we have to end it early for a reason that is ours rather than yours, we refund
+                the weeks you did not get.
               </p>
               <p>
                 There is no subscription, no billing period, no renewal and no auto-charge. Nothing
@@ -174,8 +182,12 @@ export default function RefundsPage() {
 
             <Section id="rejections" number={5} title="If we reject your submission">
               <p>
-                <strong>A rejected submission is refunded in full, automatically.</strong> You do
-                not have to ask, and we do not keep a processing fee.
+                <strong>A rejected submission is refunded in full.</strong> You do not have to ask,
+                and we do not keep a processing fee. The refund is issued by hand through PayPal,
+                normally within 5 business days of the rejection — it is not instant, and we would
+                rather say so than imply a system that returns your money the moment we click a
+                button. If it has been longer than that, write to admin@ai-compass.in with your
+                PayPal reference and we will chase it.
               </p>
               <p>
                 We only list tools that honestly belong in the catalogue. If yours does not fit —

@@ -2223,12 +2223,45 @@ def submit_tool():
 
             # A retried request (network retry, double-click on the PayPal
             # redirect) resubmits the same transaction_ref. `pricing_model`
-            # already encodes tier+ref together (e.g. "quick_paypal:XYZ"), so
-            # matching on it catches the retry before a duplicate Submission
-            # row — and a duplicate founder account / welcome email — can be
-            # created from it.
+            # encodes tier+ref together (e.g. "quick_paypal:XYZ"), so matching
+            # on it catches the retry before a duplicate Submission row — and
+            # a duplicate founder account / welcome email — can be created
+            # from it.
+            #
+            # Matching on the WHOLE pricing_model was not enough, because the
+            # tier is part of it. The tiers cost 14.99, 19, 49 and 79, and
+            # verify_paypal_order() only asserts that the capture is at least
+            # the expected amount — so one $79 'reviewed' payment, replayed
+            # against a $19 'analytics' submission for a different tool, built
+            # a different key, missed this check, and passed verification on
+            # 79 >= 19. That is a second listing for free.
+            #
+            # Look the reference up on its own, then decide:
+            #   same tier      -> the retry this check was written for, reuse
+            #   different tier -> the payment is already spent, refuse
             if is_paid_claim and transaction_ref:
-                sub = Submission.query.filter_by(pricing_model=pricing_model).first()
+                # `contains` rather than an exact suffix match: pricing_model
+                # is String(50) and the stored value is truncated to fit, so a
+                # long tier prefix could leave the reference clipped.
+                prior = Submission.query.filter(
+                    Submission.pricing_model.contains(transaction_ref)
+                ).first()
+                if prior is not None:
+                    if prior.pricing_model == pricing_model:
+                        sub = prior
+                    else:
+                        current_app.logger.warning(
+                            "Refused reuse of payment reference %s: already spent on "
+                            "pricing_model=%s, now offered as %s",
+                            transaction_ref, prior.pricing_model, pricing_model,
+                        )
+                        return jsonify({
+                            "error": (
+                                "That payment reference has already been used for "
+                                "another listing. If you believe this is a mistake, "
+                                "reply to your receipt and we'll sort it out."
+                            )
+                        }), 409
 
             if sub is None:
                 sub = Submission(
@@ -2384,9 +2417,13 @@ def submit_tool():
             except Exception:
                 current_app.logger.exception("Failed to mint dashboard link for submission_id=%s", getattr(sub, "id", None))
             try:
-                from urllib.parse import quote
+                from app.email_utils import make_register_prefill_token
                 from app.oauth import _frontend_base_url
-                register_link = f"{_frontend_base_url()}/register?email={quote(submitter_email)}"
+                # Signed token, not ?email=<address>. The register page is an
+                # ordinary pageview, so the address used to be captured in full
+                # by PostHog and GA4 and left in browser history.
+                token = make_register_prefill_token(submitter_email)
+                register_link = f"{_frontend_base_url()}/register?rt={token}"
             except Exception:
                 current_app.logger.exception("Failed to build register link for submission_id=%s", getattr(sub, "id", None))
 
@@ -5055,6 +5092,33 @@ def auth_change_password():
     db.session.commit()
 
     return jsonify(_serialize_user(current_user))
+
+
+@api_bp.get("/auth/register-prefill")
+def auth_register_prefill():
+    """Resolve a /register?rt=... token to the address it was minted for.
+
+    Exists so the confirmation email can still prefill the sign-up form
+    without putting the address in a URL, where PostHog, GA4, browser history
+    and Referer headers all pick it up.
+
+    Rate limited because it is anonymous and returns an email address: without
+    a cap it would be an oracle for anyone who got hold of one token and
+    wanted to hammer variations of it. The token is signed, so guessing is not
+    realistic — this is belt and braces.
+    """
+    ip = _feedback_client_ip()
+    if is_rate_limited(f"register_prefill:{ip}", limit=20, window_seconds=3600):
+        return jsonify({"error": "Too many requests."}), 429
+
+    from app.email_utils import read_register_prefill_token
+
+    email = read_register_prefill_token(str(request.args.get("rt") or ""))
+    if not email:
+        # Deliberately not an error the caller can distinguish from "expired":
+        # the form simply starts empty.
+        return jsonify({"email": None}), 200
+    return jsonify({"email": email}), 200
 
 
 @csrf.exempt
@@ -7864,10 +7928,10 @@ def get_shared_toolkit(share_id):
 # without having to check /admin -- the DB row is the authoritative record.
 
 def _feedback_client_ip() -> str:
-    forwarded = str(request.headers.get("X-Forwarded-For") or "").strip()
-    if forwarded:
-        return forwarded.split(",")[0].strip()
-    return str(request.remote_addr or "unknown")
+    """Delegates to the one implementation — see app/client_ip.py for why the
+    old first-entry-of-X-Forwarded-For reading was forgeable."""
+    from app.client_ip import client_ip
+    return client_ip(request)
 
 
 @api_bp.post("/feedback")
@@ -8417,8 +8481,7 @@ def recommend_tools():
         )
 
     # Rate limiting: max 10 requests per minute per IP to protect Upstash free tier quota
-    forwarded = str(request.headers.get("X-Forwarded-For") or "").strip()
-    ip = forwarded.split(",")[0].strip() if forwarded else str(request.remote_addr or "unknown")
+    ip = _feedback_client_ip()
     if is_rate_limited(f"rate_limit:recommend:{ip}", limit=10, window_seconds=60):
         return jsonify({"error": "Too many requests. Please slow down."}), 429
 

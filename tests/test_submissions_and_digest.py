@@ -725,7 +725,11 @@ def test_free_tier_confirmation_email_includes_register_link(client, app, monkey
     )
     assert confirmation is not None, sent
     assert "Create my free account" in confirmation["html"]
-    assert "/register?email=" in confirmation["html"]
+    # ?rt=<signed token>, not ?email=<address>. The register page is an
+    # ordinary pageview, so the address used to end up in PostHog, GA4 and
+    # browser history — see tests/test_no_pii_in_urls.py.
+    assert "/register?rt=" in confirmation["html"]
+    assert "@" not in confirmation["html"].split("/register?rt=")[1][:120]
 
 
 def test_paid_invoice_email_includes_register_link(client, app, monkeypatch):
@@ -768,7 +772,8 @@ def test_paid_invoice_email_includes_register_link(client, app, monkeypatch):
     )
     assert invoice is not None, sent
     assert "Create my free account" in invoice["html"]
-    assert "/register?email=" in invoice["html"]
+    assert "/register?rt=" in invoice["html"]
+    assert "@" not in invoice["html"].split("/register?rt=")[1][:120]
 
 
 # --- Unverified paid claims: no automated emails ------------------------------

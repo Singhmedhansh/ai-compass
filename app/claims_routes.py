@@ -11,6 +11,7 @@ from flask_login import current_user, login_required
 from app import claims, csrf
 from app.models import ToolClaim
 from app.rate_limit import is_rate_limited
+from app.client_ip import client_ip
 
 claims_bp = Blueprint("claims", __name__)
 
@@ -46,7 +47,7 @@ def file_claim(slug):
     site — a fact we can check. Everything else queues for a human, because
     a wrong approval hands a stranger edit rights over someone's listing.
     """
-    ip = request.remote_addr or "unknown"
+    ip = client_ip(request)
     if is_rate_limited(f"tool_claim:{ip}", limit=10, window_seconds=3600):
         return jsonify({"error": "Too many claim attempts. Please try again later."}), 429
 

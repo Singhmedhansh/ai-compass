@@ -27,7 +27,8 @@ export default function CookieConsent() {
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
-    const consent = localStorage.getItem('ai_compass_cookie_consent')
+    let consent = null
+    try { consent = localStorage.getItem('ai_compass_cookie_consent') } catch { /* private mode */ }
     if (consent !== 'granted' && consent !== 'declined') {
       // Delaying for 4s so it doesn't intercept the user's first meaningful click
       const timer = setTimeout(() => {
@@ -37,30 +38,30 @@ export default function CookieConsent() {
     }
   }, [])
 
-  // Scroll-to-dismiss: if the user scrolls >100px before touching the banner
-  // they've clearly engaged with the content — auto-accept and get out of the way.
-  useEffect(() => {
-    if (!visible) return
-    let dismissed = false
-    const handleScroll = () => {
-      if (dismissed) return
-      if (window.scrollY > 100) {
-        dismissed = true
-        localStorage.setItem('ai_compass_cookie_consent', 'granted')
-        setVisible(false)
-      }
-    }
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [visible])
+  // The scroll-to-dismiss handler that used to live here treated scrolling
+  // 100px as consent and silently wrote 'granted'. Scrolling a page is not
+  // agreement to be tracked, so it is gone: the banner now waits for an
+  // actual answer.
 
+  // Both handlers delegate to window.__aicConsent (defined in index.html),
+  // which is what actually starts or stops GA4 and PostHog. Previously these
+  // wrote a localStorage key that nothing ever read, so "Decline" changed
+  // nothing at all while analytics ran regardless.
   const handleAccept = () => {
-    localStorage.setItem('ai_compass_cookie_consent', 'granted')
+    if (window.__aicConsent) {
+      window.__aicConsent.grant()
+    } else {
+      try { localStorage.setItem('ai_compass_cookie_consent', 'granted') } catch { /* private mode */ }
+    }
     setVisible(false)
   }
 
   const handleDecline = () => {
-    localStorage.setItem('ai_compass_cookie_consent', 'declined')
+    if (window.__aicConsent) {
+      window.__aicConsent.revoke()
+    } else {
+      try { localStorage.setItem('ai_compass_cookie_consent', 'declined') } catch { /* private mode */ }
+    }
     setVisible(false)
   }
 
@@ -81,7 +82,9 @@ export default function CookieConsent() {
               <ShieldCheck className="h-5 w-5" aria-hidden="true" />
             </div>
             <p className="text-sm leading-relaxed text-ink">
-              We strictly use essential session tokens and minimal telemetry to optimize your tool search workflows. Learn more in our{' '}
+              Signing in uses an essential cookie that we set either way. Beyond that we&apos;d like to run{' '}
+              analytics &mdash; Google Analytics and PostHog, which set their own cookies and record how pages{' '}
+              are used. Decline and neither one loads. Read the details in our{' '}
               <Link
                 to="/privacy"
                 className="font-medium text-accent hover:underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-sm"

@@ -28,14 +28,49 @@ function RegisterPage() {
   const [submitted, setSubmitted] = useState(false)
 
   // Prefills from links like the submission-confirmation email's "Create
-  // your account" CTA (?email=...), so submitters don't have to retype the
-  // address they already gave us.
+  // your account" CTA, so submitters don't have to retype the address they
+  // already gave us.
+  //
+  // The link carries a signed token (?rt=...), not the address itself. It
+  // used to be ?email=<address>, which meant this page's URL — an ordinary
+  // pageview that PostHog and GA4 both record in full — contained a real
+  // email address, and so did the browser history and any Referer sent from
+  // here. The token is exchanged for the address over the API instead.
+  //
+  // ?email= is still honoured so that links already sitting in people's
+  // inboxes keep working; those are stripped from the visible URL on arrival
+  // so at least they are not left in history.
   useEffect(() => {
     const params = new URLSearchParams(location.search)
-    const prefill = params.get('email')
-    if (prefill && emailPattern.test(prefill)) {
-      setEmail(prefill)
+
+    const legacy = params.get('email')
+    if (legacy && emailPattern.test(legacy)) {
+      setEmail(legacy)
+      try {
+        window.history.replaceState({}, '', location.pathname)
+      } catch { /* non-critical */ }
+      return
     }
+
+    const token = params.get('rt')
+    if (!token) return
+
+    let cancelled = false
+    ;(async () => {
+      try {
+        const response = await fetch(
+          `/api/v1/auth/register-prefill?rt=${encodeURIComponent(token)}`,
+          { headers: { Accept: 'application/json' } }
+        )
+        if (!response.ok || cancelled) return
+        const data = await response.json()
+        if (!cancelled && data.email && emailPattern.test(data.email)) {
+          setEmail(data.email)
+        }
+      } catch { /* the form just starts empty */ }
+    })()
+
+    return () => { cancelled = true }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

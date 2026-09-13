@@ -91,10 +91,9 @@ def _clear_stale_login_flash_errors():
 
 
 def _client_ip():
-    forwarded = str(request.headers.get("X-Forwarded-For") or "").strip()
-    if forwarded:
-        return forwarded.split(",")[0].strip()
-    return str(request.remote_addr or "unknown")
+    """See app/client_ip.py — the previous first-entry read was forgeable."""
+    from app.client_ip import client_ip
+    return client_ip(request)
 
 
 def _requires_onboarding(user):

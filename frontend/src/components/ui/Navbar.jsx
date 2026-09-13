@@ -207,7 +207,6 @@ function Navbar() {
         localStorage.setItem('user', JSON.stringify(mergedUser))
         if (window.posthog && mergedUser) {
           window.posthog.identify(mergedUser.id, {
-            email: mergedUser.email,
             is_verified: mergedUser.is_verified
           });
         }
@@ -236,7 +235,6 @@ function Navbar() {
         }
         if (window.posthog && storedUser) {
           window.posthog.identify(storedUser.id, {
-            email: storedUser.email,
             is_verified: storedUser.is_verified
           });
         }

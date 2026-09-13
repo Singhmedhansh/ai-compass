@@ -232,7 +232,6 @@ const CardNav = ({ className = '', ease = 'power3.out' }) => {
         localStorage.setItem('user', JSON.stringify(mergedUser))
         if (window.posthog && mergedUser) {
           window.posthog.identify(mergedUser.id, {
-            email: mergedUser.email,
             is_verified: mergedUser.is_verified
           })
         }
@@ -248,7 +247,6 @@ const CardNav = ({ className = '', ease = 'power3.out' }) => {
         }
         if (window.posthog && storedUser) {
           window.posthog.identify(storedUser.id, {
-            email: storedUser.email,
             is_verified: storedUser.is_verified
           })
         }

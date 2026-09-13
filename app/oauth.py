@@ -387,6 +387,16 @@ def google_callback():
         if not email:
             return redirect(f"{frontend_url}/login?error=google_failed")
 
+        # _get_or_create_oauth_user() matches on the email address, so an
+        # unverified one would hand over any existing local account with that
+        # address. Google sets email_verified false only in unusual cases
+        # (some Workspace configurations), which is exactly why it is cheap to
+        # check and expensive to assume. The GitHub branch already refuses an
+        # unverified address; this brings Google in line.
+        if userinfo.get("email_verified") is False:
+            current_app.logger.warning("Google OAuth: refusing unverified email")
+            return redirect(f"{frontend_url}/login?error=google_email_unverified")
+
         if session.get('oauth_link_user_id'):
             return _handle_link_oauth_user(email, "google", picture)
 

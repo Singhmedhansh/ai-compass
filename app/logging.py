@@ -27,6 +27,8 @@ def setup_logging(app):
     werkzeug_logger.addHandler(handler)
     werkzeug_logger.setLevel(logging.INFO)
     
+    from app.client_ip import client_ip
+
     @app.after_request
     def log_request_info(response):
         # Prevent static files from flooding the logs
@@ -37,7 +39,11 @@ def setup_logging(app):
                     'method': request.method,
                     'path': request.path,
                     'status': response.status_code,
-                    'ip': request.remote_addr
+                    # remote_addr is the proxy behind Cloudflare/Render, so
+                    # every line logged the same address and the access log
+                    # could not distinguish one caller from another — which is
+                    # exactly what you need it for after an incident.
+                    'ip': client_ip(request)
                 }
             )
         return response

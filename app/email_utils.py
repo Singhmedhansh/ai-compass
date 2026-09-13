@@ -97,6 +97,38 @@ def read_prefill_token(token: str, max_age_days: int = 120) -> int | None:
         return None
 
 
+def make_register_prefill_token(email: str) -> str:
+    """Signs an address into the /register?rt=... prefill link.
+
+    The confirmation email used to link to /register?email=<address>. That
+    address then sat in the URL of an ordinary page view, which PostHog and
+    GA4 both record in full — so helping a founder skip one form field wrote
+    their email into two analytics products, their browser history, and any
+    Referer the page sent. Same class of leak as the OAuth callback.
+
+    A signed token carries the same convenience without the address ever
+    appearing in a URL. Follows make_prefill_token() above.
+    """
+    return _prefill_serializer().dumps({"email": str(email or "").strip().lower()})
+
+
+def read_register_prefill_token(token: str, max_age_days: int = 30) -> str | None:
+    """Returns the address, or None if the token is forged or stale.
+
+    30 days rather than the 120 used for outreach prefill: this one is minted
+    right after a payment and is meant to be clicked promptly, and it resolves
+    to a personal address rather than a public product page.
+    """
+    try:
+        data = _prefill_serializer().loads(token, max_age=max_age_days * 86400)
+    except (BadSignature, SignatureExpired, TypeError, ValueError):
+        return None
+    if isinstance(data, dict):
+        email = str(data.get("email") or "").strip().lower()
+        return email or None
+    return None
+
+
 def sending_suppressed() -> tuple[bool, str]:
     """Should this process refuse to actually dispatch mail?
 

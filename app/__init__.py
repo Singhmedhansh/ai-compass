@@ -609,8 +609,8 @@ def create_app(config: dict | None = None) -> Flask:
             return None
 
         # Determine client IP
-        forwarded = str(request.headers.get("X-Forwarded-For") or "").strip()
-        ip = forwarded.split(",")[0].strip() if forwarded else str(request.remote_addr or "unknown")
+        from app.client_ip import client_ip
+        ip = client_ip(request)
 
         session_uuid = session.get('user_uuid')
 
