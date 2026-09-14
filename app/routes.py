@@ -1527,6 +1527,24 @@ def serve_react(path):
     result = _meta_for_request_path(path)
     if result is not None:
         html, status = result
+
+        # Count the view here, at the one place an HTML page is actually
+        # handed to a visitor. Static files returned above, /api/, /go/ and
+        # the other machine endpoints all have their own routes and never
+        # reach this line, so "a row here" means "a person was served a
+        # page" without needing a filter at read time.
+        #
+        # This is the counter GA4 and PostHog stopped being able to do once
+        # consent was enforced: it runs whether or not the visitor accepted
+        # the banner, because nothing is stored on their device. See
+        # app/traffic.py for why that is the whole point rather than a
+        # loophole. It never raises.
+        try:
+            from app.traffic import record_page_view
+            record_page_view(request, status)
+        except Exception:
+            pass
+
         html = _boot_state_script(html)
         from flask import g
         nonce = g.get('csp_nonce', '')

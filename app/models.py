@@ -1019,3 +1019,71 @@ class ToolEdit(db.Model):
         db.DateTime, nullable=False, index=True,
         default=lambda: datetime.now(timezone.utc),
     )
+
+
+class PageViewDaily(db.Model):
+    """One row per (day, path) with a running view count.
+
+    This is the server-side half of the traffic numbers, and it exists
+    because the client-side half stopped being trustworthy. GA4 and PostHog
+    only run once a visitor accepts the cookie banner, so from the moment
+    consent was enforced they stopped counting the single largest group of
+    visitors on the site: someone arriving from Google, reading one page and
+    leaving without ever answering the banner. Reported traffic fell ~77% in
+    a day while Cloudflare's edge numbers stayed flat, because nothing had
+    happened to the traffic — only to the measurement.
+
+    Counting here instead fixes that at the root: the request reaches Flask
+    whether or not the visitor consents, whether or not they run JavaScript,
+    and whether or not an ad blocker ate the third-party script. Nothing is
+    stored on the visitor's device, so there is nothing to consent to.
+
+    Aggregated rather than row-per-event on purpose. The instance this runs
+    on has 512MB and has been OOM-killed before, and a row per pageview would
+    be the fastest-growing table in the database for a number that is only
+    ever read as a daily total.
+    """
+
+    __tablename__ = "page_view_daily"
+
+    id = db.Column(db.Integer, primary_key=True)
+    day = db.Column(db.Date, nullable=False, index=True)
+    path = db.Column(db.String(255), nullable=False, index=True)
+    views = db.Column(db.Integer, nullable=False, default=0)
+
+    __table_args__ = (
+        db.UniqueConstraint("day", "path", name="uq_page_view_daily_day_path"),
+    )
+
+
+class VisitorDaily(db.Model):
+    """One row per (day, path, visitor) — the dedupe set behind "unique
+    visitors". Counting rows for a day gives uniques per page; counting
+    DISTINCT visitor_hash gives uniques for the whole site.
+
+    `visitor_hash` is salted with SECRET_KEY **and the day**, which is the
+    detail that makes this privacy-preserving rather than merely obscured.
+    A fixed salt would let any two days be joined on the hash and a visitor
+    followed across the calendar; rotating it daily means yesterday's hash
+    for a person and today's are unrelated values. That is a real limit, not
+    a hedged one: cross-day retention and returning-visitor rates are not
+    computable from this table, by construction. Daily uniques are, and that
+    is what this is for.
+
+    The raw address is never written. See app/traffic.py for the derivation
+    and app/click_quality.py:hash_ip for why an unsalted digest of an IP is
+    an encoding rather than anonymisation.
+    """
+
+    __tablename__ = "visitor_daily"
+
+    id = db.Column(db.Integer, primary_key=True)
+    day = db.Column(db.Date, nullable=False, index=True)
+    path = db.Column(db.String(255), nullable=False, index=True)
+    visitor_hash = db.Column(db.String(32), nullable=False, index=True)
+
+    __table_args__ = (
+        db.UniqueConstraint(
+            "day", "path", "visitor_hash", name="uq_visitor_daily_day_path_hash"
+        ),
+    )

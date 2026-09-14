@@ -12,6 +12,7 @@ import SponsorSlotsPanel from '../components/admin/SponsorSlotsPanel'
 import ListingsPanel from '../components/admin/ListingsPanel'
 import OutreachCampaignPanel from '../components/admin/OutreachCampaignPanel'
 import PostSalePanel from '../components/admin/PostSalePanel'
+import TrafficPanel from '../components/admin/TrafficPanel'
 
 // ESLint no-unused-vars doesn't recognise JSX namespaced tags (<MotionDiv>)
 // as a usage of `motion`. Alias to constants to satisfy the rule — same
@@ -805,13 +806,22 @@ function AdminPage() {
 
       <MotionDiv key={tabKey} variants={fade} initial="hidden" animate="show">
         {activeTab === 'Overview' && (
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-            {[['Total Tools', stats.total_tools], ['Total Users', stats.total_users], ['New Today', stats.new_users_today], ['Free Tools', stats.free_tools]].map(([k, v]) => (
-              <Card key={k}>
-                <p className="text-xs uppercase tracking-wide text-muted">{k}</p>
-                <p className="mt-2 text-3xl font-bold text-ink">{loading ? '…' : (v ?? 0)}</p>
-              </Card>
-            ))}
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+              {[['Total Tools', stats.total_tools], ['Total Users', stats.total_users], ['New Today', stats.new_users_today], ['Free Tools', stats.free_tools]].map(([k, v]) => (
+                <Card key={k}>
+                  <p className="text-xs uppercase tracking-wide text-muted">{k}</p>
+                  <p className="mt-2 text-3xl font-bold text-ink">{loading ? '…' : (v ?? 0)}</p>
+                </Card>
+              ))}
+            </div>
+            {/* Traffic sits on Overview rather than under Analytics because
+                the Analytics tab is PostHog-backed, and the whole point of
+                this counter is that it does not depend on PostHog — or on a
+                visitor having accepted the cookie banner. */}
+            <Card>
+              <TrafficPanel api={api} />
+            </Card>
           </div>
         )}
 

@@ -3921,6 +3921,51 @@ def admin_posthog_health():
     return jsonify(payload)
 
 
+@api_bp.get("/admin/traffic")
+@login_required
+def admin_traffic():
+    """First-party traffic numbers, counted server-side.
+
+    This is the answer to "how many people visited today" that survives
+    someone declining cookies. GA4 and PostHog only see visitors who click
+    Accept, which on the SEO pages is a small and unrepresentative minority
+    — when the consent gate shipped, reported traffic fell ~77% overnight
+    while Cloudflare's edge numbers stayed flat. See app/traffic.py.
+
+    Gated like every other /admin endpoint. The rows hold no addresses and
+    no identifiers, but per-page traffic is still commercial information,
+    and test_admin_routes_are_gated.py walks the URL map and would fail the
+    moment this was registered without a guard.
+    """
+    if not _is_admin():
+        return jsonify({"error": "Forbidden"}), 403
+
+    from app.traffic import RETENTION_DAYS, daily_totals, top_paths
+
+    try:
+        days = max(1, min(int(request.args.get("days", 30)), RETENTION_DAYS))
+    except (TypeError, ValueError):
+        days = 30
+
+    series = daily_totals(days)
+    return jsonify({
+        "days": days,
+        "daily": series,
+        "top_paths": top_paths(days=min(days, 30)),
+        "totals": {
+            "views": sum(row["views"] for row in series),
+            # Deliberately NOT a sum of daily uniques: the salt rotates every
+            # midnight, so the same person appears under an unrelated hash
+            # each day and cannot be deduplicated across the window. Summing
+            # would report visits-by-day, so it is labelled that way.
+            "unique_visitors_by_day_summed": sum(
+                row["unique_visitors"] for row in series
+            ),
+        },
+        "retention_days": RETENTION_DAYS,
+    })
+
+
 @api_bp.get("/admin/reviews")
 @login_required
 def admin_get_reviews():
