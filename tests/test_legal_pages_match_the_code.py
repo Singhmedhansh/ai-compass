@@ -28,7 +28,12 @@ from app.pricing_tiers import TIERS
 from app.sponsorship import PLACEMENT_PRICING
 
 PAGES_DIR = Path(__file__).resolve().parent.parent / "frontend" / "src" / "pages"
-LEGAL_PAGES = ["RefundsPage.jsx", "TermsPage.jsx", "PricingPage.jsx"]
+# AboutPage is included because it now states what money can and cannot buy
+# ("a tool maker can buy a Fast-Track or Sponsored slot"). That is the same
+# class of claim as the Terms, and it went stale once already: the page was
+# still promising "tools cannot pay us to rank higher" long after Fast-Track
+# shipped and the Terms had been corrected.
+LEGAL_PAGES = ["RefundsPage.jsx", "TermsPage.jsx", "PricingPage.jsx", "AboutPage.jsx"]
 
 PRICE_IN_COPY = re.compile(r"\$(\d+(?:\.\d{2})?)")
 
