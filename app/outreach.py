@@ -53,7 +53,14 @@ OUTREACH_FROM = os.environ.get(
 # See the rework brief; the short version is that quality here is a function of
 # how few we send, so the cap has to be a total, not a per-day allowance.
 CURRENT_CAMPAIGN = os.environ.get("OUTREACH_CAMPAIGN", "q3_qualified_b2b")
-CAMPAIGN_SEND_BUDGET = int(os.environ.get("OUTREACH_CAMPAIGN_SEND_BUDGET", "45"))
+# Raised 45 -> 90 on 2026-09-15. The original 45 was reached (44 companies
+# contacted) with 37 reviewed-and-approved candidates still queued and 49 more
+# in draft_ready, so the cap had become the thing stopping the campaign rather
+# than the thing shaping it. 90 covers the approved queue with headroom to keep
+# approving before the 2026-09-25 deadline. It is still a hard ceiling on how
+# many companies we are willing to approach, and still a total rather than a
+# per-day allowance — CAMPAIGN_DAILY_SEND_MAX is what paces the sending.
+CAMPAIGN_SEND_BUDGET = int(os.environ.get("OUTREACH_CAMPAIGN_SEND_BUDGET", "90"))
 
 # The three lead pools, ordered by how much the recipient already knows us.
 # They convert at very different rates, so they are tracked separately rather
@@ -2780,7 +2787,15 @@ UPGRADE_MIN_DAYS_LIVE = int(os.environ.get("OUTREACH_UPGRADE_MIN_DAYS_LIVE", "15
 # published, so both wait out the window above.
 ALREADY_LISTED_POOLS = (POOL_INBOUND, POOL_TRAFFIC)
 
-CAMPAIGN_DAILY_SEND_MAX = int(os.environ.get("OUTREACH_CAMPAIGN_DAILY_MAX", "10"))
+# Raised 10 -> 20 on 2026-09-15 to drain a 37-candidate approved queue in two
+# days instead of four. Deliberately NOT raised to the full queue size: this
+# From address has sent ~99 emails since 2026-09-03 and peaked at 21 in a day,
+# so 20 is about one doubling of a known-good volume, while 37 in a single run
+# would be ~4x peak on a domain twelve days into sending — the shape of a spam
+# run, and it would put the upgrade pitches (the only emails here that ask for
+# money) behind a spam filter. The shared Resend budget leaves ~40/day after
+# the digest's 50, so 20 fits with room to spare.
+CAMPAIGN_DAILY_SEND_MAX = int(os.environ.get("OUTREACH_CAMPAIGN_DAILY_MAX", "20"))
 
 
 def _followup_delay_days(candidate, stage):
