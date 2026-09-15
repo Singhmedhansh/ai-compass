@@ -21,7 +21,11 @@ APP_JSX = Path(__file__).resolve().parents[1] / "frontend" / "src" / "App.jsx"
 # Handled by their own branch in _meta_for_request_path (they validate the
 # slug and emit bespoke meta), so they are legitimately absent from the set.
 _SERVED_ELSEWHERE = {"tools/:slug", "alternatives/:slug", "compare/:pair",
-                     "collections/:slug", "community/:id", "*"}
+                     "collections/:slug", "community/:id", "*",
+                     # /categories builds its crawlable body from the live
+                     # catalog, so its meta is generated in its own branch
+                     # rather than sitting static in _ROUTE_META.
+                     "categories", "category/:slug"}
 
 
 def _declared_routes():

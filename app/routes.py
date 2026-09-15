@@ -145,6 +145,11 @@ _KNOWN_SPA_PREFIXES: tuple[str, ...] = (
     # 6120e777 without a matching entry here — every approved maker who
     # followed the link in their approval email hit a 404 shell first.
     'dashboard/listing/',
+    # Category landing pages. Served with their own meta earlier in
+    # _meta_for_request_path, which validates the slug and 404s an unknown
+    # one — this entry exists so the route registry stays the single place
+    # you can read off what the SPA serves.
+    'category/',
 )
 
 _INDEX_HTML_CACHE = None
@@ -279,6 +284,7 @@ _SEO_NAV = (
     '<nav aria-label="Primary"><ul>'
     '<li><a href="/">Home</a></li>'
     '<li><a href="/tools">All AI tools</a></li>'
+    '<li><a href="/categories">Browse by category</a></li>'
     '<li><a href="/collections">Collections</a></li>'
     '<li><a href="/ai-tool-finder">AI tool finder</a></li>'
     '<li><a href="/compare">Compare tools</a></li>'
@@ -629,6 +635,80 @@ def _seo_alternatives(tool: dict, alts: list[dict]) -> str:
     )
 
 
+def _inject_noindex(html: str) -> str:
+    """Add `robots: noindex, follow` to a shell that must not be indexed.
+
+    `follow` rather than `none` on purpose: a thin category page still
+    carries real links to tool pages that we very much do want crawled, so
+    the crawler is asked to skip the page itself and keep walking.
+    """
+    tag = '<meta name="robots" content="noindex, follow" />'
+    if '</head>' in html:
+        return html.replace('</head>', f'{tag}</head>', 1)
+    return tag + html
+
+
+def _seo_categories(index: list[dict]) -> str:
+    """Crawler HTML for the /categories hub."""
+    items = []
+    for entry in index:
+        items.append(
+            f'<li><a href="/category/{_esc(entry["slug"])}">{_esc(entry["name"])}</a>'
+            f' — {int(entry["count"])} tools. {_esc(entry["description"])}</li>'
+        )
+    return (
+        '<h1>Browse AI Tools by Category</h1>'
+        f'<p>All {len(index)} categories in the AI Compass catalog — '
+        f'{_rounded_tools_text()} hand-tested AI tools, grouped by what they '
+        'actually do.</p>'
+        f'<ul>{"".join(items)}</ul>'
+        f'<p><a href="/tools">Browse all {_rounded_tools_text()} curated AI tools</a></p>'
+    )
+
+
+def _seo_category(entry: dict, tools: list[dict], related: list[dict]) -> str:
+    """Crawler HTML for a single category landing page.
+
+    Lists every tool in the category, not a top-N slice: the whole point of
+    the page is to be the complete answer to "best <category> tools", and a
+    truncated list would send the crawler back to /tools for the rest.
+    """
+    name = _esc(entry['name'])
+    items = []
+    for tool in tools:
+        slug = _esc(tool.get('slug'))
+        tool_name = _esc(tool.get('name'))
+        if not slug or not tool_name:
+            continue
+        blurb = _esc(
+            tool.get('shortDescription')
+            or tool.get('tagline')
+            or tool.get('description')
+        )
+        pricing = _esc(tool.get('pricing') or tool.get('price'))
+        suffix = f' — {blurb}' if blurb else ''
+        if pricing:
+            suffix += f' ({pricing})'
+        items.append(f'<li><a href="/tools/{slug}">{tool_name}</a>{suffix}</li>')
+
+    sibling_links = ' · '.join(
+        f'<a href="/category/{_esc(c["slug"])}">{_esc(c["name"])}</a>'
+        for c in related
+    )
+
+    return (
+        f'<h1>Best {name} AI Tools in 2026</h1>'
+        f'<p>{_esc(entry["description"])}</p>'
+        f'<p>{int(entry["count"])} hand-tested {name} tools on AI Compass, '
+        'ranked by our curation score. Sponsored placements are labelled and '
+        'never counted in the ranking.</p>'
+        f'<h2>All {name} tools</h2><ul>{"".join(items)}</ul>'
+        + (f'<h2>Related categories</h2><p>{sibling_links}</p>' if sibling_links else '')
+        + f'<p><a href="/categories">All categories</a> · '
+        f'<a href="/tools">Browse all {_rounded_tools_text()} curated AI tools</a></p>'
+    )
+
+
 def _boot_state_script(html: str) -> str:
     """Seed the SPA with state it would otherwise spend a round trip fetching.
 
@@ -813,6 +893,58 @@ def _meta_for_request_path(path: str):
             f'<p><a href="/community">Back to the AI Compass community</a></p>',
         ), 200
 
+    # Category landing pages: /category/<slug>. Validated against the live
+    # catalog, so a dead slug is a real 404 rather than a page insisting the
+    # category exists with nothing in it.
+    #
+    # Categories below categories.MIN_INDEXABLE still render — a human
+    # following a link gets the real page — but ship `noindex, follow`, so a
+    # three-tool category isn't submitted to Google as a landing page. It
+    # starts being indexed on its own the moment it grows past the
+    # threshold; nothing has to be flipped by hand.
+    if normalized.startswith('category/') and normalized.count('/') == 1:
+        slug = normalized.split('/', 1)[1]
+        from app import categories as category_index
+
+        entry = category_index.get_category(slug)
+        if not entry:
+            return _not_found_html(base, path), 404
+        cat_tools = category_index.tools_for(entry['slug'])
+        related = [
+            c for c in category_index.build_index() if c['slug'] != entry['slug']
+        ][:8]
+        html = _inject_meta(
+            base,
+            title=f'{entry["count"]} Best {entry["name"]} AI Tools in 2026 (Free & Paid) | AI Compass',
+            description=(
+                f'{entry["count"]} hand-tested {entry["name"]} AI tools, ranked. '
+                'Free tiers, pricing, and student options compared. '
+                'No login to browse.'
+            ),
+            canonical_path=f'/category/{entry["slug"]}',
+        )
+        if not entry['indexable']:
+            html = _inject_noindex(html)
+        return _inject_seo_root(html, _seo_category(entry, cat_tools, related)), 200
+
+    # Category hub: /categories. Static meta, but the crawlable body is
+    # generated so a new category appears without a code change.
+    if normalized == 'categories':
+        from app import categories as category_index
+
+        index = category_index.build_index()
+        html = _inject_meta(
+            base,
+            title=f'Browse {len(index)} AI Tool Categories | AI Compass',
+            description=(
+                f'All {len(index)} categories of hand-tested AI tools — coding, '
+                'writing, research, design, image, video, and audio. '
+                f'{_rounded_tools_text()} tools, free to browse.'
+            ),
+            canonical_path='/categories',
+        )
+        return _inject_seo_root(html, _seo_categories(index)), 200
+
     # Collections slugs come from the DB and aren't cheap to validate
     # here, so we let those fall through to the SPA which renders its
     # own "collection not found" UI client-side.
@@ -948,6 +1080,10 @@ def sitemap():
         ('/guides/notion-student-premium', '0.9', 'weekly'),
         ('/guides/jetbrains-student-license', '0.9', 'weekly'),
         ('/collections', '0.7', 'weekly'),
+        # The category hub. Individual /category/<slug> pages are appended
+        # below, since which ones are substantial enough to index changes as
+        # the catalog grows.
+        ('/categories', '0.8', 'weekly'),
         # Public static routes that were previously absent from the sitemap
         # despite being indexable. Lower priority — these aren't conversion
         # surfaces, just trust pages — but worth declaring so crawlers find
@@ -981,25 +1117,67 @@ def sitemap():
             f'<url><loc>{base}/alternatives/{safe_slug}</loc><lastmod>{today}</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>'
         )
 
-    # Top-N compare pairs. Emits pairs (a, b) for the top 20 tools by
-    # curation_score → C(20, 2) = 190 indexable comparison URLs. Enough
-    # surface to capture long-tail "X vs Y" searches without spamming
-    # the sitemap with every permutation. Internal links from tool detail
-    # pages let crawlers discover additional pairs organically.
-    top_tools = sorted(
-        [t for t in TOOL_CACHE.values() if t.get('slug')],
-        key=lambda t: (t.get('curation_score') or 0),
-        reverse=True,
-    )[:20]
-    for i, tool_a in enumerate(top_tools):
-        for tool_b in top_tools[i + 1:]:
-            slug_a = escape(str(tool_a['slug']))
-            slug_b = escape(str(tool_b['slug']))
+    # Category landing pages, but only the ones carrying enough tools to be
+    # worth a crawler's time — see categories.MIN_INDEXABLE. A thin category
+    # still has a working page, it just isn't advertised here.
+    try:
+        from app import categories as category_index
+
+        for entry in category_index.build_index():
+            if not entry['indexable']:
+                continue
+            safe_cat = escape(str(entry['slug']))
             urls.append(
-                f'<url><loc>{base}/compare/{slug_a}-vs-{slug_b}</loc>'
-                f'<lastmod>{today}</lastmod><changefreq>monthly</changefreq>'
-                f'<priority>0.5</priority></url>'
+                f'<url><loc>{base}/category/{safe_cat}</loc><lastmod>{today}</lastmod>'
+                f'<changefreq>weekly</changefreq><priority>0.8</priority></url>'
             )
+    except Exception:
+        current_app.logger.exception('sitemap: category section failed')
+
+    # Compare pairs, chosen per category rather than globally.
+    #
+    # This used to take the top 20 tools by curation_score site-wide and emit
+    # all C(20, 2) = 190 pairs, which had two problems: the pairs crossed
+    # categories more often than not ("Cursor vs Grammarly" is not a search
+    # anyone runs), and whole categories got no comparison coverage at all
+    # because none of their tools cracked a global top 20.
+    #
+    # Top 8 *within* each category is the fix: C(8, 2) = 28 pairs per
+    # category, every one of them two tools a reader would genuinely be
+    # choosing between. Cross-category pairs still render and are still
+    # reachable from tool pages — they just aren't what we submit.
+    try:
+        from app import categories as category_index
+
+        seen_pairs: set[tuple[str, str]] = set()
+        for entry in category_index.build_index():
+            # sponsored_first=False: which comparisons we submit to Google is
+            # decided by curation score alone. A sponsored card on a page is
+            # labelled; a sitemap entry isn't, so paid placement must not pick
+            # who gets indexed comparison pages.
+            top_in_cat = [
+                t for t in category_index.tools_for(
+                    entry['slug'], limit=8, sponsored_first=False,
+                )
+                if t.get('slug')
+            ]
+            for i, tool_a in enumerate(top_in_cat):
+                for tool_b in top_in_cat[i + 1:]:
+                    slug_a = str(tool_a['slug'])
+                    slug_b = str(tool_b['slug'])
+                    # The route reads the pair in URL order, so (a, b) and
+                    # (b, a) are two URLs for one comparison. Emit one.
+                    key = tuple(sorted((slug_a, slug_b)))
+                    if key in seen_pairs:
+                        continue
+                    seen_pairs.add(key)
+                    urls.append(
+                        f'<url><loc>{base}/compare/{escape(key[0])}-vs-{escape(key[1])}</loc>'
+                        f'<lastmod>{today}</lastmod><changefreq>monthly</changefreq>'
+                        f'<priority>0.5</priority></url>'
+                    )
+    except Exception:
+        current_app.logger.exception('sitemap: compare section failed')
 
     # Community threads. Each one is a real indexable page now that
     # /community/<id> serves the thread's own title and body server-side.

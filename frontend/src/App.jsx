@@ -27,6 +27,8 @@ const CookieConsent = lazy(() => import('./components/ui/CookieConsent'))
 const ToolFinderPage = lazy(() => import('./pages/ToolFinderPage'))
 const CollectionsPage = lazy(() => import('./pages/CollectionsPage'))
 const CollectionPage = lazy(() => import('./pages/CollectionPage'))
+const CategoriesPage = lazy(() => import('./pages/CategoriesPage'))
+const CategoryPage = lazy(() => import('./pages/CategoryPage'))
 const ComparePage = lazy(() => import('./pages/ComparePage'))
 const DashboardPage = lazy(() => import('./pages/DashboardPage'))
 const ProfilePage = lazy(() => import('./pages/ProfilePage'))
@@ -192,6 +194,8 @@ function AnimatedRoutes() {
             <Route path="/tools/:slug" element={<ToolDetailPage />} />
             <Route path="/alternatives/:slug" element={<AlternativesPage />} />
             <Route path="/ai-tool-finder" element={<ToolFinderPage />} />
+            <Route path="/categories" element={<CategoriesPage />} />
+            <Route path="/category/:slug" element={<CategoryPage />} />
             <Route path="/collections" element={<CollectionsPage />} />
             <Route path="/collections/:slug" element={<CollectionPage />} />
             <Route path="/trending" element={<CollectionPage />} />

@@ -2979,6 +2979,53 @@ def get_collection(slug: str):
     return response
 
 
+@api_bp.get("/categories")
+def get_categories():
+    """Every category in the visible catalog, with counts.
+
+    Powers /categories and the cross-links at the foot of each category
+    page. Categories are whatever the catalog contains — nothing is merged
+    or renamed here (see app/categories.py).
+    """
+    from app import categories as category_index
+
+    return jsonify({
+        "categories": category_index.build_index(),
+        "min_indexable": category_index.MIN_INDEXABLE,
+    })
+
+
+@api_bp.get("/categories/<slug>")
+def get_category_page(slug: str):
+    """One category plus its ranked tools.
+
+    Cards only (`_card_projection`): a category like Coding carries 98
+    tools and the full records would be ~300 KB of pricing_tiers nobody on
+    this page reads.
+    """
+    from app import categories as category_index
+
+    entry = category_index.get_category(slug)
+    if entry is None:
+        return jsonify({"error": "Category not found"}), 404
+
+    tools = category_index.tools_for(entry["slug"])
+    siblings = [
+        c for c in category_index.build_index() if c["slug"] != entry["slug"]
+    ][:8]
+
+    from flask import make_response
+    response = make_response(jsonify({
+        **entry,
+        "tools": [_card_projection(t) for t in tools],
+        "related": siblings,
+    }))
+    # Same reasoning as /collections: this is a projection of the catalog,
+    # so an admin edit should show up on the next navigation.
+    response.headers["Cache-Control"] = "no-cache, must-revalidate"
+    return response
+
+
 @api_bp.get("/trending")
 def get_trending_today():
     from app.services.trending_data import resolve_trending_tools
