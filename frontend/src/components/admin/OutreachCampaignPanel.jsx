@@ -391,7 +391,11 @@ export default function OutreachCampaignPanel({ api, refreshKey = 0 }) {
     return <div className="py-10 text-center text-sm text-ink-2">Loading campaign…</div>
   }
 
-  const budgetPct = status ? (status.emails_sent / status.send_budget) * 100 : 0
+  // Against companies contacted, not emails sent. Follow-ups are emails to
+  // companies already inside the budget, so dividing the email count by the
+  // budget reported 79/45 as a full bar while the campaign sat blocked.
+  const contacted = status?.companies_contacted ?? 0
+  const budgetPct = status ? (contacted / status.send_budget) * 100 : 0
   const revenuePct = status ? (status.revenue / status.revenue_target) * 100 : 0
   const gap = status?.closes_the_gap?.[0]
 
@@ -521,16 +525,17 @@ export default function OutreachCampaignPanel({ api, refreshKey = 0 }) {
         <>
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
             <Meter
-              label="Send budget"
-              value={status.emails_sent}
-              sub={`/ ${status.send_budget}`}
+              label="Companies contacted"
+              value={contacted}
+              sub={`/ ${status.send_budget} · ${status.emails_sent} emails`}
               pct={budgetPct}
             />
             <Meter
-              label="Replies"
-              value={status.replied}
-              sub={status.emails_sent ? `/ ${status.emails_sent} sent` : 'none sent yet'}
-              pct={status.emails_sent ? (status.replied / status.emails_sent) * 100 : 0}
+              label="Submitted after contact"
+              value={status.converted_submissions ?? 0}
+              sub={contacted ? `of ${contacted} contacted` : 'none contacted yet'}
+              pct={contacted ? ((status.converted_submissions ?? 0) / contacted) * 100 : 0}
+              tone="accent"
             />
             <Meter
               label="Revenue"

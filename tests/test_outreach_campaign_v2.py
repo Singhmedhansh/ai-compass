@@ -44,6 +44,7 @@ from app.outreach import (
     archive_v1_candidates,
     get_generic_draft,
     import_inbound_submitters,
+    outbound_click_claim,
 )
 
 
@@ -102,7 +103,9 @@ def test_every_pool_uses_the_same_skeleton(app, pool):
     assert "Hey Arjun," in text
     assert "Nice work on SimplAI" in text
     assert "* A permanent listing on ai-compass.in" in text
-    assert "1,689 outbound click-throughs" in text
+    # Read from the table rather than pinned to a literal: hardcoding the
+    # figure here is what let the previous one go stale unnoticed for months.
+    assert f"{outbound_click_claim()} outbound click-throughs" in text
     assert "No pressure either way" in text
     assert "Founder, AI Compass - ai-compass.in" in text
     assert "Unsubscribe" in text
@@ -502,16 +505,57 @@ def test_the_campaign_stops_dead_at_its_budget(app, monkeypatch):
               draft_template_version=outreach_mod.CURRENT_DRAFT_TEMPLATE_VERSION)
     assert can_send_candidate(c)[0] is True
 
+    # Two OTHER companies, one email each. The budget is a budget on reach, so
+    # it is spent by approaching two companies — not by sending two emails.
     monkeypatch.setattr(outreach_mod, "CAMPAIGN_SEND_BUDGET", 2)
-    for _ in range(2):
+    for i in range(2):
+        other = _cand(POOL_COLD, product_name=f"Other{i}", email=f"o{i}@other.example")
         db.session.add(OutreachEmailLog(
-            candidate_id=c.id, email=c.email, subject="s", body="b", status="success",
+            candidate_id=other.id, email=other.email, subject="s", body="b",
+            status="success",
         ))
     db.session.commit()
 
     ok, reason = can_send_candidate(c)
     assert ok is False
     assert "budget" in reason.lower()
+
+
+def test_followups_do_not_consume_the_campaign_budget(app, monkeypatch):
+    """The failure that ended q3_qualified_b2b.
+
+    That campaign contacted 34 companies and sent them 45 follow-ups. The
+    budget counted log rows, so it read 79/45, went to zero, and refused every
+    remaining candidate — including all twelve warm inbound leads, whose
+    upgrade pitch is the only email in the campaign that mentions money. It
+    stopped eleven companies short of a budget of 45 and never sent a single
+    email that asked anyone to pay.
+    """
+    from app.outreach import can_send_candidate, campaign_sends_used
+
+    monkeypatch.setattr(outreach_mod, "CAMPAIGN_SEND_BUDGET", 2)
+
+    contacted = _cand(POOL_COLD, product_name="Contacted", email="a@one.example")
+    # One first touch plus both follow-up stages — three emails, one company.
+    for subject in ("About Contacted", "Re: About Contacted", "Re: About Contacted"):
+        db.session.add(OutreachEmailLog(
+            candidate_id=contacted.id, email=contacted.email, subject=subject,
+            body="b", status="success",
+        ))
+    db.session.commit()
+
+    assert campaign_sends_used() == 1, (
+        "Three emails to one company spend one of the 45, not three. A "
+        "follow-up reaches nobody new."
+    )
+
+    nxt = _cand(POOL_COLD, status=outreach_mod.STATUS_APPROVED, confidence_score=95,
+                verification_result="valid", product_name="Next", email="b@two.example",
+                draft_template_version=outreach_mod.CURRENT_DRAFT_TEMPLATE_VERSION)
+    ok, reason = can_send_candidate(nxt)
+    assert ok is True, (
+        f"Budget of 2 with one company contacted must still have room: {reason}"
+    )
 
 
 def test_a_failed_send_does_not_consume_campaign_budget(app):

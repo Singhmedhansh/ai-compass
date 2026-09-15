@@ -54,6 +54,7 @@ from app.outreach import (
     CAMPAIGN_DAILY_SEND_MAX,
     campaign_sends_today,
     campaign_daily_remaining,
+    campaign_sends_used,
 )
 
 outreach_bp = Blueprint("outreach", __name__)
@@ -1013,8 +1014,25 @@ def campaign_gate_breakdown():
 
 # The revenue target and its deadline. Both are campaign facts rather than
 # product config, which is why they live here beside the send budget.
+#
+# Extended from 2026-09-15 to 2026-09-25 after the first window closed at $0.
+# It was not extended because the target was missed — it was extended because
+# the campaign spent that window unable to send the only emails that ask for
+# money. A budget counter that counted emails instead of companies read 79/45,
+# and every upgrade pitch that ripened after 2026-09-10 was refused for a
+# budget that had eleven companies still unspent (see campaign_sends_used).
+# The ten days replace the ones the jam consumed.
+#
+# The cost of the extension: an upgrade pitch waits UPGRADE_MIN_DAYS_LIVE (15)
+# days after a listing goes live, so a founder who submits in response to this
+# campaign still ripens outside the window — Statable and CampfireSMS, both
+# won in the first window, come eligible 2026-09-28 and 2026-09-29. This date
+# buys the twelve leads that were ALREADY waiting; it does not make the
+# campaign able to monetize the leads it is about to win. That needs the gate
+# shortened or the window longer again, and it is a judgement about whether a
+# founder can assess a listing in under a fortnight, not a counter to fix.
 CAMPAIGN_REVENUE_TARGET = float(os.environ.get("OUTREACH_REVENUE_TARGET", "100"))
-CAMPAIGN_DEADLINE = date.fromisoformat(os.environ.get("OUTREACH_DEADLINE", "2026-09-15"))
+CAMPAIGN_DEADLINE = date.fromisoformat(os.environ.get("OUTREACH_DEADLINE", "2026-09-25"))
 
 
 def _campaign_revenue_window_start():
@@ -1067,6 +1085,40 @@ def _closing_combinations(remaining):
     return options[:3]
 
 
+def _campaign_conversions():
+    """Contacted companies that went on to submit a tool.
+
+    The one outcome in this campaign that is measured rather than remembered.
+    Matched on email address, which makes it a floor: a founder who submits
+    from a different address than the one we wrote to is not counted. A floor
+    is the right error direction here — it can only understate the campaign,
+    never flatter it.
+
+    Counted from the first successful send onward, not from the campaign start,
+    so a company that had already submitted before we ever wrote to it is not
+    credited to an email it had not yet received.
+    """
+    first_send = db.session.query(
+        OutreachCandidate.email.label("email"),
+        db.func.min(OutreachEmailLog.sent_at).label("first_sent_at"),
+    ).join(
+        OutreachEmailLog, OutreachEmailLog.candidate_id == OutreachCandidate.id
+    ).filter(
+        OutreachCandidate.campaign == CURRENT_CAMPAIGN,
+        OutreachEmailLog.status == "success",
+        OutreachCandidate.email.isnot(None),
+    ).group_by(OutreachCandidate.email).subquery()
+
+    return db.session.query(
+        db.func.count(db.distinct(Submission.submitter_email))
+    ).join(
+        first_send,
+        db.func.lower(Submission.submitter_email) == db.func.lower(first_send.c.email),
+    ).filter(
+        Submission.submitted_at >= first_send.c.first_sent_at,
+    ).scalar() or 0
+
+
 @outreach_bp.route("/api/v1/admin/outreach/campaign/status", methods=["GET"])
 @login_required
 def campaign_status():
@@ -1075,16 +1127,24 @@ def campaign_status():
     Sends are counted from OutreachEmailLog rather than from candidate status,
     because the budget is spent by an email leaving the building — a candidate
     that was emailed and later moved to 'replied' still consumed one of the 45.
+
+    Two different numbers, reported separately, because one header showing
+    "79 / 45" is what let this campaign look healthy while it was stalled:
+      * companies_contacted — distinct companies approached, against the budget
+      * emails_sent — every message, follow-ups included
+    The first is the one the budget limits; the second is always the larger,
+    and comparing IT to the budget produces an overrun rendered as a full bar.
     """
     if not _is_admin():
         return jsonify({"error": "Admin access required."}), 403
 
-    sent = db.session.query(db.func.count(OutreachEmailLog.id)).join(
+    emails_sent = db.session.query(db.func.count(OutreachEmailLog.id)).join(
         OutreachCandidate, OutreachEmailLog.candidate_id == OutreachCandidate.id
     ).filter(
         OutreachCandidate.campaign == CURRENT_CAMPAIGN,
         OutreachEmailLog.status == "success",
     ).scalar() or 0
+    contacted = campaign_sends_used()
 
     by_pool = dict(
         db.session.query(OutreachCandidate.lead_pool, db.func.count(OutreachCandidate.id))
@@ -1124,11 +1184,25 @@ def campaign_status():
     return jsonify({
         "campaign": CURRENT_CAMPAIGN,
         "send_budget": CAMPAIGN_SEND_BUDGET,
-        "emails_sent": sent,
-        "budget_remaining": max(0, CAMPAIGN_SEND_BUDGET - sent),
+        "companies_contacted": contacted,
+        "emails_sent": emails_sent,
+        "budget_remaining": max(0, CAMPAIGN_SEND_BUDGET - contacted),
         "candidates_by_pool": by_pool,
         "candidates_by_status": by_status,
+        # 'replied' is set BY HAND in the console — no inbound mail is parsed,
+        # and nothing else in the codebase ever writes it. So it is a record of
+        # what an operator has logged, not a measurement, and a campaign nobody
+        # has triaged reports zero replies whatever actually happened. Shipped
+        # unlabelled it reads as a measured reply rate: q3_qualified_b2b showed
+        # "0 / 79 sent" on the day four contacted founders had already come back
+        # and submitted. The flag is here so the console can say which it is.
         "replied": by_status.get("replied", 0),
+        "replied_is_manual": True,
+        # What actually happened, measured rather than logged: contacted
+        # companies that went on to submit. Matched on email, so it is a floor
+        # — someone who submits from a different address is missed — but a
+        # floor that is counted beats a field that is remembered.
+        "converted_submissions": _campaign_conversions(),
         "awaiting_review": by_status.get("draft_ready", 0),
         # Today's pacing, so the operator can see why an approved queue is
         # not draining: it is not stuck, it is spread on purpose.
@@ -1225,19 +1299,27 @@ def run_cron():
         # Each phase's failure is logged and swallowed so it can't block the
         # others, and so a partial run still reports what it did manage.
         if phase in ("send", "full"):
-            try:
-                out["followup_emails_sent"] = run_automated_followups()
-            except Exception:
-                current_app.logger.exception("cron: automated follow-ups failed")
-                out["followup_emails_sent"] = 0
-                out["followups_error"] = True
-
+            # Initial sends go FIRST, and the order is a revenue decision, not
+            # a tidiness one. Both halves draw on the same bounded daily pacing
+            # cap, so whichever runs first gets the day. Follow-ups ran first
+            # for the whole q3_qualified_b2b campaign, which meant a third
+            # touch to a cold lead that had ignored two outranked a first touch
+            # to a warm inbound lead that had already asked to be listed — and
+            # the warm ones are the only candidates whose email mentions money
+            # at all. A first contact is worth more than a bump; it goes first.
             try:
                 out["initial_emails_sent"] = run_automated_initial_sends()
             except Exception:
                 current_app.logger.exception("cron: automated initial sends failed")
                 out["initial_emails_sent"] = 0
                 out["initial_sends_error"] = True
+
+            try:
+                out["followup_emails_sent"] = run_automated_followups()
+            except Exception:
+                current_app.logger.exception("cron: automated follow-ups failed")
+                out["followup_emails_sent"] = 0
+                out["followups_error"] = True
 
         if phase in ("discover", "full"):
             # Before looking for new leads, bring a batch of existing drafts

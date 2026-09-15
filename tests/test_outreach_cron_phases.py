@@ -117,3 +117,28 @@ def test_the_endpoint_still_requires_the_shared_secret(app, calls):
 
     assert res.status_code in (401, 403)
     assert calls["initial"] == 0
+
+
+def test_initial_sends_run_before_followups(app, monkeypatch):
+    """Ordering is a revenue decision, not a tidiness one.
+
+    Both halves draw on the same bounded daily pacing cap, so whichever runs
+    first gets the day. Through the whole q3_qualified_b2b campaign follow-ups
+    ran first, which meant a third touch to a cold lead that had ignored two
+    outranked a first touch to a warm inbound lead that had asked to be listed
+    — and the warm ones are the only candidates whose email mentions money.
+    """
+    order = []
+    monkeypatch.setattr(routes_mod, "run_automated_followups",
+                        lambda: order.append("followups") or 0)
+    monkeypatch.setattr(routes_mod, "run_automated_initial_sends",
+                        lambda: order.append("initial") or 0)
+    monkeypatch.setattr(routes_mod, "run_discovery_pipeline", lambda: 0)
+
+    res = app.test_client().post("/api/v1/admin/outreach/cron?phase=send", headers=HEADERS)
+
+    assert res.status_code == 200
+    assert order == ["initial", "followups"], (
+        f"A first contact is worth more than a bump, so it takes the day's "
+        f"slots first. Got {order}."
+    )

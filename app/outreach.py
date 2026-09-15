@@ -2002,6 +2002,78 @@ def _get_gemini_key():
         keys.append(single_key.strip())
     return keys[0] if keys else None
 
+# The click figure quoted in outreach was hardcoded at 1,689 and went stale:
+# measured 30-day volume is now well above it, so every email understated the
+# one proof point it had. Hardcoding it again just restarts that clock, so it
+# is read from the table instead — but only once the reading is trustworthy.
+#
+# 1,689 stays as the floor for the window before bot-flagging existed. It is
+# not a guess: it was measured, and for it to overstate, more than half of all
+# recorded clicks would have to be crawlers. It is used ONLY while there is no
+# verified data covering the full window, and it is never compared against the
+# verified number and picked if larger — taking the better of a measurement
+# and a legacy constant is cherry-picking, not reporting.
+_CLICK_CLAIM_FLOOR = 1689
+
+# Token substituted into the prompt after the fact, exactly like PREFILL_URL.
+# The prompt is a plain (non-f) string on purpose: it is full of literal
+# braces such as "{first name}" and "{Product}" that an f-string would try to
+# interpolate.
+CLICK_COUNT_TOKEN = "OUTBOUND_CLICK_COUNT"
+
+
+def verified_outbound_clicks(days=30):
+    """Human-attributable outbound clicks in the window, as an int.
+
+    Counts `is_bot IS FALSE` — never `IS NOT TRUE`. Rows written before
+    bot-flagging landed have is_bot NULL, meaning "unknown", and counting
+    those as human would silently reinstate the overstatement this exists
+    to remove.
+
+    Falls back to _CLICK_CLAIM_FLOOR until flagging has actually been
+    running for the whole window, because a partial window undercounts for
+    a reason that has nothing to do with real traffic, and a number that
+    sags for a fortnight after a deploy is worse than the floor.
+    """
+    from app.models import OutboundClick
+
+    try:
+        cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+
+        # Has flagging covered the whole window? If the oldest flagged row
+        # is newer than the cutoff, it has not, and the count would be a
+        # measurement of our deploy date rather than of our traffic.
+        oldest_flagged = (
+            OutboundClick.query
+            .filter(OutboundClick.is_bot.isnot(None))
+            .order_by(OutboundClick.created_at.asc())
+            .first()
+        )
+        if oldest_flagged is None:
+            return _CLICK_CLAIM_FLOOR
+        oldest_at = oldest_flagged.created_at
+        if oldest_at.tzinfo is None:
+            oldest_at = oldest_at.replace(tzinfo=timezone.utc)
+        if oldest_at > cutoff:
+            return _CLICK_CLAIM_FLOOR
+
+        return (
+            OutboundClick.query
+            .filter(OutboundClick.is_bot.is_(False))
+            .filter(OutboundClick.created_at >= cutoff)
+            .count()
+        )
+    except Exception as exc:
+        # Outreach must never fail to send over an analytics read.
+        log.warning("verified_outbound_clicks failed, using floor: %s", exc)
+        return _CLICK_CLAIM_FLOOR
+
+
+def outbound_click_claim(days=30):
+    """The figure as it appears in an email: comma-grouped, never rounded."""
+    return f"{verified_outbound_clicks(days):,}"
+
+
 def generate_draft_via_gemini(candidate):
     """Calls Google Gemini API to write personalized sponsored proposal."""
     api_key = _get_gemini_key()
@@ -2027,7 +2099,7 @@ STRUCTURE - follow this order exactly:
    developers search when comparing options), and that you would like to list their product there. Say plainly that it is free.
 4. The line "here's what that gets you:" followed by exactly two bullet paragraphs, each starting with the character "* " :
    * a permanent listing on ai-compass.in, indexed by Google and cited by AI assistants when people ask for tools in their category
-   * the traffic proof point, stated exactly once and never rounded or embellished: AI Compass sent 1,689 outbound click-throughs to listed
+   * the traffic proof point, stated exactly once and never rounded or embellished: AI Compass sent OUTBOUND_CLICK_COUNT outbound click-throughs to listed
      tools in the last 30 days - people clicking through to actually try them, not just browsing
 5. One sentence saying the listing is already pre-filled so it takes about 30 seconds, then the link on its OWN paragraph, as a bare visible URL.
    Use the exact placeholder PREFILL_URL for it - it is substituted later. The link text must BE the URL, not a word linking to it.
@@ -2044,8 +2116,9 @@ HARD CONSTRAINTS:
 - No emojis. At most one exclamation point, and only if genuinely natural.
 - Exactly ONE link in the whole email: the PREFILL_URL placeholder. Do not link the words "AI Compass", do not link ai-compass.in anywhere else,
   do not add a second call to action. Multiple links are a bulk-mail signal and split the reader's attention.
-- Never fabricate anything. The only metric you may cite is the 1,689 click-throughs in 30 days. Never say "monthly active visitors",
-  never cite an impressions or visitor count, never invent testimonials, urgency, or slot counts.
+- Never fabricate anything. The only metric you may cite is the OUTBOUND_CLICK_COUNT click-throughs in 30 days, and you must reproduce that
+  figure exactly as given - never round it, never restate it as "over N" or "nearly N", never substitute a number of your own.
+  Never say "monthly active visitors", never cite an impressions or visitor count, never invent testimonials, urgency, or slot counts.
 - Never state or imply a price, a discount, a paid tier or an upgrade anywhere in this email. Not in the bullets, not as an aside, not
   in the closing line.
 - Do NOT write a sign-off, signature, or "Thanks," line - that is appended separately. End at the "no pressure" line.
@@ -2065,6 +2138,11 @@ FORMATTING - this email must look like plain text, because a designed email gets
     # actual "First Last" style name; otherwise let the model use a neutral
     # greeting instead of parroting a handle back at someone.
     display_name = candidate.founder_name if _looks_like_real_name(candidate.founder_name) else ""
+
+    # Substituted here rather than interpolated above because the prompt is a
+    # plain string holding literal braces ("{first name}", "{Product}") that
+    # an f-string would try to resolve. Same reason PREFILL_URL is a token.
+    system_prompt = system_prompt.replace(CLICK_COUNT_TOKEN, outbound_click_claim())
 
     prompt = f"""\n{system_prompt}\n\nWrite an outreach email for this candidate:\n- Product Name: {candidate.product_name}\n- Tagline: {candidate.tagline}\n- Website: {candidate.website_url}\n- Founder/Maker: {display_name or 'not known — use a neutral greeting'}\n- Tone to use: {candidate.tone}\n\nIf a founder name is given, greet them by first name only (e.g. "Hey Jane," not "Hey Jane Doe,"). If not known, use "Hey there,".\n"""
 
@@ -2160,7 +2238,7 @@ def get_generic_draft(candidate):
     )
 
     subject = f"About {name}"[:50]
-    inner = f"""<p style="margin:0 0 14px 0;">Hey {first_name},</p>\n<p style="margin:0 0 14px 0;">{credit}</p>\n<p style="margin:0 0 14px 0;">{copy['offer']}</p>\n<p style="margin:0 0 14px 0;">* A permanent listing on ai-compass.in, indexed by Google and cited by AI assistants when people ask for tools in your category.</p>\n<p style="margin:0 0 14px 0;">* Real traffic, not a vanity number: AI Compass sent 1,689 outbound click-throughs to listed tools in the last 30 days - people clicking through to actually try them, not just browsing.</p>\n<p style="margin:0 0 14px 0;">{copy['cta']}</p>\n<p style="margin:0 0 14px 0;"><a href="{link}">{link}</a></p>\n<p style="margin:0 0 14px 0;">{copy['aside']}</p>\n<p style="margin:0 0 14px 0;">No pressure either way - if it is not useful, just ignore this.</p>"""
+    inner = f"""<p style="margin:0 0 14px 0;">Hey {first_name},</p>\n<p style="margin:0 0 14px 0;">{credit}</p>\n<p style="margin:0 0 14px 0;">{copy['offer']}</p>\n<p style="margin:0 0 14px 0;">* A permanent listing on ai-compass.in, indexed by Google and cited by AI assistants when people ask for tools in your category.</p>\n<p style="margin:0 0 14px 0;">* Real traffic, not a vanity number: AI Compass sent {outbound_click_claim()} outbound click-throughs to listed tools in the last 30 days - people clicking through to actually try them, not just browsing.</p>\n<p style="margin:0 0 14px 0;">{copy['cta']}</p>\n<p style="margin:0 0 14px 0;"><a href="{link}">{link}</a></p>\n<p style="margin:0 0 14px 0;">{copy['aside']}</p>\n<p style="margin:0 0 14px 0;">No pressure either way - if it is not useful, just ignore this.</p>"""
     return subject, _append_unsubscribe_footer(_outreach_wrap(inner), candidate.email)
 
 
@@ -2715,7 +2793,14 @@ def _followup_delay_days(candidate, stage):
 
 
 def campaign_sends_today(campaign=None):
-    """Campaign emails successfully sent inside the current send window."""
+    """Campaign emails successfully sent inside the current send window.
+
+    Every email, follow-ups included — unlike campaign_sends_used(), which
+    counts companies. The two differ on purpose: the lifetime budget limits
+    how many companies we are willing to approach, while this limits how much
+    mail leaves a young From address in one day, and a follow-up burns sender
+    reputation exactly as hard as a first touch does.
+    """
     campaign = campaign or CURRENT_CAMPAIGN
     return db.session.query(db.func.count(OutreachEmailLog.id)).join(
         OutreachCandidate, OutreachEmailLog.candidate_id == OutreachCandidate.id
@@ -2732,15 +2817,35 @@ def campaign_daily_remaining(campaign=None):
 
 
 def campaign_sends_used(campaign=None):
-    """How many of the campaign's finite budget have actually left the building.
+    """How many of the campaign's finite budget have actually been spent.
 
-    Counted from the email log, not from candidate status: a candidate that was
-    emailed and has since moved to 'replied' or 'bounced' still spent one of
-    the 45. Counting statuses would quietly hand the budget back every time
+    The budget is 45 COMPANIES, not 45 emails — "45 emails to companies chosen
+    one at a time" is a budget on reach, and a follow-up reaches nobody new.
+    So this counts distinct candidates with at least one successful send.
+
+    Counting rows instead cost this campaign its entire monetizing half. The
+    q3_qualified_b2b run contacted 34 companies and sent them 45 follow-ups;
+    at 79 log rows the counter read 79/45, campaign_sends_remaining() went to
+    zero, and can_send_candidate() then refused every remaining candidate —
+    including all twelve warm inbound leads, whose upgrade pitch is the only
+    email in the campaign that ever mentions money. Eleven of the 45 budgeted
+    first-touches were never spent, and the ones that were blocked were the
+    ones that pay. Follow-ups must not be able to do that: they are messages
+    to people already inside the 45, and they cost none of it.
+
+    Still counted from the email log, not from candidate status: a candidate
+    that was emailed and has since moved to 'replied' or 'bounced' still spent
+    one of the 45. Counting statuses would hand the budget back every time
     someone answered.
+
+    Daily pacing is a separate question with a separate answer — see
+    campaign_sends_today(), which DOES count every email, because sender
+    reputation is spent by messages, not by recipients.
     """
     campaign = campaign or CURRENT_CAMPAIGN
-    return db.session.query(db.func.count(OutreachEmailLog.id)).join(
+    return db.session.query(
+        db.func.count(db.distinct(OutreachEmailLog.candidate_id))
+    ).join(
         OutreachCandidate, OutreachEmailLog.candidate_id == OutreachCandidate.id
     ).filter(
         OutreachCandidate.campaign == campaign,
@@ -2811,8 +2916,10 @@ def can_send_candidate(c, for_approval=False) -> tuple[bool, str | None]:
             )
         if campaign_sends_remaining(c.campaign) <= 0:
             return False, (
-                f"Campaign '{c.campaign}' has spent its full budget of "
-                f"{CAMPAIGN_SEND_BUDGET} emails. Nothing further sends under it."
+                f"Campaign '{c.campaign}' has approached its full budget of "
+                f"{CAMPAIGN_SEND_BUDGET} companies. Nothing further sends under "
+                "it. (Follow-ups to companies already inside the budget still "
+                "go out — they cost no new reach.)"
             )
         # Today's pacing is not a reason to refuse an APPROVAL. Approving
         # twenty candidates and letting them go out over two days is exactly
@@ -3065,6 +3172,24 @@ def run_automated_followups():
             log.info("Daily send cap (%s) reached — deferring remaining follow-ups to tomorrow.", DAILY_SEND_CAP)
             break
         if not c.email or not c.draft_subject:
+            continue
+
+        # Follow-ups counted against the campaign's daily pacing cap but never
+        # checked it, so they could only ever overrun it. On 2026-09-12 that is
+        # exactly what happened: 21 follow-ups went out against a cap of 10,
+        # campaign_sends_today() jumped to 21, and every initial send that day
+        # was refused for having "sent its 10 for today" by messages that never
+        # asked the cap for permission. Whatever the cap is protecting — a From
+        # address with no sending history — a follow-up burns it too.
+        #
+        # Checked per candidate rather than once up front because
+        # campaign_daily_remaining() reads the log, and the log grows as this
+        # loop sends.
+        if c.campaign and campaign_daily_remaining(c.campaign) <= 0:
+            log.info(
+                "Campaign %s has sent its %s for today — deferring remaining "
+                "follow-ups to tomorrow.", c.campaign, CAMPAIGN_DAILY_SEND_MAX,
+            )
             continue
 
         # Shared Resend daily budget (outreach + digest + manual all draw from

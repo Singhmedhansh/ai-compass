@@ -23,6 +23,7 @@ from datetime import datetime, timedelta, timezone
 import pytest
 
 import app.outreach as outreach_mod
+import app.outreach_routes as routes_mod
 from app import create_app, db
 from app.models import OutreachCandidate, OutreachEmailLog, Submission, User
 from app.outreach_qualify import qualify_candidate, store_qualification
@@ -290,10 +291,14 @@ def test_campaign_status_reports_budget_revenue_and_deadline(admin_client, app):
 
     body = admin_client.get("/api/v1/admin/outreach/campaign/status").get_json()
     assert body["emails_sent"] == 1
+    assert body["companies_contacted"] == 1
     assert body["budget_remaining"] == outreach_mod.CAMPAIGN_SEND_BUDGET - 1
     assert body["revenue"] == 49.0
     assert body["revenue_remaining"] == 51.0
-    assert body["deadline"] == "2026-09-15"
+    # Against the constant, not a literal: the deadline has moved once already
+    # and a test that hardcodes it fails for the one reason that is never a
+    # bug — someone deciding the campaign runs longer.
+    assert body["deadline"] == routes_mod.CAMPAIGN_DEADLINE.isoformat()
     assert body["closes_the_gap"][0]["sales"] == 1
 
 
@@ -671,3 +676,40 @@ def test_inbound_import_dry_run_reports_the_company_domain_split(app, admin_clie
     assert body["on_company_domain"] == 1
     assert body["on_free_email"] == 1
     assert isinstance(body["skipped"], dict)
+
+
+def test_followups_stop_at_the_campaign_daily_cap(app, monkeypatch):
+    """Follow-ups counted against the daily pacing cap but never checked it.
+
+    Regression, q3_qualified_b2b: on 2026-09-12, 21 follow-ups went out against
+    a cap of 10. campaign_sends_today() then read 21, and every initial send
+    that day was refused for having "sent its 10 for today" — by messages that
+    had never asked the cap for permission. Whatever the cap protects (a From
+    address with no sending history), a follow-up burns it too.
+    """
+    monkeypatch.setattr(outreach_mod, "CAMPAIGN_DAILY_SEND_MAX", 3)
+    monkeypatch.setattr(outreach_mod, "reserve_send_slots",
+                        lambda n, requester=None: {"granted": n})
+
+    def _fake_send(c, stage, next_status):
+        db.session.add(OutreachEmailLog(
+            candidate_id=c.id, email=c.email, subject=f"Re: {c.draft_subject}",
+            body="b", status="success",
+        ))
+        c.status = next_status
+        c.last_status_change_at = datetime.now(timezone.utc)
+        return True
+
+    monkeypatch.setattr(outreach_mod, "_send_followup", _fake_send)
+
+    for i in range(8):
+        _sent_days_ago(3, product_name=f"Due{i}", email=f"due{i}@x.example")
+
+    sent = outreach_mod.run_automated_followups()
+
+    assert sent == 3, (
+        f"The campaign's daily cap is 3, so at most 3 follow-ups may go out "
+        f"in the window. Sent {sent}."
+    )
+    assert outreach_mod.campaign_sends_today() == 3
+    assert outreach_mod.campaign_daily_remaining() == 0
