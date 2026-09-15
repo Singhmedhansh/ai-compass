@@ -34,7 +34,7 @@ def refresh_inline(monkeypatch):
 
 def _fake_posthog(monkeypatch, totals, series, paths, monthly=None, daily=None):
     """Stub _run_query, dispatching on which of the five queries came in."""
-    def fake(hogql, key, project_id, timeout=10):
+    def fake(hogql, key, project_id, timeout=30, label="query"):
         if "toStartOfMonth(timestamp) AS month" in hogql:
             return series
         if "$pathname" in hogql:
@@ -87,7 +87,7 @@ def test_live_values_replace_the_snapshot(monkeypatch, refresh_inline):
 def test_second_call_is_served_from_cache(monkeypatch):
     calls = []
 
-    def counting(hogql, key, project_id, timeout=10):
+    def counting(hogql, key, project_id, timeout=30, label="query"):
         calls.append(hogql)
         if "toStartOfMonth(timestamp) AS month" in hogql:
             return [["2026-09-01T00:00:00Z", 7]]

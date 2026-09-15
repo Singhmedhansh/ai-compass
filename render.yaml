@@ -22,6 +22,20 @@ services:
         value: "10000"
       - key: PYTHONUNBUFFERED
         value: "1"
+      # Read path for the homepage growth panel (app/platform_stats.py).
+      # sync: false = "this service requires the var, but its VALUE is managed
+      # in the Render dashboard, not here." Declaring them matters: a var that
+      # exists only in the dashboard of a blueprint-managed service can be
+      # pruned on the next blueprint sync, which is silent — the app just goes
+      # back to serving the hand-typed FALLBACK_STATS snapshot.
+      #
+      # POSTHOG_PERSONAL_API_KEY is a PERSONAL key (phx_...) scoped to
+      # "Query: Read", NOT the phc_... public ingest key used by posthog-js.
+      # POSTHOG_PROJECT_ID is the numeric id from the project URL.
+      - key: POSTHOG_PERSONAL_API_KEY
+        sync: false
+      - key: POSTHOG_PROJECT_ID
+        sync: false
 
 databases:
   - name: ai-compass-db

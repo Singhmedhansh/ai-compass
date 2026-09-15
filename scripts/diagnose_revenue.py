@@ -188,8 +188,29 @@ with engine.connect() as conn:
     tv_30 = q(conn, "SELECT COUNT(*) c FROM tool_view_events WHERE timestamp >= now() - interval '30 days'")[0]["c"]
     print(f"ToolPageView: total={tpv_total} last30d={tpv_30}")
     print(f"ToolView(tool_view_events): total={tv_total} last30d={tv_30}")
-    print("Hardcoded outreach pitch claims: '4,000+ MAU / 110K+ impressions' (app/outreach.py ~1469,1579)")
-    print(f"  -> compare against measured 30d activity above. Distinct users active 30d proxy: users_active30={users_active30}, tpv_30={tpv_30}")
+    print(f"  -> distinct users active 30d proxy: users_active30={users_active30}, tpv_30={tpv_30}")
+
+    # The old "4,000+ MAU / 110K+ impressions" pitch claims are gone: the
+    # outreach prompt now forbids citing any visitor or impression figure
+    # (app/outreach.py, HARD CONSTRAINTS). The live claim is the outbound
+    # click count, which is read from this same table at send time by
+    # outreach.verified_outbound_clicks() — so the check worth doing is no
+    # longer "is the constant a lie" but "how much of the count is bots".
+    click_quality = q(conn, """
+        SELECT
+          COUNT(*) FILTER (WHERE is_bot IS FALSE) AS human,
+          COUNT(*) FILTER (WHERE is_bot IS TRUE)  AS bot,
+          COUNT(*) FILTER (WHERE is_bot IS NULL)  AS unknown
+        FROM outbound_clicks
+        WHERE created_at >= now() - interval '30 days'
+    """)[0]
+    human, bot, unknown = click_quality["human"], click_quality["bot"], click_quality["unknown"]
+    print(f"\nOutbound clicks 30d by verdict: human={human} bot={bot} unknown(pre-instrument)={unknown}")
+    if bot or human:
+        print(f"  bot share of classified clicks: {bot / max(bot + human, 1) * 100:.1f}%")
+    if unknown:
+        print(f"  {unknown} rows predate bot-flagging and are NOT quotable as human traffic.")
+    print(f"  Quotable figure right now: {human if not unknown else 'floor (window not yet fully instrumented)'}")
 
     # ---------------------------------------------------------------
     section("Env credential truthiness (no values printed)")
