@@ -72,3 +72,8 @@ PR_DESCRIPTION*.md
 # PostHog platform-stats cache: regenerated from the query API, like
 # rates_cache.json it holds no source of truth.
 app/platform_stats_cache.json
+
+# Security audit write-up. This repo is public, so the file naming our own
+# unfixed weaknesses must never be committed — it was untracked but not
+# ignored, which is one absent-minded `git add -A` away from publishing it.
+SECURITY_AUDIT.md
