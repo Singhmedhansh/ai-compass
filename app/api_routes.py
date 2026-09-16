@@ -5057,6 +5057,14 @@ def auth_login():
         ip = _feedback_client_ip()
         if is_rate_limited(f"login_ip:{ip}", limit=10, window_seconds=900):
             return jsonify({"error": "Too many sign-in attempts. Try again in a few minutes."}), 429
+        # Same generic wording as a wrong password, and deliberately so: a
+        # distinct "your account is blocked" reply would turn this endpoint
+        # into an oracle for who is on the denylist.
+        from app.blocklist import is_email_blocked
+
+        if is_email_blocked(email):
+            return jsonify({"error": "Invalid email or password."}), 401
+
         if email and is_rate_limited(f"login_acct:{email}", limit=10, window_seconds=900):
             return jsonify({"error": "Too many sign-in attempts. Try again in a few minutes."}), 429
 
@@ -5235,6 +5243,15 @@ def auth_register():
 
         if len(password) < 8:
             return jsonify({"error": "Password must be at least 8 characters."}), 400
+
+        # Checked before the existing-user lookup: the account may well have
+        # been deleted, and registration is the other way back in besides
+        # OAuth. Reuses the "already registered" wording for the same reason
+        # the login branch stays generic — no denylist oracle.
+        from app.blocklist import is_email_blocked
+
+        if is_email_blocked(email):
+            return jsonify({"error": "An account with this email already exists."}), 409
 
         existing = User.query.filter_by(email=email).first()
         if existing is not None:

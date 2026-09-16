@@ -379,6 +379,28 @@ def send_email_with_details(
     to sign cold mail personally (app/outreach.py); everything transactional
     keeps the default.
     """
+    # The denylist is enforced HERE, at the transport, and not in any of the
+    # callers. Every sender in the app funnels through this function — digest,
+    # outreach, claims, listing-live, payment receipts, manual admin sends —
+    # so a sender written next year inherits the block without anyone
+    # remembering to add the check. A rule of the form "never email this
+    # person again" is only true if it cannot be forgotten, and per-caller
+    # checks are exactly the kind that get forgotten.
+    #
+    # Returns the same (False, reason) shape as a suppressed send, so callers
+    # that log or retry treat it as an ordinary refusal rather than an error.
+    #
+    # Ordered BEFORE the environment suppression check on purpose. Either
+    # one refuses the send, so the outcome is identical — but the reason
+    # recorded is not, and when someone later asks "did the block actually
+    # hold?" the log should say the recipient was blocked rather than that
+    # the environment happened to be suppressing mail that day.
+    from app.blocklist import is_email_blocked
+
+    if is_email_blocked(to):
+        log.info("Email blocked by denylist — not sending %r", subject)
+        return False, "recipient_blocked"
+
     # Checked before any transport, so neither Resend nor SMTP can fire.
     suppressed, reason = sending_suppressed()
     if suppressed:

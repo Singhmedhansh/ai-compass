@@ -260,9 +260,33 @@ def init_oauth(app):
         )
 
 
+class BlockedEmailError(Exception):
+    """Raised when a denylisted address tries to sign in or register."""
+
+
 def _get_or_create_oauth_user(email, display_name, provider):
-    """Look up existing user by email or create a new OAuth account."""
+    """Look up existing user by email or create a new OAuth account.
+
+    Raises BlockedEmailError if the address is on the denylist.
+    """
     email = email.strip().lower()
+
+    # Checked before the lookup AND before the create, because this function
+    # is the only thing standing between a deleted account and its own
+    # resurrection. Deleting a users row does not keep anyone out: the next
+    # "Sign in with Google" arrives with a verified profile and this function
+    # would happily build a fresh account from it — which also puts the
+    # address straight back onto the digest recipient list, since that query
+    # is just "every user with notifications enabled".
+    #
+    # All three providers (Google, GitHub, LinkedIn) come through here, so
+    # this is one check rather than three.
+    from app.blocklist import is_email_blocked
+
+    if is_email_blocked(email):
+        current_app.logger.info("Blocked OAuth sign-in attempt via %s", provider)
+        raise BlockedEmailError(email)
+
     is_admin = email in current_app.config.get("ADMIN_EMAILS", [])
     user = User.query.filter_by(email=email).first()
     if user:
@@ -407,6 +431,8 @@ def google_callback():
             db.session.commit()
 
         return _spa_success_redirect(user, "google", name, picture)
+    except BlockedEmailError:
+        return redirect(f"{_frontend_base_url()}/login?error=account_blocked")
     except Exception:
 
         frontend_url = _frontend_base_url()
@@ -468,6 +494,8 @@ def github_callback():
             db.session.commit()
 
         return _spa_success_redirect(user, "github", display_name, avatar_url)
+    except BlockedEmailError:
+        return redirect(f"{_frontend_base_url()}/login?error=account_blocked")
     except Exception:
         current_app.logger.exception("GitHub OAuth callback failed")
         return redirect(f"{frontend_url}/login?error=github_failed")
@@ -551,6 +579,8 @@ def linkedin_callback():
         _save_linkedin_debug(dbg)
         return _spa_success_redirect(user, "linkedin", name, picture)
 
+    except BlockedEmailError:
+        return redirect(f"{_frontend_base_url()}/login?error=account_blocked")
     except Exception as exc:
         current_app.logger.exception("LinkedIn OAuth callback failed")
         dbg["stage"] = dbg.get("stage", "?") + ":exception"
