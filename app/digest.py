@@ -214,15 +214,6 @@ def run_digest(dry_run: bool = False, force: bool = False) -> dict:
     ]
     recipient_emails = sorted({e.strip().lower() for e in (user_emails + newsletter_emails) if e})
 
-    # send_email() already refuses a denylisted address, so this filter is
-    # redundant for correctness and kept for honesty: without it the digest
-    # would count blocked addresses as recipients, reserve send-budget slots
-    # for them, and write them into DigestRecipientLog as served. The mail
-    # would not go out, but every number describing the run would be wrong.
-    from app.blocklist import is_email_blocked
-
-    recipient_emails = [e for e in recipient_emails if not is_email_blocked(e)]
-
     if dry_run:
         return {
             "status": "dry_run",
