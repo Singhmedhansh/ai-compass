@@ -53,7 +53,7 @@ OUTREACH_FROM = os.environ.get(
 # See the rework brief; the short version is that quality here is a function of
 # how few we send, so the cap has to be a total, not a per-day allowance.
 CURRENT_CAMPAIGN = os.environ.get("OUTREACH_CAMPAIGN", "q3_qualified_b2b")
-# Raised 45 -> 90 on 2026-09-15, then 90 -> 100 on 2026-09-19. The original 45 was reached (44 companies
+# Raised 45 -> 90 on 2026-09-15, then to 105 on 2026-09-19. The original 45 was reached (44 companies
 # contacted) with 37 reviewed-and-approved candidates still queued and 49 more
 # in draft_ready, so the cap had become the thing stopping the campaign rather
 # than the thing shaping it. 90 covers the approved queue with headroom to keep
@@ -61,13 +61,17 @@ CURRENT_CAMPAIGN = os.environ.get("OUTREACH_CAMPAIGN", "q3_qualified_b2b")
 # many companies we are willing to approach, and still a total rather than a
 # per-day allowance — CAMPAIGN_DAILY_SEND_MAX is what paces the sending.
 #
-# The 90 never took effect. OUTREACH_CAMPAIGN_SEND_BUDGET was also set to 45 in
-# the Render dashboard, and an env var beats a code default — so for four days
-# the console reported send_budget 45 while this line said 90, and the campaign
-# sat at 0 budget remaining with 57 approved candidates queued behind it. The
-# value is therefore declared in render.yaml now: the repository is the source
-# of truth for it, not a dashboard field nobody can see in a diff.
-CAMPAIGN_SEND_BUDGET = int(os.environ.get("OUTREACH_CAMPAIGN_SEND_BUDGET", "100"))
+# 105 = 45 already contacted + the 57 approved and waiting + 3 spare. Sized to
+# clear the queue exactly rather than to a round number: at 100 the last two
+# approved candidates are refused at the wall, which is the same failure this
+# budget has produced twice already.
+#
+# NOTE for whoever finds the console disagreeing with this line again: the
+# first time that happened the answer was NOT an environment override. The
+# deploy had simply stopped landing — production was serving c967979c, which
+# has the 45 default, while main had moved on. Check which commit is actually
+# running before concluding anything about config precedence.
+CAMPAIGN_SEND_BUDGET = int(os.environ.get("OUTREACH_CAMPAIGN_SEND_BUDGET", "105"))
 
 # The three lead pools, ordered by how much the recipient already knows us.
 # They convert at very different rates, so they are tracked separately rather
