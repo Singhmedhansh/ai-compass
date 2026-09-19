@@ -36,6 +36,21 @@ services:
         sync: false
       - key: POSTHOG_PROJECT_ID
         sync: false
+      # Outreach campaign limits, declared WITH values rather than sync: false.
+      #
+      # These were set in the Render dashboard and nowhere else, so when the
+      # code defaults were raised to 90/20 on 2026-09-15 nothing changed: the
+      # dashboard's 45 and 10 kept winning, silently, and the campaign sat at
+      # zero budget remaining for four days with 57 approved candidates behind
+      # it. A limit that decides whether revenue email goes out should not live
+      # somewhere that never shows up in a diff or a review.
+      #
+      # Declaring a value here makes the blueprint authoritative and overwrites
+      # the dashboard on sync — which is the point. Change them in this file.
+      - key: OUTREACH_CAMPAIGN_SEND_BUDGET
+        value: "100"
+      - key: OUTREACH_CAMPAIGN_DAILY_MAX
+        value: "20"
 
 databases:
   - name: ai-compass-db

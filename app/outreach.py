@@ -53,14 +53,21 @@ OUTREACH_FROM = os.environ.get(
 # See the rework brief; the short version is that quality here is a function of
 # how few we send, so the cap has to be a total, not a per-day allowance.
 CURRENT_CAMPAIGN = os.environ.get("OUTREACH_CAMPAIGN", "q3_qualified_b2b")
-# Raised 45 -> 90 on 2026-09-15. The original 45 was reached (44 companies
+# Raised 45 -> 90 on 2026-09-15, then 90 -> 100 on 2026-09-19. The original 45 was reached (44 companies
 # contacted) with 37 reviewed-and-approved candidates still queued and 49 more
 # in draft_ready, so the cap had become the thing stopping the campaign rather
 # than the thing shaping it. 90 covers the approved queue with headroom to keep
 # approving before the 2026-09-25 deadline. It is still a hard ceiling on how
 # many companies we are willing to approach, and still a total rather than a
 # per-day allowance — CAMPAIGN_DAILY_SEND_MAX is what paces the sending.
-CAMPAIGN_SEND_BUDGET = int(os.environ.get("OUTREACH_CAMPAIGN_SEND_BUDGET", "90"))
+#
+# The 90 never took effect. OUTREACH_CAMPAIGN_SEND_BUDGET was also set to 45 in
+# the Render dashboard, and an env var beats a code default — so for four days
+# the console reported send_budget 45 while this line said 90, and the campaign
+# sat at 0 budget remaining with 57 approved candidates queued behind it. The
+# value is therefore declared in render.yaml now: the repository is the source
+# of truth for it, not a dashboard field nobody can see in a diff.
+CAMPAIGN_SEND_BUDGET = int(os.environ.get("OUTREACH_CAMPAIGN_SEND_BUDGET", "100"))
 
 # The three lead pools, ordered by how much the recipient already knows us.
 # They convert at very different rates, so they are tracked separately rather
